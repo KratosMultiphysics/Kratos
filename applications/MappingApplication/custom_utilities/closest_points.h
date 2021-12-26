@@ -39,9 +39,14 @@ public:
 
     PointWithId(const IndexType NewId, const CoordinatesArrayType& rCoords, const double Distance);
 
-    double GetDistance() const { return mDistance; }
+    // Copy constructor
+    PointWithId(const PointWithId& rOther);
+
+    PointWithId& operator=(const PointWithId& rOther) = delete;
 
     bool operator<(const PointWithId& rOther) const;
+
+    double GetDistance() const { return mDistance; }
 
 private:
     ///@name Member Variables
@@ -74,6 +79,11 @@ public:
 
     explicit ClosestPointsContainer(const std::size_t MaxSize);
     ClosestPointsContainer(const std::size_t MaxSize, const double MaxDistance);
+
+    // Copy constructor
+    explicit ClosestPointsContainer(const ClosestPointsContainer& rOther);
+
+    ClosestPointsContainer& operator=(const ClosestPointsContainer& rOther) = delete;
 
     bool operator==(const ClosestPointsContainer& rOther) const;
 

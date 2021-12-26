@@ -33,6 +33,25 @@ KRATOS_TEST_CASE_IN_SUITE(PointWithIdBasics, KratosMappingApplicationSerialTestS
     KRATOS_CHECK_DOUBLE_EQUAL(dist, point.GetDistance());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PointWithIdCopyConstructor, KratosMappingApplicationSerialTestSuite)
+{
+    const std::size_t id=36;
+    const Point::CoordinatesArrayType coords{1.1,-2.5,31.09};
+    const double dist=1.236;
+
+    PointWithId point(id, coords, dist);
+
+    KRATOS_CHECK_EQUAL(id, point.GetId());
+    KRATOS_CHECK_VECTOR_EQUAL(coords, point.Coordinates());
+    KRATOS_CHECK_DOUBLE_EQUAL(dist, point.GetDistance());
+
+    PointWithId copied_point(point);
+
+    KRATOS_CHECK_EQUAL(point.GetId(), copied_point.GetId());
+    KRATOS_CHECK_VECTOR_EQUAL(point.Coordinates(), copied_point.Coordinates());
+    KRATOS_CHECK_DOUBLE_EQUAL(point.GetDistance(), copied_point.GetDistance());
+}
+
 KRATOS_TEST_CASE_IN_SUITE(PointWithIdEqualComparison, KratosMappingApplicationSerialTestSuite)
 {
     const std::size_t id=36;

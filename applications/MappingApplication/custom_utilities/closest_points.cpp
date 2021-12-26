@@ -24,8 +24,11 @@ namespace Kratos {
 PointWithId::PointWithId(const IndexType NewId, const CoordinatesArrayType& rCoords, const double Distance)
     : IndexedObject(NewId), Point(rCoords), mDistance(Distance)
 {
-    KRATOS_ERROR_IF(mDistance<0.0) << "Distance cannot be negative!" << std::endl;
+    KRATOS_ERROR_IF(mDistance < 0.0) << "Distance cannot be negative!" << std::endl;
 }
+
+PointWithId::PointWithId(const PointWithId& rOther)
+    : IndexedObject(rOther), Point(rOther), mDistance(rOther.mDistance) { }
 
 bool PointWithId::operator<(const PointWithId& rOther) const
 {
@@ -52,6 +55,9 @@ ClosestPointsContainer::ClosestPointsContainer(const std::size_t MaxSize) : mMax
 
 ClosestPointsContainer::ClosestPointsContainer(const std::size_t MaxSize, const double MaxDistance)
     : mMaxSize(MaxSize), mMaxDistance(MaxDistance) { }
+
+ClosestPointsContainer::ClosestPointsContainer(const ClosestPointsContainer& rOther)
+    : mClosestPoints(rOther.mClosestPoints), mMaxSize(rOther.mMaxSize), mMaxDistance(rOther.mMaxDistance) { }
 
 bool ClosestPointsContainer::operator==(const ClosestPointsContainer& rOther) const
 {
