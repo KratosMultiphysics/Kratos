@@ -170,7 +170,7 @@ Kratos::unique_ptr<GeometryType> ReconstructLine(const ClosestPointsContainer& r
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(rClosestPoints.GetPoints().size() != 2) << "Wrong size!" << std::endl;
+    KRATOS_ERROR_IF(rClosestPoints.GetPoints().size() != 2) << "Wrong size! Expected 2 points but got " << rClosestPoints.GetPoints().size() << std::endl;
     GeometryType::PointsArrayType geom_points;
     for (const auto& r_point : rClosestPoints.GetPoints()) {
         auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
@@ -186,29 +186,47 @@ Kratos::unique_ptr<GeometryType> ReconstructTriangle(const ClosestPointsContaine
 {
     KRATOS_TRY
 
-    if (rClosestPoints.GetPoints().size() < 3) {
-        return ReconstructLine(rClosestPoints);
+    ClosestPointsContainer points_copy(rClosestPoints);
+
+    while(true) {
+        if (points_copy.GetPoints().size() < 3) {
+            return ReconstructLine(points_copy);
+        }
+
+        GeometryType::PointsArrayType geom_points;
+        for (const auto& r_point : points_copy.GetPoints()) {
+            auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
+            new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
+            geom_points.push_back(new_node);
+            if (geom_points.size() == 3) break;
+        }
+
+        // construct triangle from closest points
+        auto p_geom = Kratos::make_unique<Triangle3D3<NodeType>>(geom_points);
+
+        // check the quality of the constructed triangle
+        const double quality = p_geom->Quality(GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS);
+
+        if (quality < 0.05) {
+            KRATOS_WARNING("BarycentricMapper") << "Bad quality detected!!! " << quality << std::endl;
+            const double d1 = MapperUtilities::ComputeDistance(geom_points[0], geom_points[1]);
+            const double d2 = MapperUtilities::ComputeDistance(geom_points[0], geom_points[2]);
+            auto it_point_to_remove = points_copy.GetPoints().begin();
+            if (d1 * 10 < d2) {
+                // this means that the first and the second point are much closer to each other than the
+                // first and the third point
+                // hence the second point is removed as the triangle could never be of good condition
+                std::advance(it_point_to_remove, 1);
+            } else {
+                // else remove third point
+                std::advance(it_point_to_remove, 2);
+            }
+            points_copy.GetPoints().erase(it_point_to_remove);
+        } else {
+            KRATOS_WARNING("BarycentricMapper") << "Good quality: " << quality << std::endl;
+            return p_geom;
+        }
     }
-
-    GeometryType::PointsArrayType geom_points;
-    for (const auto& r_point : rClosestPoints.GetPoints()) {
-        auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
-        new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
-        geom_points.push_back(new_node);
-        if (geom_points.size() == 3) break; // skip points that are farther away
-    }
-
-    auto p_geom = Kratos::make_unique<Triangle3D3<NodeType>>(geom_points);
-
-
-    const double quality = p_geom->Quality(GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS);
-
-    // 1. if two points are too close remove one
-    // 2 if points are collinear remove last one
-
-    KRATOS_WARNING_IF("BarycentricMapper", quality < 0.05) << "Bad quality detected!!!" << std::endl;
-
-    return p_geom;
 
     KRATOS_CATCH("")
 }
