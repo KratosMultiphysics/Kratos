@@ -119,7 +119,6 @@ Kratos::unique_ptr<GeometryType> ReconstructTetrahedra(const ClosestPointsContai
             auto new_node = Kratos::make_intrusive<NodeType>(0, r_point[0], r_point[1], r_point[2]);
             new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
             geom_points.push_back(new_node);
-            KRATOS_WATCH_CERR(*new_node);
             if (geom_points.size() == 4) break;
         }
 
@@ -265,7 +264,7 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
     ClosestPointsContainer closest_points(GetNumPointsApprox(r_first_info.GetInterpolationType()));
     closest_points.Merge(r_first_info.GetClosestPoints());
 
-    for (std::size_t i=0; i<mInterfaceInfos.size(); ++i) {
+    for (std::size_t i=1; i<mInterfaceInfos.size(); ++i) {
         // in MPI there might be results also from other ranks
         const BarycentricInterfaceInfo& r_info = static_cast<const BarycentricInterfaceInfo&>(*mInterfaceInfos[i]);
         closest_points.Merge(r_info.GetClosestPoints());
@@ -302,6 +301,15 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         true);
 
     rPairingStatus = is_full_projection ? MapperLocalSystem::PairingStatus::InterfaceInfoFound : MapperLocalSystem::PairingStatus::Approximation;
+
+    if (rPairingStatus == MapperLocalSystem::PairingStatus::InterfaceInfoFound) {
+        const auto interpol_type = r_first_info.GetInterpolationType();
+        if ((interpol_type == BarycentricInterpolationType::LINE       && p_reconstr_geom->PointsNumber() != 2) ||
+            (interpol_type == BarycentricInterpolationType::TRIANGLE   && p_reconstr_geom->PointsNumber() != 3) ||
+            (interpol_type == BarycentricInterpolationType::TETRAHEDRA && p_reconstr_geom->PointsNumber() != 4)) {
+            rPairingStatus = MapperLocalSystem::PairingStatus::Approximation;
+        }
+    }
 
     if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != sf_values.size()) {
         rLocalMappingMatrix.resize(1, sf_values.size(), false);
