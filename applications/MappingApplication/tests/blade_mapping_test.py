@@ -221,4 +221,3 @@ class BladeMappingTestsUnevenRanks(BladeMappingTestsLessRanksModelPart):
     def GetRanksForStructure(cls):
         num_ranks = default_data_comm.Size()
         return list(range(1, num_ranks, 2))
-

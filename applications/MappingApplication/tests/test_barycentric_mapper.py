@@ -19,7 +19,7 @@ class BasicTestsLineInitialConfig(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "barycentric",,
+            "mapper_type": "barycentric",
             "interpolation_type" : "line",
             "interface_submodel_part_origin": "line_tri",
             "interface_submodel_part_destination": "line_quad",
