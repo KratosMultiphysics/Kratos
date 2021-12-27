@@ -40,8 +40,8 @@ AxisymmetricThermalElement::AxisymmetricThermalElement( IndexType NewId, Geometr
 {
   //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   //mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-  mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-  //mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+  mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
+  //mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 
@@ -218,5 +218,3 @@ void AxisymmetricThermalElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

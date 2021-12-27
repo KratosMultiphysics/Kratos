@@ -186,9 +186,6 @@ public:
 
     template<class TDataType> TDataType& GetValue(const Variable<TDataType>& rThisVariable)
     {
-#ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(rThisVariable.Key() == 0) << "attempting to do a GetValue for: " << rThisVariable << " the variable has key zero" << std::endl;
-#endif
         typename ContainerType::iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
@@ -208,10 +205,6 @@ public:
     //TODO: make the variable of the constant version consistent with the one of the "classical" one
     template<class TDataType> const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
     {
-#ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(rThisVariable.Key() == 0) << "attempting to do a GetValue for: " << rThisVariable << " the variable has key zero" << std::endl;
-#endif
-
         typename ContainerType::const_iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end())
@@ -227,9 +220,6 @@ public:
 
     template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
     {
-#ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(rThisVariable.Key() == 0) << "attempting to do a SetValue for: " << rThisVariable << " the variable has key zero" << std::endl;
-#endif
         typename ContainerType::iterator i;
 
         if ((i = std::find_if(mData.begin(), mData.end(), IndexCheck(rThisVariable.SourceKey())))  != mData.end()) {

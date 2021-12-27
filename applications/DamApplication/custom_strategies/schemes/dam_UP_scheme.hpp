@@ -50,7 +50,7 @@ public:
 
 
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mMassMatrix.resize(NumThreads);
         mAccelerationVector.resize(NumThreads);
         mDampingMatrix.resize(NumThreads);
@@ -508,7 +508,7 @@ public:
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 

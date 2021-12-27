@@ -92,7 +92,7 @@ void LaplaceElement<TDim, TNumNodes>::GetValuesArray(
 template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod LaplaceElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -195,7 +195,7 @@ void LaplaceElement<TDim, TNumNodes>::CalculateRightHandSide(
 
 template <unsigned int TDim, unsigned int TNumNodes>
 int LaplaceElement<TDim, TNumNodes>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

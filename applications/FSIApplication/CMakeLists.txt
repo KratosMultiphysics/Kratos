@@ -4,16 +4,17 @@ message("**** configuring KratosFSIApplication ****")
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
-## generate variables with the sources
-set( KRATOS_FSI_APPLICATION_SOURCES
-
+## define application core sources (pure C++ parts)
+set( KRATOS_FSI_APPLICATION_CORE_SOURCES
 	# application class
 	${CMAKE_CURRENT_SOURCE_DIR}/fsi_application.cpp
 
 	# utilities
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AdvancedNMPointsMapper.cpp
+)
 
-	# python interface sources
+## define python interface sources
+set( KRATOS_FSI_APPLICATION_PYTHON_INTERFACE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fsi_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_mappers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
@@ -25,13 +26,24 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FSI_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
-###############################################################
-## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosFSIApplication MODULE THIN_LTO ${KRATOS_FSI_APPLICATION_SOURCES} ${KRATOS_FSI_TESTING_SOURCES} )
+###############################################################################
+## FSIApplication core library (C++ parts)
+add_library( KratosFSICore SHARED ${KRATOS_FSI_APPLICATION_CORE_SOURCES} ${KRATOS_FSI_TESTING_SOURCES} )
+target_link_libraries( KratosFSICore PUBLIC KratosCore)
+set_target_properties( KratosFSICore PROPERTIES COMPILE_DEFINITIONS "FSI_APPLICATION=EXPORT,API")
 
-target_link_libraries(KratosFSIApplication PRIVATE KratosCore )
-set_target_properties(KratosFSIApplication PROPERTIES PREFIX "")
+## FSIApplication python module
+pybind11_add_module( KratosFSIApplication MODULE THIN_LTO ${KRATOS_FSI_APPLICATION_PYTHON_INTERFACE_SOURCES} )
+target_link_libraries( KratosFSIApplication PRIVATE KratosFSICore)
+set_target_properties( KratosFSIApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosFSICore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosFSIApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
+###############################################################################
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosFSIApplication PROPERTIES SUFFIX .pyd)
@@ -41,11 +53,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFSIApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosFSIApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/FSIApplication.py KratosMultiphysics/FSIApplication/__init__.py )
@@ -67,4 +74,9 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
+install(TARGETS KratosFSICore DESTINATION libs )
 install(TARGETS KratosFSIApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFSICore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFSIApplication" PARENT_SCOPE)

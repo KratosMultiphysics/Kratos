@@ -104,7 +104,7 @@ public:
     virtual typename PreconditionerType::Pointer Create(const std::string& rPreconditionerType)  const
     {
         // remove name of the application (if passed)
-        // e.g. "ExternalSolversApplication.super_lu" => "super_lu"
+        // e.g. "LinearSolversApplication.sparse_lu" => "sparse_lu"
         const std::string raw_precond_name = rPreconditionerType.substr(rPreconditionerType.find(".") + 1);
 
         KRATOS_ERROR_IF_NOT(Has(raw_precond_name))

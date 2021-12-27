@@ -224,16 +224,13 @@ public:
         this->SetMaximumAndMinimumDistanceValues(max_distance, min_distance);
 
         // Bound the distance value in the non splitted nodes
-        #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(mrFluidModelPart.NumberOfNodes()); ++k)
-        {
-            ModelPart::NodesContainerType::iterator itFluidNode = mrFluidModelPart.NodesBegin() + k;
-            if(itFluidNode->IsNot(TO_SPLIT))
+        block_for_each(mrFluidModelPart.Nodes(), [&](Node<3>& rNode){
+            if(rNode.IsNot(TO_SPLIT))
             {
-                double& rnode_distance = itFluidNode->FastGetSolutionStepValue(DISTANCE);
+                double& rnode_distance = rNode.FastGetSolutionStepValue(DISTANCE);
                 rnode_distance = (rnode_distance > 0.0) ? max_distance : min_distance;
             }
-        }
+        });
     }
 
     void SetMaximumAndMinimumDistanceValues(double& max_distance, double& min_distance)
@@ -254,7 +251,7 @@ public:
         }
 
         // Obtain the maximum and minimum nodal distance values of the nodes flagged as TO_SPLIT
-        const unsigned int num_threads = OpenMPUtils::GetNumThreads();
+        const unsigned int num_threads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector nodes_partition;
         OpenMPUtils::DivideInPartitions(mrFluidModelPart.NumberOfNodes(), num_threads, nodes_partition);
 

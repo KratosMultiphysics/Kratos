@@ -1,5 +1,22 @@
-from xmc.multiCriterion import MultiCriterion
-interpretationStructure =  MultiCriterion.flagStructure
+# TODO Improve function names
+
+
+def interpretationStructure():
+    """
+    This function returns the typical output of a MultiCriterion's interpreter,
+    with default values. Such output is meant to be created by first calling
+    this function, then changing specific values according the interpreter.
+    The point is to always have the same data structure.
+    """
+    structure = {
+        "stop": False,  # stop algorithm
+        "updateHierarchy": True,
+        "updateTolerance": False,  # for continuation-type algorithms
+        "updateIndexSpace": False,
+        "updateSampleNumberSpace": False,
+    }
+    return structure
+
 
 def interpretAsStoppingFlag(flag):
     """
@@ -7,19 +24,21 @@ def interpretAsStoppingFlag(flag):
     the question `Must I stop the algorithm now'?
     """
     interpretation = interpretationStructure()
-    interpretation['stop'] = flag[0]
+    interpretation["stop"] = flag[0]
     return interpretation
+
 
 def interpretAsConvergenceAndIterationBounds(flags):
     """
     This is the common interpreter which expects three booleans as input:
     1. Is convergence achieved?
     2. Is the number of iterations greater than the lower bound?
-    3. Is the number of iterations greater than the uppder bound?
+    3. Is the number of iterations greater than the upper bound?
     """
     flag = flags[2] or (flags[0] and flags[1])
     interpretation = interpretAsStoppingFlag([flag])
     return interpretation
+
 
 def interpretAsMultipleRequiredConvergencesAndIterationBounds(flags):
     """
@@ -32,6 +51,7 @@ def interpretAsMultipleRequiredConvergencesAndIterationBounds(flags):
     interpretation = interpretAsConvergenceAndIterationBounds([flag])
     return interpretation
 
+
 def interpretAsMultipleAlternativeConvergencesAndIterationBounds(flags):
     """
     This is the common interpreter which expects N booleans as input:
@@ -43,3 +63,11 @@ def interpretAsMultipleAlternativeConvergencesAndIterationBounds(flags):
     interpretation = interpretAsConvergenceAndIterationBounds([flag])
     return interpretation
 
+
+def interpretAsConvergenceIterationBoundsAndToleranceUpdate(flags):
+    """Like ``interpretAsConvergenceAndIterationBounds`` with tolerance update.
+
+    The last flag tells whether to update tolerance."""
+    interpretation = interpretAsConvergenceAndIterationBounds(flags[:-1])
+    interpretation["updateTolerance"] = flags[-1]
+    return interpretation

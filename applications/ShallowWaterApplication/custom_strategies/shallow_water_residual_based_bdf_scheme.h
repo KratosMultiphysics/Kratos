@@ -18,10 +18,9 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
-#include "utilities/time_discretization.h"
-#include "solving_strategies/schemes/residual_based_bdf_scheme.h"
 #include "shallow_water_application_variables.h"
+#include "custom_utilities/flow_rate_slip_utility.h"
+#include "solving_strategies/schemes/residual_based_bdf_scheme.h"
 
 namespace Kratos
 {
@@ -78,18 +77,26 @@ public:
 
     typedef ModelPart::NodesContainerType                          NodesArrayType;
 
+    typedef typename ModelPart::NodeType                                 NodeType;
+
+    typedef FlowRateSlipUtility<LocalSystemMatrixType,LocalSystemVectorType,double>FlowRateSlipToolType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     // Constructor
-    explicit ShallowWaterResidualBasedBDFScheme(const std::size_t Order = 2)
+    explicit ShallowWaterResidualBasedBDFScheme(const std::size_t Order = 2, bool UpdateVelocities = false)
         : BDFBaseType(Order)
+        , mRotationTool()
+        , mUpdateVelocities(UpdateVelocities)
     {}
 
     // Copy Constructor
     explicit ShallowWaterResidualBasedBDFScheme(ShallowWaterResidualBasedBDFScheme& rOther)
         : BDFBaseType(rOther)
+        , mRotationTool()
+        , mUpdateVelocities(rOther.mUpdateVelocities)
     {}
 
     /**
@@ -110,6 +117,37 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Performing the update of the solution within newton iteration
+     * @param rModelPart The model of the problem to solve
+     * @param rDofSet Set of all primary variables
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        mRotationTool.RotateVelocities(rModelPart);
+
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
+
+        mRotationTool.RecoverVelocities(rModelPart);
+
+        BDFBaseType::UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
+
+        if (mUpdateVelocities) UpdateVelocities(rModelPart);
+
+        KRATOS_CATCH("ShallowWaterResidualBasedBDFScheme.Update");
+    }
 
     /**
      * @brief Performing the prediction of the solution
@@ -138,8 +176,7 @@ public:
         const std::array<const Variable<double>*, 3> var_components = {&MOMENTUM_X, &MOMENTUM_Y, &HEIGHT};
         const std::array<const Variable<double>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &VERTICAL_VELOCITY};
 
-        #pragma omp parallel for
-        for (int i = 0;  i < num_nodes; ++i) {
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t i){
             auto it_node = it_node_begin + i;
 
             for (std::size_t j = 0; j < 3; ++j)
@@ -153,9 +190,119 @@ public:
             }
 
             UpdateFirstDerivative(it_node);
-        }
+        });
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ShallowWaterResidualBasedBDFScheme.Predict");
+    }
+
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
+     * @param rCurrentElement The element to compute
+     * @param rLHS_Contribution The LHS matrix contribution
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateSystemContributions(
+        Element& rCurrentElement,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateSystemContributions(
+            rCurrentElement,
+            rLHS_Contribution,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rLHS_Contribution,rRHS_Contribution,rCurrentElement.GetGeometry());
+        mRotationTool.ApplySlipCondition(rLHS_Contribution,rRHS_Contribution,rCurrentElement.GetGeometry());
+    }
+
+    /**
+     * @brief This function is designed to calculate just the RHS contribution
+     * @param rCurrentElement The element to compute
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateRHSContribution(
+            rCurrentElement,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rRHS_Contribution,rCurrentElement.GetGeometry());
+        mRotationTool.ApplySlipCondition(rRHS_Contribution,rCurrentElement.GetGeometry());
+    }
+
+    /**
+     * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.
+     * @param rCurrentCondition The condition to compute
+     * @param rLHS_Contribution The LHS matrix contribution
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateSystemContributions(
+            rCurrentCondition,
+            rLHS_Contribution,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rLHS_Contribution,rRHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ApplySlipCondition(rLHS_Contribution,rRHS_Contribution,rCurrentCondition.GetGeometry());
+    }
+
+    /**
+     * @brief This function is designed to calculate just the RHS contribution
+     * @param rCurrentCondition The condition to compute
+     * @param rRHS_Contribution The RHS vector contribution
+     * @param rEquationId The ID's of the element degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        BDFBaseType::CalculateRHSContribution(
+            rCurrentCondition,
+            rRHS_Contribution,
+            rEquationId,
+            rCurrentProcessInfo);
+
+        mRotationTool.Rotate(rRHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ApplySlipCondition(rRHS_Contribution,rCurrentCondition.GetGeometry());
+    }
+
+    /*
+     * @brief Free memory allocated by this class.
+     */
+    void Clear() override
+    {
+        this->mpDofUpdater->Clear();
     }
 
     ///@}
@@ -189,6 +336,12 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
+
+    FlowRateSlipToolType mRotationTool;
+
+    bool mUpdateVelocities;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -219,6 +372,20 @@ protected:
      * @param itNode the node interator
      */
     void UpdateSecondDerivative(NodesArrayType::iterator itNode) override {}
+
+    /**
+     * @brief Updating the velocities
+     * @param rModelPart The model part to compute
+     */
+    void UpdateVelocities(ModelPart& rModelPart)
+    {
+        block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
+            auto& vel = r_node.FastGetSolutionStepValue(VELOCITY);
+            const auto& q = r_node.FastGetSolutionStepValue(MOMENTUM);
+            const auto& h = r_node.FastGetSolutionStepValue(HEIGHT);
+            vel = q / h;
+        });
+    }
 
     /**
      * @brief It adds the dynamic LHS contribution of the elements
@@ -256,11 +423,12 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const auto& r_const_element = rElement;
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rElement.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
+            r_const_element.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, BDFBaseType::mVector.dotun0[this_thread]);
         }
     }
@@ -281,11 +449,12 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const auto& r_const_condition = rCondition;
         const std::size_t this_thread = OpenMPUtils::ThisThread();
 
         // Adding inertia contribution
         if (rM.size1() != 0) {
-            rCondition.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
+            r_const_condition.GetFirstDerivativesVector(BDFBaseType::mVector.dotun0[this_thread], 0);
             noalias(rRHS_Contribution) -= prod(rM, BDFBaseType::mVector.dotun0[this_thread]);
         }
     }
@@ -302,40 +471,6 @@ protected:
     ///@name Protected LifeCycle
     ///@{
     ///@{
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
 
 }; // Class ShallowWaterResidualBasedBDFScheme
 

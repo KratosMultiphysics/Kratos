@@ -20,9 +20,6 @@
 // Project includes
 #include "includes/element.h"
 
-// Include Base headers
-#include "includes/checks.h"
-
 namespace Kratos
 {
 

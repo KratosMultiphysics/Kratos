@@ -58,7 +58,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def Finalize(self):
         super().Finalize()
-        self.get_mechanical_solution_strategy().Clear() # needed for proper finalization of MPI
+        self._GetSolutionStrategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####
 
@@ -70,23 +70,23 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     #### Private functions ####
 
     def _create_epetra_communicator(self):
-        return TrilinosApplication.CreateCommunicator()
+        return TrilinosApplication.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
 
         if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
             KratosMultiphysics.Logger.PrintWarning("Constraints are not yet implemented in MPI and will therefore not be considered!")
 
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         epetra_communicator = self._GetEpetraCommunicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             guess_row_size = 15
@@ -104,9 +104,9 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        builder_and_solver = self.get_builder_and_solver()
+        mechanical_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
                                                           mechanical_scheme,
                                                           builder_and_solver,
@@ -117,10 +117,10 @@ class TrilinosMechanicalSolver(MechanicalSolver):
 
     def _create_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        solution_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
+        solution_scheme = self._GetScheme()
+        linear_solver = self._GetLinearSolver()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
         return TrilinosApplication.TrilinosNewtonRaphsonStrategy(computing_model_part,
                                                                  solution_scheme,
                                                                  convergence_criterion,

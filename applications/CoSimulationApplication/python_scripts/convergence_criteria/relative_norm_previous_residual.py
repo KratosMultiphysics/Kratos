@@ -34,7 +34,7 @@ class RelativeNormPreviousResidualConvergenceCriteria(CoSimulationConvergenceCri
         abs_norm = res_norm / np.sqrt(residual.size)
         rel_norm = res_norm / norm_new_data
 
-        is_converged = abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance
+        is_converged = bool(abs_norm < self.abs_tolerance or rel_norm < self.rel_tolerance)
 
         info_msg = ""
 

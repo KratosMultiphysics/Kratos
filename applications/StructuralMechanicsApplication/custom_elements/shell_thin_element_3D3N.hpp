@@ -14,11 +14,13 @@
 
 
 // System includes
+#include <type_traits>
 
 // External includes
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
 
 namespace Kratos
@@ -30,8 +32,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 ///@}
-
-class ShellT3_CoordinateTransformation;
 
 ///@name  Enum's
 ///@{
@@ -54,7 +54,12 @@ class ShellT3_CoordinateTransformation;
  * using a Corotational Coordinate Transformation.
  * Material nonlinearity is handled by means of the cross section object.
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public BaseShellElement
+
+template <ShellKinematics TKinematics>
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D3N : public
+    BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>
 {
 public:
 
@@ -63,13 +68,31 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellThinElement3D3N);
 
-    typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
-
-    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
-
-    typedef array_1d<double, 3> Vector3Type;
+    using BaseType = BaseShellElement<typename std::conditional<TKinematics==ShellKinematics::NONLINEAR_COROTATIONAL,
+        ShellT3_CorotationalCoordinateTransformation,
+        ShellT3_CoordinateTransformation>::type>;
 
     typedef Quaternion<double> QuaternionType;
+
+    using GeometryType = Element::GeometryType;
+
+    using PropertiesType = Element::PropertiesType;
+
+    using NodesArrayType = Element::NodesArrayType;
+
+    using MatrixType = Element::MatrixType;
+
+    using VectorType = Element::VectorType;
+
+    using SizeType = Element::SizeType;
+
+    using Element::GetGeometry;
+
+    using Element::GetProperties;
+
+    using Vector3Type = typename BaseType::Vector3Type;
+
+    using CoordinateTransformationPointerType = typename BaseType::CoordinateTransformationPointerType;
 
     ///@}
 
@@ -84,20 +107,13 @@ public:
     ///@{
 
     ShellThinElement3D3N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         bool NLGeom = false);
+                         GeometryType::Pointer pGeometry);
 
     ShellThinElement3D3N(IndexType NewId,
                          GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         bool NLGeom = false);
+                         PropertiesType::Pointer pProperties);
 
-    ShellThinElement3D3N(IndexType NewId,
-                         GeometryType::Pointer pGeometry,
-                         PropertiesType::Pointer pProperties,
-                         CoordinateTransformationBasePointerType pCoordinateTransformation);
-
-    ~ShellThinElement3D3N() override;
+    ~ShellThinElement3D3N() override = default;
 
     ///@}
 
@@ -132,33 +148,26 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-
-    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
-
     // More results calculation on integration points to interface with python
+
+    using BaseType::CalculateOnIntegrationPoints;
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
-                                      const ProcessInfo& rCurrentProcessInfo) override;
-
-    // Calculate functions
-    void Calculate(const Variable<Matrix >& rVariable,
-                   Matrix& Output,
-                   const ProcessInfo& rCurrentProcessInfo) override;
+    /**
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -176,7 +185,7 @@ protected:
     /**
      * Protected empty constructor
      */
-    ShellThinElement3D3N() : BaseShellElement()
+    ShellThinElement3D3N() : BaseType()
     {
     }
 
@@ -272,7 +281,7 @@ private:
 
     public:
 
-        CalculationData(const CoordinateTransformationBasePointerType& pCoordinateTransformation,
+        CalculationData(const CoordinateTransformationPointerType& pCoordinateTransformation,
                         const ProcessInfo& rCurrentProcessInfo);
 
     };
@@ -294,10 +303,6 @@ private:
     double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
     void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
-
-    void DecimalCorrection(Vector& a);
-
-    void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
 
@@ -337,8 +342,6 @@ private:
 
     ///@name Member Variables
     ///@{
-
-    CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
     SizeType mStrainSize = 6;
 

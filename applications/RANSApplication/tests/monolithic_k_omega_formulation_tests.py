@@ -8,7 +8,7 @@ class MonolithicKOmegaTest(turbulence_modelling_test_case.TurbulenceModellingTes
     def setUpClass(cls):
         super(MonolithicKOmegaTest, cls).setUpCase(
             "BackwardFacingStepTest",
-            "backward_facing_step_monolithic_k_omega_parameters.json",
+            "backward_facing_step_mon_kw_parameters.json",
             False)
 
         cls.transient_scheme_type = "bossak"
@@ -18,7 +18,7 @@ class MonolithicKOmegaPeriodicTest(periodic_turbulence_modelling_test_case.Perio
     def setUpClass(cls):
         super(MonolithicKOmegaPeriodicTest, cls).setUpCase(
             "ChannelFlowTest",
-            "channel_flow_monolithic_k_omega_parameters.json",
+            "channel_flow_mon_kw_parameters.json",
             False)
 
 if __name__ == '__main__':

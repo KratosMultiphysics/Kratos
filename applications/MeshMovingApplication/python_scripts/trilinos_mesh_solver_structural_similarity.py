@@ -2,7 +2,7 @@
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+from KratosMultiphysics.MeshMovingApplication import TrilinosExtension as TrilinosMeshMoving
 
 # Import baseclass
 from KratosMultiphysics.MeshMovingApplication.trilinos_mesh_solver_base import TrilinosMeshSolverBase
@@ -19,12 +19,12 @@ class TrilinosMeshSolverStructuralSimilarity(TrilinosMeshSolverBase):
 
     #### Private functions ####
 
-    def _create_mesh_motion_solving_strategy(self):
-        linear_solver = self.get_linear_solver()
+    def _CreateSolutionStrategy(self):
+        linear_solver = self._GetLinearSolver()
         communicator = self.get_communicator()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
-        solving_strategy = TrilinosApplication.TrilinosStructuralMeshMovingStrategy(
+        solving_strategy = TrilinosMeshMoving.TrilinosStructuralMeshMovingStrategy(
             communicator,
             self.mesh_model_part,
             linear_solver,

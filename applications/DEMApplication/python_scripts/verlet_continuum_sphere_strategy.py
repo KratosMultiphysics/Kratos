@@ -27,7 +27,6 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # SIMULATION FLAGS
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
@@ -49,7 +48,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
         # TIME RELATED PARAMETERS
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.dt)
 
         for properties in self.model_part.Properties:
             self.ModifyProperties(properties)

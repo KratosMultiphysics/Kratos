@@ -1,3 +1,6 @@
+#if !defined(U_TETRAFUNCTIONS_H )
+#define  U_TETRAFUNCTIONS_H
+
 #include "u_Types.h"
 #include "u_delphiClasses.h"
 
@@ -25,3 +28,4 @@ bool swapVolumeMesh(TVolumeMesh* aMesh);
 void splitTetrain4(TTetra *t , TList<TVertex*>* vs ,TList<TTetra*>* ts);
 void splitMeshin4(TMesh* m);
 
+#endif

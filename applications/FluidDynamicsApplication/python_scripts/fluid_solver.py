@@ -285,13 +285,7 @@ class FluidSolver(PythonSolver):
         return self._solution_strategy
 
     def _CreateEstimateDtUtility(self):
-        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if domain_size == 2:
-            estimate_dt_utility = KratosCFD.EstimateDtUtility2D(
-                self.GetComputingModelPart(),
-                self.settings["time_stepping"])
-        else:
-            estimate_dt_utility = KratosCFD.EstimateDtUtility3D(
+        estimate_dt_utility = KratosCFD.EstimateDtUtility(
                 self.GetComputingModelPart(),
                 self.settings["time_stepping"])
 
