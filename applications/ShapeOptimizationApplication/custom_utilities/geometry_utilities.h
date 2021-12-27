@@ -604,26 +604,24 @@ private:
     {
         KRATOS_TRY
 
-        const SizeType local_number_of_nodes = block_for_each<MaxReduction<SizeType>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
-            return rElement.GetGeometry().PointsNumber();
+        const int local_geometry_type = block_for_each<MaxReduction<int>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            return static_cast<int>(rElement.GetGeometry().GetGeometryType());
         });
-        const SizeType global_number_of_nodes = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_number_of_nodes);
-
-        KRATOS_ERROR_IF(global_number_of_nodes == 0)
-            << "No elements were found in " << mrModelPart.Name()
-            << ". Please use a model part with elements.\n";
+        const int global_geometry_type = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_geometry_type);
 
         block_for_each(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
-            KRATOS_ERROR_IF(rElement.GetGeometry().PointsNumber() != global_number_of_nodes)
-                << "Mismatching geometries with different number of nodes "
-                    "found in "
-                << mrModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's nodes = "
-                << global_number_of_nodes << ", current_element_id = " << rElement.Id()
-                << ", current element's geometry's number of nodes = "
-                << rElement.GetGeometry().PointsNumber() << " ].\n";
+            KRATOS_ERROR_IF(static_cast<int>(rElement.GetGeometry().GetGeometryType()) != global_geometry_type)
+                << "Mismatching geometries found in "
+                << mrModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's type = "
+                << global_geometry_type << ", current_element_id = " << rElement.Id()
+                << ", current element's geometry's type = "
+                << static_cast<int>(rElement.GetGeometry().GetGeometryType()) << " ].\n";
         });
 
-        return global_number_of_nodes;
+        const SizeType local_geometry_numer_of_nodes = block_for_each<MaxReduction<SizeType>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+            return rElement.GetGeometry().PointsNumber();
+        });
+        return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_geometry_numer_of_nodes);
 
         KRATOS_CATCH("");
     }
