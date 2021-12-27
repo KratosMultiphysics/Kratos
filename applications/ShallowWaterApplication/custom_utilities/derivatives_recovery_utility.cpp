@@ -188,7 +188,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
             const double& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable);
 
             for (unsigned int d = 0; d < TDim; ++d) {
-                gradient[d] += nodal_weights[TDim * n + d] * value;
+                gradient[d] += nodal_weights[TDim * (n+1) + d] * value;
             }
         }
     });
@@ -286,12 +286,12 @@ void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPar
                 A(n+1,i_second_order) = rel_coordinates[i] * rel_coordinates[i];
             }
             if (TDim == 2) {
-                A(n+1,n_poly_terms) = rel_coordinates[0] * rel_coordinates[1];
+                A(n+1,n_poly_terms-1) = rel_coordinates[0] * rel_coordinates[1];
             }
             else {
-                A(n+1,n_poly_terms-2) = rel_coordinates[0] * rel_coordinates[1];
-                A(n+1,n_poly_terms-1) = rel_coordinates[0] * rel_coordinates[2];
-                A(n+1,n_poly_terms)   = rel_coordinates[1] * rel_coordinates[2];
+                A(n+1,n_poly_terms-3) = rel_coordinates[0] * rel_coordinates[1];
+                A(n+1,n_poly_terms-2) = rel_coordinates[0] * rel_coordinates[2];
+                A(n+1,n_poly_terms-1)   = rel_coordinates[1] * rel_coordinates[2];
             }
         }
 
