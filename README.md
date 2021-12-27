@@ -1,6 +1,11 @@
 <p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
-[![Release][release-image]][releases] [![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
+[![License][license-image]][license] [![Github CI][Nightly-Build]][Nightly-link] [![DOI][DOI-image]][DOI] [![Twitter][twitter-image]][twitter]
+
+[![Release][release-image]][releases]
+<a href="https://github.com/KratosMultiphysics/Kratos/releases/latest"><img src="https://img.shields.io/github/release-date/KratosMultiphysics/Kratos?label="></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/compare/Release-8.1...master"><img src="https://img.shields.io/github/commits-since/KratosMultiphysics/Kratos/latest?label=commits%20since"></a>
+<a href="https://github.com/KratosMultiphysics/Kratos/commit/master"><img src="https://img.shields.io/github/last-commit/KratosMultiphysics/Kratos?label=latest%20commit"></a>
 
 [release-image]: https://img.shields.io/badge/release-8.1-green.svg?style=flat
 [releases]: https://github.com/KratosMultiphysics/Kratos/releases

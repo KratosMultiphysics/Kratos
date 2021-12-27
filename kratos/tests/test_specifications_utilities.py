@@ -280,6 +280,26 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
+        
+    def test_specifications_utilities_GetDofsListFromSpecifications(self):
+        # Set the test model part
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.CreateNewNode(1,0.0,0.0,0.0)
+        model_part.CreateNewNode(2,1.0,0.0,0.0)
+        model_part.CreateNewNode(3,0.0,1.0,0.0)
+        model_part.CreateNewNode(4,1.0,1.0,0.0)
+        prop_1 = model_part.CreateNewProperties(1)
+        model_part.CreateNewElement("DistanceCalculationElementSimplex2D3N",1,[1,2,3],prop_1)
+        model_part.CreateNewElement("DistanceCalculationElementSimplex2D3N",2,[2,4,3],prop_1)
+
+        # Get the DOFs list from the elements specifications
+        dofs_list = KratosMultiphysics.SpecificationsUtilities.GetDofsListFromSpecifications(model_part)
+
+        # Check the obtained DOFs list
+        expected_dofs_list = ["DISTANCE"]
+        self.assertEqual(dofs_list, expected_dofs_list)
 
 if __name__ == '__main__':
     KratosUnittest.main()
