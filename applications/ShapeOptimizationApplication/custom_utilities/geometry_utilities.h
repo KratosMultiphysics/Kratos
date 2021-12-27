@@ -326,7 +326,7 @@ public:
         std::function<double(const GeometryType&)> volume_method;
 
         const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        const SizeType number_of_nodes = NumberOfElementalNodesInModelPart(mrModelPart);
+        const SizeType number_of_nodes = GetNumberOfElementalNodesInModelPart(mrModelPart);
 
         if (domain_size == 2) {
             if (number_of_nodes == 3) {
@@ -394,7 +394,7 @@ public:
         VariableUtils().SetNonHistoricalVariableToZero(rDerivativeVariable, mrModelPart.Nodes());
 
         const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        const SizeType number_of_nodes = NumberOfElementalNodesInModelPart(mrModelPart);
+        const SizeType number_of_nodes = GetNumberOfElementalNodesInModelPart(mrModelPart);
 
         std::function<double(CUInt, CUInt, const GeometryType&)> volume_derivative_method;
 
@@ -602,7 +602,7 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    SizeType NumberOfElementalNodesInModelPart(const ModelPart& rModelPart) const
+    SizeType GetNumberOfElementalNodesInModelPart(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
 
