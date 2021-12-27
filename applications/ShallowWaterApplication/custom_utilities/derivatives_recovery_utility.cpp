@@ -12,6 +12,7 @@
 
 
 // System includes
+#include <unordered_set>
 
 
 // External includes
@@ -206,20 +207,21 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
 
 void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
 {
-    std::size_t space_degree = 1;
-    std::size_t required_n_neighbors = (space_degree + 2) * (space_degree + 3) / 2;
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
-        auto n_neigh = neigh_nodes.size();
-        if (n_neigh < required_n_neighbors)
+    const std::size_t space_degree = 1;
+    const std::size_t required_neighbors = (space_degree + 2) * (space_degree + 3) / 2;
+    std::vector<std::unordered_set<int>> second_neighbors_set(rModelPart.NumberOfNodes());
+    IndexPartition<int>(rModelPart.NumberOfNodes()).for_each([&](int i){
+        auto it_node = rModelPart.NodesBegin() + i;
+        auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+        if (neigh_nodes.size() < required_neighbors)
         {
-            auto initial_neigh = neigh_nodes;
-            for (auto& r_neigh : initial_neigh)
+            auto second_neighbors = second_neighbors_set.begin() + i;
+            for (auto& r_neigh : neigh_nodes)
             {
                 auto& extended_neighbors = r_neigh.GetValue(NEIGHBOUR_NODES);
                 for (auto& second_neigh : extended_neighbors) // check if it is a new neighbour
                 {
-                    if (second_neigh.Id() != rNode.Id())
+                    if (second_neigh.Id() != it_node->Id())
                     {
                         bool second_neigh_included = false;
                         for (auto& first_neigh : neigh_nodes)
@@ -231,10 +233,23 @@ void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
                             }
                         }
                         if (!second_neigh_included){
-                            neigh_nodes.push_back(&second_neigh);
+                            second_neighbors->insert(second_neigh.Id());
                         }
                     }
                 }
+            }
+        }
+    });
+    IndexPartition<int>(rModelPart.NumberOfNodes()).for_each([&](int i){
+        auto it_node = rModelPart.NodesBegin() + i;
+        auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+        if (neigh_nodes.size() < required_neighbors)
+        {
+            auto second_neighbors = second_neighbors_set.begin() + i;
+            for (auto id : *second_neighbors)
+            {
+                auto second_neigh = rModelPart.pGetNode(id);
+                neigh_nodes.push_back(second_neigh);
             }
         }
     });
@@ -260,7 +275,7 @@ void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPar
 
         for (std::size_t n = 0; n < n_neigh; ++n) // the neighbors coordinates
         {
-            auto& r_neigh = neigh_nodes[n];
+            const auto& r_neigh = neigh_nodes[n];
             const array_1d<double,3> rel_coordinates = h_inv * (r_neigh - rNode);
 
             A(n+1,0) = 1.0;
@@ -280,14 +295,14 @@ void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPar
             }
         }
 
-        // The lesat squares projection
+        // The least squares projection
         double det;
         Matrix A_pseudo_inv;
         MathUtils<double>::GeneralizedInvertMatrix(A, A_pseudo_inv, det);
 
         // Each row of the pseudo inverse contributes to a partial derivative evaluated at the current node
-        constexpr std::size_t n_first_order_terms = first_order_terms -1;
-        constexpr std::size_t n_second_order_terms = n_poly_terms - first_order_terms;
+        constexpr std::size_t n_first_order_terms = TDim; // x, y...
+        constexpr std::size_t n_second_order_terms = n_poly_terms - first_order_terms; // x^2, y^2, xy...
         std::array<int,n_first_order_terms> first_derivative_terms;
         std::array<int,n_second_order_terms> second_derivative_terms;
         if (TDim == 2) {
@@ -325,24 +340,24 @@ void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPar
             for (std::size_t d = 0; d < n_second_order_terms; ++d)
             {
                 auto row = second_derivative_terms[d];
-                second_derivative_weights[n_first_order_terms*n + d] = h_inv * h_inv * A_pseudo_inv(row, n);
+                second_derivative_weights[n_second_order_terms*n + d] = h_inv * h_inv * A_pseudo_inv(row, n);
             }
 
-            // Note, d^2(x^2)/(dx^2) = 2
+            // Note, d^2(x^2)/dx^2 = 2  and  d^2(xy)/dxy = 1
             for (std::size_t d = 0; d < TDim; ++d)
             {
-                second_derivative_weights[n_first_order_terms*n + d] *= 2.0;
+                second_derivative_weights[n_second_order_terms*n + d] *= 2.0;
             }
         }
     });
 }
 
 double DerivativesRecoveryUtility::CalculateMaximumDistance(
-    NodeType& rNode, GlobalPointersVector<NodeType>& rNeighbors)
+    const NodeType& rNode,
+    GlobalPointersVector<NodeType>& rNeighbors)
 {
     double max_distance = 0.0;
-
-    for (auto& r_neigh : rNeighbors) {
+    for (const auto& r_neigh : rNeighbors) {
         double distance = norm_2(rNode - r_neigh);
         max_distance = std::max(max_distance, distance);
     }

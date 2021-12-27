@@ -36,10 +36,15 @@ class ModelPart;
 /**
  * @ingroup ShallowWaterApplication
  * @class DerivativesRecoveryUtility
- * @brief This class is a wrapper of derivatives recovery tools
- * @see Zhimin Zhangand Ahmed Naga, 
+ * @brief Superconvergent patch recovery for linear meshes using quadratic polynomials
+ * @details Zhimin Zhangand Ahmed Naga (2006)
  * "A new finite element gradient recovery method: superconvergence property"
  * SIAM J. Sci. Comput., 26(4), 1192–1213. (22 pages)
+ *
+ * The polynomial follows the next convention:
+ *    p_2(x, y, z, Node) = trans(P)*a
+ *    trans(P) = (1, x, y, z, x^2, y^2, z^2, xy, xz, yz)
+ *    trans(a) = a_i
  */
 class DerivativesRecoveryUtility
 {
@@ -162,7 +167,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    static double CalculateMaximumDistance(NodeType& rNode, GlobalPointersVector<NodeType>& rNeighbors);
+    static double CalculateMaximumDistance(
+        const NodeType& rNode,
+        GlobalPointersVector<NodeType>& rNeighbors);
 
     ///@}
     ///@name Protected  Access
