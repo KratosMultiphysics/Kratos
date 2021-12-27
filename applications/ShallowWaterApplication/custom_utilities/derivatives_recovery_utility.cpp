@@ -146,7 +146,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentDivergence(
         auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
         auto n_neigh = neigh_nodes.size();
 
-        double& divergence = rNode.FastGetSolutionStepValue(rDestinationVariable);
+        double& divergence = rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep);
         const Vector& nodal_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
         divergence = 0.0;
 
@@ -179,7 +179,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
         const Vector& nodal_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
         gradient = ZeroVector(3);
 
-        const double& first_value = rNode.FastGetSolutionStepValue(rOriginVariable);
+        const double& first_value = rNode.FastGetSolutionStepValue(rOriginVariable, BufferStep);
         for (unsigned int d = 0; d < TDim; ++d) {
             gradient[d] += nodal_weights[d] * first_value;
         }
