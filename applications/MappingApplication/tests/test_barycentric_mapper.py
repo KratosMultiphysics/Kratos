@@ -56,6 +56,9 @@ class BasicTestsSurface(basic_mapper_tests.BasicMapperTests):
             "interpolation_type" : "triangle",
             "interface_submodel_part_origin": "surface_tri",
             "interface_submodel_part_destination": "surface_quad",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -68,6 +71,9 @@ class BasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
             "interpolation_type" : "triangle",
             "interface_submodel_part_origin": "surface_quad",
             "interface_submodel_part_destination": "surface_tri",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params, switch_sides=True)
@@ -78,6 +84,9 @@ class BasicTestsVolume(basic_mapper_tests.BasicMapperTests):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
             "interpolation_type" : "tetrahedra",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -88,6 +97,9 @@ class BasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
             "interpolation_type" : "tetrahedra",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params, switch_sides=True)
@@ -98,6 +110,9 @@ class BladeMapping(blade_mapping_test.BladeMappingTests):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
             "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -109,6 +124,9 @@ class BladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialMode
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
             "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -120,6 +138,9 @@ class BladeMappingAllRanksExceptLast(blade_mapping_test.BladeMappingTestsAllRank
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
             "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -131,6 +152,9 @@ class BladeMappingAllRanksExceptFirst(blade_mapping_test.BladeMappingTestsAllRan
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
             "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -142,6 +166,9 @@ class BladeMappingUnevenRanks(blade_mapping_test.BladeMappingTestsUnevenRanks):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
             "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
