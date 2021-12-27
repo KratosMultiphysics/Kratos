@@ -57,7 +57,7 @@ namespace Kratos
  * @brief This is the base ArcLengthStrategy
  * @details The theoretical details can be found in "Geometrical interpretation of the ARC-LENGTH method", M. Fafard and B. Massicotte,
  * Computers and Structures Vol 46 pp 603-615 (1993). (Ramm arc-length method)
- * @author Alejandro Cornejo
+ * @author Alejandro Cornejo and Ignasi de Pouplana
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class ArcLengthStrategy
@@ -404,6 +404,9 @@ class ArcLengthStrategy
         return is_converged;
     }
 
+    /**
+     * @brief This method updates the value of the external load according to the new load factor Lambda
+     */
     void UpdateExternalLoads()
     {
         // Update External Loads
