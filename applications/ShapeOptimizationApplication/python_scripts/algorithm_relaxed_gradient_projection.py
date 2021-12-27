@@ -274,7 +274,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
 
             inner_converged = self.__checkInnerConvergence()
-            
+
 
     # --------------------------------------------------------------------------
     def __checkInnerConvergence(self):
@@ -369,8 +369,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
                 active_constraint_values.append(constraint_value)
                 g_a_variable = self.constraint_gradient_variables[identifier]["mapped_gradient"]
-                print(type(g_a_variable))
-                g_a_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(g_a_variable)
+                g_a_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(g_a_variable)
                 g_a_variable_vector = KM.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, g_a_variable_vector, g_a_variable)
 
