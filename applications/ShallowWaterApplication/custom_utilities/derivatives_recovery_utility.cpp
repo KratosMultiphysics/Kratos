@@ -196,6 +196,94 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
 
 void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
     ModelPart& rModelPart,
+    const Variable<double>& rOriginVariable,
+    const Variable<double>& rDestinationVariable,
+    const std::size_t BufferStep)
+{
+    const std::size_t n_terms = TDim * (TDim + 1) / 2;
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+        auto n_neigh = neigh_nodes.size();
+
+        double& laplacian = rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep);
+        const Vector& nodal_weights = rNode.FastGetSolutionStepValue(SECOND_DERIVATIVE_WEIGHTS);
+        laplacian = 0.0;
+
+        const double& first_value = rNode.FastGetSolutionStepValue(rOriginVariable, BufferStep);
+        for (unsigned int d = 0; d < TDim; ++d) {
+            laplacian += nodal_weights[d] * first_value;
+        }
+
+        for (std::size_t n = 0; n < n_neigh; ++n){
+            const double& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable, BufferStep);
+
+            for (unsigned int d = 0; d < TDim; ++d) {
+                laplacian += nodal_weights[n_terms * (n+1) + d] * value;
+            }
+        }
+    });
+}
+
+void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double,3>>& rOriginVariable,
+    const Variable<array_1d<double,3>>& rDestinationVariable,
+    const std::size_t BufferStep)
+{
+    const std::size_t n_terms = TDim * (TDim + 1) / 2;
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+        auto n_neigh = neigh_nodes.size();
+
+        array_1d<double,3>& laplacian = rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep);
+        const Vector& nodal_weights = rNode.FastGetSolutionStepValue(SECOND_DERIVATIVE_WEIGHTS);
+        laplacian = ZeroVector(3);
+
+        const array_1d<double,3>& first_value = rNode.FastGetSolutionStepValue(rOriginVariable, BufferStep);
+        for (unsigned int d = 0; d < TDim; ++d) {
+            laplacian[d] += nodal_weights[d] * first_value[d];
+        }
+        if (TDim == 2) {
+            laplacian[0] += nodal_weights[TDim] * first_value[1];
+            laplacian[1] += nodal_weights[TDim] * first_value[0];
+        }
+        else {
+            laplacian[0] += nodal_weights[TDim] * first_value[1];
+            laplacian[1] += nodal_weights[TDim] * first_value[0];
+
+            laplacian[0] += nodal_weights[TDim+1] * first_value[2];
+            laplacian[2] += nodal_weights[TDim+1] * first_value[0];
+
+            laplacian[1] += nodal_weights[TDim+2] * first_value[2];
+            laplacian[2] += nodal_weights[TDim+2] * first_value[1];
+        }
+
+        for (std::size_t n = 0; n < n_neigh; ++n){
+            const array_1d<double,3>& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable, BufferStep);
+
+            for (unsigned int d = 0; d < TDim; ++d) {
+                laplacian[d] += nodal_weights[n_terms * (n+1) + d] * value[d];
+            }
+            if (TDim == 2) {
+                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim] * first_value[1];
+                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim] * first_value[0];
+            }
+            else {
+                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim] * first_value[1];
+                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim] * first_value[0];
+
+                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim+1] * first_value[2];
+                laplacian[2] += nodal_weights[n_terms * (n+1) + TDim+1] * first_value[0];
+
+                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim+2] * first_value[2];
+                laplacian[2] += nodal_weights[n_terms * (n+1) + TDim+2] * first_value[1];
+            }
+        }
+    });
+}
+
+void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
+    ModelPart& rModelPart,
     const Variable<array_1d<double,3>>& rOriginVariable,
     const Variable<array_1d<double,3>>& rDestinationVariable,
     const Variable<double>& rIntermediateVariable,
@@ -291,7 +379,7 @@ void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPar
             else {
                 A(n+1,n_poly_terms-3) = rel_coordinates[0] * rel_coordinates[1];
                 A(n+1,n_poly_terms-2) = rel_coordinates[0] * rel_coordinates[2];
-                A(n+1,n_poly_terms-1)   = rel_coordinates[1] * rel_coordinates[2];
+                A(n+1,n_poly_terms-1) = rel_coordinates[1] * rel_coordinates[2];
             }
         }
 

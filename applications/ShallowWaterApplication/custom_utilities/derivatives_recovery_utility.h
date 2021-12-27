@@ -109,6 +109,18 @@ public:
 
     static void CalculateSuperconvergentLaplacian(
         ModelPart& rModelPart,
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        const std::size_t BufferStep = 0);
+
+    static void CalculateSuperconvergentLaplacian(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double,3>>& rOriginVariable,
+        const Variable<array_1d<double,3>>& rDestinationVariable,
+        const std::size_t BufferStep = 0);
+
+    static void CalculateSuperconvergentLaplacian(
+        ModelPart& rModelPart,
         const Variable<array_1d<double,3>>& rOriginVariable,
         const Variable<array_1d<double,3>>& rDestinationVariable,
         const Variable<double>& rIntermediateVariable,
