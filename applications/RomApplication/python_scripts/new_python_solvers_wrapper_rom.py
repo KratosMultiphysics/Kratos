@@ -20,7 +20,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
         raise Exception("Module {} is not available.".format(application_module_name))
 
     # Filter and retrieve the Python solvers wrapper from the corresponding application
-    #TODO: This filtering wouldn't be required with a unified solvers wrapper module name
+    #TODO: This filtering wouldn't be required if we were using a unified solvers wrapper module name
     if application_module_name == "KratosMultiphysics.FluidDynamicsApplication":
         solvers_wrapper_module_module_name = "python_solvers_wrapper_fluid"
     elif application_module_name == "KratosMultiphysics.StructuralMechanicsApplication":
@@ -39,12 +39,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
     aux_solver_settings = solver_settings.Clone()
     aux_solver_settings.RemoveValue("rom_settings")
     aux_base_solver_instance = solvers_wrapper_module.CreateSolverByParameters(KratosMultiphysics.Model(), aux_solver_settings, parallelism)
-    base_solver_class_name = aux_base_solver_instance.__class__.__name__
-    base_solver_module_name = aux_base_solver_instance.__class__.__module__
-    base_solver_class = getattr(sys.modules[base_solver_module_name], base_solver_class_name)
 
     # Create the ROM solver from the base solver
-    rom_solver_instance = rom_solver.CreateSolver(base_solver_class, model, solver_settings)
+    rom_solver_instance = rom_solver.CreateSolver(type(aux_base_solver_instance), model, solver_settings)
 
     return rom_solver_instance
 
