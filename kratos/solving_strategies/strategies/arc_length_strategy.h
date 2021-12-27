@@ -317,7 +317,7 @@ class ArcLengthStrategy
         // Now we compute Dxf
         mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
         mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dx, r_b);
-        noalias(r_b) = r_f;
+        TSparseSpace::Assign(r_b, 1.0, r_f);
         mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
         double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
         mDLambdaStep = lambda_increment;
@@ -326,8 +326,8 @@ class ArcLengthStrategy
         KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
 
         TSparseSpace::InplaceMult(r_Dxf, lambda_increment);
-        noalias(r_DxPred) = r_Dxf;
-        noalias(r_DxStep)  = r_DxPred;
+        TSparseSpace::Assign(r_DxPred, 1.0, r_Dxf);
+        TSparseSpace::Assign(r_DxStep, 1.0, r_DxPred);
         TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
         UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
 
@@ -359,7 +359,7 @@ class ArcLengthStrategy
             // We compute r_Dxf 
             mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
             mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dxf, r_b);
-            noalias(r_b) = r_f;
+            TSparseSpace::Assign(r_b, 1.0, r_f);
             mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
 
             TSparseSpace::SetToZero(r_A);
@@ -368,12 +368,12 @@ class ArcLengthStrategy
 
             mpBuilderAndSolver->BuildAndSolve(mpScheme, r_model_part, r_A, r_Dxb, r_b);
             lambda_increment = -TSparseSpace::Dot(r_DxPred, r_Dxb) / TSparseSpace::Dot(r_DxPred, r_Dxf);
-            noalias(r_Dx) = r_Dxb + lambda_increment*r_Dxf;
+            TSparseSpace::Assign(r_Dx, 1.0, r_Dxb + lambda_increment*r_Dxf);
 
             // Update results
             mDLambdaStep += lambda_increment;
             mLambda += lambda_increment;
-            noalias(r_DxStep) += r_Dx;
+            TSparseSpace::UnaliasedAdd(r_DxStep, 1.0, r_Dx);
             UpdateDatabase(r_A, r_Dx, r_b, BaseType::MoveMeshFlag());
 
             mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
