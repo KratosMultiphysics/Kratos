@@ -90,6 +90,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.s_norm = 0.0
 
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        self.line_search_type = self.algorithm_settings["line_search"]["line_search_type"].GetString()
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
@@ -260,12 +261,33 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
             self.mapper.InverseMap(gradient_variable, mapped_gradient_variable)
 
-        self.__computeControlPointUpdate()
+        inner_converged = False
 
-        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+        #TODO add convergence criteria, for now only 1 iteration run for testing
+        while not inner_converged:
+
+            self.__computeControlPointUpdate()
+
+            self.__computeAdaptiveStepSize()
+
+            self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
+            self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+
+            inner_converged = self.__checkInnerConvergence()
+            
 
     # --------------------------------------------------------------------------
+    def __checkInnerConvergence(self):
+        KM.Logger.PrintInfo("Check Convergence")
+        self.inner_iter += 1
+        if self.inner_iter < 2:
+            return True
+        else: return False
+
+    def __computeAdaptiveStepSize(self):
+        KM.Logger.PrintInfo("Computing adaptive step size")
+        pass
+
     def __computeControlPointUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
         g_a, g_a_variables, relaxation_coefficients, correction_coefficients = self.__getActiveConstraints()
@@ -276,7 +298,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         nabla_f = KM.Vector()
         p = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
-        f_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
+        f_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.DF1DX_MAPPED)
         if abs(f_norm) > 1e-10:
             nabla_f *= 1.0/f_norm
 
@@ -317,10 +339,10 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         # additional normalization step
 
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.PROJECTION)
-        self.p_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.PROJECTION)
+        self.p_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
         p *= 1.0 / self.p_norm
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, p+c, KSO.CONTROL_POINT_UPDATE)
-        step_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE)
+        step_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.CONTROL_POINT_UPDATE)
 
         if abs(step_norm) > 1e-10:
             step = KM.Vector()
@@ -347,7 +369,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
                 active_constraint_values.append(constraint_value)
                 g_a_variable = self.constraint_gradient_variables[identifier]["mapped_gradient"]
-                g_a_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, g_a_variable)
+                print(type(g_a_variable))
+                g_a_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(g_a_variable)
                 g_a_variable_vector = KM.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, g_a_variable_vector, g_a_variable)
 
@@ -416,7 +439,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
             gradient_vector = KM.Vector()
             self.optimization_utilities.AssembleVector(self.design_surface, gradient_vector, gradient)
-            grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, gradient)
+            grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(gradient)
 
             if abs(grad_norm) > 1e-10:
                 gradient_vector *= 1.0/grad_norm
@@ -425,7 +448,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
         gradient_vector = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, gradient_vector, KSO.DF1DX_MAPPED)
-        grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
+        grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.DF1DX_MAPPED)
 
         if abs(grad_norm) > 1e-10:
             gradient_vector *= 1.0/grad_norm
@@ -436,8 +459,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
-        additional_values_to_log["inf_norm_p"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.PROJECTION)
-        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
+        additional_values_to_log["inf_norm_p"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
+        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.CORRECTION)
         additional_values_to_log["projection_norm"] = self.s_norm
         itr = 0
         for constraint in self.constraints:
