@@ -212,7 +212,7 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         KratosMultiphysics.SpecificationsUtilities.AddMissingDofsFromEntitiesList(model_part, list_entities)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_X), True)
         self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Y), True)
-        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), True)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISPLACEMENT_Z), False)
 
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_conditions_dependencies(self):
