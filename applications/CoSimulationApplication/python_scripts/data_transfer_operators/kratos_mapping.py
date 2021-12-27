@@ -13,8 +13,8 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 from time import time
 
-def Create(settings):
-    return KratosMappingDataTransferOperator(settings)
+def Create(*args):
+    return KratosMappingDataTransferOperator(*args)
 
 class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     """DataTransferOperator that maps values from one interface (ModelPart) to another.
@@ -33,10 +33,10 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     __dummy_model = None
     __rank_zero_model_part = None
 
-    def __init__(self, settings):
+    def __init__(self, settings, parent_coupled_solver_data_communicator):
         if not settings.Has("mapper_settings"):
             raise Exception('No "mapper_settings" provided!')
-        super().__init__(settings)
+        super().__init__(settings, parent_coupled_solver_data_communicator)
         self.__mappers = {}
 
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
