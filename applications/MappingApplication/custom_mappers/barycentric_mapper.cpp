@@ -66,7 +66,7 @@ Kratos::unique_ptr<GeometryType> ReconstructTriangle(const ClosestPointsContaine
 
     while(true) {
         if (points_copy.GetPoints().size() < 3) {
-            return std::move(ReconstructLine(points_copy));
+            return ReconstructLine(points_copy);
         }
 
         GeometryType::PointsArrayType geom_points;
@@ -113,7 +113,7 @@ Kratos::unique_ptr<GeometryType> ReconstructTetrahedra(const ClosestPointsContai
 
     while(true) {
         if (points_copy.GetPoints().size() < 4) {
-            return std::move(ReconstructTriangle(points_copy));
+            return ReconstructTriangle(points_copy);
         }
 
         GeometryType::PointsArrayType geom_points;
