@@ -134,11 +134,7 @@ class ArcLengthStrategy
     void Initialize() override
     {
         KRATOS_TRY;
-
-        if (!BaseType::mInitializeWasPerformed) {
-            BaseType::Initialize();
-        }
-
+        BaseType::Initialize();
         KRATOS_CATCH("");
     }
 
