@@ -7,10 +7,10 @@ from KratosMultiphysics.RomApplication import rom_solver
 
 def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage_module_name):
 
-    if isinstance(model, KratosMultiphysics.Model):
+    if not isinstance(model, KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 
-    if isinstance(solver_settings, KratosMultiphysics.Parameters):
+    if not isinstance(solver_settings, KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     # Get the corresponding application from the analysis_stage path
