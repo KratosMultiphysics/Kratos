@@ -150,16 +150,16 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentDivergence(
         const Vector& nodal_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
         divergence = 0.0;
 
-        const array_1d<double,3>& first_value = rNode.FastGetSolutionStepValue(rOriginVariable);
+        const array_1d<double,3>& first_value = rNode.FastGetSolutionStepValue(rOriginVariable, BufferStep);
         for (unsigned int d = 0; d < TDim; ++d){
             divergence += nodal_weights[d] * first_value[d];
         }
 
         for (unsigned int n = 0; n < n_neigh; ++n){
-            const array_1d<double,3>& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable);
+            const array_1d<double,3>& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable, BufferStep);
 
             for (unsigned int d = 0; d < TDim; ++d){
-                divergence += nodal_weights[TDim * n + d] * value[d];
+                divergence += nodal_weights[TDim * (n+1) + d] * value[d];
             }
         }
     });
@@ -175,7 +175,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
         auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
         auto n_neigh = neigh_nodes.size();
 
-        array_1d<double,3>& gradient = rNode.FastGetSolutionStepValue(rDestinationVariable);
+        array_1d<double,3>& gradient = rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep);
         const Vector& nodal_weights = rNode.FastGetSolutionStepValue(FIRST_DERIVATIVE_WEIGHTS);
         gradient = ZeroVector(3);
 
@@ -185,7 +185,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
         }
 
         for (std::size_t n = 0; n < n_neigh; ++n){
-            const double& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable);
+            const double& value = neigh_nodes[n].FastGetSolutionStepValue(rOriginVariable, BufferStep);
 
             for (unsigned int d = 0; d < TDim; ++d) {
                 gradient[d] += nodal_weights[TDim * (n+1) + d] * value;
