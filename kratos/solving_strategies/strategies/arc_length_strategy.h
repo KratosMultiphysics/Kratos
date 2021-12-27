@@ -125,10 +125,7 @@ class ArcLengthStrategy
      * @brief Destructor.
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
-    ~ArcLengthStrategy() override
-    {
-        BaseType::~BaseType();
-    }
+    ~ArcLengthStrategy() override = default;
 
 
     /**
