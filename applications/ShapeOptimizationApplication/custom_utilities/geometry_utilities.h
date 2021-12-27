@@ -33,8 +33,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "includes/global_pointer_variables.h"
-#include "utilities/variable_utils.h"
-#include "utilities/parallel_utilities.h"
 #include "utilities/element_size_calculator.h"
 
 #include "spatial_containers/spatial_containers.h"
