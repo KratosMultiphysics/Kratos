@@ -24,6 +24,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
         self.convergence_accelerators_list = factories_helper.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
+            self.data_communicator,
             self.solver_wrappers,
             self.echo_level)
 
