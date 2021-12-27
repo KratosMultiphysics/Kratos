@@ -158,7 +158,8 @@ public:
             const Matrix& rdNdX,
             const double WDerivative,
             const double DetJDerivative,
-            const Matrix& rdNdXDerivative)
+            const Matrix& rdNdXDerivative,
+            const double MassTermsDerivativesWeight = 1.0)
         {
             rResidualDerivative.clear();
 
@@ -299,9 +300,9 @@ public:
 
                     // Adding Mass term derivatives
 
-                    value -= W * tau_one_derivative * mrData.mDensity * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mRelaxedAcceleration[i];
-                    value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * mrData.mRelaxedAcceleration[i];
-                    value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * mrData.mRelaxedAcceleration[i];
+                    value -= W * tau_one_derivative * mrData.mDensity * mrData.mDensity * mrData.mConvectiveVelocityDotDnDx[a] * mrData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
+                    value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * convective_velocity_derivative_dot_dn_dx[a] * mrData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
+                    value -= W * mrData.mTauOne * mrData.mDensity * mrData.mDensity * convective_velocity_dot_dn_dx_derivative[a] * mrData.mRelaxedAcceleration[i] * MassTermsDerivativesWeight;
 
                     rResidualDerivative[row + i] += value;
                 }
@@ -325,8 +326,8 @@ public:
                 value -= W * mrData.mTauOne * pressure_gradient_dot_shape_gradient_derivative[a];
 
                 // Adding mass term derivatives
-                value -=  W * tau_one_derivative * mrData.mDensity * mrData.mRelaxedAccelerationDotDnDx[a];
-                value -=  W * mrData.mTauOne * mrData.mDensity * relaxed_acceleration_dot_dn_dx_derivative[a];
+                value -=  W * tau_one_derivative * mrData.mDensity * mrData.mRelaxedAccelerationDotDnDx[a] * MassTermsDerivativesWeight;
+                value -=  W * mrData.mTauOne * mrData.mDensity * relaxed_acceleration_dot_dn_dx_derivative[a] * MassTermsDerivativesWeight;
 
                 rResidualDerivative[row + TDim] += value;
             }
