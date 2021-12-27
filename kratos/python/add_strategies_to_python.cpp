@@ -658,14 +658,6 @@ namespace Kratos
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ArcLengthStrategyStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
-
-
-
-
-
-
-
-
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                 typename AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
                 ImplicitSolvingStrategyType >
