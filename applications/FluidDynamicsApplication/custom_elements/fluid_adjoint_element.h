@@ -277,7 +277,8 @@ protected:
 
     void AddFluidFirstDerivatives(
         MatrixType& rDerivativesMatrix,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo,
+        const double MassTermsDerivativesWeight = 1.0);
 
     void AddFluidSecondDerivatives(
         MatrixType& rDerivativesMatrix,

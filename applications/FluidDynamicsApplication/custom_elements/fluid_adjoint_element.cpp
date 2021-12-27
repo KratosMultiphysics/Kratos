@@ -538,7 +538,8 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidResidual
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDerivatives(
     MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo,
+    const double MassTermsDerivativesWeight)
 {
     KRATOS_TRY
 
@@ -568,11 +569,11 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDer
         IndexType row = 0;
         for (IndexType c = 0; c < TNumNodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
-                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
                 AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
             }
 
-            pressure_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+            pressure_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rLeftHandSideMatrix, row++, residual);
         }
     }
