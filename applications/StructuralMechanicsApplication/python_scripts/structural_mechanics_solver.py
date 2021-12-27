@@ -122,9 +122,13 @@ class MechanicalSolver(PythonSolver):
                 "advanced_settings" : { }
             },
             "arc_length"       :                  false,
-            "desired_iterations":                 4,
-            "max_radius_factor":                  10.0,
-            "min_radius_factor":                  0.1,
+            "arc_length_settings" : {
+                "desired_iterations"                  : 4,
+                "max_radius_factor"                   : 10.0,
+                "min_radius_factor"                   : 0.1,
+                "loads_sub_model_part_list" : [],
+                "loads_variable_list" : []
+            },
             "clear_storage": false,
             "move_mesh_flag": true,
             "multi_point_constraints_used": true,
@@ -514,26 +518,11 @@ class MechanicalSolver(PythonSolver):
         return strategy
 
     def _create_arc_length_strategy(self):
-        import json
-        # Arc-Length strategy
-        self.strategy_params = KratosMultiphysics.Parameters("{}")
-        
-        # TO BE IMPROVED-> PROVISIONAL
-        self.strategy_params.AddValue("loads_sub_model_part_list",KratosMultiphysics.Parameters(json.dumps(["PointLoad2D_Load_on_points_Auto1"])))
-        self.strategy_params.AddValue("loads_variable_list",KratosMultiphysics.Parameters(json.dumps(["POINT_LOAD"])))
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.0) # was ARC_LENGTH_LAMBDA
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SEARCH_RADIUS, 1.0) # was ARC_LENGTH_RADIUS_FACTOR
-        
-        self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
-        self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
-        self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-        
         solving_strategy = KratosMultiphysics.ArcLengthStrategy(self.GetComputingModelPart(),
                                                                 self._GetScheme(),
                                                                 self._GetConvergenceCriterion(),
                                                                 self._GetBuilderAndSolver(),
-                                                                self.strategy_params,
+                                                                self.settings["arc_length_settings"],
                                                                 self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
