@@ -37,6 +37,8 @@ int GetNumPointsApprox(const BarycentricInterpolationType InterpolationType)
         return 10;
     case BarycentricInterpolationType::TETRAHEDRA:
         return 15;
+    default:
+        KRATOS_ERROR << "Wrong interpolation type!" << std::endl;
     };
 }
 
@@ -166,6 +168,8 @@ Kratos::unique_ptr<GeometryType> ReconstructGeometry(
         return ReconstructTriangle(rClosestPoints);
     case BarycentricInterpolationType::TETRAHEDRA:
         return ReconstructTetrahedra(rClosestPoints);
+    default:
+        KRATOS_ERROR << "Wrong interpolation type!" << std::endl;
     };
 
     KRATOS_CATCH("")
@@ -219,7 +223,7 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
 
     mClosestPoints.Add(point);
 
-    const std::size_t num_found_points = mClosestPoints.GetPoints().size();
+    const int num_found_points = mClosestPoints.GetPoints().size();
     if (num_found_points >= GetNumPointsApprox(mInterpolationType)) {
         SetLocalSearchWasSuccessful();
     } else if (num_found_points > 0) {
