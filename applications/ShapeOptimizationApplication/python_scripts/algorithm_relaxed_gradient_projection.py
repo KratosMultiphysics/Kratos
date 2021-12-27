@@ -297,8 +297,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = KM.Vector()
         p = KM.Vector()
-        self.optimization_utilities.AssembleVector(self.design_surface, nabla_f, KSO.DF1DX_MAPPED)
-        f_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.DF1DX_MAPPED)
+        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(nabla_f, KSO.DF1DX_MAPPED)
+        f_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.DF1DX_MAPPED)
+
         if abs(f_norm) > 1e-10:
             nabla_f *= 1.0/f_norm
 
@@ -319,7 +320,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
-        self.optimization_utilities.AssembleVectorstoMatrix(self.design_surface, N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(N, g_a_variables)
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
@@ -339,14 +340,17 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         # additional normalization step
 
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, p, KSO.PROJECTION)
-        self.p_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
+        self.p_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
+        
         p *= 1.0 / self.p_norm
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, p+c, KSO.CONTROL_POINT_UPDATE)
-        step_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.CONTROL_POINT_UPDATE)
+        step_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.CONTROL_POINT_UPDATE)
+
 
         if abs(step_norm) > 1e-10:
             step = KM.Vector()
-            self.optimization_utilities.AssembleVector(self.design_surface, step, KSO.CONTROL_POINT_UPDATE)
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(step, KSO.CONTROL_POINT_UPDATE)
+
             step *= self.step_size / step_norm
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, step, KSO.CONTROL_POINT_UPDATE)
 
@@ -371,7 +375,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 g_a_variable = self.constraint_gradient_variables[identifier]["mapped_gradient"]
                 g_a_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(g_a_variable)
                 g_a_variable_vector = KM.Vector()
-                self.optimization_utilities.AssembleVector(self.design_surface, g_a_variable_vector, g_a_variable)
+                self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(g_a_variable_vector, g_a_variable)
 
                 if abs(g_a_norm) > 1e-10:
                     g_a_variable_vector *= 1.0/g_a_norm
@@ -437,8 +441,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             gradient = self.constraint_gradient_variables[identifier]["mapped_gradient"]
 
             gradient_vector = KM.Vector()
-            self.optimization_utilities.AssembleVector(self.design_surface, gradient_vector, gradient)
-            grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(gradient)
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(gradient_vector, gradient)
+            grad_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(gradient)
+
 
             if abs(grad_norm) > 1e-10:
                 gradient_vector *= 1.0/grad_norm
@@ -446,8 +451,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, gradient_vector, gradient)
 
         gradient_vector = KM.Vector()
-        self.optimization_utilities.AssembleVector(self.design_surface, gradient_vector, KSO.DF1DX_MAPPED)
-        grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.DF1DX_MAPPED)
+        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(gradient_vector, KSO.DF1DX_MAPPED)
+
+        grad_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.DF1DX_MAPPED)
 
         if abs(grad_norm) > 1e-10:
             gradient_vector *= 1.0/grad_norm
@@ -458,8 +464,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["step_size"] = self.step_size
-        additional_values_to_log["inf_norm_p"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
-        additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(KSO.CORRECTION)
+        additional_values_to_log["inf_norm_p"] = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
+        additional_values_to_log["inf_norm_c"] = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.CORRECTION)
         additional_values_to_log["projection_norm"] = self.s_norm
         itr = 0
         for constraint in self.constraints:
