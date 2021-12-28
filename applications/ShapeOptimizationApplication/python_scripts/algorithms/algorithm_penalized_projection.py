@@ -86,6 +86,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
 
         self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
         self.mapper.Initialize()
+        self.model_part_controller.InitializeDamping()
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
@@ -158,8 +159,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         if self.constraints[0]["project_gradient_on_surface_normals"].GetBool():
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DC1DX)
 
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.DC1DX)
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
+        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -180,7 +181,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.optimization_utilities.ComputeControlPointUpdate(self.design_surface, self.step_size, normalize)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+        self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):

@@ -52,6 +52,13 @@ namespace Kratos
  */
 namespace SpecificationsUtilities
 {
+
+namespace
+{
+    template< class TContainerType>
+    std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer);
+}
+
     /**
      * @brief This enum defines a "hash" used to identify if implicit/explicit or static time integration is considered
      */
@@ -153,6 +160,12 @@ namespace SpecificationsUtilities
         const Parameters SpecificationsParameters,
         const std::string EntityName = "NOT_DEFINED"
         );
+
+    std::vector<std::string> KRATOS_API(KRATOS_CORE) GetDofsListFromSpecifications(const ModelPart& rModelPart);
+
+    std::vector<std::string> KRATOS_API(KRATOS_CORE) GetDofsListFromElementsSpecifications(const ModelPart& rModelPart);
+
+    std::vector<std::string> KRATOS_API(KRATOS_CORE) GetDofsListFromConditionsSpecifications(const ModelPart& rModelPart);
 
     /**
      * @brief This method determine the flags used on the simulation
