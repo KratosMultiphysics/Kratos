@@ -462,7 +462,7 @@ class ArcLengthStrategy
      */
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
-        if (pv == NULL)
+        if (!pv)
         {
             TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
             pv.swap(pNewv);
@@ -479,7 +479,7 @@ class ArcLengthStrategy
      */
     void SaveInitializeSystemVector(TSystemVectorPointerType& pv)
     {
-        if (pv == NULL) {
+        if (!pv) {
             TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
             pv.swap(pNewv);
         }
