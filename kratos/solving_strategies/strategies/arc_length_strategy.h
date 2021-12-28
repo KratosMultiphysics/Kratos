@@ -25,9 +25,6 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 
-//default builder and solver
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-
 namespace Kratos
 {
 
