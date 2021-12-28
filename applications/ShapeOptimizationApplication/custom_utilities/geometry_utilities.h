@@ -569,7 +569,7 @@ private:
                 << static_cast<int>(rElement.GetGeometry().GetGeometryType()) << " ].\n";
         });
 
-        const SizeType local_geometry_number_of_nodes = block_for_each<MaxReduction<SizeType>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+        const int local_geometry_number_of_nodes = block_for_each<MaxReduction<int>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
             return rElement.GetGeometry().PointsNumber();
         });
         return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_geometry_number_of_nodes);
