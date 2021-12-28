@@ -75,14 +75,12 @@ std::string MassConservationCheckProcess::Initialize(){
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double inter_area = 0.0;
-    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
 
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    this->mInitialPositiveVolume = r_comm.SumAll(pos_vol);
-    this->mInitialNegativeVolume = r_comm.SumAll(neg_vol);
+    this->mInitialPositiveVolume = pos_vol;
+    this->mInitialNegativeVolume = neg_vol;
     this->mTheoreticalNegativeVolume = neg_vol;
-    inter_area = r_comm.SumAll(inter_area);
 
     std::string output_line =   "------ Initial values ----------------- \n";
     output_line +=              "  positive volume (air)   = " + std::to_string(this->mInitialPositiveVolume) + "\n";
@@ -105,18 +103,6 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
-
-    // computing global quantities via MPI communication
-    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet};
-    std::vector<double> remote_sum{0, 0, 0, 0, 0};
-    r_comm.SumAll(local_data, remote_sum);
-
-    pos_vol = remote_sum[0];
-    neg_vol = remote_sum[1];
-    inter_area = remote_sum[2];
-    net_inflow_inlet = remote_sum[3];
-    net_inflow_outlet = remote_sum[4];
 
     // making a "time step forwards" and updating the
     const double current_time = mrModelPart.GetProcessInfo()[TIME];
@@ -254,10 +240,16 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             }
         }
     }
+    // computing global quantities via MPI communication
+    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();   
+    std::vector<double> local_data{pos_vol, neg_vol, int_area};
+    std::vector<double> remote_sum{0, 0, 0};
+    r_comm.SumAll(local_data, remote_sum);    
+
     // assigning the values to the arguments of type reference
-    positiveVolume = pos_vol;
-    negativeVolume = neg_vol;
-    interfaceArea = int_area;
+    positiveVolume = remote_sum[0];
+    negativeVolume = remote_sum[1];
+    interfaceArea = remote_sum[2];
 }
 
 
@@ -592,6 +584,9 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
             }
         }
     }
+    // computing global quantities via MPI communication
+    const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
+    inflow_over_boundary = r_comm.SumAll(inflow_over_boundary);
     return inflow_over_boundary;
 }
 
