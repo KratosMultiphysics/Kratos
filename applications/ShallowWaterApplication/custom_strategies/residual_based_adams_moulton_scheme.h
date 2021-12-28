@@ -22,6 +22,7 @@
 #include "utilities/entities_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "processes/calculate_nodal_area_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 #include "custom_utilities/derivatives_recovery_utility.h"
 
 namespace Kratos
@@ -133,17 +134,22 @@ public:
     ///@{
 
     /**
-     * @brief Calculate the nodal area.
+     * @brief Initialize the nodal area and the derivatives recovery.
+     * @details The nodal area is used to apply the explicit prediction.
      * @param rModelPart The model part of the problem to solve
      */
     void Initialize(ModelPart& rModelPart) override
     {
         BaseType::Initialize(rModelPart);
         CalculateNodalAreaProcess<true>(rModelPart).Execute();
+        FindGlobalNodalNeighboursProcess(rModelPart).Execute();
+        DerivativesRecoveryUtility::ExtendNeighborsPatch(rModelPart);
+        DerivativesRecoveryUtility::CalculatePolynomialWeights(rModelPart);
     }
 
     /**
      * @brief Calculate the global projection of the auxiliary fields.
+     * @details This function is empty because the intermediate laplacian is kept constant during iterations.
      * @param rModelPart The model part of the problem to solve
      * @param rA LHS matrix
      * @param rDx Incremental update of primary variables
@@ -156,29 +162,6 @@ public:
         TSystemVectorType& rb
     ) override
     {
-        // block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
-        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
-        // });
-
-        // BaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
-
-        // block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        //     const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-        //     const double inv_mass = 1.0 / nodal_area;
-        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
-        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
-        // });
-    }
-
-    void FinalizeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-    ) override
-    {
-        // InitializeNonLinIteration(rModelPart, rA, rDx, rb);
     }
 
     /**
@@ -206,35 +189,16 @@ public:
         // Prediction of the derivatives
         PredictDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Setting to zero the projections
+        // Setting to zero the laplacian and the prediction
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            // rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = ZeroVector(3);
-            // rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) = ZeroVector(3);
             rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR) = ZeroVector(3);
         });
 
-        // // Project the laplacian fields
-        // block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        //     rElement.InitializeNonLinearIteration(r_process_info);
-        // });
-
-        // block_for_each(rModelPart.Conditions(), [&](Condition& rCondition){
-        //     rCondition.InitializeNonLinearIteration(r_process_info);
-        // });
-
-        // // Recover the laplacian field
-        // block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
-        //     const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-        //     const double inv_mass = 1.0 / nodal_area;
-        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN) *= inv_mass;
-        //     rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) *= inv_mass;
-        // });
-
-        DerivativesRecoveryUtility::CalculateLaplacian(
+        // Recover the laplacian
+        DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
             rModelPart,
             VELOCITY,
-            VELOCITY_LAPLACIAN,
-            AUX_MESH_VAR);
+            VELOCITY_LAPLACIAN);
 
         // Calculate the prediction
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
@@ -259,7 +223,7 @@ public:
             }
         });
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.Predict");
     }
 
     /**
@@ -284,7 +248,7 @@ public:
 
         UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
-        KRATOS_CATCH( "" );
+        KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.Update");
     }
 
     /**
@@ -304,11 +268,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        KRATOS_TRY;
-
         TCalculateSystemContributions(rCurrentElement, rLHSContribution, rRHSContribution, rEquationId, rCurrentProcessInfo);
-
-        KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.CalculateSystemContributions");
     }
 
     /**
@@ -325,11 +285,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        KRATOS_TRY;
-
         TCalculateRHSContribution(rCurrentElement, rRHSContribution, rEquationId, rCurrentProcessInfo);
-
-        KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.CalculateRHSContribution");
     }
 
     /**
@@ -348,11 +304,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        KRATOS_TRY;
-
         TCalculateSystemContributions(rCurrentCondition, rLHSContribution, rRHSContribution, rEquationId, rCurrentProcessInfo);
-
-        KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.CalculateSystemContributions");
     }
 
     /**
@@ -413,7 +365,9 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /**
+     * @brief Turn back information as a string.
+     */
     std::string Info() const override
     {
         return "ResidualBasedAdamsMoultonScheme";

@@ -112,43 +112,34 @@ void BoussinesqCondition<TNumNodes>::CalculateGaussPointData(
 
 template<std::size_t TNumNodes>
 void BoussinesqCondition<TNumNodes>::AddAuxiliaryLaplacian(
-    LocalVectorType& rNodalVelocityLaplacian,
-    LocalVectorType& rNodalAccelerationLaplacian,
+    LocalVectorType& rLaplacian,
     const GeometryType& rParentGeometry,
     const ConditionData& rData,
     const array_1d<double,TNumNodes>& rN,
     const Matrix& rDN_DX,
     const double Weight)
 {
-    array_1d<double,TNumNodes> normals_vector_i;
-    double vel_divergence_j;
-    double acc_divergence_j;
+    array_1d<double,TNumNodes> normal_i;
+    double divergence_j;
     std::size_t elem_num_nodes = rParentGeometry.size();
-    std::vector<array_1d<double,3>> nodal_vel(elem_num_nodes);
-    std::vector<array_1d<double,3>> nodal_acc(elem_num_nodes);
+    std::vector<array_1d<double,3>> nodal_v(elem_num_nodes);
 
-    for (IndexType i = 0; i < elem_num_nodes; ++i)
-    {
-        nodal_vel[i] = rParentGeometry[i].FastGetSolutionStepValue(VELOCITY);
-        nodal_acc[i] = rParentGeometry[i].FastGetSolutionStepValue(ACCELERATION);
+    for (IndexType i = 0; i < elem_num_nodes; ++i) {
+        nodal_v[i] = rParentGeometry[i].FastGetSolutionStepValue(VELOCITY);
     }
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        normals_vector_i[0] = rData.normal[0] * rN[i];
-        normals_vector_i[1] = rData.normal[1] * rN[i];
-        normals_vector_i[2] = 0.0;
+        normal_i[0] = rData.normal[0] * rN[i];
+        normal_i[1] = rData.normal[1] * rN[i];
+        normal_i[2] = 0.0;
 
         for (IndexType j = 0; j < elem_num_nodes; ++j)
         {
-            vel_divergence_j  = rDN_DX(j,0) * nodal_vel[j][0];
-            vel_divergence_j += rDN_DX(j,1) * nodal_vel[j][1];
-            acc_divergence_j  = rDN_DX(j,0) * nodal_acc[j][0];
-            acc_divergence_j += rDN_DX(j,1) * nodal_acc[j][1];
+            divergence_j  = rDN_DX(j,0) * nodal_v[j][0];
+            divergence_j += rDN_DX(j,1) * nodal_v[j][1];
 
-            // Projector for the auxiliary field
-            MathUtils<double>::AddVector(rNodalVelocityLaplacian,     Weight*normals_vector_i*vel_divergence_j, 3*i);
-            MathUtils<double>::AddVector(rNodalAccelerationLaplacian, Weight*normals_vector_i*acc_divergence_j, 3*i);
+            MathUtils<double>::AddVector(rLaplacian, Weight*normal_i*divergence_j, 3*i);
         }
     }
 }
@@ -203,7 +194,7 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
 
         CalculateGaussPointData(data, g, N);
         CalculateShapeFunctionDerivaties(DN_DX, parent_geom, point);
-        AddAuxiliaryLaplacian(vel_laplacian_vector, acc_laplacian_vector, parent_geom, data, N, DN_DX, weight);
+        AddAuxiliaryLaplacian(vel_laplacian_vector, parent_geom, data, N, DN_DX, weight);
     }
 
     array_1d<double,3> vel_laplacian = ZeroVector(3);
@@ -213,11 +204,8 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
         std::size_t block = 3 * i;
         vel_laplacian[0] = vel_laplacian_vector[block];
         vel_laplacian[1] = vel_laplacian_vector[block + 1];
-        acc_laplacian[0] = acc_laplacian_vector[block];
-        acc_laplacian[1] = acc_laplacian_vector[block + 1];
         r_geom[i].SetLock();
         r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
-        r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) += acc_laplacian;
         r_geom[i].UnSetLock();
     }
 }

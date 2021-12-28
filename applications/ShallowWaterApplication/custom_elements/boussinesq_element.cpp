@@ -77,7 +77,6 @@ void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const Geomet
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         rData.nodal_a[i] = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
         rData.nodal_v_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN, Step);
-        rData.nodal_a_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE, Step);
     }
 }
 
@@ -321,24 +320,19 @@ void BoussinesqElement<3>::InitializeNonLinearIteration(const ProcessInfo& rCurr
     CalculateGaussPointData(data, N);
     AddAuxiliaryLaplacian(laplacian, data, N, DN_DX, area);
 
-    const LocalVectorType& acc_vector = this->GetAccelerationsVector(data);
+    // Calculate the lapacian vector
     const LocalVectorType& vel_vector = this->GetUnknownVector(data);
-
-    LocalVectorType acc_laplacian_vector = prod(laplacian, acc_vector);
     LocalVectorType vel_laplacian_vector = prod(laplacian, vel_vector);
 
+    // Add the elemental contribution to the nodes
     array_1d<double,3> vel_laplacian = ZeroVector(3);
-    array_1d<double,3> acc_laplacian = ZeroVector(3);
     for (std::size_t i = 0; i < 3; ++i)
     {
         std::size_t block = 3 * i;
         vel_laplacian[0] = vel_laplacian_vector[block];
         vel_laplacian[1] = vel_laplacian_vector[block + 1];
-        acc_laplacian[0] = acc_laplacian_vector[block];
-        acc_laplacian[1] = acc_laplacian_vector[block + 1];
         r_geom[i].SetLock();
         r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
-        r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN_RATE) += acc_laplacian;
         r_geom[i].UnSetLock();
     }
 }

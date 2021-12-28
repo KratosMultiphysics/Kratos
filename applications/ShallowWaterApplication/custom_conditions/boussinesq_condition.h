@@ -196,7 +196,6 @@ protected:
 
     void AddAuxiliaryLaplacian(
         LocalVectorType& rNodalVelocityLaplacian,
-        LocalVectorType& rNodalAccelerationLaplacian,
         const GeometryType& rParentGeometry,
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
