@@ -280,9 +280,9 @@ public:
     {
         KRATOS_TRY;
 
-        // mpDofUpdater->UpdateDofs(rDofSet, rDx);
+        mpDofUpdater->UpdateDofs(rDofSet, rDx);
 
-        // UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
+        UpdateDerivatives(rModelPart, rDofSet, rA, rDx, rb);
 
         KRATOS_CATCH( "" );
     }
@@ -463,9 +463,7 @@ protected:
         TSystemVectorType& rb
         )
     {
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        const double dt_inv = 1.0 / delta_time;
-
+        const double dt_inv = 1.0 / rModelPart.GetProcessInfo()[DELTA_TIME];
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             PredictDerivative(rNode, VELOCITY, ACCELERATION, dt_inv);
             PredictDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, dt_inv);
@@ -515,9 +513,7 @@ protected:
         TSystemVectorType& rb
         )
     {
-        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        const double dt_inv = 1.0 / delta_time;
-
+        const double dt_inv = 1.0 / rModelPart.GetProcessInfo()[DELTA_TIME];
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             UpdateDerivative(rNode, VELOCITY, ACCELERATION, dt_inv);
             UpdateDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, dt_inv);

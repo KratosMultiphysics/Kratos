@@ -224,12 +224,21 @@ protected:
 
     LocalVectorType ConservativeVector(const LocalVectorType& rVector, const ElementData& rData) const;
 
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
+
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     double StabilizationParameter(const ElementData& rData) const override;
 
     void AddDispersiveTerms(
         LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0) override;
+
+    void AddMassTerms(
+        LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
