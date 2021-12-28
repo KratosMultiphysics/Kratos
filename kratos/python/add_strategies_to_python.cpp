@@ -648,14 +648,6 @@ namespace Kratos
             py::class_< ArcLengthStrategyStrategyType, typename ArcLengthStrategyStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
                 (m,"ArcLengthStrategy")
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters, int, bool, bool, bool >())
-                .def("SetMaxIterationNumber", &ArcLengthStrategyStrategyType::SetMaxIterationNumber)
-                .def("GetMaxIterationNumber", &ArcLengthStrategyStrategyType::GetMaxIterationNumber)
-                .def("SetKeepSystemConstantDuringIterations", &ArcLengthStrategyStrategyType::SetKeepSystemConstantDuringIterations)
-                .def("GetKeepSystemConstantDuringIterations", &ArcLengthStrategyStrategyType::GetKeepSystemConstantDuringIterations)
-                .def("SetInitializePerformedFlag", &ArcLengthStrategyStrategyType::SetInitializePerformedFlag)
-                .def("GetInitializePerformedFlag", &ArcLengthStrategyStrategyType::GetInitializePerformedFlag)
-                .def("SetUseOldStiffnessInFirstIterationFlag", &ArcLengthStrategyStrategyType::SetUseOldStiffnessInFirstIterationFlag)
-                .def("GetUseOldStiffnessInFirstIterationFlag", &ArcLengthStrategyStrategyType::GetUseOldStiffnessInFirstIterationFlag)
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
