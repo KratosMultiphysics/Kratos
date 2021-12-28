@@ -321,59 +321,9 @@ public:
     {
         KRATOS_TRY
 
-        std::function<double(const GeometryType&)> volume_method;
-
-        const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        const SizeType number_of_nodes = GetNumberOfElementalNodesInModelPart(mrModelPart);
-
-        if (domain_size == 2) {
-            if (number_of_nodes == 3) {
-                volume_method = [](const GeometryType& rGeometry) {
-                    return std::pow(
-                        ElementSizeCalculator<2, 3>::AverageElementSize(rGeometry), 2);
-                };
-            } else if (number_of_nodes == 4) {
-                volume_method = [](const GeometryType& rGeometry) {
-                    return std::pow(
-                        ElementSizeCalculator<2, 4>::AverageElementSize(rGeometry), 2);
-                };
-            } else {
-                KRATOS_ERROR
-                    << "Unsupported geometry type. Only geometries with 3 and "
-                       "4 nodes are supported in 2D. [ number_of_nodes = "
-                    << number_of_nodes << " ].\n";
-            }
-        } else if (domain_size == 3) {
-            if (number_of_nodes == 4) {
-                volume_method = [](const GeometryType& rGeometry) {
-                    return std::pow(
-                        ElementSizeCalculator<3, 4>::AverageElementSize(rGeometry), 3);
-                };
-            } else if (number_of_nodes == 6) {
-                volume_method = [](const GeometryType& rGeometry) {
-                    return std::pow(
-                        ElementSizeCalculator<3, 6>::AverageElementSize(rGeometry), 3);
-                };
-            } else if (number_of_nodes == 8) {
-                volume_method = [](const GeometryType& rGeometry) {
-                    return std::pow(
-                        ElementSizeCalculator<3, 8>::AverageElementSize(rGeometry), 3);
-                };
-            } else {
-                KRATOS_ERROR
-                    << "Unsupported geometry type. Only geometries with 4, 6 and "
-                       "8 nodes are supported in 3D. [ number_of_nodes = "
-                    << number_of_nodes << " ].\n";
-            }
-        } else {
-            KRATOS_ERROR << "Unsupported domain size. Only 2D and 3D is "
-                            "supported [ domain_size = "
-                         << domain_size << " ].\n";
-        }
-
         const double volume = block_for_each<SumReduction<double>>(
             mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
-                return volume_method(rElement.GetGeometry());
+                return rElement.GetGeometry().DomainSize();
             });
 
         return mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(volume);
@@ -618,10 +568,10 @@ private:
                 << static_cast<int>(rElement.GetGeometry().GetGeometryType()) << " ].\n";
         });
 
-        const SizeType local_geometry_numer_of_nodes = block_for_each<MaxReduction<SizeType>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+        const SizeType local_geometry_number_of_nodes = block_for_each<MaxReduction<SizeType>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
             return rElement.GetGeometry().PointsNumber();
         });
-        return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_geometry_numer_of_nodes);
+        return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_geometry_number_of_nodes);
 
         KRATOS_CATCH("");
     }
