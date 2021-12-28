@@ -66,12 +66,20 @@ class FluidSolver(PythonSolver):
         raise Exception("Trying to call FluidSolver.AddVariables(). Implement the AddVariables() method in the specific derived solver.")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["VELOCITY_X", "REACTION_X"])
+        dofs_and_reactions_to_add.append(["VELOCITY_Y", "REACTION_Y"])
+        dofs_and_reactions_to_add.append(["VELOCITY_Z", "REACTION_Z"])
+        dofs_and_reactions_to_add.append(["PRESSURE", "REACTION_WATER_PRESSURE"])
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver DOFs added correctly.")
+
+    def GetDofsList(self):
+        """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
+        Note that this requires the main_model_part to be already set, that is to say to have already performed the element substitution (see PrepareModelPart).
+        """
+        return KratosMultiphysics.SpecificationsUtilities.GetDofsListFromSpecifications(self.main_model_part)
 
     def ImportModelPart(self):
         # we can use the default implementation in the base class
