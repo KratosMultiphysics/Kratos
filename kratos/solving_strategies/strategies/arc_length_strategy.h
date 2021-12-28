@@ -610,14 +610,7 @@ class ArcLengthStrategy
         TSystemVectorType& rb,
         const bool MoveMesh)
     {
-        typename TSchemeType::Pointer p_scheme = GetScheme();
-
-        p_scheme->Update(BaseType::GetModelPart(), mpBuilderAndSolver->GetDofSet(), rA, rDx, rb);
-
-        // Move the mesh if needed
-        if (MoveMesh == true)
-            BaseType::MoveMesh();
-
+        BaseType::UpdateDatabase(rA, rDx, rb, MoveMesh);
         UpdateExternalLoads();
     }
 
