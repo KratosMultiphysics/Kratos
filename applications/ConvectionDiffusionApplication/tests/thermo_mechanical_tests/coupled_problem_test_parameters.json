@@ -143,7 +143,7 @@
 		"Parameters"            : {
 			"output_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
 			"gauss_points_output_variables" : [],
-			"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_tests_results.json",
+			"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_test_results.json",
 			"model_part_name"               : "Structure.Parts_Solid_Auto1",
 			"time_frequency"                : 1.0
 		}
