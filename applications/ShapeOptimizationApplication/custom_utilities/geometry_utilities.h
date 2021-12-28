@@ -34,6 +34,7 @@
 #include "utilities/reduction_utilities.h"
 #include "includes/global_pointer_variables.h"
 #include "utilities/element_size_calculator.h"
+#include "utilities/atomic_utilities.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -339,7 +340,11 @@ public:
 
         using CUInt = const unsigned int;
 
-        VariableUtils().SetNonHistoricalVariableToZero(rDerivativeVariable, mrModelPart.Nodes());
+        KRATOS_ERROR_IF_NOT(mrModelPart.HasNodalSolutionStepVariable(rDerivativeVariable))
+            << rDerivativeVariable.Name() << " not found in solution step variables list in "
+            << mrModelPart.FullName() << ".\n";
+
+        VariableUtils().SetHistoricalVariableToZero(rDerivativeVariable, mrModelPart.Nodes());
 
         const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
         const SizeType number_of_nodes = GetNumberOfElementalNodesInModelPart(mrModelPart);
@@ -388,21 +393,17 @@ public:
 
         block_for_each(mrModelPart.Elements(), [&](ModelPart::ElementType& rElement){
             auto& r_geometry = rElement.GetGeometry();
-            for (int c = 0; c < static_cast<int>(r_geometry.PointsNumber()); ++c) {
-                auto& r_node = r_geometry[c];
+            for (SizeType c = 0; c < r_geometry.PointsNumber(); ++c) {
+                auto& r_derivative_value = r_geometry[c].FastGetSolutionStepValue(rDerivativeVariable);
 
                 for (int k = 0; k < domain_size; ++k) {
                     const double derivative_value = volume_derivative_method(c, k, r_geometry);
-
-                    r_node.SetLock();
-                    auto& r_derivative_value = r_node.GetValue(rDerivativeVariable);
-                    r_derivative_value[k] += derivative_value;
-                    r_node.UnSetLock();
+                    AtomicAdd(r_derivative_value[k], derivative_value);
                 }
             }
         });
 
-        mrModelPart.GetCommunicator().AssembleNonHistoricalData(rDerivativeVariable);
+        mrModelPart.GetCommunicator().AssembleCurrentData(rDerivativeVariable);
 
         KRATOS_CATCH("");
     }
