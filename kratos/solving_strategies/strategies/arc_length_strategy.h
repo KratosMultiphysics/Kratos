@@ -239,11 +239,7 @@ class ArcLengthStrategy
     {
         KRATOS_TRY;
 
-        DofsArrayType& r_dof_set = mpBuilderAndSolver->GetDofSet();
         ModelPart& r_model_part  = BaseType::GetModelPart();
-        TSystemMatrixType& r_A   = *mpA;
-        TSystemVectorType& r_Dx  = *mpDx;
-        TSystemVectorType& r_b   = *mpb;
 
         unsigned int iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
         // Update the radius
@@ -253,18 +249,7 @@ class ArcLengthStrategy
         else if (mRadius < mMinRadiusFactor*mRadius_0)
             mRadius = mMinRadiusFactor*mRadius_0;
 
-        mpScheme->FinalizeSolutionStep(r_model_part, r_A, r_Dx, r_b);
-        mpBuilderAndSolver->FinalizeSolutionStep(r_model_part, r_A, r_Dx, r_b);
-        mpConvergenceCriteria->FinalizeSolutionStep(r_model_part, r_dof_set, r_A, r_Dx, r_b);
-        //Cleaning memory after the solution
-        mpScheme->Clean();
-
-        //reset flags for next step
-        BaseType::mSolutionStepIsInitialized = false;
-
-        if (BaseType::mReformDofSetAtEachStep) {
-            this->Clear();
-        }
+        BaseType::FinalizeSolutionStep();
 
         KRATOS_CATCH("");
     }
