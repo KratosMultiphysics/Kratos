@@ -125,6 +125,11 @@ class RansFormulation(ABC):
 
         if (self.GetStrategy() is not None):
             self.GetStrategy().Initialize()
+            print(self.GetModelPart().FullName())
+            # Initialize all elements to ACTIVE flag
+            if self.IsChimera() is False:
+                Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.GetBaseModelPart().Elements)
+            Kratos.VariableUtils().SetFlag(Kratos.ACTIVE, True, self.GetModelPart().Elements)
 
     def InitializeSolutionStep(self):
         """Recursively calls InitializeSolutionStep methods of existing formulations, processes and strategy in this formulaton
@@ -457,9 +462,6 @@ class RansFormulation(ABC):
                     for node in element.GetNodes():
                         for solving_variable in self.GetSolvingVariables():
                             node.SetSolutionStepValue(solving_variable, 0, 0.0)
-                            # node.SetSolutionStepValue(solving_variable, 1, 0.0)
-                            # # ^ This is what was causing the issues in overlapping region when appy_chimera_constraints_every_step was true for transient case
-                    # source_element.SetValue(Kratos.TURBULENT_VISCOSITY, 0)   # not useful
 
             # CONSTRAINTS
             # remove any existing Chimera master-slave constraints (Assuming only chimera constraints exist.)
@@ -474,6 +476,15 @@ class RansFormulation(ABC):
             self.__chimera_initialized = True
             if self.IsApplyChimeraConstraintsEveryStep():
                 self.__chimera_initialized = False # for next time step
+
+        active_count = 0
+        inactive_count = 0
+        for element in self.GetModelPart().Elements:
+            if element.Is(Kratos.ACTIVE):   
+                active_count += 1
+            elif element.IsNot(Kratos.ACTIVE): 
+                inactive_count += 1
+        print(f"active_count: {active_count}, inactive_count: {inactive_count}")
 
     def SetChimeraProcess(self, chimera_process):
         """Set the rans_chimera_settings in the root node formulation.

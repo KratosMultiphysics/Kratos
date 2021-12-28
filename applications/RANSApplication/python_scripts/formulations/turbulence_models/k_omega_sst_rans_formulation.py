@@ -8,10 +8,6 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.turbulence_models.scalar_turbulence_model_rans_formulation import ScalarTurbulenceModelRansFormulation
 from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equation_turbulence_model_rans_formulation import TwoEquationTurbulenceModelRansFormulation
 
-# import utilities
-from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess
-from KratosMultiphysics.RANSApplication import RansChimeraWallDistanceCalculationProcess
-
 class KOmegaSSTKRansFormulation(ScalarTurbulenceModelRansFormulation):
     def GetSolvingVariable(self):
         return KratosRANS.TURBULENT_KINETIC_ENERGY
@@ -112,11 +108,18 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
         if self.IsChimera():
             chimera_process = self.GetChimeraProcess()
-            self.wall_distance_process = RansChimeraWallDistanceCalculationProcess(model, 
-                                                                                   wall_distance_calculation_settings,
-                                                                                   chimera_process)
+            domain_size = process_info[Kratos.DOMAIN_SIZE]
+            print(domain_size)
+            if domain_size == 2:
+                self.wall_distance_process = KratosRANS.RansChimeraWallDistanceCalculationProcess2D(model, 
+                                                                                    wall_distance_calculation_settings,
+                                                                                    chimera_process)
+            elif domain_size == 3:
+                self.wall_distance_process = KratosRANS.RansChimeraWallDistanceCalculationProcess3D(model, 
+                                                                                    wall_distance_calculation_settings,
+                                                                                    chimera_process)                                                                                
         else:
-            self.wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
+            self.wall_distance_process = KratosRANS.RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         
         self.AddProcess(self.wall_distance_process)
 

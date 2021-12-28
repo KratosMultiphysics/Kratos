@@ -26,8 +26,7 @@
 
 // Application includes
 #include "rans_formulation_process.h"
-// #include "custom_processes/apply_chimera_process.h"     // base class: chimera process 
-#include "custom_processes/apply_rans_chimera_process_monolithic.h"     // derived class: rans chimera process
+#include "custom_processes/apply_rans_chimera_process_monolithic.h"
 
 namespace Kratos
 {
@@ -37,6 +36,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+template <int TDim>
 class KRATOS_API(RANS_APPLICATION) RansChimeraWallDistanceCalculationProcess
 : public RansFormulationProcess
 {
@@ -45,10 +45,10 @@ public:
     ///@{
     // change typedef to using later. 
     KRATOS_CLASS_POINTER_DEFINITION(RansChimeraWallDistanceCalculationProcess);
-    using PointLocatorType = BinBasedFastPointLocator<2>;   // Change it to <TDim> and use templates 
+    using PointLocatorType = BinBasedFastPointLocator<TDim>;   // Change it to <TDim> and use templates 
     using PointLocatorPointerType = typename PointLocatorType::Pointer;
     using PointLocatorsMapType = std::map<std::string, PointLocatorPointerType>;
-    using ChimeraProcessType = ApplyRANSChimeraProcessMonolithic<2>;
+    using ChimeraProcessType = ApplyRANSChimeraProcessMonolithic<TDim>;
     using NodeType = ModelPart::NodeType;
 
     ///@}
@@ -172,9 +172,10 @@ private:
 ///@{
 
 /// output stream function
+template<int TDim>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const RansChimeraWallDistanceCalculationProcess& rThis);
+    const RansChimeraWallDistanceCalculationProcess<TDim>& rThis);
 
 ///@}
 

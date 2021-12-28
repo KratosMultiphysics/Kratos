@@ -92,8 +92,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansWallDistanceCalculationProcess, RansWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansWallDistanceCalculationProcess")
         .def(py::init<Model&, Parameters&>());
 
-    py::class_<RansChimeraWallDistanceCalculationProcess, RansChimeraWallDistanceCalculationProcess::Pointer, RansFormulationProcess>(m, "RansChimeraWallDistanceCalculationProcess")
+    using RansChimeraWallDistanceCalculationProcess2D = RansChimeraWallDistanceCalculationProcess<2>;
+    using RansChimeraWallDistanceCalculationProcess3D = RansChimeraWallDistanceCalculationProcess<3>;
+    py::class_<RansChimeraWallDistanceCalculationProcess2D, RansChimeraWallDistanceCalculationProcess2D::Pointer, RansFormulationProcess>(m, "RansChimeraWallDistanceCalculationProcess2D")
         .def(py::init<Model&, Parameters&, ApplyRANSChimeraProcessMonolithic<2>&>());
+    py::class_<RansChimeraWallDistanceCalculationProcess3D, RansChimeraWallDistanceCalculationProcess3D::Pointer, RansFormulationProcess>(m, "RansChimeraWallDistanceCalculationProcess3D")
+        .def(py::init<Model&, Parameters&, ApplyRANSChimeraProcessMonolithic<3>&>());
 
     py::class_<RansComputeReactionsProcess, RansComputeReactionsProcess::Pointer, RansFormulationProcess>(m, "RansComputeReactionsProcess")
         .def(py::init<Model&, Parameters&>())

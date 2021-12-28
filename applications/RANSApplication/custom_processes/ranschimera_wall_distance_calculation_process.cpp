@@ -63,7 +63,8 @@ void CalculateAndUpdateNodalMinimumWallDistance(
 }
 } // namespace RansChimeraWallDistanceCalculationUtilities
 
-RansChimeraWallDistanceCalculationProcess::RansChimeraWallDistanceCalculationProcess(
+template <int TDim>
+RansChimeraWallDistanceCalculationProcess<TDim>::RansChimeraWallDistanceCalculationProcess(
     Model& rModel,
     Parameters rParameters,
     ChimeraProcessType& rChimeraProcess)
@@ -86,7 +87,8 @@ RansChimeraWallDistanceCalculationProcess::RansChimeraWallDistanceCalculationPro
     KRATOS_CATCH("");
 }
 
-int RansChimeraWallDistanceCalculationProcess::Check()
+template <int TDim>
+int RansChimeraWallDistanceCalculationProcess<TDim>::Check()
 {
     KRATOS_TRY
 
@@ -115,28 +117,32 @@ int RansChimeraWallDistanceCalculationProcess::Check()
 //     CalculateWallDistances();
 // }
 
-void RansChimeraWallDistanceCalculationProcess::ExecuteInitializeSolutionStep()
+template <int TDim>
+void RansChimeraWallDistanceCalculationProcess<TDim>::ExecuteInitializeSolutionStep()
 {
     if (!mIsFormulated) {
-        // CalculateWallDistances();
-        CalculateAnalyticalWallDistances();
+        CalculateWallDistances();
+        // CalculateAnalyticalWallDistances();
         mIsFormulated = true;
     }
 }
 
-void RansChimeraWallDistanceCalculationProcess::ExecuteFinalizeSolutionStep()
+template <int TDim>
+void RansChimeraWallDistanceCalculationProcess<TDim>::ExecuteFinalizeSolutionStep()
 {
     if (mRecalculateAtEachTimeStep){
         mIsFormulated = false;
     }
 }
 
-std::string RansChimeraWallDistanceCalculationProcess::Info() const
+template <int TDim>
+std::string RansChimeraWallDistanceCalculationProcess<TDim>::Info() const
 {
     return std::string("RansChimeraWallDistanceCalculationProcess");
 }
 
-void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
+template <int TDim>
+void RansChimeraWallDistanceCalculationProcess<TDim>::CalculateWallDistances()
 {
     KRATOS_TRY
 
@@ -339,9 +345,8 @@ void RansChimeraWallDistanceCalculationProcess::CalculateWallDistances()
     KRATOS_CATCH("");
 }
 
-// template <int TDim>  
-// bool RansChimeraWallDistanceCalculationProcess<TDim>::SearchNode(PointLocatorType& rBinLocator,
-bool RansChimeraWallDistanceCalculationProcess::SearchNode(PointLocatorType& rBinLocator,
+template <int TDim>
+bool RansChimeraWallDistanceCalculationProcess<TDim>::SearchNode(PointLocatorType& rBinLocator,
                                                            NodeType& rNodeToFind,
                                                            Element::Pointer& rpHostElement,
                                                            Vector& rWeights)
@@ -357,7 +362,8 @@ bool RansChimeraWallDistanceCalculationProcess::SearchNode(PointLocatorType& rBi
     return is_found;
 }
 
-const Parameters RansChimeraWallDistanceCalculationProcess::GetDefaultParameters() const
+template <int TDim>
+const Parameters RansChimeraWallDistanceCalculationProcess<TDim>::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {
@@ -374,7 +380,9 @@ const Parameters RansChimeraWallDistanceCalculationProcess::GetDefaultParameters
     return default_parameters;
 }
 
-void RansChimeraWallDistanceCalculationProcess::CalculateAnalyticalWallDistances(){
+
+template <int TDim>
+void RansChimeraWallDistanceCalculationProcess<TDim>::CalculateAnalyticalWallDistances(){
 
     KRATOS_TRY;
 
@@ -396,55 +404,6 @@ void RansChimeraWallDistanceCalculationProcess::CalculateAnalyticalWallDistances
 
     BuiltinTimer wall_distance_calculation_time;
 
-    // for (auto& rNode: r_main_model_part.Nodes()){
-
-    //     double distance_from_center = fabs(sqrt(
-    //         std::pow((rNode.Coordinates()[0] - center[0]), 2) + 
-    //         std::pow((rNode.Coordinates()[1] - center[1]), 2) +
-    //         std::pow((rNode.Coordinates()[2] - center[2]), 2)
-    //     ));
-
-    //     rNode.FastGetSolutionStepValue(r_distance_variable) = fabs(distance_from_center - radius);
-    //     rNode.Set(VISITED, true);           
-
-    //     KRATOS_WATCH(rNode.Coordinates()[0]);
-    //     KRATOS_WATCH(rNode.Coordinates()[1]);
-    //     KRATOS_WATCH(rNode.Coordinates()[2]);
-
-    //     KRATOS_WATCH(center[0]);
-    //     KRATOS_WATCH(center[1]);
-    //     KRATOS_WATCH(center[2]);  
-
-    //     KRATOS_WATCH(rNode.Coordinates()[0] - center[0]);
-    //     KRATOS_WATCH(rNode.Coordinates()[1] - center[1]);
-    //     KRATOS_WATCH(rNode.Coordinates()[2] - center[2]); 
-
-    //     KRATOS_WATCH(std::pow((rNode.Coordinates()[0] - center[0]), 2));
-    //     KRATOS_WATCH(std::pow((rNode.Coordinates()[1] - center[1]), 2));
-    //     KRATOS_WATCH(std::pow((rNode.Coordinates()[2] - center[2]), 2));
-
-    //     KRATOS_WATCH(
-    //         std::pow((rNode.Coordinates()[0] - center[0]), 2) + 
-    //         std::pow((rNode.Coordinates()[1] - center[1]), 2) + 
-    //         std::pow((rNode.Coordinates()[2] - center[2]), 2)
-    //     );
-
-    //     KRATOS_WATCH((sqrt(
-    //         std::pow((rNode.Coordinates()[0] - center[0]), 2) + 
-    //         std::pow((rNode.Coordinates()[1] - center[1]), 2) + 
-    //         std::pow((rNode.Coordinates()[2] - center[2]), 2)
-    //     )));
-
-    //     KRATOS_WATCH(fabs((sqrt(
-    //         std::pow((rNode.Coordinates()[0] - center[0]), 2) + 
-    //         std::pow((rNode.Coordinates()[1] - center[1]), 2) + 
-    //         std::pow((rNode.Coordinates()[2] - center[2]), 2)
-    //     )) - radius));
-
-    //     KRATOS_WATCH(rNode.FastGetSolutionStepValue(r_distance_variable));
-
-    //     std::exit(-1);
-    // }
     for (auto rPointLocatorMap : mPointLocatorsMap){
         std::string modelpart_name = rPointLocatorMap.first;
         auto& submodelpart = r_main_model_part.GetSubModelPart(modelpart_name);
@@ -461,7 +420,6 @@ void RansChimeraWallDistanceCalculationProcess::CalculateAnalyticalWallDistances
         });
     }
 
-
     block_for_each(r_wall_model_part.Nodes(), [&](ModelPart::NodeType& rNode){
         rNode.FastGetSolutionStepValue(r_distance_variable) = 0.0;
     });
@@ -474,5 +432,9 @@ void RansChimeraWallDistanceCalculationProcess::CalculateAnalyticalWallDistances
 
     KRATOS_CATCH("");
 }
+
+// Template declarations
+template class RansChimeraWallDistanceCalculationProcess<2>;
+template class RansChimeraWallDistanceCalculationProcess<3>;
 
 } // namespace Kratos.

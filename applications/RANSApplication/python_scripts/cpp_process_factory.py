@@ -44,6 +44,14 @@ def Factory(settings, Model):
             KratosRANS.RansWallDistanceCalculationProcess
         ],
         [
+            "RansChimeraWallDistanceCalculationProcess2D",
+            KratosRANS.RansChimeraWallDistanceCalculationProcess2D
+        ],
+        [
+            "RansChimeraWallDistanceCalculationProcess3D",
+            KratosRANS.RansChimeraWallDistanceCalculationProcess3D
+        ],
+        [
             "NutNodalUpdateProcess",
             KratosRANS.RansNutNodalUpdateProcess
         ],
