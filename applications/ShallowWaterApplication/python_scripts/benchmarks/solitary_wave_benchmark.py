@@ -28,10 +28,6 @@ class SolitaryWaveBenchmark(BaseBenchmarkProcess):
         self.x_shift = benchmark_settings["x_shift"].GetDouble()
         self.t_shift = benchmark_settings["t_shift"].GetDouble()
 
-        print("\n")
-        print("wavelength : ", self.wave.wavelength)
-        print("\n")
-
         # Here the base class set the topography and initial conditions
         super().ExecuteInitialize()
 
