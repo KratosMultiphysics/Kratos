@@ -1,5 +1,5 @@
 """
-This module contains an interface to the available response functions
+This module contains an interface to the total volume response function
 """
 import time as timer
 import KratosMultiphysics as Kratos
