@@ -464,11 +464,11 @@ protected:
         )
     {
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        const double factor = 0.5 / delta_time;
+        const double dt_inv = 1.0 / delta_time;
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            PredictDerivative(rNode, VELOCITY, ACCELERATION, factor);
-            PredictDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, factor);
+            PredictDerivative(rNode, VELOCITY, ACCELERATION, dt_inv);
+            PredictDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, dt_inv);
         });
     }
 
@@ -477,14 +477,14 @@ protected:
      * @param rNode The node
      * @param rPrimitiveVariable The primitive variable
      * @param rDerivativeVariable The variable to predict
-     * @param Coefficient The time integration coefficient
+     * @param DtInverse The inverse time step
      */
     template<class TDataType>
     inline void PredictDerivative(
         NodeType& rNode,
         const Variable<TDataType>& rPrimitiveVariable,
         const Variable<TDataType>& rDerivativeVariable,
-        const double Coefficient)
+        const double DtInverse)
     {
         const TDataType& f1 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 1);
         const TDataType& f2 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 2);
@@ -494,9 +494,9 @@ protected:
         TDataType& d2 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 2);
         TDataType& d3 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 3);
 
-        d1 = Coefficient * (3*f1 - 4*f2   + f3);
-        d2 = Coefficient * (  f1          - f3);
-        d3 = Coefficient * ( -f1 + 4*f2  -3*f3);
+        d1 = DtInverse * 0.5 * (3*f1 - 4*f2   + f3);
+        d2 = DtInverse * 0.5 * (  f1          - f3);
+        d3 = DtInverse * 0.5 * ( -f1 + 4*f2  -3*f3);
     }
 
     /**
@@ -516,11 +516,11 @@ protected:
         )
     {
         const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-        const double factor = 1.0 / (6.0 * delta_time);
+        const double dt_inv = 1.0 / delta_time;
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            UpdateDerivative(rNode, VELOCITY, ACCELERATION, factor);
-            UpdateDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, factor);
+            UpdateDerivative(rNode, VELOCITY, ACCELERATION, dt_inv);
+            UpdateDerivative(rNode, FREE_SURFACE_ELEVATION, VERTICAL_VELOCITY, dt_inv);
         });
     }
 
@@ -529,14 +529,14 @@ protected:
      * @param rNode The node
      * @param rPrimitiveVariable The primitive variable
      * @param rDerivativeVariable The variable to predict
-     * @param Coefficient The time integration coefficient
+     * @param DtInverse The inverse time step
      */
     template<class TDataType>
     inline void UpdateDerivative(
         NodeType& rNode,
         const Variable<TDataType>& rPrimitiveVariable,
         const Variable<TDataType>& rDerivativeVariable,
-        const double Coefficient)
+        const double DtInverse)
     {
         const TDataType& f0 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 0);
         const TDataType& f1 = rNode.FastGetSolutionStepValue(rPrimitiveVariable, 1);
@@ -548,10 +548,10 @@ protected:
         TDataType& d2 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 2);
         TDataType& d3 = rNode.FastGetSolutionStepValue(rDerivativeVariable, 3);
 
-        d0 = Coefficient * (11*f0 - 18*f1  + 9*f2  - 2*f3);
-        d1 = Coefficient * ( 2*f0  - 3*f1  - 6*f2    + f3);
-        d2 = Coefficient * (  -f0  + 6*f1  - 3*f2  - 2*f3);
-        d3 = Coefficient * ( 2*f0  - 9*f1 + 18*f2 - 11*f3);
+        d0 = DtInverse * (11*f0 - 18*f1  + 9*f2  - 2*f3) / 6.0;
+        d1 = DtInverse * ( 2*f0  + 3*f1  - 6*f2    + f3) / 6.0;
+        d2 = DtInverse * (  -f0  + 6*f1  - 3*f2  - 2*f3) / 6.0;
+        d3 = DtInverse * ( 2*f0  - 9*f1 + 18*f2 - 11*f3) / 6.0;
     }
 
     /**
