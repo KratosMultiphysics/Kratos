@@ -216,7 +216,7 @@ class ArcLengthStrategy
 
             mInitializeArcLengthWasPerformed = true;
 
-            KRATOS_INFO("Arc-Length Strategy") << "Strategy Initialized" << std::endl;
+            KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Strategy Initialized" << std::endl;
         }
 
 		if (!BaseType::mSolutionStepIsInitialized) {
@@ -259,8 +259,8 @@ class ArcLengthStrategy
      */
     bool SolveSolutionStep() override
     {
-        KRATOS_INFO("Arc-Length Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
-        KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
+        KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
+        KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
         mInsideIterationLoop = false;
 
         ModelPart& r_model_part = BaseType::GetModelPart();
@@ -298,7 +298,7 @@ class ArcLengthStrategy
         mDLambdaStep = lambda_increment;
         mLambda += lambda_increment;
 
-        KRATOS_INFO("Arc-Length Strategy") << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
+        KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "ARC-LENGTH LAMBDA: " << mLambda << std::endl;
 
         TSparseSpace::InplaceMult(r_Dxf, lambda_increment);
         TSparseSpace::Assign(r_DxPred, 1.0, r_Dxf);
