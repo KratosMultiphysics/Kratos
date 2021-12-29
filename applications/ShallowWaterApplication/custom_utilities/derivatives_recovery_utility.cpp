@@ -77,7 +77,7 @@ template<std::size_t TDim>
 void DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        bool is_converged = CalculatePolynomialWeights(rNode);
+        bool is_converged = CalculateNodalPolynomialWeights(rNode);
         if (!is_converged)
         {
             auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
@@ -85,7 +85,7 @@ void DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(ModelPart& rMo
             DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(rNode, neigh_nodes, third_neighbors);
             DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(rModelPart, neigh_nodes, third_neighbors);
         }
-        CalculatePolynomialWeights(rNode);
+        CalculateNodalPolynomialWeights(rNode);
     });
 }
 
@@ -283,7 +283,7 @@ void DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(
 }
 
 template<std::size_t TDim>
-bool DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(NodeType& rNode)
+bool DerivativesRecoveryUtility<TDim>::CalculateNodalPolynomialWeights(NodeType& rNode)
 {
     constexpr std::size_t n_poly_terms = KRATOS_RECOVERY_FACTORIAL(TDim+2) / KRATOS_RECOVERY_FACTORIAL(TDim) / 2;
     constexpr std::size_t first_order_terms = KRATOS_RECOVERY_FACTORIAL(TDim+1) / KRATOS_RECOVERY_FACTORIAL(TDim);

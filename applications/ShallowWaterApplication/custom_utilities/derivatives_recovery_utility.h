@@ -145,7 +145,7 @@ private:
         GlobalPointersVector<NodeType>& rNeighbors,
         std::unordered_set<int>& rExtendedNeighborsId);
 
-    static bool CalculatePolynomialWeights(
+    static bool CalculateNodalPolynomialWeights(
         NodeType& rNode);
 
     ///@}
