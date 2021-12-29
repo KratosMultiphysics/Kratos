@@ -52,17 +52,17 @@ class DerivativesRecoveryProcess(KM.Process):
             getattr(recovery_tool, self.operation)(self.primitive_variable, self.derivative_variable, self.buffer_step)
 
         def Check(self):
-            if self.operation is "RecoverGradient":
+            if self.operation == "RecoverGradient":
                 if not isinstance(self.primitive_variable, KM.DoubleVariable):
                     raise Exception("The primitive variable of a gradient should be a scalar")
                 if not isinstance(self.derivative_variable, KM.Array1DVariable3):
                     raise Exception("The derivative variable of a gradient should be a vector")
-            if self.operation is "RecoverDivergence":
+            if self.operation == "RecoverDivergence":
                 if not isinstance(self.primitive_variable, KM.Array1DVariable3):
                     raise Exception("The primitive variable of a divergence should be a vector")
                 if not isinstance(self.derivative_variable, KM.DoubleVariable):
                     raise Exception("The derivative variable of a divergence should be a scalar")
-            if self.operation is "RecoverLaplacian":
+            if self.operation == "RecoverLaplacian":
                 is_scalar = isinstance(self.primitive_variable, KM.DoubleVariable)
                 is_vector = isinstance(self.primitive_variable, KM.Array1DVariable3)
                 if is_scalar:
@@ -80,7 +80,7 @@ class DerivativesRecoveryProcess(KM.Process):
 
         KM.Process.__init__(self)
 
-        settings.ValidateAndAssignDefaults()
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.settings = settings
         self.model_part = model.GetModelPart(self.settings["model_part_name"].GetString())
 
