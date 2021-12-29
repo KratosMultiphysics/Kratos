@@ -54,10 +54,25 @@ class DerivativesRecoveryProcess(KM.Process):
         def Check(self):
             if self.operation is "RecoverGradient":
                 if not isinstance(self.primitive_variable, KM.DoubleVariable):
-                    raise Exception("The primitive variable of a gradient should be scalar type")
+                    raise Exception("The primitive variable of a gradient should be a scalar")
                 if not isinstance(self.derivative_variable, KM.Array1DVariable3):
-                    raise Exception("The derivative variable of a gradient should be vector type")
-
+                    raise Exception("The derivative variable of a gradient should be a vector")
+            if self.operation is "RecoverDivergence":
+                if not isinstance(self.primitive_variable, KM.Array1DVariable3):
+                    raise Exception("The primitive variable of a divergence should be a vector")
+                if not isinstance(self.derivative_variable, KM.DoubleVariable):
+                    raise Exception("The derivative variable of a divergence should be a scalar")
+            if self.operation is "RecoverLaplacian":
+                is_scalar = isinstance(self.primitive_variable, KM.DoubleVariable)
+                is_vector = isinstance(self.primitive_variable, KM.Array1DVariable3)
+                if is_scalar:
+                    if not isinstance(self.derivative_variable, KM.DoubleVariable):
+                        raise Exception("The derivative variable of a scalar laplacian should be a scalar")
+                elif is_vector:
+                    if not isinstance(self.primitive_variable, KM.Array1DVariable3):
+                        raise Exception("The derivative variable of a vector laplacian should be a vector")
+                else:
+                    raise Exception("The primitive and derivative variables of a laplacian must be scalar or vector")
 
 
     def __init__(self, model, settings ):
@@ -71,9 +86,29 @@ class DerivativesRecoveryProcess(KM.Process):
 
         domain_size = self.model_part.ProcessInfo.GetValue(KM.DOMAIN_SIZE)
         if domain_size == 2:
-            self.utility = SW.DerivativesRecoveryUtility2D
+            self.recovery_tool = SW.DerivativesRecoveryUtility2D
         else:
-            self.utility = SW.DerivativesRecoveryUtility3D
+            self.recovery_tool = SW.DerivativesRecoveryUtility3D
 
+        self.operations = []
         for operation_settings in self.settings["list_of_operations"]:
-            operation_settings.ValidateAndAssignDefaults(self.GetDefaultOperationsParameters())
+            self.operations.append(self.DifferentialOperator(operation_settings))
+
+    def Check(self):
+        self.recovery_tool.Check()
+        for operation in self.operations:
+            operation.Check()
+
+    def ExecuteInitialize(self):
+        if self.settings["compute_neighbors"].GetBool():
+            KM.FindGlobalNodalNeighboursProcess(self.model_part).Execute()
+        self.recovery_tool.ExtendNeighborsPatch(self.model_part)
+        self.recovery_tool.CalculatePolynomialWeights(self.model_part)
+
+    def ExecuteInitializeSolutionStep(self):
+        if self.settings["update_mesh_topology"].GetBool():
+            self.ExecuteInitialize()
+
+    def ExecuteFinalizeSolutionStep(self):
+        for operation in self.operations:
+            operation(self.recovery_tool)
