@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <pybind11/pybind11.h>
-
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
@@ -255,8 +253,8 @@ public:
     // --------------------------------------------------------------------------
     void ComputeDistancesToBoundingModelPart(
         ModelPart& rBoundingModelPart,
-        pybind11::list& rSignedDistances,
-        pybind11::list& rDirections )
+        std::vector<double>& rSignedDistances,
+        std::vector<double>& rDirections )
     {
         KRATOS_TRY;
 
@@ -282,6 +280,9 @@ public:
 
         GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
 
+        rSignedDistances.reserve(mrModelPart.NumberOfNodes());
+        rDirections.reserve(mrModelPart.NumberOfNodes()*3);
+
         for (auto& r_node : mrModelPart.Nodes()){
 
             double distance;
@@ -291,11 +292,11 @@ public:
             const array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
             const double projected_length = inner_prod(delta, bounding_normal);
 
-            rSignedDistances.append(projected_length);
+            rSignedDistances.push_back(projected_length);
 
-            rDirections.append(bounding_normal[0]);
-            rDirections.append(bounding_normal[1]);
-            rDirections.append(bounding_normal[2]);
+            rDirections.push_back(bounding_normal[0]);
+            rDirections.push_back(bounding_normal[1]);
+            rDirections.push_back(bounding_normal[2]);
         }
 
         KRATOS_CATCH("");

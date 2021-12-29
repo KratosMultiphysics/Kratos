@@ -87,6 +87,25 @@ inline void AssembleMatrixForVariableList(
     return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
 }
 
+inline void _ComputeDistancesToBoundingModelPart(
+    GeometryUtilities& rGeometryUtilities,
+    ModelPart& rBoundingModelPart,
+    pybind11::list& rSignedDistances,
+    pybind11::list& rDirections)
+{
+    std::vector<double> signed_distances,
+    std::vector<double> directions
+    rGeometryUtilities.ComputeDistancesToBoundingModelPart(rBoundingModelPart, signed_distances, directions);
+    for (std::size_t i = 0; i < signed_distances.size(); i++)
+    {
+        rSignedDistances.append(signed_distances[i]);
+    }
+    for (std::size_t i = 0; i < directions.size(); i++)
+    {
+        rDirections.append(directions[i]);
+    }
+}
+
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -200,7 +219,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ProjectNodalVariableOnTangentPlane", &GeometryUtilities::ProjectNodalVariableOnTangentPlane)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
         .def("ExtractEdgeNodes", &GeometryUtilities::ExtractEdgeNodes)
-        .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
+        .def("ComputeDistancesToBoundingModelPart", _ComputeDistancesToBoundingModelPart)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ElementsContainerType>)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ConditionsContainerType>)
         ;
