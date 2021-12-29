@@ -24,6 +24,7 @@ from . import mapper_factory
 from . import data_logger_factory
 from .custom_timer import Timer
 from .custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+import numpy as np
 
 
 # ==============================================================================
@@ -266,35 +267,66 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         #TODO add convergence criteria, for now only 1 iteration run for testing
         while not self.__checkInnerConvergence():
 
+            self.direction_has_changed = False
+
             KM.Logger.PrintInfo("ShapeOpt", "Inner Iteration to Find Shape Update = ", self.inner_iter)
 
             self.__computeControlPointUpdate()
 
-            self.__computeAdaptiveStepSize()
-
             self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
             self.model_part_controller.DampNodalVariableIfSpecified(KSO.SHAPE_UPDATE)
+
+            self.__checkConstraintValue()
             self.inner_iter += 1
 
 
     # --------------------------------------------------------------------------
-    def __checkInnerConvergence(self):
-        KM.Logger.PrintInfo("Check Convergence")
-        if self.inner_iter < 2:
-            return True
-        else: 
-            return False
 
+    def __checkInnerConvergence(self):
+        KM.Logger.PrintInfo("Check Convergence of the inner loop:")
+        if self.inner_iter == 1:
+            return False
+        elif self.direction_has_changed and self.inner_iter < 100:
+            return False
+        else: 
+            return True
+
+    def __checkConstraintValue(self):
+        for index, constraint in enumerate(self.constraints):
+            if self.__isConstraintActive(constraint):
+                identifier = constraint["identifier"].GetString()
+                constraint_value = self.communicator.getStandardizedValue(identifier)
+                g_a_variable = self.constraint_gradient_variables[identifier]["gradient"]
+                shape_update = KM.Vector()
+                gradient = KM.Vector()
+                self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(gradient, g_a_variable)
+
+                self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(shape_update, KSO.SHAPE_UPDATE)
+                new_constraint_value = constraint_value + np.dot(gradient, shape_update)
+                KM.Logger.PrintInfo("Constraint ", identifier, "Linearized new value = ", new_constraint_value)
+                if new_constraint_value > 0.0:
+                    if self.relaxation_coefficients[index] < 1.0:
+                        self.relaxation_coefficients[index] = min(self.relaxation_coefficients[index] + 0.02, 1.0)
+                        self.direction_has_changed = True
+                    elif self.correction_coefficients[index] < 2.0:
+                        self.correction_coefficients[index] = min (self.correction_coefficients[index] + 0.02, 2.0)
+                        self.direction_has_changed = True
+                KM.Logger.PrintInfo("Constraint ", identifier, "W_R, W_C = ", self.relaxation_coefficients[index], self.correction_coefficients[index])
+
+
+
+    # --------------------------------------------------------------------------
     def __computeAdaptiveStepSize(self):
         KM.Logger.PrintInfo("Computing adaptive step size")
         pass
-
+    # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
-        g_a, g_a_variables, relaxation_coefficients, correction_coefficients = self.__getActiveConstraints()
+        if self.inner_iter == 1:
+            self.g_a, self.g_a_variables, self.relaxation_coefficients, self.correction_coefficients = self.__getActiveConstraints()
 
-        #print("DEBUG: =========================================== ", relaxation_coefficients)
-        #print("DEBUG: =========================================== ", correction_coefficients)
+        #print("DEBUG: =========================================== ", self.relaxation_coefficients)
+        #print("DEBUG: =========================================== ", self.correction_coefficients)
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vector of objective gradient.")
         nabla_f = KM.Vector()
         p = KM.Vector()
@@ -304,7 +336,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         if abs(f_norm) > 1e-10:
             nabla_f *= 1.0/f_norm
 
-        if len(g_a) == 0:
+        if len(self.g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             p = nabla_f * (-1.0)
             p *= self.step_size / f_norm
@@ -314,15 +346,15 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             return
 
         omega_r = KM.Matrix()
-        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleBufferMatrix(omega_r, relaxation_coefficients)
+        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleBufferMatrix(omega_r, self.relaxation_coefficients)
 
         omega_c = KM.Vector()
-        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleBufferVector(omega_c, correction_coefficients)
+        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleBufferVector(omega_c, self.correction_coefficients)
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
-        # self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVectorstoMatrix(N, g_a_variables)
-        self.optimization_utilities.AssembleVectorstoMatrix(self.design_surface, N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+        # self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVectorstoMatrix(N, self.g_a_variables)
+        self.optimization_utilities.AssembleVectorstoMatrix(self.design_surface, N, self.g_a_variables)  # TODO check if gradients are 0.0! - in cpp
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
@@ -344,11 +376,11 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.PROJECTION)
         self.p_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
         
-        p *= 1.0 / self.p_norm
+        # p *= 1.0 / self.p_norm
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p+c, KSO.CONTROL_POINT_UPDATE)
         step_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.CONTROL_POINT_UPDATE)
 
-
+        self.__computeAdaptiveStepSize()
         if abs(step_norm) > 1e-10:
             step = KM.Vector()
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(step, KSO.CONTROL_POINT_UPDATE)
