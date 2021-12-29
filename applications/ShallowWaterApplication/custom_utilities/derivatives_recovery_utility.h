@@ -14,6 +14,7 @@
 #define KRATOS_DERIVATIVES_RECOVERY_UTILITY_H_INCLUDED
 
 // System includes
+#include <unordered_set>
 
 
 // External includes
@@ -99,62 +100,12 @@ public:
         const std::size_t BufferStep = 0);
 
     ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Input and output
     ///@{
 
 
     ///@}
     ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    static double CalculateMaximumDistance(
-        const NodeType& rNode,
-        GlobalPointersVector<NodeType>& rNeighbors);
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
 
@@ -179,26 +130,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    static double CalculateMaximumDistance(
+        const NodeType& rNode,
+        GlobalPointersVector<NodeType>& rNeighbors);
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+    static void FindExtendedNeighbors(
+        NodeType& rNode,
+        GlobalPointersVector<NodeType>& rNeighbors,
+        std::unordered_set<int>& rExtendedNeighborsId);
 
+    static void AppendExtendedNeighbors(
+        ModelPart& rModelPart,
+        GlobalPointersVector<NodeType>& rNeighbors,
+        std::unordered_set<int>& rExtendedNeighborsId);
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
+    static bool CalculatePolynomialWeights(
+        NodeType& rNode);
 
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // /// Assignment operator.
-    // DerivativesRecoveryUtility& operator=(DerivativesRecoveryUtility const& rOther);
-
-    // /// Copy constructor.
-    // DerivativesRecoveryUtility(DerivativesRecoveryUtility const& rOther);
 
 
     ///@}
