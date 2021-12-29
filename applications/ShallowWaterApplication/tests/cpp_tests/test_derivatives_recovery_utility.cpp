@@ -72,7 +72,7 @@ void GradientRecoveryUtility2DTest(
     FindGlobalNodalNeighboursProcess(r_model_part).Execute();
     DerivativesRecoveryUtility::ExtendNeighborsPatch(r_model_part);
     DerivativesRecoveryUtility::CalculatePolynomialWeights(r_model_part);
-    DerivativesRecoveryUtility::CalculateSuperconvergentGradient(r_model_part, DISTANCE, DISTANCE_GRADIENT);
+    DerivativesRecoveryUtility::RecoverGradient(r_model_part, DISTANCE, DISTANCE_GRADIENT);
 
     if (print_debug_mesh) {
         GidIO<> io("output_mesh",

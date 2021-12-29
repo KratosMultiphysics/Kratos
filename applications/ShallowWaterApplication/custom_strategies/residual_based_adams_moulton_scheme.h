@@ -195,7 +195,7 @@ public:
         });
 
         // Recover the laplacian
-        DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
+        DerivativesRecoveryUtility::RecoverLaplacian(
             rModelPart,
             VELOCITY,
             VELOCITY_LAPLACIAN);

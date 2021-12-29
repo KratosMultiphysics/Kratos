@@ -37,7 +37,7 @@ class ModelPart;
  * @ingroup ShallowWaterApplication
  * @class DerivativesRecoveryUtility
  * @brief Superconvergent patch recovery for linear meshes using quadratic polynomials
- * @details Zhimin Zhangand Ahmed Naga (2006)
+ * @details Zhimin Zhangand and Ahmed Naga (2006)
  * "A new finite element gradient recovery method: superconvergence property"
  * SIAM J. Sci. Comput., 26(4), 1192–1213. (22 pages)
  *
@@ -66,69 +66,37 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // /// Default constructor.
-    // DerivativesRecoveryUtility();
-
-    // /// Destructor.
-    // virtual ~DerivativesRecoveryUtility();
-
     ///@}
     ///@name Operations
     ///@{
 
-    static void CalculateDivergence(
-        ModelPart& rModelPart,
-        const Variable<array_1d<double,3>>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
-        const std::size_t BufferStep = 0);
-
-    static void CalculateGradient(
-        ModelPart& rModelPart,
-        const Variable<double>& rOriginVariable,
-        const Variable<array_1d<double,3>>& rDestinationVariable,
-        const std::size_t BufferStep = 0);
-
-    static void CalculateLaplacian(
-        ModelPart& rModelPart,
-        const Variable<array_1d<double,3>>& rOriginVariable,
-        const Variable<array_1d<double,3>>& rDestinationVariable,
-        const Variable<double>& rIntermediateVariable,
-        const std::size_t BufferStep = 0);
-
-    static void CalculateSuperconvergentDivergence(
-        ModelPart& rModelPart,
-        const Variable<array_1d<double,3>>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
-        const std::size_t BufferStep = 0);
-
-    static void CalculateSuperconvergentGradient(
-        ModelPart& rModelPart,
-        const Variable<double>& rOriginVariable,
-        const Variable<array_1d<double,3>>& rDestinationVariable,
-        const std::size_t BufferStep = 0);
-
-    static void CalculateSuperconvergentLaplacian(
-        ModelPart& rModelPart,
-        const Variable<double>& rOriginVariable,
-        const Variable<double>& rDestinationVariable,
-        const std::size_t BufferStep = 0);
-
-    static void CalculateSuperconvergentLaplacian(
-        ModelPart& rModelPart,
-        const Variable<array_1d<double,3>>& rOriginVariable,
-        const Variable<array_1d<double,3>>& rDestinationVariable,
-        const std::size_t BufferStep = 0);
-
-    static void CalculateSuperconvergentLaplacian(
-        ModelPart& rModelPart,
-        const Variable<array_1d<double,3>>& rOriginVariable,
-        const Variable<array_1d<double,3>>& rDestinationVariable,
-        const Variable<double>& rIntermediateVariable,
-        const std::size_t BufferStep = 0);
-
     static void ExtendNeighborsPatch(ModelPart& rModelPart);
 
     static void CalculatePolynomialWeights(ModelPart& rModelPart);
+
+    static void RecoverDivergence(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double,3>>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        const std::size_t BufferStep = 0);
+
+    static void RecoverGradient(
+        ModelPart& rModelPart,
+        const Variable<double>& rOriginVariable,
+        const Variable<array_1d<double,3>>& rDestinationVariable,
+        const std::size_t BufferStep = 0);
+
+    static void RecoverLaplacian(
+        ModelPart& rModelPart,
+        const Variable<double>& rOriginVariable,
+        const Variable<double>& rDestinationVariable,
+        const std::size_t BufferStep = 0);
+
+    static void RecoverLaplacian(
+        ModelPart& rModelPart,
+        const Variable<array_1d<double,3>>& rOriginVariable,
+        const Variable<array_1d<double,3>>& rDestinationVariable,
+        const std::size_t BufferStep = 0);
 
     ///@}
     ///@name Access
@@ -144,14 +112,6 @@ public:
     ///@name Input and output
     ///@{
 
-    // /// Turn back information as a string.
-    // virtual std::string Info() const;
-
-    // /// Print information about this object.
-    // virtual void PrintInfo(std::ostream& rOStream) const;
-
-    // /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const;
 
     ///@}
     ///@name Friends

@@ -31,112 +31,14 @@
 namespace Kratos
 {
 
-#define SUPERCONVERGENT_FACTORIAL(n) ( \
+#define KRATOS_RECOVERY_FACTORIAL(n) ( \
     (n) == 2 ? 2 : \
     (n) == 3 ? 6 : \
     (n) == 4 ? 24 : \
     (n) == 5 ? 120 : \
     KRATOS_ERROR)
 
-
-void DerivativesRecoveryUtility::CalculateDivergence(
-    ModelPart& rModelPart,
-    const Variable<array_1d<double,3>>& rOriginVariable,
-    const Variable<double>& rDestinationVariable,
-    const std::size_t BufferStep)
-{
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep) = 0.0;
-    });
-
-    block_for_each(rModelPart.Elements(), [&](Element& rElement){
-
-        auto& r_geom = rElement.GetGeometry();
-
-        array_1d<double, 3> N;
-        BoundedMatrix<double, 3, 2> DN_DX;
-        double area;
-
-        GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
-
-        double elemental_div = 0;
-        array_1d<double,3> gradients_i = ZeroVector(3);
-        for (std::size_t i = 0; i < r_geom.size(); ++i) {
-            gradients_i[0] = DN_DX(i,0);
-            gradients_i[1] = DN_DX(i,1);
-            array_1d<double,3> nodal_value = r_geom[i].FastGetSolutionStepValue(rOriginVariable, BufferStep);
-            elemental_div += inner_prod(gradients_i, nodal_value);
-        }
-
-        double nodal_area = area / 3.0; // The division by the number of nodes comes from the shape functions
-        elemental_div *= nodal_area;
-
-        for (auto& r_node : r_geom) {
-            r_node.SetLock();
-            r_node.FastGetSolutionStepValue(rDestinationVariable, BufferStep) += elemental_div;
-            r_node.UnSetLock();
-        }
-    });
-
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep) /= rNode.FastGetSolutionStepValue(NODAL_AREA);
-    });
-}
-
-void DerivativesRecoveryUtility::CalculateGradient(
-    ModelPart& rModelPart,
-    const Variable<double>& rOriginVariable,
-    const Variable<array_1d<double,3>>& rDestinationVariable,
-    const std::size_t BufferStep)
-{
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep) = ZeroVector(3);
-    });
-
-    block_for_each(rModelPart.Elements(), [&](Element& rElement){
-
-        auto& r_geom = rElement.GetGeometry();
-
-        array_1d<double, 3> N;
-        BoundedMatrix<double, 3, 2> DN_DX;
-        double area;
-
-        GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
-
-        array_1d<double,3> elemental_grad = ZeroVector(3);
-        for (std::size_t i = 0; i < r_geom.size(); ++i) {
-            double nodal_value = r_geom[i].FastGetSolutionStepValue(rOriginVariable, BufferStep);
-            elemental_grad[0] += DN_DX(i,0) * nodal_value;
-            elemental_grad[1] += DN_DX(i,1) * nodal_value;
-        }
-
-        double nodal_area = area / 3.0; // The division by the number of nodes comes from the shape functions
-        elemental_grad *= nodal_area;
-
-        for (auto& r_node : r_geom) {
-            r_node.SetLock();
-            r_node.FastGetSolutionStepValue(rDestinationVariable, BufferStep) += elemental_grad;
-            r_node.UnSetLock();
-        }
-    });
-
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        rNode.FastGetSolutionStepValue(rDestinationVariable, BufferStep) /= rNode.FastGetSolutionStepValue(NODAL_AREA);
-    });
-}
-
-void DerivativesRecoveryUtility::CalculateLaplacian(
-    ModelPart& rModelPart,
-    const Variable<array_1d<double,3>>& rOriginVariable,
-    const Variable<array_1d<double,3>>& rDestinationVariable,
-    const Variable<double>& rIntermediateVariable,
-    const std::size_t BufferStep)
-{
-    CalculateDivergence(rModelPart, rOriginVariable, rIntermediateVariable, BufferStep);
-    CalculateGradient(rModelPart, rIntermediateVariable, rDestinationVariable, BufferStep);
-}
-
-void DerivativesRecoveryUtility::CalculateSuperconvergentDivergence(
+void DerivativesRecoveryUtility::RecoverDivergence(
     ModelPart& rModelPart,
     const Variable<array_1d<double,3>>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
@@ -165,7 +67,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentDivergence(
     });
 }
 
-void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
+void DerivativesRecoveryUtility::RecoverGradient(
     ModelPart& rModelPart,
     const Variable<double>& rOriginVariable,
     const Variable<array_1d<double,3>>& rDestinationVariable,
@@ -194,7 +96,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentGradient(
     });
 }
 
-void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
+void DerivativesRecoveryUtility::RecoverLaplacian(
     ModelPart& rModelPart,
     const Variable<double>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
@@ -224,7 +126,7 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
     });
 }
 
-void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
+void DerivativesRecoveryUtility::RecoverLaplacian(
     ModelPart& rModelPart,
     const Variable<array_1d<double,3>>& rOriginVariable,
     const Variable<array_1d<double,3>>& rDestinationVariable,
@@ -282,17 +184,6 @@ void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
     });
 }
 
-void DerivativesRecoveryUtility::CalculateSuperconvergentLaplacian(
-    ModelPart& rModelPart,
-    const Variable<array_1d<double,3>>& rOriginVariable,
-    const Variable<array_1d<double,3>>& rDestinationVariable,
-    const Variable<double>& rIntermediateVariable,
-    const std::size_t BufferStep)
-{
-    CalculateSuperconvergentDivergence(rModelPart, rOriginVariable, rIntermediateVariable, BufferStep);
-    CalculateSuperconvergentGradient(rModelPart, rIntermediateVariable, rDestinationVariable, BufferStep);
-}
-
 void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
 {
     const std::size_t space_degree = 1;
@@ -345,8 +236,8 @@ void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
 
 void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPart)
 {
-    constexpr std::size_t n_poly_terms = SUPERCONVERGENT_FACTORIAL(TDim+2) / SUPERCONVERGENT_FACTORIAL(TDim) / 2;
-    constexpr std::size_t first_order_terms = SUPERCONVERGENT_FACTORIAL(TDim+1) / SUPERCONVERGENT_FACTORIAL(TDim);
+    constexpr std::size_t n_poly_terms = KRATOS_RECOVERY_FACTORIAL(TDim+2) / KRATOS_RECOVERY_FACTORIAL(TDim) / 2;
+    constexpr std::size_t first_order_terms = KRATOS_RECOVERY_FACTORIAL(TDim+1) / KRATOS_RECOVERY_FACTORIAL(TDim);
 
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
