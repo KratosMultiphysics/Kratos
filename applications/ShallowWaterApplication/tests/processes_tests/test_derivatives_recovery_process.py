@@ -34,17 +34,20 @@ class TestDerivativesRecoveryProcess(KratosUnittest.TestCase):
                     "operation"           : "gradient",
                     "primitive_variable"  : "DISTANCE",
                     "derivative_variable" : "DISTANCE_GRADIENT",
-                    "buffer_step"         : 0
+                    "buffer_step"         : 0,
+                    "process_step"        : "ExecuteInitializeSolutionStep"
                 },{
                     "operation"           : "divergence",
                     "primitive_variable"  : "DISPLACEMENT",
                     "derivative_variable" : "DETERMINANT_F",
-                    "buffer_step"         : 0
+                    "buffer_step"         : 0,
+                    "process_step"        : "ExecuteFinalizeSolutionStep"
                 },{
                     "operation"           : "laplacian",
                     "primitive_variable"  : "VELOCITY",
                     "derivative_variable" : "VELOCITY_LAPLACIAN",
-                    "buffer_step"         : 0
+                    "buffer_step"         : 0,
+                    "process_step"        : "ExecuteFinalizeSolutionStep"
                 }],
                 "compute_neighbors"        : false,
                 "update_mesh_topology"     : false
@@ -52,6 +55,15 @@ class TestDerivativesRecoveryProcess(KratosUnittest.TestCase):
         }""")
         process = derivatives_recovery_process.Factory(settings, self.model)
         process.Check()
+        self.assertEqual(self.RecoveryCheck.call_count, 1)
+        self.assertEqual(self.RecoverGradient.call_count, 0)
+        self.assertEqual(self.RecoverDivergence.call_count, 0)
+        self.assertEqual(self.RecoverLaplacian.call_count, 0)
+        process.ExecuteInitializeSolutionStep()
+        self.assertEqual(self.RecoveryCheck.call_count, 1)
+        self.assertEqual(self.RecoverGradient.call_count, 1)
+        self.assertEqual(self.RecoverDivergence.call_count, 0)
+        self.assertEqual(self.RecoverLaplacian.call_count, 0)
         process.ExecuteFinalizeSolutionStep()
         self.assertEqual(self.RecoveryCheck.call_count, 1)
         self.assertEqual(self.RecoverGradient.call_count, 1)

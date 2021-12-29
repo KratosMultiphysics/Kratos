@@ -21,7 +21,7 @@ class DerivativesRecoveryProcess(KM.Process):
         }
         """)
 
-    class DifferentialOperator():
+    class DifferentialOperator(KM.Process):
         '''Auxiliary class to execute the derivatives recovery.'''
 
         @staticmethod
@@ -31,7 +31,8 @@ class DerivativesRecoveryProcess(KM.Process):
                 "operation"           : "gradient",
                 "primitive_variable"  : "",
                 "derivative_variable" : "",
-                "buffer_step"         : 0
+                "buffer_step"         : 0,
+                "process_step"        : "ExecuteFinalizeSolutionStep"
             }
             """)
 
@@ -41,15 +42,18 @@ class DerivativesRecoveryProcess(KM.Process):
             "laplacian"  : "RecoverLaplacian"
         }
 
-        def __init__(self, settings):
+        def __init__(self, settings, recovery_tool):
+            KM.Process.__init__(self)
             settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
             self.operation = self.__operations[settings["operation"].GetString()]
             self.primitive_variable = KM.KratosGlobals.GetVariable(settings["primitive_variable"].GetString())
             self.derivative_variable = KM.KratosGlobals.GetVariable(settings["derivative_variable"].GetString())
             self.buffer_step = settings["buffer_step"].GetInt()
 
-        def __call__(self, recovery_tool):
-            getattr(recovery_tool, self.operation)(self.primitive_variable, self.derivative_variable, self.buffer_step)
+            def execute_differenctiation():
+                getattr(recovery_tool, self.operation)(self.primitive_variable, self.derivative_variable, self.buffer_step)
+            self.function = getattr(recovery_tool, self.operation)
+            setattr(self, settings["process_step"].GetString(), execute_differenctiation)
 
         def Check(self):
             if self.operation == "RecoverGradient":
@@ -92,7 +96,7 @@ class DerivativesRecoveryProcess(KM.Process):
 
         self.operations = []
         for operation_settings in self.settings["list_of_operations"]:
-            self.operations.append(self.DifferentialOperator(operation_settings))
+            self.operations.append(self.DifferentialOperator(operation_settings, self.recovery_tool))
 
     def Check(self):
         self.recovery_tool.Check()
@@ -105,10 +109,32 @@ class DerivativesRecoveryProcess(KM.Process):
         self.recovery_tool.ExtendNeighborsPatch(self.model_part)
         self.recovery_tool.CalculatePolynomialWeights(self.model_part)
 
+        for operation in self.operations:
+            operation.ExecuteInitialize()
+
+    def ExecuteBeforeSolutionLoop(self):
+        for operation in self.operations:
+            operation.ExecuteBeforeSolutionLoop()
+
     def ExecuteInitializeSolutionStep(self):
         if self.settings["update_mesh_topology"].GetBool():
             self.ExecuteInitialize()
 
+        for operation in self.operations:
+            operation.ExecuteInitializeSolutionStep()
+
     def ExecuteFinalizeSolutionStep(self):
         for operation in self.operations:
-            operation(self.recovery_tool)
+            operation.ExecuteFinalizeSolutionStep()
+
+    def ExecuteBeforeOutputStep(self):
+        for operation in self.operations:
+            operation.ExecuteBeforeOutputStep()
+
+    def ExecuteAfterOutputStep(self):
+        for operation in self.operations:
+            operation.ExecuteAfterOutputStep()
+
+    def ExecuteFinalize(self):
+        for operation in self.operations:
+            operation.ExecuteFinalize()
