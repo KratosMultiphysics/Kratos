@@ -93,8 +93,8 @@ inline void _ComputeDistancesToBoundingModelPart(
     pybind11::list& rSignedDistances,
     pybind11::list& rDirections)
 {
-    std::vector<double> signed_distances,
-    std::vector<double> directions
+    std::vector<double> signed_distances;
+    std::vector<double> directions;
     rGeometryUtilities.ComputeDistancesToBoundingModelPart(rBoundingModelPart, signed_distances, directions);
     for (std::size_t i = 0; i < signed_distances.size(); i++)
     {
