@@ -242,15 +242,6 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             else:
                 self.constraint_buffer_variables[identifier]["buffer_value"] = 0.0
 
-            #print("DEBUG =========================================================")
-            #print("constraint: ", identifier)
-            #print("buffer value: ", self.constraint_buffer_variables[identifier]["buffer_value"])
-            #print("buffer size: ", self.constraint_buffer_variables[identifier]["buffer_size"])
-            #print("buffer size factor: ", self.constraint_buffer_variables[identifier]["buffer_size_factor"])
-            #print("central buffer value: ", self.constraint_buffer_variables[identifier]["central_buffer_value"])
-            #print("lower buffer value: ", self.constraint_buffer_variables[identifier]["lower_buffer_value"])
-            #print("END ===========================================================")
-
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
@@ -318,7 +309,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __LineSearch(self):
-        KM.Logger.PrintInfo("Computing adaptive step size")
+        KM.Logger.PrintInfo("Line Search ...")
         if self.line_search_type == "manual_stepping":
             self.__manualStep()
         elif self.line_search_type == "QNBB_method":
@@ -335,8 +326,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         if abs(step_norm) > 1e-10:
             step = KM.Vector()
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(step, KSO.CONTROL_POINT_UPDATE)
-
-            step *= self.step_size / step_norm
+            step *= 1.0 / step_norm
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(step, KSO.SEARCH_DIRECTION)
+            step *= self.step_size
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(step, KSO.CONTROL_POINT_UPDATE)
     
     def __QNBBStep(self):
@@ -345,31 +337,36 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             s = KM.Vector()
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(s, KSO.SEARCH_DIRECTION)
             s /= s_norm
-            delta_x = KM.Vector()
-            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(delta_x, KSO.CONTROL_POINT_UPDATE)
-            print(len(delta_x), len(s))
-            for i in range(0, len(delta_x), 3):
+            for i in range(0, len(s), 3):
                 y_i = self.prev_s[i: i+3] - s[i: i+3]
+                # print("---------------")
+                # print(y_i)
+                # print(self.prev_s[i: i+3])
+                # print(s[i: i+3])
                 d_i = self.d[i:i+3]
+                # print(d_i)
                 if np.dot(y_i, y_i) < 1e-9:
                     step_i = self.step_size
                 else:
                     step_i = abs(np.dot(d_i, y_i) / np.dot(y_i, y_i))
                 if step_i > self.step_size:
                     step_i = self.step_size
-                # print(step_i, y_i, d_i)
-                delta_x[i] = s[i] * step_i
-                delta_x[i+1] = s[i+1] * step_i
-                delta_x[i+2] = s[i+2] * step_i
-            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(delta_x, KSO.CONTROL_POINT_UPDATE)
-
-
+                # print(step_i)
+                # print(s[i: i+3])
+                s[i] = s[i] * step_i
+                s[i+1] = s[i+1] * step_i
+                s[i+2] = s[i+2] * step_i
+                # print(s[i: i+3])
+                # print("---------------")
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
 
     def __saveLineSearchData(self):
             self.prev_s = KM.Vector()
             self.d = KM.Vector()
-            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(self.prev_s, KSO.SEARCH_DIRECTION)
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(self.d, KSO.CONTROL_POINT_UPDATE)
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(self.d, KSO.SEARCH_DIRECTION)
+            # self.d = np.copy(self.d)
+            # self.prev_s = np.copy(self.prev_s)
 
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
@@ -391,7 +388,8 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         if len(self.g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             p = nabla_f * (-1.0)
-            p *= self.step_size / f_norm
+            p *= 1.0 / f_norm
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.SEARCH_DIRECTION)
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.PROJECTION)
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable([0.0]*len(p), KSO.CORRECTION)
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.CONTROL_POINT_UPDATE)
@@ -429,6 +427,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.p_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
         
         p *= 1.0 / self.p_norm
+        self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p+c, KSO.SEARCH_DIRECTION)
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p+c, KSO.CONTROL_POINT_UPDATE)
 
         self.__LineSearch()
