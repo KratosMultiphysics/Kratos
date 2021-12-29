@@ -143,8 +143,8 @@ public:
         BaseType::Initialize(rModelPart);
         CalculateNodalAreaProcess<true>(rModelPart).Execute();
         FindGlobalNodalNeighboursProcess(rModelPart).Execute();
-        DerivativesRecoveryUtility::ExtendNeighborsPatch(rModelPart);
-        DerivativesRecoveryUtility::CalculatePolynomialWeights(rModelPart);
+        DerivativesRecoveryUtility<2>::ExtendNeighborsPatch(rModelPart);
+        DerivativesRecoveryUtility<2>::CalculatePolynomialWeights(rModelPart);
     }
 
     /**
@@ -195,7 +195,7 @@ public:
         });
 
         // Recover the laplacian
-        DerivativesRecoveryUtility::RecoverLaplacian(
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(
             rModelPart,
             VELOCITY,
             VELOCITY_LAPLACIAN);

@@ -47,15 +47,14 @@ class ModelPart;
  *    trans(P) = (1, x, y, z, x^2, y^2, z^2, xy, xz, yz)
  *    trans(a) = a_i
  */
+template<std::size_t TDim>
 class DerivativesRecoveryUtility
 {
 public:
     ///@name Type Definitions
     ///@{
-    
-    typedef Node<3> NodeType;
 
-    static constexpr std::size_t TDim = 2;
+    typedef Node<3> NodeType;
 
     ///@}
     ///@name Pointer Definitions
@@ -70,6 +69,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    static void Check(ModelPart& rModelPart);
 
     static void ExtendNeighborsPatch(ModelPart& rModelPart);
 

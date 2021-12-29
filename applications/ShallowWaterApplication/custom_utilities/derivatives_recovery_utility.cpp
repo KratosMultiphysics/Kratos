@@ -18,6 +18,7 @@
 
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -37,10 +38,20 @@ namespace Kratos
     (n) == 5 ? 120 : \
     KRATOS_ERROR)
 
-void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::Check(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(FIRST_DERIVATIVE_WEIGHTS, rNode)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(SECOND_DERIVATIVE_WEIGHTS, rNode)
+    });
+}
+
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(ModelPart& rModelPart)
 {
     const std::size_t space_degree = 1;
-    const std::size_t required_neighbors = (space_degree + 2) * (space_degree + 3) / 2;
+    const std::size_t required_neighbors = (space_degree + TDim) * (space_degree + TDim + 1) / + 1;  //NOTE: the extra required node node is added since the InvertMatrix throws an error and its not possible to iterate. Required for 3D.
     std::vector<std::unordered_set<int>> second_neighbors_set(rModelPart.NumberOfNodes());
     IndexPartition<int>(rModelPart.NumberOfNodes()).for_each([&](int i){
         auto it_node = rModelPart.NodesBegin() + i;
@@ -48,7 +59,7 @@ void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
         if (neigh_nodes.size() < required_neighbors)
         {
             auto second_neighbors = second_neighbors_set.begin() + i;
-            DerivativesRecoveryUtility::FindExtendedNeighbors(*it_node, neigh_nodes, *second_neighbors);
+            DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(*it_node, neigh_nodes, *second_neighbors);
         }
     });
     IndexPartition<int>(rModelPart.NumberOfNodes()).for_each([&](int i){
@@ -57,12 +68,13 @@ void DerivativesRecoveryUtility::ExtendNeighborsPatch(ModelPart& rModelPart)
         if (neigh_nodes.size() < required_neighbors)
         {
             auto second_neighbors = second_neighbors_set.begin() + i;
-            DerivativesRecoveryUtility::AppendExtendedNeighbors(rModelPart, neigh_nodes, *second_neighbors);
+            DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(rModelPart, neigh_nodes, *second_neighbors);
         }
     });
 }
 
-void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPart)
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         bool is_converged = CalculatePolynomialWeights(rNode);
@@ -70,14 +82,15 @@ void DerivativesRecoveryUtility::CalculatePolynomialWeights(ModelPart& rModelPar
         {
             auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
             std::unordered_set<int> third_neighbors;
-            DerivativesRecoveryUtility::FindExtendedNeighbors(rNode, neigh_nodes, third_neighbors);
-            DerivativesRecoveryUtility::AppendExtendedNeighbors(rModelPart, neigh_nodes, third_neighbors);
+            DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(rNode, neigh_nodes, third_neighbors);
+            DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(rModelPart, neigh_nodes, third_neighbors);
         }
         CalculatePolynomialWeights(rNode);
     });
 }
 
-void DerivativesRecoveryUtility::RecoverDivergence(
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::RecoverDivergence(
     ModelPart& rModelPart,
     const Variable<array_1d<double,3>>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
@@ -106,7 +119,8 @@ void DerivativesRecoveryUtility::RecoverDivergence(
     });
 }
 
-void DerivativesRecoveryUtility::RecoverGradient(
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::RecoverGradient(
     ModelPart& rModelPart,
     const Variable<double>& rOriginVariable,
     const Variable<array_1d<double,3>>& rDestinationVariable,
@@ -135,7 +149,8 @@ void DerivativesRecoveryUtility::RecoverGradient(
     });
 }
 
-void DerivativesRecoveryUtility::RecoverLaplacian(
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::RecoverLaplacian(
     ModelPart& rModelPart,
     const Variable<double>& rOriginVariable,
     const Variable<double>& rDestinationVariable,
@@ -165,7 +180,8 @@ void DerivativesRecoveryUtility::RecoverLaplacian(
     });
 }
 
-void DerivativesRecoveryUtility::RecoverLaplacian(
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::RecoverLaplacian(
     ModelPart& rModelPart,
     const Variable<array_1d<double,3>>& rOriginVariable,
     const Variable<array_1d<double,3>>& rDestinationVariable,
@@ -223,7 +239,8 @@ void DerivativesRecoveryUtility::RecoverLaplacian(
     });
 }
 
-void DerivativesRecoveryUtility::FindExtendedNeighbors(
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(
     NodeType& rNode,
     GlobalPointersVector<NodeType>& rNeighbors,
     std::unordered_set<int>& rExtendedNeighborsId)
@@ -252,7 +269,8 @@ void DerivativesRecoveryUtility::FindExtendedNeighbors(
     }
 }
 
-void DerivativesRecoveryUtility::AppendExtendedNeighbors(
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(
     ModelPart& rModelPart,
     GlobalPointersVector<NodeType>& rNeighbors,
     std::unordered_set<int>& rExtendedNeighborsId)
@@ -264,14 +282,15 @@ void DerivativesRecoveryUtility::AppendExtendedNeighbors(
     }
 }
 
-bool DerivativesRecoveryUtility::CalculatePolynomialWeights(NodeType& rNode)
+template<std::size_t TDim>
+bool DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(NodeType& rNode)
 {
     constexpr std::size_t n_poly_terms = KRATOS_RECOVERY_FACTORIAL(TDim+2) / KRATOS_RECOVERY_FACTORIAL(TDim) / 2;
     constexpr std::size_t first_order_terms = KRATOS_RECOVERY_FACTORIAL(TDim+1) / KRATOS_RECOVERY_FACTORIAL(TDim);
 
     auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
     auto n_neigh = neigh_nodes.size();
-    const double h_inv = 1.0 / DerivativesRecoveryUtility::CalculateMaximumDistance(rNode, neigh_nodes); // we use it as a scaling parameter to improve stability
+    const double h_inv = 1.0 / DerivativesRecoveryUtility<TDim>::CalculateMaximumDistance(rNode, neigh_nodes); // we use it as a scaling parameter to improve stability
 
     Matrix A(n_neigh + 1, n_poly_terms);
 
@@ -363,7 +382,8 @@ bool DerivativesRecoveryUtility::CalculatePolynomialWeights(NodeType& rNode)
     return true;
 }
 
-double DerivativesRecoveryUtility::CalculateMaximumDistance(
+template<std::size_t TDim>
+double DerivativesRecoveryUtility<TDim>::CalculateMaximumDistance(
     const NodeType& rNode,
     GlobalPointersVector<NodeType>& rNeighbors)
 {
@@ -374,5 +394,8 @@ double DerivativesRecoveryUtility::CalculateMaximumDistance(
     }
     return max_distance;
 }
+
+template class DerivativesRecoveryUtility<2>;
+template class DerivativesRecoveryUtility<3>;
 
 }  // namespace Kratos.

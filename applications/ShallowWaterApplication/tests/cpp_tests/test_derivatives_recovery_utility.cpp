@@ -21,6 +21,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "custom_utilities/derivatives_recovery_utility.h"
@@ -34,21 +35,16 @@ namespace Testing {
 
 typedef ModelPart::NodeType NodeType;
 
-void GradientRecoveryUtility2DTest(
-    const int NumberOfDivisions,
-    const std::function<double(array_1d<double,3>)>& rPrimitiveFunction,
-    const std::function<array_1d<double,3>(array_1d<double,3>)>& rDerivativeFunction,
-    const double Tolerance)
+void Generate2DMesh(
+    Model& rModel,
+    const int NumberOfDivisions)
 {
-    const bool print_debug_mesh = false;
-    Model model;
+    Node<3>::Pointer p_point_1(new NodeType(1,  0.0,  0.0, 0.0));
+    Node<3>::Pointer p_point_2(new NodeType(2,  0.0, 10.0, 0.0));
+    Node<3>::Pointer p_point_3(new NodeType(3, 10.0, 10.0, 0.0));
+    Node<3>::Pointer p_point_4(new NodeType(4, 10.0,  0.0, 0.0));
 
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1,  0.0,  0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2,  0.0, 10.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.0, 10.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.0,  0.0, 0.0);
-
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Quadrilateral2D4<NodeType> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"(
     {
@@ -58,21 +54,63 @@ void GradientRecoveryUtility2DTest(
     })");
     mesher_parameters["number_of_divisions"].SetInt(NumberOfDivisions);
 
-    ModelPart& r_model_part = model.CreateModelPart("model_part");
+    ModelPart& r_model_part = rModel.CreateModelPart("model_part");
     r_model_part.AddNodalSolutionStepVariable(DISTANCE);
     r_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
     r_model_part.AddNodalSolutionStepVariable(FIRST_DERIVATIVE_WEIGHTS);
     r_model_part.AddNodalSolutionStepVariable(SECOND_DERIVATIVE_WEIGHTS);
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+}
 
+void Generate3DMesh(
+    Model& rModel,
+    const int NumberOfDivisions)
+{
+    Node<3>::Pointer p_point1(new NodeType(1,  0.0,  0.0,  0.0));
+    Node<3>::Pointer p_point2(new NodeType(2, 10.0,  0.0,  0.0));
+    Node<3>::Pointer p_point3(new NodeType(3, 10.0, 10.0,  0.0));
+    Node<3>::Pointer p_point4(new NodeType(4,  0.0, 10.0,  0.0));
+    Node<3>::Pointer p_point5(new NodeType(5,  0.0,  0.0, 10.0));
+    Node<3>::Pointer p_point6(new NodeType(6, 10.0,  0.0, 10.0));
+    Node<3>::Pointer p_point7(new NodeType(7, 10.0, 10.0, 10.0));
+    Node<3>::Pointer p_point8(new NodeType(8,  0.0, 10.0, 10.0));
+
+    Hexahedra3D8<NodeType> geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions":  4,
+        "element_name":         "Element3D4N",
+        "condition_name":       "SurfaceCondition"
+    })");
+    mesher_parameters["number_of_divisions"].SetInt(NumberOfDivisions);
+
+    ModelPart& r_model_part = rModel.CreateModelPart("model_part");
+    r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+    r_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
+    r_model_part.AddNodalSolutionStepVariable(FIRST_DERIVATIVE_WEIGHTS);
+    r_model_part.AddNodalSolutionStepVariable(SECOND_DERIVATIVE_WEIGHTS);
+    StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+}
+
+template<std::size_t TDim>
+void GradientRecoveryTest(
+    Model& rModel,
+    const std::function<double(array_1d<double,3>)>& rPrimitiveFunction,
+    const std::function<array_1d<double,3>(array_1d<double,3>)>& rDerivativeFunction,
+    const double Tolerance)
+{
+    const bool print_debug_mesh = false;
+
+    ModelPart& r_model_part = rModel.GetModelPart("model_part");
     block_for_each(r_model_part.Nodes(), [&](NodeType& rNode){
         rNode.FastGetSolutionStepValue(DISTANCE) = rPrimitiveFunction(rNode);
     });
 
     FindGlobalNodalNeighboursProcess(r_model_part).Execute();
-    DerivativesRecoveryUtility::ExtendNeighborsPatch(r_model_part);
-    DerivativesRecoveryUtility::CalculatePolynomialWeights(r_model_part);
-    DerivativesRecoveryUtility::RecoverGradient(r_model_part, DISTANCE, DISTANCE_GRADIENT);
+    DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(r_model_part);
+    DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(r_model_part);
+    DerivativesRecoveryUtility<TDim>::RecoverGradient(r_model_part, DISTANCE, DISTANCE_GRADIENT);
 
     if (print_debug_mesh) {
         GidIO<> io("output_mesh",
@@ -98,8 +136,9 @@ void GradientRecoveryUtility2DTest(
     });
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GradientRecoveryUtility2DParabolaX, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DParabolaX, ShallowWaterApplicationFastSuite)
 {
+    Model model;
     const int number_of_divisions = 4;
     auto f = [] (array_1d<double,3> x) {return 0.1 * std::pow(x[0] - 4.0, 2);};
     auto df = [] (array_1d<double,3> x) {
@@ -107,11 +146,13 @@ KRATOS_TEST_CASE_IN_SUITE(GradientRecoveryUtility2DParabolaX, ShallowWaterApplic
         return derivative;
     };
     const double tolerance = 1e-12;
-    GradientRecoveryUtility2DTest(number_of_divisions, f, df, tolerance);
+    Generate2DMesh(model, number_of_divisions);
+    GradientRecoveryTest<2>(model, f, df, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GradientRecoveryUtility2DParabolaXY, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DParabolaXY, ShallowWaterApplicationFastSuite)
 {
+    Model model;
     const int number_of_divisions = 4;
     auto f = [] (array_1d<double,3> x) {return 0.1 * std::pow(x[0] - 6.0, 2) + 0.1 * std::pow(x[1] - 5.0, 2);};
     auto df = [] (array_1d<double,3> x) {
@@ -119,11 +160,13 @@ KRATOS_TEST_CASE_IN_SUITE(GradientRecoveryUtility2DParabolaXY, ShallowWaterAppli
         return derivative;
     };
     const double tolerance = 1e-12;
-    GradientRecoveryUtility2DTest(number_of_divisions, f, df, tolerance);
+    Generate2DMesh(model, number_of_divisions);
+    GradientRecoveryTest<2>(model, f, df, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GradientRecoveryUtility2DHyperbolicFunction, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DHyperbolicFunction, ShallowWaterApplicationFastSuite)
 {
+    Model model;
     const int number_of_divisions = 20;
     auto f = [] (array_1d<double,3> x) {
         const double k = 0.2;
@@ -136,7 +179,22 @@ KRATOS_TEST_CASE_IN_SUITE(GradientRecoveryUtility2DHyperbolicFunction, ShallowWa
         return derivative;
     };
     const double tolerance = 1e-2;
-    GradientRecoveryUtility2DTest(number_of_divisions, f, df, tolerance);
+    Generate2DMesh(model, number_of_divisions);
+    GradientRecoveryTest<2>(model, f, df, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility3DParabolaZ, ShallowWaterApplicationFastSuite)
+{
+    Model model;
+    const int number_of_divisions = 4;
+    auto f = [] (array_1d<double,3> x) {return 0.3 * std::pow(x[2] - 4.0, 2);};
+    auto df = [] (array_1d<double,3> x) {
+        array_1d<double,3> derivative({0.0, 0.0, 0.6 * (x[2] - 4.0)});
+        return derivative;
+    };
+    const double tolerance = 1e-12;
+    Generate3DMesh(model, number_of_divisions);
+    GradientRecoveryTest<3>(model, f, df, tolerance);
 }
 
 } // namespace Testing
