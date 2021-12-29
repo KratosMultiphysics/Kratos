@@ -466,7 +466,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                     if buffer_value < maxBuffer:
                         active_correction_coefficient.append(2*(buffer_value - 1))
                     else:
-                        active_correction_coefficient.append(2*maxBuffer)
+                        active_correction_coefficient.append(2*(maxBuffer-1))
                 else:
                     active_correction_coefficient.append(0.0)
 
