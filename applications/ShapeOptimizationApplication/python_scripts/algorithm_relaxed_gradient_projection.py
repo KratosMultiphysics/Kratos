@@ -96,6 +96,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.INV_HESSIAN)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.PROJECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
 
@@ -337,34 +338,29 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             s = KM.Vector()
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(s, KSO.SEARCH_DIRECTION)
             s /= s_norm
-            for i in range(0, len(s), 3):
-                y_i = self.prev_s[i: i+3] - s[i: i+3]
-                # print("---------------")
-                # print(y_i)
-                # print(self.prev_s[i: i+3])
-                # print(s[i: i+3])
-                d_i = self.d[i:i+3]
-                # print(d_i)
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(s, KSO.SEARCH_DIRECTION)
+
+            for index, node in enumerate(self.design_surface.Nodes):
+                i = index * 3
+                y_i = np.array(self.prev_s[i: i+3]) - np.array(s[i: i+3])
+                d_i = np.array(self.d[i:i+3])
                 if np.dot(y_i, y_i) < 1e-9:
                     step_i = self.step_size
                 else:
                     step_i = abs(np.dot(d_i, y_i) / np.dot(y_i, y_i))
                 if step_i > self.step_size:
                     step_i = self.step_size
-                # print(step_i)
-                # print(s[i: i+3])
+                node.SetSolutionStepValue(KSO.INV_HESSIAN, step_i)
                 s[i] = s[i] * step_i
                 s[i+1] = s[i+1] * step_i
                 s[i+2] = s[i+2] * step_i
-                # print(s[i: i+3])
-                # print("---------------")
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
 
     def __saveLineSearchData(self):
             self.prev_s = KM.Vector()
             self.d = KM.Vector()
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(self.d, KSO.CONTROL_POINT_UPDATE)
-            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(self.d, KSO.SEARCH_DIRECTION)
+            self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(self.prev_s, KSO.SEARCH_DIRECTION)
             # self.d = np.copy(self.d)
             # self.prev_s = np.copy(self.prev_s)
 
