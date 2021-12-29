@@ -260,37 +260,39 @@ class ConvectionDiffusionSolver(PythonSolver):
         return self.min_buffer_size
 
     def AddDofs(self):
-        settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
-
-        # Add standard scalar DOF
-        if settings.IsDefinedReactionVariable():
-            KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
-        else:
-            KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), self.main_model_part)
-
-        # Add gradient of the unknown DOF for mixed problems
+        # Set DOFs and reaction variables list from Kratos parameters settings
+        dofs_with_reactions_list = []
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
+        dof_var_name = conv_diff_vars["unknown_variable"].GetString()
+        reaction_var_name = conv_diff_vars["reaction_variable"].GetString()
+        dofs_with_reactions_list.append([dof_var_name,reaction_var_name])
         if self.settings["gradient_dofs"].GetBool():
-            gradient_variable = settings.GetGradientVariable()
-            gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_X")
-            gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Y")
-            if settings.IsDefinedReactionGradientVariable():
-                reaction_gradient_variable = settings.GetReactionGradientVariable()
-                reaction_gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_X")
-                reaction_gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Y")
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, reaction_gradient_variable_x, self.main_model_part)
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, reaction_gradient_variable_y, self.main_model_part)
-                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
-                    reaction_gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Z")
-                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, reaction_gradient_variable_z, self.main_model_part)
-            else:
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, self.main_model_part)
-                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, self.main_model_part)
-                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
-                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, self.main_model_part)
+            grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
+            grad_react_var_name = conv_diff_vars["reaction_gradient_variable"].GetString()
+            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
+            for comp in comp_list:
+                dofs_with_reactions_list.append([grad_dof_var_name+comp,grad_react_var_name+comp])
+
+        # Add the DOFs and reaction list to each node
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_with_reactions_list, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
+
+    def GetDofsList(self):
+        """This function creates and returns a list with the DOFs defined in the Kratos parameters settings
+        Note that element GetSpecifications method cannot be used in this case as DOF variables are a priori unknown
+        """
+
+        dofs_list = []
+        conv_diff_vars = self.settings["convection_diffusion_variables"]
+        dofs_list.append(conv_diff_vars["unknown_variable"].GetString())
+        if self.settings["gradient_dofs"].GetBool():
+            grad_dof_var_name = conv_diff_vars["gradient_variable"].GetString()
+            comp_list = ["_X","_Y"] if self.settings["domain_size"].GetInt() == 2 else ["_X","_Y","_Z"]
+            for comp in comp_list:
+                dofs_list.append(grad_dof_var_name + comp)
+
+        return dofs_list
 
     def ImportModelPart(self):
         """This function imports the ModelPart"""
@@ -720,6 +722,12 @@ class ConvectionDiffusionSolver(PythonSolver):
             raise Exception(err_msg)
 
     def _ConvectionDiffusionVariablesCheck(self, custom_settings):
+        """This checks the user provided set of variables.
+        If there are no custom \'convection_diffusion_variables\', the default ones are taken.
+        If these are defined by the user, it checks one by one the provided values. If one is missing, it is taken form the defaults.
+        Note that this ensures that all the historical nodal variables to be used are defined in \'convection_diffusion_settings\' at construction time.
+        """
+
         default_settings = self.GetDefaultParameters()
         default_conv_diff_variables = default_settings["convection_diffusion_variables"]
         if not custom_settings.Has("convection_diffusion_variables"):
