@@ -131,7 +131,7 @@ void AddMissingVariablesFromEntitiesList(
     Parameters specifications;
 
     // Iterate over elements
-    if (rEntitiesList.Has("element_list")) {
+    if (EntitiesList.Has("element_list")) {
         const auto& element_list = EntitiesList["element_list"].GetStringArray();
         for (auto& r_element_name : element_list) {
             const Element& r_element = KratosComponents<Element>::Get(r_element_name);
@@ -141,7 +141,7 @@ void AddMissingVariablesFromEntitiesList(
     }
 
     // Iterate over conditions
-    if (rEntitiesList.Has("condition_list")) {
+    if (EntitiesList.Has("condition_list")) {
         const auto& condition_list = EntitiesList["condition_list"].GetStringArray();
         for (auto& r_condition_name : condition_list) {
             const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
@@ -314,7 +314,7 @@ void AddMissingDofsFromEntitiesList(
     Parameters specifications;
 
     // Iterate over elements
-    if (rEntitiesList.Has("element_list")) {
+    if (EntitiesList.Has("element_list")) {
         const auto& element_list = EntitiesList["element_list"].GetStringArray();
         for (auto& r_element_name : element_list) {
             const Element& r_element = KratosComponents<Element>::Get(r_element_name);
@@ -324,7 +324,7 @@ void AddMissingDofsFromEntitiesList(
     }
 
     // Iterate over conditions
-    if (rEntitiesList.Has("condition_list")) {
+    if (EntitiesList.Has("condition_list")) {
         const auto& condition_list = EntitiesList["condition_list"].GetStringArray();
         for (auto& r_condition_name : condition_list) {
             const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
