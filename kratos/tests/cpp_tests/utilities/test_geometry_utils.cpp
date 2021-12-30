@@ -564,5 +564,27 @@ namespace Testing {
         GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(old_velocity_gradient, tetrahedra, VELOCITY, DN_DX, 1);
         KRATOS_CHECK_MATRIX_NEAR(check_old_velocity_gradient, old_velocity_gradient, 1e-15);
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(ProjectedIsInside, KratosCoreFastSuite)
+    {
+        Geometry<Node<3>>::CoordinatesArrayType aux;
+
+        auto line = GenerateExampleLine();
+
+        auto p_node_1 = Kratos::make_intrusive<Node<3>>(1, 0.5, 1.0e-6, 0.0);
+
+        auto p_node_2 = Kratos::make_intrusive<Node<3>>(2, 0.5, 1.0e-1, 0.0);
+
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(line, *p_node_1, aux), true);
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(line, *p_node_2, aux), false);
+
+        auto triangle = GenerateExampleTriangle3D();
+
+        auto p_node_3 = Kratos::make_intrusive<Node<3>>(3, 1.0/3.0, 1.0/3.0, 1.0e-7);
+        auto p_node_4 = Kratos::make_intrusive<Node<3>>(4, 1.0/3.0, 1.0/3.0, 1.0e-1);
+
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(triangle, *p_node_3, aux), true);
+        KRATOS_CHECK_EQUAL(GeometryUtils::ProjectedIsInside(triangle, *p_node_4, aux), false);
+    }
 }  // namespace Testing.
 }  // namespace Kratos.

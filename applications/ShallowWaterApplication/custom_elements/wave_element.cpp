@@ -253,6 +253,27 @@ void WaveElement<TNumNodes>::CalculateGaussPointData(
     rData.b2[1] = rData.gravity;
 }
 
+
+template<>
+double WaveElement<3>::ShapeFunctionProduct(
+    const array_1d<double,3>& rN,
+    const std::size_t I,
+    const std::size_t J)
+{
+    return (I == J) ? 1.0/6.0 : 1.0/12.0;
+}
+
+
+template<std::size_t TNumNodes>
+double WaveElement<TNumNodes>::ShapeFunctionProduct(
+    const array_1d<double,TNumNodes>& rN,
+    const std::size_t I,
+    const std::size_t J)
+{
+    return rN[I] * rN[J];
+}
+
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateArtificialViscosity(
     BoundedMatrix<double,3,3>& rViscosity,
@@ -451,39 +472,6 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     }
 }
 
-template<>
-void WaveElement<3>::AddMassTerms(
-    LocalMatrixType& rMatrix,
-    const ElementData& rData,
-    const array_1d<double,3>& rN,
-    const BoundedMatrix<double,3,2>& rDN_DX,
-    const double Weight)
-{
-    const double l = StabilizationParameter(rData);
-    BoundedMatrix<double, 3, 3> M = IdentityMatrix(3);
-
-    // Algebraic factor
-    const double one_twelfth = 1.0 / 12.0;
-    const double one_sixth = 1.0 / 6.0;
-
-    for (IndexType i = 0; i < 3; ++i)
-    {
-        for (IndexType j = 0; j < 3; ++j)
-        {
-            // Consistent mass matrix
-            const double n_ij = (i == j) ? one_sixth : one_twelfth;
-            MathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
-
-            /// Stabilization x
-            const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
-
-            /// Stabilization y
-            const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
-        }
-    }
-}
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddMassTerms(
@@ -501,7 +489,7 @@ void WaveElement<TNumNodes>::AddMassTerms(
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
             // Consistent mass matrix
-            const double n_ij = rN[i] * rN[j];
+            const double n_ij = ShapeFunctionProduct(rN, i, j);//rN[i] * rN[j];
             MathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
 
             /// Stabilization x
@@ -514,6 +502,7 @@ void WaveElement<TNumNodes>::AddMassTerms(
         }
     }
 }
+
 
 template<std::size_t TNumNodes>
 double WaveElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const

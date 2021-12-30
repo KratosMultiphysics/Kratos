@@ -23,6 +23,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
 #include "custom_utilities/move_mesh_utility.h"
+#include "custom_utilities/derivatives_recovery_utility.h"
 
 
 namespace Kratos
@@ -146,6 +147,32 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &MoveMeshUtility::Initialize)
         .def("MoveMesh", &MoveMeshUtility::MoveMesh)
         .def("MapResults", &MoveMeshUtility::MapResults)
+        ;
+
+    py::class_<DerivativesRecoveryUtility<2>>(m, "DerivativesRecoveryUtility2D")
+        .def_static("Check", &DerivativesRecoveryUtility<2>::Check)
+        .def_static("ExtendNeighborsPatch", &DerivativesRecoveryUtility<2>::ExtendNeighborsPatch)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<2>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<2>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<2>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        ;
+
+    py::class_<DerivativesRecoveryUtility<3>>(m, "DerivativesRecoveryUtility3D")
+        .def_static("Check", &DerivativesRecoveryUtility<3>::Check)
+        .def_static("ExtendNeighborsPatch", &DerivativesRecoveryUtility<3>::ExtendNeighborsPatch)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<3>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<3>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<3>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
         ;
 
 }
