@@ -377,7 +377,25 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # If the element uses nodal material properties, transfer them to the nodes
         if self.element_has_nodal_properties:
             self._SetNodalProperties()
+            
+        # START quick-fix - for two fluid on MPI - specifying in MDPA
 
+        # CHECK
+        # for idx in range(len(self.main_model_part.Properties)):
+        #     myproperty = self.main_model_part.Properties[idx]
+        #     msg = "On rank: " + str(self.main_model_part.GetCommunicator().MyPID()) + "\n"
+        #     msg += "With prop id: " + str(idx) + "\n"
+        #     msg += "Density: " + str(myproperty.GetValue(KratosMultiphysics.DENSITY)) + "\n"
+        #     msg += "Dyn visc: " + str(myproperty.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)) + "\n"
+        #     msg += "Const law: " + str(myproperty.GetValue(KratosMultiphysics.CONSTITUTIVE_LAW)) + "\n"
+        #     print(msg)
+
+        #wait=input("check prop...")
+
+        materials_imported = True
+
+        # END quick-fix
+        
         return materials_imported
 
     def _SetNodalProperties(self):
