@@ -5,7 +5,6 @@ import numpy as np
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
-from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 
 def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_element_selector = None):
@@ -34,9 +33,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_ele
                 self.project_parameters["solver_settings"].AddValue("rom_settings", rom_settings["rom_settings"])
 
             # Create the ROM solver
-            return new_python_solvers_wrapper_rom.CreateSolver(
+            return python_solvers_wrapper_rom.CreateSolverByParameters(
                 self.model,
-                self.project_parameters)
+                self.project_parameters["solver_settings"],
+                self.project_parameters["problem_data"]["parallel_type"].GetString())
 
         def _GetSimulationName(self):
             return "::[ROM Simulation]:: "
