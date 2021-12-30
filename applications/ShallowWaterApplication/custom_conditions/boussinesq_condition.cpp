@@ -106,8 +106,107 @@ void BoussinesqCondition<TNumNodes>::CalculateGaussPointData(
 
     // Calculate the normal vector
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
+}
+
+template<std::size_t TNumNodes>
+void BoussinesqCondition<TNumNodes>::AddAuxiliaryLaplacian(
+    LocalVectorType& rLaplacian,
+    const GeometryType& rParentGeometry,
+    const ConditionData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const Matrix& rDN_DX,
+    const double Weight)
+{
+    array_1d<double,TNumNodes> normal_i;
+    double divergence_j;
+    std::size_t elem_num_nodes = rParentGeometry.size();
+    std::vector<array_1d<double,3>> nodal_v(elem_num_nodes);
+
+    for (IndexType i = 0; i < elem_num_nodes; ++i) {
+        nodal_v[i] = rParentGeometry[i].FastGetSolutionStepValue(VELOCITY);
+    }
+
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        normal_i[0] = rData.normal[0] * rN[i];
+        normal_i[1] = rData.normal[1] * rN[i];
+        normal_i[2] = 0.0;
+
+        for (IndexType j = 0; j < elem_num_nodes; ++j)
+        {
+            divergence_j  = rDN_DX(j,0) * nodal_v[j][0];
+            divergence_j += rDN_DX(j,1) * nodal_v[j][1];
+
+            MathUtils<double>::AddVector(rLaplacian, Weight*normal_i*divergence_j, 3*i);
+        }
+    }
+}
+
+template<std::size_t TNumNodes>
+void BoussinesqCondition<TNumNodes>::CalculateShapeFunctionDerivaties(
+    Matrix& rDN_DX,
+    const GeometryType& rParentGeometry,
+    const Point& rPoint)
+{
+    std::size_t num_nodes = rParentGeometry.size();
+    Point local_coordinates;
+    std::vector<array_1d<double,3>> global_derivatives;
+    rParentGeometry.PointLocalCoordinates(local_coordinates, rPoint);
+    rParentGeometry.GlobalSpaceDerivatives(global_derivatives, local_coordinates, 1);
+    rDN_DX.resize(num_nodes, 2);
+    for (std::size_t i = 0; i < num_nodes; ++i)
+    {
+        rDN_DX(i,0) = global_derivatives[1](i);
+        rDN_DX(i,1) = global_derivatives[2](i);
+    }
+}
+
+template<std::size_t TNumNodes>
+void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    auto& r_geom = this->GetGeometry();
+
+    // Struct to pass around the data
+    ConditionData data;
+    WaveConditionType::InitializeData(data, rCurrentProcessInfo);
+
+    // Geometrical data
+    auto& parent_geom = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
+    Matrix DN_DX;           // Gradients of the parent element
+    Vector weights;         // Line integration data
+    Matrix N_container;     // Line integration data
+    this->CalculateGeometryData(weights, N_container);
+    const std::size_t num_gauss_points = weights.size();
+    const auto& g_points = r_geom.IntegrationPoints();
+
+    // Boundary term for the auxiliary fields
+    LocalVectorType acc_laplacian_vector = ZeroVector(mLocalSize);
+    LocalVectorType vel_laplacian_vector = ZeroVector(mLocalSize);
+
+    // Gauss point contribution
+    for (IndexType g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = weights[g];
+        const auto point = g_points[g];
+        const array_1d<double,TNumNodes> N = row(N_container, g);
+
+        CalculateGaussPointData(data, g, N);
+        CalculateShapeFunctionDerivaties(DN_DX, parent_geom, point);
+        AddAuxiliaryLaplacian(vel_laplacian_vector, parent_geom, data, N, DN_DX, weight);
+    }
+
+    array_1d<double,3> vel_laplacian = ZeroVector(3);
+    array_1d<double,3> acc_laplacian = ZeroVector(3);
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        std::size_t block = 3 * i;
+        vel_laplacian[0] = vel_laplacian_vector[block];
+        vel_laplacian[1] = vel_laplacian_vector[block + 1];
+        r_geom[i].SetLock();
+        r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
+        r_geom[i].UnSetLock();
+    }
 }
 
 template class BoussinesqCondition<2>;
