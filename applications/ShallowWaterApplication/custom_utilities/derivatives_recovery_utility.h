@@ -148,6 +148,10 @@ private:
     static bool CalculateNodalPolynomialWeights(
         NodeType& rNode);
 
+    static bool GeneralizedInvertMatrix(
+        Matrix& rInputMatrix,
+        Matrix& rResult);
+
     ///@}
     ///@name Un accessible methods
     ///@{

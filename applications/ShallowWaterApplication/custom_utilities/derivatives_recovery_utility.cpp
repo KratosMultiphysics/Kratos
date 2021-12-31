@@ -323,10 +323,10 @@ bool DerivativesRecoveryUtility<TDim>::CalculateNodalPolynomialWeights(NodeType&
     }
 
     // The least squares projection
-    double det;
+    bool is_invertible;
     Matrix A_pseudo_inv;
-    MathUtils<double>::GeneralizedInvertMatrix(A, A_pseudo_inv, det);
-    if (det < 1e-12) {
+    is_invertible = DerivativesRecoveryUtility<TDim>::GeneralizedInvertMatrix(A, A_pseudo_inv);
+    if (!is_invertible) {
         return false;
     }
 
