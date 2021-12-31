@@ -124,9 +124,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Save the nodal basis
         rom_basis_dict = {
+            "is_hrom": False,
             "rom_settings": {},
             "nodal_modes": {},
-            "is_hrom": False,
             "elements_and_weights" : {}
         }
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
