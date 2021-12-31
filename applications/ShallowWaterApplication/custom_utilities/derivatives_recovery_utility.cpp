@@ -77,7 +77,12 @@ template<std::size_t TDim>
 void DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        bool is_converged = CalculateNodalPolynomialWeights(rNode);
+        bool is_converged = false;
+        int max_iter = 3;
+        int iter = 0;
+        while (!is_converged && iter < max_iter)
+        {
+            is_converged = CalculateNodalPolynomialWeights(rNode);
         if (!is_converged)
         {
             auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
@@ -85,7 +90,8 @@ void DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(ModelPart& rMo
             DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(rNode, neigh_nodes, third_neighbors);
             DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(rModelPart, neigh_nodes, third_neighbors);
         }
-        CalculateNodalPolynomialWeights(rNode);
+            iter++;
+        }
     });
 }
 
@@ -393,6 +399,18 @@ double DerivativesRecoveryUtility<TDim>::CalculateMaximumDistance(
         max_distance = std::max(max_distance, distance);
     }
     return max_distance;
+}
+
+template<std::size_t TDim>
+bool DerivativesRecoveryUtility<TDim>::GeneralizedInvertMatrix(
+    Matrix& rInputMatrix,
+    Matrix& rResult)
+{
+    double det;
+    MathUtils<double>::GeneralizedInvertMatrix(rInputMatrix, rResult, det, -1.0);
+    const double tolerance = std::numeric_limits<double>::epsilon();
+    const bool throw_errors = false;
+    return MathUtils<double>::CheckConditionNumber(rInputMatrix, rResult, tolerance, throw_errors);
 }
 
 template class DerivativesRecoveryUtility<2>;
