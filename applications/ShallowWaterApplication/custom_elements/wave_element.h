@@ -303,6 +303,8 @@ protected:
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
         array_1d<array_1d<double,3>,TNumNodes> nodal_a;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_a_lap;
 
         FrictionLaw::Pointer p_bottom_friction;
     };
@@ -319,9 +321,14 @@ protected:
 
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
+    virtual void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
     virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+
+    double ShapeFunctionProduct(
+        const array_1d<double,TNumNodes>& rN,
+        const std::size_t I,
+        const std::size_t J);
 
     virtual void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
@@ -367,7 +374,7 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    void AddMassTerms(
+    virtual void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
