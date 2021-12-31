@@ -48,6 +48,7 @@ class DataLogger():
             "optimization_log_filename" : "optimization_log",
             "design_output_mode"        : "write_optimization_model_part",
             "nodal_results"             : [ "SHAPE_CHANGE" ],
+            "nodal_non_historical_results" :[],
             "output_format"             : { "name": "vtk" }
         }""")
 

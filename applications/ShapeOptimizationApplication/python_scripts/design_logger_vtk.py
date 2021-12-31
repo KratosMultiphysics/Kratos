@@ -62,6 +62,9 @@ class DesignLoggerVTK( DesignLogger ):
         nodal_results = self.output_settings["nodal_results"]
         vtk_parameters.AddValue("nodal_solution_step_data_variables", nodal_results)
 
+        nodal_non_historical_results = self.output_settings["nodal_non_historical_results"]
+        vtk_parameters.AddValue("nodal_data_value_variables", nodal_non_historical_results)
+
         if output_mode == "write_design_surface":
             vtk_parameters["model_part_name"].SetString(self.design_surface.FullName())
         elif output_mode == "write_optimization_model_part":
