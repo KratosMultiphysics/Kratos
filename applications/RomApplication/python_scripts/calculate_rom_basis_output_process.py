@@ -125,7 +125,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Save the nodal basis
         rom_basis_dict = {
             "rom_settings": {},
-            "nodal_modes": {}
+            "nodal_modes": {},
+            "is_hrom": False,
+            "elements_and_weights" : {}
         }
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
