@@ -32,6 +32,8 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "in_plane_morphing"          : false,
         "in_plane_morphing_settings" : {},
         "plane_symmetry"             : false,
+        "filter_radius_smoothing_iterations": 10,
+        "filter_radius_factor": 7,
         "plane_symmetry_settings"    : {
             "point" : [0.0, 0.0, 0.0],
             "normal": [1.0, 0.0, 0.0]
@@ -55,8 +57,9 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
                 mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetricAdaptiveRadius
                 mapper_vertex_morphing = KSO.MapperVertexMorphingAdaptiveRadius
 
-                if mapper_settings["in_plane_morphing"].GetBool():
-                    raise Exception("\"in_plane_morphing\" is not yet supported with \"adaptive\" filter radius.")
+                if mapper_settings.Has("in_plane_morphing"):
+                    if mapper_settings["in_plane_morphing"].GetBool():
+                        raise Exception("\"in_plane_morphing\" is not yet supported with \"adaptive\" filter radius.")
                 mapper_settings["filter_radius"].SetDouble(-1.0)
             else:
                 raise Exception("\"filter_radius\" either should be double value or \"adaptive\".")
