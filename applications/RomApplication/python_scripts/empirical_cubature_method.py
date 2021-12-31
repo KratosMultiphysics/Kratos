@@ -1,5 +1,3 @@
-from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
-
 import numpy as np
 import json
 
@@ -10,7 +8,7 @@ except ImportError as e:
     missing_matplotlib = True
 
 
-class EmpiricalCubatureMethod(ElementSelectionStrategy):
+class EmpiricalCubatureMethod():
     """
     This class selects a subset of elements and corresponding positive weights necessary for the construction of a hyper-reduced order model
     Reference: Hernandez 2020. "A multiscale method for periodic structures using domain decomposition and ECM-hyperreduction"
@@ -24,7 +22,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         Plotting: whether to plot the error evolution of the element selection algorithm
     """
     def __init__(self, ECM_tolerance = 0, Filter_tolerance = 1e-16, Plotting = False):
-        super().__init__()
         self.ECM_tolerance = ECM_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
@@ -37,7 +34,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
     input:  ResidualsBasis: numpy array containing a basis to the residuals projected
     """
     def SetUp(self, ResidualsBasis):
-        super().SetUp()
 
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
@@ -49,7 +45,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
     Method performing calculations required before launching the Calculate method
     """
     def Initialize(self):
-        super().Initialize()
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
@@ -67,12 +62,15 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         self.nerrorACTUAL = self.nerror
 
 
+    def Run(self):
+        self.Initialize()
+        self.Calculate()
+
 
     """
     Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
     """
     def Calculate(self):
-        super().Calculate()
 
         k = 1 # number of iterations
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
