@@ -281,12 +281,14 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             return False
         elif self.direction_has_changed and self.inner_iter < 100:
             return False
-        else: 
+        else:
             return True
 
     def __checkConstraintValue(self):
-        for index, constraint in enumerate(self.constraints):
+        index = -1
+        for constraint in self.constraints:
             if self.__isConstraintActive(constraint):
+                index += 1
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)
                 g_a_variable = self.constraint_gradient_variables[identifier]["gradient"]
@@ -331,7 +333,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(step, KSO.SEARCH_DIRECTION)
             step *= self.step_size
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(step, KSO.CONTROL_POINT_UPDATE)
-    
+
     def __QNBBStep(self):
         s_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.SEARCH_DIRECTION)
         if abs(s_norm) > 1e-10:
@@ -421,7 +423,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.PROJECTION)
         self.p_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
-        
+
         p *= 1.0 / self.p_norm
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p+c, KSO.SEARCH_DIRECTION)
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p+c, KSO.CONTROL_POINT_UPDATE)
