@@ -172,19 +172,6 @@ typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnkn
 }
 
 template<std::size_t TNumNodes>
-typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetAccelerationsVector(const ElementData& rData) const
-{
-    std::size_t index = 0;
-    array_1d<double,mLocalSize> accelerations;
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        accelerations[index++] = rData.nodal_a[i][0];
-        accelerations[index++] = rData.nodal_a[i][1];
-        accelerations[index++] = rData.nodal_w[i];
-    }
-    return accelerations;
-}
-
-template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
 {
     rData.integrate_by_parts = rCurrentProcessInfo[INTEGRATE_BY_PARTS]; //since it is passed as const it will return false if it doesn't have INTEGRATE_BY_PARTS
@@ -192,8 +179,6 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
-    rData.amplitude = rCurrentProcessInfo[AMPLITUDE];
-    rData.wavelength = rCurrentProcessInfo[WAVELENGTH];
     rData.p_bottom_friction = FrictionLawsFactory().CreateBottomFrictionLaw(
         this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 }
@@ -211,7 +196,6 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
         rData.nodal_w[i] = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         rData.nodal_q[i] = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, Step);
-        rData.nodal_a[i] = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
     }
 }
 

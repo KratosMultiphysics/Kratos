@@ -283,9 +283,6 @@ protected:
         double relative_dry_height;
         double gravity;
         double length;
-
-        double amplitude;
-        double wavelength;
         double depth;
 
         double height;
@@ -302,9 +299,7 @@ protected:
         array_1d<double,TNumNodes> nodal_w;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
-        array_1d<array_1d<double,3>,TNumNodes> nodal_a;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
-        array_1d<array_1d<double,3>,TNumNodes> nodal_a_lap;
 
         FrictionLaw::Pointer p_bottom_friction;
     };
@@ -316,8 +311,6 @@ protected:
     virtual const Variable<double>& GetUnknownComponent(int Index) const;
 
     virtual LocalVectorType GetUnknownVector(const ElementData& rData) const;
-
-    LocalVectorType GetAccelerationsVector(const ElementData& rData) const;
 
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 

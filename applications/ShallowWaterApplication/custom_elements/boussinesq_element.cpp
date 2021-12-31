@@ -75,7 +75,6 @@ void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const Geomet
         rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
-        rData.nodal_a[i] = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
         rData.nodal_v_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN, Step);
     }
 }
@@ -88,46 +87,39 @@ void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, c
     const double g = rData.gravity;
     const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, rN);
 
-    double e; // the non linearity ratio
-    if (rData.amplitude) {
-        e = rData.amplitude / H;
-    } else {
-        e = std::abs(eta) / H;
-    }
-
     rData.depth = H;
-    rData.height = H + e * eta;
+    rData.height = H + eta;
     rData.velocity = v;
 
     /**
-     * A_1 = {{ e*u_1      0     g  },
-     *        {   0      e*u_1   0  },
-     *        {H + e*eta   0   e*u_1}}
+     * A_1 = {{ u_1     0    g  },
+     *        {  0     u_1   0  },
+     *        {H + eta  0   u_1}}
      */
-    rData.A1(0,0) = e*v[0];
+    rData.A1(0,0) = v[0];
     rData.A1(0,1) = 0;
     rData.A1(0,2) = g;
     rData.A1(1,0) = 0;
-    rData.A1(1,1) = e*v[0];
+    rData.A1(1,1) = v[0];
     rData.A1(1,2) = 0;
-    rData.A1(2,0) = H + e*eta;
+    rData.A1(2,0) = H + eta;
     rData.A1(2,1) = 0;
-    rData.A1(2,2) = e*v[0];
+    rData.A1(2,2) = v[0];
 
     /*
-     * A_2 = {{ e*u_2      0      0  },
-     *        {   0      e*u_2    g  },
-     *        {   0   H + e*eta e*u_2}}
+     * A_2 = {{ u_2    0      0  },
+     *        {  0    u_2     g  },
+     *        {  0  H + eta  u_2}}
      */
-    rData.A2(0,0) = e*v[1];
+    rData.A2(0,0) = v[1];
     rData.A2(0,1) = 0;
     rData.A2(0,2) = 0;
     rData.A2(1,0) = 0;
-    rData.A2(1,1) = e*v[1];
+    rData.A2(1,1) = v[1];
     rData.A2(1,2) = g;
     rData.A2(2,0) = 0;
-    rData.A2(2,1) = H + e*eta;
-    rData.A2(2,2) = e*v[1];
+    rData.A2(2,1) = H + eta;
+    rData.A2(2,2) = v[1];
 
     /// b_1
     rData.b1[0] = 0;
@@ -159,8 +151,6 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const double Weight)
 {
     // Constants
-    const double dispersive_ratio = rData.depth / rData.wavelength;
-    const double m2 = std::pow(dispersive_ratio, 2);
     const double beta = -0.531;
     const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
     const double C3 = beta + 0.5;
@@ -194,24 +184,24 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             }
 
             /// Gradient contribution
-            rVector[3*i + 2] -= Weight*m2*g1_ij*nodal_Jf[j][0];
-            rVector[3*i + 2] -= Weight*m2*g2_ij*nodal_Jf[j][1];
+            rVector[3*i + 2] -= Weight*g1_ij*nodal_Jf[j][0];
+            rVector[3*i + 2] -= Weight*g2_ij*nodal_Jf[j][1];
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A1i3*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*nodal_Jf[j][0], 3*i);
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A2i3*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*nodal_Jf[j][1], 3*i);
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A1i3*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*nodal_Jf[j][1], 3*i);
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A2i3*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*nodal_Jf[j][0], 3*i);
         }
     }
 }
@@ -226,8 +216,6 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
     const double Weight)
 {
     // Constants
-    const double dispersive_ratio = rData.depth / rData.wavelength;
-    const double m2 = std::pow(dispersive_ratio, 2);
     const double beta = -0.531;
     const double C2 = 0.5 * std::pow(beta, 2);
     const double C4 = beta;
@@ -261,7 +249,7 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
             derivatives_j[0] = rDN_DX(j,0);
             derivatives_j[1] = rDN_DX(j,1);
             noalias(K) = -outer_prod(derivatives_i, derivatives_j);
-            MathUtils<double>::AddMatrix(rMatrix, Weight*m2*(C2+C4)*std::pow(H,2)*K, 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*(C2+C4)*std::pow(H,2)*K, 3*i, 3*j);
         }
     }
 }
