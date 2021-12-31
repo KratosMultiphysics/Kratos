@@ -124,7 +124,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         # Save the nodal basis
         rom_basis_dict = {
-            "is_hrom": False,
+            "train_hrom":False,
+            "ECM_SVD_tolerance":1e-6,
+            "run_hrom": False,
             "rom_settings": {},
             "nodal_modes": {},
             "elements_and_weights" : {}

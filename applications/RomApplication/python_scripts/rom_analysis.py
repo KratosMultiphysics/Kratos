@@ -8,23 +8,11 @@ from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
-def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_element_selector = None):
+def CreateRomAnalysisInstance(cls, global_model, parameters):
     class RomAnalysis(cls):
 
-        def __init__(self,global_model, parameters, hyper_reduction_element_selector = None, ECM_SVD_tolerance=1e-6):
+        def __init__(self,global_model, parameters):
             super().__init__(global_model, parameters)
-
-            if hyper_reduction_element_selector != None :
-                if hyper_reduction_element_selector == "EmpiricalCubature":
-                    self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
-                    self.time_step_residual_matrix_container = []
-                    self.ECM_SVD_tolerance = ECM_SVD_tolerance
-                else:
-                    err_msg =  "The requested element selection method \"" + hyper_reduction_element_selector + "\" is not in the rom application\n"
-                    err_msg += "Available options are: \"EmpiricalCubature\""
-                    raise Exception(err_msg)
-            else:
-                self.hyper_reduction_element_selector = None
 
         def _CreateSolver(self):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
@@ -66,39 +54,42 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_ele
                         for i in range(rom_dofs):
                             aux[j,i] = nodal_modes[node_id][j][i]
                     node.SetValue(KratosROM.ROM_BASIS, aux)
-                if data["is_hrom"]:
+
+                self.train_hrom = data["train_hrom"]
+                if self.train_hrom:
+                    self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
+                    self.time_step_residual_matrix_container = []
+                    self.ECM_SVD_tolerance = data["ECM_SVD_tolerance"]
+                if data["run_hrom"]:
                     for key in data["elements_and_weights"]["Elements"].keys():
                         computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, data["elements_and_weights"]["Elements"][key])
                     for key in data["elements_and_weights"]["Conditions"].keys():
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, data["elements_and_weights"]["Conditions"][key])
 
             # Hyper-reduction
-            if self.hyper_reduction_element_selector:
-                if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                    self.ResidualUtilityObject = KratosROM.RomResidualsUtility(
-                        computing_model_part,
-                        self.project_parameters["solver_settings"]["rom_settings"],
-                        self._GetSolver()._GetScheme())
+            if self.train_hrom:
+                self.ResidualUtilityObject = KratosROM.RomResidualsUtility(
+                    computing_model_part,
+                    self.project_parameters["solver_settings"]["rom_settings"],
+                    self._GetSolver()._GetScheme())
 
         def FinalizeSolutionStep(self):
-            if self.hyper_reduction_element_selector:
-                if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                    KratosMultiphysics.Logger.PrintInfo("RomAnalysis","Generating matrix of residuals.")
-                    res_mat = self.ResidualUtilityObject.GetResiduals()
-                    np_res_mat = np.array(res_mat, copy=False)
-                    self.time_step_residual_matrix_container.append(np_res_mat)
+            if self.train_hrom:
+                KratosMultiphysics.Logger.PrintInfo("RomAnalysis","Generating matrix of residuals.")
+                res_mat = self.ResidualUtilityObject.GetResiduals()
+                np_res_mat = np.array(res_mat, copy=False)
+                self.time_step_residual_matrix_container.append(np_res_mat)
 
             super().FinalizeSolutionStep()
 
         def Finalize(self):
             super().Finalize()
 
-            if self.hyper_reduction_element_selector:
-                if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                    self. hyper_reduction_element_selector.SetUp(self._ObtainBasis())
-                    self.hyper_reduction_element_selector.Run()
-                    self._AppendElementsAndWeightsToRomParameters()
-                    self._CreateHyperReducedModelPart()
+            if self.train_hrom:
+                self. hyper_reduction_element_selector.SetUp(self._ObtainBasis())
+                self.hyper_reduction_element_selector.Run()
+                self._AppendElementsAndWeightsToRomParameters()
+                self._CreateHyperReducedModelPart()
 
         def _ObtainBasis(self):
             ### Building the Snapshot matrix ####
@@ -136,7 +127,8 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_ele
             with open('RomParameters.json','r') as f:
                 updated_rom_parameters = json.load(f)
             with open('RomParameters.json','w') as f:
-                updated_rom_parameters["is_hrom"] = True
+                updated_rom_parameters["train_hrom"] = False
+                updated_rom_parameters["run_hrom"] = True
                 updated_rom_parameters["elements_and_weights"] = elements_and_weights
                 json.dump(updated_rom_parameters,f, indent = 4)
             print('\n\n RomParameters.json file was updated to include HROM info\n\n')
@@ -207,7 +199,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_ele
             KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("Hyper_Reduced_Model_Part.time")
 
 
-    return RomAnalysis(global_model, parameters, hyper_reduction_element_selector)
+    return RomAnalysis(global_model, parameters)
 
 
 
@@ -225,5 +217,4 @@ if __name__ == "__main__":
 
     global_model = KratosMultiphysics.Model()
     simulation = CreateRomAnalysisInstance(analysis_stage_class, global_model, parameters)
-    # simulation = CreateHRomAnalysisInstance(analysis_stage_class, global_model, parameters)
     simulation.Run()
