@@ -18,7 +18,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         KratosMultiphysics.OutputProcess.__init__(self)
 
         # Validate input settings against defaults
-        settings = settings.Clone()
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         # Get the model part from which the snapshots are to be retrieved
