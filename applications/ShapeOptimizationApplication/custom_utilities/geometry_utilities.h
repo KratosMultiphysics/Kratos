@@ -35,6 +35,7 @@
 #include "includes/global_pointer_variables.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/atomic_utilities.h"
+#include "geometries/geometry_data.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -339,6 +340,7 @@ public:
         KRATOS_TRY
 
         using CUInt = const unsigned int;
+        using VolumeDerivativeMethodType = std::function<double(CUInt, CUInt, const GeometryType&)>;
 
         KRATOS_ERROR_IF_NOT(mrModelPart.HasNodalSolutionStepVariable(rDerivativeVariable))
             << rDerivativeVariable.Name() << " not found in solution step variables list in "
@@ -346,58 +348,46 @@ public:
 
         VariableUtils().SetHistoricalVariableToZero(rDerivativeVariable, mrModelPart.Nodes());
 
-        const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
-        const SizeType number_of_nodes = GetNumberOfElementalNodesInModelPart(mrModelPart);
-
-        std::function<double(CUInt, CUInt, const GeometryType&)> volume_derivative_method;
-
-        if (domain_size == 2) {
-            if (number_of_nodes == 3) {
-                volume_derivative_method = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
-                    return 2.0 * ElementSizeCalculator<2, 3>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 3>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
-                };
-            } else if (number_of_nodes == 4) {
-                volume_derivative_method = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
-                    return 2.0 * ElementSizeCalculator<2, 4>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
-                };
-            } else {
-                KRATOS_ERROR
-                    << "Unsupported geometry type. Only geometries with 3 and "
-                       "4 nodes are supported in 2D. [ number_of_nodes = "
-                    << number_of_nodes << " ].\n";
-            }
-        } else if (domain_size == 3) {
-            if (number_of_nodes == 4) {
-                volume_derivative_method = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
-                    return 3.0 * std::pow(ElementSizeCalculator<3, 4>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
-                };
-            } else if (number_of_nodes == 6) {
-                volume_derivative_method = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
-                    return 3.0 * std::pow(ElementSizeCalculator<3, 6>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 6>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
-                };
-            } else if (number_of_nodes == 8) {
-                volume_derivative_method = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
-                    return 3.0 * std::pow(ElementSizeCalculator<3, 8>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 8>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
-                };
-            } else {
-                KRATOS_ERROR
-                    << "Unsupported geometry type. Only geometries with 4, 6 and "
-                       "8 nodes are supported in 3D. [ number_of_nodes = "
-                    << number_of_nodes << " ].\n";
-            }
-        } else {
-            KRATOS_ERROR << "Unsupported domain size. Only 2D and 3D is "
-                            "supported [ domain_size = "
-                         << domain_size << " ].\n";
-        }
-
-        block_for_each(mrModelPart.Elements(), [&](ModelPart::ElementType& rElement){
+        block_for_each(mrModelPart.Elements(), VolumeDerivativeMethodType(), [&](ModelPart::ElementType& rElement, VolumeDerivativeMethodType& rVolumeDerivativeMethodType){
             auto& r_geometry = rElement.GetGeometry();
+            const auto& geometry_type = r_geometry.GetGeometryType();
+            const SizeType dimension = r_geometry.Dimension();
+
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 2.0 * ElementSizeCalculator<2, 3>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 3>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 2.0 * ElementSizeCalculator<2, 4>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 3.0 * std::pow(ElementSizeCalculator<3, 4>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Prism3D6:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 3.0 * std::pow(ElementSizeCalculator<3, 6>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 6>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 3.0 * std::pow(ElementSizeCalculator<3, 8>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 8>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                default:
+                    KRATOS_ERROR << "Non supported geometry type." << std::endl;
+            }
+
             for (SizeType c = 0; c < r_geometry.PointsNumber(); ++c) {
                 auto& r_derivative_value = r_geometry[c].FastGetSolutionStepValue(rDerivativeVariable);
 
-                for (int k = 0; k < domain_size; ++k) {
-                    const double derivative_value = volume_derivative_method(c, k, r_geometry);
+                for (int k = 0; k < dimension; ++k) {
+                    const double derivative_value = rVolumeDerivativeMethodType(c, k, r_geometry);
                     AtomicAdd(r_derivative_value[k], derivative_value);
                 }
             }
@@ -548,33 +538,6 @@ private:
 
             noalias(normalized_normal) = area_normal/norm2;
         }
-    }
-
-    // --------------------------------------------------------------------------
-    SizeType GetNumberOfElementalNodesInModelPart(const ModelPart& rModelPart) const
-    {
-        KRATOS_TRY
-
-        const int local_geometry_type = block_for_each<MaxReduction<int>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
-            return static_cast<int>(rElement.GetGeometry().GetGeometryType());
-        });
-        const int global_geometry_type = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_geometry_type);
-
-        block_for_each(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
-            KRATOS_ERROR_IF(static_cast<int>(rElement.GetGeometry().GetGeometryType()) != global_geometry_type)
-                << "Mismatching geometries found in "
-                << mrModelPart.Name() << ". All geometries should be of same type. [ First element's geometry's type = "
-                << global_geometry_type << ", current_element_id = " << rElement.Id()
-                << ", current element's geometry's type = "
-                << static_cast<int>(rElement.GetGeometry().GetGeometryType()) << " ].\n";
-        });
-
-        const int local_geometry_number_of_nodes = block_for_each<MaxReduction<int>>(mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
-            return rElement.GetGeometry().PointsNumber();
-        });
-        return mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(local_geometry_number_of_nodes);
-
-        KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
