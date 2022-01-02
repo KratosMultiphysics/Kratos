@@ -99,10 +99,12 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
                 reference_data = json.load(f)
 
             # Check files
+            # Note that we need to do it manually as literal (deterministic) file comparison cannot be used because of the basis float values
             self.assertEqual(output_data["rom_settings"], reference_data["rom_settings"])
             for node_output, node_reference in zip(output_data["nodal_modes"],reference_data["nodal_modes"]):
                 self.assertEqual(node_output, node_reference)
-                self.assertAlmostEqual(output_data["nodal_modes"][node_output], reference_data["nodal_modes"][node_reference])
+                for node_output_val, node_reference_val in zip(output_data["nodal_modes"][node_output], reference_data["nodal_modes"][node_reference])
+                    self.assertAlmostEqual(node_output_val, node_reference_val)
 
 ##########################################################################################
 
