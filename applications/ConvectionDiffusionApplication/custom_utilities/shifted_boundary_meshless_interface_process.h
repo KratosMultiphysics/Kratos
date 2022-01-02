@@ -27,6 +27,7 @@
 #include "utilities/element_size_calculator.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 
@@ -325,8 +326,8 @@ private:
                 std::vector<array_1d<double,3>> pos_int_n;
                 typename ModifiedShapeFunctions::ShapeFunctionsGradientsType pos_int_DN_DX;
                 //TODO: Add a method without the interface gradients
-                p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::GI_GAUSS_2);
-                p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::GI_GAUSS_2);
+                p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                 // Calculate parent element size for the SBM BC imposition
                 const double h = p_element_size_func(*p_geom);
@@ -488,8 +489,8 @@ private:
                 std::vector<array_1d<double,3>> pos_int_n;
                 typename ModifiedShapeFunctions::ShapeFunctionsGradientsType pos_int_DN_DX;
                 //TODO: Add a method without the interface gradients
-                p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::GI_GAUSS_2);
-                p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::GI_GAUSS_2);
+                p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                p_mod_sh_func->ComputePositiveSideInterfaceAreaNormals(pos_int_n, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                 // Calculate parent element size for the SBM BC imposition
                 const double h = p_element_size_func(*p_geom);

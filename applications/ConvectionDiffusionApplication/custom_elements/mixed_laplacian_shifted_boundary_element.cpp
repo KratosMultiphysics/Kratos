@@ -126,11 +126,11 @@ void MixedLaplacianShiftedBoundaryElement<TDim>::CalculateLocalSystem(
                 const auto& r_sur_bd_geom = r_boundaries[sur_bd_id];
                 const unsigned int n_bd_points = r_sur_bd_geom.PointsNumber();
                 const DenseVector<std::size_t> sur_bd_local_ids = row(nodes_in_faces, sur_bd_id);
-                const auto& r_integration_points = r_sur_bd_geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+                const auto& r_integration_points = r_sur_bd_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
                 const std::size_t n_sur_bd_gauss = r_integration_points.size();
                 Vector DetJ = ZeroVector(n_sur_bd_gauss);
-                r_sur_bd_geom.DeterminantOfJacobian(DetJ, GeometryData::GI_GAUSS_2);
-                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+                r_sur_bd_geom.DeterminantOfJacobian(DetJ, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                const auto& r_sur_bd_N = r_sur_bd_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
                 // Get the gradient of the node contrary to the surrogate face
                 // Note that this is used to calculate the normal as n = - DN_DX_cont_node / norm_2(DN_DX_cont_node)
