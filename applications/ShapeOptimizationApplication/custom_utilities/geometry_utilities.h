@@ -386,7 +386,7 @@ public:
             for (SizeType c = 0; c < r_geometry.PointsNumber(); ++c) {
                 auto& r_derivative_value = r_geometry[c].FastGetSolutionStepValue(rDerivativeVariable);
 
-                for (int k = 0; k < dimension; ++k) {
+                for (SizeType k = 0; k < dimension; ++k) {
                     const double derivative_value = rVolumeDerivativeMethodType(c, k, r_geometry);
                     AtomicAdd(r_derivative_value[k], derivative_value);
                 }
