@@ -424,7 +424,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.PROJECTION)
         self.p_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.PROJECTION)
 
-        p *= 1.0 / self.p_norm
+        # p *= 1.0 / self.p_norm
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p+c, KSO.SEARCH_DIRECTION)
         self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p+c, KSO.CONTROL_POINT_UPDATE)
 
