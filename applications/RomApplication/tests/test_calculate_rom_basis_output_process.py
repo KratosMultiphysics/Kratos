@@ -103,7 +103,8 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
             self.assertEqual(output_data["rom_settings"], reference_data["rom_settings"])
             for node_output, node_reference in zip(output_data["nodal_modes"],reference_data["nodal_modes"]):
                 self.assertEqual(node_output, node_reference)
-                self.assertVectorAlmostEqual(output_data["nodal_modes"][node_output], reference_data["nodal_modes"][node_reference])
+                for dof_basis_output, dof_basis_reference in zip(output_data["nodal_modes"][node_output], reference_data["nodal_modes"][node_reference]):
+                    self.assertVectorAlmostEqual(dof_basis_output, dof_basis_reference)
 
 ##########################################################################################
 
