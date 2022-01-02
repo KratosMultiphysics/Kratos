@@ -179,22 +179,33 @@ class MechanicalSolver(PythonSolver):
         return 2
 
     def AddDofs(self):
-        # this can safely be called also for restarts, it is internally checked if the dofs exist already
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+        # Append formulation-related DOFs and reactions
+        dofs_and_reactions_to_add = []
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_X", "REACTION_X"])
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_Y", "REACTION_Y"])
+        dofs_and_reactions_to_add.append(["DISPLACEMENT_Z", "REACTION_Z"])
         if self.settings["rotation_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.REACTION_MOMENT_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.REACTION_MOMENT_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
+            dofs_and_reactions_to_add.append(["ROTATION_X", "REACTION_MOMENT_X"])
+            dofs_and_reactions_to_add.append(["ROTATION_Y", "REACTION_MOMENT_Y"])
+            dofs_and_reactions_to_add.append(["ROTATION_Z", "REACTION_MOMENT_Z"])
         if self.settings["volumetric_strain_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VOLUMETRIC_STRAIN, StructuralMechanicsApplication.REACTION_STRAIN,self.main_model_part)
+            dofs_and_reactions_to_add.append(["VOLUMETRIC_STRAIN", "REACTION_STRAIN"])
         if self.settings["displacement_control"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.LOAD_FACTOR, StructuralMechanicsApplication.PRESCRIBED_DISPLACEMENT,self.main_model_part)
+            dofs_and_reactions_to_add.append(["LOAD_FACTOR", "PRESCRIBED_DISPLACEMENT"])
 
-        # Add dofs that the user defined in the ProjectParameters
-        auxiliary_solver_utilities.AddDofs(self.main_model_part, self.settings["auxiliary_dofs_list"], self.settings["auxiliary_reaction_list"])
+        # Append user-defined DOFs and reactions in the ProjectParameters
+        auxiliary_solver_utilities.AddAuxiliaryDofsToDofsWithReactionsList(
+            self.settings["auxiliary_dofs_list"],
+            self.settings["auxiliary_reaction_list"],
+            dofs_and_reactions_to_add)
+
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "DOF's ADDED")
+
+    def GetDofsList(self):
+        """This function creates and returns a list with the DOFs defined in the conditions and elements specifications
+        """
+        return KratosMultiphysics.SpecificationsUtilities.GetDofsListFromSpecifications(self.main_model_part)
 
     def ImportModelPart(self):
         """This function imports the ModelPart

@@ -25,6 +25,20 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.RESIDUAL_VECTOR) # This is used by the predictor. TODO: replace with reaction
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)
+        self.main_model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS)
+
+    def AdvanceInTime(self, current_time):
+        current_time = super().AdvanceInTime(current_time)
+        if self._TimeBufferIsInitialized():
+            current_time_step = self.GetComputingModelPart().ProcessInfo.GetValue(KM.DELTA_TIME)
+            previous_time_step = self.GetComputingModelPart().ProcessInfo.GetPreviousTimeStepInfo().GetValue(KM.DELTA_TIME)
+            if current_time_step - previous_time_step > 1e-10:
+                KM.Logger.PrintWarning(self.__class__.__name__, "The Adams Moulton scheme requires a constant time step.")
+        return current_time
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -46,7 +60,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
             "relative_dry_height"        : 0.1,
             "stabilization_factor"       : 0.01,
             "wavelength"                 : 10,
-            "amplitude"                  : 0.2
+            "amplitude"                  : 0.0
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
