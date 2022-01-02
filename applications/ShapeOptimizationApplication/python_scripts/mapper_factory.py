@@ -23,6 +23,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "filter_function_type"       : "linear",
         "filter_radius"              : 0.000000000001,
         "filter_radius_factor"       : 7.0,
+        "minimum_filter_radius"      : 1e-3,
         "max_nodes_in_filter_radius" : 10000,
         "matrix_free_filtering"      : false,
         "consistent_mapping"         : false,
