@@ -53,6 +53,7 @@ MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::MapperVertexMorph
         mrOriginModelPart(rOriginModelPart),
         mrDestinationModelPart(rDestinationModelPart),
         mFilterRadiusFactor(MapperSettings["filter_radius_factor"].GetDouble()),
+        mMinimumFilterRadius(MapperSettings["minimum_filter_radius"].GetDouble()),
         mNumberOfSmoothingIterations(MapperSettings["filter_radius_smoothing_iterations"].GetInt()),
         mMaxNumberOfNeighbors(MapperSettings["max_nodes_in_filter_radius"].GetInt())
 {
@@ -218,7 +219,7 @@ void MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::SmoothenNeig
 template <class TBaseVertexMorphingMapper>
 double MapperVertexMorphingAdaptiveRadius<TBaseVertexMorphingMapper>::GetVertexMorphingRadius(const NodeType &rNode) const
 {
-    return rNode.GetValue(VERTEX_MORPHING_RADIUS);
+    return std::max(rNode.GetValue(VERTEX_MORPHING_RADIUS), mMinimumFilterRadius);
 }
 
 template <class TBaseVertexMorphingMapper>

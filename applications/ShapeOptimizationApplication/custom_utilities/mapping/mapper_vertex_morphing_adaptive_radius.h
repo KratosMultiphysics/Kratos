@@ -109,6 +109,7 @@ private:
     ModelPart& mrOriginModelPart;
     ModelPart& mrDestinationModelPart;
     double mFilterRadiusFactor;
+    double mMinimumFilterRadius;
     IndexType mNumberOfSmoothingIterations;
     IndexType mMaxNumberOfNeighbors;
 
