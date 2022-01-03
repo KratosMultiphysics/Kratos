@@ -100,6 +100,7 @@ class LineGraphOutputProcess(KM.OutputProcess):
 
         # Generate a dummy file to validate the parameters
         file = TimeBasedAsciiFileWriterUtility(self.model_part, self.file_settings, "").file
+        file.close()
         DeleteFileIfExisting(file.name)
 
 
