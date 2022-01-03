@@ -72,6 +72,7 @@ class ArcLengthStrategy
     typedef typename BaseType::TDataType TDataType;
     typedef TSparseSpace SparseSpaceType;
     typedef typename BaseType::TSchemeType TSchemeType;
+    typedef typename BaseType::TConvergenceCriteriaType TConvergenceCriteriaType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
