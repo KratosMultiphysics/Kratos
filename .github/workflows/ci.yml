@@ -455,11 +455,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+
     - name: Build
       shell: bash
       run: |
         mkdir /wheels
-        docker run --rm -v /wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux master 2
+        docker run --rm -v /wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${{ steps.extract_branch.outputs.branch }} 2
 
     - name: Install
       shell: bash
