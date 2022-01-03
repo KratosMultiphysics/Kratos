@@ -118,7 +118,13 @@ class MechanicalSolver(PythonSolver):
             "compute_reactions": true,
             "solving_strategy_settings": {
                 "strategy_type" : "newton_raphson",
-                "strategy_settings" : {}
+                "advanced_settings" : {
+                    "desired_iterations" : 4,
+                    "max_radius_factor" : 10.0,
+                    "min_radius_factor" : 0.1,
+                    "loads_sub_model_part_list": [],
+                    "loads_variable_list" : []
+                }
             },
             "builder_and_solver_settings" : {
                 "use_block_builder" : true,
