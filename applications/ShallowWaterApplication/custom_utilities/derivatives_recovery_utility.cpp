@@ -48,15 +48,26 @@ void DerivativesRecoveryUtility<TDim>::Check(ModelPart& rModelPart)
 }
 
 template<std::size_t TDim>
-void DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(ModelPart& rModelPart)
+void DerivativesRecoveryUtility<TDim>::CheckRequiredNeighborsPatch(ModelPart& rModelPart)
 {
-    const std::size_t space_degree = 1;
-    const std::size_t required_neighbors = (space_degree + TDim) * (space_degree + TDim + 1) / + 1;  //NOTE: the extra required node node is added since the InvertMatrix throws an error and its not possible to iterate. Required for 3D.
+    std::size_t space_degree = 1;
+    std::size_t required_neighbors = (space_degree + TDim) * (space_degree + TDim + 1) / 2;
+    if (TDim == 3) {
+        required_neighbors += 1; //NOTE: the extra node is required for accuracy in the faces for the 3D case
+    }
+    DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(rModelPart, required_neighbors);
+}
+
+template<std::size_t TDim>
+void DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(
+    ModelPart& rModelPart,
+    const std::size_t RequiredNeighbors)
+{
     std::vector<std::unordered_set<int>> second_neighbors_set(rModelPart.NumberOfNodes());
     IndexPartition<int>(rModelPart.NumberOfNodes()).for_each([&](int i){
         auto it_node = rModelPart.NodesBegin() + i;
         auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
-        if (neigh_nodes.size() < required_neighbors)
+        if (neigh_nodes.size() < RequiredNeighbors)
         {
             auto second_neighbors = second_neighbors_set.begin() + i;
             DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(*it_node, neigh_nodes, *second_neighbors);
@@ -65,7 +76,7 @@ void DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(ModelPart& rModelPar
     IndexPartition<int>(rModelPart.NumberOfNodes()).for_each([&](int i){
         auto it_node = rModelPart.NodesBegin() + i;
         auto& neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
-        if (neigh_nodes.size() < required_neighbors)
+        if (neigh_nodes.size() < RequiredNeighbors)
         {
             auto second_neighbors = second_neighbors_set.begin() + i;
             DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(rModelPart, neigh_nodes, *second_neighbors);
@@ -77,15 +88,21 @@ template<std::size_t TDim>
 void DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        bool is_converged = CalculateNodalPolynomialWeights(rNode);
-        if (!is_converged)
+        bool is_converged = false;
+        int max_iter = 3;
+        int iter = 0;
+        while (!is_converged && iter < max_iter)
         {
-            auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
-            std::unordered_set<int> third_neighbors;
-            DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(rNode, neigh_nodes, third_neighbors);
-            DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(rModelPart, neigh_nodes, third_neighbors);
+            is_converged = CalculateNodalPolynomialWeights(rNode);
+            if (!is_converged)
+            {
+                auto& neigh_nodes = rNode.GetValue(NEIGHBOUR_NODES);
+                std::unordered_set<int> third_neighbors;
+                DerivativesRecoveryUtility<TDim>::FindExtendedNeighbors(rNode, neigh_nodes, third_neighbors);
+                DerivativesRecoveryUtility<TDim>::AppendExtendedNeighbors(rModelPart, neigh_nodes, third_neighbors);
+            }
+            iter++;
         }
-        CalculateNodalPolynomialWeights(rNode);
     });
 }
 
@@ -323,10 +340,10 @@ bool DerivativesRecoveryUtility<TDim>::CalculateNodalPolynomialWeights(NodeType&
     }
 
     // The least squares projection
-    double det;
+    bool is_invertible;
     Matrix A_pseudo_inv;
-    MathUtils<double>::GeneralizedInvertMatrix(A, A_pseudo_inv, det);
-    if (det < 1e-12) {
+    is_invertible = DerivativesRecoveryUtility<TDim>::GeneralizedInvertMatrix(A, A_pseudo_inv);
+    if (!is_invertible) {
         return false;
     }
 
@@ -393,6 +410,18 @@ double DerivativesRecoveryUtility<TDim>::CalculateMaximumDistance(
         max_distance = std::max(max_distance, distance);
     }
     return max_distance;
+}
+
+template<std::size_t TDim>
+bool DerivativesRecoveryUtility<TDim>::GeneralizedInvertMatrix(
+    Matrix& rInputMatrix,
+    Matrix& rResult)
+{
+    double det;
+    MathUtils<double>::GeneralizedInvertMatrix(rInputMatrix, rResult, det, -1.0);
+    const double tolerance = std::numeric_limits<double>::epsilon();
+    const bool throw_errors = false;
+    return MathUtils<double>::CheckConditionNumber(rInputMatrix, rResult, tolerance, throw_errors);
 }
 
 template class DerivativesRecoveryUtility<2>;
