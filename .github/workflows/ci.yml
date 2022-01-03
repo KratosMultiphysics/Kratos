@@ -450,7 +450,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-
     - name: Prepare
       shell: bash
       run: |
@@ -459,7 +458,6 @@ jobs:
         ls -al ${GITHUB_WORKSPACE}/wheels
 
     - name: Build
-      shell: bash
       uses: docker://kratosmultiphysics/kratos-wheelbuilder-linux
       args: --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest ${GITHUB_HEAD_REF} 2
 
