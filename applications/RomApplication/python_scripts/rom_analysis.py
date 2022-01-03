@@ -53,7 +53,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, hyper_reduction_ele
                 # Get the ROM data from RomParameters.json
                 data = json.load(f)
                 nodal_modes = data["nodal_modes"]
-                nodal_dofs = len(data["rom_settings"]["nodal_unknowns"])
+                nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
                 rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
 
                 # Set the nodal ROM basis
