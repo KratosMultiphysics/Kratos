@@ -46,7 +46,7 @@ def CreateSolver(cls, model, custom_settings):
             if len(nodal_unknowns) == 0:
                 solver_dofs_list = self.GetDofsList()
                 if not len(solver_dofs_list) == 0:
-                    self.settings["rom_settings"]["nodal_unknowns"].SetStringArray()
+                    self.settings["rom_settings"]["nodal_unknowns"].SetStringArray(solver_dofs_list)
                 else:
                     err_msg = "\'nodal_unknowns\' in \'rom_settings\' is not provided and there is a not-valid implementation in base solver."
                     err_msg += " Please manually set \'nodal_unknowns\' in \'rom_settings\'."
