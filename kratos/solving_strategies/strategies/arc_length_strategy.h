@@ -370,7 +370,7 @@ class ArcLengthStrategy
         if (iteration_number >= BaseType::mMaxIterationNumber) {
             MaxIterationsExceeded();
         } else {
-            KRATOS_INFO_IF("Arc-Length Strategy", GetEchoLevel() > 0)
+            KRATOS_INFO_IF("Arc-Length Strategy", this->GetEchoLevel() > 0)
                 << "Convergence achieved after " << iteration_number << " / "
                 << BaseType::mMaxIterationNumber << " iterations" << std::endl;
         }
