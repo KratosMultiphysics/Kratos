@@ -125,14 +125,6 @@ class MechanicalSolver(PythonSolver):
                 "use_lagrange_BS"   : false,
                 "advanced_settings" : { }
             },
-            "arc_length"       :                  false,
-            "arc_length_settings" : {
-                "desired_iterations"                  : 4,
-                "max_radius_factor"                   : 10.0,
-                "min_radius_factor"                   : 0.1,
-                "loads_sub_model_part_list" : [],
-                "loads_variable_list" : []
-            },
             "clear_storage": false,
             "move_mesh_flag": true,
             "multi_point_constraints_used": true,
