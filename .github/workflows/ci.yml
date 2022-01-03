@@ -1,11 +1,6 @@
 name: CI
 
-on:
-  pull_request:
-    branches:
-      - master
-
-  workflow_dispatch:
+on: push
 
 # for cancelling redundant runs
 concurrency:
@@ -455,15 +450,18 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Build
+
+    - name: Prepare
       shell: bash
       run: |
         python3 --version
         mkdir ${GITHUB_WORKSPACE}/wheels
         ls -al ${GITHUB_WORKSPACE}/wheels
-        echo "${GITHUB_HEAD_REF}"
-        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${GITHUB_HEAD_REF} 2
-        ls -al ${GITHUB_WORKSPACE}/wheels
+
+    - name: Build
+      shell: bash
+      uses: docker://kratosmultiphysics/kratos-wheelbuilder-linux
+      args: --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest ${GITHUB_HEAD_REF} 2
 
     - name: Install
       shell: bash
