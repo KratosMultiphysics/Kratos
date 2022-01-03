@@ -44,6 +44,13 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+
+namespace
+{
+    template< class TContainerType>
+    std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer);
+}
+
 /**
  * @namespace SpecificationsUtilities
  * @ingroup KratosCore
@@ -52,13 +59,6 @@ namespace Kratos
  */
 namespace SpecificationsUtilities
 {
-
-namespace
-{
-    template< class TContainerType>
-    std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer);
-}
-
     /**
      * @brief This enum defines a "hash" used to identify if implicit/explicit or static time integration is considered
      */

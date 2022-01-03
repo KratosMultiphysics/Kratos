@@ -23,9 +23,7 @@
 
 namespace Kratos
 {
-namespace SpecificationsUtilities
-{
-
+    
 namespace
 {
 
@@ -62,6 +60,9 @@ std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TCon
 }
 
 }
+
+namespace SpecificationsUtilities
+{
 
 void AddMissingVariables(ModelPart& rModelPart)
 {
