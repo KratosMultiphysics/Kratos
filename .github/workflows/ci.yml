@@ -447,6 +447,9 @@ jobs:
     strategy:
       fail-fast: false
 
+    volumes:
+      - ${GITHUB_WORKSPACE}/wheels:/data_swap_guest
+
     steps:
     - uses: actions/checkout@v2
 
@@ -460,7 +463,8 @@ jobs:
     - name: Build
       uses: docker://kratosmultiphysics/kratos-wheelbuilder-linux
       with:
-        args: --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest ${GITHUB_HEAD_REF} 2
+        # args: --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest ${GITHUB_HEAD_REF} 2
+        args: ${GITHUB_HEAD_REF} 2
 
     - name: Install
       shell: bash
