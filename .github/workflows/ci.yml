@@ -459,7 +459,8 @@ jobs:
 
     - name: Build
       uses: docker://kratosmultiphysics/kratos-wheelbuilder-linux
-      args: --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest ${GITHUB_HEAD_REF} 2
+      with:
+        args: --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest ${GITHUB_HEAD_REF} 2
 
     - name: Install
       shell: bash
