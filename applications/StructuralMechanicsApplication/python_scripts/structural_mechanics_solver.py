@@ -116,6 +116,10 @@ class MechanicalSolver(PythonSolver):
             "line_search": false,
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
+            "solving_strategy_settings": {
+                "strategy_type" : "newton_raphson",
+                "strategy_settings" : {}
+            },
             "builder_and_solver_settings" : {
                 "use_block_builder" : true,
                 "use_lagrange_BS"   : false,
