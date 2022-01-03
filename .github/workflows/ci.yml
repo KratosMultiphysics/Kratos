@@ -450,7 +450,7 @@ jobs:
     container:
       image: kratosmultiphysics/kratos-wheelbuilder-linux
       volumes:
-        - ${GITHUB_WORKSPACE}/wheels:/data_swap_guest
+        - /wheels:/data_swap_guest
 
     steps:
     - uses: actions/checkout@v2
@@ -471,7 +471,7 @@ jobs:
     - name: Install
       shell: bash
       run: |
-        python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosMultiphysics_all
+        python3 -m pip install --no-index --find-links=/wheels/ KratosMultiphysics_all
 
     - name: Running small tests
       shell: bash
