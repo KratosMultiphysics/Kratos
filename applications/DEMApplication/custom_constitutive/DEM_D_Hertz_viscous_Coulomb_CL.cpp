@@ -301,7 +301,7 @@ namespace Kratos {
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
-        return 0.666666666666666666667 * mKn * indentation;
+        return 0.666666666666666666667 * mKn * indentation + 10 * equiv_young / equiv_radius * (125 / equiv_radius * indentation * indentation + indentation);
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
