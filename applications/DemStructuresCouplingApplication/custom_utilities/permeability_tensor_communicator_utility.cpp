@@ -132,7 +132,7 @@ namespace Kratos {
             // Slightly modified version of  Stan Melax's code for 3x3 matrix diagonalization
             // source: http://www.melax.com/diag.html?attredirects=0
             // A must be a symmetric matrix.
-            // returns Q and D such that 
+            // returns Q and D such that
             // Diagonal matrix D = QT * A * Q;  and  A = Q * D * QT
             const int maxsteps = 24;  // certainly wont need that many.
             int k0, k1, k2;
@@ -175,14 +175,14 @@ namespace Kratos {
                 AQ(2,1) = Q(0,1)*A(0,2)+Q(1,1)*A(1,2)+Q(2,1)*A(2,2);
                 AQ(2,2) = Q(0,2)*A(0,2)+Q(1,2)*A(1,2)+Q(2,2)*A(2,2);
                 // D = Qt * AQ
-                D(0,0) = AQ(0,0)*Q(0,0)+AQ(1,0)*Q(1,0)+AQ(2,0)*Q(2,0); 
-                D(0,1) = AQ(0,0)*Q(0,1)+AQ(1,0)*Q(1,1)+AQ(2,0)*Q(2,1); 
-                D(0,2) = AQ(0,0)*Q(0,2)+AQ(1,0)*Q(1,2)+AQ(2,0)*Q(2,2); 
-                D(1,0) = AQ(0,1)*Q(0,0)+AQ(1,1)*Q(1,0)+AQ(2,1)*Q(2,0); 
-                D(1,1) = AQ(0,1)*Q(0,1)+AQ(1,1)*Q(1,1)+AQ(2,1)*Q(2,1); 
-                D(1,2) = AQ(0,1)*Q(0,2)+AQ(1,1)*Q(1,2)+AQ(2,1)*Q(2,2); 
-                D(2,0) = AQ(0,2)*Q(0,0)+AQ(1,2)*Q(1,0)+AQ(2,2)*Q(2,0); 
-                D(2,1) = AQ(0,2)*Q(0,1)+AQ(1,2)*Q(1,1)+AQ(2,2)*Q(2,1); 
+                D(0,0) = AQ(0,0)*Q(0,0)+AQ(1,0)*Q(1,0)+AQ(2,0)*Q(2,0);
+                D(0,1) = AQ(0,0)*Q(0,1)+AQ(1,0)*Q(1,1)+AQ(2,0)*Q(2,1);
+                D(0,2) = AQ(0,0)*Q(0,2)+AQ(1,0)*Q(1,2)+AQ(2,0)*Q(2,2);
+                D(1,0) = AQ(0,1)*Q(0,0)+AQ(1,1)*Q(1,0)+AQ(2,1)*Q(2,0);
+                D(1,1) = AQ(0,1)*Q(0,1)+AQ(1,1)*Q(1,1)+AQ(2,1)*Q(2,1);
+                D(1,2) = AQ(0,1)*Q(0,2)+AQ(1,1)*Q(1,2)+AQ(2,1)*Q(2,2);
+                D(2,0) = AQ(0,2)*Q(0,0)+AQ(1,2)*Q(1,0)+AQ(2,2)*Q(2,0);
+                D(2,1) = AQ(0,2)*Q(0,1)+AQ(1,2)*Q(1,1)+AQ(2,2)*Q(2,1);
                 D(2,2) = AQ(0,2)*Q(0,2)+AQ(1,2)*Q(1,2)+AQ(2,2)*Q(2,2);
 
                 o[0]    = D(1,2);
@@ -204,13 +204,13 @@ namespace Kratos {
                 thet   *= sgn; // make it positive
                 t       = sgn /(thet +((thet < 1.E6)? sqrt(thet * thet + 1.0): thet)) ; // sign(T)/(|T|+sqrt(T^2+1))
                 c       = 1.0 / sqrt(t * t + 1.0); //  c= 1/(t^2+1) , t=s/c
-                
+
                 if (c == 1.0)
                 {
                     break;  // no room for improvement - reached machine precision.
                 }
                 jr[0 ]  = jr[1] = jr[2] = jr[3] = 0.0;
-                jr[k0]  = sgn * sqrt((1.0 - c) / 2.0);  // using 1/2 angle identity sin(a/2) = sqrt((1-cos(a))/2)  
+                jr[k0]  = sgn * sqrt((1.0 - c) / 2.0);  // using 1/2 angle identity sin(a/2) = sqrt((1-cos(a))/2)
                 jr[k0] *= -1.0; // since our quat-to-matrix convention was for v*M instead of M*v
                 jr[3 ]  = sqrt(1.0f - jr[k0] * jr[k0]);
 
@@ -334,7 +334,7 @@ namespace Kratos {
 
                 // Divide obtained full permeability matrix by the number_of_results
                 if (number_of_results) {
-                    K_full_total /= 1.0; //number_of_results; // TODO
+                    K_full_total /= number_of_results;
                 } else {
                     continue;
                 }
