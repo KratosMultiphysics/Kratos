@@ -292,7 +292,7 @@ def main():
         commander.RunTestSuit(
             'KratosCore',
             'kratos',
-            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()) if path is None else os.path.dirname(os.path.dirname(path)),
+            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()) if path is None else os.path.dirname(path),
             level,
             verbosity,
             cmd,
