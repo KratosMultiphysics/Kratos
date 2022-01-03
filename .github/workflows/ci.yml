@@ -463,13 +463,13 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        mkdir /wheels
-        docker run --rm -v /wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${{ steps.extract_branch.outputs.branch }} 2
+        mkdir ${GITHUB_WORKSPACE}/wheels
+        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${{ steps.extract_branch.outputs.branch }} 2
 
     - name: Install
       shell: bash
       run: |
-        python3 -m pip install --no-index --find-links=~/temp_kratos/wheels KratosMultiphysics_all
+        python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosMultiphysics_all
 
     - name: Running small tests
       shell: bash
