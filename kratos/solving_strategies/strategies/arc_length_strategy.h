@@ -279,7 +279,6 @@ class ArcLengthStrategy
 
         // Initialize iterations info
         unsigned int iteration_number = 1;
-        bool residual_is_updated = false;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
         this->mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
@@ -355,13 +354,10 @@ class ArcLengthStrategy
             this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
             this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
-            residual_is_updated = false;
-
             if (is_converged) {
                 if (this->mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(r_b);
                     this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, r_b);
-                    residual_is_updated = true;
                 }
                 is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
             }
