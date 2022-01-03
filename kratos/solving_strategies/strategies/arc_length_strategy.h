@@ -392,7 +392,7 @@ class ArcLengthStrategy
 
             if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
                 const Variable<double>& var = KratosComponents<Variable<double>>::Get(r_variable_name);
-                block_for_each(r_sub_model_part.Nodes(), [&](auto& r_node){
+                block_for_each(r_sub_model_part.Nodes(), [&](Node<3>& r_node){
                     r_node.FastGetSolutionStepValue(var) *= (mLambda/mLambda_old);
                 });
             }
@@ -400,7 +400,7 @@ class ArcLengthStrategy
                 typedef Variable<array_1d<double,3>> array_type;
                 const array_type& r_var = KratosComponents<array_type>::Get(r_variable_name);
 
-                block_for_each(r_sub_model_part.Conditions(), [&](auto& r_condition) {
+                block_for_each(r_sub_model_part.Conditions(), [&](Condition& r_condition) {
                     /* we are multipying by Lambda instead of Lambda/Lambda_old because
                     the load processes reset the loads to its initial values
                     when the InitSolStep is called */
