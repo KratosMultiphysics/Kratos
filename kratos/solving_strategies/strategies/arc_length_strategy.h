@@ -188,14 +188,14 @@ class ArcLengthStrategy
 
             // Compute initial radius (mRadius_0)
             mpBuilderAndSolver->ResizeAndInitializeVectors(this->mpScheme, this->mpA, this->mpDx, this->mpb, r_model_part);
-            TSystemMatrixType& rA  = *this->mpA;
-            TSystemVectorType& rDx = *this->mpDx;
-            TSystemVectorType& rb  = *this->mpb;
+            TSystemMatrixType& rA  = *(this->mpA);
+            TSystemVectorType& rDx = *(this->mpDx);
+            TSystemVectorType& rb  = *(this->mpb);
             TSparseSpace::SetToZero(rA);
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
-            mpBuilderAndSolver->BuildAndSolve(mpScheme, r_model_part, rA, rDx, rb);
+            mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, rA, rDx, rb);
 
             mRadius_0 = TSparseSpace::TwoNorm(rDx);
             mRadius = mRadius_0;
@@ -242,9 +242,9 @@ class ArcLengthStrategy
 
         ModelPart& r_model_part  = BaseType::GetModelPart();
 
-        unsigned int iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
+        const unsigned int iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
         // Update the radius
-        mRadius = mRadius*std::sqrt(double(mDesiredIterations)/double(iteration_number));
+        mRadius = mRadius * std::sqrt(double(mDesiredIterations) / double(iteration_number));
         if (mRadius > mMaxRadiusFactor*mRadius_0)
             mRadius = mMaxRadiusFactor*mRadius_0;
         else if (mRadius < mMinRadiusFactor*mRadius_0)
@@ -267,10 +267,10 @@ class ArcLengthStrategy
         ModelPart& r_model_part = BaseType::GetModelPart();
 
         // Initialize variables
-		DofsArrayType& r_dof_set    = mpBuilderAndSolver->GetDofSet();
-        TSystemMatrixType& r_A      = *mpA;
-        TSystemVectorType& r_Dx     = *mpDx;
-        TSystemVectorType& r_b      = *mpb;
+		DofsArrayType& r_dof_set    = this->mpBuilderAndSolver->GetDofSet();
+        TSystemMatrixType& r_A      = *(this->mpA);
+        TSystemVectorType& r_Dx     = *(this->mpDx);
+        TSystemVectorType& r_b      = *(this->mpb);
         TSystemVectorType& r_f      = *mpf;
         TSystemVectorType& r_Dxb    = *mpDxb;
         TSystemVectorType& r_Dxf    = *mpDxf;
@@ -282,19 +282,19 @@ class ArcLengthStrategy
         bool residual_is_updated = false;
         r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-        mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
-        mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
-        bool is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+        this->mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
+        this->mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+        bool is_converged = this->mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
         TSparseSpace::SetToZero(r_A);
         TSparseSpace::SetToZero(r_b);
         TSparseSpace::SetToZero(r_Dxf);
 
         // Now we compute Dxf
-        mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
-        mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dx, r_b);
+        this->mpBuilderAndSolver->Build(this->mpScheme, r_model_part, r_A, r_b);
+        this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dx, r_b);
         TSparseSpace::Assign(r_b, 1.0, r_f);
-        mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+        this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
         double lambda_increment = mRadius / TSparseSpace::TwoNorm(r_Dxf);
         mDLambdaStep = lambda_increment;
         mLambda += lambda_increment;
@@ -307,16 +307,16 @@ class ArcLengthStrategy
         TSparseSpace::InplaceMult(r_Dxf, 1.0 / lambda_increment);
         UpdateDatabase(r_A, r_DxPred, r_b, BaseType::MoveMeshFlag());
 
-        mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_DxPred, r_b);
-        mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+        this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_DxPred, r_b);
+        this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
         if (is_converged) {
-            if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+            if (this->mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(r_b);
-                mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, r_b);
+                this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, r_b);
             }
 
-            is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
+            is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dxf, r_b);
         }
 
         while (!is_converged && iteration_number++ < BaseType::mMaxIterationNumber) {
@@ -324,25 +324,25 @@ class ArcLengthStrategy
             //setting the number of iteration
             r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 
-            mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
-            mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
-            is_converged = mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+            this->mpScheme->InitializeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
+            this->mpConvergenceCriteria->InitializeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+            is_converged = this->mpConvergenceCriteria->PreCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
             TSparseSpace::SetToZero(r_A);
             TSparseSpace::SetToZero(r_b);
             TSparseSpace::SetToZero(r_Dxf);
 
             // We compute r_Dxf 
-            mpBuilderAndSolver->Build(mpScheme, r_model_part, r_A, r_b);
-            mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, r_model_part, r_A, r_Dxf, r_b);
+            this->mpBuilderAndSolver->Build(this->mpScheme, r_model_part, r_A, r_b);
+            this->mpBuilderAndSolver->ApplyDirichletConditions(this->mpScheme, r_model_part, r_A, r_Dxf, r_b);
             TSparseSpace::Assign(r_b, 1.0, r_f);
-            mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
+            this->mpBuilderAndSolver->SystemSolve(r_A, r_Dxf, r_b);
 
             TSparseSpace::SetToZero(r_A);
             TSparseSpace::SetToZero(r_b);
             TSparseSpace::SetToZero(r_Dxb);
 
-            mpBuilderAndSolver->BuildAndSolve(mpScheme, r_model_part, r_A, r_Dxb, r_b);
+            this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, r_A, r_Dxb, r_b);
             lambda_increment = -TSparseSpace::Dot(r_DxPred, r_Dxb) / TSparseSpace::Dot(r_DxPred, r_Dxf);
             TSparseSpace::Assign(r_Dx, 1.0, r_Dxb + lambda_increment*r_Dxf);
 
@@ -352,18 +352,18 @@ class ArcLengthStrategy
             TSparseSpace::UnaliasedAdd(r_DxStep, 1.0, r_Dx);
             UpdateDatabase(r_A, r_Dx, r_b, BaseType::MoveMeshFlag());
 
-            mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
-            mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+            this->mpScheme->FinalizeNonLinIteration(r_model_part, r_A, r_Dx, r_b);
+            this->mpConvergenceCriteria->FinalizeNonLinearIteration(r_model_part, r_dof_set, r_A, r_Dx, r_b);
 
             residual_is_updated = false;
 
             if (is_converged) {
-                if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+                if (this->mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(r_b);
-                    mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, r_b);
+                    this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, r_b);
                     residual_is_updated = true;
                 }
-                is_converged = mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
+                is_converged = this->mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, r_A, r_Dx, r_b);
             }
         }
         // Prints a warning if the maximum number of iterations is exceeded
@@ -376,7 +376,7 @@ class ArcLengthStrategy
         }
         //calculate reactions if required
         if (BaseType::mCalculateReactionsFlag)
-            mpBuilderAndSolver->CalculateReactions(mpScheme, r_model_part, r_A, r_Dx, r_b);
+            this->mpBuilderAndSolver->CalculateReactions(this->mpScheme, r_model_part, r_A, r_Dx, r_b);
         return is_converged;
     }
 
@@ -405,7 +405,7 @@ class ArcLengthStrategy
                     the load processes reset the loads to its initial values
                     when the InitSolStep is called */
                     if (mInsideIterationLoop)
-                        r_condition.GetValue(r_var) *= mLambda/mLambda_old;
+                        r_condition.GetValue(r_var) *= mLambda / mLambda_old;
                     else
                         r_condition.GetValue(r_var) *= mLambda;
                 });
@@ -471,8 +471,8 @@ class ArcLengthStrategy
 
         TSystemVectorType& v = *pv;
 
-        if (v.size() != mpBuilderAndSolver->GetEquationSystemSize())
-            v.resize(mpBuilderAndSolver->GetEquationSystemSize(), false);
+        if (v.size() != this->mpBuilderAndSolver->GetEquationSystemSize())
+            v.resize(this->mpBuilderAndSolver->GetEquationSystemSize(), false);
     }
 
     /**
@@ -485,8 +485,8 @@ class ArcLengthStrategy
             pv.swap(pNewv);
         }
         TSystemVectorType& v = *pv;
-        if (v.size() != mpBuilderAndSolver->GetEquationSystemSize())
-            v.resize(mpBuilderAndSolver->GetEquationSystemSize(), true);
+        if (v.size() != this->mpBuilderAndSolver->GetEquationSystemSize())
+            v.resize(this->mpBuilderAndSolver->GetEquationSystemSize(), true);
     }
     ///@}
     ///@name Operators
