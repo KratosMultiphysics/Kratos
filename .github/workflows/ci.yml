@@ -442,7 +442,7 @@ jobs:
   #       export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
   #       python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4
 
-  ubuntu-wheel:
+  linux-wheel:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -450,28 +450,39 @@ jobs:
     container:
       image: kratosmultiphysics/kratos-wheelbuilder-linux
       volumes:
-        - /wheels:/data_swap_guest
+        - wheels:/data_swap_guest
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Prepare
-      shell: bash
-      run: |
-        python3 --version
-        mkdir ${GITHUB_WORKSPACE}/wheels
-        ls -al ${GITHUB_WORKSPACE}/wheels
-
     - name: Build
-      uses: docker://kratosmultiphysics/kratos-wheelbuilder-linux
       with:
-        # args: --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest ${GITHUB_HEAD_REF} 2
         args: ${GITHUB_HEAD_REF} 2
+        
+    - name: Archive wheels
+      uses: actions/upload-artifact@v2
+      with:
+        name: linux-wheels
+        path: wheels/*.whl
+        retention-days: 1
+        
+  ubuntu-wheel-test:
+    needs:  linux-wheel
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      
+    steps:
+
+    - uses: actions/checkout@v2
+    
+    - name: Download wheels
+      uses: actions/download-artifact@v2
+      with:
+        name: linux-wheels
 
     - name: Install
       shell: bash
       run: |
-        python3 -m pip install --no-index --find-links=/wheels/ KratosMultiphysics_all
+        python3 -m pip install --no-index --find-links=wheels/ KratosMultiphysics_all
 
     - name: Running small tests
       shell: bash
