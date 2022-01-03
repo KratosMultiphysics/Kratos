@@ -168,13 +168,6 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This is called during the initialize of the builder to calculate the lumped mass vector
-     * @param rLumpedMassVector the elemental lumped mass vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLumpedMassVector(VectorType& rLumpedMassVector, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
      * @brief Add the explicit contribution according to the Adams-Bashforth scheme
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -226,7 +219,7 @@ protected:
 
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
 
-    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
+    void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     double StabilizationParameter(const ElementData& rData) const override;
 

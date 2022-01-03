@@ -296,7 +296,6 @@ protected:
         array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
         array_1d<double,TNumNodes> nodal_z;
-        array_1d<double,TNumNodes> nodal_w;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
@@ -316,7 +315,7 @@ protected:
 
     virtual void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
-    virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+    virtual void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
     double ShapeFunctionProduct(
         const array_1d<double,TNumNodes>& rN,

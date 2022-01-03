@@ -80,7 +80,7 @@ void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const Geomet
 }
 
 template<std::size_t TNumNodes>
-void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
+void BoussinesqElement<TNumNodes>::UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
     const double eta = inner_prod(rData.nodal_f, rN);
     const double H = -inner_prod(rData.nodal_z, rN);
@@ -305,7 +305,7 @@ void BoussinesqElement<3>::InitializeNonLinearIteration(const ProcessInfo& rCurr
     LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
 
     // Gauss point contribution
-    CalculateGaussPointData(data, N);
+    UpdateGaussPointData(data, N);
     AddAuxiliaryLaplacian(laplacian, data, N, DN_DX, area);
 
     // Calculate the lapacian vector
@@ -336,7 +336,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
 {
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
 
-    CalculateGaussPointData(rData, rN);
+    UpdateGaussPointData(rData, rN);
 
     this->AddWaveTerms(lhs, rRHS, rData, rN, rDN_DX, Weight);
     this->AddFrictionTerms(lhs, rRHS, rData, rN, rDN_DX, Weight);
@@ -425,20 +425,6 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
         r_geom[i].FastGetSolutionStepValue(RESIDUAL_VECTOR) += nodal_increment;
         r_geom[i].UnSetLock();
     }
-}
-
-
-template<std::size_t TNumNodes>
-void BoussinesqElement<TNumNodes>::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    if(rLumpedMassVector.size() != mLocalSize)
-        rLumpedMassVector.resize(mLocalSize, false);
-
-    const double area = this->GetGeometry().Area();
-    const double lump_factor = 1.0 / static_cast<double>(TNumNodes);
-    rLumpedMassVector = Vector(mLocalSize, area * lump_factor);
 }
 
 
