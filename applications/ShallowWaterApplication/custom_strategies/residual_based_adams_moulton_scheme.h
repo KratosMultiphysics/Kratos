@@ -143,7 +143,7 @@ public:
         BaseType::Initialize(rModelPart);
         CalculateNodalAreaProcess<true>(rModelPart).Execute();
         FindGlobalNodalNeighboursProcess(rModelPart).Execute();
-        DerivativesRecoveryUtility<2>::ExtendNeighborsPatch(rModelPart);
+        DerivativesRecoveryUtility<2>::CheckRequiredNeighborsPatch(rModelPart);
         DerivativesRecoveryUtility<2>::CalculatePolynomialWeights(rModelPart);
     }
 
