@@ -15,6 +15,7 @@
 // // ------------------------------------------------------------------------------
 // // External includes
 // // ------------------------------------------------------------------------------
+#include <pybind11/stl.h>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -86,6 +87,7 @@ inline void AssembleMatrixForVariableList(
     }
     return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
 }
+
 
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
