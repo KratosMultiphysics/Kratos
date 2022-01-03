@@ -459,7 +459,7 @@ jobs:
       shell: bash
       run: |
         mkdir ${GITHUB_WORKSPACE}/wheels
-        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux master 2
+        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux master 4
 
     - name: Install
       shell: bash
