@@ -15,13 +15,13 @@ from shallow_water_test_factory import TestShallowWater2D3NElement
 from shallow_water_test_factory import TestMonotonicShallowWater2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
-from shallow_water_test_factory import TestNodesOutputProcess
 from shallow_water_test_factory import TestMacDonaldShockBenchmark
 from shallow_water_test_factory import TestMacDonaldTransitionBenchmark
 from shallow_water_test_factory import TestDamBreakBenchmark
 from shallow_water_test_factory import TestDryDamBreakBenchmark
 from shallow_water_test_factory import TestPlanarSurfaceInParabolaBenchmark
 from shallow_water_test_factory import TestMeshMovingStrategy
+from processes_tests.test_line_graph_output_process import TestLineGraphOutputProcess
 from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
 
 def AssembleTestSuites():
@@ -44,7 +44,7 @@ def AssembleTestSuites():
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMonotonicShallowWater2D3NElement]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSetTopographyProcess]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestVisualizationMeshProcess]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestNodesOutputProcess]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestLineGraphOutputProcess]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMacDonaldShockBenchmark]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMacDonaldTransitionBenchmark]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDamBreakBenchmark]))
