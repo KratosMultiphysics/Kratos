@@ -331,8 +331,7 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
                 }
             }
         }
