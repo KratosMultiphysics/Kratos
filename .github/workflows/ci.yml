@@ -460,9 +460,10 @@ jobs:
       run: |
         python3 --version
         mkdir ${GITHUB_WORKSPACE}/wheels
+        ls -al ${GITHUB_WORKSPACE}/wheels
         echo "${GITHUB_HEAD_REF}"
         docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${GITHUB_HEAD_REF} 2
-        ll ${GITHUB_WORKSPACE}/wheels
+        ls -al ${GITHUB_WORKSPACE}/wheels
 
     - name: Install
       shell: bash
