@@ -1,4 +1,5 @@
 import os
+import json
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -87,25 +88,23 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
 
     def __CheckResults(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            # Set check process settings
-            settings = KratosMultiphysics.Parameters("""{
-                "reference_file_name"   : "",
-                "output_file_name"      : ""
-            }""")
+            # Load ROM basis output file
             output_filename = "{}.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
-            reference_filename = "{}Results.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
-            settings["output_file_name"].SetString(output_filename)
-            settings["reference_file_name"].SetString(reference_filename)
+            with open(output_filename) as f:
+                output_data = json.load(f)
 
-            # Call the files comparison process
-            cmp_process = CompareTwoFilesCheckProcess(settings)
-            cmp_process.ExecuteInitialize()
-            cmp_process.ExecuteBeforeSolutionLoop()
-            cmp_process.ExecuteInitializeSolutionStep()
-            cmp_process.ExecuteFinalizeSolutionStep()
-            cmp_process.ExecuteBeforeOutputStep()
-            cmp_process.ExecuteAfterOutputStep()
-            cmp_process.ExecuteFinalize()
+            # Load reference file
+            reference_filename = "{}Results.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
+            with open(reference_filename) as f:
+                reference_data = json.load(f)
+
+            # Check files
+            # Note that we need to do it manually as literal (deterministic) file comparison cannot be used because of the basis float values
+            self.assertEqual(output_data["rom_settings"], reference_data["rom_settings"])
+            for node_output, node_reference in zip(output_data["nodal_modes"],reference_data["nodal_modes"]):
+                self.assertEqual(node_output, node_reference)
+                for dof_basis_output, dof_basis_reference in zip(output_data["nodal_modes"][node_output], reference_data["nodal_modes"][node_reference]):
+                    self.assertVectorAlmostEqual(dof_basis_output, dof_basis_reference)
 
 ##########################################################################################
 

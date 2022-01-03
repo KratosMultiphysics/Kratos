@@ -8,16 +8,24 @@ This is a research application that provides a set of tools for oceanographic an
 |---------------|:------------------:|:------------------:|:------------------:|
 | Gravity waves | :heavy_check_mark: | :heavy_check_mark: |                    |
 | Boussinesq    | :heavy_check_mark: |                    | :heavy_check_mark: |
-| Shallow water | :heavy_check_mark: |                    |                    |
+| Saint-Venant  | :heavy_check_mark: |                    |                    |
 
 ### Dependencies
 
-This application does not have dependencies at compile time.
+This application does not have other application dependencies at compile time.
 
 If the coupling with a Navier-Stokes is required, add the following applications to compilation:
 - PfemFluidDynamicsApplication
 - HDF5Application
 - MappingApplication
+
+The following Python libraries may be required:
+- `numpy` is used by the wave generator, the benchmarks and other auxiliary processes
+- `scipy` is used by the benchmarks
+- `mpmath` is used by the solitary wave benchmark
+- `h5py` is used in the convergence output
+- `pandas` is used in some post process tools
+
 
 ### References
 

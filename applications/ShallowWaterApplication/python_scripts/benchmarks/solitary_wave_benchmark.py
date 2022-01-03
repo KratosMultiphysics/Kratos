@@ -1,5 +1,5 @@
 import KratosMultiphysics as KM
-
+import KratosMultiphysics.ShallowWaterApplication as SW
 from KratosMultiphysics.ShallowWaterApplication.benchmarks.base_benchmark_process import BaseBenchmarkProcess
 from KratosMultiphysics.ShallowWaterApplication.utilities.wave_factory import SolitaryWaveFactory
 
@@ -74,8 +74,11 @@ class SolitaryWaveBenchmark(BaseBenchmarkProcess):
         time = self.boundary_model_part.ProcessInfo[KM.TIME]
         for node in self.boundary_model_part.Nodes:
             node.SetSolutionStepValue(KM.VELOCITY, self._Velocity(node, time))
+            node.SetSolutionStepValue(SW.FREE_SURFACE_ELEVATION, self._FreeSurfaceElevation(node, time))
         KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.boundary_model_part.Nodes)
+        KM.VariableUtils().ApplyFixity(SW.FREE_SURFACE_ELEVATION, True, self.boundary_model_part.Nodes)
 
 
     def ExecuteFinalizeSolutionStep(self):
-        KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, False, self.boundary_model_part.Nodes)
+        KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.boundary_model_part.Nodes)
+        KM.VariableUtils().ApplyFixity(SW.FREE_SURFACE_ELEVATION, False, self.boundary_model_part.Nodes)
