@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Inigo Lopez
+//  Main authors:    Marc Nunez and Inigo Lopez
 //
 //
 
@@ -18,6 +18,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_elements/embedded_transonic_perturbation_potential_flow_element.h"
 #include "custom_utilities/potential_flow_utilities.h"
+#include "tests/cpp_tests/test_utilities.h"
 #include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos {
@@ -77,13 +78,9 @@ void AssignPotentialsToNormalEmbeddedTransonicPerturbationElement(Element::Point
 void AssignDistancesEmbeddedTransonicPerturbationElement(Element::Pointer pElement)
 {
     std::array<double, 3> distances{-1.0, 1.0, 1.0};
-
     for (unsigned int i = 0; i < 3; i++)
         pElement->GetGeometry()[i].FastGetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i];
 }
-
-
-
 
 void AssignPerturbationPotentialsToEmbeddedTransonicElement(Element& rElement, const std::array<double, 3> rPotential) {
     for (unsigned int i = 0; i < 3; i++){
@@ -499,6 +496,32 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationInletPotentialFlowEle
     KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
+
+/** Checks the EmbeddedTransonicPerturbationPotentialFlowElement when it's a WAKE element.
+ * Tests the LHS computation.
+ */
+KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationWakePotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
+
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateEmbeddedTransonicPerturbationElement(model_part);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    std::array<double, 6> potential{1.39572, 110.69275, 121.1549827, 104.284736, 2.39572, 46.69275};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2 * number_of_nodes, 2 * number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2 * number_of_nodes, 2 * number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+
+
 /** Checks the EmbeddedTransonicPerturbationPotentialFlowElement.
  * Tests the LHS computation.
  */
@@ -522,7 +545,6 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSuperson
     pUpwindElement -> Set(INLET, true);
     pUpwindElement -> Set(ACTIVE, true);
     p_element->Initialize(r_current_process_info);
-    // pUpwindElement->SetFlags(INLET);
 
     std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
     std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
