@@ -447,8 +447,10 @@ jobs:
     strategy:
       fail-fast: false
 
-    volumes:
-      - ${GITHUB_WORKSPACE}/wheels:/data_swap_guest
+    container:
+      image: kratosmultiphysics/kratos-wheelbuilder-linux
+      volumes:
+        - ${GITHUB_WORKSPACE}/wheels:/data_swap_guest
 
     steps:
     - uses: actions/checkout@v2
