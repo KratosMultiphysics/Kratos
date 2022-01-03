@@ -16,7 +16,7 @@ except ImportError:
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class TestProcesses(KratosUnittest.TestCase):
+class TestLineGraphOutputProcess(KratosUnittest.TestCase):
 
     @KratosUnittest.skipIf(missing_numpy,"Missing python libraries (numpy)")
     def test_line_graph_output_process(self):
