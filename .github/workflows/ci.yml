@@ -454,14 +454,13 @@ jobs:
 
     steps:
     - name: Build
-      with:
-        args: ${GITHUB_HEAD_REF} 2
+      run: /bin/bash /workspace/scripts/start.sh ${GITHUB_HEAD_REF} 2
         
     - name: Archive wheels
       uses: actions/upload-artifact@v2
       with:
         name: linux-wheels
-        path: wheels/*.whl
+        path: data_swap_guest/*.whl
         retention-days: 1
         
   ubuntu-wheel-test:
