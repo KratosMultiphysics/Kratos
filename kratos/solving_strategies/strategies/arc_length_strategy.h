@@ -178,35 +178,35 @@ class ArcLengthStrategy
         if (!mInitializeArcLengthWasPerformed) {
             ModelPart& r_model_part = BaseType::GetModelPart();
             //set up the system
-            if (!mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
+            if (!this->mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
                 //setting up the list of the DOFs to be solved
-                mpBuilderAndSolver->SetUpDofSet(mpScheme, r_model_part);
+                this->mpBuilderAndSolver->SetUpDofSet(this->mpScheme, r_model_part);
 
                 //shaping correctly the system
-                mpBuilderAndSolver->SetUpSystem(r_model_part);
+                this->mpBuilderAndSolver->SetUpSystem(r_model_part);
             }
 
             // Compute initial radius (mRadius_0)
-            mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb, r_model_part);
-            TSystemMatrixType& mA = *mpA;
-            TSystemVectorType& mDx = *mpDx;
-            TSystemVectorType& mb = *mpb;
-            TSparseSpace::SetToZero(mA);
-            TSparseSpace::SetToZero(mDx);
-            TSparseSpace::SetToZero(mb);
+            mpBuilderAndSolver->ResizeAndInitializeVectors(this->mpScheme, this->mpA, this->mpDx, this->mpb, r_model_part);
+            TSystemMatrixType& rA  = *this->mpA;
+            TSystemVectorType& rDx = *this->mpDx;
+            TSystemVectorType& rb  = *this->mpb;
+            TSparseSpace::SetToZero(rA);
+            TSparseSpace::SetToZero(rDx);
+            TSparseSpace::SetToZero(rb);
 
-            mpBuilderAndSolver->BuildAndSolve(mpScheme, r_model_part, mA, mDx, mb);
+            mpBuilderAndSolver->BuildAndSolve(mpScheme, r_model_part, rA, rDx, rb);
 
-            mRadius_0 = TSparseSpace::TwoNorm(mDx);
+            mRadius_0 = TSparseSpace::TwoNorm(rDx);
             mRadius = mRadius_0;
 
             // Compute vector of reference external force (mf)
             this->InitializeSystemVector(mpf);
-            TSystemVectorType& mf = *mpf;
-            TSparseSpace::SetToZero(mf);
+            TSystemVectorType& rf = *mpf;
+            TSparseSpace::SetToZero(rf);
 
             // We build it now to only include external loads
-            mpBuilderAndSolver->BuildRHS(mpScheme, r_model_part, mf);
+            this->mpBuilderAndSolver->BuildRHS(this->mpScheme, r_model_part, rf);
 
             //Initialize the loading factor Lambda
             mLambda = 0.0;
