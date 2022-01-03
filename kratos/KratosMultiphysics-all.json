@@ -17,7 +17,6 @@
         "EigenSolversApplication==${KRATOS_VERSION}",
         "LinearSolversApplication==${KRATOS_VERSION}",
         "ConstitutiveLawsApplication==${KRATOS_VERSION}",
-        "DelaunayMeshingApplication==${KRATOS_VERSION}",
         "MeshingApplication==${KRATOS_VERSION}",
         "DemStructuresCouplingApplication==${KRATOS_VERSION}",
         "MeshMovingApplication==${KRATOS_VERSION}",
