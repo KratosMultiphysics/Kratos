@@ -9,17 +9,16 @@ class CopyOneToMany(CoSimulationDataTransferOperator):
     Used e.g. for FSI with SDof, where the SDof has one value and the fluid interface has many
     """
     def _ExecuteTransferData(self, from_solver_data, to_solver_data, transfer_options):
-        if not to_solver_data.IsDefinedOnThisRank():
-            return
-
         data_value = 0.0
         if from_solver_data.IsDefinedOnThisRank():
             data_values = from_solver_data.GetData()
             if data_values.size == 1: # this is the rank that actually contains the value
                 data_value = data_values[0]
 
-        data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
-        data_value = data_comm.SumAll(data_value)
+        data_value = self.data_communicator.SumAll(data_value)
+
+        if not to_solver_data.IsDefinedOnThisRank():
+            return
 
         to_solver_values = to_solver_data.GetData()
         to_solver_values.fill(data_value)
@@ -28,7 +27,7 @@ class CopyOneToMany(CoSimulationDataTransferOperator):
         if "swap_sign" in transfer_options.GetStringArray():
             to_solver_values *= (-1)
         if "distribute_values" in transfer_options.GetStringArray():
-            to_solver_values /= data_comm.SumAll(to_solver_data.Size())
+            to_solver_values /= self.data_communicator.SumAll(to_solver_data.Size())
         if "add_values" in transfer_options.GetStringArray():
             to_solver_values += to_solver_data.GetData()
 
