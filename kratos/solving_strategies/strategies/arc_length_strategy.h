@@ -91,7 +91,7 @@ class ArcLengthStrategy
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters& rParameters,
+        Parameters Parameters,
         int MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
@@ -99,22 +99,22 @@ class ArcLengthStrategy
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
-            mDesiredIterations = rParameters["desired_iterations"].GetInt();
-            mMaxRadiusFactor   = rParameters["max_radius_factor"].GetDouble();
-            mMinRadiusFactor   = rParameters["min_radius_factor"].GetDouble();
+            mDesiredIterations = Parameters["desired_iterations"].GetInt();
+            mMaxRadiusFactor   = Parameters["max_radius_factor"].GetDouble();
+            mMinRadiusFactor   = Parameters["min_radius_factor"].GetDouble();
             mInitializeArcLengthWasPerformed = false;
 
             // we initialize the list of load processes to be taken into account
-            if (rParameters["loads_sub_model_part_list"].size() > 0) {
-                mSubModelPartList.resize(rParameters["loads_sub_model_part_list"].size());
-                mVariableNames.resize(rParameters["loads_variable_list"].size());
+            if (Parameters["loads_sub_model_part_list"].size() > 0) {
+                mSubModelPartList.resize(Parameters["loads_sub_model_part_list"].size());
+                mVariableNames.resize(Parameters["loads_variable_list"].size());
 
                 if (mSubModelPartList.size() != mVariableNames.size())
                     KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-                    mSubModelPartList[i] = &( model_part.GetSubModelPart(rParameters["loads_sub_model_part_list"][i].GetString()));
-                    mVariableNames[i] = rParameters["loads_variable_list"][i].GetString();
+                    mSubModelPartList[i] = &( model_part.GetSubModelPart(Parameters["loads_sub_model_part_list"][i].GetString()));
+                    mVariableNames[i] = Parameters["loads_variable_list"][i].GetString();
                 }
             }
         }
