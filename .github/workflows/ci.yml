@@ -455,11 +455,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - uses: nelonoel/branch-name@v1
+    - run: echo ${BRANCH_NAME}
+
     - name: Build
       shell: bash
       run: |
         mkdir ${GITHUB_WORKSPACE}/wheels
-        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux master 4
+        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${BRANCH_NAME} 4
 
     - name: Install
       shell: bash
