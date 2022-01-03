@@ -19,7 +19,7 @@
 
 
 # importing the Kratos Library
-import KratosMultiphysics as KM
+import KratosMultiphysics as km
 import KratosMultiphysics.TopologyOptimizationApplication as KratosTopOpt
 import os
 
