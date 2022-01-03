@@ -19,8 +19,8 @@
 
 
 # importing the Kratos Library
-from KratosMultiphysics import *
-from KratosMultiphysics.TopologyOptimizationApplication import *
+import KratosMultiphysics as KM
+import KratosMultiphysics.TopologyOptimizationApplication as KratosTopOpt
 import os
 
 # For GID output
