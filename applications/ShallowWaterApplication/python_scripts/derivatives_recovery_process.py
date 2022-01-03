@@ -106,7 +106,7 @@ class DerivativesRecoveryProcess(KM.Process):
     def ExecuteInitialize(self):
         if self.settings["compute_neighbors"].GetBool():
             KM.FindGlobalNodalNeighboursProcess(self.model_part).Execute()
-        self.recovery_tool.ExtendNeighborsPatch(self.model_part)
+        self.recovery_tool.CheckRequiredNeighborsPatch(self.model_part)
         self.recovery_tool.CalculatePolynomialWeights(self.model_part)
 
         for operation in self.operations:

@@ -108,7 +108,7 @@ void GradientRecoveryTest(
     });
 
     FindGlobalNodalNeighboursProcess(r_model_part).Execute();
-    DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(r_model_part);
+    DerivativesRecoveryUtility<TDim>::CheckRequiredNeighborsPatch(r_model_part);
     DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(r_model_part);
     DerivativesRecoveryUtility<TDim>::RecoverGradient(r_model_part, DISTANCE, DISTANCE_GRADIENT);
 
