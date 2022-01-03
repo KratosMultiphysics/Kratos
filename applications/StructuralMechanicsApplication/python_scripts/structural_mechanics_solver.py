@@ -460,13 +460,23 @@ class MechanicalSolver(PythonSolver):
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            if not self.settings["line_search"].GetBool():
-                if not self.settings["arc_length"].GetBool():
-                    mechanical_solution_strategy = self._create_newton_raphson_strategy()
-                else:
-                    mechanical_solution_strategy = self._create_arc_length_strategy()
-            else:
+            # Deprecation checks
+            if self.settings.Has("line_search"):
+                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "strategy_type"')
+                if self.settings["line_search"].GetBool():
+                    self.settings["solving_strategy_settings"]["strategy_type"].SetString("line_search")
+            if self.settings.Has("arc_length"):
+                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "arc_length", please move it to "solving_strategy_settings" as "strategy_type"')
+                if self.settings["arc_length"].GetBool():
+                    self.settings["solving_strategy_settings"]["strategy_type"].SetString("arc_length")
+            # Create strategy
+            if self.settings["solving_strategy_settings"]["strategy_type"].GetString() == "newton_raphson":
+                mechanical_solution_strategy = self._create_newton_raphson_strategy()
+            elif self.settings["solving_strategy_settings"]["strategy_type"].GetString() == "line_search":
                 mechanical_solution_strategy = self._create_line_search_strategy()
+            elif self.settings["solving_strategy_settings"]["strategy_type"].GetString() == "arc_length":
+                mechanical_solution_strategy = self._create_arc_length_strategy()
+
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
@@ -524,7 +534,7 @@ class MechanicalSolver(PythonSolver):
                                                                 self._GetScheme(),
                                                                 self._GetConvergenceCriterion(),
                                                                 self._GetBuilderAndSolver(),
-                                                                self.settings["arc_length_settings"],
+                                                                self.settings["solving_strategy_settings"]["strategy_settings"],
                                                                 self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
