@@ -454,7 +454,10 @@ jobs:
 
     steps:
     - name: Build
-      run: /bin/bash /workspace/scripts/start.sh ${GITHUB_HEAD_REF} 2
+      shell: bash
+      run: |
+        echo "${GITHUB_HEAD_REF}"
+        ./workspace/scripts/start.sh "${GITHUB_HEAD_REF}" 2
         
     - name: Archive wheels
       uses: actions/upload-artifact@v2
