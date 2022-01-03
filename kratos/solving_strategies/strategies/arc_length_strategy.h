@@ -605,11 +605,11 @@ class ArcLengthStrategy
      * @param MoveMesh The flag that allows to move the mesh
      */
 
-    virtual void UpdateDatabase(
+    void UpdateDatabase(
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
         TSystemVectorType& rb,
-        const bool MoveMesh)
+        const bool MoveMesh) override
     {
         BaseType::UpdateDatabase(rA, rDx, rb, MoveMesh);
         UpdateExternalLoads();
@@ -620,10 +620,10 @@ class ArcLengthStrategy
      * @brief This method prints information after reach the max number of iterations
      */
 
-    virtual void MaxIterationsExceeded()
+    void MaxIterationsExceeded() override
     {
         KRATOS_INFO_IF("ARC-LENGTH Strategy", this->GetEchoLevel() > 0)
-            << "ATTENTION: max iterations ( " << mMaxIterationNumber
+            << "ATTENTION: max iterations ( " << this->mMaxIterationNumber
             << " ) exceeded!" << std::endl;
     }
 
