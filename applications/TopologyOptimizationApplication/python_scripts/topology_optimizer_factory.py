@@ -25,7 +25,7 @@ import os
 
 # For GID output
 #from KratosMultiphysics import gid_output
-from KratosMultiphysics.gid_output import GiDOutput
+from KratosMultiphysics.gid_output_process import GiDOutput
 
 # Further necessary imports
 import csv
