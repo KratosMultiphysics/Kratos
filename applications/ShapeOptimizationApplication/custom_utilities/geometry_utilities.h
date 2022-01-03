@@ -251,10 +251,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeDistancesToBoundingModelPart(
-        ModelPart& rBoundingModelPart,
-        std::vector<double>& rSignedDistances,
-        std::vector<double>& rDirections )
+    std::tuple<std::vector<double>, std::vector<double>> ComputeDistancesToBoundingModelPart(ModelPart& rBoundingModelPart)
     {
         KRATOS_TRY;
 
@@ -280,8 +277,11 @@ public:
 
         GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
 
-        rSignedDistances.reserve(mrModelPart.NumberOfNodes());
-        rDirections.reserve(mrModelPart.NumberOfNodes()*3);
+        std::tuple<std::vector<double>, std::vector<double>> distances_and_directions;
+        std::vector<double>& r_signed_distances = std::get<0>(distances_and_directions);
+        std::vector<double>& r_directions = std::get<1>(distances_and_directions);
+        r_signed_distances.reserve(mrModelPart.NumberOfNodes());
+        r_directions.reserve(mrModelPart.NumberOfNodes()*3);
 
         for (auto& r_node : mrModelPart.Nodes()){
 
@@ -292,12 +292,14 @@ public:
             const array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
             const double projected_length = inner_prod(delta, bounding_normal);
 
-            rSignedDistances.push_back(projected_length);
+            r_signed_distances.push_back(projected_length);
 
-            rDirections.push_back(bounding_normal[0]);
-            rDirections.push_back(bounding_normal[1]);
-            rDirections.push_back(bounding_normal[2]);
+            r_directions.push_back(bounding_normal[0]);
+            r_directions.push_back(bounding_normal[1]);
+            r_directions.push_back(bounding_normal[2]);
         }
+
+        return distances_and_directions;
 
         KRATOS_CATCH("");
     }
