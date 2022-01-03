@@ -460,7 +460,7 @@ jobs:
       run: |
         mkdir ${GITHUB_WORKSPACE}/wheels
         echo "${GITHUB_HEAD_REF}"
-        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${GITHUB_HEAD_REF} 4
+        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${GITHUB_HEAD_REF} 2
 
     - name: Install
       shell: bash
