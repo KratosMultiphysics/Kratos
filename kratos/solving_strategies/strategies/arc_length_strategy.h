@@ -187,7 +187,7 @@ class ArcLengthStrategy
             }
 
             // Compute initial radius (mRadius_0)
-            mpBuilderAndSolver->ResizeAndInitializeVectors(this->mpScheme, this->mpA, this->mpDx, this->mpb, r_model_part);
+            this->mpBuilderAndSolver->ResizeAndInitializeVectors(this->mpScheme, this->mpA, this->mpDx, this->mpb, r_model_part);
             TSystemMatrixType& rA  = *(this->mpA);
             TSystemVectorType& rDx = *(this->mpDx);
             TSystemVectorType& rb  = *(this->mpb);
@@ -195,7 +195,7 @@ class ArcLengthStrategy
             TSparseSpace::SetToZero(rDx);
             TSparseSpace::SetToZero(rb);
 
-            mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, rA, rDx, rb);
+            this->mpBuilderAndSolver->BuildAndSolve(this->mpScheme, r_model_part, rA, rDx, rb);
 
             mRadius_0 = TSparseSpace::TwoNorm(rDx);
             mRadius = mRadius_0;
