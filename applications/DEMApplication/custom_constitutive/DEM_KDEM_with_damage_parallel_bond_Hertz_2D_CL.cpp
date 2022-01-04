@@ -69,11 +69,9 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void DEM_KDEM_with_damage_parallel_bond_Hertz_2D::ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
+    void DEM_KDEM_with_damage_parallel_bond_Hertz_2D::ComputeNormalUnbondedForce(double indentation) {
 
         KRATOS_TRY
-
-        //TODO: if works, update hertz model in 2D
 
         if (indentation > 0.0) {
             mUnbondedLocalElasticContactForce2 = mUnbondedNormalElasticConstant * indentation;

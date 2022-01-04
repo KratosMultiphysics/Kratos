@@ -29,7 +29,7 @@ namespace Kratos {
                                              double equiv_poisson, double calculation_area,
                                              SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
 
-        void ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
+        void ComputeNormalUnbondedForce(double indentation) override;
 
         double LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) override;
 

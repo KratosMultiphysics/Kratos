@@ -72,7 +72,7 @@ namespace Kratos {
 
         InitializeContact(element1, element2, indentation);
 
-        LocalElasticContactForce[2]  = CalculateNormalForceWithBall(element1, element2, indentation);
+        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
 
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
@@ -166,7 +166,7 @@ namespace Kratos {
 
         InitializeContactWithFEM(element, wall, indentation);
 
-        LocalElasticContactForce[2] = CalculateNormalForceWithFEM(element, wall, indentation);
+        LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
 
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
@@ -302,9 +302,10 @@ namespace Kratos {
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
 
-        return 0.666666666666666666667 * mKn * indentation;
+        return 0.666666666666666666667 * mKn * indentation * indentation;
     }
 
+/*
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForceWithBall(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
         //Get equivalent Radius
@@ -339,6 +340,7 @@ namespace Kratos {
 
         return 0.666666666666666666667 * mKn * indentation + 12500 * equiv_young / (effective_radius * effective_radius) * indentation * indentation;
     }
+*/
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
         return 0.0;

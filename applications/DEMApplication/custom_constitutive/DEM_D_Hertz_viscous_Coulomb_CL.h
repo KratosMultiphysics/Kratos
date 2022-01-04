@@ -63,9 +63,9 @@ namespace Kratos {
 
         double CalculateNormalForce(const double indentation) override;
 
-        double CalculateNormalForceWithBall(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
+        //double CalculateNormalForceWithBall(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
 
-        double CalculateNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0);
+        //double CalculateNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0);
 
         double CalculateCohesiveNormalForce(SphericParticle* const element1,
                                             SphericParticle* const element2,
