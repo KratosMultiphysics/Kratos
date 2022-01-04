@@ -302,7 +302,7 @@ namespace Kratos {
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
 
-        return 0.666666666666666666667 * mKn * power(indentation, 1.5);
+        return 0.666666666666666666667 * mKn * indentation * sqrt (indentation);
     }
 
 /*
