@@ -182,9 +182,9 @@ public:
 
     /**
      * @brief Access for variables on Integration points
-     * @param rVariable: the specified scalar variable
-     * @param rValues: where to store the values for the specified variable type at each integration point
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rVariable The specified scalar variable
+     * @param rValues Where to store the values for the specified variable type at each integration point
+     * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
@@ -193,13 +193,13 @@ public:
 
     /**
      * @brief Access for variables on Integration points
-     * @param rVariable: the specified vector variable
-     * @param rValues: where to store the values for the specified variable type at each integration point
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rVariable Te specified vector variable
+     * @param rOutput Where to store the itegrated values for the specified variable
+     * @param rCurrentProcessInfo The current process info instance
      */
-    void CalculateOnIntegrationPoints(
+    void Calculate(
         const Variable<array_1d<double,3>>& rVariable,
-        std::vector< array_1d<double,3>>& rOutput,
+        array_1d<double,3>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -322,7 +322,7 @@ protected:
     virtual void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
     static void CalculateGeometryData(
-        GeometryType& rGeometry,
+        const GeometryType& rGeometry,
         Vector &rGaussWeights,
         Matrix &rNContainer,
         ShapeFunctionsGradientsType &rDN_DX);

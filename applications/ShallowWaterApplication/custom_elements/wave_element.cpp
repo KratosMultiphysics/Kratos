@@ -141,19 +141,50 @@ void WaveElement<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Ste
 
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void WaveElement<TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    for (IndexType PointNumber = 0; PointNumber < 1; PointNumber++)
-        rValues[PointNumber] = double(this->GetValue(rVariable));
+    for (std::size_t point_number = 0; point_number < 1; ++point_number)
+        rValues[point_number] = double(this->GetValue(rVariable));
 }
 
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateOnIntegrationPoints(
+void WaveElement<TNumNodes>::Calculate(
     const Variable<array_1d<double,3>>& rVariable,
-    std::vector< array_1d<double,3>>& rOutput,
+    array_1d<double,3>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
-{}
+{
+    if (rVariable == FORCE)
+    {
+        rOutput = ZeroVector();
+        const double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        const double density = this->GetProperties()[DENSITY];
+        const auto& r_geometry = this->GetGeometry();
+
+        // The nodal data
+        array_1d<double,TNumNodes> nodal_h;
+        for (std::size_t i = 0; i < TNumNodes; ++i) {
+            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
+        }
+
+        // The geometry data
+        Vector weights;
+        Matrix N_container;
+        ShapeFunctionsGradientsType DN_DX_container;
+        CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
+
+        // Integration over the geometry
+        for (std::size_t g = 0; g < weights.size(); ++g) {
+            const array_1d<double,3> normal = r_geometry.UnitNormal(g);
+            const array_1d<double,TNumNodes> N = row(N_container, g);
+            const double h = inner_prod(nodal_h, N);
+            rOutput -= density * gravity * h * weights[g] * normal;
+        }
+    }
+}
 
 
 template<std::size_t TNumNodes>
@@ -258,7 +289,7 @@ void WaveElement<TNumNodes>::UpdateGaussPointData(
 
 template<>
 void WaveElement<3>::CalculateGeometryData(
-    GeometryType& rGeometry,
+    const GeometryType& rGeometry,
     Vector &rGaussWeights,
     Matrix &rNContainer,
     ShapeFunctionsGradientsType &rDN_DXContainer)
@@ -289,7 +320,7 @@ void WaveElement<3>::CalculateGeometryData(
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateGeometryData(
-    GeometryType& rGeometry,
+    const GeometryType& rGeometry,
     Vector &rGaussWeights,
     Matrix &rNContainer,
     ShapeFunctionsGradientsType &rDN_DXContainer)
@@ -583,7 +614,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
     LocalVectorType rhs = ZeroVector(mLocalSize);
-    auto& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     // Struct to pass around the data
     ElementData data;
@@ -625,7 +656,7 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
         rMassMatrix.resize(mLocalSize, mLocalSize, false);
 
     LocalMatrixType mass_matrix = ZeroMatrix(mLocalSize, mLocalSize);
-    auto& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     // Struct to pass around the data
     ElementData data;

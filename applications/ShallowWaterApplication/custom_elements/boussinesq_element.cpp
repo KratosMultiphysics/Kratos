@@ -371,7 +371,7 @@ void BoussinesqElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHand
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
 
-    auto& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     LocalVectorType f0 = ZeroVector(mLocalSize);
     LocalVectorType f1 = ZeroVector(mLocalSize);
