@@ -8,8 +8,6 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 
 import auxiliary_functions_for_tests
 
-print(os.getpid())
-
 this_working_dir_backup = os.getcwd()
 
 def GetFilePath(fileName):

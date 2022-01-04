@@ -101,7 +101,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ WaveElement(){}
+    ~ WaveElement() override {};
 
     ///@}
     ///@name Operations
@@ -272,36 +272,73 @@ protected:
 
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
+    ///@name Protected Classes
     ///@{
 
     struct ElementData
     {
+        bool integrate_by_parts;
         double stab_factor;
         double shock_stab_factor;
         double relative_dry_height;
         double gravity;
         double length;
 
+        double amplitude;
+        double wavelength;
+        double depth;
+
         double height;
         array_1d<double,3> velocity;
 
-        array_1d<double,TNumNodes> topography;
-        LocalVectorType unknown;
+        BoundedMatrix<double,3,3> A1;
+        BoundedMatrix<double,3,3> A2;
+        array_1d<double,3> b1;
+        array_1d<double,3> b2;
+
+        array_1d<double,TNumNodes> nodal_f;
+        array_1d<double,TNumNodes> nodal_h;
+        array_1d<double,TNumNodes> nodal_z;
+        array_1d<double,TNumNodes> nodal_w;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_a;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_a_lap;
 
         FrictionLaw::Pointer p_bottom_friction;
     };
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    virtual const Variable<double>& GetUnknownComponent(int Index) const;
+
+    virtual LocalVectorType GetUnknownVector(const ElementData& rData) const;
+
+    LocalVectorType GetAccelerationsVector(const ElementData& rData) const;
+
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
+    virtual void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
-    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+    virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+
+    double ShapeFunctionProduct(
+        const array_1d<double,TNumNodes>& rN,
+        const std::size_t I,
+        const std::size_t J);
+
+    virtual void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    virtual void CalculateArtificialDamping(
+        BoundedMatrix<double,3,3>& rFriction,
+        const ElementData& rData);
 
     void CalculateGeometryData(
         Vector &rGaussWeights,
@@ -324,7 +361,20 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    void AddMassTerms(
+    virtual void AddDispersiveTerms(
+        LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
+    void AddArtificialViscosityTerms(
+        LocalMatrixType& rMatrix,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
+    virtual void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
@@ -334,6 +384,8 @@ protected:
     virtual double StabilizationParameter(const ElementData& rData) const;
 
     double InverseHeight(const ElementData& rData) const;
+
+    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN) const;
 
     ///@}
     ///@name Protected  Access

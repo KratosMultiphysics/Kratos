@@ -26,6 +26,7 @@
 #include "constitutive_laws_application_variables.h"
 
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 
 namespace Kratos {
@@ -42,6 +43,7 @@ PYBIND11_MODULE(KratosConstitutiveLawsApplication,m)
         ;
 
     AddCustomConstitutiveLawsToPython(m);
+    AddCustomProcessesToPython(m);
 
     // Constitutive laws variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HIGH_CYCLE_FATIGUE_COEFFICIENTS)
@@ -79,6 +81,7 @@ PYBIND11_MODULE(KratosConstitutiveLawsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, UNIAXIAL_STRESS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_DISSIPATION_LIMIT_LINEAR_SOFTENING)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_ANGLE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISSIPATION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DAMAGE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DAMAGE_MATRIX)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DAMAGE_FIBER)

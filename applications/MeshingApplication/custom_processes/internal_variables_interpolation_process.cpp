@@ -71,7 +71,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
 {
     PointVector this_point_vector;
 
-    GeometryData::IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_1;
+    GeometryData::IntegrationMethod this_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     // Iterate in the elements
     ElementsArrayType& r_elements_array = ThisModelPart.Elements();
@@ -388,7 +388,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
 void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionTransfer()
 {
     // Initialize some values
-    GeometryData::IntegrationMethod this_integration_method = GeometryData::GI_GAUSS_1;
+    GeometryData::IntegrationMethod this_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     // Iterate in the nodes to initialize the values
     NodesArrayType& r_nodes_array = mrOriginMainModelPart.Nodes();

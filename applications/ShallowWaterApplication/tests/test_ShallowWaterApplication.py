@@ -6,6 +6,7 @@ import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.KratosUnittest import TestLoader
 
 # Small tests
 from shallow_water_test_factory import TestShallowWaterElement
@@ -16,9 +17,11 @@ from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
 from shallow_water_test_factory import TestNodesOutputProcess
 from shallow_water_test_factory import TestMacDonaldShockBenchmark
+from shallow_water_test_factory import TestMacDonaldTransitionBenchmark
 from shallow_water_test_factory import TestDamBreakBenchmark
 from shallow_water_test_factory import TestDryDamBreakBenchmark
 from shallow_water_test_factory import TestPlanarSurfaceInParabolaBenchmark
+from shallow_water_test_factory import TestMeshMovingStrategy
 from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
 
 def AssembleTestSuites():
@@ -37,31 +40,30 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(TestShallowWater2D3NElement('test_execution'))
-    smallSuite.addTest(TestMonotonicShallowWater2D3NElement('test_execution'))
-    smallSuite.addTest(TestSetTopographyProcess('test_execution'))
-    smallSuite.addTest(TestVisualizationMeshProcess('test_execution'))
-    smallSuite.addTest(TestNodesOutputProcess('test_execution'))
-    smallSuite.addTest(TestMacDonaldShockBenchmark('test_execution'))
-    smallSuite.addTest(TestDamBreakBenchmark('test_execution'))
-    smallSuite.addTest(TestDryDamBreakBenchmark('test_execution'))
-    smallSuite.addTest(TestPlanarSurfaceInParabolaBenchmark('test_execution'))
-    smallSuite.addTests(_loadTestsFromTestCases(TestConvergenceOutputProcess))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestShallowWater2D3NElement]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMonotonicShallowWater2D3NElement]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSetTopographyProcess]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestVisualizationMeshProcess]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestNodesOutputProcess]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMacDonaldShockBenchmark]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMacDonaldTransitionBenchmark]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDamBreakBenchmark]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDryDamBreakBenchmark]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestPlanarSurfaceInParabolaBenchmark]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConvergenceOutputProcess]))
 
     # Create a test suit with the selected tests plus all small tests
     nightlySuite = suites['nightly']
     nightlySuite.addTests(smallSuite)
-    nightlySuite.addTest(TestShallowWaterElement('test_execution'))
-    nightlySuite.addTest(TestSemiLagrangianShallowWaterElement('test_execution'))
+    nightlySuite.addTests(TestLoader().loadTestsFromTestCases([TestShallowWaterElement]))
+    nightlySuite.addTests(TestLoader().loadTestsFromTestCases([TestSemiLagrangianShallowWaterElement]))
+    nightlySuite.addTests(TestLoader().loadTestsFromTestCases([TestMeshMovingStrategy]))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightlySuite)
 
     return suites
-
-def _loadTestsFromTestCases(test_case_module):
-    return KratosUnittest.TestLoader().loadTestsFromTestCases([test_case_module])
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)

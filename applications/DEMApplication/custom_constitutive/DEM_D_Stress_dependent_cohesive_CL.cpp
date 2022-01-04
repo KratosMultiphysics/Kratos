@@ -10,14 +10,12 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_D_Stress_Dependent_Cohesive::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Stress_Dependent_Cohesive to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
+    std::unique_ptr<DEMDiscontinuumConstitutiveLaw> DEM_D_Stress_Dependent_Cohesive::CloneUnique() {
+        return Kratos::make_unique<DEM_D_Stress_Dependent_Cohesive>();
     }
 
     void DEM_D_Stress_Dependent_Cohesive::Check(Properties::Pointer pProp) const {
-        DEMDiscontinuumConstitutiveLaw::Check(pProp);
+        DEM_D_Linear_viscous_Coulomb::Check(pProp);
         if(!pProp->Has(INITIAL_COHESION)) {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable INITIAL_COHESION should be present in the properties when using DEM_D_Stress_Dependent_Cohesive. 0.0 value assigned by default."<<std::endl;

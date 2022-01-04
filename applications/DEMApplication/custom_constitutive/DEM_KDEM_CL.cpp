@@ -14,21 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
-    void DEM_KDEM::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-
-        TransferParametersToProperties(parameters, pProp);
-
-        this->Check(pProp);
-    }
-
     void DEM_KDEM::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp)  {
         BaseClassType::TransferParametersToProperties(parameters, pProp);
         if(parameters.Has("CONTACT_INTERNAL_FRICC")) {
@@ -43,7 +28,41 @@ namespace Kratos {
     }
 
     void DEM_KDEM::Check(Properties::Pointer pProp) const {
-        DEMContinuumConstitutiveLaw::Check(pProp);
+        if(!pProp->Has(STATIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable STATIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(STATIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(STATIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(DYNAMIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(DYNAMIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(FRICTION_DECAY)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION_DECAY should be present in the properties when using DEMContinuumConstitutiveLaw. 500.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRICTION_DECAY) = 500.0;
+        }
+        if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(COEFFICIENT_OF_RESTITUTION) = 0.0;
+        }
+
 
         if(!pProp->Has(CONTACT_INTERNAL_FRICC)) {
             KRATOS_WARNING("DEM")<<std::endl;
@@ -66,7 +85,7 @@ namespace Kratos {
             pProp->GetValue(ROTATIONAL_MOMENT_COEFFICIENT) = 0.0;
         }
 
-        if(!pProp->Has(IS_UNBREAKABLE)) {
+        if (!pProp->Has(IS_UNBREAKABLE)) {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable IS_UNBREAKABLE was not present in the properties when using DEM_KDEM. False value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;

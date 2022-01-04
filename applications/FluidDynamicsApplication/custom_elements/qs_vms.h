@@ -230,6 +230,8 @@ public:
     ///@name Input and output
     ///@{
 
+    const Parameters GetSpecifications() const override;
+
     /// Turn back information as a string.
     std::string Info() const override;
 
@@ -302,7 +304,7 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    void AddViscousTerm(
+    virtual void AddViscousTerm(
         const TElementData& rData,
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS);

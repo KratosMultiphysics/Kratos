@@ -1,5 +1,8 @@
+import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
+
+data_comm = KM.Testing.GetDefaultDataCommunicator()
 
 import co_simulation_test_case
 import os
@@ -15,6 +18,7 @@ have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("Com
 have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
 have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
+have_pfem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("PfemFluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -183,6 +187,13 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("dem_fem_cable_net","cosim_dem_fem_cable_net")
             self._runTest()
 
+        # removing superfluous dem files after test
+        self.addCleanup(kratos_utils.DeleteFileIfExisting, GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
+
     def test_sdof_fsi(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
@@ -191,19 +202,27 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_sdof", "cosim_sdof_fsi")
-            # self.__AddVtkOutputToCFD() # uncomment to get output
+            if data_comm.IsDistributed():
+                allowed_num_processes = [3,4,5] # problem is small and needs a very specific number of processes, otherwise the linear solver gives slightly different results and the test fails
+                if data_comm.Size() not in allowed_num_processes:
+                    self.skipTest("This test runs only with {} processes".format(allowed_num_processes))
+
+                self.cosim_parameters["problem_data"]["parallel_type"].SetString("MPI")
+                fluid_solver_settings = self.cosim_parameters["solver_settings"]["solvers"]["fluid"]["solver_wrapper_settings"]
+                fluid_solver_settings["input_file"].SetString("fsi_sdof/ProjectParametersCFD_mpi") # TODO refactor such that serial file can be reused. Requires to update and dump new CFD settings (similar to mok test)
+
             self._runTest()
 
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
+    def test_PFEM_FEM_water_slide_2d(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_pfem_fem_dependencies:
+            self.skipTest("PFEM FEM dependencies are not available!")
 
-        # delete superfluous dem files
-        kratos_utils.DeleteFileIfExisting(GetFilePath("dem_fem_cable_net/cableNet.post.lst"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Graphs"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_MPI_results"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Post_Files"))
-        kratos_utils.DeleteDirectoryIfExisting(GetFilePath("dem_fem_cable_net/cableNet_Results_and_Data"))
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("pfem_fem_waterslide2d","cosim_pfem_fem_waterslide2d")
+            self._runTest()
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

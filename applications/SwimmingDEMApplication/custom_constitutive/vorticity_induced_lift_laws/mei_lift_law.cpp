@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    MeiLiftLaw::MeiLiftLaw(Parameters& r_parameters)
+    MeiLiftLaw::MeiLiftLaw(Parameters r_parameters)
     {
 
     }

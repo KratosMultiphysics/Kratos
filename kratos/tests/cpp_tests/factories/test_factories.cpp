@@ -36,33 +36,11 @@ namespace Kratos
         using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
         using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-        /// The definition of the strategy
-        using ExplicitSolvingStrategyType = ExplicitSolvingStrategy<SparseSpaceType,LocalSpaceType>;
-
-        /// The definition of the factory
-        using ExplicitStrategyFactoryType = Factory<ExplicitSolvingStrategyType>;
-
         /// The definition of the explicit builder
         using ExplicitBuilderType = ExplicitBuilder<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the factory
         using ExplicitBuilderFactoryType = Factory<ExplicitBuilderType>;
-
-        /**
-         * Checks if the ExplicitSolvingStrategyRungeKutta4 performs correctly the Factory
-         */
-        KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4Factory, KratosCoreFastSuite)
-        {
-            Model this_model;
-            auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"name" : "explicit_solving_strategy_runge_kutta_4",
-                                                        "explicit_builder_settings" : {
-                                                            "name" : "explicit_builder"
-                                                        }
-                                                        })");
-            ExplicitSolvingStrategyType::Pointer p_strategy = ExplicitStrategyFactoryType().Create(r_model_part, this_parameters);
-            KRATOS_CHECK_STRING_EQUAL(p_strategy->Info(), "ExplicitSolvingStrategyRungeKutta4");
-        }
 
         /**
          * Checks if the ExplicitBuilder performs correctly the Factory

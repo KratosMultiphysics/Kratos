@@ -73,7 +73,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+    typedef ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderAndSolverPointerType;
     typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> ComputeGradientProcessType;
     typedef ComputeGradientProcessType::Pointer ComputeGradientProcessPointerType;
@@ -191,8 +191,12 @@ public:
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
 
+        // We set these values at every time step as other processes/solvers also use them
+        auto fill_process_info_function = GetFillProcessInfoFunction();
+        fill_process_info_function(mrBaseModelPart);
+
         for(unsigned int step = 1; step <= n_substep; ++step){
-            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0) <<
+            KRATOS_INFO_IF("LevelSetConvectionProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
                 "Doing step "<< step << " of " << n_substep << std::endl;
 
             if (mIsBfecc || mElementRequiresLevelSetGradient){
@@ -278,6 +282,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
+            "echo_level" : 0,
             "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
@@ -861,12 +866,14 @@ private:
             default_parameters = Parameters(R"({
                 "dynamic_tau" : 0.0,
                 "cross_wind_stabilization_factor" : 0.7,
-                "requires_distance_gradient" : false
+                "requires_distance_gradient" : false,
+                "time_integration_theta" : 0.5
             })");
         } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({
                 "include_anti_diffusivity_terms" : false,
-                "requires_distance_gradient" : false
+                "requires_distance_gradient" : false,
+                "time_integration_theta" : 0.5
             })");
         } else {
             KRATOS_ERROR << "Default parameters are not implemented for the specified \'" << ElementType << "\' element. Available options are \n\t- \'levelset_convection_supg\'\n\t- \'levelset_convection_algebraic_stabilization\'" << std::endl;
@@ -888,14 +895,14 @@ private:
         if (mConvectionElementType == "LevelSetConvectionElementSimplex") {
             fill_process_info_function = [this](ModelPart &rModelPart) {
                 auto &r_process_info = rModelPart.GetProcessInfo();
-                // If not present, set the DYNAMIC_TAU
-                if (r_process_info.Has(DYNAMIC_TAU)) {
-                    KRATOS_WARNING("LevelSetConvectionProcess") << "ProcessInfo container already has DYNAMIC_TAU. Using the existent one" << r_process_info.GetValue(DYNAMIC_TAU) << " for the level set convection." << std::endl;
-                } else {
-                    r_process_info.SetValue(DYNAMIC_TAU, mLevelSetConvectionSettings["element_settings"]["dynamic_tau"].GetDouble());
-                }
-                // Set CROSS_WIND_STABILIZATION_FACTOR
+                r_process_info.SetValue(DYNAMIC_TAU, mLevelSetConvectionSettings["element_settings"]["dynamic_tau"].GetDouble());
                 r_process_info.SetValue(CROSS_WIND_STABILIZATION_FACTOR, mLevelSetConvectionSettings["element_settings"]["cross_wind_stabilization_factor"].GetDouble());
+                r_process_info.SetValue(TIME_INTEGRATION_THETA, mLevelSetConvectionSettings["element_settings"]["time_integration_theta"].GetDouble());
+            };
+        } else if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
+            fill_process_info_function = [this](ModelPart &rModelPart) {
+                auto &r_process_info = rModelPart.GetProcessInfo();
+                r_process_info.SetValue(TIME_INTEGRATION_THETA, mLevelSetConvectionSettings["element_settings"]["time_integration_theta"].GetDouble());
             };
         } else {
             fill_process_info_function = [](ModelPart &rModelPart) {};
@@ -916,10 +923,10 @@ private:
 
         // Check the base model part element family (only simplex elements are supported)
         if(TDim == 2){
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle" << std::endl;
         } else if(TDim == 3) {
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
 
@@ -939,7 +946,7 @@ private:
             ReformDofAtEachIteration,
             CalculateNormDxFlag);
 
-        mpSolvingStrategy->SetEchoLevel(0);
+        mpSolvingStrategy->SetEchoLevel(mLevelSetConvectionSettings["echo_level"].GetInt());
         mpSolvingStrategy->Check();
         mpSolvingStrategy->Initialize();
     }

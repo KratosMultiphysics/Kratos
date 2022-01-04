@@ -20,17 +20,25 @@ namespace Kratos
 {
 
 // Default Constructor
-LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
+LineNormalFluidFlux2DDiffOrderCondition::
+    LineNormalFluidFlux2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 1
-LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
+LineNormalFluidFlux2DDiffOrderCondition::
+    LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
+                                            GeometryType::Pointer pGeometry) :
+                                            GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 2
-LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
+LineNormalFluidFlux2DDiffOrderCondition::
+    LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
+                                            GeometryType::Pointer pGeometry,
+                                            PropertiesType::Pointer pProperties) :
+                                            GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -41,12 +49,15 @@ LineNormalFluidFlux2DDiffOrderCondition::~LineNormalFluidFlux2DDiffOrderConditio
 
 Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LineNormalFluidFlux2DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new LineNormalFluidFlux2DDiffOrderCondition(NewId,
+                                                                          GetGeometry().Create(ThisNodes),
+                                                                          pProperties) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
+void LineNormalFluidFlux2DDiffOrderCondition::
+    CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
 
@@ -54,8 +65,7 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
     rVariables.ConditionVector.resize(1,false);
     rVariables.ConditionVector[0] = 0.0;
 
-    for ( SizeType i = 0; i < NumPNodes; i++ )
-    {
+    for ( SizeType i = 0; i < NumPNodes; ++i ) {
         rVariables.ConditionVector[0] += rVariables.Np[i]*GetGeometry()[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
 
@@ -64,7 +74,10 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
 
 //----------------------------------------------------------------------------------------
 
-void LineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight)
+void LineNormalFluidFlux2DDiffOrderCondition::
+    CalculateIntegrationCoefficient(ConditionVariables& rVariables,
+                                    unsigned int PointNumber,
+                                    double weight)
 {
     KRATOS_TRY
 
@@ -79,14 +92,17 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(Co
 
 //----------------------------------------------------------------------------------------
 
-void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables)
+void LineNormalFluidFlux2DDiffOrderCondition::
+    CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+                                  ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    for(SizeType i = 0; i < NumPNodes; i++)
-    {
-        rRightHandSideVector[NumUNodes*2+i] -= rVariables.Np[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
+    for(SizeType i = 0; i < NumPNodes; ++i) {
+        rRightHandSideVector[NumUNodes*2+i] -=  rVariables.Np[i]
+                                              * rVariables.ConditionVector[0]
+                                              * rVariables.IntegrationCoefficient;
     }
 }
 

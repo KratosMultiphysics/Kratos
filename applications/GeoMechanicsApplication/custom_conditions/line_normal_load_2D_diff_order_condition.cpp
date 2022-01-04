@@ -20,14 +20,16 @@ namespace Kratos
 {
 
 // Default Constructor
-LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
+LineNormalLoad2DDiffOrderCondition::
+    LineNormalLoad2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 1
 LineNormalLoad2DDiffOrderCondition::
     LineNormalLoad2DDiffOrderCondition( IndexType NewId,
-                                        GeometryType::Pointer pGeometry ) : GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
+                                        GeometryType::Pointer pGeometry ) :
+                                        GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -35,7 +37,8 @@ LineNormalLoad2DDiffOrderCondition::
 LineNormalLoad2DDiffOrderCondition::
     LineNormalLoad2DDiffOrderCondition( IndexType NewId,
                                         GeometryType::Pointer pGeometry,
-                                        PropertiesType::Pointer pProperties ) : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
+                                        PropertiesType::Pointer pProperties ) :
+                                        GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -45,9 +48,13 @@ LineNormalLoad2DDiffOrderCondition::~LineNormalLoad2DDiffOrderCondition() {}
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Condition::Pointer LineNormalLoad2DDiffOrderCondition::
-    Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+    Create(IndexType NewId,
+           NodesArrayType const& ThisNodes,
+           PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LineNormalLoad2DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new LineNormalLoad2DDiffOrderCondition(NewId,
+                                                                     GetGeometry().Create(ThisNodes),
+                                                                     pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -66,8 +73,7 @@ void LineNormalLoad2DDiffOrderCondition::
     double dy_dxi = rVariables.JContainer[PointNumber](1,0);
     rVariables.ConditionVector.resize(2,false);
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
-    {
+    for ( SizeType i = 0; i < NumUNodes; ++i ) {
         NormalStress     += rVariables.Nu[i]*rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
         TangentialStress += rVariables.Nu[i]*rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
     }
@@ -101,10 +107,9 @@ void LineNormalLoad2DDiffOrderCondition::
     const SizeType NumUNodes = GetGeometry().PointsNumber();
     SizeType Index;
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
-    {
+    for ( SizeType i = 0; i < NumUNodes; ++i ) {
         Index = i * 2;
-        
+
         rRightHandSideVector[Index]   += rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
         rRightHandSideVector[Index+1] += rVariables.Nu[i] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
     }

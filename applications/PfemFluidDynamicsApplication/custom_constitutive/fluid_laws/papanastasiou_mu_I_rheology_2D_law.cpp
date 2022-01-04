@@ -53,7 +53,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType PapanastasiouMuIRheology2DLaw::WorkingSpaceDimension() { return 2; }
 
-    ConstitutiveLaw::SizeType PapanastasiouMuIRheology2DLaw::GetStrainSize() { return 3; }
+    ConstitutiveLaw::SizeType PapanastasiouMuIRheology2DLaw::GetStrainSize() const { return 3; }
 
     void PapanastasiouMuIRheology2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -126,7 +126,7 @@ namespace Kratos
     //*****************************************************************************
 
     int PapanastasiouMuIRheology2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                             const ProcessInfo &rCurrentProcessInfo)
+                                             const ProcessInfo &rCurrentProcessInfo) const
     {
 
         if (rMaterialProperties[STATIC_FRICTION] < 0.0)

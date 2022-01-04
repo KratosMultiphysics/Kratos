@@ -84,7 +84,7 @@ namespace Kratos
 
         if (!rParameters.Has("geometry_type")) {
             CreateQuadraturePointGeometries(
-                geometry_list, sub_model_part, rParameters["parameters"]);
+                geometry_list, sub_model_part, rParameters["parameters"], std::string{});
         }
         else {
             std::string geometry_type = rParameters["geometry_type"].GetString();
@@ -96,7 +96,7 @@ namespace Kratos
             }
             else {
                 CreateQuadraturePointGeometries(
-                    geometry_list, sub_model_part, rParameters["parameters"]);
+                    geometry_list, sub_model_part, rParameters["parameters"], geometry_type);
             }
         }
         KRATOS_INFO_IF("CreateIntegrationDomainElementCondition", mEchoLevel > 3)
@@ -106,7 +106,8 @@ namespace Kratos
     void IgaModeler::CreateQuadraturePointGeometries(
         GeometriesArrayType& rGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters) const
+        const Parameters rParameters,
+        std::string GeometryType) const
     {
         KRATOS_ERROR_IF_NOT(rParameters.Has("type"))
             << "\"type\" need to be specified." << std::endl;
@@ -124,6 +125,10 @@ namespace Kratos
                 << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
         }
 
+        std::string quadrature_method = rParameters.Has("quadrature_method")
+            ? rParameters["integration_rule"].GetString()
+            : "GAUSS";
+
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
             << "Creating " << name << "s of type: " << type
             << " for " << rGeometryList.size() << " geometries"
@@ -133,8 +138,36 @@ namespace Kratos
         {
             GeometriesArrayType geometries;
             IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
-            rGeometryList[i].CreateQuadraturePointGeometries(
-                geometries, shape_function_derivatives_order, integration_info);
+            for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                if (quadrature_method == "GAUSS") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
+                }
+                else if (quadrature_method == "GRID") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+                }
+                else {
+                    KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
+                        << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+                }
+            }
+
+            if (rParameters.Has("number_of_integration_points_per_span")) {
+                for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                    integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
+                }
+            }
+
+            if (GeometryType == "SurfaceEdge"
+                && rGeometryList[i].GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+            {
+                rGeometryList[i].GetGeometryPart(0).CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
+            else
+            {
+                rGeometryList[i].CreateQuadraturePointGeometries(
+                    geometries, shape_function_derivatives_order, integration_info);
+            }
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;

@@ -70,7 +70,6 @@ namespace Kratos {
         double ComputeCoordinationNumber(double& standard_dev) override;
         void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
-        void Check_MPI(bool& has_mpi);
         virtual void CalculateMaxSearchDistance();
         virtual void MeshRepairOperations();
         virtual void DestroyMarkedParticlesRebuildLists();
