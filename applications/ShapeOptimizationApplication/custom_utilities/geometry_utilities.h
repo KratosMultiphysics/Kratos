@@ -110,7 +110,14 @@ public:
     std::tuple<std::vector<double>, std::vector<double>> ComputeDistancesToBoundingModelPart(ModelPart& rBoundingModelPart);
 
     template <class TContainerType>
-    double CalculateLength(TContainerType& rContainer);
+    double CalculateLength(TContainerType& rContainer)
+    {
+        double length = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+            return rEntity.GetGeometry().Length();
+        });
+
+        return length;
+    }
 
     double ComputeVolume();
 

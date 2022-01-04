@@ -239,16 +239,6 @@ std::tuple<std::vector<double>, std::vector<double>> GeometryUtilities::ComputeD
     KRATOS_CATCH("");
 }
 
-template <class TContainerType>
-double GeometryUtilities::CalculateLength(TContainerType& rContainer)
-{
-    double length = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
-        return rEntity.GetGeometry().Length();
-    });
-
-    return length;
-}
-
 double GeometryUtilities::ComputeVolume()
 {
     KRATOS_TRY
