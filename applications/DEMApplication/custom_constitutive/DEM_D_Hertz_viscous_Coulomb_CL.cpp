@@ -337,7 +337,7 @@ namespace Kratos {
         const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
         const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
 
-        return 0.666666666666666666667 * mKn * indentation + 12500 * equiv_young / (my_radius * my_radius) * indentation * indentation;
+        return 0.666666666666666666667 * mKn * indentation + 12500 * equiv_young / (effective_radius * effective_radius) * indentation * indentation;
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
