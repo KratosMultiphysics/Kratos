@@ -258,9 +258,9 @@ def main():
         elif o in ('-p', '--path'):
             try:
                 path = str(a)
-                print(f"path: {path}")
+                print("path: {}".format(path))
             except:
-                print(f'Error: Cannot parse applications directory path containing the tests {a}.')
+                print("Error: Cannot parse applications directory path containing the tests {}.".format(a))
                 Usage()
                 sys.exit()
 
