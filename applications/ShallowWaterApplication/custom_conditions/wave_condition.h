@@ -177,6 +177,17 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
+     * @brief Access for variables on Integration points
+     * @param rVariable Te specified vector variable
+     * @param rOutput Where to store the itegrated values for the specified variable
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate(
+        const Variable<array_1d<double,3>>& rVariable,
+        array_1d<double,3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculate the conditional contribution to the problem
      * @param rRightHandSideVector Conditional right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the condition

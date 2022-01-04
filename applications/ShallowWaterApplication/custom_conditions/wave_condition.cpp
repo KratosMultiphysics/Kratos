@@ -53,6 +53,7 @@ int WaveCondition<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) cons
     KRATOS_CATCH("")
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -72,6 +73,7 @@ void WaveCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, c
 
     KRATOS_CATCH("")
 }
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
@@ -93,6 +95,7 @@ void WaveCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, con
     KRATOS_CATCH("")
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
@@ -108,6 +111,7 @@ void WaveCondition<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(this->GetUnknownComponent(2), Step);
     }
 }
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
@@ -125,11 +129,48 @@ void WaveCondition<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int St
     }
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_ERROR << "WaveCondition::GetSecondDerivativesVector This method is not supported by the formulation" << std::endl;
 }
+
+
+template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::Calculate(
+    const Variable<array_1d<double,3>>& rVariable,
+    array_1d<double,3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE)
+    {
+        rOutput = ZeroVector();
+        const double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        const double density = this->GetProperties()[DENSITY];
+        const auto& r_geometry = this->GetGeometry();
+
+        // The nodal data
+        array_1d<double,TNumNodes> nodal_h;
+        for (std::size_t i = 0; i < TNumNodes; ++i) {
+            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
+        }
+
+        // The geometry data
+        Vector weights;
+        Matrix N_container;
+        CalculateGeometryData(weights, N_container);
+
+        // Integration over the geometry
+        for (std::size_t g = 0; g < weights.size(); ++g) {
+            const array_1d<double,3> normal = r_geometry.UnitNormal(g);
+            const array_1d<double,TNumNodes> N = row(N_container, g);
+            const double h = inner_prod(nodal_h, N);
+            rOutput += 0.5 * density * gravity * h * h * weights[g] * normal;
+        }
+    }
+}
+
 
 template<std::size_t TNumNodes>
 const Variable<double>& WaveCondition<TNumNodes>::GetUnknownComponent(int Index) const
@@ -141,6 +182,7 @@ const Variable<double>& WaveCondition<TNumNodes>::GetUnknownComponent(int Index)
         default: KRATOS_ERROR << "WaveCondition::GetUnknownComponent index out of bounds." << std::endl;
     }
 }
+
 
 template<std::size_t TNumNodes>
 typename WaveCondition<TNumNodes>::LocalVectorType WaveCondition<TNumNodes>::GetUnknownVector(ConditionData& rData)
