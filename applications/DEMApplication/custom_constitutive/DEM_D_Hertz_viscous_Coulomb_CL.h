@@ -61,7 +61,7 @@ namespace Kratos {
                                     Condition* const wall,
                                     bool& sliding) override;
 
-        double CalculateNormalForce(const double indentation);
+        double CalculateNormalForce(const double indentation) override;
 
         double CalculateNormalForceWithBall(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
 
