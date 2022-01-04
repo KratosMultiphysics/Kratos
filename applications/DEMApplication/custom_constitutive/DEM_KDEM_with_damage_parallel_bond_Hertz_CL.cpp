@@ -81,9 +81,23 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void DEM_KDEM_with_damage_parallel_bond_Hertz::ComputeNormalUnbondedForce(double indentation) {
+    void DEM_KDEM_with_damage_parallel_bond_Hertz::ComputeNormalUnbondedForce(SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
 
         KRATOS_TRY
+
+        // Unbonded elastic constants
+        const double my_radius       = element1->GetRadius();
+        const double other_radius    = element2->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
+
+        //Get equivalent Young's Modulus
+        const double my_young        = element1->GetYoung();
+        const double other_young     = element2->GetYoung();
+        const double my_poisson      = element1->GetPoisson();
+        const double other_poisson   = element2->GetPoisson();
+        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
 
         if (indentation > 0.0) {
             // mUnbondedLocalElasticContactForce2 = 0.666666666666666666667 * mUnbondedNormalElasticConstant * indentation;

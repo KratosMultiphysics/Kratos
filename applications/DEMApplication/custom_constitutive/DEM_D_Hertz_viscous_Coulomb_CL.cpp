@@ -72,7 +72,7 @@ namespace Kratos {
 
         InitializeContact(element1, element2, indentation);
 
-        LocalElasticContactForce[2]  = CalculateNormalForce(element1, element2, indentation, LocalCoordSystem);
+        LocalElasticContactForce[2]  = CalculateNormalForceWithBall(element1, element2, indentation);
         cohesive_force               = CalculateCohesiveNormalForce(element1, element2, indentation);
 
         CalculateViscoDampingForce(LocalRelVel, ViscoDampingLocalContactForce, element1, element2);
@@ -166,7 +166,7 @@ namespace Kratos {
 
         InitializeContactWithFEM(element, wall, indentation);
 
-        LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
+        LocalElasticContactForce[2] = CalculateNormalForceWithFEM(element, wall, indentation);
         cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
 
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
@@ -301,7 +301,43 @@ namespace Kratos {
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {
+
+        return 0.666666666666666666667 * mKn * indentation;
+    }
+
+    double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForceWithBall(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+
+        //Get equivalent Radius
+        const double my_radius       = element1->GetRadius();
+        const double other_radius    = element2->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
+
+        //Get equivalent Young's Modulus
+        const double my_young        = element1->GetYoung();
+        const double other_young     = element2->GetYoung();
+        const double my_poisson      = element1->GetPoisson();
+        const double other_poisson   = element2->GetPoisson();
+        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+
         return 0.666666666666666666667 * mKn * indentation + 10 * equiv_young / equiv_radius * (125 / equiv_radius * indentation * indentation + indentation);
+    }
+
+    double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForceWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
+
+        //Get effective Radius
+        const double my_radius           = element->GetRadius(); //Get equivalent Radius
+        const double effective_radius    = my_radius - ini_delta;
+
+        //Get equivalent Young's Modulus
+        const double my_young            = element->GetYoung();
+        const double walls_young         = wall->GetProperties()[YOUNG_MODULUS];
+        const double my_poisson          = element->GetPoisson();
+        const double walls_poisson       = wall->GetProperties()[POISSON_RATIO];
+        const double equiv_young         = my_young * walls_young / (walls_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - walls_poisson * walls_poisson));
+
+        return 0.666666666666666666667 * mKn * indentation + 12500 * equiv_young / (my_radius * my_radius) * indentation * indentation;
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateCohesiveNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation){
