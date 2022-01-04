@@ -200,9 +200,9 @@ protected:
     void AddRightHandSide(
         LocalVectorType& rRHS,
         ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0);
+        const Matrix& rNContainer,
+        const ShapeFunctionsGradientsType& rDN_DXContainer,
+        const Vector& rWeights);
 
     void AddAuxiliaryLaplacian(
         LocalMatrixType& rLaplacian,

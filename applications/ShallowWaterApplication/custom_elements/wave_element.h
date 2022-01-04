@@ -311,7 +311,7 @@ protected:
 
     virtual LocalVectorType GetUnknownVector(const ElementData& rData) const;
 
-    void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
     virtual void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
@@ -353,16 +353,16 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
+    void AddArtificialViscosityTerms(
+        LocalMatrixType& rMatrix,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
     virtual void AddDispersiveTerms(
         LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0);
-
-    void AddArtificialViscosityTerms(
-        LocalMatrixType& rMatrix,
-        const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
