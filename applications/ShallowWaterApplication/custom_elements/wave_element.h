@@ -182,11 +182,25 @@ public:
 
     /**
      * @brief Access for variables on Integration points
-     * @param rVariable: the specified variable
+     * @param rVariable: the specified scalar variable
      * @param rValues: where to store the values for the specified variable type at each integration point
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Access for variables on Integration points
+     * @param rVariable: the specified vector variable
+     * @param rValues: where to store the values for the specified variable type at each integration point
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double,3>>& rVariable,
+        std::vector< array_1d<double,3>>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Is called in the beginning of each solution step
@@ -214,16 +228,6 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -261,7 +265,7 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Protected Static Variables
     ///@{
 
     static constexpr IndexType mLocalSize = 3 * TNumNodes;
@@ -283,8 +287,8 @@ protected:
         double relative_dry_height;
         double gravity;
         double length;
-        double depth;
 
+        double depth;
         double height;
         array_1d<double,3> velocity;
 
@@ -317,10 +321,22 @@ protected:
 
     virtual void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
-    double ShapeFunctionProduct(
+    static void CalculateGeometryData(
+        GeometryType& rGeometry,
+        Vector &rGaussWeights,
+        Matrix &rNContainer,
+        ShapeFunctionsGradientsType &rDN_DX);
+
+    static double ShapeFunctionProduct(
         const array_1d<double,TNumNodes>& rN,
         const std::size_t I,
         const std::size_t J);
+
+    static const array_1d<double,3> VectorProduct(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const array_1d<double,TNumNodes>& rN);
+
+    static double InverseHeight(const ElementData& rData);
 
     virtual void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
@@ -331,11 +347,6 @@ protected:
     virtual void CalculateArtificialDamping(
         BoundedMatrix<double,3,3>& rFriction,
         const ElementData& rData);
-
-    void CalculateGeometryData(
-        Vector &rGaussWeights,
-        Matrix &rNContainer,
-        ShapeFunctionsGradientsType &rDN_DX) const;
 
     void AddWaveTerms(
         LocalMatrixType& rMatrix,
@@ -375,25 +386,6 @@ protected:
 
     virtual double StabilizationParameter(const ElementData& rData) const;
 
-    double InverseHeight(const ElementData& rData) const;
-
-    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN) const;
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
     ///@}
 
 private:
@@ -421,25 +413,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
 
     ///@}
     ///@name Un accessible methods

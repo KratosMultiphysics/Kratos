@@ -37,6 +37,7 @@ const Variable<double>& BoussinesqElement<TNumNodes>::GetUnknownComponent(int In
     }
 }
 
+
 template<std::size_t TNumNodes>
 typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
 {
@@ -49,6 +50,7 @@ typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNod
     }
     return unknown;
 }
+
 
 template<std::size_t TNumNodes>
 typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::ConservativeVector(
@@ -64,20 +66,19 @@ typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNod
     return conservative_vector;
 }
 
+
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step)
 {
-    rData.length = rGeometry.Length();
-
     for (std::size_t i = 0; i < TNumNodes; i++)
     {
         rData.nodal_f[i] = rGeometry[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, Step);
-        rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         rData.nodal_v_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN, Step);
     }
 }
+
 
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
@@ -132,6 +133,7 @@ void BoussinesqElement<TNumNodes>::UpdateGaussPointData(ElementData& rData, cons
     rData.b2[2] = -v[1];
 }
 
+
 template<std::size_t TNumNodes>
 double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
 {
@@ -141,6 +143,7 @@ double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& r
     const double w = PhaseFunction::WetFraction(rData.height, threshold);
     return w * rData.length * rData.stab_factor / (lambda + epsilon);
 }
+
 
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
@@ -288,17 +291,17 @@ void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    auto& r_geom = this->GetGeometry();
+    auto& r_geometry = this->GetGeometry();
 
     // Struct to pass around the data
     ElementData data;
     WaveElementType::InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, r_geom);
+    GetNodalData(data, r_geometry);
 
     Vector weights;
     Matrix N_container;
     ShapeFunctionsGradientsType DN_DX_container;
-    WaveElementType::CalculateGeometryData(weights, N_container, DN_DX_container);
+    WaveElementType::CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
 
     // Auxiliary field
     LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
@@ -326,9 +329,9 @@ void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInf
         std::size_t block = 3 * i;
         vel_laplacian[0] = vel_laplacian_vector[block];
         vel_laplacian[1] = vel_laplacian_vector[block + 1];
-        r_geom[i].SetLock();
-        r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
-        r_geom[i].UnSetLock();
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
+        r_geometry[i].UnSetLock();
     }
 }
 
@@ -368,7 +371,7 @@ void BoussinesqElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHand
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
 
-    auto& r_geom = this->GetGeometry();
+    auto& r_geometry = this->GetGeometry();
 
     LocalVectorType f0 = ZeroVector(mLocalSize);
     LocalVectorType f1 = ZeroVector(mLocalSize);
@@ -382,18 +385,18 @@ void BoussinesqElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHand
     Vector weights;
     Matrix N_container;
     ShapeFunctionsGradientsType DN_DX_container;
-    WaveElementType::CalculateGeometryData(weights, N_container, DN_DX_container);
+    WaveElementType::CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
 
-    GetNodalData(data, r_geom, 0);
+    GetNodalData(data, r_geometry, 0);
     AddRightHandSide(f0, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 1);
+    GetNodalData(data, r_geometry, 1);
     AddRightHandSide(f1, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 2);
+    GetNodalData(data, r_geometry, 2);
     AddRightHandSide(f2, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 3);
+    GetNodalData(data, r_geometry, 3);
     AddRightHandSide(f3, data, N_container, DN_DX_container, weights);
 
     noalias(rRightHandSideVector) = (9*f0 + 19*f1 - 5*f2 + f3) / 24.0;
@@ -403,7 +406,7 @@ void BoussinesqElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHand
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
-    auto& r_geom = this->GetGeometry();
+    auto& r_geometry = this->GetGeometry();
 
     LocalVectorType f1 = ZeroVector(mLocalSize);
     LocalVectorType f2 = ZeroVector(mLocalSize);
@@ -416,29 +419,29 @@ void BoussinesqElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rC
     Vector weights;
     Matrix N_container;
     ShapeFunctionsGradientsType DN_DX_container;
-    WaveElementType::CalculateGeometryData(weights, N_container, DN_DX_container);
+    WaveElementType::CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
 
-    GetNodalData(data, r_geom, 1);
+    GetNodalData(data, r_geometry, 1);
     AddRightHandSide(f1, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 2);
+    GetNodalData(data, r_geometry, 2);
     AddRightHandSide(f2, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 3);
+    GetNodalData(data, r_geometry, 3);
     AddRightHandSide(f3, data, N_container, DN_DX_container, weights);
 
     LocalVectorType increment = (23*f1 - 16*f2 + 5*f3) / 12.0;
     array_1d<double,3> nodal_increment;
-    for (std::size_t i = 0; i < r_geom.size(); ++i)
+    for (std::size_t i = 0; i < r_geometry.size(); ++i)
     {
         std::size_t block = 3*i;
         nodal_increment[0] = increment[block];
         nodal_increment[1] = increment[block + 1];
         nodal_increment[2] = increment[block + 2];
 
-        r_geom[i].SetLock();
-        r_geom[i].FastGetSolutionStepValue(RESIDUAL_VECTOR) += nodal_increment;
-        r_geom[i].UnSetLock();
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(RESIDUAL_VECTOR) += nodal_increment;
+        r_geometry[i].UnSetLock();
     }
 }
 
