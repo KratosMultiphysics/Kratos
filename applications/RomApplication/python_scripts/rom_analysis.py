@@ -4,10 +4,8 @@ import numpy as np
 
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
-from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
-from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
 
 def CreateRomAnalysisInstance(cls, global_model, parameters):
     class RomAnalysis(cls):
@@ -55,153 +53,44 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                             aux[j,i] = nodal_modes[node_id][j][i]
                     node.SetValue(KratosROM.ROM_BASIS, aux)
 
-                self.train_hrom = data["train_hrom"]
-                if self.train_hrom:
-                    self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
-                    self.time_step_residual_matrix_container = []
-                    self.ECM_SVD_tolerance = data["ECM_SVD_tolerance"]
-                if data["run_hrom"]:
+                # Check for HROM stages
+                run_hrom = data["run_hrom"].GetString() if data.Has("run_hrom") else False
+                self.train_hrom = data["train_hrom"].GetString() if data.Has("train_rom") else False
+                if run_hrom and self.train_hrom:
+                    # Check that train an run HROM are not set at the same time
+                    err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
+                    raise Exception(err_msg)
+                elif self.train_hrom:
+                    # Create the training utility to calculate the HROM weights
+                    self.__hrom_training_utility = HRomTrainingUtility(
+                        self._GetSolver(),
+                        data)
+                elif run_hrom:
+                    # Set the HROM weights in elements and conditions
                     for key in data["elements_and_weights"]["Elements"].keys():
                         computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, data["elements_and_weights"]["Elements"][key])
                     for key in data["elements_and_weights"]["Conditions"].keys():
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, data["elements_and_weights"]["Conditions"][key])
 
-            # Hyper-reduction
-            if self.train_hrom:
-                self.ResidualUtilityObject = KratosROM.RomResidualsUtility(
-                    computing_model_part,
-                    self.project_parameters["solver_settings"]["rom_settings"],
-                    self._GetSolver()._GetScheme())
-
         def FinalizeSolutionStep(self):
+            # Call the HROM training utility to append the current step residuals
+            # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
-                KratosMultiphysics.Logger.PrintInfo("RomAnalysis","Generating matrix of residuals.")
-                res_mat = self.ResidualUtilityObject.GetResiduals()
-                np_res_mat = np.array(res_mat, copy=False)
-                self.time_step_residual_matrix_container.append(np_res_mat)
+                self.__hrom_training_utility.AppendCurrentStepResiduals()
 
+            # This calls the physics FinalizeSolutionStep (e.g. BCs)
             super().FinalizeSolutionStep()
 
         def Finalize(self):
+            # This calls the physics Finalize
             super().Finalize()
 
+            # Once simulation is completed, calculate and save the HROM weights
             if self.train_hrom:
-                self. hyper_reduction_element_selector.SetUp(self._ObtainBasis())
-                self.hyper_reduction_element_selector.Run()
-                self._AppendElementsAndWeightsToRomParameters()
-                self._CreateHyperReducedModelPart()
-
-        def _ObtainBasis(self):
-            ### Building the Snapshot matrix ####
-            for i in range (len(self.time_step_residual_matrix_container)):
-                if i == 0:
-                    SnapshotMatrix = self.time_step_residual_matrix_container[i]
-                else:
-                    SnapshotMatrix = np.c_[SnapshotMatrix,self.time_step_residual_matrix_container[i]]
-            ### Taking the SVD ###  (randomized and truncated)
-            u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(SnapshotMatrix, self.ECM_SVD_tolerance)
-            return u
-
-        def _AppendElementsAndWeightsToRomParameters(self):
-            original_number_of_elements = self._GetSolver().GetComputingModelPart().NumberOfElements()
-            w = np.squeeze(self.hyper_reduction_element_selector.w)
-            z = self.hyper_reduction_element_selector.z
-            ### Saving Elements and conditions
-            elements_and_weights = {}
-            elements_and_weights["Elements"] = {}
-            elements_and_weights["Conditions"] = {}
-            #Only one element found !
-            if type(z)==np.int64 or type(z)==np.int32:
-                if z <=  original_number_of_elements-1:
-                    elements_and_weights["Elements"][int(z)] = (float(w))
-                else:
-                    elements_and_weights["Conditions"][int(z)- original_number_of_elements] = (float(w))
-            #Many elements found
-            else:
-                for j in range (0,len(z)):
-                    if z[j] <=  original_number_of_elements -1:
-                        elements_and_weights["Elements"][int(z[j])] = (float(w[j]))
-                    else:
-                        elements_and_weights["Conditions"][int(z[j])- original_number_of_elements] = (float(w[j]))
-
-            with open('RomParameters.json','r') as f:
-                updated_rom_parameters = json.load(f)
-            with open('RomParameters.json','w') as f:
-                updated_rom_parameters["train_hrom"] = False
-                updated_rom_parameters["run_hrom"] = True
-                updated_rom_parameters["elements_and_weights"] = elements_and_weights
-                json.dump(updated_rom_parameters,f, indent = 4)
-            print('\n\n RomParameters.json file was updated to include HROM info\n\n')
-
-
-        def _CreateHyperReducedModelPart(self):
-            ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
-            current_model = KratosMultiphysics.Model()
-            computing_model_part = current_model.CreateModelPart("main")
-            model_part_io = KratosMultiphysics.ModelPartIO(ModelPartName)
-            model_part_io.ReadModelPart(computing_model_part)
-            hyper_reduced_model_part_help =   current_model.CreateModelPart("Helping")
-
-            #TODO optimize implementation
-            with open('RomParameters.json') as f:
-                HR_data = json.load(f)
-                for key in HR_data["elements_and_weights"]["Elements"].keys():
-                    for node in computing_model_part.GetElement(int(key)+1).GetNodes():
-                        hyper_reduced_model_part_help.AddNode(node,0)
-                for key in HR_data["elements_and_weights"]["Conditions"].keys():
-                    for node in computing_model_part.GetCondition(int(key)+1).GetNodes():
-                        hyper_reduced_model_part_help.AddNode(node,0)
-
-            # The HROM model part. It will include two sub-model parts. One for caculation, another one for visualization
-            HROM_Model_Part =  current_model.CreateModelPart("HROM_Model_Part")
-
-            # Building the COMPUTE_HROM submodel part
-            hyper_reduced_model_part = HROM_Model_Part.CreateSubModelPart("COMPUTE_HROM")
-
-            # TODO implement the hyper-reduced model part creation in C++
-            with open('RomParameters.json') as f:
-                data = json.load(f)
-                for originalSubmodelpart in computing_model_part.SubModelParts:
-                    hyperReducedSubmodelpart = hyper_reduced_model_part.CreateSubModelPart(originalSubmodelpart.Name)
-                    print(f'originalSubmodelpart.Name {originalSubmodelpart.Name}')
-                    print(f'originalSubmodelpart.Elements {len(originalSubmodelpart.Elements)}')
-                    print(f'originalSubmodelpart.Conditions {len(originalSubmodelpart.Conditions)}')
-                    for originalNode in originalSubmodelpart.Nodes:
-                        if originalNode in hyper_reduced_model_part_help.Nodes:
-                            hyperReducedSubmodelpart.AddNode(originalNode,0)
-                    ## More eficient way to implement this is possible
-                    for originalElement in originalSubmodelpart.Elements:
-                        for key in data["elements_and_weights"]["Elements"].keys():
-                            if originalElement.Id == int(key)+1:
-                                hyperReducedSubmodelpart.AddElement(originalElement,0)
-                                print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the element with the Id {originalElement.Id} is assigned the key {key}')
-                    for originalCondition in originalSubmodelpart.Conditions:
-                        for key in data["elements_and_weights"]["Conditions"].keys():
-                            if originalCondition.Id == int(key)+1:
-                                hyperReducedSubmodelpart.AddCondition(originalCondition,0)
-                                print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the condition with the Id {originalCondition.Id} is assigned the key {key}')
-
-
-            # Building the VISUALIZE_HROM submodel part
-            print('Adding skin for visualization...')
-            hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
-            for condition in computing_model_part.Conditions:
-                for node in condition.GetNodes():
-                    hyper_reduced_model_part2.AddNode(node, 0)
-                hyper_reduced_model_part2.AddCondition(condition, 0)
-            for node in computing_model_part.Nodes:
-                hyper_reduced_model_part2.AddNode(node, 0)
-
-            ## Creating the mdpa file using ModelPartIO object
-            print('About to print ...')
-            KratosMultiphysics.ModelPartIO("Hyper_Reduced_Model_Part", KratosMultiphysics.IO.WRITE| KratosMultiphysics.IO.MESH_ONLY ).WriteModelPart(HROM_Model_Part)
-            print('\nHyper_Reduced_Model_Part.mdpa created!\n')
-            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("Hyper_Reduced_Model_Part.time")
-
+                self.__hrom_training_utility.CalculateAndSaveHRomWeights()
+                self.__hrom_training_utility.CreateHRomModelParts()
 
     return RomAnalysis(global_model, parameters)
-
-
 
 if __name__ == "__main__":
 
