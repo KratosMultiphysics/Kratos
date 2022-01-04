@@ -92,6 +92,8 @@ class ShallowWaterBaseSolver(PythonSolver):
 
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
+            ## Execute the check and prepare model process
+            self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
 
@@ -187,6 +189,23 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         ## Call the replace elements and conditions process
         KM.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+
+    def _ExecuteCheckAndPrepare(self):
+        #verify the orientation of the skin in case of triangles mesh
+        elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
+        if elem_num_nodes == 3:
+            self.assign_neighbour_elements_to_conditions = True
+            mesh_orientation = KM.TetrahedralMeshOrientationCheck
+            throw_errors = False
+            flags  = mesh_orientation.COMPUTE_NODAL_NORMALS.AsFalse()
+            flags |= mesh_orientation.COMPUTE_CONDITION_NORMALS.AsFalse()
+            if self.assign_neighbour_elements_to_conditions:
+                flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            else:
+                flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse()
+            KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), throw_errors, flags).Execute()
+        else:
+            KM.Logger.PrintWarning(self.__class__.__name__(), "Orientation check not performed for quadrilateral or higher order geometries.")
 
     def __get_geometry_num_nodes(self, container):
         if len(container) != 0:

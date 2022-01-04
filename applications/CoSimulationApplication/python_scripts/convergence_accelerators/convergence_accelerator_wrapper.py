@@ -12,7 +12,7 @@ class ConvergenceAcceleratorWrapper:
     In case of distributed data, it is checked whether the convergence accelerator supports it.
     If not, the data is gathered / scattered and the accelerator is executed on only one rank
     """
-    def __init__(self, settings, solver_wrapper):
+    def __init__(self, settings, solver_wrapper, parent_coupled_solver_data_communicator):
         self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
         self.residual_computation = CreateResidualComputation(settings, solver_wrapper)
 
@@ -21,6 +21,7 @@ class ConvergenceAcceleratorWrapper:
         settings.RemoveValue("residual_computation")
 
         self.conv_acc = CreateConvergenceAccelerator(settings)
+        self.data_communicator = parent_coupled_solver_data_communicator
 
         if self.interface_data.IsDefinedOnThisRank():
             conv_acc_supports_dist_data = self.conv_acc.SupportsDistributedData()

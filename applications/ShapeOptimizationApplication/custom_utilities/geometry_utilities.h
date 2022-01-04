@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include <pybind11/pybind11.h>
-
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
@@ -31,6 +29,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "includes/global_pointer_variables.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -222,10 +221,37 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeDistancesToBoundingModelPart(
-        ModelPart& rBoundingModelPart,
-        pybind11::list& rSignedDistances,
-        pybind11::list& rDirections )
+    void ExtractEdgeNodes( std::string const& rEdgeSubModelPartName ) {
+        KRATOS_TRY;
+
+        KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "ExtractEdgeNodes: No elements defined. Automatic edge detection will not find any edge nodes!" << std::endl;
+
+        ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(rEdgeSubModelPartName);
+
+        KRATOS_ERROR_IF(r_edge_model_part.Nodes().size() != 0) << "ExtractEdgeNodes: The edge model part already has nodes!" << std::endl;
+
+        for (auto& r_node_i : mrModelPart.Nodes()) {
+            auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);  // does not work with const
+            for(const auto& r_node_j : r_node_i_neighbours) {
+                auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);  // does not work with const
+                int count = 0;
+                for(const auto& r_elem_k : r_element_neighbours) {
+                    const auto& r_element_geometry = r_elem_k.GetGeometry();
+                    for(const auto& r_node_l : r_element_geometry) {
+                        if (r_node_l.Id() == r_node_j.Id()) count ++;
+                    }
+                }
+                if (count < 2){
+                    r_edge_model_part.AddNode(&r_node_i);
+                    break;
+                }
+            }
+        }
+        KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    std::tuple<std::vector<double>, std::vector<double>> ComputeDistancesToBoundingModelPart(ModelPart& rBoundingModelPart)
     {
         KRATOS_TRY;
 
@@ -251,6 +277,12 @@ public:
 
         GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
 
+        std::tuple<std::vector<double>, std::vector<double>> distances_and_directions;
+        std::vector<double>& r_signed_distances = std::get<0>(distances_and_directions);
+        std::vector<double>& r_directions = std::get<1>(distances_and_directions);
+        r_signed_distances.reserve(mrModelPart.NumberOfNodes());
+        r_directions.reserve(mrModelPart.NumberOfNodes()*3);
+
         for (auto& r_node : mrModelPart.Nodes()){
 
             double distance;
@@ -260,12 +292,14 @@ public:
             const array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
             const double projected_length = inner_prod(delta, bounding_normal);
 
-            rSignedDistances.append(projected_length);
+            r_signed_distances.push_back(projected_length);
 
-            rDirections.append(bounding_normal[0]);
-            rDirections.append(bounding_normal[1]);
-            rDirections.append(bounding_normal[2]);
+            r_directions.push_back(bounding_normal[0]);
+            r_directions.push_back(bounding_normal[1]);
+            r_directions.push_back(bounding_normal[2]);
         }
+
+        return distances_and_directions;
 
         KRATOS_CATCH("");
     }
