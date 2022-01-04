@@ -160,7 +160,7 @@ void WaveElement<TNumNodes>::Calculate(
     if (rVariable == FORCE)
     {
         rOutput = ZeroVector();
-        const double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        const array_1d<double,3>& gravity = -rCurrentProcessInfo[GRAVITY];
         const double density = this->GetProperties()[DENSITY];
         const auto& r_geometry = this->GetGeometry();
 
@@ -178,10 +178,9 @@ void WaveElement<TNumNodes>::Calculate(
 
         // Integration over the geometry
         for (std::size_t g = 0; g < weights.size(); ++g) {
-            const array_1d<double,3> normal = r_geometry.UnitNormal(g);
             const array_1d<double,TNumNodes> N = row(N_container, g);
             const double h = inner_prod(nodal_h, N);
-            rOutput -= density * gravity * h * weights[g] * normal;
+            rOutput += density * gravity * h * weights[g];
         }
     }
 }
