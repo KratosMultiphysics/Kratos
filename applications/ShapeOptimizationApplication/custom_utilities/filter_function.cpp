@@ -44,7 +44,7 @@ FilterFunction::FilterFunction(const std::string FilterFunctionType, const doubl
 
     // Type 4: Cosine function
     else if (FilterFunctionType == "cosine")
-        mFilterFunctional = [](double radius, double distance) {return std::max(0.0, 1-0.5*(1-cos(pi/radius*distance)));};
+        mFilterFunctional = [](double radius, double distance) {return std::max(0.0, 1-0.5*(1-cos(3.1415926535897932384626433832795/radius*distance)));};
 
     // Type 5: Quartic function
     else if (FilterFunctionType == "quartic")
