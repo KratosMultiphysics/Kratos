@@ -107,7 +107,13 @@ namespace
  */
 class KRATOS_API(KRATOS_CORE) SpecificationsUtilities
 {
-public:
+public:    
+    ///@name Type Definitions
+    ///@{
+
+    /// Counted pointer of SpecificationsUtilities
+    KRATOS_CLASS_POINTER_DEFINITION( SpecificationsUtilities );
+
     /**
      * @brief This enum defines a "hash" used to identify if implicit/explicit or static time integration is considered
      */
@@ -127,6 +133,28 @@ public:
         Eulerian   = 1,
         ALE        = 2
     };
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * @brief The default constructor
+     */
+    SpecificationsUtilities() = default;
+
+    /**
+     * @brief The default destructor
+     */
+    ~SpecificationsUtilities()= default;
+    
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * @brief This method adds to the model part the missing variables
@@ -184,10 +212,22 @@ public:
         const std::string EntityName = "NOT_DEFINED"
         );
 
+    /**
+     * @brief This method gets dofs lists from specifications
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
     static std::vector<std::string> GetDofsListFromSpecifications(const ModelPart& rModelPart);
 
+    /**
+     * @brief This method gets dofs lists from specifications (elements)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
     static std::vector<std::string> GetDofsListFromElementsSpecifications(const ModelPart& rModelPart);
 
+    /**
+     * @brief This method gets dofs lists from specifications (conditions)
+     * @param rModelPart Reference to the ModelPart containing the problem
+     */
     static std::vector<std::string> GetDofsListFromConditionsSpecifications(const ModelPart& rModelPart);
 
     /**
@@ -259,6 +299,85 @@ public:
      */
     static Parameters GetDocumention(ModelPart& rModelPart);
 
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{   
+        
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+
+    ///@name Unaccessible methods
+    ///@{
+    ///@}
 }; // class SpecificationsUtilities
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 }  // namespace Kratos
 #endif /* KRATOS_SPECIFICATIONS_UTILITIES defined */
