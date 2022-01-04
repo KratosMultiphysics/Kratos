@@ -37,6 +37,10 @@ class TestMonotonicShallowWater2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
     execution_file = "monotonic_shallow_water_2d_3n"
 
+class TestBoussinesq2D3NElement(ShallowWaterTestFactory):
+    execution_directory = "elements_tests"
+    execution_file = "boussinesq_2d_3n"
+
 class TestSetTopographyProcess(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "set_topography_process"

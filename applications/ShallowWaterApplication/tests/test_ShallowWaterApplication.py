@@ -13,6 +13,7 @@ from shallow_water_test_factory import TestShallowWaterElement
 from shallow_water_test_factory import TestSemiLagrangianShallowWaterElement
 from shallow_water_test_factory import TestShallowWater2D3NElement
 from shallow_water_test_factory import TestMonotonicShallowWater2D3NElement
+from shallow_water_test_factory import TestBoussinesq2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
 from shallow_water_test_factory import TestMacDonaldShockBenchmark
@@ -42,6 +43,7 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestShallowWater2D3NElement]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMonotonicShallowWater2D3NElement]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestBoussinesq2D3NElement]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSetTopographyProcess]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestVisualizationMeshProcess]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestLineGraphOutputProcess]))
