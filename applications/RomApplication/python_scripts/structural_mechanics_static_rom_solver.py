@@ -20,6 +20,8 @@ class ROMSolver(StaticMechanicalSolver):
     """
 
     def __init__(self, main_model_part, custom_settings):
+        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'stuctural_mechanics_static_rom_solver\'", "class is deprecated. Use the generic\'RomSolver\' one instead.")
+
         super(ROMSolver, self).__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 

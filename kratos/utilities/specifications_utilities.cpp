@@ -4,13 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
+//                   Ruben Zorrilla
 //
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -23,6 +25,44 @@ namespace Kratos
 {
 namespace SpecificationsUtilities
 {
+
+namespace
+{
+
+template< class TContainerType>
+std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TContainerType& rContainer)
+{
+    // Create a set with the DOFs variables in the container entities specifications
+    std::unordered_set<std::string> dofs_var_names_set;
+    const std::size_t n_entities = rContainer.size();
+    for (std::size_t i = 0; i < n_entities; ++i) {
+        const auto it_entity = rContainer.begin() + i;
+        const auto specifications = it_entity->GetSpecifications();
+        if (specifications.Has("required_dofs")) {
+            const auto required_dofs = specifications["required_dofs"].GetStringArray();
+            for (std::size_t i_dof = 0; i_dof < required_dofs.size(); ++i_dof) {
+                dofs_var_names_set.insert(required_dofs[i_dof]);
+            }
+        }
+    }
+    KRATOS_WARNING_IF("GetDofsListFromGenericEntitiesSpecifications", n_entities > 0 && dofs_var_names_set.empty())
+        << "DOFs variables set is empty. Check and complete your element/condition GetSpecifications() implementation." << std::endl;
+
+    // Check that all the DOFs variables exist
+    for (auto& r_var_name : dofs_var_names_set) {
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_var_name))
+            << "DOF \'" << r_var_name << "\' is not in KratosComponents. Check your element/condition GetSpecifications() implementation." << std::endl;
+    }
+
+    // Return a list with the DOFs variables
+    std::vector<std::string> dofs_var_names_list;
+    dofs_var_names_list.insert(dofs_var_names_list.end(), dofs_var_names_set.begin(), dofs_var_names_set.end());
+
+    return dofs_var_names_list;
+}
+
+}
+
 void AddMissingVariables(ModelPart& rModelPart)
 {
     KRATOS_TRY
@@ -264,6 +304,42 @@ void AddMissingDofsFromSpecifications(
     }
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> GetDofsListFromSpecifications(const ModelPart& rModelPart)
+{
+    // Get DOFs variable names list from elements and conditions
+    const auto elem_dofs_list = GetDofsListFromElementsSpecifications(rModelPart);
+    const auto cond_dofs_list = GetDofsListFromConditionsSpecifications(rModelPart);
+
+    // Remove duplicates
+    std::vector<std::string> all_dofs;
+    std::merge(elem_dofs_list.begin(), elem_dofs_list.end(), cond_dofs_list.begin(), cond_dofs_list.end(), std::back_inserter(all_dofs));
+    std::sort(all_dofs.begin(),all_dofs.end());
+    all_dofs.erase(std::unique(all_dofs.begin(),all_dofs.end()), all_dofs.end());
+
+    return all_dofs;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> GetDofsListFromElementsSpecifications(const ModelPart& rModelPart)
+{
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "This method is not MPI-compatible yet." << std::endl;
+    return GetDofsListFromGenericEntitiesSpecifications(rModelPart.Elements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::vector<std::string> GetDofsListFromConditionsSpecifications(const ModelPart& rModelPart)
+{
+    KRATOS_ERROR_IF(rModelPart.IsDistributed()) << "This method is not MPI-compatible yet." << std::endl;
+    return GetDofsListFromGenericEntitiesSpecifications(rModelPart.Conditions());
 }
 
 /***********************************************************************************/
@@ -1067,9 +1143,9 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
             const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
             const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
             // If the vector is full of nullptr we just return true
-            if (cl_vector.size() > 0) 
-                if (cl_vector[0] == nullptr) 
-                    return true; 
+            if (cl_vector.size() > 0)
+                if (cl_vector[0] == nullptr)
+                    return true;
             for (auto& p_cl : cl_vector) {
                 bool check = false;
                 for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
@@ -1112,9 +1188,9 @@ bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
                     const Vector compatible_constitutive_laws_strain_size = specifications["compatible_constitutive_laws"]["strain_size"].GetVector();
                     const std::size_t number_of_cl_compatible = compatible_constitutive_laws_strain_size.size();
                     // If the vector is full of nullptr we just return true
-                    if (cl_vector.size() > 0) 
-                        if (cl_vector[0] == nullptr) 
-                            return true; 
+                    if (cl_vector.size() > 0)
+                        if (cl_vector[0] == nullptr)
+                            return true;
                     for (auto& p_cl : cl_vector) {
                         bool check = false;
                         for (std::size_t i = 0; i < number_of_cl_compatible; ++i) {
@@ -1237,7 +1313,7 @@ int CheckGeometricalPolynomialDegree(ModelPart& rModelPart)
         }
     }
 
-    // Final message 
+    // Final message
     KRATOS_WARNING_IF("SpecificationsUtilities", polynomial_degree_of_geometry > 0) << "Finally, the polynomial degree of geometry considered is: " << polynomial_degree_of_geometry << std::endl;
 
     return polynomial_degree_of_geometry;
