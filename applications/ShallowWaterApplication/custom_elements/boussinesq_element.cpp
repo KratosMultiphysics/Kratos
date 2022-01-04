@@ -440,7 +440,7 @@ void BoussinesqElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rC
         nodal_increment[2] = increment[block + 2];
 
         r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(RESIDUAL_VECTOR) += nodal_increment;
+        r_geometry[i].FastGetSolutionStepValue(RHS) += nodal_increment;
         r_geometry[i].UnSetLock();
     }
 }

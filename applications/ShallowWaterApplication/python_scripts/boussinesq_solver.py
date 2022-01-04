@@ -25,11 +25,11 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.RESIDUAL_VECTOR) # This is used by the predictor. TODO: replace with reaction
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN) # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(KM.RHS)          # This is used by the predictor
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)   # This is used to assemble the RHS by the predictor
+        self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)  # Gradient recovery
+        self.main_model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS) # Laplacian recovery
 
     def AdvanceInTime(self, current_time):
         current_time = super().AdvanceInTime(current_time)
