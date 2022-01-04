@@ -183,6 +183,31 @@ class TestSpecificationsUtilities(KratosUnittest.TestCase):
         elem1.Initialize(model_part.ProcessInfo)
         self.assertEqual(KratosMultiphysics.SpecificationsUtilities.CheckCompatibleConstitutiveLaws(model_part), False)
 
+    def test_specifications_utilities_elements_core_dependencies_list(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+
+        node1 = model_part.CreateNewNode(1, 0.0,0.0,0.0)
+        node2 = model_part.CreateNewNode(2, 1.0,0.0,0.0)
+        node3 = model_part.CreateNewNode(3, 1.0,1.0,0.0)
+        prop1 = KratosMultiphysics.Properties(1)
+        model_part.AddProperties(prop1)
+        elem1 = model_part.CreateNewElement("DistanceCalculationElementSimplex2D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        elem1.Initialize(model_part.ProcessInfo)
+
+        list_entities = KratosMultiphysics.Parameters("""{
+            "element_list" :  ["DistanceCalculationElementSimplex2D3N"]
+        }""")
+
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 0)
+        KratosMultiphysics.SpecificationsUtilities.AddMissingVariablesFromEntitiesList(model_part, list_entities)
+        self.assertEqual(model_part.GetNodalSolutionStepDataSize(), 1)
+
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISTANCE), False)
+        KratosMultiphysics.SpecificationsUtilities.AddMissingDofsFromEntitiesList(model_part, list_entities)
+        self.assertEqual(node1.HasDofFor(KratosMultiphysics.DISTANCE), True)
+
     @KratosUnittest.skipUnless(dependencies_are_available,"StructuralMechanicsApplication is not available")
     def test_specifications_utilities_elements_dependencies_list(self):
         current_model = KratosMultiphysics.Model()
