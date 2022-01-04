@@ -25,7 +25,6 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
         for i in range(n_nodes):
             model_part.CreateNewNode(i+1,float(i),0.0,0.0)
 
-    # @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testCalculateRomBasisOutputProcess(self):
         # Create a CalculateROMBasisOutputProcess instance
         self.process_settings = KratosMultiphysics.Parameters("""{
@@ -35,14 +34,36 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
             "nodal_unknowns": ["TEMPERATURE"],
             "rom_basis_output_format": "json",
             "rom_basis_output_name": "RomParameters",
-            "svd_truncation_tolerance": 1.0e-6
+            "svd_truncation_tolerance": 1.0e-6,
+            "append_hrom_settings": false
         }""")
 
         # Run a "fake" simulation to calculate the ROM basis from its results
         self.__ExecuteTest(self.process_settings)
 
         # Check results
-        self.__CheckResults()
+        check_hrom_settings = False
+        self.__CheckResults(check_hrom_settings)
+
+    def testCalculateRomBasisOutputProcessHRomSettings(self):
+        # Create a CalculateROMBasisOutputProcess instance
+        self.process_settings = KratosMultiphysics.Parameters("""{
+            "model_part_name": "MainModelPart",
+            "snapshots_control_type": "step",
+            "snapshots_interval": 1.0,
+            "nodal_unknowns": ["TEMPERATURE"],
+            "rom_basis_output_format": "json",
+            "rom_basis_output_name": "RomParametersWithHRom",
+            "svd_truncation_tolerance": 1.0e-6,
+            "append_hrom_settings": true
+        }""")
+
+        # Run a "fake" simulation to calculate the ROM basis from its results
+        self.__ExecuteTest(self.process_settings)
+
+        # Check results
+        check_hrom_settings = True
+        self.__CheckResults(check_hrom_settings)
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -86,7 +107,7 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
 
             rom_basis_process.ExecuteFinalize()
 
-    def __CheckResults(self):
+    def __CheckResults(self, check_hrom_settings):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Load ROM basis output file
             output_filename = "{}.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
@@ -105,6 +126,12 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
                 self.assertEqual(node_output, node_reference)
                 for dof_basis_output, dof_basis_reference in zip(output_data["nodal_modes"][node_output], reference_data["nodal_modes"][node_reference]):
                     self.assertVectorAlmostEqual(dof_basis_output, dof_basis_reference)
+
+            if check_hrom_settings:
+                self.assertEqual(output_data["hrom_settings"], reference_data["hrom_settings"])
+                self.assertEqual(output_data["train_hrom"], reference_data["train_hrom"])
+                self.assertEqual(output_data["run_hrom"], reference_data["run_hrom"])
+                self.assertEqual(output_data["elements_and_weights"], reference_data["elements_and_weights"])
 
 ##########################################################################################
 

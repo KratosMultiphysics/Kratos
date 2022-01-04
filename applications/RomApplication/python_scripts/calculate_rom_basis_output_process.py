@@ -60,6 +60,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Get the SVD truncation tolerance
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
+        # Flag to indicate if the HROM settings are to be appended to the output file
+        self.append_hrom_settings = settings["append_hrom_settings"].GetBool()
+
         # Initialize output interval data
         self.next_output = 0.0
 
@@ -76,7 +79,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "nodal_unknowns": [],
             "rom_basis_output_format": "json",
             "rom_basis_output_name": "RomParameters",
-            "svd_truncation_tolerance": 1.0e-6
+            "svd_truncation_tolerance": 1.0e-6,
+            "append_hrom_settings": true
         }""")
 
         return default_settings
@@ -109,6 +113,27 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                     self.next_output += self.snapshots_interval
 
     def ExecuteFinalize(self):
+        # Initialize the Python dictionary with the default settings
+        # Note that this order is kept if Python 3.6 onwards is used
+        if self.append_hrom_settings:
+            rom_basis_dict = {
+                "train_hrom": False,
+                "run_hrom": False,
+                "rom_settings": {},
+                "hrom_settings": {
+                    "element_selection_type": "empirical_cubature",
+                    "element_selection_svd_truncation_tolerance": 1.0e-6,
+                },
+                "nodal_modes": {},
+                "elements_and_weights" : {}
+            }
+            #TODO: I'd rename elements_and_weights to hrom_weights
+        else:
+            rom_basis_dict = {
+                "rom_settings": {},
+                "nodal_modes": {}
+            }
+
         # Set a NumPy array with the snapshots data
         n_nodes = self.model_part.NumberOfNodes()
         n_data_cols = len(self.snapshots_data_list)
@@ -122,10 +147,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
 
         # Save the nodal basis
-        rom_basis_dict = {
-            "rom_settings": {},
-            "nodal_modes": {}
-        }
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
 
