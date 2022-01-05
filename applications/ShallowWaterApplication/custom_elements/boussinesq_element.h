@@ -154,12 +154,25 @@ public:
     }
 
     /**
+     * @brief Calculate the velocity laplacian projection
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the elements
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculate the rhs according to the Adams-Moulton scheme
      * @param rRightHandSideVector Elemental right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
      * @see ResidualBasedAdamsMoultonScheme
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This is called during the initialize of the builder to calculate the lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateLumpedMassVector(VectorType& rLumpedMassVector, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * @brief Add the explicit contribution according to the Adams-Bashforth scheme
@@ -198,11 +211,20 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
+    void AddAuxiliaryLaplacian(
+        LocalMatrixType& rLaplacian,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
     const Variable<double>& GetUnknownComponent(int Index) const override;
 
     LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
     LocalVectorType ConservativeVector(const LocalVectorType& rVector, const ElementData& rData) const;
+
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
 
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
@@ -210,6 +232,13 @@ protected:
 
     void AddDispersiveTerms(
         LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0) override;
+
+    void AddMassTerms(
+        LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,

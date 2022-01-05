@@ -225,8 +225,7 @@ void WaveCondition<TNumNodes>::CalculateGaussPointData(
     rData.b2[1] = rData.gravity;
 
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
 }
 
 template<std::size_t TNumNodes>
