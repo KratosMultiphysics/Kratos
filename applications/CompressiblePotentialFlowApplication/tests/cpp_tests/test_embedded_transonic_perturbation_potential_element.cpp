@@ -378,7 +378,7 @@ void AssignPerturbationPotentialsToEmbeddedTransonicElement(Element& rElement, c
 //     }
 // }
 
-/** Checks the EmbeddedTransonicPerturbationPotentialFlowElement.
+/** Checks the EmbeddedTransonicPerturbationPotentialFlowElement
  * Tests the LHS computation.
  */
 KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -391,53 +391,23 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowElementL
     Element::Pointer p_element = model_part.pGetElement(1);
     Element::Pointer p_upwind_element = model_part.pGetElement(2);
     const unsigned int number_of_nodes = p_element->GetGeometry().size();
-
-    FindGlobalNodalElementalNeighboursProcess find_nodal_neighbours_process(model_part);
-    find_nodal_neighbours_process.Execute();
-
     p_element -> Set(INLET, false);
     p_upwind_element -> Set(ACTIVE, true);
-
-    AssignPotentialsToNormalEmbeddedTransonicPerturbationElement(p_element);
     AssignDistancesEmbeddedTransonicPerturbationElement(p_element);
 
-
-    Vector RHS_original = ZeroVector(number_of_nodes);
-    Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
-    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
-    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
-
-    // Compute original RHS and LHS
+    std::array<double, 3> potential{1.0, 100.0, 150.0};
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-
     p_element->Initialize(r_current_process_info);
-    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
-    double delta = 1e-3;
-    for(unsigned int i = 0; i < number_of_nodes; i++){
-        // Pinging
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
-
-        Vector RHS_pinged = ZeroVector(number_of_nodes);
-        Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
-        // Compute pinged LHS and RHS
-        p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
-
-        for(unsigned int k = 0; k < number_of_nodes; k++){
-            // Compute the finite difference estimate of the sensitivity
-            LHS_finite_diference( k, i) = -(RHS_pinged(k)-RHS_original(k)) / delta;
-            // Compute the average of the original and pinged analytic sensitivities
-            LHS_analytical( k, i) = 0.5 * (LHS_original(k,i) + LHS_pinged(k,i));
-        }
-
-        // Unpinging
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
-    }
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
 
     KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
-/** Checks the EmbeddedTransonicPerturbationPotentialFlowElement.
+/** Checks the EmbeddedTransonicPerturbationPotentialFlowElement when it's INLET
  * Tests the LHS computation.
  */
 KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationInletPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -450,48 +420,18 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationInletPotentialFlowEle
     Element::Pointer p_element = model_part.pGetElement(1);
     Element::Pointer p_upwind_element = model_part.pGetElement(2);
     const unsigned int number_of_nodes = p_element->GetGeometry().size();
-
-    FindGlobalNodalElementalNeighboursProcess find_nodal_neighbours_process(model_part);
-    find_nodal_neighbours_process.Execute();
-
     p_element -> Set(INLET, true);
     p_upwind_element -> Set(ACTIVE, true);
-
-    AssignPotentialsToNormalEmbeddedTransonicPerturbationElement(p_element);
     AssignDistancesEmbeddedTransonicPerturbationElement(p_element);
 
-
-    Vector RHS_original = ZeroVector(number_of_nodes);
-    Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
-    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
-    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
-
-    // Compute original RHS and LHS
+    std::array<double, 3> potential{1.0, 100.0, 150.0};
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-
     p_element->Initialize(r_current_process_info);
-    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
-    double delta = 1e-3;
-    for(unsigned int i = 0; i < number_of_nodes; i++){
-        // Pinging
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
-
-        Vector RHS_pinged = ZeroVector(number_of_nodes);
-        Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
-        // Compute pinged LHS and RHS
-        p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
-
-        for(unsigned int k = 0; k < number_of_nodes; k++){
-            // Compute the finite difference estimate of the sensitivity
-            LHS_finite_diference( k, i) = -(RHS_pinged(k)-RHS_original(k)) / delta;
-            // Compute the average of the original and pinged analytic sensitivities
-            LHS_analytical( k, i) = 0.5 * (LHS_original(k,i) + LHS_pinged(k,i));
-        }
-
-        // Unpinging
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
-    }
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
 
     KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
@@ -506,8 +446,12 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationWakePotentialFlowElem
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateEmbeddedTransonicPerturbationElement(model_part);
+    GenerateEmbeddedTransonicPerturbationUpwindElement(model_part);
     Element::Pointer p_element = model_part.pGetElement(1);
+    Element::Pointer p_upwind_element = model_part.pGetElement(2);
     const unsigned int number_of_nodes = p_element->GetGeometry().size();
+    p_upwind_element -> Set(ACTIVE, true);
+    p_element -> Set(INLET, true);
 
     std::array<double, 6> potential{1.39572, 110.69275, 121.1549827, 104.284736, 2.39572, 46.69275};
 
