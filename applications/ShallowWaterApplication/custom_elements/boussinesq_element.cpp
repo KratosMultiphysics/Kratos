@@ -447,5 +447,6 @@ void BoussinesqElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rC
 
 
 template class BoussinesqElement<3>;
+template class BoussinesqElement<4>;
 
 } // namespace Kratos
