@@ -54,7 +54,7 @@ namespace Kratos
 
 */
 
-class SearchBasedFunctions
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) SearchBasedFunctions
 {
 public:
     ///@name Type Definitions

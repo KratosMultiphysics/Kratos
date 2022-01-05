@@ -54,7 +54,7 @@ namespace Kratos
 
 */
 
-class DampingUtilities
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) DampingUtilities
 {
 public:
     ///@name Type Definitions

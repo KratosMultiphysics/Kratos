@@ -39,7 +39,7 @@ namespace Kratos
 
 */
 
-class DirectionDampingUtilities
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) DirectionDampingUtilities
 {
 public:
     ///@name Type Definitions

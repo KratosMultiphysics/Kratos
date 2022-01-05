@@ -55,7 +55,7 @@ https://docs.plm.automation.siemens.com/tdoc/nx/10/nx_help/#uid:index_advanced:x
 
 */
 
-class UniversalFileIO
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) UniversalFileIO
 {
 public:
     ///@name Type Definitions

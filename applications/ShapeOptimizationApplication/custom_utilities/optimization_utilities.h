@@ -55,7 +55,7 @@ namespace Kratos
 
 */
 
-class OptimizationUtilities
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) OptimizationUtilities
 {
 public:
     ///@name Type Definitions

@@ -54,7 +54,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MapperVertexMorphing : public Mapper
+class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) MapperVertexMorphing : public Mapper
 {
 public:
     ///@name Type Definitions
