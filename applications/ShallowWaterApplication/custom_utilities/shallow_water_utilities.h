@@ -92,6 +92,8 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    void ComputeLinearizedMomentum(ModelPart& rModelPart);
+
     template<bool THistorical>
     void ComputeFroude(ModelPart& rModelPart, const double Epsilon);
 

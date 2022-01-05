@@ -53,21 +53,6 @@ typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNod
 
 
 template<std::size_t TNumNodes>
-typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::ConservativeVector(
-    const LocalVectorType& rVector,
-    const ElementData& rData) const
-{
-    array_1d<double,mLocalSize> conservative_vector;
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        conservative_vector[3*i    ] = -rVector[3*i    ] * rData.nodal_z[i];
-        conservative_vector[3*i + 1] = -rVector[3*i + 1] * rData.nodal_z[i];
-        conservative_vector[3*i + 2] =  rVector[3*i + 2];
-    }
-    return conservative_vector;
-}
-
-
-template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step)
 {
     for (std::size_t i = 0; i < TNumNodes; i++)
@@ -76,6 +61,7 @@ void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const Geomet
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         rData.nodal_v_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN, Step);
+        rData.nodal_q_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN, Step);
     }
 }
 
@@ -158,11 +144,14 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
     const double C3 = beta + 0.5;
     const double H = rData.depth;
+    const double H3 = std::pow(H, 3);
+    const double H2 = std::pow(H, 2);
 
     // Projected auxiliary field
     array_1d<array_1d<double,3>,TNumNodes> nodal_Jf;
     for (std::size_t i = 0; i < TNumNodes; ++i) {
-        nodal_Jf[i] = (C1 + C3) * std::pow(H, 3) * rData.nodal_v_lap[i];
+        // nodal_Jf[i] = (C1 + C3) * H3 * rData.nodal_v_lap[i];
+        nodal_Jf[i] = C1 * H3 * rData.nodal_v_lap[i] + C3 * H2 * rData.nodal_q_lap[i];
     }
 
     // Stabilization constants
@@ -223,9 +212,11 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
     const double C2 = 0.5 * std::pow(beta, 2);
     const double C4 = beta;
     const double H = rData.depth;
+    const double H2 = std::pow(H, 2);
     const double l = StabilizationParameter(rData);
     BoundedMatrix<double,3,3> M = IdentityMatrix(3);
     BoundedMatrix<double,2,2> K;
+    BoundedMatrix<double,2,2> Ju;
     array_1d<double,2> derivatives_i;
     array_1d<double,2> derivatives_j;
 
@@ -252,7 +243,8 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
             derivatives_j[0] = rDN_DX(j,0);
             derivatives_j[1] = rDN_DX(j,1);
             noalias(K) = -outer_prod(derivatives_i, derivatives_j);
-            MathUtils<double>::AddMatrix(rMatrix, Weight*(C2+C4)*std::pow(H,2)*K, 3*i, 3*j);
+            noalias(Ju) = C2 * H2 * K - C4 * H * rData.nodal_z[j] * K;
+            MathUtils<double>::AddMatrix(rMatrix, Weight*Ju, 3*i, 3*j);
         }
     }
 }

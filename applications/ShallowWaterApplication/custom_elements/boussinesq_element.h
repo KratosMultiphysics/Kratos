@@ -215,8 +215,6 @@ protected:
 
     LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
-    LocalVectorType ConservativeVector(const LocalVectorType& rVector, const ElementData& rData) const;
-
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
 
     void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;

@@ -24,6 +24,7 @@
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "custom_utilities/derivatives_recovery_utility.h"
+#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -195,10 +196,15 @@ public:
         });
 
         // Recover the laplacian
+        ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
         DerivativesRecoveryUtility<2>::RecoverLaplacian(
             rModelPart,
             VELOCITY,
             VELOCITY_LAPLACIAN);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(
+            rModelPart,
+            MOMENTUM,
+            VELOCITY_H_LAPLACIAN);
 
         // Calculate the prediction
         block_for_each(rModelPart.Elements(), [&](Element& rElement){

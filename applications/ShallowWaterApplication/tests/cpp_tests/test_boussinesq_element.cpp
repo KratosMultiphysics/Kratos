@@ -30,11 +30,13 @@ void InitializeModelPart(ModelPart& rModelPart)
 {
     // Variables addition
     rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+    rModelPart.AddNodalSolutionStepVariable(MOMENTUM);
     rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
     rModelPart.AddNodalSolutionStepVariable(HEIGHT);
     rModelPart.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
     rModelPart.AddNodalSolutionStepVariable(VERTICAL_VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(VELOCITY_LAPLACIAN);
+    rModelPart.AddNodalSolutionStepVariable(VELOCITY_H_LAPLACIAN);
     rModelPart.AddNodalSolutionStepVariable(TOPOGRAPHY);
     rModelPart.AddNodalSolutionStepVariable(MANNING);
 
@@ -56,7 +58,7 @@ void InitializeModelPart(ModelPart& rModelPart)
 /**
  * Check the BoussinesqElement2D3N
  */
-KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3NFlatBottom, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3N_FlatBottom, ShallowWaterApplicationFastSuite)
 {
     Model model;
     ModelPart& model_part = model.CreateModelPart("main", 2);
@@ -104,6 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3NFlatBottom, ShallowWaterApplicati
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = velocity_laplacian[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION) = acceleration[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VERTICAL_VELOCITY) = vertical_velocity[i];
     }
@@ -127,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D3NFlatBottom, ShallowWaterApplicati
 /**
  * Check the BoussinesqElement2D4N
  */
-KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4NFlatBottom, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4N_FlatBottom, ShallowWaterApplicationFastSuite)
 {
     Model model;
     ModelPart& model_part = model.CreateModelPart("main", 2);
@@ -182,6 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4NFlatBottom, ShallowWaterApplicati
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) = velocity_laplacian[i];
+        element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN) = velocity_laplacian[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION) = acceleration[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VERTICAL_VELOCITY) = vertical_velocity[i];
     }

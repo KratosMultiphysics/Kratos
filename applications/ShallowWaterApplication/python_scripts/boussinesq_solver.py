@@ -25,7 +25,8 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN) # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN)   # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(SW.VELOCITY_H_LAPLACIAN) # Intermediate field
         self.main_model_part.AddNodalSolutionStepVariable(KM.RHS)          # This is used by the predictor
         self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)   # This is used to assemble the RHS by the predictor
         self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)  # Gradient recovery

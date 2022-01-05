@@ -101,6 +101,13 @@ void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
     });
 }
 
+void ShallowWaterUtilities::ComputeLinearizedMomentum(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = -rNode.FastGetSolutionStepValue(VELOCITY) * rNode.FastGetSolutionStepValue(TOPOGRAPHY);
+    });
+}
+
 template<bool THistorical>
 void ShallowWaterUtilities::ComputeFroude(ModelPart& rModelPart, const double Epsilon)
 {
