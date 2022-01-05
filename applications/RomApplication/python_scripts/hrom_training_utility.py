@@ -12,13 +12,9 @@ from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition i
 
 class HRomTrainingUtility(object):
     """Auxiliary utility for the HROM training.
-
-
-
-
-    This class serves as a generic class to make a standard Kratos solver ROM-compatible.
-    It extends the default parameters to include the \'rom_settings\' and overrides the
-    creation of the builder and solver to use the ROM one.
+    This class encapsulates all the functions required for the HROM training.
+    These are the ROM residuals collection, the calculation and storage of
+    the HROM weights and the creation and export of the HROM model parts.
     """
 
     def __init__(self, solver, custom_settings):
@@ -72,81 +68,39 @@ class HRomTrainingUtility(object):
         self.__AppendHRomWeightsToRomParameters()
 
     def CreateHRomModelParts(self):
-        # Get model from solver
-        current_model = self.solver.model
-        model_part_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
+        # Get solver data
+        model_part_name = self.solver_settings["model_part_name"].GetString()
+        model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
         computing_model_part = self.solver.GetComputingModelPart()
-        hyper_reduced_model_part_help = current_model.CreateModelPart("Helping")
 
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
+        # Create a new model with the HROM main model part
+        # This is intentionally done in order to completely emulate the origin model part
+        aux_model = KratosMultiphysics.Model()
+        hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
-        #TODO: optimize implementation
-        with open('RomParameters.json') as f:
-            HR_data = json.load(f)
-            for key in HR_data["elements_and_weights"]["Elements"].keys():
-                for node in computing_model_part.GetElement(int(key)+1).GetNodes():
-                    hyper_reduced_model_part_help.AddNode(node,0)
-            for key in HR_data["elements_and_weights"]["Conditions"].keys():
-                for node in computing_model_part.GetCondition(int(key)+1).GetNodes():
-                    hyper_reduced_model_part_help.AddNode(node,0)
+        # Get the weights and fill the HROM computing model part
+        with open('RomParameters.json','r') as f:
+            rom_parameters = json.load(f)
+        hrom_computing_model_part = hrom_main_model_part.CreateSubModelPart("COMPUTE_HROM") #TODO: Use the Kratos naming convention
+        KratosROM.RomAuxiliaryUtilitiies.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_computing_model_part)
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_computing_model_part.FullName()))
 
-        # The HROM model part. It will include two sub-model parts. One for caculation, another one for visualization
-        HROM_Model_Part =  current_model.CreateModelPart("HROM_Model_Part")
+        # Create the HROM visualization model part
+        set_visualization_modelpart = True #TODO: Make this user-definable
+        if set_visualization_modelpart:
+            hrom_visualization_model_part = hrom_main_model_part.CreateSubModelPart("COMPUTE_HROM") #TODO: Use the Kratos naming convention
+            KratosROM.RomAuxiliaryUtilities.SetHRomVisualizatoinModelPart(computing_model_part, hrom_visualization_model_part)
+            if self.echo_level > 0:
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
 
-        # Building the COMPUTE_HROM submodel part
-        hyper_reduced_model_part = HROM_Model_Part.CreateSubModelPart("COMPUTE_HROM")
-
-        # TODO: implement the hyper-reduced model part creation in C++
-        with open('RomParameters.json') as f:
-            data = json.load(f)
-            for originalSubmodelpart in computing_model_part.SubModelParts:
-                hyperReducedSubmodelpart = hyper_reduced_model_part.CreateSubModelPart(originalSubmodelpart.Name)
-                print(f'originalSubmodelpart.Name {originalSubmodelpart.Name}')
-                print(f'originalSubmodelpart.Elements {len(originalSubmodelpart.Elements)}')
-                print(f'originalSubmodelpart.Conditions {len(originalSubmodelpart.Conditions)}')
-                for originalNode in originalSubmodelpart.Nodes:
-                    if originalNode in hyper_reduced_model_part_help.Nodes:
-                        hyperReducedSubmodelpart.AddNode(originalNode,0)
-                ## More eficient way to implement this is possible
-                for originalElement in originalSubmodelpart.Elements:
-                    for key in data["elements_and_weights"]["Elements"].keys():
-                        if originalElement.Id == int(key)+1:
-                            hyperReducedSubmodelpart.AddElement(originalElement,0)
-                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the element with the Id {originalElement.Id} is assigned the key {key}')
-                for originalCondition in originalSubmodelpart.Conditions:
-                    for key in data["elements_and_weights"]["Conditions"].keys():
-                        if originalCondition.Id == int(key)+1:
-                            hyperReducedSubmodelpart.AddCondition(originalCondition,0)
-                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the condition with the Id {originalCondition.Id} is assigned the key {key}')
-
-
-        # Building the VISUALIZE_HROM submodel part
-        print('Adding skin for visualization...')
-        hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
-        for condition in computing_model_part.Conditions:
-            for node in condition.GetNodes():
-                hyper_reduced_model_part2.AddNode(node, 0)
-            hyper_reduced_model_part2.AddCondition(condition, 0)
-        for node in computing_model_part.Nodes:
-            hyper_reduced_model_part2.AddNode(node, 0)
-
-        ## Creating the mdpa file using ModelPartIO object
-        print('About to print ...')
-        KratosMultiphysics.ModelPartIO("Hyper_Reduced_Model_Part", KratosMultiphysics.IO.WRITE| KratosMultiphysics.IO.MESH_ONLY ).WriteModelPart(HROM_Model_Part)
-        print('\nHyper_Reduced_Model_Part.mdpa created!\n')
-        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("Hyper_Reduced_Model_Part.time")
-
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
-        #FIXME: THIS IS A MESS. IMPLEMENT IT IN C++ USING A PointerVectorSet
+        # Output the HROM model part in mdpa format
+        hrom_output_name = "{}HROM".format(model_part_output_name)
+        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+        model_part_io.WriteModelPart(hrom_main_model_part)
+        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
