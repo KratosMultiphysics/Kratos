@@ -229,70 +229,70 @@ public:
      * @brief This method determine the flags used on the simulation
      * @param rModelPart Reference to the ModelPart containing the problem
      */
-    static void DetermineFlagsUsed(ModelPart& rModelPart);
+    static void DetermineFlagsUsed(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects the time integrations which are compatible. It throws a warning if incompatible time integration
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return The list of time integrations compatible
      */
-    static std::vector<std::string> DetermineTimeIntegration(ModelPart& rModelPart);
+    static std::vector<std::string> DetermineTimeIntegration(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects the framework considered. It throws a warning if incompatible framework
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return The framework of the problem
      */
-    static std::string DetermineFramework(ModelPart& rModelPart);
+    static std::string DetermineFramework(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects if the LHS is symmetric. It throws a warning if incompatible
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return True if all the LHS are symmetric, false otherwise
      */
-    static bool DetermineSymmetricLHS(ModelPart& rModelPart);
+    static bool DetermineSymmetricLHS(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects if the LHS is positive definite. It throws a warning if incompatible
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return True if all the LHS are positive definite, false otherwise
      */
-    static bool DeterminePositiveDefiniteLHS(ModelPart& rModelPart);
+    static bool DeterminePositiveDefiniteLHS(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects if the elements/conditions are compatible with its geometry
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return True if all geometries are compatible, false otherwise
      */
-    static bool DetermineIfCompatibleGeometries(ModelPart& rModelPart);
+    static bool DetermineIfCompatibleGeometries(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects if all elements/conditions require time integration. It throws a warning if incompatible
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return True if all the elements/conditions require time integration, false otherwise
      */
-    static bool DetermineIfRequiresTimeIntegration(ModelPart& rModelPart);
+    static bool DetermineIfRequiresTimeIntegration(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects if all elements/conditions are considering the proper CL
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return True if all the elements/conditions are considering the adequate CL, false otherwise
      */
-    static bool CheckCompatibleConstitutiveLaws(ModelPart& rModelPart);
+    static bool CheckCompatibleConstitutiveLaws(const ModelPart& rModelPart);
 
     /**
      * @brief This method detects if all elements/conditions are considering the proper geometrical polynomial degree
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return The highest geometrical polynomial degree
      */
-    static int CheckGeometricalPolynomialDegree(ModelPart& rModelPart);
+    static int CheckGeometricalPolynomialDegree(const ModelPart& rModelPart);
 
     /**
      * @brief This method returns the documentation provided by the element/condition
      * @param rModelPart Reference to the ModelPart containing the problem
      * @return Parameters containing a resume of all the documentation
      */
-    static Parameters GetDocumention(ModelPart& rModelPart);
+    static Parameters GetDocumention(const ModelPart& rModelPart);
 
     ///@}
 }; // class SpecificationsUtilities

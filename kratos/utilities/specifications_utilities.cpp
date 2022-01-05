@@ -61,6 +61,9 @@ std::vector<std::string> GetDofsListFromGenericEntitiesSpecifications(const TCon
 
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SpecificationsUtilities::AddMissingVariables(ModelPart& rModelPart)
 {
     KRATOS_TRY
@@ -407,7 +410,7 @@ std::vector<std::string> SpecificationsUtilities::GetDofsListFromConditionsSpeci
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SpecificationsUtilities::DetermineFlagsUsed(ModelPart& rModelPart)
+void SpecificationsUtilities::DetermineFlagsUsed(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -486,7 +489,7 @@ void SpecificationsUtilities::DetermineFlagsUsed(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::vector<std::string> SpecificationsUtilities::DetermineTimeIntegration(ModelPart& rModelPart)
+std::vector<std::string> SpecificationsUtilities::DetermineTimeIntegration(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -596,7 +599,7 @@ std::vector<std::string> SpecificationsUtilities::DetermineTimeIntegration(Model
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::string SpecificationsUtilities::DetermineFramework(ModelPart& rModelPart)
+std::string SpecificationsUtilities::DetermineFramework(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -691,7 +694,7 @@ std::string SpecificationsUtilities::DetermineFramework(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SpecificationsUtilities::DetermineSymmetricLHS(ModelPart& rModelPart)
+bool SpecificationsUtilities::DetermineSymmetricLHS(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -802,7 +805,7 @@ bool SpecificationsUtilities::DetermineSymmetricLHS(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SpecificationsUtilities::DeterminePositiveDefiniteLHS(ModelPart& rModelPart)
+bool SpecificationsUtilities::DeterminePositiveDefiniteLHS(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -913,7 +916,7 @@ bool SpecificationsUtilities::DeterminePositiveDefiniteLHS(ModelPart& rModelPart
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SpecificationsUtilities::DetermineIfCompatibleGeometries(ModelPart& rModelPart)
+bool SpecificationsUtilities::DetermineIfCompatibleGeometries(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1062,7 +1065,7 @@ bool SpecificationsUtilities::DetermineIfCompatibleGeometries(ModelPart& rModelP
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SpecificationsUtilities::DetermineIfRequiresTimeIntegration(ModelPart& rModelPart)
+bool SpecificationsUtilities::DetermineIfRequiresTimeIntegration(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1173,7 +1176,7 @@ bool SpecificationsUtilities::DetermineIfRequiresTimeIntegration(ModelPart& rMod
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SpecificationsUtilities::CheckCompatibleConstitutiveLaws(ModelPart& rModelPart)
+bool SpecificationsUtilities::CheckCompatibleConstitutiveLaws(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1292,7 +1295,7 @@ bool SpecificationsUtilities::CheckCompatibleConstitutiveLaws(ModelPart& rModelP
 /***********************************************************************************/
 /***********************************************************************************/
 
-int SpecificationsUtilities::CheckGeometricalPolynomialDegree(ModelPart& rModelPart)
+int SpecificationsUtilities::CheckGeometricalPolynomialDegree(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -1386,7 +1389,7 @@ int SpecificationsUtilities::CheckGeometricalPolynomialDegree(ModelPart& rModelP
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters SpecificationsUtilities::GetDocumention(ModelPart& rModelPart)
+Parameters SpecificationsUtilities::GetDocumention(const ModelPart& rModelPart)
 {
     KRATOS_TRY
 
