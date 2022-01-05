@@ -468,7 +468,7 @@ jobs:
     - name: Install
       shell: bash
       run: |
-        python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosMultiphysics_all
+        python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosMultiphysics_all KratosSwimmingDEMApplication KratosMeshMovingApplication KratosShapeOptimizationApplication KratosCoSimulationApplication KratosMappingApplication KratosMultilevelMonteCarloApplication KratosStatisticsApplication KratosDelaunayMeshingApplication
 
     - name: Running small tests
       shell: bash
