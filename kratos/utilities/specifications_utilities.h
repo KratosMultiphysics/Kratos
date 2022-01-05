@@ -141,7 +141,7 @@ public:
     /**
      * @brief The default constructor
      */
-    SpecificationsUtilities() = default;
+    SpecificationsUtilities() = delete;
 
     /**
      * @brief The default destructor
