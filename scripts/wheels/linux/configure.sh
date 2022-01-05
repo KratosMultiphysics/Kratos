@@ -16,7 +16,7 @@ export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 
-export KRATOS_BUILD_TYPE="Custom"
+export KRATOS_BUILD_TYPE="Release"
 export PYTHON_EXECUTABLE=$1
 
 # Set applications to compile
