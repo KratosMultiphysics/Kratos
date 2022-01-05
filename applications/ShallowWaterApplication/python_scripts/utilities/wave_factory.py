@@ -17,9 +17,9 @@ def WaveTheoryFactory(depth, settings, process_info):
     wave_module = wave_modules[settings["wave_theory"].GetString()]
     gravity = process_info.GetValue(KM.GRAVITY_Z)
     depth = _CheckDepth(depth)
-    period = _CheckAndGetIfAvailable(settings, process_info, "period", SW.PERIOD)
-    wavelength = _CheckAndGetIfAvailable(settings, process_info, "wavelength", SW.WAVELENGTH)
-    amplitude = _CheckAndGetIfAvailable(settings, process_info, "amplitude", SW.AMPLITUDE)
+    period = _CheckAndGetIfAvailable(settings, "period")
+    wavelength = _CheckAndGetIfAvailable(settings, "wavelength")
+    amplitude = _CheckAndGetIfAvailable(settings, "amplitude")
 
     return wave_module(depth, gravity, period=period, wavelength=wavelength, amplitude=amplitude)
 
@@ -36,16 +36,14 @@ def SolitaryWaveFactory(depth, settings, process_info):
     wave_module = wave_modules[settings["wave_theory"].GetString()]
     gravity = process_info.GetValue(KM.GRAVITY_Z)
     depth = _CheckDepth(depth)
-    amplitude = _CheckAndGetIfAvailable(settings, process_info, "amplitude", SW.AMPLITUDE)
+    amplitude = _CheckAndGetIfAvailable(settings, "amplitude")
 
     return wave_module(depth, gravity, amplitude=amplitude)
 
 
-def _CheckAndGetIfAvailable(parameters, process_info, name, variable):
+def _CheckAndGetIfAvailable(parameters, name):
     if parameters.Has(name):
         return parameters[name].GetDouble()
-    elif process_info.Has(variable):
-        return process_info.GetValue(variable)
     else:
         return 0
 
