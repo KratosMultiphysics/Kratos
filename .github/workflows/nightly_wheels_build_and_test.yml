@@ -29,10 +29,7 @@ jobs:
     - name: Build
       shell: bash
       run: |
-        python3 --version
         mkdir ${GITHUB_WORKSPACE}/wheels
-        ls -al ${GITHUB_WORKSPACE}/wheels
-        echo "${GITHUB_HEAD_REF}"
         docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${GITHUB_HEAD_REF}
         ls -al ${GITHUB_WORKSPACE}/wheels
 
