@@ -239,18 +239,18 @@ void DerivativesRecoveryUtility<TDim>::RecoverLaplacian(
                 laplacian[d] += nodal_weights[n_terms * (n+1) + d] * value[d];
             }
             if (TDim == 2) {
-                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim] * first_value[1];
-                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim] * first_value[0];
+                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim] * value[1];
+                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim] * value[0];
             }
             else {
-                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim] * first_value[1];
-                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim] * first_value[0];
+                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim] * value[1];
+                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim] * value[0];
 
-                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim+1] * first_value[2];
-                laplacian[2] += nodal_weights[n_terms * (n+1) + TDim+1] * first_value[0];
+                laplacian[0] += nodal_weights[n_terms * (n+1) + TDim+1] * value[2];
+                laplacian[2] += nodal_weights[n_terms * (n+1) + TDim+1] * value[0];
 
-                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim+2] * first_value[2];
-                laplacian[2] += nodal_weights[n_terms * (n+1) + TDim+2] * first_value[1];
+                laplacian[1] += nodal_weights[n_terms * (n+1) + TDim+2] * value[2];
+                laplacian[2] += nodal_weights[n_terms * (n+1) + TDim+2] * value[1];
             }
         }
     });

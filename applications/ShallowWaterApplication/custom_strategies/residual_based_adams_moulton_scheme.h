@@ -210,8 +210,7 @@ public:
             array_1d<double,3>& velocity = rNode.FastGetSolutionStepValue(VELOCITY);
             double& free_surface = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
             const array_1d<double,3>& prediction = rNode.FastGetSolutionStepValue(RHS);
-            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-            const double inv_mass = 1.0 / nodal_area;
+            const double inv_mass = 1.0 / rNode.FastGetSolutionStepValue(NODAL_AREA);
             if (rNode.IsFixed(VELOCITY_X) == false) {
                 velocity[0] += delta_time * inv_mass * prediction[0];
             }

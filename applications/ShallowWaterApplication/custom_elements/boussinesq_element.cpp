@@ -324,7 +324,7 @@ void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInf
 
     // Add the elemental contribution to the nodes
     array_1d<double,3> vel_laplacian = ZeroVector(3);
-    for (std::size_t i = 0; i < 3; ++i)
+    for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         std::size_t block = 3 * i;
         vel_laplacian[0] = vel_laplacian_vector[block];
@@ -432,7 +432,7 @@ void BoussinesqElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rC
 
     LocalVectorType increment = (23*f1 - 16*f2 + 5*f3) / 12.0;
     array_1d<double,3> nodal_increment;
-    for (std::size_t i = 0; i < r_geometry.size(); ++i)
+    for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         std::size_t block = 3*i;
         nodal_increment[0] = increment[block];
