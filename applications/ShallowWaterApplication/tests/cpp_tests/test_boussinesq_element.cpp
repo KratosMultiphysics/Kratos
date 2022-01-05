@@ -178,7 +178,6 @@ KRATOS_TEST_CASE_IN_SUITE(BoussinesqElement2D4NFlatBottom, ShallowWaterApplicati
     // Set the nodal values
     for (std::size_t i = 0; i < element->GetGeometry().size(); i++)
     {
-        KRATOS_WATCH_CERR(element->GetGeometry()[i].Id())
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface[i];
         element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY) = velocity[i];

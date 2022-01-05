@@ -32,12 +32,14 @@
                 "model_part_name"    : "model_part",
                 "benchmark_settings" : {
                     "boundary_model_part_name"  : "model_part.Condition1",
-                    "wave_theory"               : "boussinesq",
-                    "use_depth_from_model_part" : false,
-                    "depth"                     : 1.0,
-                    "amplitude"                 : 0.1,
-                    "x_shift"                   : 0.0,
-                    "t_shift"                   : 0.0
+                    "wave_specifications"       : {
+                        "wave_theory"               : "boussinesq",
+                        "get_depth_from_model_part" : false,
+                        "depth"                     : 1.0,
+                        "amplitude"                 : 0.1,
+                        "x_shift"                   : 0.0,
+                        "t_shift"                   : 0.0
+                    }
                 }
             }
         }],
