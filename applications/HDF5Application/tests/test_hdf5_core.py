@@ -144,12 +144,12 @@ class TestFileIO(KratosUnittest.TestCase):
         mock_instance = mock_class.return_value
         mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher = patch('pathlib.Path.mkdir', autospec=True)
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
         makedirs = patcher.start()
         data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
         obj.Get(_SurrogateModelPart())
-        makedirs.assert_called_once_with(pathlib.Path('/foo'), exist_ok=True, parents=True)
+        makedirs.assert_called_once_with('/foo')
         patcher.stop()
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
@@ -157,12 +157,12 @@ class TestFileIO(KratosUnittest.TestCase):
         mock_instance = mock_class.return_value
         mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher = patch('pathlib.Path.mkdir', autospec=True)
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
         makedirs = patcher.start()
         data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
         obj.Get(_SurrogateModelPart())
-        makedirs.assert_called_once_with(pathlib.Path('/foo'), exist_ok=True, parents=True)
+        makedirs.assert_called_once_with('/foo')
         patcher.stop()
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
