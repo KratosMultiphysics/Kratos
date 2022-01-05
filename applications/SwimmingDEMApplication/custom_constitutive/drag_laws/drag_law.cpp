@@ -17,7 +17,7 @@ namespace Kratos {
         pProp->SetValue(SDEM_DRAG_LAW_POINTER, this->Clone());
     }
 
-    void DragLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void DragLaw::ComputeForce(SphericParticle* p_particle,
                                const double reynolds_number,
                                double particle_radius,
                                double fluid_density,

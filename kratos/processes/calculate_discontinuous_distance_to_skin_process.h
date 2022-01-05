@@ -28,6 +28,7 @@
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "utilities/variable_utils.h"
+#include "utilities/pointer_communicator.h"
 
 namespace Kratos
 {
@@ -42,6 +43,7 @@ class KRATOS_API(KRATOS_CORE) CalculateDiscontinuousDistanceToSkinProcessFlags
 public:
     KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES); /// Local flag to switch on/off the elemental edge distances storage
     KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED); /// Local flag to switch on/off the extrapolated elemental edge distances storage
+    KRATOS_DEFINE_LOCAL_FLAG(USE_POSITIVE_EPSILON_FOR_ZERO_VALUES); /// Local flag to switch from positive (true) to negative (false) epsilon when replacing zero distance values.
 };
 
 /// This only calculates the distance. Calculating the inside outside should be done by a derived class of this.
@@ -209,6 +211,10 @@ private:
     static const std::size_t mNumNodes = TDim + 1;
     static const std::size_t mNumEdges = (TDim == 2) ? 3 : 6;
 
+    const double mZeroToleranceMultiplier = 1e3;
+    bool mDetectedZeroDistanceValues = false;
+    bool mAreNeighboursComputed = false;
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -271,6 +277,19 @@ private:
         Point& rIntersectionPoint);
 
     /**
+     * @brief Checks if rIntersectionPoint is already present in the
+     * intersection point list in rIntersectionPointsVector for the tolerance rTolerance.
+     * @param rIntersectionPoint reference to the intersection point
+     * @param rIntersectionPointsVector reference to the list of already computed intersected points
+     * @param rEdgeTolerance tolerance to compare two points and assess if they are equal
+     * @return bool if rIntersectionPoint is present in rIntersectionPointsVector
+     */
+    bool CheckIfPointIsRepeated(
+        const array_1d<double,3>& rIntersectionPoint,
+        const std::vector<array_1d<double,3>>&  rIntersectionPointsVector,
+        const double& rEdgeTolerance);
+
+    /**
      * @brief Computes the element intersection unit normal
      * This method computes the element intersection unit normal vector using the distance function gradient.
      * @param rGeometry reference to the geometry of the element of interest
@@ -312,6 +331,27 @@ private:
         const std::vector< array_1d<double,3> >& rPointsCoord,
         array_1d<double,3>& rPlaneBasePointCoords,
         array_1d<double,3>& rPlaneNormal);
+
+
+    /**
+     * @brief Computes the elemental distances from the approximation
+     * plane defined by the set of points in rPointVector.
+     * @param rElement reference to the element of interest
+     * @param rElementalDistances reference to the elemental distances container containing the coordinates of al the intersecting points
+     * @param rPoitnVector reference to the vector containing the poits to define the approximation plane
+     */
+    void ComputeElementalDistancesFromPlaneApproximation(
+        Element& rElement,
+        Vector& rElementalDistances,
+        const std::vector<array_1d<double,3>>& rPointVector);
+
+    /**
+     * @brief Checks and replaces the values of the ELEMENTAL_DISTANCES vector that are
+     * zero. The values are replaced by an epsilon (whose sign depends on a flag)
+     * that is a fixed factor from the double precision. Can be deactivated by a flag.
+     * @param rElementalDistances array containing the ELEMENTAL_DISTANCES values
+     */
+    void ReplaceZeroDistances(Vector& rElementalDistances);
 
     /**
      * @brief Checks (and corrects if needed) the intersection normal orientation
@@ -532,6 +572,18 @@ private:
         Element& rElement,
         const double ZeroTolerance);
 
+    /**
+     * @brief Checks the elemental edges distances if zero values of the distance
+     * are detected. This ensures that the elementes detected as incised and intersected
+     * are consistent with the zero-correction applied by the process.
+     */
+    void CheckAndCorrectEdgeDistances();
+
+    /**
+     * @brief Creates the global pointer communicator that contains all neighbours elements. In MPI, this
+     * allows to get information from neighbours elements that are not in the same partition.
+     */
+    GlobalPointerCommunicator<Element>::Pointer CreatePointerCommunicator();
     ///@}
 
 }; // Class CalculateDiscontinuousDistanceToSkinProcess

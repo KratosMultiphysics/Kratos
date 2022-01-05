@@ -96,7 +96,7 @@ class RestartUtility:
         self.save_restart_files_in_folder   = settings["save_restart_files_in_folder"].GetBool()
         self.max_files_to_keep              = settings["max_files_to_keep"].GetInt()
         if (self.max_files_to_keep < -1) or (self.max_files_to_keep == 0):
-            err_msg += 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
+            err_msg  = 'Specifier for \'max_files_to_keep\' with value ' + str(self.max_files_to_keep) +' invalid\n'
             err_msg += 'Use -1 or any non-negative values'
             raise Exception(err_msg)
 
@@ -182,10 +182,7 @@ class RestartUtility:
 
     def CreateOutputFolder(self):
         if self.save_restart_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
-                os.makedirs(folder_path)
-            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+            KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(self.__GetFolderPathSave())
 
     #### Protected functions ####
 

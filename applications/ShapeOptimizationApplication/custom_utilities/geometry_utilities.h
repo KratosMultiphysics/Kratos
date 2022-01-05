@@ -18,8 +18,7 @@
 #include <string>
 #include <algorithm>
 #include <unordered_map>
-
-#include <pybind11/pybind11.h>
+#include <functional>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -30,6 +29,11 @@
 #include "shape_optimization_application.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
+#include "includes/global_pointer_variables.h"
+#include "utilities/element_size_calculator.h"
+#include "utilities/atomic_utilities.h"
+#include "geometries/geometry_data.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -72,6 +76,8 @@ public:
     // For better reading
     typedef array_1d<double,3> array_3d;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef ModelPart::ElementType::GeometryType GeometryType;
+    typedef std::size_t SizeType;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
@@ -221,10 +227,37 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ComputeDistancesToBoundingModelPart(
-        ModelPart& rBoundingModelPart,
-        pybind11::list& rSignedDistances,
-        pybind11::list& rDirections )
+    void ExtractEdgeNodes( std::string const& rEdgeSubModelPartName ) {
+        KRATOS_TRY;
+
+        KRATOS_ERROR_IF(mrModelPart.Elements().size() == 0) << "ExtractEdgeNodes: No elements defined. Automatic edge detection will not find any edge nodes!" << std::endl;
+
+        ModelPart& r_edge_model_part = mrModelPart.GetSubModelPart(rEdgeSubModelPartName);
+
+        KRATOS_ERROR_IF(r_edge_model_part.Nodes().size() != 0) << "ExtractEdgeNodes: The edge model part already has nodes!" << std::endl;
+
+        for (auto& r_node_i : mrModelPart.Nodes()) {
+            auto& r_node_i_neighbours = r_node_i.GetValue(NEIGHBOUR_NODES);  // does not work with const
+            for(const auto& r_node_j : r_node_i_neighbours) {
+                auto& r_element_neighbours = r_node_i.GetValue(NEIGHBOUR_ELEMENTS);  // does not work with const
+                int count = 0;
+                for(const auto& r_elem_k : r_element_neighbours) {
+                    const auto& r_element_geometry = r_elem_k.GetGeometry();
+                    for(const auto& r_node_l : r_element_geometry) {
+                        if (r_node_l.Id() == r_node_j.Id()) count ++;
+                    }
+                }
+                if (count < 2){
+                    r_edge_model_part.AddNode(&r_node_i);
+                    break;
+                }
+            }
+        }
+        KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    std::tuple<std::vector<double>, std::vector<double>> ComputeDistancesToBoundingModelPart(ModelPart& rBoundingModelPart)
     {
         KRATOS_TRY;
 
@@ -250,6 +283,12 @@ public:
 
         GeometryUtilities(rBoundingModelPart).ComputeUnitSurfaceNormals();
 
+        std::tuple<std::vector<double>, std::vector<double>> distances_and_directions;
+        std::vector<double>& r_signed_distances = std::get<0>(distances_and_directions);
+        std::vector<double>& r_directions = std::get<1>(distances_and_directions);
+        r_signed_distances.reserve(mrModelPart.NumberOfNodes());
+        r_directions.reserve(mrModelPart.NumberOfNodes()*3);
+
         for (auto& r_node : mrModelPart.Nodes()){
 
             double distance;
@@ -259,12 +298,105 @@ public:
             const array_3d& bounding_normal = p_neighbor->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
             const double projected_length = inner_prod(delta, bounding_normal);
 
-            rSignedDistances.append(projected_length);
+            r_signed_distances.push_back(projected_length);
 
-            rDirections.append(bounding_normal[0]);
-            rDirections.append(bounding_normal[1]);
-            rDirections.append(bounding_normal[2]);
+            r_directions.push_back(bounding_normal[0]);
+            r_directions.push_back(bounding_normal[1]);
+            r_directions.push_back(bounding_normal[2]);
         }
+
+        return distances_and_directions;
+
+        KRATOS_CATCH("");
+    }
+
+
+    template <class TContainerType>
+    double CalculateLength(TContainerType& rContainer)
+    {
+        double length = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+            return rEntity.GetGeometry().Length();
+        });
+
+        return length;
+    }
+
+// --------------------------------------------------------------------------
+    double ComputeVolume()
+    {
+        KRATOS_TRY
+
+        const double volume = block_for_each<SumReduction<double>>(
+            mrModelPart.Elements(), [&](const ModelPart::ElementType& rElement) {
+                return rElement.GetGeometry().DomainSize();
+            });
+
+        return mrModelPart.GetCommunicator().GetDataCommunicator().SumAll(volume);
+
+        KRATOS_CATCH("");
+    }
+
+    // --------------------------------------------------------------------------
+    void ComputeVolumeShapeDerivatives(
+        const Variable<array_3d>& rDerivativeVariable)
+    {
+        KRATOS_TRY
+
+        using CUInt = const unsigned int;
+        using VolumeDerivativeMethodType = std::function<double(CUInt, CUInt, const GeometryType&)>;
+
+        KRATOS_ERROR_IF_NOT(mrModelPart.HasNodalSolutionStepVariable(rDerivativeVariable))
+            << rDerivativeVariable.Name() << " not found in solution step variables list in "
+            << mrModelPart.FullName() << ".\n";
+
+        VariableUtils().SetHistoricalVariableToZero(rDerivativeVariable, mrModelPart.Nodes());
+
+        block_for_each(mrModelPart.Elements(), VolumeDerivativeMethodType(), [&](ModelPart::ElementType& rElement, VolumeDerivativeMethodType& rVolumeDerivativeMethodType){
+            auto& r_geometry = rElement.GetGeometry();
+            const auto& geometry_type = r_geometry.GetGeometryType();
+            const SizeType dimension = r_geometry.Dimension();
+
+            switch (geometry_type) {
+                case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 2.0 * ElementSizeCalculator<2, 3>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 3>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 2.0 * ElementSizeCalculator<2, 4>::AverageElementSize(rGeometry) * ElementSizeCalculator<2, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 3.0 * std::pow(ElementSizeCalculator<3, 4>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 4>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Prism3D6:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 3.0 * std::pow(ElementSizeCalculator<3, 6>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 6>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
+                    rVolumeDerivativeMethodType = [](CUInt NodeIndex, CUInt DirectionIndex,  const GeometryType& rGeometry) {
+                        return 3.0 * std::pow(ElementSizeCalculator<3, 8>::AverageElementSize(rGeometry), 2) * ElementSizeCalculator<3, 8>::AverageElementSizeDerivative(NodeIndex, DirectionIndex, rGeometry);
+                    };
+                    break;
+                default:
+                    KRATOS_ERROR << "Non supported geometry type." << std::endl;
+            }
+
+            for (SizeType c = 0; c < r_geometry.PointsNumber(); ++c) {
+                auto& r_derivative_value = r_geometry[c].FastGetSolutionStepValue(rDerivativeVariable);
+
+                for (SizeType k = 0; k < dimension; ++k) {
+                    const double derivative_value = rVolumeDerivativeMethodType(c, k, r_geometry);
+                    AtomicAdd(r_derivative_value[k], derivative_value);
+                }
+            }
+        });
+
+        mrModelPart.GetCommunicator().AssembleCurrentData(rDerivativeVariable);
 
         KRATOS_CATCH("");
     }

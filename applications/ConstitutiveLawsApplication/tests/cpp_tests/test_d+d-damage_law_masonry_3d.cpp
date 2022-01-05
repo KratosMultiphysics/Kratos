@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -24,7 +24,7 @@
 // Application includes
 
 // Constitutive law
-#include "custom_advanced_constitutive/d_plus_d_minus_damage_masonry_3d.h"
+#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "constitutive_laws_application_variables.h"
@@ -40,7 +40,7 @@ typedef Node<3> NodeType;
 * Check the correct calculation of the integrated stress with the CL's
 */
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DInternalVariables, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DInternalVariables, KratosConstitutiveLawsFastSuite)
 {
     //
     // Test: check correct behavior of internal and calculated variables
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DInternalVariables, KratosStructura
     KRATOS_CHECK_NEAR(internal_variables_r[5], 0.5, 1.e-5);  // = True
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureCompression, KratosStructuralM
     KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -226,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DPureTension, KratosStructuralMecha
     KRATOS_CHECK_VECTOR_NEAR(test_masonry3d_stress, masonry3d_res, 0.0001e6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry3DMixedState, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;

@@ -1,5 +1,5 @@
-// KRATOS   ___                _   _ _         _   _             __                       _
-//        / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
 //      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
 //     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
 //     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/constitutive_law.h"
 #include "constitutive_laws_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -151,14 +152,17 @@ public:
 
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
-        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
-            double component_perturbation;
-            CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
-            pertubation = std::max(component_perturbation, pertubation);
+        if (rValues.GetMaterialProperties().Has(PERTURBATION_SIZE)) {
+            pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
+        } else {
+            for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+                double component_perturbation;
+                CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
+                pertubation = std::max(component_perturbation, pertubation);
+            }
+            // We check that the perturbation has a threshold value of PerturbationThreshold
+            if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
         }
-
-        // We check that the perturbation has a threshold value of PerturbationThreshold
-        if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
@@ -290,13 +294,17 @@ public:
 
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
-        for (IndexType i_component = 0; i_component < num_components; ++i_component) {
-            double component_perturbation;
-            CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
-            pertubation = std::max(component_perturbation, pertubation);
+        if (rValues.GetMaterialProperties().Has(PERTURBATION_SIZE)) {
+            pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
+        } else {
+            for (IndexType i_component = 0; i_component < num_components; ++i_component) {
+                double component_perturbation;
+                CalculatePerturbation(unperturbed_strain_vector_gp, i_component, component_perturbation);
+                pertubation = std::max(component_perturbation, pertubation);
+            }
+            // We check that the perturbation has a threshold value of PerturbationThreshold
+            if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
         }
-        // We check that the perturbation has a threshold value of PerturbationThreshold
-        if (ConsiderPertubationThreshold && pertubation < PerturbationThreshold) pertubation = PerturbationThreshold;
 
         // Loop over components of the strain
         Vector& r_perturbed_strain = rValues.GetStrainVector();
@@ -318,7 +326,7 @@ public:
 
                     // Finally we compute the components
                     const IndexType voigt_index = CalculateVoigtIndex(delta_stress.size(), i_component, j_component);
-                    CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain, delta_stress, voigt_index);
+                    CalculateComponentsToTangentTensorFirstOrder(auxiliar_tensor, r_perturbed_strain-unperturbed_strain_vector_gp, delta_stress, voigt_index);
 
                     // Reset the values to the initial ones
                     noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
