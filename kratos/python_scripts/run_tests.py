@@ -23,7 +23,7 @@ def Usage():
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
         '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
-        '\t -p, --path: Path of the applications directory containing the tests',  # noqa
+        '\t -p, --path: Absolute path of the Kratos source directory containing the tests',
         '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
     for l in lines:
@@ -260,7 +260,7 @@ def main():
                 path = str(a)
                 print(f"path: {path}")
             except:
-                print(f'Error: Cannot parse applications directory path containing the tests {a}.')
+                print(f'Error: Cannot parse Kratos source directory path containing the tests {a}.')
                 Usage()
                 sys.exit()
 
@@ -292,7 +292,7 @@ def main():
         commander.RunTestSuit(
             'KratosCore',
             'kratos',
-            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()) if path is None else os.path.dirname(path),
+            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()) if path is None else path,
             level,
             verbosity,
             cmd,
@@ -310,7 +310,7 @@ def main():
             commander.RunTestSuit(
                 application,
                 application,
-                KtsMp.KratosPaths.kratos_applications+'/' if path is None else path,
+                KtsMp.KratosPaths.kratos_applications+'/' if path is None else os.path.join(path, "applications"),
                 level,
                 verbosity,
                 cmd,
