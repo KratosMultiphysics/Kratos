@@ -21,6 +21,7 @@ from shallow_water_test_factory import TestMacDonaldTransitionBenchmark
 from shallow_water_test_factory import TestDamBreakBenchmark
 from shallow_water_test_factory import TestDryDamBreakBenchmark
 from shallow_water_test_factory import TestPlanarSurfaceInParabolaBenchmark
+from shallow_water_test_factory import TestSolitaryWaveBenchmark
 from shallow_water_test_factory import TestMeshMovingStrategy
 from processes_tests.test_line_graph_output_process import TestLineGraphOutputProcess
 from processes_tests.test_convergence_output_process import TestConvergenceOutputProcess
@@ -52,6 +53,7 @@ def AssembleTestSuites():
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDamBreakBenchmark]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestDryDamBreakBenchmark]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestPlanarSurfaceInParabolaBenchmark]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSolitaryWaveBenchmark]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConvergenceOutputProcess]))
 
     # Create a test suit with the selected tests plus all small tests
