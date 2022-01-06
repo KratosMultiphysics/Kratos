@@ -136,7 +136,8 @@ jobs:
       shell: bash
       run: |
         ls -al "${GITHUB_WORKSPACE}"
-        git status ${GITHUB_WORKSPACE}/Kratos
+        git status ${GITHUB_WORKSPACE}
+        ls -al ${GITHUB_WORKSPACE}/applications/ShapeOptimizationApplication/tests
         python3 -m pip install numpy
         python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosMultiphysics_all KratosSwimmingDEMApplication KratosMeshMovingApplication KratosShapeOptimizationApplication KratosCoSimulationApplication KratosMappingApplication KratosMultilevelMonteCarloApplication KratosStatisticsApplication KratosDelaunayMeshingApplication
 
