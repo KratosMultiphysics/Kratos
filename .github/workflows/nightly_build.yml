@@ -135,6 +135,7 @@ jobs:
     - name: Install
       shell: bash
       run: |
+        pwd
         echo ${GITHUB_WORKSPACE}
         ls -al "${GITHUB_WORKSPACE}"
         git status ${GITHUB_WORKSPACE}
