@@ -12,7 +12,7 @@ namespace Kratos
 namespace
 { // cpp internals
 namespace adjoint_test_model_part_factory_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVariables = {});
 void CopyNodes(ModelPart* pModelPart, const PointerVectorSet<Node<3>, IndexedObject>& rNodes);
 void CopyProperties(ModelPart* pModelPart,
@@ -55,7 +55,7 @@ ModelPart& CreateStructuralMechanicsAdjointTestModelPart(ModelPart* pPrimalModel
 namespace
 { // cpp internals
 namespace adjoint_test_model_part_factory_cpp
-{ // cotire unity guard
+{ // unity build unity guard
 void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVariables)
 {
     pAdjointModelPart->GetNodalSolutionStepVariablesList() = rCustomVariables;

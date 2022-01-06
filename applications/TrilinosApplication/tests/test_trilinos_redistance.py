@@ -1,14 +1,11 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import os
+﻿import os
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
-from KratosMultiphysics.mpi import distributed_import_model_part_utility
+from KratosMultiphysics.testing.utilities import ReadDistributedModelPart
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 def GetFilePath(fileName):
@@ -31,47 +28,17 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         return x - x_0
 
     def setUp(self):
-        self.parameters = """{
-            "echo_level" : 0,
-            "model_import_settings" : {
-                "input_type" : "mdpa",
-                "input_filename" : \"""" + GetFilePath("coarse_sphere") + """\",
-                "partition_in_memory" : true
-            }
-        } """
-
-    def tearDown(self):
-        my_pid = self.model_part.GetCommunicator().MyPID()
-
-        # Remove the .time file
-        KratosUtils.DeleteFileIfExisting("coarse_sphere.time")
-
-        # Remove the Metis partitioning files
-        KratosUtils.DeleteFileIfExisting("coarse_sphere_" + str(my_pid) + ".time")
-        KratosUtils.DeleteFileIfExisting("coarse_sphere_" + str(my_pid) + ".mdpa")
-
-        # While compining in debug, in memory partitioner also writes down the mpda in plain text
-        # and needs to be cleaned.
-        KratosUtils.DeleteFileIfExisting("debug_modelpart_" + str(my_pid) + ".mdpa")
-
-    def testTrilinosRedistance(self):
-        # Set the model part
-        current_model = KratosMultiphysics.Model()
-        self.model_part = current_model.CreateModelPart("Main")
+        self.current_model = KratosMultiphysics.Model()
+        self.model_part = self.current_model.CreateModelPart("Main",2)
+        self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
-        # Import the model part, perform the partitioning and create communicators
-        import_settings = KratosMultiphysics.Parameters(self.parameters)
+        ReadDistributedModelPart(GetFilePath("coarse_sphere"), self.model_part)
 
-        ModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.model_part, import_settings)
-        ModelPartImporter.ImportModelPart()
-        ModelPartImporter.CreateCommunicators()
-
-        # Recall to set the buffer size
-        self.model_part.SetBufferSize(2)
-
+    def testTrilinosRedistance(self):
         # Initialize the DISTANCE values
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0, self._ExpectedDistance(node.X,node.Y,node.Z))
@@ -83,7 +50,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
             KratosMultiphysics.Parameters("""{"solver_type" : "amesos" }"""))
 
-        epetra_comm = TrilinosApplication.CreateCommunicator()
+        epetra_comm = TrilinosApplication.CreateEpetraCommunicator(KratosMultiphysics.DataCommunicator.GetDefault())
 
         max_iterations = 2
         TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(
@@ -111,24 +78,6 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         self.assertAlmostEqual(min_distance,-0.504972246827639) # Serial min_distance
 
     def testTrilinosParallelRedistance(self):
-        # Set the model part
-        current_model = KratosMultiphysics.Model()
-        self.model_part = current_model.CreateModelPart("Main")
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-
-        # Import the model part, perform the partitioning and create communicators
-        import_settings = KratosMultiphysics.Parameters(self.parameters)
-
-        ModelPartImporter = distributed_import_model_part_utility.DistributedImportModelPartUtility(self.model_part, import_settings)
-        ModelPartImporter.ImportModelPart()
-        ModelPartImporter.CreateCommunicators()
-
-        # Recall to set the buffer size
-        self.model_part.SetBufferSize(2)
-
         # Initialize the DISTANCE values
         x_zero_dist = 0.0
         for node in self.model_part.Nodes:

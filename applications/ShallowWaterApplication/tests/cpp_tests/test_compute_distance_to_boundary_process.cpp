@@ -120,7 +120,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToWrongBoundaryProcess, ShallowWaterA
 
     CalculateDistanceToBoundaryProcess process(r_model_part, r_boundary_part);
 
-    KRATOS_CHECK_NEAR(process.GetRSquared(), 0.803162, 1e-6);
+    const double reference = 0.771668;
+    KRATOS_CHECK_NEAR(process.GetRSquared(), reference, 1e-6);
 }
 
 } // namespace Testing

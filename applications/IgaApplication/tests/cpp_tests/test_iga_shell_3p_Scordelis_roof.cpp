@@ -12,6 +12,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 
+#include "test_creation_utility.h"
 #include "test_creation_utility_Scordelis_roof.h"
 
 #include "custom_elements/shell_3p_element.h"
@@ -61,7 +62,7 @@ namespace Testing
         IntegrationPoint<3> integration_point(0.953089922969332, 0.953089922969332, 0.0, 0.014033587215607);
         auto p_shell_3p_element = GetShell3pElementScordelis(r_model_part, 4, integration_point);
 
-        TestCreationUtilityScordelisRoof::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDisplacementDofs(r_model_part);
 
         p_shell_3p_element->Initialize(r_process_info);
 
@@ -105,7 +106,7 @@ namespace Testing
         IntegrationPoint<3> integration_point(0.619309593041599, 0.966234757101576, 0.0, 0.020041279329452);
         auto p_shell_3p_element = GetShell3pElementScordelis(r_model_part, 5, integration_point);
 
-        TestCreationUtilityScordelisRoof::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDisplacementDofs(r_model_part);
 
         p_shell_3p_element->Initialize(r_process_info);
 

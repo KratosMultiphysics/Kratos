@@ -28,33 +28,45 @@ void AssignPotentialsToNormalElement(Element& rElement, const std::array<double,
 template <int NumNodes>
 void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, NumNodes>& rDistances, const std::array<double, 2*NumNodes>& rPotential)
 {
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < NumNodes; i++){
         if (rDistances(i) > 0.0)
             rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
             rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
     }
-    for (unsigned int i = 0; i < 3; i++){
+    for (unsigned int i = 0; i < NumNodes; i++){
         if (rDistances(i) < 0.0)
-            rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
+            rElement.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+NumNodes];
         else
-            rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
+            rElement.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+NumNodes];
     }
+}
+
+template <>
+BoundedVector<double,3> GetDistanceValues<3>()
+{
+    BoundedVector<double,3> distances;
+    distances(0) = 1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    return distances;
+}
+
+template <>
+BoundedVector<double,4> GetDistanceValues<4>()
+{
+    BoundedVector<double,4> distances;
+    distances(0) = -1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    distances(3) = 1.0;
+    return distances;
 }
 
 template <int NumNodes>
 BoundedVector<double,NumNodes> AssignDistancesToElement()
 {
-    BoundedVector<double,NumNodes> distances;
-    for(unsigned int i = 0; i < NumNodes; i++){
-        if(i < 1){
-            distances(i) = 1.0;
-        }
-        else{
-            distances(i) = -1.0;
-        }
-    }
-    return distances;
+    return GetDistanceValues<NumNodes>();
 }
 
 void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical){
@@ -103,7 +115,7 @@ template <int NumNodes>
 void ComputeWakeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 2*NumNodes> rPotential){
     Element::Pointer p_element = rModelPart.pGetElement(1);
 
-    BoundedVector<double,3> distances = AssignDistancesToElement<NumNodes>();
+    BoundedVector<double, NumNodes> distances = AssignDistancesToElement<NumNodes>();
     p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
     p_element->GetValue(WAKE) = true;
 

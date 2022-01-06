@@ -347,6 +347,7 @@ class AnalysisStage(object):
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence
         (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+
         """
         if is_converged is None:
             if not hasattr(self, '_map_ret_val_depr_warnings'):

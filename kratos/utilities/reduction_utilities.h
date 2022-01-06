@@ -19,16 +19,48 @@
 #include <tuple>
 #include <limits>
 #include <algorithm>
+#include <mutex>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
+
+namespace Internals
+{
+/** @brief Helper class for null-initializiation
+ */
+template <class TObjectType>
+struct NullInitialized
+{
+    static TObjectType Get()
+    {
+        return TObjectType();
+    }
+};
+
+template <class TValueType, std::size_t ArraySize>
+struct NullInitialized<array_1d<TValueType,ArraySize>>
+{
+    static array_1d<TValueType,ArraySize> Get()
+    {
+        array_1d<TValueType,ArraySize> array;
+        std::fill_n(array.begin(), ArraySize, NullInitialized<TValueType>::Get());
+        return array;
+    }
+};
+} // namespace Internals
+
 ///@addtogroup KratosCore
+
+//***********************************************************************************
+//***********************************************************************************
+//***********************************************************************************
 
 /** @brief utility function to do a sum reduction
  */
@@ -39,7 +71,7 @@ public:
     typedef TDataType   value_type;
     typedef TReturnType return_type;
 
-    TReturnType mValue = TReturnType(); // deliberately making the member value public, to allow one to change it as needed
+    TReturnType mValue = Internals::NullInitialized<TReturnType>::Get(); // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TReturnType GetValue() const
@@ -69,7 +101,7 @@ public:
     typedef TDataType   value_type;
     typedef TReturnType return_type;
 
-    TReturnType mValue = TReturnType(); // deliberately making the member value public, to allow one to change it as needed
+    TReturnType mValue = Internals::NullInitialized<TReturnType>::Get(); // deliberately making the member value public, to allow one to change it as needed
 
     /// access to reduced value
     TReturnType GetValue() const
@@ -115,7 +147,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MaxReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         mValue = std::max(mValue,rOther.mValue);
     }
 };
@@ -146,7 +178,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const MinReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         mValue = std::min(mValue,rOther.mValue);
     }
 };
@@ -178,7 +210,7 @@ public:
     /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
     void ThreadSafeReduce(const AccumReduction<TDataType, TReturnType>& rOther)
     {
-        #pragma omp critical
+        const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
         mValue.insert(mValue.end(), rOther.mValue.begin(), rOther.mValue.end());
     }
 };

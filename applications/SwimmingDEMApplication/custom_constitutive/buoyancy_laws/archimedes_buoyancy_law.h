@@ -17,7 +17,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         ArchimedesBuoyancyLaw(){}
 
-        ArchimedesBuoyancyLaw(Parameters& r_hydrodynamic_parameters){}
+        ArchimedesBuoyancyLaw(Parameters r_hydrodynamic_parameters){}
 
         ~ArchimedesBuoyancyLaw(){}
 

@@ -7,18 +7,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import eigen_solver_factory
 
 class TestEigensystemSolver(KratosUnittest.TestCase):
-    def test_mass_normalization(self):
 
+    def _run_test(self, settings):
         space = KratosMultiphysics.UblasSparseSpace()
-
-        settings = KratosMultiphysics.Parameters('''{
-            "solver_type": "eigen_eigensystem",
-            "number_of_eigenvalues": 3,
-            "max_iteration": 1000,
-            "tolerance": 1e-8,
-            "normalize_eigenvectors": true,
-            "echo_level": 0
-         }''')
 
         K = KratosMultiphysics.CompressedMatrix()
 
@@ -68,6 +59,29 @@ class TestEigensystemSolver(KratosUnittest.TestCase):
                 value += eigenvector[j] * _aux[j]
 
             self.assertAlmostEqual(value, 1.0, 7)
+
+    def test_eigen_eigensystem_solver(self):
+        settings = KratosMultiphysics.Parameters('''{
+            "solver_type": "eigen_eigensystem",
+            "number_of_eigenvalues": 3,
+            "max_iteration": 1000,
+            "tolerance": 1e-8,
+            "normalize_eigenvectors": true,
+            "echo_level": 0
+        }''')
+
+        self._run_test(settings)
+
+    def test_spectra_sym_g_eigs_shift_solver(self):
+        settings = KratosMultiphysics.Parameters('''{
+            "solver_type": "spectra_sym_g_eigs_shift",
+            "number_of_eigenvalues": 3,
+            "normalize_eigenvectors": true,
+            "shift": 0.0,
+            "echo_level": 1
+        }''')
+
+        self._run_test(settings)
 
 
 if __name__ == '__main__':

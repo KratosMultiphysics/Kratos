@@ -44,7 +44,7 @@ namespace Kratos
  * Implements a Axisymmetric Total Lagrangian definition for structural analysis.
  */
 
-class AxisymTotalLagrangian
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AxisymTotalLagrangian
     : public TotalLagrangian
 {
 public:

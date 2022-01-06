@@ -39,7 +39,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class LinearPlaneStrainFEMDEM
  * @ingroup StructuralMechanicsApplication
@@ -48,7 +48,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class LinearPlaneStrainFEMDEM 
+class LinearPlaneStrainFEMDEM
     : public ElasticIsotropic3DFEMDEM
 {
 public:
@@ -57,22 +57,22 @@ public:
 
     /// The process info definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
-    
+
     /// The base class ElasticIsotropic3DFEMDEM type definition
     typedef ElasticIsotropic3DFEMDEM      BaseType;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 2;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
-    
+
     /// Counted pointer of LinearPlaneStrainFEMDEM
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrainFEMDEM );
 
@@ -116,7 +116,7 @@ public:
 
     /**
      * @brief Dimension of the law:
-     * @return The dimension were the law is working 
+     * @return The dimension were the law is working
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -127,7 +127,7 @@ public:
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     }
@@ -184,7 +184,7 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     void CalculateElasticMatrix(
-        Matrix& C, 
+        Matrix& C,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 

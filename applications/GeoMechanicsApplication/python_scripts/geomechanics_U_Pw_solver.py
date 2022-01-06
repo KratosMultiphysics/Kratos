@@ -2,10 +2,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-# DEPRECATION: "CheckRegisteredApplications" is not needed any more and can be safely removed
-#KratosMultiphysics.CheckRegisteredApplications("GeoMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructure
@@ -20,13 +16,9 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
-        super(UPwSolver,self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
 
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
-
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Construction of UPwSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Construction of Solver finished.")
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -63,6 +55,8 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
             "convergence_criterion": "Displacement_criterion",
+            "water_pressure_relative_tolerance": 1.0e-4,
+            "water_pressure_absolute_tolerance": 1.0e-9,
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
@@ -104,7 +98,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def PrepareModelPart(self):
@@ -130,7 +124,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
             self.model.AddModelPart(self.main_model_part)
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Model reading finished.")
 
     def AddDofs(self):
         ## displacement dofs
@@ -153,7 +147,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.REACTION_MOMENT_Z,self.main_model_part)
 
         if (self.settings["solution_type"].GetString() == "Dynamic"):
-            KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Dynamic analysis.")
+            KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Dynamic analysis.")
             for node in self.main_model_part.Nodes:
                 # adding VELOCITY as dofs
                 node.AddDof(KratosMultiphysics.VELOCITY_X)
@@ -174,7 +168,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y)
             #         node.AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z)
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "DOFs added correctly.")
 
 
     def Initialize(self):
@@ -211,12 +205,18 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         self.solver.Initialize()
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "solver.Initialize is set successfully")
+        self.find_neighbour_elements_of_conditions_process = KratosGeo.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
+        self.find_neighbour_elements_of_conditions_process.Execute()
+
+        self.deactivate_conditions_on_inactive_elements_process = KratosGeo.DeactivateConditionsOnInactiveElements(self.computing_model_part)
+        self.deactivate_conditions_on_inactive_elements_process.Execute()
+
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "solver.Initialize is set successfully")
 
         # Check if everything is assigned correctly
         self.Check()
 
-        KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
@@ -263,9 +263,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         from KratosMultiphysics.GeoMechanicsApplication import check_and_prepare_model_process_geo
         check_and_prepare_model_process_geo.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
 
-        # Constitutive law import
-
-        # This will be removed once the Model is fully supported! => It wont be necessary any more
         # NOTE: We do this here in case the model is empty, so the properties can be assigned
         if not self.model.HasModelPart(self.main_model_part.Name):
             self.model.AddModelPart(self.main_model_part)
@@ -321,7 +318,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT, 1.0)
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_PRESSURE_COEFFICIENT, 1.0)
 
-        if (scheme_type == "Newmark"):
+        if (scheme_type.lower() == "newmark"):
             beta = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
             theta = self.settings["newmark_theta"].GetDouble()
@@ -329,26 +326,35 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_ALPHA, rayleigh_m)
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA, rayleigh_k)
-            KratosMultiphysics.Logger.PrintInfo("UPwSolver, solution_type", solution_type)
+            KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, solution_type", solution_type)
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
-                    KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Quasi-UnDamped.")
+                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
                     scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
-                    KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Quasi-Damped.")
+                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
                     scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             elif (solution_type.lower() == "dynamic"):
-                KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Dynamic.")
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Dynamic.")
                 scheme = KratosGeo.NewmarkDynamicUPwScheme(beta,gamma,theta)
             elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
                 if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
-                    KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Quasi-UnDamped.")
+                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-UnDamped.")
                     scheme = KratosGeo.NewmarkQuasistaticUPwScheme(beta,gamma,theta)
                 else:
-                    KratosMultiphysics.Logger.PrintInfo("UPwSolver, scheme", "Quasi-Damped.")
+                    KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Quasi-Damped.")
                     scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
               raise Exception("Undefined solution type", solution_type)
+        elif (scheme_type.lower() == "backward_euler"or solution_type.lower() == "backward-euler"):
+            if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
+                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
+            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
+                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
+            else:
+              raise Exception("Undefined/uncompatible solution type with Backward Euler", solution_type)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 
@@ -362,24 +368,34 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["echo_level"].GetInt()
 
-        if(convergence_criterion == "Displacement_criterion" or convergence_criterion == "displacement_criterion"):
+        if(convergence_criterion.lower() == "displacement_criterion"):
             convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion == "Residual_criterion" or convergence_criterion == "residual_criterion"):
+        elif(convergence_criterion.lower() == "residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion == "And_criterion" or convergence_criterion == "and_criterion"):
+        elif(convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-        elif(convergence_criterion == "Or_criterion" or convergence_criterion == "or_criterion"):
+        elif(convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+        elif(convergence_criterion.lower() == "water_pressure_criterion"):
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
+            convergence_criterion.SetEchoLevel(echo_level)
+        elif(convergence_criterion.lower() == "displacement_and_water_pressure_criterion"):
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)),(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
+            convergence_criterion.SetEchoLevel(echo_level)
+        else:
+            err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
+            err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\", \"water_pressure_criterion\", \"displacement_and_water_pressure_criterion\""
+            raise Exception(err_msg)
 
         return convergence_criterion
 
@@ -393,7 +409,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
         move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
 
-        if strategy_type == "newton_raphson":
+        if strategy_type.lower() == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
@@ -407,9 +423,9 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            compute_reactions,
                                                                            reform_step_dofs,
                                                                            move_mesh_flag)
-        elif strategy_type == "line_search":
+        elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("max_iteration",             self.settings["max_iterations"])
+            self.strategy_params.AddValue("max_iteration",              self.settings["max_iterations"])
             self.strategy_params.AddValue("compute_reactions",          self.settings["compute_reactions"])
             self.strategy_params.AddValue("max_line_search_iterations", self.settings["max_line_search_iterations"])
             self.strategy_params.AddValue("first_alpha_value",          self.settings["first_alpha_value"])
@@ -417,13 +433,18 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             self.strategy_params.AddValue("min_alpha",                  self.settings["min_alpha"])
             self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
             self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
+            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
+            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
+            self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
+            self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])
+
             solving_strategy = KratosMultiphysics.LineSearchStrategy(self.computing_model_part,
                                                                      self.scheme,
                                                                      self.linear_solver,
                                                                      self.convergence_criterion,
                                                                      self.strategy_params)
 
-        elif strategy_type == "arc_length":
+        elif strategy_type.lower() == "arc_length":
             # Arc-Length strategy
             self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_LAMBDA,        1.0)
             self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_RADIUS_FACTOR, 1.0)

@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED )
-#define  KRATOS_LOCK_OBJECT_H_INCLUDED
+#if !defined(KRATOS_LOCK_OBJECT_H_INCLUDED)
+#define KRATOS_LOCK_OBJECT_H_INCLUDED
 
 // System includes
 
@@ -22,111 +22,124 @@
 #endif
 
 // Project includes
+#include "includes/define.h"
+
 
 namespace Kratos
 {
-  ///@addtogroup KratosCore
-  ///@{
+///@addtogroup KratosCore
+///@{
 
-  ///@name Kratos Classes
-  ///@{
+///@name Kratos Classes
+///@{
 
-  /// This class defines stores a lock and gives interface to it.
-  /** The class makes a tiny wrapper over the ahared memory locking mechanisms
-  */
-  class LockObject
-    {
-    public:
-      ///@name Life Cycle
-      ///@{
+/// This class defines and stores a lock and gives an interface to it.
+/** The class makes a tiny wrapper over shared memory locking mechanisms
+ * it is compliant with C++ Lockable
+ * see https://en.cppreference.com/w/cpp/named_req/Lockable
+ */
+class LockObject
+{
+public:
+    ///@name Life Cycle
+    ///@{
 
-      /// Default constructor.
-		LockObject() noexcept {
+    /// Default constructor.
+    LockObject() noexcept {
 #ifdef KRATOS_SMP_OPENMP
 			omp_init_lock(&mLock);
 #endif
-		}
+    }
 
-		/// Copy constructor.
-		LockObject(LockObject const& rOther) = delete;
+    /// Copy constructor.
+    LockObject(LockObject const& rOther) = delete;
 
-		/// Move constructor.
+    /// Move constructor.
+    KRATOS_DEPRECATED_MESSAGE("The move constructor is deprecated and will be removed in the future!")
     LockObject(LockObject&& rOther) noexcept
 #ifdef KRATOS_SMP_OPENMP
 			: mLock(rOther.mLock)
 #endif
-		{
+    {
 #ifdef KRATOS_SMP_OPENMP
-      static_assert(std::is_move_constructible<omp_lock_t>::value, "omp_lock_t is not move constructible!");
+        static_assert(std::is_move_constructible<omp_lock_t>::value, "omp_lock_t is not move constructible!");
 			omp_init_lock(&mLock);
 #endif
-		}
+    }
 
-		/// Destructor.
-		virtual ~LockObject() noexcept {
+    /// Destructor.
+    virtual ~LockObject() noexcept
+    {
 #ifdef KRATOS_SMP_OPENMP
-			omp_destroy_lock(&mLock);
+        omp_destroy_lock(&mLock);
 #endif
-		}
+    }
 
-      ///@}
-      ///@name Operators
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-	  /// Assignment operator.
-		LockObject& operator=(LockObject const& rOther) = delete;
+    /// Assignment operator.
+    LockObject& operator=(LockObject const& rOther) = delete;
 
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-      ///@}
-      ///@name Access
-      ///@{
-
-		inline void SetLock() const
-		{
-			//does nothing if openMP is not present
+    inline void lock() const
+    {
+        //does nothing if openMP is not present
 #ifdef KRATOS_SMP_OPENMP
-			omp_set_lock(&mLock);
+        omp_set_lock(&mLock);
 #endif
-		}
+    }
 
-		inline void UnSetLock() const
-		{
-			//does nothing if openMP is not present
+    KRATOS_DEPRECATED_MESSAGE("Please use lock instead")
+    inline void SetLock() const
+    {
+        this->lock();
+    }
+
+    inline void unlock() const
+    {
+        //does nothing if openMP is not present
 #ifdef KRATOS_SMP_OPENMP
-			omp_unset_lock(&mLock);
+        omp_unset_lock(&mLock);
 #endif
-		}
+    }
+
+    KRATOS_DEPRECATED_MESSAGE("Please use unlock instead")
+    inline void UnSetLock() const
+    {
+        this->unlock();
+    }
 
     inline bool try_lock() const
     {
 #ifdef KRATOS_SMP_OPENMP
-      return omp_test_lock(&mLock);
+        return omp_test_lock(&mLock);
 #endif
-      return true;
+        return true;
     }
 
-      ///@}
+    ///@}
 
-    private:
-      ///@name Member Variables
-      ///@{
+private:
+    ///@name Member Variables
+    ///@{
 
 #ifdef KRATOS_SMP_OPENMP
-		mutable omp_lock_t mLock;
+	    mutable omp_lock_t mLock;
 #endif
 
-      ///@}
+    ///@}
 
-    }; // Class LockObject
+}; // Class LockObject
 
-  ///@}
+///@}
 
-
-  ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LOCK_OBJECT_H_INCLUDED  defined
+#endif // KRATOS_LOCK_OBJECT_H_INCLUDED defined

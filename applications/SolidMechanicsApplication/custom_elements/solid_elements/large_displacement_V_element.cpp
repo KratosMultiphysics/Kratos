@@ -120,7 +120,7 @@ LargeDisplacementVElement::~LargeDisplacementVElement()
 
 
 
-void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     rElementalDofList.resize( 0 );
 
@@ -140,7 +140,7 @@ void LargeDisplacementVElement::GetDofList( DofsVectorType& rElementalDofList, P
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementVElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     const SizeType number_of_nodes  = GetGeometry().size();
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
@@ -297,7 +297,7 @@ void LargeDisplacementVElement::SetElementData(ElementDataType& rVariables,
 //************************************************************************************
 //************************************************************************************
 
-int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -309,7 +309,7 @@ int  LargeDisplacementVElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 
