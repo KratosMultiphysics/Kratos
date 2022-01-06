@@ -135,6 +135,7 @@ jobs:
     - name: Install
       shell: bash
       run: |
+        echo ${GITHUB_WORKSPACE}
         ls -al "${GITHUB_WORKSPACE}"
         git status ${GITHUB_WORKSPACE}
         ls -al ${GITHUB_WORKSPACE}/applications/ShapeOptimizationApplication/tests
