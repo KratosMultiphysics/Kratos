@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name":         "test_Transient_Case_A1_2D3N_stage2",
         "start_time":           0.0,
-        "end_time":             3.47,
+        "end_time":             0.232,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1

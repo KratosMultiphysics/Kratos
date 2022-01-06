@@ -21,6 +21,7 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "interface_communicator.h"
 

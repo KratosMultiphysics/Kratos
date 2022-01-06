@@ -18,7 +18,7 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId, 
+Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     NodesArrayType const& ThisNodes,
                                                     PropertiesType::Pointer pProperties) const
 {
@@ -360,19 +360,19 @@ void UPwBaseElement<TDim,TNumNodes>::
     if (rResult.size() != N_DOF)
       rResult.resize( N_DOF, false );
 
-    if (TDim == 3) {
+    if (TDim == 2) {
+        unsigned int index = 0;
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
+            rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
+        }
+    } else if (TDim == 3) {
         unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Z).EquationId();
-            rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
-        }
-    } else if (TDim == 2) {
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index++] = rGeom[i].GetDof(DISPLACEMENT_Y).EquationId();
             rResult[index++] = rGeom[i].GetDof(WATER_PRESSURE).EquationId();
         }
     } else {
@@ -450,19 +450,19 @@ void UPwBaseElement<TDim,TNumNodes>::
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    if ( TDim == 3 ) {
+    if ( TDim == 2 ) {
+        unsigned int index = 0;
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
+            rValues[index++] = 0.0;
+        }
+    } else if ( TDim == 3 ){
         unsigned int index = 0;
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Z, Step );
-            rValues[index++] = 0.0;
-        }
-    } else if ( TDim == 2 ){
-        unsigned int index = 0;
-        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_X, Step );
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue( DISPLACEMENT_Y, Step );
             rValues[index++] = 0.0;
         }
     } else {
@@ -485,19 +485,19 @@ void UPwBaseElement<TDim,TNumNodes>::
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    if ( TDim == 3 ) {
+    if ( TDim == 2 ) {
+        unsigned int index = 0;
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+            rValues[index++] = 0.0;
+        }
+    } else if (TDim == 3) {
         unsigned int index = 0;
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
-            rValues[index++] = 0.0;
-        }
-    } else if (TDim == 2) {
-        unsigned int index = 0;
-        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_X, Step );
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
             rValues[index++] = 0.0;
         }
     } else {
@@ -520,19 +520,19 @@ void UPwBaseElement<TDim,TNumNodes>::
     if ( rValues.size() != N_DOF )
         rValues.resize( N_DOF, false );
 
-    if ( TDim == 3 ) {
+    if ( TDim == 2 ) {
+        unsigned int index = 0;
+        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
+            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
+            rValues[index++] = 0.0;
+        }
+    } else if (TDim == 3) {
         unsigned int index = 0;
         for ( unsigned int i = 0; i < TNumNodes; ++i ) {
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Z, Step );
-            rValues[index++] = 0.0;
-        }
-    } else if (TDim == 2){
-        unsigned int index = 0;
-        for ( unsigned int i = 0; i < TNumNodes; ++i ) {
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
-            rValues[index++] = rGeom[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
             rValues[index++] = 0.0;
         }
     } else {
@@ -669,7 +669,6 @@ void UPwBaseElement<TDim,TNumNodes>::
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
     // KRATOS_INFO("1-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -682,15 +681,14 @@ void UPwBaseElement<TDim,TNumNodes>::
                                             const IndexType& GPoint) const
 {
     KRATOS_TRY
-
     // KRATOS_INFO("0-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
+
     const GeometryType& rGeom = this->GetGeometry();
 
     rJ = rGeom.Jacobian( rJ, GPoint, mThisIntegrationMethod );
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
 
     // KRATOS_INFO("1-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 

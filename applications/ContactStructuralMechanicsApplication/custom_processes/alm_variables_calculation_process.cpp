@@ -16,6 +16,7 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_processes/alm_variables_calculation_process.h"
 

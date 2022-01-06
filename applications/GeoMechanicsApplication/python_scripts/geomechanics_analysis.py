@@ -145,9 +145,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 self.delta_time = new_time - t
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
             self._GetSolver().main_model_part.CloneTimeStep(new_time)
-            # self._GetSolver().main_model_part.ProcessInfo[KratosMultiphysics.START_TIME] = self.time
-            # self._GetSolver().main_model_part.ProcessInfo[KratosMultiphysics.END_TIME] = self.end_time
-
 
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "--------------------------------------", " ")
 
