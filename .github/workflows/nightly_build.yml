@@ -125,12 +125,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # - name: Build
-    #   shell: bash
-    #   run: |
-    #     mkdir ${GITHUB_WORKSPACE}/wheels
-    #     docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${GITHUB_HEAD_REF}
-    #     ls -al ${GITHUB_WORKSPACE}/wheels
+    - name: Build
+      shell: bash
+      run: |
+        mkdir ${GITHUB_WORKSPACE}/wheels
+        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux ${GITHUB_HEAD_REF}
+        ls -al ${GITHUB_WORKSPACE}/wheels
 
     - name: Install
       shell: bash
