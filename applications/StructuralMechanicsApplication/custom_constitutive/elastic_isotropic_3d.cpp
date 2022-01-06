@@ -215,10 +215,6 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
         Flags& r_flags = rParameterValues.GetOptions();
 
-        // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
         ConstitutiveLaw::StrainVectorType& r_strain_vector = rParameterValues.GetStrainVector();
 
         if( r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
