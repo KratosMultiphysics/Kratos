@@ -1840,7 +1840,7 @@ void BaseSolidElement::CalculateLumpedMassVector(
 
     Vector lumping_factors(number_of_nodes);
     if (this->Has(LUMPING_FACTORS)) {
-        lumping_factors = this->GetValue(LUMPING_FACTORS);
+        noalias(lumping_factors) = this->GetValue(LUMPING_FACTORS);
     } else {
         lumping_factors = r_geom.LumpingFactors( lumping_factors );
     }
