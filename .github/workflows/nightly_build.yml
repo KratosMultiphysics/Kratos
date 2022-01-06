@@ -143,6 +143,26 @@ jobs:
         python3 -m pip install numpy h5py
         python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosSwimmingDEMApplication KratosShapeOptimizationApplication KratosCoSimulationApplication KratosMultilevelMonteCarloApplication
 
+    - name: Running shapeopt
+      shell: bash
+      run: |
+        python3 applications/ShapeOptimizationApplication/tests/test_ShapeOptimizationApplication.py
+
+    - name: Running cosim
+      shell: bash
+      run: |
+        python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication.py
+
+    - name: Running swim
+      shell: bash
+      run: |
+        python3 applications/SwimmingDEMApplication/tests/test_SwimmingDEMApplication.py
+
+    - name: Running mm
+      shell: bash
+      run: |
+        python3 applications/MultilevelMonteCarloApplication/tests/test_MultilevelMonteCarloApplication.py
+
     - name: Running small tests
       shell: bash
       run: |
