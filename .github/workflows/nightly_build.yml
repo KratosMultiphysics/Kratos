@@ -2,11 +2,6 @@ name: Nightly Build
 
 on: push
 
-  schedule:
-    - cron:  '0 1 * * *'
-
-  workflow_dispatch:
-
 # for cancelling redundant runs
 concurrency:
   group: nightly-build-${{ github.head_ref }}
