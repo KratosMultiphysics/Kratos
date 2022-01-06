@@ -44,7 +44,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
         const IndexType elem_id = stoi(it.name());
         const auto p_elem = rOriginModelPart.pGetElement(elem_id);
-        hrom_elems_set.insert(p_elem);
+        hrom_elems_set.insert(hrom_elems_set.end(), p_elem);
         const auto& r_geom = p_elem->GetGeometry();
         const SizeType n_nodes = r_geom.PointsNumber();
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
@@ -57,7 +57,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         const IndexType cond_id = stoi(it.name());
         const auto p_cond = rOriginModelPart.pGetCondition(cond_id);
-        hrom_conds_set.insert(p_cond);
+        hrom_conds_set.insert(hrom_conds_set.end(), p_cond);
         const auto& r_geom = p_cond->GetGeometry();
         const SizeType n_nodes = r_geom.PointsNumber();
         for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {

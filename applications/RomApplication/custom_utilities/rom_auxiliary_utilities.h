@@ -50,11 +50,11 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
-    using ElementsPointerSet = std::unordered_set<Element::Pointer, IndexedObjectPointerHasher<Element::Pointer>, IndexedObjectPointerComparator<Element::Pointer>>;
+    using NodesPointerSet = std::set<NodeType::Pointer, IndexedObjectPointerComparator<NodeType::Pointer>>;
 
-    using NodesPointerSet = std::unordered_set<NodeType::Pointer, IndexedObjectPointerHasher<NodeType::Pointer>, IndexedObjectPointerComparator<NodeType::Pointer>>;
+    using ElementsPointerSet = std::set<Element::Pointer, IndexedObjectPointerComparator<Element::Pointer>>;
 
-    using ConditionsPointerSet = std::unordered_set<Condition::Pointer, IndexedObjectPointerHasher<Condition::Pointer>, IndexedObjectPointerComparator<Condition::Pointer>>;
+    using ConditionsPointerSet = std::set<Condition::Pointer, IndexedObjectPointerComparator<Condition::Pointer>>;
 
     ///@}
     ///@name Static Operations
