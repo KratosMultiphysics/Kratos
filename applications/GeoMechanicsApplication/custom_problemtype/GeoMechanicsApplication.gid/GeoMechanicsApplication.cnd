@@ -2527,7 +2527,7 @@ VALUE: 0.4
 HELP: Beta is a fitting parameter between 0.4 and 0.7.
 QUESTION: Consider_Gap_Closure#CB#(true,false)
 VALUE: false
-HELP: True means that the interface (joint) will be activated during the calculation as soon as gap wQUESTIONidth is smaller than the threshold.
+HELP: True means that the interface (joint) will be activated during the calculation as soon as gap width is smaller than the threshold.
 DEPENDENCIES: (true,RESTORE,Gap_Width_Threshold,#CURRENT#)(false,HIDE,Gap_Width_Threshold,#CURRENT#)
 QUESTION: Gap_Width_Threshold
 VALUE: 0.01
