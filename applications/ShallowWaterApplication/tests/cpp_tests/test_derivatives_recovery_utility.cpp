@@ -132,7 +132,6 @@ void GradientRecoveryTest(
     });
 
     FindGlobalNodalNeighboursProcess(r_model_part).Execute();
-    DerivativesRecoveryUtility<TDim>::CheckRequiredNeighborsPatch(r_model_part);
     DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(r_model_part);
     DerivativesRecoveryUtility<TDim>::RecoverGradient(r_model_part, DISTANCE, DISTANCE_GRADIENT);
 
@@ -162,7 +161,6 @@ void LaplacianRecoveryTest(
     });
 
     FindGlobalNodalNeighboursProcess(r_model_part).Execute();
-    DerivativesRecoveryUtility<TDim>::CheckRequiredNeighborsPatch(r_model_part);
     DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(r_model_part);
     DerivativesRecoveryUtility<TDim>::RecoverLaplacian(r_model_part, VELOCITY, VELOCITY_LAPLACIAN);
 

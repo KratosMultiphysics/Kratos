@@ -87,6 +87,7 @@ void DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(
 template<std::size_t TDim>
 void DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(ModelPart& rModelPart)
 {
+    CheckRequiredNeighborsPatch(rModelPart);
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         bool is_converged = false;
         int max_iter = 3;
