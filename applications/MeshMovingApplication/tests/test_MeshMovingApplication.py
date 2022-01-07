@@ -63,7 +63,7 @@ def AssembleTestSuites():
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    run_cpp_unit_tests.run()
+    #run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     '''KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning mpi python tests ...")
