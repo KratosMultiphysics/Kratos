@@ -1,9 +1,6 @@
 import sys
 import os
 
-sys.path.append(os.path.join('..', '..', '..'))
-sys.path.append(os.path.join('..', 'python_scripts'))
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -40,7 +37,7 @@ class KratosGeoMechanicsTransientGroundWaterFlowTests(KratosUnittest.TestCase):
 
         p_height_1_72_m = water_pressure_stage_2[32]
 
-        self.assertAlmostEqual(0.024467586026697394, p_height_1_72_m)
+        self.assertAlmostEqual(3.7224838666844984, p_height_1_72_m)
 
     def test_Transient_Case_A1_2D6N(self):
         test_name = 'test_Transient_Case_A1_2D6N'
@@ -55,9 +52,4 @@ class KratosGeoMechanicsTransientGroundWaterFlowTests(KratosUnittest.TestCase):
 
 
 if __name__ == '__main__':
-    suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsTransientGroundWaterFlowTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    KratosUnittest.runTests(suites)
+    KratosUnittest.main()
