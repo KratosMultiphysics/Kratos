@@ -121,7 +121,7 @@ double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
         rValue = this->CalculateEffectiveSaturation(rParameterValues);
         return rValue;
     }
-    else if (rThisVariable == BISHOP_COEFICIENT) {
+    else if (rThisVariable == BISHOP_COEFFICIENT) {
         rValue = this->CalculateBishopCoefficient(rParameterValues);
         return rValue;
     }

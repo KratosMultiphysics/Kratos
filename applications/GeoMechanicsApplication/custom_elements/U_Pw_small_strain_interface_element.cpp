@@ -625,7 +625,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     }
     else if (rVariable == DEGREE_OF_SATURATION ||
              rVariable == EFFECTIVE_SATURATION ||
-             rVariable == BISHOP_COEFICIENT ||
+             rVariable == BISHOP_COEFFICIENT ||
              rVariable == DERIVATIVE_OF_SATURATION ||
              rVariable == RELATIVE_PERMEABILITY )
     {
@@ -647,7 +647,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             if (rVariable == DEGREE_OF_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
             if (rVariable == EFFECTIVE_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            if (rVariable == BISHOP_COEFICIENT)        rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            if (rVariable == BISHOP_COEFFICIENT)        rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }

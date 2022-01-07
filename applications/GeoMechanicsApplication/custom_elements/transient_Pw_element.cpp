@@ -406,7 +406,7 @@ void TransientPwElement<TDim,TNumNodes>::
 
     if (rVariable == DEGREE_OF_SATURATION     ||
         rVariable == EFFECTIVE_SATURATION     ||
-        rVariable == BISHOP_COEFICIENT        ||
+        rVariable == BISHOP_COEFFICIENT       ||
         rVariable == DERIVATIVE_OF_SATURATION ||
         rVariable == RELATIVE_PERMEABILITY    ||
         rVariable == HYDRAULIC_HEAD)

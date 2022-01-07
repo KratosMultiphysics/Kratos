@@ -192,7 +192,7 @@ double& BrooksCoreyLaw::CalculateValue(RetentionLaw::Parameters& rParameterValue
         rValue = this->CalculateEffectiveSaturation(rParameterValues);
         return rValue;
     }
-    else if (rThisVariable == BISHOP_COEFICIENT)
+    else if (rThisVariable == BISHOP_COEFFICIENT)
     {
         rValue = this->CalculateBishopCoefficient(rParameterValues);
         return rValue;
