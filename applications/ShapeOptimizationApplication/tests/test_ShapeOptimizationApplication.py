@@ -44,6 +44,8 @@ from face_angle_response_test.test_face_angle_response import FaceAngleTest
 from mapper_plane_symmetry_test.plane_symmetry_test import PlaneSymmetryMapperTest
 from mapper_revolution_test.revolution_test import RevolutionMapperTest
 from shape_optimization_test_factory import direction_damping_test
+from total_volume.test_total_volume_response import TestTotalVolumeResponseFunction2D
+from total_volume.test_total_volume_response import TestTotalVolumeResponseFunction3D
 
 # Nightly tests
 
@@ -79,6 +81,8 @@ def AssembleTestSuites():
     smallSuite.addTest(remeshing_opt_process_test('test_execution'))
     smallSuite.addTest(sliding_opt_test('test_execution'))
     smallSuite.addTest(direction_damping_test('test_execution'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTotalVolumeResponseFunction2D]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTotalVolumeResponseFunction3D]))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
