@@ -13,7 +13,7 @@ from KratosMultiphysics.FluidDynamicsApplication.navier_stokes_two_fluids_solver
 from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 
 # Auxiliary imports
-from KratosMultiphysics.FluidDynamicsApplication.distance_reinitialization import ParallelDistanceReinitialization
+from KratosMultiphysics.FluidDynamicsApplication.trilinos_distance_reinitialization import TrilinosDistanceReinitialization
 
 def CreateSolver(model, custom_settings):
     return NavierStokesMPITwoFluidsSolver(model, custom_settings)
@@ -144,7 +144,7 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         return level_set_convection_process
 
     def _CreateDistanceReinitialization(self):
-        return ParallelDistanceReinitialization(
+        return TrilinosDistanceReinitialization(
             self.GetComputingModelPart(),
             self.settings["distance_reinitialization_settings"],
             self._GetEpetraCommunicator())
