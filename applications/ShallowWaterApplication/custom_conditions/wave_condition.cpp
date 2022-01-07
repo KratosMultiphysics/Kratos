@@ -190,6 +190,7 @@ void WaveCondition<TNumNodes>::InitializeData(
 
     for (IndexType i = 0; i < TNumNodes; i++)
     {
+        rData.nodal_f[i] = r_geom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         rData.nodal_h[i] = r_geom[i].FastGetSolutionStepValue(HEIGHT);
         rData.nodal_z[i] = r_geom[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rData.nodal_v[i] = r_geom[i].FastGetSolutionStepValue(VELOCITY);
@@ -224,8 +225,7 @@ void WaveCondition<TNumNodes>::CalculateGaussPointData(
     rData.b2[1] = rData.gravity;
 
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
 }
 
 template<std::size_t TNumNodes>
@@ -364,5 +364,6 @@ void WaveCondition<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, cons
 }
 
 template class WaveCondition<2>;
+template class WaveCondition<3>;
 
 } // namespace Kratos

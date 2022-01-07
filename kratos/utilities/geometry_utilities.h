@@ -848,6 +848,21 @@ public:
         const Variable<array_1d<double, 3>>& rVariable,
         const Matrix& rGaussPointShapeFunctionDerivativeValues,
         const int Step = 0);
+
+    /**
+     * @brief Checks if given point in global space coordinates is inside the geometry boundaries.
+     * @details This function computes the local coordinates and checks then if this point lays within the boundaries after projecting the points.
+     * @param rPointGlobalCoordinates the global coordinates of the external point.
+     * @param rResult the local coordinates of the point.
+     * @param Tolerance the tolerance to the boundary.
+     * @return true if the point is inside, false otherwise
+     */
+    static bool KRATOS_API(KRATOS_CORE) ProjectedIsInside(
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        GeometryType::CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        );
 };
 
 }  // namespace Kratos.

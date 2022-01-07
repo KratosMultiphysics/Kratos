@@ -44,6 +44,7 @@
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/discrete_particle_configure.h"
+#include "custom_utilities/node_configure.h"
 #include "custom_utilities/rigid_face_geometrical_object_configure.h"
 
 #ifdef USING_CGAL
@@ -97,6 +98,7 @@ namespace Kratos {
         typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
         typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
+        typedef NodeConfigure<3> NodeConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
         typedef Variable<double> ComponentOf3ComponentsVariableType;
 

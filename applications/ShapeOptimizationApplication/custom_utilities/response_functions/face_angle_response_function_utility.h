@@ -86,8 +86,7 @@ public:
 	///@name Operations
 	///@{
 
-	void Initialize()
-	{}
+	void Initialize();
 
 	double CalculateValue();
 
@@ -141,6 +140,7 @@ private:
 	array_3d mMainDirection;
 	double mSinMinAngle;
 	double mValue;
+	bool mConsiderOnlyInitiallyFeasible;
 
 	///@}
 
