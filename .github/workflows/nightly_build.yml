@@ -141,7 +141,7 @@ jobs:
         git status ${GITHUB_WORKSPACE}
         ls -al ${GITHUB_WORKSPACE}/applications/ShapeOptimizationApplication/tests
         python3 -m pip install numpy h5py
-        python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosSwimmingDEMApplication KratosShapeOptimizationApplication KratosCoSimulationApplication KratosMultilevelMonteCarloApplication
+        python3 -m pip install --no-index --find-links=${GITHUB_WORKSPACE}/wheels/ KratosShapeOptimizationApplication KratosCoSimulationApplication KratosMultilevelMonteCarloApplication
 
     - name: Running shapeopt
       shell: bash
@@ -152,11 +152,6 @@ jobs:
       shell: bash
       run: |
         python3 applications/CoSimulationApplication/tests/test_CoSimulationApplication.py
-
-    - name: Running swim
-      shell: bash
-      run: |
-        python3 applications/SwimmingDEMApplication/tests/test_SwimmingDEMApplication.py
 
     - name: Running mm
       shell: bash
