@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //
+
 // System includes
 #include <iostream>
 
