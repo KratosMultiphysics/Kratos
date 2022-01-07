@@ -129,7 +129,7 @@ jobs:
       shell: bash
       run: |
         mkdir ${GITHUB_WORKSPACE}/wheels
-        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux run-tests-using-wheel-v3
+        docker run --rm -v ${GITHUB_WORKSPACE}/wheels:/data_swap_guest kratosmultiphysics/kratos-wheelbuilder-linux run-tests-using-wheel-v4
         ls -al ${GITHUB_WORKSPACE}/wheels
 
     - name: Install
