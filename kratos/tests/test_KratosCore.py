@@ -5,6 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suites
+import test_bounding_box
 import test_calculate_distance_to_skin
 import test_embedded_skin_mapping
 import test_model_part
@@ -62,6 +63,7 @@ import test_integration_points
 import test_mls_shape_functions_utility
 import test_model_part_combination_utilities
 import test_force_and_torque_utils
+import test_print_info_in_file
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -80,6 +82,8 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_bounding_box.TestBoundingBox]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_print_info_in_file.TestPrintInfoInFile]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_embedded_skin_mapping.TestEmbeddedSkinMapping]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part.TestModelPart]))

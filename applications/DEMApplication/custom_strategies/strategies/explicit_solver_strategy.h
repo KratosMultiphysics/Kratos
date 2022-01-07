@@ -44,6 +44,7 @@
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/discrete_particle_configure.h"
+#include "custom_utilities/node_configure.h"
 #include "custom_utilities/rigid_face_geometrical_object_configure.h"
 
 #ifdef USING_CGAL
@@ -97,6 +98,7 @@ namespace Kratos {
         typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
         typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
+        typedef NodeConfigure<3> NodeConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
         typedef Variable<double> ComponentOf3ComponentsVariableType;
 
@@ -211,7 +213,6 @@ namespace Kratos {
         virtual void Initialize();
         virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
-        virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
@@ -220,7 +221,6 @@ namespace Kratos {
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);
-        void InitialTimeStepCalculation(); //TODO: remove this one
         void GetForce();
         void FastGetForce();
         virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0);

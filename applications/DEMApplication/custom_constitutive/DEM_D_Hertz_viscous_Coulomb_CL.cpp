@@ -15,19 +15,46 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Hertz_viscous_Coulomb>();
     }
 
-    void DEM_D_Hertz_viscous_Coulomb::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if (verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Hertz_viscous_Coulomb to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
-    void DEM_D_Hertz_viscous_Coulomb::Check(Properties::Pointer pProp) const {
-        DEMDiscontinuumConstitutiveLaw::Check(pProp);
-    }
-
     std::string DEM_D_Hertz_viscous_Coulomb::GetTypeOfLaw() {
         std::string type_of_law = "Hertz";
         return type_of_law;
+    }
+
+    void DEM_D_Hertz_viscous_Coulomb::Check(Properties::Pointer pProp) const {
+        if(!pProp->Has(STATIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable STATIC_FRICTION or FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(STATIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(STATIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(DYNAMIC_FRICTION)) {
+            if(!pProp->Has(FRICTION)) { //deprecated since April 6th, 2020
+                KRATOS_WARNING("DEM")<<std::endl;
+                KRATOS_WARNING("DEM")<<"WARNING: Variable DYNAMIC_FRICTION or FRICTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+                KRATOS_WARNING("DEM")<<std::endl;
+                pProp->GetValue(DYNAMIC_FRICTION) = 0.0;
+            }
+            else {
+                pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
+            }
+        }
+        if(!pProp->Has(FRICTION_DECAY)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION_DECAY should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 500.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(FRICTION_DECAY) = 500.0;
+        }
+        if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable COEFFICIENT_OF_RESTITUTION should be present in the properties when using DEMDiscontinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(COEFFICIENT_OF_RESTITUTION) = 0.0;
+        }
     }
 
     /////////////////////////
@@ -105,6 +132,15 @@ namespace Kratos {
         double& inelastic_viscodamping_energy = element1->GetInelasticViscodampingEnergy();
         CalculateInelasticViscodampingEnergyDEM(inelastic_viscodamping_energy, ViscoDampingLocalContactForce, LocalDeltDisp);
 
+    }
+
+
+    double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(SphericParticle* const element1, SphericParticle* const element2, const double indentation, double LocalCoordSystem[3][3]) {
+        return CalculateNormalForce(indentation);
+    }
+
+    double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(SphericParticle* const element, Condition* const wall, const double indentation){
+        return CalculateNormalForce(indentation);
     }
 
     void DEM_D_Hertz_viscous_Coulomb::CalculateViscoDampingForce(double LocalRelVel[3],

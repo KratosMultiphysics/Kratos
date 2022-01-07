@@ -77,21 +77,21 @@ class MPCContactStaticSolver(structural_mechanics_static_solver.StaticMechanical
 
     #### Private functions ####
 
-    def _create_convergence_criterion(self):
+    def _CreateConvergenceCriterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         conv_criteria = convergence_criterion.mechanical_convergence_criterion
         contact_criteria = ContactStructuralMechanicsApplication.MPCContactCriteria()
         return KratosMultiphysics.AndCriteria(conv_criteria, contact_criteria)
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         mechanical_solution_strategy = self._create_contact_newton_raphson_strategy()
         return mechanical_solution_strategy
 
     def _create_contact_newton_raphson_strategy(self):
         computing_model_part = self.GetComputingModelPart()
-        self.mechanical_scheme = self.get_solution_scheme()
-        self.mechanical_convergence_criterion = self.get_convergence_criterion()
-        self.builder_and_solver = self.get_builder_and_solver()
+        self.mechanical_scheme = self._GetScheme()
+        self.mechanical_convergence_criterion = self._GetConvergenceCriterion()
+        self.builder_and_solver = self._GetBuilderAndSolver()
         return auxiliar_methods_solvers.AuxiliarMPCNewton(computing_model_part, self.mechanical_scheme, self.mechanical_convergence_criterion, self.builder_and_solver, self.settings, self.mpc_contact_settings)
 
     @classmethod

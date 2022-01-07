@@ -23,6 +23,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
 #include "custom_utilities/move_mesh_utility.h"
+#include "custom_utilities/derivatives_recovery_utility.h"
 
 
 namespace Kratos
@@ -91,6 +92,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
+        .def("SmoothHistoricalVariable", &ShallowWaterUtilities::SmoothHistoricalVariable<double>)
+        .def("SmoothHistoricalVariable", &ShallowWaterUtilities::SmoothHistoricalVariable<array_1d<double,3>>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
@@ -99,6 +102,10 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
         .def("SwapYZCoordinates", &ShallowWaterUtilities::SwapYZCoordinates)
         .def("SwapY0Z0Coordinates", &ShallowWaterUtilities::SwapY0Z0Coordinates)
+        .def("SwapYZComponents", &ShallowWaterUtilities::SwapYZComponents)
+        .def("SwapYZComponentsNonHistorical", &ShallowWaterUtilities::SwapYZComponentsNonHistorical<NodesContainerType>)
+        .def("SwapYZComponentsNonHistorical", &ShallowWaterUtilities::SwapYZComponentsNonHistorical<ElementsContainerType>)
+        .def("SwapYZComponentsNonHistorical", &ShallowWaterUtilities::SwapYZComponentsNonHistorical<ConditionsContainerType>)
         .def("StoreNonHistoricalGiDNoDataIfDry", &ShallowWaterUtilities::StoreNonHistoricalGiDNoDataIfDry)
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2Norm<true>)
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
@@ -140,6 +147,34 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Initialize", &MoveMeshUtility::Initialize)
         .def("MoveMesh", &MoveMeshUtility::MoveMesh)
         .def("MapResults", &MoveMeshUtility::MapResults)
+        ;
+
+    py::class_<DerivativesRecoveryUtility<2>>(m, "DerivativesRecoveryUtility2D")
+        .def_static("Check", &DerivativesRecoveryUtility<2>::Check)
+        .def_static("CheckRequiredNeighborsPatch", &DerivativesRecoveryUtility<2>::ExtendNeighborsPatch)
+        .def_static("ExtendNeighborsPatch", &DerivativesRecoveryUtility<2>::ExtendNeighborsPatch)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<2>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<2>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<2>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        ;
+
+    py::class_<DerivativesRecoveryUtility<3>>(m, "DerivativesRecoveryUtility3D")
+        .def_static("Check", &DerivativesRecoveryUtility<3>::Check)
+        .def_static("CheckRequiredNeighborsPatch", &DerivativesRecoveryUtility<3>::ExtendNeighborsPatch)
+        .def_static("ExtendNeighborsPatch", &DerivativesRecoveryUtility<3>::ExtendNeighborsPatch)
+        .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<3>::CalculatePolynomialWeights)
+        .def_static("RecoverDivergence", &DerivativesRecoveryUtility<3>::RecoverDivergence)
+        .def_static("RecoverGradient", &DerivativesRecoveryUtility<3>::RecoverGradient)
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<double>& rOriginVariable,
+            const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
         ;
 
 }

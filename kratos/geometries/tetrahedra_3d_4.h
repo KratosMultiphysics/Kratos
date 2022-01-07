@@ -1441,29 +1441,43 @@ public:
     }
 
 
-    /// detect if two tetrahedra are intersected
+    /**
+     * @brief Test if this geometry intersects with other geometry
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     * @details We always check the intersection from the higher LocalSpaceDimension to the lower one
+     */
     bool HasIntersection( const BaseType& rThisGeometry) const override
     {
-
+        if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
+            // Check the intersection of each face against the intersecting object
+            const auto faces = this->GenerateFaces();
+            for (auto& face : faces) {
+                if (face.HasIntersection(rThisGeometry)) {
+                    return true;
+                }
+            }
+            // Let check the second geometry is inside.
+            // Considering there are no intersection, if one point is inside all of it is inside.
+            array_1d<double, 3> local_point;
+            return this->IsInside(rThisGeometry.GetPoint(0), local_point);
+        }
+        // Both geometries are 3D
         array_1d<Plane, 4>  plane;
-        std::vector<BaseType> Intersection;
-
-        //const BaseType& geom_1 = *this;
-        const BaseType& geom_2 = rThisGeometry;
+        std::vector<BaseType> intersections;
 
         GetPlanes(plane);
-        Intersection.push_back(geom_2);
+        intersections.push_back(rThisGeometry);
         for (unsigned int i = 0; i < 4; ++i)
         {
             std::vector<BaseType> inside;
-            for (unsigned int j = 0; j < Intersection.size(); ++j)
+            for (unsigned int j = 0; j < intersections.size(); ++j)
             {
-                SplitAndDecompose(Intersection[j], plane[i], inside);
+                SplitAndDecompose(intersections[j], plane[i], inside);
             }
-            Intersection = inside;
+            intersections = inside;
         }
-
-        return bool (Intersection.size() > 0);
+        return bool (intersections.size() > 0);
     }
 
 
@@ -1480,12 +1494,9 @@ public:
         if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
 
-        CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
-        if(IsInside(rLowPoint,local_coordinates))
-            return true;
-
-        return false;
+        CoordinatesArrayType local_coordinates;
+        return IsInside(rLowPoint,local_coordinates);
     }
 
 
