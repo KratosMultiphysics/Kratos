@@ -258,7 +258,7 @@ def main():
         elif o in ('-p', '--path'):
             try:
                 path = str(a)
-                print("path: {}".format(path))
+                path = os.path.abspath(path)
             except:
                 print('Error: Cannot parse Kratos source directory path containing the tests {}.'.format(a))
                 Usage()

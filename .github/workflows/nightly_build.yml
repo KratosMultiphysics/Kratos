@@ -160,4 +160,4 @@ jobs:
     - name: Running small tests
       shell: bash
       run: |
-        python3 kratos/python_scripts/run_tests.py -l small -c python3 -p "${GITHUB_WORKSPACE}"
+        python3 kratos/python_scripts/run_tests.py -l small -c python3 -p "."
