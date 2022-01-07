@@ -10,6 +10,15 @@ WHEEL_ROOT="/workspace/wheel"
 WHEEL_OUT="/data_swap_guest"
 CORE_LIB_DIR="/workspace/coreLibs"
 
+rm -r /workspace/cmake
+mkdir /workspace/cmake
+wget -P /workspace/cmake https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-linux-x86_64.tar.gz
+tar -C /workspace/cmake -xzf /workspace/cmake/cmake-3.22.1-linux-x86_64.tar.gz
+rm /workspace/cmake/cmake-3.22.1-linux-x86_64.tar.gz
+cmake --version
+export CMAKE=/workspace/cmake/cmake-3.22.1-linux-x86_64/bin/cmake
+
+
 # Created the wheel building directory.
 setup_wheel_dir () {
     cd $KRATOS_ROOT
