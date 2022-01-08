@@ -10,23 +10,23 @@ class WaveTheory:
         self.depth = depth
         if wavelength > 0 and period > 0:
             raise Exception('WaveTheory. Specify only the wavelength or the period.')
-        self.SetPeriod(period)
-        self.SetWavelength(wavelength)
-        self.SetAmplitude(amplitude)
+        if period > 0:
+            self.SetPeriod(period)
+        if wavelength > 0:
+            self.SetWavelength(wavelength)
+        if amplitude > 0:
+            self.SetAmplitude(amplitude)
 
     def SetPeriod(self, period):
-        if period > 0:
-            self.period = period
-            self.wavelength = self._CalculateWavelength(period)
+        self.period = period
+        self.wavelength = self._CalculateWavelength(period)
 
     def SetWavelength(self, wavelength):
-        if wavelength > 0:
-            self.wavelength = wavelength
-            self.period = self._CalculatePeriod(wavelength)
+        self.wavelength = wavelength
+        self.period = self._CalculatePeriod(wavelength)
 
     def SetAmplitude(self, amplitude):
-        if amplitude > 0:
-            self.amplitude = amplitude
+        self.amplitude = amplitude
 
     @property
     def horizontal_velocity(self):

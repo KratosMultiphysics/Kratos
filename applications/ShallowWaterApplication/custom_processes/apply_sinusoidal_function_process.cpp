@@ -60,7 +60,10 @@ int ApplySinusoidalFunctionProcess<TVarType>::Check()
     }
     KRATOS_CHECK(mFrequency < std::numeric_limits<double>::max());
     KRATOS_CHECK(mWavenumber < std::numeric_limits<double>::max());
+    KRATOS_CHECK(mFrequency > 0.0);
+    KRATOS_CHECK(mWavenumber > 0.0);
     KRATOS_CHECK(mDirection.size() == 3);
+    KRATOS_CHECK(norm_2(mDirection) > 0.0);
     return 0;
 }
 
