@@ -34,8 +34,7 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
             "nodal_unknowns": ["TEMPERATURE"],
             "rom_basis_output_format": "json",
             "rom_basis_output_name": "RomParameters",
-            "svd_truncation_tolerance": 1.0e-6,
-            "append_hrom_settings": false
+            "svd_truncation_tolerance": 1.0e-6
         }""")
 
         # Run a "fake" simulation to calculate the ROM basis from its results
@@ -43,26 +42,6 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
 
         # Check results
         check_hrom_settings = False
-        self.__CheckResults(check_hrom_settings)
-
-    def testCalculateRomBasisOutputProcessHRomSettings(self):
-        # Create a CalculateROMBasisOutputProcess instance
-        self.process_settings = KratosMultiphysics.Parameters("""{
-            "model_part_name": "MainModelPart",
-            "snapshots_control_type": "step",
-            "snapshots_interval": 1.0,
-            "nodal_unknowns": ["TEMPERATURE"],
-            "rom_basis_output_format": "json",
-            "rom_basis_output_name": "RomParametersWithHRom",
-            "svd_truncation_tolerance": 1.0e-6,
-            "append_hrom_settings": true
-        }""")
-
-        # Run a "fake" simulation to calculate the ROM basis from its results
-        self.__ExecuteTest(self.process_settings)
-
-        # Check results
-        check_hrom_settings = True
         self.__CheckResults(check_hrom_settings)
 
     def tearDown(self):
