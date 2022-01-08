@@ -24,6 +24,7 @@
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "custom_utilities/derivatives_recovery_utility.h"
+#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -143,7 +144,6 @@ public:
         BaseType::Initialize(rModelPart);
         CalculateNodalAreaProcess<true>(rModelPart).Execute();
         FindGlobalNodalNeighboursProcess(rModelPart).Execute();
-        DerivativesRecoveryUtility<2>::CheckRequiredNeighborsPatch(rModelPart);
         DerivativesRecoveryUtility<2>::CalculatePolynomialWeights(rModelPart);
     }
 
@@ -191,14 +191,19 @@ public:
 
         // Setting to zero the laplacian and the prediction
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(RHS) = ZeroVector(3);
         });
 
         // Recover the laplacian
+        ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
         DerivativesRecoveryUtility<2>::RecoverLaplacian(
             rModelPart,
             VELOCITY,
             VELOCITY_LAPLACIAN);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(
+            rModelPart,
+            MOMENTUM,
+            VELOCITY_H_LAPLACIAN);
 
         // Calculate the prediction
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
@@ -209,9 +214,8 @@ public:
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             array_1d<double,3>& velocity = rNode.FastGetSolutionStepValue(VELOCITY);
             double& free_surface = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-            const array_1d<double,3>& prediction = rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR);
-            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-            const double inv_mass = 1.0 / nodal_area;
+            const array_1d<double,3>& prediction = rNode.FastGetSolutionStepValue(RHS);
+            const double inv_mass = 1.0 / rNode.FastGetSolutionStepValue(NODAL_AREA);
             if (rNode.IsFixed(VELOCITY_X) == false) {
                 velocity[0] += delta_time * inv_mass * prediction[0];
             }
