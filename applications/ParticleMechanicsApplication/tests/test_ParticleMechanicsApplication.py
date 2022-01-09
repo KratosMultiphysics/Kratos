@@ -114,7 +114,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
-
+    
     nightSuite.addTest(TExplicitOscillatingPointUSLTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointUSFTest('test_execution'))
     nightSuite.addTest(TExplicitOscillatingPointMUSLTest('test_execution'))
@@ -144,7 +144,7 @@ def AssembleTestSuites():
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
-    #run_cpp_unit_tests.run()
+    run_cpp_unit_tests.run()
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")
 
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
