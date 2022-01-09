@@ -10,6 +10,7 @@ WHEEL_ROOT="/workspace/wheel"
 WHEEL_OUT="/data_swap_guest"
 CORE_LIB_DIR="/workspace/coreLibs"
 
+# temporarily install newer cmake until the docker image is updated.
 rm -r /workspace/cmake
 mkdir /workspace/cmake
 wget -P /workspace/cmake https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-linux-x86_64.tar.gz
