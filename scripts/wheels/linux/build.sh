@@ -2,10 +2,15 @@
 # PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
 PYTHONS=("cp38")
 export KRATOS_VERSION="9.0.0"
+export KRATOS_BUILD_TYPE="Custom"
+
+export HASH=$(git show -s --format=%h) # Used in version number
+if [ "${KRATOS_BUILD_TYPE}" != "Release" ] then
+    export KRATOS_VERSION="${KRATOS_VERSION}.dev-${HASH}"
+fi
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
-export KRATOS_BUILD_TYPE="Custom"
 WHEEL_ROOT="/workspace/wheel"
 WHEEL_OUT="/data_swap_guest"
 CORE_LIB_DIR="/workspace/coreLibs"
@@ -173,7 +178,6 @@ do
     build_interface $PYTHON_LOCATION $PREFIX_LOCATION
 
 	cd $KRATOS_ROOT
-	export HASH=$(git show -s --format=%h) # Used in version number
 	export LD_LIBRARY_PATH=${PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
 	echo $LD_LIBRARY_PATH
 
