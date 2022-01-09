@@ -20,6 +20,7 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "includes/key_hash.h"
 #include "includes/node.h"
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
@@ -50,11 +51,8 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
-    using NodesPointerSet = std::set<NodeType::Pointer, IndexedObjectPointerComparator<NodeType::Pointer>>;
-
-    using ElementsPointerSet = std::set<Element::Pointer, IndexedObjectPointerComparator<Element::Pointer>>;
-
-    using ConditionsPointerSet = std::set<Condition::Pointer, IndexedObjectPointerComparator<Condition::Pointer>>;
+    using NodesPointerSet = ModelPart::NodesContainerType;
+    // using NodesPointerSet = std::set<NodeType::Pointer, IndexedObjectPointerComparator<NodeType::Pointer>>;
 
     ///@}
     ///@name Static Operations
@@ -95,8 +93,8 @@ public:
 
     static void RecursiveHRomModelPartCreation(
         const NodesPointerSet& rNodesSet,
-        const ElementsPointerSet& rElementsSet,
-        const ConditionsPointerSet& rConditionsSet,
+        const std::vector<Element::Pointer>& rElementsVector,
+        const std::vector<Condition::Pointer>& rConditionsVector,
         const ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart);
 

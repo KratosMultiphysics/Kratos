@@ -19,22 +19,23 @@ class HRomTrainingUtility(object):
 
     def __init__(self, solver, custom_settings):
         # Validate and assign the HROM training settings
-        settings = custom_settings["hrom_settings"].ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
+        settings = custom_settings["hrom_settings"]
+        settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
 
         # Create the HROM element selector
         element_selection_type = settings["element_selection_type"].GetString()
         if element_selection_type == "empirical_cubature":
             self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
-            self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetBool()
+            self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
         else:
             err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(element_selection_type)
             raise Exception(err_msg)
 
         # Auxiliary member variables
         self.solver = solver
-        self.rom_settings = settings["rom_settings"]
-        self.echo_level = settings["echo_level"].GetInt()
         self.time_step_residual_matrix_container = []
+        self.echo_level = settings["echo_level"].GetInt()
+        self.rom_settings = custom_settings["rom_settings"]
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -47,7 +48,7 @@ class HRomTrainingUtility(object):
             self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
                 computing_model_part,
                 self.rom_settings,
-                self.solver.GetScheme())
+                self.solver._GetScheme())
 
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
@@ -69,7 +70,7 @@ class HRomTrainingUtility(object):
 
     def CreateHRomModelParts(self):
         # Get solver data
-        model_part_name = self.solver_settings["model_part_name"].GetString()
+        model_part_name = self.solver.settings["model_part_name"].GetString()
         model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
         computing_model_part = self.solver.GetComputingModelPart()
 
@@ -80,17 +81,17 @@ class HRomTrainingUtility(object):
 
         # Get the weights and fill the HROM computing model part
         with open('RomParameters.json','r') as f:
-            rom_parameters = json.load(f)
+            rom_parameters = KratosMultiphysics.Parameters(f.read())
         hrom_computing_model_part = hrom_main_model_part.CreateSubModelPart("COMPUTE_HROM") #TODO: Use the Kratos naming convention
-        KratosROM.RomAuxiliaryUtilitiies.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_computing_model_part)
+        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_computing_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_computing_model_part.FullName()))
 
         # Create the HROM visualization model part
-        set_visualization_modelpart = True #TODO: Make this user-definable
+        set_visualization_modelpart = False #TODO: Make this user-definable
         if set_visualization_modelpart:
-            hrom_visualization_model_part = hrom_main_model_part.CreateSubModelPart("COMPUTE_HROM") #TODO: Use the Kratos naming convention
-            KratosROM.RomAuxiliaryUtilities.SetHRomVisualizatoinModelPart(computing_model_part, hrom_visualization_model_part)
+            hrom_visualization_model_part = hrom_main_model_part.CreateSubModelPart("VISUALIZATION_HROM") #TODO: Use the Kratos naming convention
+            KratosROM.RomAuxiliaryUtilities.SetHRomVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
 
@@ -153,11 +154,14 @@ class HRomTrainingUtility(object):
         # We first parse the current RomParameters.json to then append and edit the data
         with open('RomParameters.json','r') as f:
             updated_rom_parameters = json.load(f)
-            updated_rom_parameters["train_hrom"] = False
-            updated_rom_parameters["run_hrom"] = True
-            updated_rom_parameters["hrom_weights"] = hrom_weights
+            #FIXME: I don't really like to automatically change things without the user realizing...
+            #FIXME: However, this leaves the settings ready for the HROM postprocess... something that is cool
+            #FIXME: Decide about this
+            # updated_rom_parameters["train_hrom"] = False
+            # updated_rom_parameters["run_hrom"] = True
+            updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
 
         with open('RomParameters.json','w') as f:
-            json.dump(updated_rom_parameters,f, indent = 4)
+            json.dump(updated_rom_parameters, f, indent = 4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")

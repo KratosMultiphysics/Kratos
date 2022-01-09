@@ -35,47 +35,68 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     // Ensure that the provided destination model part is empty
     rHRomComputingModelPart.Clear();
 
-    // Auxiliary set to save the nodes involved in the HROM mesh
+    // Auxiliary containers to save the entities involved in the HROM mesh
+    // Note that we use a set for the nodes to make sure that the same node is not added by more than one element/condition
     NodesPointerSet hrom_nodes_set;
-    ElementsPointerSet hrom_elems_set;
-    ConditionsPointerSet hrom_conds_set;
+    std::vector<Element::Pointer> hrom_elems_vect;
+    std::vector<Condition::Pointer> hrom_conds_vect;
 
     const auto& r_elem_weights = HRomWeights["Elements"];
+    hrom_elems_vect.reserve(rOriginModelPart.NumberOfElements());
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
+        // Get element from origin mesh
         const IndexType elem_id = stoi(it.name());
         const auto p_elem = rOriginModelPart.pGetElement(elem_id);
-        hrom_elems_set.insert(hrom_elems_set.end(), p_elem);
+
+        // Add the element to the auxiliary container and to the main HROM model part
+        hrom_elems_vect.push_back(p_elem);
+        rHRomComputingModelPart.AddElement(p_elem);
+
+        // Add the element nodes to the auxiliary set and to the main HROM model part
         const auto& r_geom = p_elem->GetGeometry();
         const SizeType n_nodes = r_geom.PointsNumber();
-        for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            auto p_node = r_geom(i_node);
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            NodeType::Pointer p_node = r_geom(i_node);
             hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+            rHRomComputingModelPart.AddNode(p_node);
         }
     }
+    hrom_elems_vect.shrink_to_fit();
 
     const auto& r_cond_weights = HRomWeights["Conditions"];
+    hrom_conds_vect.reserve(rOriginModelPart.NumberOfConditions());
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+        // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
-        const auto p_cond = rOriginModelPart.pGetCondition(cond_id);
-        hrom_conds_set.insert(hrom_conds_set.end(), p_cond);
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id);
+
+        // Add the condition to the auxiliary container and to the main HROM model part
+        hrom_conds_vect.push_back(p_cond);
+        rHRomComputingModelPart.AddCondition(p_cond);
+
+        // Add the condition nodes to the auxiliary set and to the main HROM model part
         const auto& r_geom = p_cond->GetGeometry();
         const SizeType n_nodes = r_geom.PointsNumber();
-        for(IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             auto p_node = r_geom(i_node);
             hrom_nodes_set.insert(hrom_nodes_set.end(), p_node);
+            rHRomComputingModelPart.AddNode(p_node);
         }
     }
+    hrom_conds_vect.shrink_to_fit();
 
-    // Create and fill the HROM calculation model part
+    //TODO: ADD MPC'S
+
+    // Create and fill the HROM calculation sub model parts
     for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
-        RecursiveHRomModelPartCreation(hrom_nodes_set, hrom_elems_set, hrom_conds_set, r_orig_sub_mp, rHRomComputingModelPart);
+        RecursiveHRomModelPartCreation(hrom_nodes_set, hrom_elems_vect, hrom_conds_vect, r_orig_sub_mp, rHRomComputingModelPart);
     }
 }
 
 void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
     const NodesPointerSet& rNodesSet,
-    const ElementsPointerSet& rElementsSet,
-    const ConditionsPointerSet& rConditionsSet,
+    const std::vector<Element::Pointer>& rElementsVector,
+    const std::vector<Condition::Pointer>& rConditionsVector,
     const ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart)
 {
@@ -83,50 +104,42 @@ void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
     auto& r_hrom_sub_mp = rDestinationModelPart.CreateSubModelPart(rOriginModelPart.Name());
 
     // Add nodes
-    SizeType n_orig_nodes = rOriginModelPart.NumberOfNodes();
-    #pragma omp parallel for
-    for (IndexType i_node = 0; i_node < n_orig_nodes; ++i_node) {
-        auto it_node = rOriginModelPart.NodesBegin() + i_node;
-        auto p_orig_node = rOriginModelPart.pGetNode(it_node->Id());
-        if (rNodesSet.find(p_orig_node) != rNodesSet.end()) {
-            #pragma omp critical
-            {
-                rDestinationModelPart.AddNode(p_orig_node);
-            }
+    std::vector<IndexType> aux_node_ids;
+    aux_node_ids.reserve(rOriginModelPart.NumberOfNodes());
+    for (const auto& r_node : rOriginModelPart.Nodes()) {
+        if (rNodesSet.find(r_node.Id()) != rNodesSet.end()) {
+            aux_node_ids.push_back(r_node.Id());
         }
     }
+    r_hrom_sub_mp.AddNodes(aux_node_ids);
 
     // Add elements
-    SizeType n_orig_elems = rOriginModelPart.NumberOfElements();
-    #pragma omp parallel for
-    for (IndexType i_elem = 0; i_elem < n_orig_elems; ++i_elem) {
-        auto it_elem = rOriginModelPart.ElementsBegin() + i_elem;
-        auto p_orig_elem = rOriginModelPart.pGetElement(it_elem->Id());
-        if (rElementsSet.find(p_orig_elem) != rElementsSet.end()) {
-            #pragma omp critical
-            {
-                rDestinationModelPart.AddElement(p_orig_elem);
-            }
+    std::vector<IndexType> aux_elem_ids;
+    aux_elem_ids.reserve(rOriginModelPart.NumberOfElements());
+    for (const auto& r_elem : rOriginModelPart.Elements()) {
+        auto is_found = [&r_elem](Element::Pointer p_elem){return r_elem.Id() == p_elem->Id();};
+        if (std::find_if(rElementsVector.begin(), rElementsVector.end(), is_found) != rElementsVector.end()) {
+            aux_elem_ids.push_back(r_elem.Id());
         }
     }
+    r_hrom_sub_mp.AddElements(aux_elem_ids);
 
     // Add conditions
-    SizeType n_orig_conds = rOriginModelPart.NumberOfConditions();
-    #pragma omp parallel for
-    for (IndexType i_cond = 0; i_cond < n_orig_conds; ++i_cond) {
-        auto it_cond = rOriginModelPart.ConditionsBegin() + i_cond;
-        auto p_orig_cond = rOriginModelPart.pGetCondition(it_cond->Id());
-        if (rConditionsSet.find(p_orig_cond) != rConditionsSet.end()) {
-            #pragma omp critical
-            {
-                rDestinationModelPart.AddCondition(p_orig_cond);
-            }
+    std::vector<IndexType> aux_cond_ids;
+    aux_cond_ids.reserve(rOriginModelPart.NumberOfConditions());
+    for (const auto& r_cond : rOriginModelPart.Conditions()) {
+        auto is_found = [&r_cond](Condition::Pointer p_cond){return r_cond.Id() == p_cond->Id();};
+        if (std::find_if(rConditionsVector.begin(), rConditionsVector.end(), is_found) != rConditionsVector.end()) {
+            aux_cond_ids.push_back(r_cond.Id());
         }
     }
+    r_hrom_sub_mp.AddConditions(aux_cond_ids);
+
+    //TODO: ADD MPCs
 
     // Recursive addition
     for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
-        RecursiveHRomModelPartCreation(rNodesSet, rElementsSet, rConditionsSet, r_orig_sub_mp, r_hrom_sub_mp);
+        RecursiveHRomModelPartCreation(rNodesSet, rElementsVector, rConditionsVector, r_orig_sub_mp, r_hrom_sub_mp);
     }
 }
 
