@@ -6,7 +6,8 @@ export KRATOS_BUILD_TYPE="Custom"
 
 export HASH=$(git show -s --format=%h) # Used in version number
 if [[ "${KRATOS_BUILD_TYPE}" != "Release" ]]; then
-    export KRATOS_VERSION="${KRATOS_VERSION}.dev.${HASH}"
+    DATE=$(date '+%Y%m%d')
+    export KRATOS_VERSION="${KRATOS_VERSION}.dev${DATE}"
 fi
 
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
