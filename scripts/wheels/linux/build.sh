@@ -5,7 +5,7 @@ export KRATOS_VERSION="9.0.0"
 export KRATOS_BUILD_TYPE="Custom"
 
 export HASH=$(git show -s --format=%h) # Used in version number
-if [ "${KRATOS_BUILD_TYPE}" != "Release" ]; then
+if [[ "${KRATOS_BUILD_TYPE}" != "Release" ]]; then
     export KRATOS_VERSION="${KRATOS_VERSION}.dev-${HASH}"
 fi
 
