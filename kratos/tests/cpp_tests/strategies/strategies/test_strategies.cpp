@@ -299,14 +299,21 @@ namespace Kratos
             ConvergenceCriteriaType::Pointer pcriteria = ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
             BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
             Parameters settings(R"({
-                "desired_iterations"       : 4,
-                "max_radius_factor"        : 10.0,
-                "min_radius_factor"        : 0.1,
-                "loads_sub_model_part_list": [],
-                "loads_variable_list"      : []
+
+                "max_iteration"            : 30,
+                "compute_reactions"        : true,
+                "reform_dofs_at_each_step" : true,
+                "move_mesh_flag"           : true,
+                "advanced_settings"        : {
+                    "desired_iterations"       : 4,
+                    "max_radius_factor"        : 10.0,
+                    "min_radius_factor"        : 0.1,
+                    "loads_sub_model_part_list": [],
+                    "loads_variable_list"      : []
+                }
             })");
 
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ArcLengthStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, settings, 10, true, true, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ArcLengthStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, settings));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
 
