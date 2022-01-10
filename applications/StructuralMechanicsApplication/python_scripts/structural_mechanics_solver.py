@@ -459,10 +459,6 @@ class MechanicalSolver(PythonSolver):
                 kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
                 if self.settings["line_search"].GetBool():
                     self.settings["solving_strategy_settings"]["type"].SetString("line_search")
-            if self.settings.Has("arc_length"):
-                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "arc_length", please move it to "solving_strategy_settings" as "type"')
-                if self.settings["arc_length"].GetBool():
-                    self.settings["solving_strategy_settings"]["type"].SetString("arc_length")
             # Create strategy
             if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                 mechanical_solution_strategy = self._create_newton_raphson_strategy()
