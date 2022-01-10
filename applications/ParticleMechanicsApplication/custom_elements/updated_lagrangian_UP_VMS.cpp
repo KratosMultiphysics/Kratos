@@ -517,7 +517,25 @@ void UpdatedLagrangianUPVMS::ComputeElementSize(double& ElemSize){
     }
         
         KRATOS_CATCH("")
-}
+} 
+
+
+/*double UpdatedLagrangianUPVMS::ComputeElementSize(BoundedMatrix<double,TNumNodes, TDim>& DN_DX){
+
+        double h=0.0;
+        for(unsigned int i=0; i<TNumNodes; i++)
+        {
+            double h_inv = 0.0;
+            for(unsigned int k=0; k<TDim; k++)
+            {
+                h_inv += DN_DX(i,k)*DN_DX(i,k);
+            }
+            h += 1.0/h_inv;
+        }
+        h = sqrt(h)/static_cast<double>(TNumNodes);
+        return h;
+    }
+} */
 
 // Calculate stabilization parameters
 
@@ -532,13 +550,9 @@ void UpdatedLagrangianUPVMS::CalculateTaus(
     const double constant2=2.0;
     double characteristic_element_size;
 
-    ComputeElementSize(characteristic_element_size);
+     ComputeElementSize(characteristic_element_size);
 
-    // Stabilization alpha parameters
-    /*double alpha_stabilization  = 1.0;
-    if( GetProperties().Has(STABILIZATION_FACTOR) ){
-        alpha_stabilization = GetProperties()[STABILIZATION_FACTOR];
-    } */
+    //characteristic_element_size = ComputeElementSize(rVariables.DN_DX)
 
     double shear_modulus = 0;
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
@@ -547,35 +561,25 @@ void UpdatedLagrangianUPVMS::CalculateTaus(
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
         shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
         
-       rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * shear_modulus);
-       rVariables.tau2 = 2 * constant2 * shear_modulus;
+        rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * shear_modulus);
+        rVariables.tau2 = 2 * constant2 * shear_modulus;
 
     }
     else if (GetProperties().Has(DYNAMIC_VISCOSITY))
     {
-        /*
-        Stabilization parameter for shallow water: 
-        alpha stabilization = c_tau/sqrt(h)
-        h: characteristic water depth
-        c_tau : [0.1, 1]
-        */
-        /*double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
-        alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
-        */
-       const double& viscosity = GetProperties()[DYNAMIC_VISCOSITY];
-       rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * viscosity);
-       rVariables.tau2 = 2 * constant2 * viscosity;
+
+        const double& viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+        rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * viscosity);
+        rVariables.tau2 = 2 * constant2 * viscosity;
 
     }
     else
     {
-        KRATOS_ERROR << "No pressure stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
+        KRATOS_ERROR << "No stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
     }
-
 
     KRATOS_CATCH( "" )
 }
-
 
 
 //************************************************************************************
@@ -810,16 +814,25 @@ void UpdatedLagrangianUPVMS::CalculateAndAddLHS(
         CalculateAndAddKuugUP(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
     }
 
+    // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
+    CalculateAndAddKuuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
     // Operation performed: add Kup to the rLefsHandSideMatrix
     CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    // Operation performed: add Kpu to the rLefsHandSideMatrix
+    // Operation performed: add Kup stabilization to the rLefsHandSideMatrix
+    CalculateAndAddKupStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    // Operations performed: add Kpu to the rLefsHandSideMatrix
     CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    // Operations performed: add Kpu stabilization to the rLefsHandSideMatrix
+    CalculateAndAddKpuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp to the rLefsHandSideMatrix
     //CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    // Operation performed: add Kpp_Stab to the rLefsHandSideMatrix
+    // Operation performed: add Kpp stabilization to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     //rVariables.detF     = determinant_F;

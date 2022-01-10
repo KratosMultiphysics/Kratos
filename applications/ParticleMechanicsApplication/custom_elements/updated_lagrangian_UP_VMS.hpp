@@ -247,6 +247,8 @@ protected:
 
    void ComputeElementSize(double& ElementSize);
 
+   // double ComputeElementSize(BoundedMatrix<double,TNumNodes, TDim>& DN_DX );
+
        /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
