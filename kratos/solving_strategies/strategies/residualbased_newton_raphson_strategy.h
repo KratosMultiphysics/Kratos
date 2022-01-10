@@ -1097,7 +1097,8 @@ class ResidualBasedNewtonRaphsonStrategy
             "builder_and_solver_settings"         : {},
             "convergence_criteria_settings"       : {},
             "linear_solver_settings"              : {},
-            "scheme_settings"                     : {}
+            "scheme_settings"                     : {},
+            "advanced_settings"                   : {}
         })");
 
         // Getting base class default parameters
