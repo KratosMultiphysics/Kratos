@@ -311,8 +311,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Recompute the distance field according to the new level-set position
             if self._reinitialization_type != "none":
                 self._GetDistanceReinitializationProcess().Execute()
-        
-            if (self._reinitialization_type != "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
             # Prepare distance correction for next step
