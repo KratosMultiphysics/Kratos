@@ -5,6 +5,7 @@ import glob
 import shutil
 
 kratos_version = os.environ["KRATOS_VERSION"]
+kratos_build_type = os.environ["KRATOS_BUILD_TYPE"]
 
 def replaceKeyword(str):
     return str.replace("${KRATOS_VERSION}", kratos_version).replace("${PYTHON}", os.environ["PYTHON"])
@@ -24,10 +25,10 @@ else:
     long_description = "Readme file not found"
 
 for module in conf["included_modules"]:
-    shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
+    shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", kratos_build_type, replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
 
 for binary in conf["included_binaries"]:
-    for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
+    for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", kratos_build_type, replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
         print("Adding {} matching binary: {}".format(file, binary))
         shutil.copy(file, os.path.join("KratosMultiphysics", ".libs"))
 
