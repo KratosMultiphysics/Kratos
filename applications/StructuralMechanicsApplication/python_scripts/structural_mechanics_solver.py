@@ -117,7 +117,7 @@ class MechanicalSolver(PythonSolver):
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
             "solving_strategy_settings": {
-                "strategy_type" : "newton_raphson",
+                "type" : "newton_raphson",
                 "advanced_settings" : {
                     "desired_iterations" : 4,
                     "max_radius_factor" : 10.0,
@@ -462,19 +462,19 @@ class MechanicalSolver(PythonSolver):
         elif analysis_type == "non_linear":
             # Deprecation checks
             if self.settings.Has("line_search"):
-                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "strategy_type"')
+                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
                 if self.settings["line_search"].GetBool():
-                    self.settings["solving_strategy_settings"]["strategy_type"].SetString("line_search")
+                    self.settings["solving_strategy_settings"]["type"].SetString("line_search")
             if self.settings.Has("arc_length"):
-                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "arc_length", please move it to "solving_strategy_settings" as "strategy_type"')
+                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "arc_length", please move it to "solving_strategy_settings" as "type"')
                 if self.settings["arc_length"].GetBool():
-                    self.settings["solving_strategy_settings"]["strategy_type"].SetString("arc_length")
+                    self.settings["solving_strategy_settings"]["type"].SetString("arc_length")
             # Create strategy
-            if self.settings["solving_strategy_settings"]["strategy_type"].GetString() == "newton_raphson":
+            if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                 mechanical_solution_strategy = self._create_newton_raphson_strategy()
-            elif self.settings["solving_strategy_settings"]["strategy_type"].GetString() == "line_search":
+            elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
                 mechanical_solution_strategy = self._create_line_search_strategy()
-            elif self.settings["solving_strategy_settings"]["strategy_type"].GetString() == "arc_length":
+            elif self.settings["solving_strategy_settings"]["type"].GetString() == "arc_length":
                 mechanical_solution_strategy = self._create_arc_length_strategy()
 
         else:
