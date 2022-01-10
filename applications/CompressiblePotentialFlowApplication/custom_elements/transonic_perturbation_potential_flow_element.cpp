@@ -131,7 +131,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::EquationIdVecto
 
     if (wake == 0) // Normal element
     {
-        if (r_this.IsNot(INLET) and (r_this.Is(ACTIVE) or r_this.IsNotDefined(ACTIVE))) {
+        if ((r_this.IsNot(INLET)) and (r_this.Is(ACTIVE) or r_this.IsNotDefined(ACTIVE))) {
             if (rResult.size() != TNumNodes + 1) {
                 rResult.resize(TNumNodes + 1, false);
             }
