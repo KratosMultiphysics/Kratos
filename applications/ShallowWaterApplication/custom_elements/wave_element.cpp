@@ -21,9 +21,9 @@
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_friction_laws/manning_law.h"
-#include "custom_utilities/shallow_water_utilities.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_application_variables.h"
+#include "custom_friction_laws/friction_laws_factory.h"
 
 namespace Kratos
 {
@@ -43,7 +43,6 @@ int WaveElement<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, r_node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MANNING, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VERTICAL_VELOCITY, r_node)
@@ -133,7 +132,7 @@ void WaveElement<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_ERROR << "WaveElement::GetSecondDerivativesVector This method is not supported by the formulation" << std::endl;
+    KRATOS_ERROR << "WaveElement::GetSecondDerivativesVector. This method is not supported by the formulation" << std::endl;
 }
 
 template<std::size_t TNumNodes>
@@ -155,12 +154,12 @@ const Variable<double>& WaveElement<TNumNodes>::GetUnknownComponent(int Index) c
         case 0: return VELOCITY_X;
         case 1: return VELOCITY_Y;
         case 2: return HEIGHT;
-        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent index out of bounds." << std::endl;
+        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent. Index out of bounds." << std::endl;
     }
 }
 
 template<std::size_t TNumNodes>
-typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnknownVector(ElementData& rData)
+typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
 {
     std::size_t index = 0;
     array_1d<double,mLocalSize> unknown;
@@ -173,14 +172,30 @@ typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnkn
 }
 
 template<std::size_t TNumNodes>
+typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetAccelerationsVector(const ElementData& rData) const
+{
+    std::size_t index = 0;
+    array_1d<double,mLocalSize> accelerations;
+    for (std::size_t i = 0; i < TNumNodes; ++i) {
+        accelerations[index++] = rData.nodal_a[i][0];
+        accelerations[index++] = rData.nodal_a[i][1];
+        accelerations[index++] = rData.nodal_w[i];
+    }
+    return accelerations;
+}
+
+template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
 {
+    rData.integrate_by_parts = rCurrentProcessInfo[INTEGRATE_BY_PARTS]; //since it is passed as const it will return false if it doesn't have INTEGRATE_BY_PARTS
     rData.stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
-    rData.p_bottom_friction = Kratos::make_shared<ManningLaw>();
-    rData.p_bottom_friction->Initialize(this->GetGeometry(), rCurrentProcessInfo);
+    rData.amplitude = rCurrentProcessInfo[AMPLITUDE];
+    rData.wavelength = rCurrentProcessInfo[WAVELENGTH];
+    rData.p_bottom_friction = FrictionLawsFactory().CreateBottomFrictionLaw(
+        this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 }
 
 template<std::size_t TNumNodes>
@@ -190,10 +205,13 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
 
     for (IndexType i = 0; i < TNumNodes; i++)
     {
+        rData.nodal_f[i] = rGeometry[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, Step);
         rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
+        rData.nodal_w[i] = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         rData.nodal_q[i] = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, Step);
+        rData.nodal_a[i] = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
     }
 }
 
@@ -236,10 +254,18 @@ void WaveElement<TNumNodes>::CalculateGaussPointData(
 }
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateArtificialViscosityData(
-    ElementData& rData,
-    const array_1d<double,TNumNodes>& rN,
+void WaveElement<TNumNodes>::CalculateArtificialViscosity(
+    BoundedMatrix<double,3,3>& rViscosity,
+    BoundedMatrix<double,2,2>& rDiffusion,
+    const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateArtificialDamping(
+    BoundedMatrix<double,3,3>& rFriction,
+    const ElementData& rData)
 {
 }
 
@@ -252,7 +278,8 @@ void WaveElement<TNumNodes>::CalculateGeometryData(
     Vector det_j_vector;
     const auto& r_geom = this->GetGeometry();
     const auto integration_method = r_geom.GetDefaultIntegrationMethod();
-    r_geom.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method, rNContainer);
+    rNContainer = r_geom.ShapeFunctionsValues(integration_method);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method);
 
     const unsigned int number_of_gauss_points = r_geom.IntegrationPointsNumber(integration_method);
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
@@ -273,7 +300,6 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
-    const bool integrate_by_parts = false;
     const auto z = rData.nodal_z;
     const double l = StabilizationParameter(rData);
 
@@ -293,7 +319,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             double g1_ij;
             double g2_ij;
             double d_ij;
-            if (integrate_by_parts) {
+            if (rData.integrate_by_parts) {
                 g1_ij = -rDN_DX(i,0) * rN[j];
                 g2_ij = -rDN_DX(i,1) * rN[j];
             } else {
@@ -348,6 +374,10 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     Sf(0,0) = rData.gravity*s;
     Sf(1,1) = rData.gravity*s;
 
+    BoundedMatrix<double,3,3> art_s = ZeroMatrix(3,3);
+    this->CalculateArtificialDamping(art_s, rData);
+    Sf += art_s;
+
     BoundedMatrix<double,3,3> ASf1 = prod(rData.A1, Sf);
     BoundedMatrix<double,3,3> ASf2 = prod(rData.A2, Sf);
 
@@ -369,12 +399,57 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
 }
 
 template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::AddDispersiveTerms(
+    LocalVectorType& rVector,
+    const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+    const double Weight)
+{}
+
+template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     LocalMatrixType& rMatrix,
     const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
-{}
+{
+    BoundedMatrix<double,3,3> D = ZeroMatrix(3,3);
+    BoundedMatrix<double,2,2> C = ZeroMatrix(2,2);
+    BoundedMatrix<double,2,3> biq = ZeroMatrix(2,3);
+    BoundedMatrix<double,2,3> bjq = ZeroMatrix(2,3);
+    BoundedMatrix<double,3,2> tmp = ZeroMatrix(3,2);
+    array_1d<double,2> bih = ZeroVector(2);
+    array_1d<double,2> bjh = ZeroVector(2);
+
+    this->CalculateArtificialViscosity(D, C, rData, rDN_DX);
+
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        for (IndexType j = 0; j < TNumNodes; ++j)
+        {
+            biq(0,0) = rDN_DX(i,0);
+            biq(0,2) = rDN_DX(i,1);
+            biq(1,1) = rDN_DX(i,1);
+            biq(1,2) = rDN_DX(i,0);
+
+            bjq(0,0) = rDN_DX(j,0);
+            bjq(0,2) = rDN_DX(j,1);
+            bjq(1,1) = rDN_DX(j,1);
+            bjq(1,2) = rDN_DX(j,0);
+
+            bih[0] = rDN_DX(i,0);
+            bih[1] = rDN_DX(i,1);
+
+            bjh[0] = rDN_DX(j,0);
+            bjh[1] = rDN_DX(j,1);
+
+            tmp = prod(D, trans(bjq));
+            MathUtils<double>::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
+            rMatrix(3*i + 2, 3*j + 2) += inner_prod(bih, Weight*prod(C, bjh));
+        }
+    }
+}
 
 template<>
 void WaveElement<3>::AddMassTerms(
@@ -452,7 +527,7 @@ double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData) const
 {
     const double height = rData.height;
     const double epsilon = rData.relative_dry_height * rData.length;
-    return ShallowWaterUtilities().InverseHeight(height, epsilon);
+    return PhaseFunction::InverseHeight(height, epsilon);
 }
 
 template<std::size_t TNumNodes>
@@ -467,6 +542,7 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
     }
     return result;
 }
+
 
 template<>
 void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -494,6 +570,7 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 
     AddWaveTerms(lhs, rhs, data, N, DN_DX);
     AddFrictionTerms(lhs, rhs, data, N, DN_DX);
+    AddDispersiveTerms(rhs, data, N, DN_DX);
     AddArtificialViscosityTerms(lhs, data, DN_DX);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -502,6 +579,7 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     noalias(rLeftHandSideMatrix) = area * lhs;
     noalias(rRightHandSideVector) = area * rhs;
 }
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -536,6 +614,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddDispersiveTerms(rhs, data, N, DN_DX, weight);
         AddArtificialViscosityTerms(lhs, data, DN_DX, weight);
     }
 
@@ -545,6 +624,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     noalias(rLeftHandSideMatrix) = lhs;
     noalias(rRightHandSideVector) = rhs;
 }
+
 
 template<>
 void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
@@ -570,6 +650,7 @@ void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
 
     noalias(rMassMatrix) = area * mass_matrix;
 }
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
@@ -602,6 +683,7 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
     }
     noalias(rMassMatrix) = mass_matrix;
 }
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)

@@ -42,11 +42,9 @@ void WaveElementSteadyStateTest(
     ShallowWaterTestsUtilities::AddVariables(model_part);
 
     // Process info creation
-    const double gravity = 9.81;
-    const double stab_factor = 0.01;
     ProcessInfo& r_process_info = model_part.GetProcessInfo();
-    r_process_info.SetValue(GRAVITY_Z, gravity);
-    r_process_info.SetValue(STABILIZATION_FACTOR, stab_factor);
+    r_process_info.SetValue(GRAVITY_Z, 9.81);
+    r_process_info.SetValue(STABILIZATION_FACTOR, 0.01);
 
     // Geometry creation
     ShallowWaterTestsUtilities::CreateGeometry(model_part, "WaveElement2D3N", "WaveCondition2D2N");

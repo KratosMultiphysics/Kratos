@@ -21,9 +21,8 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/mesh_moving_variables.h"
 #include "shallow_water_application_variables.h"
-#include "custom_friction_laws/manning_law.h"
-#include "custom_friction_laws/wind_water_friction.h"
-#include "custom_utilities/shallow_water_utilities.h"
+#include "custom_friction_laws/friction_laws_factory.h"
+#include "custom_utilities/phase_function.h"
 #include "shallow_water_2d_3.h"
 
 namespace Kratos
@@ -45,7 +44,6 @@ int ShallowWater2D3::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RAIN, node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WIND, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ATMOSPHERIC_PRESSURE, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION, node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VERTICAL_VELOCITY, node)
@@ -167,11 +165,8 @@ void ShallowWater2D3::CalculateLocalSystem(
     data.boundary_velocity = rCurrentProcessInfo[BOUNDARY_VELOCITY];
     ComputeDampingCoefficient(data.damping, rCurrentProcessInfo[ABSORBING_DISTANCE], rCurrentProcessInfo[DISSIPATION]);
 
-    data.pBottomFriction = Kratos::make_shared<ManningLaw>();
-    data.pBottomFriction->Initialize(GetGeometry(), rCurrentProcessInfo);
-
-    data.pSurfaceFriction = Kratos::make_shared<WindWaterFriction>();
-    data.pSurfaceFriction->Initialize(GetGeometry(), rCurrentProcessInfo);
+    data.pBottomFriction = FrictionLawsFactory().CreateBottomFrictionLaw(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+    data.pSurfaceFriction = FrictionLawsFactory().CreateSurfaceFrictionLaw(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 
@@ -284,7 +279,7 @@ void ShallowWater2D3::AddSourceTerms(
 
     // Friction term
     rLHS += rData.gravity * rData.pBottomFriction->CalculateLHS(rData.height, rData.velocity) * flow_mass_matrix;
-    rLHS -= rData.gravity * rData.pSurfaceFriction->CalculateLHS(ZeroVector(3), rData.wind) * flow_mass_matrix;
+    rLHS -= rData.gravity * rData.pSurfaceFriction->CalculateLHS(ZeroVector(3)) * flow_mass_matrix;
 
     // Newtonian damper for the absorbing boundaries
     rLHS += rData.damping * flow_mass_matrix;
@@ -321,7 +316,7 @@ void ShallowWater2D3::AddDesingularizationTerm(
     const ElementData& rData)
 {
     double factor = 1e3 / GetGeometry().Length();
-    factor *= 1.0 - ShallowWaterUtilities().WetFraction(rData.height, rData.dry_height);
+    factor *= 1.0 - PhaseFunction::WetFraction(rData.height, rData.dry_height);
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rLHS(block, block) += factor;
@@ -367,7 +362,6 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
     height = 0.0;
     flow_rate = ZeroVector(3);
     velocity = ZeroVector(3);
-    wind = ZeroVector(3);
 
     for (size_t i = 0; i < 3; i++)
     {
@@ -380,7 +374,6 @@ void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, c
         height += h;
         flow_rate += f;
         velocity += rGeometry[i].FastGetSolutionStepValue(VELOCITY);
-        wind += rGeometry[i].FastGetSolutionStepValue(WIND);
 
         topography[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rain[i] = rGeometry[i].FastGetSolutionStepValue(RAIN);
@@ -928,7 +921,7 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const double length = this->GetGeometry().Length();
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
-    const double wet_fraction = ShallowWaterUtilities().WetFraction(rData.height, rData.dry_height);
+    const double wet_fraction = PhaseFunction::WetFraction(rData.height, rData.dry_height);
 
     return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
 }
