@@ -68,6 +68,8 @@
 #include "processes/from_json_check_result_process.h"
 #include "processes/set_initial_state_process.h"
 #include "processes/split_internal_interfaces_process.h"
+#include "processes/parallel_distance_calculator_process.h"
+
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -303,6 +305,18 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
+    ;
+
+    py::class_<ParallelDistanceCalculatorProcess<2>, ParallelDistanceCalculatorProcess<2>::Pointer, Process>(m,"ParallelDistanceCalculatorProcess2D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double>())
+        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double, const bool>())
+    ;
+
+    py::class_<ParallelDistanceCalculatorProcess<3>, ParallelDistanceCalculatorProcess<3>::Pointer, Process>(m,"ParallelDistanceCalculatorProcess3D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")

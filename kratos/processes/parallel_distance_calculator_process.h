@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "process.h"
 
 namespace Kratos
 {
@@ -54,7 +55,7 @@ namespace Kratos
 /** Detail class definition.
 */
 template <unsigned int TDim>
-class KRATOS_API(KRATOS_CORE) ParallelDistanceCalculator
+class KRATOS_API(KRATOS_CORE) ParallelDistanceCalculatorProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -62,23 +63,34 @@ public:
 
     typedef Node<3> NodeType;
 
-    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
-
-    /// Pointer definition of ParallelDistanceCalculator
-    KRATOS_CLASS_POINTER_DEFINITION(ParallelDistanceCalculator);
+    /// Pointer definition of ParallelDistanceCalculatorProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ParallelDistanceCalculatorProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    ParallelDistanceCalculator() {};
+    ParallelDistanceCalculatorProcess(
+        ModelPart &rModelPart,
+        Parameters Settings);
+
+    ParallelDistanceCalculatorProcess(
+        Model &rModel,
+        Parameters Settings);
+
+    ParallelDistanceCalculatorProcess(
+        ModelPart& rModelPart,
+        const Variable<double>& rDistanceVar,
+        const Variable<double>& rAreaVar,
+        const unsigned int MaxLevels,
+        const double MaxDistance,
+        const bool CalculateExactDistancesToPlane = false);
 
     /// Copy constructor.
-    ParallelDistanceCalculator(ParallelDistanceCalculator<TDim> const& rOther) = delete;
+    ParallelDistanceCalculatorProcess(ParallelDistanceCalculatorProcess<TDim> const& rOther) = delete;
 
     /// Destructor.
-    virtual ~ParallelDistanceCalculator() {};
+    virtual ~ParallelDistanceCalculatorProcess() {};
 
     ///Function to calculate a signed distance function suitable for calculations using the Level Set Method
     ///the function assumes given a "signed distance" distributions and recomputes the distances
@@ -88,13 +100,13 @@ public:
     ///@param rAreaVar is the Variable that we will use for L2 projections
     ///@param MaxLevels is the number of maximum "layers" of element that will be used in the calculation of the distances
     ///@param MaxDistance distances will not be computed after reaching this limit
-    void CalculateDistances(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const unsigned int MaxLevels,
-        const double MaxDistance,
-        Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse());
+    // void CalculateDistances(
+    //     ModelPart& rModelPart,
+    //     const Variable<double>& rDistanceVar,
+    //     const Variable<double>& rAreaVar,
+    //     const unsigned int MaxLevels,
+    //     const double MaxDistance,
+    //     Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse());
 
     ///Function to calculate a signed distance function suitable for calculations using the Level Set Method
 	///The difference of this function with previous one is the fact that it wont recalculate the exact distance
@@ -106,12 +118,12 @@ public:
     ///@param rAreaVar is the Variable that we will use for L2 projections
     ///@param MaxLevels is the number of maximum "layers" of element that will be used in the calculation of the distances
     ///@param MaxDistance distances will not be computed after reaching this limit
-    void CalculateInterfacePreservingDistances(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const unsigned int MaxLevels,
-        const double MaxDistance);
+    // void CalculateInterfacePreservingDistances(
+    //     ModelPart& rModelPart,
+    //     const Variable<double>& rDistanceVar,
+    //     const Variable<double>& rAreaVar,
+    //     const unsigned int MaxLevels,
+    //     const double MaxDistance);
 
     /// A simplified version of CalculateDistances to be used when the rDistanceVar == 0 surface is described by a set of nodes
     /**
@@ -120,16 +132,22 @@ public:
      * @param rAreaVar is the Variable that we will use for L2 projections
      * @param max_levels is the number of maximum "layers" of element that will be used in the calculation of the distances
      * @param max_distance distances will not be computed after reaching this limit
-     * @see ParallelDistanceCalculator::CalculateDistances
+     * @see ParallelDistanceCalculatorProcess::CalculateDistances
      */
-    void CalculateDistancesLagrangianSurface(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const unsigned int MaxLevels,
-        const double MaxDistance);
+    // void CalculateDistancesLagrangianSurface(
+    //     ModelPart& rModelPart,
+    //     const Variable<double>& rDistanceVar,
+    //     const Variable<double>& rAreaVar,
+    //     const unsigned int MaxLevels,
+    //     const double MaxDistance);
 
-    double FindMaximumEdgeSize(ModelPart& rModelPart);
+    // double FindMaximumEdgeSize(ModelPart& rModelPart);
+
+    const Parameters GetDefaultParameters() const override;
+
+    int Check() override;
+
+    void Execute() override;
 
     ///@}
     ///@name Operators
@@ -159,14 +177,14 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "ParallelDistanceCalculator" << TDim << "D";
+        buffer << "ParallelDistanceCalculatorProcess" << TDim << "D";
         return buffer.str();
     };
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "ParallelDistanceCalculator" << TDim << "D";
+        rOStream << "ParallelDistanceCalculatorProcess" << TDim << "D";
     };
 
     /// Print object's data.
@@ -187,6 +205,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+        ModelPart& mrModelPart;
+        const Variable<double>* mpDistanceVar;
+        const Variable<double>* mpAreaVar;
+        unsigned int mMaxLevels;
+        double mMaxDistance;
+        bool mCalculateExactDistancesToPlane;
+
 
     ///@}
     ///@name Protected Operators
@@ -197,8 +222,6 @@ protected:
     bool IsActive(const array_1d<double,TDim+1>& rVisited);
 
     void AddDistanceToNodes(
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
         Geometry<NodeType>& rGeometry,
         const BoundedMatrix<double,TDim+1,TDim>& rDN_DX,
         const double& Volume);
@@ -243,41 +266,13 @@ private:
     ///@name Private Operations
     ///@{
 
-    void Check(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar);
+    void ResetVariables();
 
-    void ResetVariables(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const double MaxDistance);
+    void CalculateExactDistancesOnDividedElements();
 
-    void CalculateExactDistancesOnDividedElements(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const double MaxDistance,
-        Flags Options);
+	void ExtendDistancesByLayer();
 
-    void AbsDistancesOnDividedElements(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const double MaxDistance);
-
-	void ExtendDistancesByLayer(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const unsigned int MaxLevels,
-        const double MaxDistance);
-
-    void AssignDistanceSign(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const double MaxDistance);
+    void AssignDistanceSign();
 
     ///@}
     ///@name Private  Access
@@ -295,7 +290,7 @@ private:
 
 
     ///@}
-}; // Class ParallelDistanceCalculator
+}; // Class ParallelDistanceCalculatorProcess
 
 ///@}
 ///@name Input and output
@@ -305,7 +300,7 @@ private:
 template<unsigned int TDim>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    ParallelDistanceCalculator<TDim>& rThis)
+    ParallelDistanceCalculatorProcess<TDim>& rThis)
 {
     return rIStream;
 }
@@ -314,7 +309,7 @@ inline std::istream& operator >> (
 template<unsigned int TDim>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ParallelDistanceCalculator<TDim>& rThis)
+    const ParallelDistanceCalculatorProcess<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
