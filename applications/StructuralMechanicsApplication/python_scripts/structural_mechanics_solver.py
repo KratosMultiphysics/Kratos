@@ -520,13 +520,15 @@ class MechanicalSolver(PythonSolver):
         return strategy
 
     def _create_arc_length_strategy(self):
+        settings = KratosMultiphysics.Parameters("""{}""")
+        settings.AddValue("advanced_settings", self.settings["solving_strategy_settings"]["advanced_settings"])
+        settings.AddValue("max_iteration", self.settings["max_iteration"])
+        settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+        settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+        settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
         solving_strategy = KratosMultiphysics.ArcLengthStrategy(self.GetComputingModelPart(),
                                                                 self._GetScheme(),
                                                                 self._GetConvergenceCriterion(),
                                                                 self._GetBuilderAndSolver(),
-                                                                self.settings["solving_strategy_settings"]["strategy_settings"],
-                                                                self.settings["max_iteration"].GetInt(),
-                                                                self.settings["compute_reactions"].GetBool(),
-                                                                self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["move_mesh_flag"].GetBool())
+                                                                settings)
         return solving_strategy
