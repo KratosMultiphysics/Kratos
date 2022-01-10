@@ -198,6 +198,16 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
                               const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyRightHandSideTerm(const Element& rElement,
+                              Vector& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyLeftHandSideTerm(const Element& rElement,
+                              Matrix& rLeftHandSideMatrix,
+                              const ProcessInfo& rCurrentProcessInfo);
+
+template <int Dim, int NumNodes>
 void AddPotentialGradientStabilizationTerm(Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               Vector& rRightHandSideVector,
