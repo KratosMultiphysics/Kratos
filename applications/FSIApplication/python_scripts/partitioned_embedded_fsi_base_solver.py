@@ -308,8 +308,6 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             self.__ExtendLevelSet()
 
     def __ExtendLevelSet(self):
-        max_layers = 2
-        max_distance = 1.0e+12
         self.__GetParallelDistanceCalculator().Execute()
 
     def _MapStructureInterfaceDisplacement(self):
