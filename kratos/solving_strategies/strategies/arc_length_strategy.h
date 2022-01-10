@@ -91,30 +91,26 @@ class ArcLengthStrategy
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
-        Parameters Parameters,
-        int MaxIterations = 30,
-        bool CalculateReactions = false,
-        bool ReformDofSetAtEachStep = false,
-        bool MoveMeshFlag = false
+        Parameters ThisParameters
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
-                pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+                pNewConvergenceCriteria, pNewBuilderAndSolver, ThisParameters)
         {
-            mDesiredIterations = Parameters["desired_iterations"].GetInt();
-            mMaxRadiusFactor   = Parameters["max_radius_factor"].GetDouble();
-            mMinRadiusFactor   = Parameters["min_radius_factor"].GetDouble();
+            mDesiredIterations = ThisParameters["advanced_settings"]["desired_iterations"].GetInt();
+            mMaxRadiusFactor   = ThisParameters["advanced_settings"]["max_radius_factor"].GetDouble();
+            mMinRadiusFactor   = ThisParameters["advanced_settings"]["min_radius_factor"].GetDouble();
             mInitializeArcLengthWasPerformed = false;
 
             // we initialize the list of load processes to be taken into account
-            if (Parameters["loads_sub_model_part_list"].size() > 0) {
-                mSubModelPartList.resize(Parameters["loads_sub_model_part_list"].size());
-                mVariableNames.resize(Parameters["loads_variable_list"].size());
+            if (ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size() > 0) {
+                mSubModelPartList.resize(ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size());
+                mVariableNames.resize(ThisParameters["advanced_settings"]["loads_variable_list"].size());
 
                 if (mSubModelPartList.size() != mVariableNames.size())
                     KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-                    mSubModelPartList[i] = &( model_part.GetSubModelPart(Parameters["loads_sub_model_part_list"][i].GetString()));
-                    mVariableNames[i] = Parameters["loads_variable_list"][i].GetString();
+                    mSubModelPartList[i] = &( model_part.GetSubModelPart(ThisParameters["advanced_settings"]["loads_sub_model_part_list"][i].GetString()));
+                    mVariableNames[i] = ThisParameters["advanced_settings"]["loads_variable_list"][i].GetString();
                 }
             }
         }
