@@ -1217,8 +1217,6 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
 
     upwind_node_key.clear();
 
-    KRATOS_WARNING_IF("TransonicElement", pGetUpwindElement()->GetValue(WAKE)) << "Updwind wake element detected!!" << std::endl;
-
     pGetUpwindElement()->EquationIdVector(upwind_element_ids, rCurrentProcessInfo);
     this->EquationIdVector(current_element_ids, rCurrentProcessInfo);
 
