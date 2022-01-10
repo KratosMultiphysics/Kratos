@@ -1327,9 +1327,9 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectUpwindEle
 
     // If no upwind element is found, the element is an INLET element and the
     // upwind element pointer points to itself
-    if (mpUpwindElement.get() == nullptr)
+    if (this->CheckUpwindElement())
     {
-        mpUpwindElement = this;
+        this->pSetUpwindElement(this);
         this->SetFlags(INLET);
     }
 }
