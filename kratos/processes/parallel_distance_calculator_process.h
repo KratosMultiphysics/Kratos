@@ -78,6 +78,7 @@ public:
         Model &rModel,
         Parameters Settings);
 
+    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor with parameters")
     ParallelDistanceCalculatorProcess(
         ModelPart& rModelPart,
         const Variable<double>& rDistanceVar,
