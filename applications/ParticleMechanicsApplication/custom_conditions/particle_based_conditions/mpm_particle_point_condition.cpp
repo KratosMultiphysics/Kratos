@@ -86,44 +86,6 @@ namespace Kratos
     }
 
 
-    void MPMParticlePointCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-        GeneralVariables Variables;
-
-        Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
-
-        array_1d<double,3> delta_xg = ZeroVector(3);
-        array_1d<double, 3 > MPC_velocity = ZeroVector(3);
-        
-        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
-        
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
-            {
-                auto r_geometry = GetGeometry();
-                array_1d<double, 3 > nodal_velocity = ZeroVector(3);
-                if (r_geometry[i].SolutionStepsDataHas(VELOCITY))
-                    nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
-                for ( unsigned int j = 0; j < dimension; j++ )
-                {
-                    delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
-                    MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
-                }
-            }
-        }
-
-        // Update the Material Point Condition Position
-        m_displacement = delta_xg;
-        m_velocity = MPC_velocity;
-    
-    KRATOS_CATCH( "" )
-}
 
 
 
@@ -154,38 +116,13 @@ namespace Kratos
 
     void MPMParticlePointCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
     {
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+        // Update the MPC Position
+        m_xg += m_imposed_displacement;
 
-        GeneralVariables Variables;
+        // Update total MPC Displacement
+        m_displacement += m_imposed_displacement;
 
-        Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
-
-        array_1d<double,3> delta_xg = ZeroVector(3);
-        array_1d<double, 3 > MPC_velocity = ZeroVector(3);
-        
-        Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
-
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
-            {
-                auto r_geometry = GetGeometry();
-                array_1d<double, 3 > nodal_velocity = ZeroVector(3);
-                if (r_geometry[i].SolutionStepsDataHas(VELOCITY))
-                    nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
-                for ( unsigned int j = 0; j < dimension; j++ )
-                {
-                    delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
-                    MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
-                }
-                
-            }
-        }
-        
-        // Update the Material Point Condition Position
-        m_xg += delta_xg ;
-        m_velocity = MPC_velocity;
+        m_imposed_displacement = ZeroVector(3);
     }
 
     

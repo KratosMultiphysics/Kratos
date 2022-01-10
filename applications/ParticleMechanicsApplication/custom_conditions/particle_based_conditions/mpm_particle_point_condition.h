@@ -190,11 +190,7 @@ protected:
     ///@{
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * this is called for non-linear analysis at the end of the iteration process
-     */
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
+   
     /**
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo the current process info instance
