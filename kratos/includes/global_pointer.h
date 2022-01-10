@@ -239,6 +239,10 @@ public:
         rSerializer.save("D", mDataPointer);
       }
 #ifdef KRATOS_USING_MPI
+  #ifdef KRATOS_DEBUG
+      // Calling with a serializer not for which is not the MPI one or has SHALLOW_GLOBAL_POINTERS_SERIALIZATION disabled
+      KRATOS_WARNING_IF(ParallelEnvironment::GetDefaultDataCommunicator().IsDistributed() && !rSerializer.Is(Serializer::MPI) && !rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION)) << "Calling non-shallow serialization of a globalPointer in an mpi context. This is probably an error." << std::endl;
+  #endif
       rSerializer.save("R", mRank);
 #endif
   }
@@ -256,6 +260,10 @@ public:
         rSerializer.load("D", mDataPointer);
       }
 #ifdef KRATOS_USING_MPI
+  #ifdef KRATOS_DEBUG
+      // Calling with a serializer not for which is not the MPI one or has SHALLOW_GLOBAL_POINTERS_SERIALIZATION disabled
+      KRATOS_WARNING_IF(ParallelEnvironment::GetDefaultDataCommunicator().IsDistributed() && !rSerializer.Is(Serializer::MPI) && !rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION)) << "Calling non-shallow deserialization of a globalPointer in an mpi context. This is probably an error." << std::endl;
+  #endif
       rSerializer.load("R", mRank);
 #endif
   }
