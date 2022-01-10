@@ -6,9 +6,8 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 
+import KratosMultiphysics.kratos_utilities as kratos_utils
 import auxiliary_functions_for_tests
-
-print(os.getpid())
 
 this_working_dir_backup = os.getcwd()
 
