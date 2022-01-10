@@ -251,7 +251,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
         BoundedMatrix<double, TNumNodes, TDim> DN_DX = positive_side_sh_func_gradients(i_gauss);
@@ -294,7 +294,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Compute lhs
     const double local_velocity_squared = inner_prod(rVelocity, rVelocity);
@@ -359,7 +359,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Assembl
         positive_side_sh_func,
         positive_side_sh_func_gradients,
         positive_side_weights,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
     BoundedMatrix<double, TNumNodes, TNumNodes> linear_term = ZeroMatrix(TNumNodes, TNumNodes);
 
     BoundedMatrix<double,TNumNodes,TDim> DN_DX;
