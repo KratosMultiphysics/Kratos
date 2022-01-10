@@ -21,7 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/variational_distance_calculation_process.h"
-#include "utilities/parallel_distance_calculator.h"
+#include "processes/parallel_distance_calculator_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
 #include "utilities/variable_utils.h"
 
@@ -87,8 +87,14 @@ public:
 
         unsigned int max_level = 100;
 		double max_distance = 200;
-        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculator<TDim>>();
-        p_distance_smoother->CalculateDistances(rBackgroundModelPart, DISTANCE, NODAL_AREA, max_level, max_distance);
+        auto p_distance_smoother = Kratos::make_shared<ParallelDistanceCalculatorProcess<TDim>>(
+            rBackgroundModelPart,
+            DISTANCE,
+            NODAL_AREA,
+            max_level,
+            max_distance
+        );
+        p_distance_smoother->Execute();
 
         VariableUtils().CopyVariable<double>(DISTANCE, CHIMERA_DISTANCE, rBackgroundModelPart.Nodes());
     }

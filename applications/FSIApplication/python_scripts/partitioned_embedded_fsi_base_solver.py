@@ -238,10 +238,22 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         return self._parallel_distance_calculator
 
     def __CreateParallelDistanceCalculator(self):
+        max_layers = 2
+        max_distance = 1.0e+12
         if self._GetDomainSize() == 2:
-            return KratosMultiphysics.ParallelDistanceCalculator2D()
+            return KratosMultiphysics.ParallelDistanceCalculatorProcess2D(
+                self.GetFluidComputingModelPart(),
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.NODAL_AREA,
+                max_layers,
+                max_distance)
         elif self._GetDomainSize() == 3:
-            return KratosMultiphysics.ParallelDistanceCalculator3D()
+            return KratosMultiphysics.ParallelDistanceCalculatorProcess3D(
+                self.GetFluidComputingModelPart(),
+                KratosMultiphysics.DISTANCE,
+                KratosMultiphysics.NODAL_AREA,
+                max_layers,
+                max_distance)
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
 
@@ -298,12 +310,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
     def __ExtendLevelSet(self):
         max_layers = 2
         max_distance = 1.0e+12
-        self.__GetParallelDistanceCalculator().CalculateDistances(
-            self.GetFluidComputingModelPart(),
-            KratosMultiphysics.DISTANCE,
-            KratosMultiphysics.NODAL_AREA,
-            max_layers,
-            max_distance)
+        self.__GetParallelDistanceCalculator().Execute()
 
     def _MapStructureInterfaceDisplacement(self):
         # Map the RELAXED_DISP from the structure FSI coupling interface to fluid FSI coupling interface

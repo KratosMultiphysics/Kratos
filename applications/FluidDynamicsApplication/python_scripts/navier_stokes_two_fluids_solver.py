@@ -309,20 +309,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             # Recompute the distance field according to the new level-set position
-            if (self._reinitialization_type == "variational"):
+            if self._reinitialization_type == "variational" or self._reinitialization_type == "parallel":
                 self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                layers = self.settings["parallel_redistance_max_layers"].GetInt()
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
+        
             if (self._reinitialization_type != "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
@@ -522,10 +511,24 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         elif (self._reinitialization_type == "parallel"):
+            layers = self.settings["parallel_redistance_max_layers"].GetInt()
+            max_distance = 1.0 # use this parameter to define the redistancing range
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculatorProcess2D(
+                    self.main_model_part,
+                    self._levelset_variable,
+                    KratosMultiphysics.NODAL_AREA,
+                    layers,
+                    max_distance,
+                    True)
             else:
-                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculatorProcess3D(
+                    self.main_model_part,
+                    self._levelset_variable,
+                    KratosMultiphysics.NODAL_AREA,
+                    layers,
+                    max_distance,
+                    True)
         elif (self._reinitialization_type == "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
         else:
