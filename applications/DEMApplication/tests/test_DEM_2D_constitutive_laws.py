@@ -9,7 +9,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
-print(os.getpid())
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)

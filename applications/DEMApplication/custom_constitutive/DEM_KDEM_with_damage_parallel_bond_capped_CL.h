@@ -19,8 +19,6 @@ namespace Kratos {
 
         ~DEM_KDEM_with_damage_parallel_bond_capped() {}
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         void Check(Properties::Pointer pProp) const override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
