@@ -81,9 +81,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
 
     if (is_embedded && wake == 0) {
         BaseType::CalculateRightHandSideNormalElement(rRightHandSideVector,rCurrentProcessInfo);
-        // if (std::abs(rCurrentProcessInfo[STABILIZATION_FACTOR]) > std::numeric_limits<double>::epsilon()) {
-        //     PotentialFlowUtilities::AddPotentialGradientStabilizationTerm<Dim, NumNodes>(*this,rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
-        // }
     }
     else {
         if (wake==0) {
@@ -343,7 +340,6 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Assembl
     // Calculate shape functions
     ElementalData data;
     GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
-    // KRATOS_WATCH("compute upwdind density")
 
     const double density = PotentialFlowUtilities::ComputeUpwindedDensity<TDim, TNumNodes>(velocity, upwindVelocity, rCurrentProcessInfo);
 
