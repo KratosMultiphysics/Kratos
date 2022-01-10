@@ -312,11 +312,13 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, Parameters>())
         .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double>())
         .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double, const bool>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculatorProcess<2>::FindMaximumEdgeSize)
     ;
 
     py::class_<ParallelDistanceCalculatorProcess<3>, ParallelDistanceCalculatorProcess<3>::Pointer, Process>(m,"ParallelDistanceCalculatorProcess3D")
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<Model&, Parameters>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculatorProcess<3>::FindMaximumEdgeSize)
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")

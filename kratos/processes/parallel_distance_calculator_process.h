@@ -92,62 +92,13 @@ public:
     /// Destructor.
     virtual ~ParallelDistanceCalculatorProcess() {};
 
-    ///Function to calculate a signed distance function suitable for calculations using the Level Set Method
-    ///the function assumes given a "signed distance" distributions and recomputes the distances
-    ///respecting as accurately as possible the position of the zero of the original distributions
-    ///@param rModelPart is the ModelPart on which we will operate
-    ///@param rDistanceVar is the Variable that we will use in calculating the distance
-    ///@param rAreaVar is the Variable that we will use for L2 projections
-    ///@param MaxLevels is the number of maximum "layers" of element that will be used in the calculation of the distances
-    ///@param MaxDistance distances will not be computed after reaching this limit
-    // void CalculateDistances(
-    //     ModelPart& rModelPart,
-    //     const Variable<double>& rDistanceVar,
-    //     const Variable<double>& rAreaVar,
-    //     const unsigned int MaxLevels,
-    //     const double MaxDistance,
-    //     Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse());
-
-    ///Function to calculate a signed distance function suitable for calculations using the Level Set Method
-	///The difference of this function with previous one is the fact that it wont recalculate the exact distance
-	///in divided elements in order to preserve the current distance.
-    ///the function assumes given a "signed distance" distributions and recomputes the distances
-    ///respecting as accurately as possible the position of the zero of the original distributions
-    ///@param rModelPart is the ModelPart on which we will operate
-    ///@param rDistanceVar is the Variable that we will use in calculating the distance
-    ///@param rAreaVar is the Variable that we will use for L2 projections
-    ///@param MaxLevels is the number of maximum "layers" of element that will be used in the calculation of the distances
-    ///@param MaxDistance distances will not be computed after reaching this limit
-    // void CalculateInterfacePreservingDistances(
-    //     ModelPart& rModelPart,
-    //     const Variable<double>& rDistanceVar,
-    //     const Variable<double>& rAreaVar,
-    //     const unsigned int MaxLevels,
-    //     const double MaxDistance);
-
-    /// A simplified version of CalculateDistances to be used when the rDistanceVar == 0 surface is described by a set of nodes
-    /**
-     * @param rModelPart is the ModelPart on which we will operate
-     * @param rDistanceVar is the Variable that we will use in calculating the distance
-     * @param rAreaVar is the Variable that we will use for L2 projections
-     * @param max_levels is the number of maximum "layers" of element that will be used in the calculation of the distances
-     * @param max_distance distances will not be computed after reaching this limit
-     * @see ParallelDistanceCalculatorProcess::CalculateDistances
-     */
-    // void CalculateDistancesLagrangianSurface(
-    //     ModelPart& rModelPart,
-    //     const Variable<double>& rDistanceVar,
-    //     const Variable<double>& rAreaVar,
-    //     const unsigned int MaxLevels,
-    //     const double MaxDistance);
-
-    // double FindMaximumEdgeSize(ModelPart& rModelPart);
-
     const Parameters GetDefaultParameters() const override;
 
     int Check() override;
 
     void Execute() override;
+
+    double FindMaximumEdgeSize();
 
     ///@}
     ///@name Operators

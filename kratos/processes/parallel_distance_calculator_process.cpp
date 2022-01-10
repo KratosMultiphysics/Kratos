@@ -79,6 +79,51 @@ const Parameters ParallelDistanceCalculatorProcess<TDim>::GetDefaultParameters()
 }
 
 template<unsigned int TDim>
+double ParallelDistanceCalculatorProcess<TDim>::FindMaximumEdgeSize()
+{
+    KRATOS_TRY
+
+    double h_max = 0.0;
+
+    for(ModelPart::ElementsContainerType::iterator it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); it++)
+    {
+        Geometry<NodeType >&geom = it->GetGeometry();
+
+        double h = 0.0;
+
+        for(unsigned int i=0; i<TDim+1; i++)
+        {
+
+            double xc = geom[i].X();
+            double yc = geom[i].Y();
+            double zc = geom[i].Z();
+            for(unsigned int j=i+1; j<TDim+1; j++)
+            {
+                double x = geom[j].X();
+                double y = geom[j].Y();
+                double z = geom[j].Z();
+                double l = (x - xc)*(x - xc);
+                l += (y - yc)*(y - yc);
+                l += (z - zc)*(z - zc);
+
+                if (l > h) h = l;
+            }
+        }
+
+        h = sqrt(h);
+
+        if(h > h_max) h_max = h;
+
+    }
+
+    h_max = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(h_max);
+
+    return h_max;
+
+    KRATOS_CATCH("");
+}
+
+template<unsigned int TDim>
 bool ParallelDistanceCalculatorProcess<TDim>::IsDivided(const array_1d<double,TDim+1>& rDistance)
 {
     unsigned int positive = 0;
