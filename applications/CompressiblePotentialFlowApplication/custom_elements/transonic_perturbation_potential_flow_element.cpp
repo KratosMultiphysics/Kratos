@@ -1227,8 +1227,6 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
                 upwind_element_ids[i]);
 
         upwind_node_key[i] = std::distance(current_element_ids.begin(), current_id);
-        if (upwind_node_key[i] > TNumNodes-1)
-            upwind_node_key[i] = TNumNodes;
     }
 
     return upwind_node_key;
