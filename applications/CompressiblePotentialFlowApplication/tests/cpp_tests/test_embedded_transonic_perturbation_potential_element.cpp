@@ -469,7 +469,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationWakePotentialFlowElem
 /** Checks the EmbeddedTransonicPerturbationPotentialFlowElement.
  * Tests the LHS computation.
  */
-KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSupersonicElementLHS, CompressiblePotentialApplicationFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSupersonicAccElementLHS, CompressiblePotentialApplicationFastSuite) {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
@@ -555,135 +555,91 @@ KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSuperson
     KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
-// KRATOS_TEST_CASE_IN_SUITE(EmbeddedTransonicPerturbationPotentialFlowElementEquationId, CompressiblePotentialApplicationFastSuite) {
-//     Model this_model;
-//     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+KRATOS_TEST_CASE_IN_SUITE(PingEmbeddedTransonicPerturbationPotentialFlowSupersonicDecElementLHS, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
-//     GenerateEmbeddedTransonicPerturbationElement(model_part);
-//     GenerateEmbeddedTransonicPerturbationUpwindElement(model_part);
+    GenerateEmbeddedTransonicPerturbationElement(model_part);
+    GenerateEmbeddedTransonicPerturbationUpwindElement(model_part);
 
-//     FindGlobalNodalElementalNeighboursProcess find_nodal_neighbours_process(model_part);
-//     find_nodal_neighbours_process.Execute();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    AssignDistancesEmbeddedTransonicPerturbationElement(p_element);
+    Element::Pointer pUpwindElement = model_part.pGetElement(2);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
-//     Element::Pointer pCurrentElement = model_part.pGetElement(1);
-//     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-//     pCurrentElement->Initialize(r_current_process_info);
+    FindGlobalNodalElementalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
 
-//     for (auto& r_node : model_part.Nodes()){
-//         r_node.AddDof(VELOCITY_POTENTIAL);
-//     }
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element -> Set(INLET, false);
+    pUpwindElement -> Set(INLET, true);
+    pUpwindElement -> Set(ACTIVE, true);
+    p_element->Initialize(r_current_process_info);
 
-//     Element::DofsVectorType CurrentElementalDofList;
-//     pCurrentElement->GetDofList(CurrentElementalDofList, r_current_process_info);
+    std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
+    // mach number 0.39943
+    AssignPerturbationPotentialsToEmbeddedTransonicElement(*p_element, low_potential);
+    // mach number 1.92516
+    AssignPerturbationPotentialsToEmbeddedTransonicElement(*pUpwindElement, high_potential);
 
-//     std::vector<int> ids{23, 74, 55};
-//     for (int i = 0; i < 3; i++) {
-//         CurrentElementalDofList[i]->SetEquationId(ids[i]);
-//     }
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
+    }
 
-//     // upwind element equation id
-//     Element::Pointer pUpwindElement = model_part.pGetElement(2);
+    Element::DofsVectorType CurrentElementalDofList;
+    p_element->GetDofList(CurrentElementalDofList, r_current_process_info);
 
-//     pUpwindElement->GetGeometry()[2].AddDof(VELOCITY_POTENTIAL);
+    Element::DofsVectorType UpwindElementalDofList;
+    pUpwindElement->GetDofList(UpwindElementalDofList, r_current_process_info);
 
-//     Element::DofsVectorType UpwindElementalDofList;
-//     pUpwindElement->GetDofList(UpwindElementalDofList, r_current_process_info);
+    std::vector<int> current_ids{23, 74, 55}; // 1 2 3
+    std::vector<int> upwind_ids{23, 55, 67};  // 1 3 4
+    for (int i = 0; i < 3; i++) {
+        CurrentElementalDofList[i]->SetEquationId(current_ids[i]);
+        UpwindElementalDofList[i]->SetEquationId(upwind_ids[i]);
+    }
 
-//     UpwindElementalDofList[2]->SetEquationId(67);
+    Vector RHS_original = ZeroVector(number_of_nodes + 1);
+    Matrix LHS_original = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
 
-//     // make and check equation ids
-//     Element::EquationIdVectorType EquationIdVector;
-//     pCurrentElement->EquationIdVector(EquationIdVector, r_current_process_info);
+    // Compute original RHS and LHS
+    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
-//     std::vector<double> reference{23.0, 74.0, 55.0, 67.0};
-//     KRATOS_CHECK_VECTOR_NEAR(EquationIdVector, reference, 1e-15);
-// }
+    double delta = 1e-3;
+    for(unsigned int i = 0; i < 4; i++){
+        // Pinging
+        if (i < 3) {
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+        }
+        else {
+            pUpwindElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+        }
 
-// BoundedVector<double,3> AssignDistancesToPerturbationTransonicElement()
-// {
-//     BoundedVector<double,3> distances;
-//     distances(0) = 1.0;
-//     distances(1) = -1.0;
-//     distances(2) = -1.0;
-//     return distances;
-// }
+        Vector RHS_pinged = ZeroVector(number_of_nodes + 1);
+        Matrix LHS_pinged = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
+        // Compute pinged LHS and RHS
+        p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
 
-// void AssignPotentialsToWakeTransonicPerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
-// {
-//     for (unsigned int i = 0; i < 3; i++){
-//         if (rDistances(i) > 0.0)
-//             pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
-//         else
-//             pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
-//     }
-//     for (unsigned int i = 0; i < 3; i++){
-//         if (rDistances(i) < 0.0)
-//             pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
-//         else
-//             pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
-//     }
-// }
+        for(unsigned int k = 0; k < number_of_nodes + 1; k++){
+            // Compute the finite difference estimate of the sensitivity
+            LHS_finite_diference( k, i) = -(RHS_pinged(k)-RHS_original(k)) / delta;
+            // Compute the average of the original and pinged analytic sensitivities
+            LHS_analytical( k, i) = 0.5 * (LHS_original(k,i) + LHS_pinged(k,i));
+        }
 
-// KRATOS_TEST_CASE_IN_SUITE(WakeEmbeddedTransonicPerturbationPotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
-//     Model this_model;
-//     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-
-//     GenerateEmbeddedTransonicPerturbationElement(model_part);
-//     Element::Pointer p_element = model_part.pGetElement(1);
-
-//     BoundedVector<double,3> distances = AssignDistancesToPerturbationTransonicElement();
-
-//     p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-//     p_element->GetValue(WAKE) = true;
-
-//     const std::array<double, 6> potential{1.0, 101.0, 150.0, 6.0, 105.0, 155.0};
-//     AssignPotentialsToWakeTransonicPerturbationElement(p_element, distances, potential);
-
-//     // Compute RHS and LHS
-//     Vector RHS = ZeroVector(6);
-
-//     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-//     p_element->CalculateRightHandSide(RHS, r_current_process_info);
-
-//     std::vector<double> reference{146.392649744264,-1.225,0.6125,-0.6125,-122.1426284341492,-24.12169769218525};
-
-//     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
-// }
-
-// KRATOS_TEST_CASE_IN_SUITE(WakeEmbeddedTransonicPerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
-//     Model this_model;
-//     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
-
-//     GenerateEmbeddedTransonicPerturbationElement(model_part);
-//     Element::Pointer p_element = model_part.pGetElement(1);
-
-//     BoundedVector<double,3> distances = AssignDistancesToPerturbationTransonicElement();
-
-//     p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-//     p_element->GetValue(WAKE) = true;
-
-//     const std::array<double, 6> potential{1.0, 100.0, 150.0, 6.0, 105.0, 155.0};
-//     AssignPotentialsToWakeTransonicPerturbationElement(p_element, distances, potential);
-
-//     // Compute LHS
-//     Matrix LHS = ZeroMatrix(6, 6);
-
-//     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-//     p_element->CalculateLeftHandSide(LHS, r_current_process_info);
-
-//     // Check the LHS values
-//     std::array<double,36> reference{0.06114278464441553,-0.1306215050744058,
-//     0.06947872042999036,0,0,0,-0.6125,1.225,-0.6125,0.6125,-1.225,0.6125,0,
-//     -0.6125,0.6125,-0,0.6125,-0.6125,-0.6125,0.6125,-0,0.6125,-0.6125,0,0,0,
-//     0,-0.1306215050744058,0.6710758508914104,-0.5404543458170046,0,0,0,
-//     0.06947872042999036,-0.5404543458170046,0.4709756253870142};
-
-//     for (unsigned int i = 0; i < LHS.size1(); i++) {
-//         for (unsigned int j = 0; j < LHS.size2(); j++) {
-//             KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
-//         }
-//     }
-// }
+        // Unpinging
+        if (i < 3) {
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+        }
+        else {
+            pUpwindElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+        }
+    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
 
 } // namespace Testing
 } // namespace Kratos.
