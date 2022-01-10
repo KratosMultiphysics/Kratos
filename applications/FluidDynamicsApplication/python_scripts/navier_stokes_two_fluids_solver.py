@@ -309,7 +309,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             # Recompute the distance field according to the new level-set position
-            if self._reinitialization_type == "variational" or self._reinitialization_type == "parallel":
+            if self._reinitialization_type != "none":
                 self._GetDistanceReinitializationProcess().Execute()
         
             if (self._reinitialization_type != "none"):
