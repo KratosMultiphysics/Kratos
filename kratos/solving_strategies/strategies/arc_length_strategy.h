@@ -95,24 +95,8 @@ class ArcLengthStrategy
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, ThisParameters)
         {
-            mDesiredIterations = ThisParameters["advanced_settings"]["desired_iterations"].GetInt();
-            mMaxRadiusFactor   = ThisParameters["advanced_settings"]["max_radius_factor"].GetDouble();
-            mMinRadiusFactor   = ThisParameters["advanced_settings"]["min_radius_factor"].GetDouble();
-            mInitializeArcLengthWasPerformed = false;
-
-            // we initialize the list of load processes to be taken into account
-            if (ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size() > 0) {
-                mSubModelPartList.resize(ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size());
-                mVariableNames.resize(ThisParameters["advanced_settings"]["loads_variable_list"].size());
-
-                if (mSubModelPartList.size() != mVariableNames.size())
-                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
-
-                for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-                    mSubModelPartList[i] = &( model_part.GetSubModelPart(ThisParameters["advanced_settings"]["loads_sub_model_part_list"][i].GetString()));
-                    mVariableNames[i] = ThisParameters["advanced_settings"]["loads_variable_list"][i].GetString();
-                }
-            }
+            ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+            AssignSettings(ThisParameters);
         }
 
     /**
@@ -120,6 +104,35 @@ class ArcLengthStrategy
      * @details In trilinos third party library, the linear solver's preconditioner should be freed before the system matrix. We control the deallocation order with Clear().
      */
     ~ArcLengthStrategy() override = default;
+
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        BaseType::AssignSettings(ThisParameters);
+        mDesiredIterations = ThisParameters["advanced_settings"]["desired_iterations"].GetInt();
+        mMaxRadiusFactor   = ThisParameters["advanced_settings"]["max_radius_factor"].GetDouble();
+        mMinRadiusFactor   = ThisParameters["advanced_settings"]["min_radius_factor"].GetDouble();
+        mInitializeArcLengthWasPerformed = false;
+
+        // we initialize the list of load processes to be taken into account
+        if (ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size() > 0) {
+            mSubModelPartList.resize(ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size());
+            mVariableNames.resize(ThisParameters["advanced_settings"]["loads_variable_list"].size());
+
+            if (mSubModelPartList.size() != mVariableNames.size())
+                KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
+
+            for (unsigned int i = 0; i < mVariableNames.size(); i++) {
+                mSubModelPartList[i] = &( r_model_part.GetSubModelPart(ThisParameters["advanced_settings"]["loads_sub_model_part_list"][i].GetString()));
+                mVariableNames[i] = ThisParameters["advanced_settings"]["loads_variable_list"][i].GetString();
+            }
+        }
+    }
 
 
     /**
@@ -426,13 +439,17 @@ class ArcLengthStrategy
             "max_iteration"                       : 10,
             "reform_dofs_at_each_step"            : false,
             "compute_reactions"                   : false,
-            "desired_iterations"                  : 4,
-            "max_radius_factor"                   : 10.0,
-            "min_radius_factor"                   : 0.1,
             "builder_and_solver_settings"         : {},
             "convergence_criteria_settings"       : {},
             "linear_solver_settings"              : {},
-            "scheme_settings"                     : {}
+            "scheme_settings"                     : {},
+            "advanced_settings"                   : {
+				"desired_iterations"        : 4,
+				"max_radius_factor"         : 10.0,
+				"min_radius_factor"         : 0.1,
+				"loads_sub_model_part_list" : [],
+				"loads_variable_list"       : []
+            }
         })");
 
         // Getting base class default parameters
