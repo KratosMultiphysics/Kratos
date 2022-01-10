@@ -44,6 +44,7 @@ namespace Kratos
         mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
         mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+        mBoussinesqElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
         mConservativeElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
@@ -78,10 +79,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(PERMEABILITY)
         KRATOS_REGISTER_VARIABLE(ATMOSPHERIC_PRESSURE)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WIND)
-
-        // Domain characteristic variables
-        KRATOS_REGISTER_VARIABLE(AMPLITUDE)
-        KRATOS_REGISTER_VARIABLE(WAVELENGTH)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_H_LAPLACIAN)
 
         // Auxiliary variables
         KRATOS_REGISTER_VARIABLE(INTEGRATE_BY_PARTS)
@@ -89,6 +87,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(DRY_HEIGHT)
         KRATOS_REGISTER_VARIABLE(RELATIVE_DRY_HEIGHT)
         KRATOS_REGISTER_VARIABLE(DRY_DISCHARGE_PENALTY)
+        KRATOS_REGISTER_VARIABLE(FIRST_DERIVATIVE_WEIGHTS)
+        KRATOS_REGISTER_VARIABLE(SECOND_DERIVATIVE_WEIGHTS)
 
         // Absorbing boundaries variables
         KRATOS_REGISTER_VARIABLE(ABSORBING_DISTANCE)
@@ -138,6 +138,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
         KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
         KRATOS_REGISTER_ELEMENT("BoussinesqElement2D3N", mBoussinesqElement2D3N)
+        KRATOS_REGISTER_ELEMENT("BoussinesqElement2D4N", mBoussinesqElement2D4N)
         KRATOS_REGISTER_ELEMENT("ConservativeElement2D3N", mConservativeElement2D3N)
 
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N) // TODO: move to ConservativeElement
