@@ -318,6 +318,8 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ParallelDistanceCalculatorProcess<3>, ParallelDistanceCalculatorProcess<3>::Pointer, Process>(m,"ParallelDistanceCalculatorProcess3D")
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double>())
+        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double, const bool>())
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculatorProcess<3>::FindMaximumEdgeSize)
     ;
 
