@@ -30,7 +30,8 @@
             "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM",
             "CONTACT_INTERNAL_FRICC": 1.0,
             "CONTACT_TAU_ZERO": 25.0,
-            "ROTATIONAL_MOMENT_COEFFICIENT": 0.01
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
+            "IS_UNBREAKABLE" : false
         }
     },{
         "material_names_list":["mat1", "mat2"],

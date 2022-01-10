@@ -25,6 +25,7 @@
 #include "custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
+#include "custom_constitutive/DEM_D_Linear_HighStiffness_2D_CL.h"
 
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
@@ -36,6 +37,7 @@
 #include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.h"
 #include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.h"
 #include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_CL.h"
+#include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_2D_CL.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
 #include "custom_constitutive/DEM_KDEM_CamClay_CL.h"
@@ -136,6 +138,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
+    py::class_<DEM_D_Linear_HighStiffness_2D, DEM_D_Linear_HighStiffness_2D::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness_2D")
+        .def(py::init<>())
+        ;
+
     // DEM Continuum Constitutive Laws:
 
     py::class_<DEMContinuumConstitutiveLaw, DEMContinuumConstitutiveLaw::Pointer>(m, "DEMContinuumConstitutiveLaw")
@@ -200,6 +206,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_KDEM_with_damage_parallel_bond_Hertz, DEM_KDEM_with_damage_parallel_bond_Hertz::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_Hertz")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEM_KDEM_with_damage_parallel_bond_Hertz_2D, DEM_KDEM_with_damage_parallel_bond_Hertz_2D::Pointer, DEM_KDEM_with_damage_parallel_bond_Hertz>(m, "DEM_KDEM_with_damage_parallel_bond_Hertz_2D")
         .def(py::init<>())
         ;
 

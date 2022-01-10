@@ -31,7 +31,7 @@ namespace Kratos {
     }
 
     Element::Pointer SphericContinuumParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
-      return SphericParticle::Pointer(new SphericContinuumParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return SphericParticle::Pointer(new SphericContinuumParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
     /// Destructor
@@ -100,7 +100,7 @@ namespace Kratos {
         mContinuumConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            Properties::Pointer properties_of_this_contact = GetProperties().pGetSubProperties(mNeighbourElements[i]->GetProperties().Id());
+            Properties::Pointer properties_of_this_contact = GetProperties().pGetSubProperties(mNeighbourElements[i]->GetProperties().Id());            
             mContinuumConstitutiveLawArray[i] = (*properties_of_this_contact)[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
             SphericContinuumParticle* p_cont_neighbour_particle = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
             mContinuumConstitutiveLawArray[i]->Initialize(this, p_cont_neighbour_particle, properties_of_this_contact);
@@ -204,7 +204,7 @@ namespace Kratos {
         return effectiveVolumeRadius;
     }
 
-    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer& data_buffer,
+    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
                                                                 const ProcessInfo& r_process_info,
                                                                 array_1d<double, 3>& rElasticForce,
                                                                 array_1d<double, 3>& rContactForce,
@@ -496,7 +496,7 @@ namespace Kratos {
 
         //Update sphere mass and inertia taking into account the real volume of the represented volume:
         SetMass(this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) * GetDensity());
-        if (this->Is(DEMFlags::HAS_ROTATION)) {
+        if (this->Is(DEMFlags::HAS_ROTATION) ){
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
 
@@ -561,7 +561,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
 
-            if (mNeighbourElements[i] == NULL) {
+            if (mNeighbourElements[i] == NULL || mIniNeighbourFailureId[i]) {
                 *mSkinSphere = 1.0;
                 break;
             }
@@ -707,6 +707,17 @@ namespace Kratos {
             }
         }
         return false;
+
+
+
+
+
+
+
+
+
+
+
 
         KRATOS_CATCH("")
     }

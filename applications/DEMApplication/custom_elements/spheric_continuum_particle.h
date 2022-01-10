@@ -20,16 +20,6 @@
 #include "Particle_Contact_Element.h"
 #include "custom_constitutive/DEM_continuum_constitutive_law.h"
 
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
-
-#ifdef CUSTOMTIMER
-#define KRATOS_TIMER_START(t) Timer::Start(t);
-#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
-#else
-#define KRATOS_TIMER_START(t)
-#define KRATOS_TIMER_STOP(t)
-#endif
-
 namespace Kratos
 {
     class KRATOS_API(DEM_APPLICATION) SphericContinuumParticle : public SphericParticle

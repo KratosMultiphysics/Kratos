@@ -15,6 +15,14 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_with_damage);
 
         DEM_KDEM_with_damage() {}
+
+
+
+
+
+
+
+
         ~DEM_KDEM_with_damage() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
@@ -95,7 +103,7 @@ namespace Kratos {
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
         double mDamageMoment = 0.0;
-        const double mDamageThresholdTolerance = 0.9999;
+        const double mDamageThresholdTolerance = 0.999;
 
     private:
 

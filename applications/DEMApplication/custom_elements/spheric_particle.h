@@ -127,7 +127,6 @@ void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_proce
                                                     const double coors[3],
                                                     double neighbour_coors[3]);
 
-
 virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer);
 
 void Initialize(const ProcessInfo& r_process_info) override;
@@ -205,6 +204,7 @@ virtual double GetDensity();
 void   SetDensityFromProperties(double* density);
 virtual int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
+
 
 array_1d<double, 3>& GetForce();
 
@@ -373,6 +373,7 @@ virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::P
                                                             double OldLocalCoordSystem[3][3],
                                                             array_1d<double, 3>& neighbour_elastic_contact_force);
 
+
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                 double LocalCoordSystem[3][3],
                                 double LocalContactForce[3],
@@ -516,7 +517,7 @@ virtual void load(Serializer& rSerializer) override
 
     int aux_int=0;
     rSerializer.load("HasStressTensor", aux_int);
-    if (aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
+    if(aux_int) this->Set(DEMFlags::HAS_STRESS_TENSOR, true);
     if (this->Is(DEMFlags::HAS_STRESS_TENSOR)){
         mStressTensor = new BoundedMatrix<double, 3, 3>(3,3);
         *mStressTensor = ZeroMatrix(3,3);

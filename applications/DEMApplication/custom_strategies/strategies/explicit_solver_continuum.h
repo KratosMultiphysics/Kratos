@@ -6,7 +6,6 @@
 #define  KRATOS_CONTINUUM_EXPLICIT_SOLVER_STRATEGY
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_elements/spheric_continuum_particle.h"
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 namespace Kratos {
 
@@ -68,13 +67,15 @@ namespace Kratos {
         void ComputeNewRigidFaceNeighboursHistoricalData() override;
         void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
-        double ComputeCoordinationNumber(double& standard_dev);
+        double ComputeCoordinationNumber(double& standard_dev) override;
         void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
         virtual void CalculateMaxSearchDistance();
         virtual void MeshRepairOperations();
         virtual void DestroyMarkedParticlesRebuildLists();
         void CalculateMeanContactArea();
+        void BreakAllBonds();
+        void HealAllBonds();
         void SetInitialDemContacts();
         void SetInitialFemContacts();
         void FinalizeSolutionStep() override;

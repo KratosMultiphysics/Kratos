@@ -136,14 +136,13 @@ namespace Kratos {
         if (indentation >= 0.0) { //COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;
         } else { //tension
-
             if (!failure_type) {
 
                 const double initial_limit_force = tension_limit * calculation_area;
                 limit_force = (1.0 - mDamageNormal) * initial_limit_force;
                 LocalElasticContactForce[2] = kn_updated * indentation;
 
-                if (current_normal_force_module > limit_force) {
+                if ((current_normal_force_module > limit_force) && !(*mpProperties)[IS_UNBREAKABLE]) {
 
                     if (!damage_energy_coeff) { // there is no damage energy left
                         failure_type = 4; // failure by traction
@@ -215,11 +214,11 @@ namespace Kratos {
         double kt_updated = (1.0 - mDamageTangential) * kt_el;
 
         if (!failure_type) {
-            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_updated * LocalDeltDisp[0]; // 0: first tangential
-            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_updated * LocalDeltDisp[1]; // 1: second tangential
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_updated * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_updated * LocalDeltDisp[1];
         } else {
-            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0]; // 0: first tangential
-            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1]; // 1: second tangential
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1];
         }
 
         double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
@@ -246,7 +245,7 @@ namespace Kratos {
                 updated_max_tau_strength += internal_friction * contact_sigma;
             }
 
-            if (contact_tau > tau_strength) { // damage
+            if ((contact_tau > tau_strength) && !(*mpProperties)[IS_UNBREAKABLE]) { // damage
 
                 if (!damage_energy_coeff) { // there is no damage energy left
                     failure_type = 2; // failure by shear

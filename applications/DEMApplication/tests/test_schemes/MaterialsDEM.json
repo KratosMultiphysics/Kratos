@@ -31,7 +31,8 @@
             "CONTACT_TAU_ZERO": 0.5e6,
             "CONTACT_SIGMA_MIN": 1e6,
             "CONTACT_INTERNAL_FRICC": 1.0,
-            "ROTATIONAL_MOMENT_COEFFICIENT": 0.0
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.0,
+            "IS_UNBREAKABLE" : false
         }
     },{
         "material_names_list":["mat1", "mat2"],

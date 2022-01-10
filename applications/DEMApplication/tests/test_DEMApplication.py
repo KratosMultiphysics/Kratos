@@ -10,12 +10,15 @@ import test_analytics
 import test_glued_particles
 import test_restart
 import test_DEM_2D
-import test_DEM_3D_contact
 import test_DEM_2D_contact
-import test_DEM_3D_restitution
+import test_DEM_3D_contact
+import test_DEM_2D_constitutive_laws
+import test_DEM_3D_constitutive_laws
 import test_DEM_2D_restitution
-import test_DEM_3D_continuum
+import test_DEM_3D_restitution
+import test_DEM_2D_continuum_vs_discontinuum
 import test_DEM_3D_continuum_vs_discontinuum
+import test_DEM_3D_continuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
 import test_inlet
@@ -57,19 +60,21 @@ def AssembleTestSuites():
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
-
-
+    smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws1"))
+    smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws2"))
+    smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws3"))
+    smallSuite.addTest(test_DEM_3D_constitutive_laws.DEM3DConstitutiveLaws("test_DEM3D_ConstitutiveLaws1"))
+    smallSuite.addTest(test_DEM_3D_constitutive_laws.DEM3DConstitutiveLaws("test_DEM3D_ConstitutiveLaws2"))
+    smallSuite.addTest(test_DEM_3D_constitutive_laws.DEM3DConstitutiveLaws("test_DEM3D_ConstitutiveLaws3"))
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
     smallSuite.addTest(test_inlet.TestPieceWiseLinearDEMInlet("test_piecewise_linear_inlet"))
-
-    smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
-    smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_1"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_2"))
+    smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
+    smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
     smallSuite.addTest(test_DEM_3D_continuum.TestDEM3DContinuum("test_DEM3D_continuum"))
-
-    smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2D_control_module"))
+    #smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2D_control_module"))
     smallSuite.addTest(test_post_process.TestPostProcess("test_gid_printing_many_results"))
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
     smallSuite.addTest(test_forces_and_moments.TestExternalForcesAndMoments("test_ForcesAndMoments"))
@@ -80,6 +85,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
     smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
+    smallSuite.addTest(test_DEM_2D_continuum_vs_discontinuum.TestDEM2DContinuumVsDiscontinuum("test_DEM2D_continuum_vs_discontinuum"))
     smallSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
     smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
     smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
@@ -91,14 +97,12 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
-
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
-
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']

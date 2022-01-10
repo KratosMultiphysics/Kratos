@@ -91,7 +91,7 @@ class DEMAnalysisStage(AnalysisStage):
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFileName()
 
-        [self.post_path, self.data_and_results, self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)[:-1]
+        [self.post_path, self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)
 
         # Prepare modelparts
         self.CreateModelParts()
@@ -100,7 +100,6 @@ class DEMAnalysisStage(AnalysisStage):
             self.SetGraphicalOutput()
         self.report = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
-        self.materialTest = DEM_procedures.MaterialTest()
         self.translational_scheme = self.SetTranslationalScheme()
         self.rotational_scheme = self.SetRotationalScheme()
 
@@ -146,7 +145,6 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.post_normal_impact_velocity_option:
             self.ParticlesAnalyzerClass = analytic_data_procedures.ParticlesAnalyzerClass(self.analytic_model_part)
-
 
     def MakeAnalyticsMeasurements(self):
         self.SurfacesAnalyzerClass.MakeAnalyticsMeasurements()
@@ -245,11 +243,86 @@ class DEMAnalysisStage(AnalysisStage):
         #analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
+    def SkinForCube(self):
+
+        side = 1.0
+        dist = 0.06
+        dim = 2
+
+        if dim == 3:
+            for element in self.spheres_model_part.Elements:
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
+                node = element.GetNode(0)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                if (x > side - dist) or (y > side - dist) or (z > side - dist) or (x < dist) or (y < dist) or (z < dist):
+                    element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+        else:
+            for element in self.spheres_model_part.Elements:
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
+                node = element.GetNode(0)
+                x = node.X
+                y = node.Y
+
+                if (x > side - dist) or (y > side - dist) or (x < dist) or (y < dist):
+                    element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+
+    def SetBallsVels(self):
+
+        side = 1.0
+        dist = 0.06
+        vel = 0.05
+        dim = 2
+
+        for element in self.spheres_model_part.Elements:
+            node = element.GetNode(0)
+
+            if dim == 3:
+
+                z = node.Z
+
+                if (z > side - dist):
+                    node.SetSolutionStepValue(VELOCITY_X, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Z, -vel)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    node.Fix(VELOCITY_Z)
+                if z < dist:
+                    node.SetSolutionStepValue(VELOCITY_X, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Z, vel)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    node.Fix(VELOCITY_Z)
+            else:
+                y = node.Y
+
+                if (y > side - dist):
+                    node.SetSolutionStepValue(VELOCITY_X, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y, -vel)
+                    node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    node.Fix(VELOCITY_Z)
+                if y < dist:
+                    node.SetSolutionStepValue(VELOCITY_X, -0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y, vel)
+                    node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    node.Fix(VELOCITY_Z)
+
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0
 
         self.ReadModelParts()
+
+        #self.SkinForCube()
+        #self.SetBallsVels()
 
         self.SetMaterials()
 
@@ -260,7 +333,6 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FillAnalyticSubModelParts()
 
         self.SetAnalyticWatchers()
-
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.dem_inlet_model_part, 1, self.rigid_face_model_part, 1)
@@ -285,14 +357,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(self.DEM_parameters, self.spheres_model_part, self.cluster_model_part, self.graphs_path, "EnergyPlot.grf")
 
-        self.materialTest.Initialize(self.DEM_parameters, self.procedures, self._GetSolver(), self.graphs_path, self.post_path, self.spheres_model_part, self.rigid_face_model_part)
-
         self.KratosPrintInfo("Initialization Complete")
 
         self.report.Prepare(timer, self.DEM_parameters["ControlTime"].GetDouble())
-
-        self.materialTest.PrintChart()
-        self.materialTest.PrepareDataForGraph()
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self._GetSolver().dt)
@@ -479,7 +546,6 @@ class DEMAnalysisStage(AnalysisStage):
             self.ParticlesAnalyzerClass.SetNodalMaxImpactVelocities()
             self.ParticlesAnalyzerClass.SetNodalMaxFaceImpactVelocities()
 
-
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
 
@@ -513,7 +579,6 @@ class DEMAnalysisStage(AnalysisStage):
             self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION] = self.DEM_parameters["ImposeZStrainIn2DOption"].GetBool()
             if not self.DEM_parameters["ImposeZStrainIn2DWithControlModule"].GetBool():
                 if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
-                    t = self.time
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
@@ -548,11 +613,9 @@ class DEMAnalysisStage(AnalysisStage):
     def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
-        self.materialTest.MeasureForcesAndPressure()
-        self.materialTest.PrintGraph(self.time)
-        self.materialTest.PrintCoordinationNumberGraph(self.time, self._GetSolver())
         self.DEMFEMProcedures.PrintGraph(self.time)
         self.DEMFEMProcedures.PrintBallsGraph(self.time)
+        self.DEMFEMProcedures.PrintAdditionalGraphs(self.time, self._GetSolver())
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
         self.BeforePrintingOperations(self.time)
         self.PrintResults()
@@ -581,7 +644,6 @@ class DEMAnalysisStage(AnalysisStage):
         super().Finalize()
         if self.do_print_results_option:
             self.GraphicalOutputFinalize()
-        self.materialTest.FinalizeGraphs()
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
@@ -620,6 +682,7 @@ class DEMAnalysisStage(AnalysisStage):
         del self.spheres_model_part
         del self.dem_inlet_model_part
         del self.mapping_model_part
+        del self.contact_model_part
 
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             del self.DEM_inlet
@@ -683,8 +746,6 @@ class DEMAnalysisStage(AnalysisStage):
         #### PRINTING GRAPHS ####
         os.chdir(self.graphs_path)
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
-        self.materialTest.MeasureForcesAndPressure()
-        self.materialTest.PrintGraph(self.time)
         self.DEMFEMProcedures.PrintGraph(self.time)
         self.DEMFEMProcedures.PrintBallsGraph(self.time)
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
