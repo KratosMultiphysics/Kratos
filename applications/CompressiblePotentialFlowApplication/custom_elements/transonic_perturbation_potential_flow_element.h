@@ -230,7 +230,7 @@ protected:
                                         const double rDensity,
                                         const array_1d<double, TDim>& rVelocity);
 
-    GlobalPointer<Element> pGetUpwindElement() const;
+    inline GlobalPointer<Element> pGetUpwindElement() const;
 
     bool CheckUpwindElement();
 

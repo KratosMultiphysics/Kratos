@@ -358,7 +358,7 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::PrintData(std::
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int TDim, int TNumNodes>
-GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pGetUpwindElement() const
+inline GlobalPointer<Element> TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::pGetUpwindElement() const
 {
     KRATOS_ERROR_IF(mpUpwindElement.get() == nullptr)
         << "No upwind element found for element #" << this->Id() << std::endl;
