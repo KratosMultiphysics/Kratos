@@ -21,7 +21,6 @@
                 "model_part_name" : "dems",
                 "outer_normal": [0.0,0.0,1.0]
             }],
-            "list_of_fem_boundaries": [],
             "target_stress_table": {
                 "input_variable": "TIME",
                 "output_variable": "TARGET_STRESS",
