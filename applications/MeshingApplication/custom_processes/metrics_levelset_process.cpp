@@ -246,6 +246,7 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
     }
 
 
+
     return size;
 }
 

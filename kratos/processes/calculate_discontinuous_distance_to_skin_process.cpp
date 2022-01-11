@@ -156,10 +156,25 @@ namespace Kratos
     template<std::size_t TDim>
     void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Execute()
     {
-        this->Clear();
-        this->Initialize();
-        this->FindIntersections();
-        this->CalculateDistances(this->GetIntersections());
+		this->Clear();
+
+		auto start = std::chrono::steady_clock::now();
+
+		this->Initialize();
+
+    	std::chrono::duration<double> elapsed_seconds = std::chrono::steady_clock::now()-start;
+    	KRATOS_INFO("CalculateDiscontinuousDistanceToSkinProcess.Initialize():") << "Elapsed time: "<< elapsed_seconds.count() << "s\n";
+		start = std::chrono::steady_clock::now();
+
+		this->FindIntersections();
+    	elapsed_seconds = std::chrono::steady_clock::now()-start;
+    	KRATOS_INFO("CalculateDiscontinuousDistanceToSkinProcess.FindIntersections():") << "Elapsed time: "<< elapsed_seconds.count() << "s\n";
+		start = std::chrono::steady_clock::now();
+
+		this->CalculateDistances(this->GetIntersections());
+
+		elapsed_seconds = std::chrono::steady_clock::now()-start;
+    	KRATOS_INFO("CalculateDiscontinuousDistanceToSkinProcess.CalculateDistances():") << "Elapsed time: "<< elapsed_seconds.count() << "s\n";
     }
 
     /// Turn back information as a string.
