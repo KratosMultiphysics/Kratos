@@ -79,7 +79,7 @@ void ComputePotentialJumpLiftProcess<Dim, NumNodes>::Execute()
             pModifiedShFunc ->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(rInterfacePositiveSideShapeFunctionsValues,
                                                                         rInterfacePositiveSideShapeFunctionsGradientsValues,
                                                                         rInterfacePositiveSideWeightsValues,
-                                                                        GeometryData::GI_GAUSS_1);
+                                                                        GeometryData::IntegrationMethod::GI_GAUSS_1);
             area += rInterfacePositiveSideWeightsValues(0);
 
             double potential_jump = 0.0;

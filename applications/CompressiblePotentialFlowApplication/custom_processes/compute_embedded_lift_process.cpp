@@ -71,7 +71,7 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
                 positive_side_sh_func,
                 positive_side_sh_func_gradients,
                 positive_side_weights,
-            GeometryData::GI_GAUSS_1);
+            GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             it_elem->SetValue(VELOCITY_LOWER, cut_normal[0]);
 

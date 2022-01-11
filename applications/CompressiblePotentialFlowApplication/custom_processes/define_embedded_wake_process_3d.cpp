@@ -372,7 +372,7 @@ void DefineEmbeddedWakeProcess3D::MarkWakeElements(){
             Tetrahedra3D4ModifiedShapeFunctions tetrehedra_shape_func(rElem.pGetGeometry(), Vector(geometry_distances));
             // Computing Normal
             std::vector<array_1d<double,3>> cut_normal;
-            tetrehedra_shape_func.ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
+            tetrehedra_shape_func.ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::IntegrationMethod::GI_GAUSS_1);
             double norm_normal = sqrt(inner_prod(cut_normal[0],cut_normal[0]));
             array_1d<double,3> unit_normal = cut_normal[0]/norm_normal;
             rElem.SetValue(VELOCITY_LOWER,unit_normal);
