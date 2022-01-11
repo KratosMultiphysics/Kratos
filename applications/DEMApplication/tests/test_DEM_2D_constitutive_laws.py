@@ -31,15 +31,17 @@ class DEM2DConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_an
 
         super().InitializeSolutionStep()
 
-    def Finalize(self):
-        self.PrintDebugGraphs()
-        super().Finalize()
-    
     def Initialize(self):
         super().Initialize()
+        self.print_pdf_files = False
         self.already_called_heal_and_setting_indentation = False
         self.time_to_heal_and_set_indentation = 2e-7
         self._GetSolver().cplusplus_strategy.BreakAllBonds()
+
+    def Finalize(self):
+        if self.print_pdf_files:
+            self.PrintDebugGraphs()
+        super().Finalize()
 
     def PrintDebugGraphs(self):
 
@@ -185,7 +187,7 @@ class DEM2DConstitutiveLaws(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM2.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2DConstitutiveLawsTestSolution, model, parameters_file_name, 1)
-    
+
     @classmethod
     def test_DEM2D_ConstitutiveLaws3(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_constitutive_laws_tests_files")
@@ -193,7 +195,7 @@ class DEM2DConstitutiveLaws(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM3.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2DConstitutiveLawsTestSolution, model, parameters_file_name, 1)
-    
+
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_constitutive_laws_tests_files", "TimesPartialRelease")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))

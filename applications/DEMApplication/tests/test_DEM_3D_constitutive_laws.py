@@ -21,8 +21,13 @@ class ConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysi
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
+    def Initialize(self):
+        super().Initialize()
+        self.print_pdf_files = False
+
     def Finalize(self):
-        self.PrintDebugGraphs()
+        if self.print_pdf_files:
+            self.PrintDebugGraphs()
         super().Finalize()
 
     def PrintDebugGraphs(self):
