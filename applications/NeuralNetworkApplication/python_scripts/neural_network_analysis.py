@@ -14,7 +14,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
     This class is the based on the AnalysisStage from Kratos but regarding the creation and training of the neural
     network model.
     """
-    def __init__(self, project_parameters):      
+    def __init__(self, project_parameters, model = None):      
         if not isinstance(project_parameters, KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
@@ -40,8 +40,11 @@ class NeuralNetworkAnalysis(AnalysisStage):
             try:
                 self.model_geometry_file = self.project_parameters["problem_data"]["model_part_file"].GetString()
                 self.model_geometry_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-                self.kratos_model = KratosMultiphysics.Model()
-                self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
+                if model is None:
+                    self.kratos_model = KratosMultiphysics.Model()
+                    self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
+                else:
+                    self.kratos_model = model
                 super().__init__(self.kratos_model, self.project_parameters)
                 KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
                 self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
