@@ -238,22 +238,18 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         return self._parallel_distance_calculator
 
     def __CreateParallelDistanceCalculator(self):
-        max_layers = 2
-        max_distance = 1.0e+12
+        parallel_redistance_settings = KratosMultiphysics.Parameters("""{
+            "max_levels" : 2,
+            "max_distance": 1e12
+        }""")
         if self._GetDomainSize() == 2:
-            return KratosMultiphysics.ParallelDistanceCalculatorProcess2D(
+            return KratosMultiphysics.ParallelDistanceCalculationProcess2D(
                 self.GetFluidComputingModelPart(),
-                KratosMultiphysics.DISTANCE,
-                KratosMultiphysics.NODAL_AREA,
-                max_layers,
-                max_distance)
+                parallel_redistance_settings)
         elif self._GetDomainSize() == 3:
-            return KratosMultiphysics.ParallelDistanceCalculatorProcess3D(
+            return KratosMultiphysics.ParallelDistanceCalculationProcess3D(
                 self.GetFluidComputingModelPart(),
-                KratosMultiphysics.DISTANCE,
-                KratosMultiphysics.NODAL_AREA,
-                max_layers,
-                max_distance)
+                parallel_redistance_settings)
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
 

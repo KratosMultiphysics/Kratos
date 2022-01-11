@@ -55,7 +55,7 @@ namespace Kratos
 /** Detail class definition.
 */
 template <unsigned int TDim>
-class KRATOS_API(KRATOS_CORE) ParallelDistanceCalculatorProcess : public Process
+class KRATOS_API(KRATOS_CORE) ParallelDistanceCalculationProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -63,23 +63,23 @@ public:
 
     typedef Node<3> NodeType;
 
-    /// Pointer definition of ParallelDistanceCalculatorProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ParallelDistanceCalculatorProcess);
+    /// Pointer definition of ParallelDistanceCalculationProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ParallelDistanceCalculationProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    ParallelDistanceCalculatorProcess(
+    ParallelDistanceCalculationProcess(
         ModelPart &rModelPart,
         Parameters Settings);
 
-    ParallelDistanceCalculatorProcess(
+    ParallelDistanceCalculationProcess(
         Model &rModel,
         Parameters Settings);
 
     KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor with parameters")
-    ParallelDistanceCalculatorProcess(
+    ParallelDistanceCalculationProcess(
         ModelPart& rModelPart,
         const Variable<double>& rDistanceVar,
         const Variable<double>& rAreaVar,
@@ -88,10 +88,10 @@ public:
         const bool CalculateExactDistancesToPlane = false);
 
     /// Copy constructor.
-    ParallelDistanceCalculatorProcess(ParallelDistanceCalculatorProcess<TDim> const& rOther) = delete;
+    ParallelDistanceCalculationProcess(ParallelDistanceCalculationProcess<TDim> const& rOther) = delete;
 
     /// Destructor.
-    virtual ~ParallelDistanceCalculatorProcess() {};
+    virtual ~ParallelDistanceCalculationProcess() {};
 
     const Parameters GetDefaultParameters() const override;
 
@@ -129,14 +129,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ParallelDistanceCalculatorProcess" << TDim << "D";
+        buffer << "ParallelDistanceCalculationProcess" << TDim << "D";
         return buffer.str();
     };
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ParallelDistanceCalculatorProcess" << TDim << "D";
+        rOStream << "ParallelDistanceCalculationProcess" << TDim << "D";
     };
 
     /// Print object's data.
@@ -242,7 +242,7 @@ private:
 
 
     ///@}
-}; // Class ParallelDistanceCalculatorProcess
+}; // Class ParallelDistanceCalculationProcess
 
 ///@}
 ///@name Input and output
@@ -252,7 +252,7 @@ private:
 template<unsigned int TDim>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    ParallelDistanceCalculatorProcess<TDim>& rThis)
+    ParallelDistanceCalculationProcess<TDim>& rThis)
 {
     return rIStream;
 }
@@ -261,7 +261,7 @@ inline std::istream& operator >> (
 template<unsigned int TDim>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ParallelDistanceCalculatorProcess<TDim>& rThis)
+    const ParallelDistanceCalculationProcess<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

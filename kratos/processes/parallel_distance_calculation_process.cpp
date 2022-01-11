@@ -22,20 +22,20 @@
 #include "includes/model_part.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
-#include "processes/parallel_distance_calculator_process.h"
+#include "processes/parallel_distance_calculation_process.h"
 
 namespace Kratos
 {
 
 template<unsigned int TDim>
-ParallelDistanceCalculatorProcess<TDim>::ParallelDistanceCalculatorProcess(
+ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
     Model& rModel,
     Parameters Settings)
-    : ParallelDistanceCalculatorProcess<TDim>(rModel.GetModelPart(Settings["model_part_name"].GetString()),Settings)
+    : ParallelDistanceCalculationProcess<TDim>(rModel.GetModelPart(Settings["model_part_name"].GetString()),Settings)
 {}
 
 template<unsigned int TDim>
-ParallelDistanceCalculatorProcess<TDim>::ParallelDistanceCalculatorProcess(
+ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
     ModelPart& rModelPart,
     Parameters Settings)
     : mrModelPart(rModelPart)
@@ -50,7 +50,7 @@ ParallelDistanceCalculatorProcess<TDim>::ParallelDistanceCalculatorProcess(
 }
 
 template<unsigned int TDim>
-ParallelDistanceCalculatorProcess<TDim>::ParallelDistanceCalculatorProcess(
+ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
     ModelPart& rModelPart,
     const Variable<double>& rDistanceVar,
     const Variable<double>& rAreaVar,
@@ -66,7 +66,7 @@ ParallelDistanceCalculatorProcess<TDim>::ParallelDistanceCalculatorProcess(
 {}
 
 template<unsigned int TDim>
-const Parameters ParallelDistanceCalculatorProcess<TDim>::GetDefaultParameters() const
+const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters() const
 {
     return Parameters(R"({
         "model_part_name" : "PLEASE_SPECIFY_MODEL_PART",
@@ -79,7 +79,7 @@ const Parameters ParallelDistanceCalculatorProcess<TDim>::GetDefaultParameters()
 }
 
 template<unsigned int TDim>
-double ParallelDistanceCalculatorProcess<TDim>::FindMaximumEdgeSize()
+double ParallelDistanceCalculationProcess<TDim>::FindMaximumEdgeSize()
 {
     KRATOS_TRY
 
@@ -124,7 +124,7 @@ double ParallelDistanceCalculatorProcess<TDim>::FindMaximumEdgeSize()
 }
 
 template<unsigned int TDim>
-bool ParallelDistanceCalculatorProcess<TDim>::IsDivided(const array_1d<double,TDim+1>& rDistance)
+bool ParallelDistanceCalculationProcess<TDim>::IsDivided(const array_1d<double,TDim+1>& rDistance)
 {
     unsigned int positive = 0;
     unsigned int negative = 0;
@@ -145,7 +145,7 @@ bool ParallelDistanceCalculatorProcess<TDim>::IsDivided(const array_1d<double,TD
 }
 
 template<unsigned int TDim>
-bool ParallelDistanceCalculatorProcess<TDim>::IsActive(const array_1d<double,TDim+1>& rVisited)
+bool ParallelDistanceCalculationProcess<TDim>::IsActive(const array_1d<double,TDim+1>& rVisited)
 {
     unsigned int positive = 0;
 
@@ -161,7 +161,7 @@ bool ParallelDistanceCalculatorProcess<TDim>::IsActive(const array_1d<double,TDi
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculatorProcess<TDim>::AddDistanceToNodes(
+void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
     Geometry<NodeType>& rGeometry,
     const BoundedMatrix<double,TDim+1,TDim>& rDN_DX,
     const double& Volume)
@@ -261,7 +261,7 @@ void ParallelDistanceCalculatorProcess<TDim>::AddDistanceToNodes(
 }
 
 template<unsigned int TDim>
-int ParallelDistanceCalculatorProcess<TDim>::Check()
+int ParallelDistanceCalculationProcess<TDim>::Check()
 {
     KRATOS_TRY
 
@@ -279,7 +279,7 @@ int ParallelDistanceCalculatorProcess<TDim>::Check()
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculatorProcess<TDim>::Execute()
+void ParallelDistanceCalculationProcess<TDim>::Execute()
 {
     ResetVariables();
 
@@ -291,7 +291,7 @@ void ParallelDistanceCalculatorProcess<TDim>::Execute()
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculatorProcess<TDim>::ResetVariables()
+void ParallelDistanceCalculationProcess<TDim>::ResetVariables()
 {
     KRATOS_TRY
 
@@ -312,7 +312,7 @@ void ParallelDistanceCalculatorProcess<TDim>::ResetVariables()
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculatorProcess<TDim>::CalculateExactDistancesOnDividedElements()
+void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedElements()
 {
     KRATOS_TRY
 
@@ -368,7 +368,7 @@ void ParallelDistanceCalculatorProcess<TDim>::CalculateExactDistancesOnDividedEl
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculatorProcess<TDim>::ExtendDistancesByLayer()
+void ParallelDistanceCalculationProcess<TDim>::ExtendDistancesByLayer()
 {
     KRATOS_TRY
 
@@ -435,7 +435,7 @@ void ParallelDistanceCalculatorProcess<TDim>::ExtendDistancesByLayer()
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculatorProcess<TDim>::AssignDistanceSign()
+void ParallelDistanceCalculationProcess<TDim>::AssignDistanceSign()
 {
     KRATOS_TRY
 
@@ -459,7 +459,7 @@ void ParallelDistanceCalculatorProcess<TDim>::AssignDistanceSign()
     KRATOS_CATCH("")
 }
 
-template class ParallelDistanceCalculatorProcess<2>;
-template class ParallelDistanceCalculatorProcess<3>;
+template class ParallelDistanceCalculationProcess<2>;
+template class ParallelDistanceCalculationProcess<3>;
 
 }  // namespace Kratos.

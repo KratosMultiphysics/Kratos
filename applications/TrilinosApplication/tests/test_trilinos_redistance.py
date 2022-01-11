@@ -92,15 +92,14 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
         nodal_area_process.Execute()
 
         # Set the parallel distance calculator
-        max_levels = 10
-        max_distance = 100.0
-        distance_calculator = KratosMultiphysics.ParallelDistanceCalculatorProcess3D(
+        settings = KratosMultiphysics.Parameters("""{
+            "max_levels" : 10,
+            "max_distance" : 100.0,
+            "calculate_exact_distances_to_plane" : true
+        }""")
+        distance_calculator = KratosMultiphysics.ParallelDistanceCalculationProcess3D(
             self.model_part,
-            KratosMultiphysics.DISTANCE,
-            KratosMultiphysics.NODAL_AREA,
-            max_levels,
-            max_distance,
-            True)
+            settings)
         distance_calculator.Execute()
 
         # Check the obtained values

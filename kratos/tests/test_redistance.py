@@ -158,7 +158,7 @@ class TestRedistance(KratosUnittest.TestCase):
             "max_distance" : 2.0,
             "calculate_exact_distances_to_plane": true
         }""")
-        distance_calculator = KratosMultiphysics.ParallelDistanceCalculatorProcess3D(current_model, settings)
+        distance_calculator = KratosMultiphysics.ParallelDistanceCalculationProcess3D(current_model, settings)
         distance_calculator.Execute()
 
         for node in model_part.Nodes:
