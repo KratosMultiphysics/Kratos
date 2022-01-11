@@ -82,10 +82,9 @@ class HRomTrainingUtility(object):
         # Get the weights and fill the HROM computing model part
         with open('RomParameters.json','r') as f:
             rom_parameters = KratosMultiphysics.Parameters(f.read())
-        hrom_computing_model_part = hrom_main_model_part.CreateSubModelPart("COMPUTE_HROM") #TODO: Use the Kratos naming convention
-        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_computing_model_part)
+        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_main_model_part)
         if self.echo_level > 0:
-            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_computing_model_part.FullName()))
+            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
         # Create the HROM visualization model part
         set_visualization_modelpart = False #TODO: Make this user-definable

@@ -31,6 +31,18 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
                 raise Exception(err_msg)
 
+            # Edit the input settings for the HROM run
+            if self.run_hrom:
+                # Set the HROM mdpa as input file
+                import_settings = self.project_parameters["solver_settings"]["model_import_settings"]
+                input_type = import_settings["input_type"].GetString()
+                if input_type == "mdpa":
+                    hrom_input_filename = "{}HROM".format(import_settings["input_filename"].GetString())
+                    import_settings["input_filename"].SetString(hrom_input_filename)
+                else:
+                    err_msg = "Current \'input_type\' is. \'mdpa\' format is expected.".format(input_type)
+                    raise Exception(err_msg)
+
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
                 self.model,
@@ -100,11 +112,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 # Set the HROM weights in elements and conditions
                 hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
                 for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                    computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+                    computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
 
                 hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
                 for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                    computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble())
+                    computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
 
         def FinalizeSolutionStep(self):
             # Call the HROM training utility to append the current step residuals

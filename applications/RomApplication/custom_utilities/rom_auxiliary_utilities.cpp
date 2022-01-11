@@ -46,7 +46,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
         // Get element from origin mesh
         const IndexType elem_id = stoi(it.name());
-        const auto p_elem = rOriginModelPart.pGetElement(elem_id);
+        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
 
         // Add the element to the auxiliary container and to the main HROM model part
         hrom_elems_vect.push_back(p_elem);
@@ -68,7 +68,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition from origin mesh
         const IndexType cond_id = stoi(it.name());
-        auto p_cond = rOriginModelPart.pGetCondition(cond_id);
+        auto p_cond = rOriginModelPart.pGetCondition(cond_id + 1); //FIXME: WHY THIS +1?
 
         // Add the condition to the auxiliary container and to the main HROM model part
         hrom_conds_vect.push_back(p_cond);
@@ -86,6 +86,14 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     hrom_conds_vect.shrink_to_fit();
 
     //TODO: ADD MPC'S
+
+    // Add properties to the HROM mesh
+    // Note that we add all the properties although some of them might note be used in the HROM mesh
+    auto& r_root_model_part = const_cast<ModelPart&>(rOriginModelPart).GetRootModelPart();
+    auto& r_properties = r_root_model_part.rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        rHRomComputingModelPart.AddProperties(*it_p_prop);
+    }
 
     // Create and fill the HROM calculation sub model parts
     for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
@@ -134,6 +142,12 @@ void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
         }
     }
     r_hrom_sub_mp.AddConditions(aux_cond_ids);
+
+    // Add properties
+    auto& r_properties = const_cast<ModelPart&>(rOriginModelPart).rProperties();
+    for (auto it_p_prop = r_properties.ptr_begin(); it_p_prop < r_properties.ptr_end(); ++it_p_prop) {
+        r_hrom_sub_mp.AddProperties(*it_p_prop);
+    }
 
     //TODO: ADD MPCs
 
