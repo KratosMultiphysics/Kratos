@@ -160,14 +160,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    bool IsDivided(const array_1d<double,TDim+1>& rDistance);
-
-    bool IsActive(const array_1d<double,TDim+1>& rVisited);
-
-    void AddDistanceToNodes(
-        Geometry<NodeType>& rGeometry,
-        const BoundedMatrix<double,TDim+1,TDim>& rDN_DX,
-        const double& Volume);
 
     ///@}
     ///@name Protected Operations
@@ -216,6 +208,15 @@ private:
 	void ExtendDistancesByLayer();
 
     void AssignDistanceSign();
+
+    bool IsDivided(const array_1d<double,TDim+1>& rDistance);
+
+    bool IsActive(const array_1d<double,TDim+1>& rVisited);
+
+    void AddDistanceToNodes(
+        Geometry<NodeType>& rGeometry,
+        const BoundedMatrix<double,TDim+1,TDim>& rDN_DX,
+        const double& Volume);
 
     ///@}
     ///@name Private  Access
