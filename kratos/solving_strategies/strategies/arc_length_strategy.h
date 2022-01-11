@@ -93,7 +93,9 @@ class ArcLengthStrategy
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters ThisParameters
         ) : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
-                pNewConvergenceCriteria, pNewBuilderAndSolver, ThisParameters)
+                pNewConvergenceCriteria, pNewBuilderAndSolver, ThisParameters["max_iteration"].GetInt(),
+                ThisParameters["compute_reactions"].GetBool(), ThisParameters["reform_dofs_at_each_step"].GetBool(),
+                ThisParameters["move_mesh_flag"].GetBool())
         {
             ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
             AssignSettings(ThisParameters);
@@ -114,22 +116,22 @@ class ArcLengthStrategy
     {
         ModelPart& r_model_part = BaseType::GetModelPart();
         BaseType::AssignSettings(ThisParameters);
-        mDesiredIterations = ThisParameters["advanced_settings"]["desired_iterations"].GetInt();
-        mMaxRadiusFactor   = ThisParameters["advanced_settings"]["max_radius_factor"].GetDouble();
-        mMinRadiusFactor   = ThisParameters["advanced_settings"]["min_radius_factor"].GetDouble();
+        mDesiredIterations = ThisParameters["desired_iterations"].GetInt();
+        mMaxRadiusFactor   = ThisParameters["max_radius_factor"].GetDouble();
+        mMinRadiusFactor   = ThisParameters["min_radius_factor"].GetDouble();
         mInitializeArcLengthWasPerformed = false;
 
         // we initialize the list of load processes to be taken into account
-        if (ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size() > 0) {
-            mSubModelPartList.resize(ThisParameters["advanced_settings"]["loads_sub_model_part_list"].size());
-            mVariableNames.resize(ThisParameters["advanced_settings"]["loads_variable_list"].size());
+        if (ThisParameters["loads_sub_model_part_list"].size() > 0) {
+            mSubModelPartList.resize(ThisParameters["loads_sub_model_part_list"].size());
+            mVariableNames.resize(ThisParameters["loads_variable_list"].size());
 
             if (mSubModelPartList.size() != mVariableNames.size())
                 KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
 
             for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-                mSubModelPartList[i] = &( r_model_part.GetSubModelPart(ThisParameters["advanced_settings"]["loads_sub_model_part_list"][i].GetString()));
-                mVariableNames[i] = ThisParameters["advanced_settings"]["loads_variable_list"][i].GetString();
+                mSubModelPartList[i] = &( r_model_part.GetSubModelPart(ThisParameters["loads_sub_model_part_list"][i].GetString()));
+                mVariableNames[i] = ThisParameters["loads_variable_list"][i].GetString();
             }
         }
     }
@@ -434,22 +436,20 @@ class ArcLengthStrategy
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name"                                : "arc_length_strategy",
-            "use_old_stiffness_in_first_iteration": false,
-            "max_iteration"                       : 10,
-            "reform_dofs_at_each_step"            : false,
-            "compute_reactions"                   : false,
-            "builder_and_solver_settings"         : {},
-            "convergence_criteria_settings"       : {},
-            "linear_solver_settings"              : {},
-            "scheme_settings"                     : {},
-            "advanced_settings"                   : {
-				"desired_iterations"        : 4,
-				"max_radius_factor"         : 10.0,
-				"min_radius_factor"         : 0.1,
-				"loads_sub_model_part_list" : [],
-				"loads_variable_list"       : []
-            }
+            "name"                                 : "arc_length_strategy",
+            "use_old_stiffness_in_first_iteration" : false,
+            "max_iteration"                        : 10,
+            "reform_dofs_at_each_step"             : false,
+            "compute_reactions"                    : false,
+            "builder_and_solver_settings"          : {},
+            "convergence_criteria_settings"        : {},
+            "linear_solver_settings"               : {},
+            "scheme_settings"                      : {},
+            "desired_iterations"                   : 4,
+            "max_radius_factor"                    : 10.0,
+            "min_radius_factor"                    : 0.1,
+            "loads_sub_model_part_list"            : [],
+            "loads_variable_list"                  : []
         })");
 
         // Getting base class default parameters
@@ -497,6 +497,7 @@ class ArcLengthStrategy
         if (v.size() != this->mpBuilderAndSolver->GetEquationSystemSize())
             v.resize(this->mpBuilderAndSolver->GetEquationSystemSize(), true);
     }
+
     ///@}
     ///@name Operators
 
@@ -613,7 +614,6 @@ class ArcLengthStrategy
      * @param b The RHS vector of the system of equations
      * @param MoveMesh The flag that allows to move the mesh
      */
-
     void UpdateDatabase(
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
@@ -631,9 +631,7 @@ class ArcLengthStrategy
 
     void MaxIterationsExceeded() override
     {
-        KRATOS_INFO_IF("ARC-LENGTH Strategy", this->GetEchoLevel() > 0)
-            << "ATTENTION: max iterations ( " << this->mMaxIterationNumber
-            << " ) exceeded!" << std::endl;
+        KRATOS_INFO_IF("ARC-LENGTH Strategy", this->GetEchoLevel() > 0) << "ATTENTION: max iterations ("<< this->mMaxIterationNumber <<") exceeded!" << std::endl;
     }
 
     ///@}
