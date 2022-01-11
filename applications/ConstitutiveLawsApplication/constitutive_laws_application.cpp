@@ -397,6 +397,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMisesVonMises", mAssociativePlasticDamageModel3DVonMisesVonMises);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPragerDruckerPrager", mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankineRankine", mAssociativePlasticDamageModel3DRankineRankine);
 
     // Constitutive laws variables
 
@@ -440,6 +441,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(UNIAXIAL_STRESS)
     KRATOS_REGISTER_VARIABLE(FRICTION_ANGLE)
     KRATOS_REGISTER_VARIABLE(COHESION)
+    KRATOS_REGISTER_VARIABLE(DISSIPATION)
     KRATOS_REGISTER_VARIABLE(DAMAGE)
     KRATOS_REGISTER_VARIABLE(DAMAGE_MATRIX)
     KRATOS_REGISTER_VARIABLE(DAMAGE_FIBER)
