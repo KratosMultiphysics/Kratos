@@ -849,23 +849,24 @@ void UpdatedLagrangianUPVMS::CalculateAndAddLHS(
         CalculateAndAddKuugUP(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
     }
 
-    // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
-    CalculateAndAddKuuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
     // Operation performed: add Kup to the rLefsHandSideMatrix
     CalculateAndAddKup( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
-    // Operation performed: add Kup stabilization to the rLefsHandSideMatrix
-    CalculateAndAddKupStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operations performed: add Kpu to the rLefsHandSideMatrix
     CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    // Operations performed: add Kpu stabilization to the rLefsHandSideMatrix
-    CalculateAndAddKpuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
     // Operation performed: add Kpp to the rLefsHandSideMatrix
     //CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+
+    // Operation performed: add Kuu stabilization to the rLefsHandSideMatrix
+    CalculateAndAddKuuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    // Operation performed: add Kup stabilization to the rLefsHandSideMatrix
+    CalculateAndAddKupStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    // Operations performed: add Kpu stabilization to the rLefsHandSideMatrix
+    CalculateAndAddKpuStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // Operation performed: add Kpp stabilization to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
@@ -1028,7 +1029,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
 
         // ATTENTION: class not used in the current implementation!!
 
-    const unsigned int number_of_nodes = GetGeometry().size();
+    /* const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
@@ -1059,7 +1060,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
         indexpi += (dimension + 1);
     }
 
-
+ */
     KRATOS_CATCH( "" )
 }
 
@@ -1115,6 +1116,25 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
 {
     KRATOS_TRY
 
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
+    // Assemble components considering added DOF matrix system
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int index_p  = dimension;
+        unsigned int index_up = dimension * i + i;
+        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        {
+            for ( unsigned int k = 0; k < dimension; k++ )
+            {
+                // rLeftHandSideMatrix(index_up + k, index_p) += rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
+            }
+            index_p += (dimension + 1);
+        }
+    }
+
 
     KRATOS_CATCH( "" )
 }
@@ -1130,15 +1150,67 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
 {
     KRATOS_TRY
 
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
+
+    // Assemble components considering added DOF matrix system
+    unsigned int index_p = dimension;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        for ( unsigned int j = 0; j < number_of_nodes; j++ )
+        {
+            unsigned int index_up = dimension*j + j;
+            for ( unsigned int k = 0; k < dimension; k++ )
+            {
+                //rLeftHandSideMatrix(index_p, index_up + k) += r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p, index_up + k) += - rVariables.tau1 * rVariables.DN_DX(i, k) * Testf1(j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau2 * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+            }
+        }
+        index_p += (dimension + 1);
+    }
+
     KRATOS_CATCH( "" )
 }
-
-
 
 //***********************************************************************************
 //***********************************************************************************
 
 void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight)
+{
+    KRATOS_TRY;
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    unsigned int indexpi = dimension;
+
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        unsigned int indexpj = dimension;
+        for (unsigned int j = 0; j < number_of_nodes; j++)
+        {
+            rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau2 * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
+
+            indexpj += (dimension + 1);
+        }
+
+        indexpi += (dimension + 1);
+    }
+
+
+
+    KRATOS_CATCH( "" )
+} 
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+/*void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
         GeneralVariables & rVariables,
         const double& rIntegrationWeight)
 {
@@ -1170,12 +1242,12 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
     }
     else if (GetProperties().Has(DYNAMIC_VISCOSITY))
     {
-        /*
+        
         Stabilization parameter for shallow water:
         alpha stabilization = c_tau/sqrt(h)
         h: characteristic water depth
         c_tau : [0.1, 1]
-        */
+        
         double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
         alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
 
@@ -1214,7 +1286,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
     }
 
     KRATOS_CATCH( "" )
-}
+} */
 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************
