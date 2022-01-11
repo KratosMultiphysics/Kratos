@@ -319,7 +319,6 @@ template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<2, 3>& rData) const
 {
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const BoundedMatrix<double,3,2> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
@@ -335,7 +334,6 @@ template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<3, 4>& rData) const
 {
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const BoundedMatrix<double,4,3> velocity_alpha = rData.Velocity_OldStep1+ alpha_f*(rData.Velocity-rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
     auto& r_strain_rate = rData.StrainRate;
@@ -363,13 +361,11 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const double dt = rData.DeltaTime;
 
     const double dyn_tau = rData.DynamicTau;
-    const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vmeshn = rData.MeshVelocityOldStep;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
     const BoundedMatrix<double,3,2> vconv =(vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
@@ -399,12 +395,9 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 {
     const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
-
     const double h = rData.ElementSize;
-    const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -449,7 +442,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const double dt = rData.DeltaTime;
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -461,8 +453,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto &pn = rData.Pressure_OldStep1;
-
     const auto &stress = rData.ShearStress;
 
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
@@ -498,7 +488,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
     const double alpha_f=1/(1+max_spectral_radius);
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double dyn_tau = rData.DynamicTau;
 
     const auto &v = rData.Velocity;
@@ -508,8 +497,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto &pn = rData.Pressure_OldStep1;
-
     const auto &stress = rData.ShearStress;
 
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
@@ -547,7 +534,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1+max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -559,7 +545,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p=rData.Pressure;
-    const auto &pn=rData.Pressure_OldStep1;
 
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
@@ -613,7 +598,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
-    const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
     const double alpha_f=1/(1-max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
@@ -625,7 +609,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-    const auto &pn = rData.Pressure_OldStep1;
 
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
@@ -700,14 +683,14 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::ComputeSplitting(
         rShapeFunctionsPos,
         rShapeDerivativesPos,
         rData.w_gauss_pos_side,
-        GeometryData::GI_GAUSS_2);
+        GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the negative side modified shape functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideShapeFunctionsAndGradientsValues(
         rShapeFunctionsNeg,
         rShapeDerivativesNeg,
         rData.w_gauss_neg_side,
-        GeometryData::GI_GAUSS_2);
+         GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Compute the enrichment shape function values using the enrichment interpolation matrices
     rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
@@ -755,12 +738,12 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::ComputeSplitInterface(
         rInterfaceShapeFunctionNeg,
         rInterfaceShapeDerivativesNeg,
         rInterfaceWeightsNeg,
-        GeometryData::GI_GAUSS_2);
+         GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // Call the Interface negative side normal functions calculator
     pModifiedShapeFunctions->ComputeNegativeSideInterfaceAreaNormals(
         rInterfaceNormalsNeg,
-        GeometryData::GI_GAUSS_2);
+         GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); ++gp){
         const double normal_norm = norm_2(rInterfaceNormalsNeg[gp]);
@@ -854,11 +837,11 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
             positive_density = rData.NodalDensity[i];
-            positive_viscosity = rData.NodalEffectiveDynamicViscosity[i];
+            positive_viscosity = rData.NodalDynamicViscosity[i];
         } else{
             enr_pos_interp(i, i) = 1.0;
             negative_density = rData.NodalDensity[i];
-            negative_viscosity = rData.NodalEffectiveDynamicViscosity[i];
+            negative_viscosity = rData.NodalDynamicViscosity[i];
         }
     }
 
@@ -904,8 +887,6 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
     const double dt = rData.DeltaTime;
     const auto &v=rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto &acceleration_alpha_method=rData.AccelerationAlphaMethod;
-    const double max_spectral_radius=rData.MaxSprectraRadius;
     const double alpha_m=0.5*((3-rData.MaxSprectraRadius)/(1+rData.MaxSprectraRadius));
 
     const auto vmesh=rData.MeshVelocity;
@@ -1127,7 +1108,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
     if (rVariable == DIVERGENCE){
 
         const auto& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_2);
         const unsigned int num_gauss = IntegrationPoints.size();
 
         if (rValues.size() != num_gauss){
@@ -1136,7 +1117,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
 
         Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
         GeometryData::ShapeFunctionsGradientsType DN_DX;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
+        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant,  GeometryData::IntegrationMethod::GI_GAUSS_2);
 
         for (unsigned int i_gauss = 0; i_gauss < num_gauss; ++i_gauss){
 

@@ -99,14 +99,6 @@ class NavierStokesTwoFluidsSolverLeapFrog(NavierStokesTwoFluidsSolver):
     def Initialize(self):
         super().Initialize()
 
-        self.shock_capturing_settings=KratosMultiphysics.Parameters("""{
-            "model_part_name" : "",
-            "calculate_nodal_area_at_each_step" : false,
-            "shock_sensor" : false,
-            "shear_sensor" : true,
-            "thermal_sensor" : false,
-            "thermally_coupled_formulation" : false
-        }""")
         # Non historical variable is initilized in order to avoid memory problems
         if self.time_scheme == "generalised_alpha":
             for node in self.GetComputingModelPart().Nodes:
@@ -126,7 +118,6 @@ class NavierStokesTwoFluidsSolverLeapFrog(NavierStokesTwoFluidsSolver):
             self.leapfrog_coef=self.theta
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA, self.theta)
 
-        self._GetShockCapturingProcess().Execute()
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
@@ -183,26 +174,26 @@ class NavierStokesTwoFluidsSolverLeapFrog(NavierStokesTwoFluidsSolver):
         self._GetSolutionStrategy().InitializeSolutionStep()
 
         # Recompute the distance field according to the new level-set position
-        if self._TimeBufferIsInitialized():
-            if (self._reinitialization_type == "variational"):
-                self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                adjusting_parameter = 0.05
-                layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        # if self._TimeBufferIsInitialized():
+        #     if (self._reinitialization_type == "variational"):
+        #         self._GetDistanceReinitializationProcess().Execute()
+        #     elif (self._reinitialization_type == "parallel"):
+        #         adjusting_parameter = 0.05
+        #         layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
+        #         max_distance = 1.0 # use this parameter to define the redistancing range
+        #         # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
+        #         self._GetDistanceReinitializationProcess().CalculateDistances(
+        #             self.main_model_part,
+        #             self._levelset_variable,
+        #             KratosMultiphysics.NODAL_AREA,
+        #             layers,
+        #             max_distance,
+        #             self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-            if (self._reinitialization_type != "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        #     if (self._reinitialization_type != "none"):
+        #         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
             # Prepare distance correction for next step
-            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+            # self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
         # Moving the level set with an linear extrapolation in order to enter to the to the navier stokes equation in the same time step.
         # TODO: The midle time step level set is saved in a nonhystorical variable in this case TEMPERATURE. It should be saved in other non-hystorical variable
         if self.initialize_leap_frog:
@@ -296,12 +287,4 @@ class NavierStokesTwoFluidsSolverLeapFrog(NavierStokesTwoFluidsSolver):
         highscore.close()
 
 
-    def __CreateShockCapturingProcess(self):
-        shock_capturing_process=KratosCFD.ShockCapturingProcess(self.main_model_part,self.shock_capturing_settings)
-        return shock_capturing_process
 
-
-    def _GetShockCapturingProcess(self):
-        if not hasattr(self,'_shock_capturing_process'):
-            self._shock_capturing_process=self.__CreateShockCapturingProcess()
-        return self._shock_capturing_process
