@@ -158,6 +158,8 @@ void UpdatedLagrangianUPVMS::InitializeGeneralVariables (GeneralVariables& rVari
     rVariables.tau1  = 1;
     rVariables.tau2  = 1;
 
+    rVariables.PressureGP = 0;
+
     KRATOS_CATCH( "" )
 
 }
@@ -207,6 +209,9 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
         The function below will call CalculateMaterialResponseCauchy() by default and then (may)
         call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
         mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+
+        // Compute pressure and pressure gradient
+        SetSpecificVariables(Variables);
 
         // Compute stabilization parameters
         CalculateTaus(Variables);
@@ -494,6 +499,36 @@ void UpdatedLagrangianUPVMS::InitializeSolutionStep(const ProcessInfo& rCurrentP
         r_geometry[i].UnSetLock();
     }
 }
+//************************************************************************************
+//************************************************************************************
+
+void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables)
+{
+    //,  ConstitutiveLaw::Parameters& rValues
+    KRATOS_TRY
+
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+    unsigned int index_p = dimension;
+
+    // Set Pressure and Pressure Gradient in gauss points
+    rVariables.PressureGP = 0;
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+        rVariables.PressureGP += r_N(0,j) * r_geometry[j].FastGetSolutionStepValue(PRESSURE);
+        for ( unsigned int i = 0; i < index_p; i++ )
+        {
+            rVariables.PressureGradient[i] += rVariables.DN_DX(j,i) * r_geometry[j].FastGetSolutionStepValue(PRESSURE);
+        }
+    }
+
+    // rValues.GetVolumetricConstitutiveMatrix(rVariables.VolumetricConstitutiveMatrix);
+
+        KRATOS_CATCH("")
+} 
+
 //************************************************************************************
 //************************************************************************************
 
@@ -1039,6 +1074,32 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
 
 {
     KRATOS_TRY
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    //const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    Vector Kuustab = prod(rVariables.DN_DX, rVariables.PressureGradient);
+
+
+    unsigned int indexi = 0;
+    unsigned int indexj = 0;
+
+    // Assemble components considering added DOF matrix system
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        for ( unsigned int idim = 0; idim < dimension ; idim ++)
+        {
+            indexj=0;
+            for ( unsigned int j = 0; j < number_of_nodes; j++ )
+            {
+                for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
+                {
+                    rLeftHandSideMatrix(indexi+i,indexj+j)+=- rVariables.tau1 * Kuustab(i)*rIntegrationWeight* Kuustab(j);
+                    indexj++;
+                }
+            }
+            indexi++;
+        }
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1053,6 +1114,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
 
 {
     KRATOS_TRY
+
 
     KRATOS_CATCH( "" )
 }

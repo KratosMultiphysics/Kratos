@@ -91,6 +91,8 @@ void DispNewtonianFluidUP3DLaw::CalculateMaterialResponseCauchy (Parameters& rVa
     const Vector& shape_functions = rValues.GetShapeFunctionsValues();
     const ProcessInfo& current_process_info = rValues.GetProcessInfo();
 
+    // Matrix& VolumetricConstitutiveMatrix  = rValues.GetVolumetricConstitutiveMatrix();
+
 
     //-----------------------------//
 
@@ -180,6 +182,8 @@ void DispNewtonianFluidUP3DLaw::CalculateMaterialResponseCauchy (Parameters& rVa
 	    this->CalculateVolumetricConstitutiveMatrix ( ViscousVariables, SplitConstitutiveMatrix.Volumetric );
 
         ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric;
+
+        // VolumetricConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric
 
         if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
         {

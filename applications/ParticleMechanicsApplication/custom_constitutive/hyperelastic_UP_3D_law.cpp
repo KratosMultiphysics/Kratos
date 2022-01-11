@@ -88,6 +88,7 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+    // Matrix& VolumetricConstitutiveMatrix  = rValues.GetVolumetricConstitutiveMatrix();
 
     //-----------------------------//
 
@@ -198,6 +199,8 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 	    this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, SplitConstitutiveMatrix.Volumetric );
 
         ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric;
+
+        //VolumetricConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
 
         if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
         {

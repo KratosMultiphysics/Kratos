@@ -274,6 +274,13 @@ protected:
     void CalculateTaus(GeneralVariables& rVariables);
 
 
+    /*
+     * Calculation of Specific variables: pressure and gradient pressure 
+     */
+
+    void SetSpecificVariables(GeneralVariables& rVariables);
+
+
     /**
      * Calculation and addition of the matrices of the LHS
      */

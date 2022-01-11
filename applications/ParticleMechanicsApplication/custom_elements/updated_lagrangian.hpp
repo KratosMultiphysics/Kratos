@@ -228,6 +228,11 @@ protected:
         // Stabilization parameters
         double tau1;
         double tau2;
+
+        // Pressure at gauss points and pressure gradient
+        double PressureGP;
+        Vector PressureGradient;
+        Matrix VolumetricConstitutiveMatrix;
     };
 
 public:
