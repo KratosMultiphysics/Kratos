@@ -43,11 +43,12 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 if model is None:
                     self.kratos_model = KratosMultiphysics.Model()
                     self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
+                    super().__init__(self.kratos_model, self.project_parameters)
                     KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
                     self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
                 else:
                     self.kratos_model = model
-                super().__init__(self.kratos_model, self.project_parameters)
+                    super().__init__(self.kratos_model, self.project_parameters)
 
             except AttributeError:
                 raise Exception("The model part must be especified.")
@@ -92,16 +93,14 @@ class NeuralNetworkAnalysis(AnalysisStage):
             # TODO: This block is shared with data_generator_process, it could be separated and shared throug a function
 
             # getting the ModelPart from the Model
-            output_model_part = self.project_parameters["problem_data"]["output_model_part"].GetString()
-            if output_model_part == "":
+            self.output_model_part_name = self.project_parameters["problem_data"]["output_model_part"].GetString()
+            if self.output_model_part_name == "":
                 raise Exception('No "output_model_part" was specified!')
-            self.output_model_part = self.kratos_model[output_model_part]
 
             # getting the input ModelPart from the Model
-            input_model_part_name = self.project_parameters["problem_data"]["input_model_part"].GetString()
-            if input_model_part_name == "":
+            self.input_model_part_name = self.project_parameters["problem_data"]["input_model_part"].GetString()
+            if self.input_model_part_name == "":
                 raise Exception('No "input_model_part" was specified!')
-            self.input_model_part = self.kratos_model[input_model_part_name]
 
             # retrieving the input variables
             input_var_names = self.project_parameters["problem_data"]["input_variables"]
@@ -164,6 +163,8 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 self.preprocessed_previous = InputDataclasses.NeuralNetworkData()
             self.output_data_structure = InputDataclasses.NeuralNetworkData()
             self.time = 0.0
+            self.output_model_part = self.kratos_model[self.output_model_part_name]
+            self.input_model_part = self.kratos_model[self.input_model_part_name]
 
         else:
             if data_input != None:
