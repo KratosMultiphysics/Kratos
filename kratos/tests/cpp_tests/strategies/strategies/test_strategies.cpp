@@ -304,13 +304,11 @@ namespace Kratos
                 "compute_reactions"        : true,
                 "reform_dofs_at_each_step" : true,
                 "move_mesh_flag"           : true,
-                "advanced_settings"        : {
-                    "desired_iterations"       : 4,
-                    "max_radius_factor"        : 10.0,
-                    "min_radius_factor"        : 0.1,
-                    "loads_sub_model_part_list": [],
-                    "loads_variable_list"      : []
-                }
+                "desired_iterations"       : 4,
+                "max_radius_factor"        : 10.0,
+                "min_radius_factor"        : 0.1,
+                "loads_sub_model_part_list": [],
+                "loads_variable_list"      : []
             })");
 
             SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ArcLengthStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, settings));
