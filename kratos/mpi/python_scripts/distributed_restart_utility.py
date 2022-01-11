@@ -45,3 +45,6 @@ class DistributedRestartUtility(RestartUtility):
     def _UpdateRestartFilesMap(self, restart_files_map, step_id, file_name_data):
         if (self.rank == file_name_data.GetRank()):
             restart_files_map[step_id] = file_name_data.GetFileName()
+
+    def _GetSerializerFlags(self):
+        return KratosMultiphysics.Serializer.MPI | KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
