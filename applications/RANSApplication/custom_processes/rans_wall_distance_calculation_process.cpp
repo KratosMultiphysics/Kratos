@@ -242,7 +242,7 @@ void RansWallDistanceCalculationProcess::CalculateWallDistances()
     parallel_distance_settings["max_levels"].SetInt(mMaxLevels);
     parallel_distance_settings["max_distance"].SetDouble(mMaxDistance);
     parallel_distance_settings["distance_variable"].SetString(r_distance_variable.Name());
-    parallel_distance_settings["max_levels"].SetString(r_nodal_area_variable.Name());
+    parallel_distance_settings["nodal_area_variable"].SetString(r_nodal_area_variable.Name());
 
     const int domain_size = r_main_model_part.GetProcessInfo()[DOMAIN_SIZE];
     if (domain_size == 2) {
