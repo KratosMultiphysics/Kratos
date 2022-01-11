@@ -78,15 +78,6 @@ public:
         Model &rModel,
         Parameters Settings);
 
-    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor with parameters")
-    ParallelDistanceCalculationProcess(
-        ModelPart& rModelPart,
-        const Variable<double>& rDistanceVar,
-        const Variable<double>& rAreaVar,
-        const unsigned int MaxLevels,
-        const double MaxDistance,
-        const bool CalculateExactDistancesToPlane = false);
-
     /// Copy constructor.
     ParallelDistanceCalculationProcess(ParallelDistanceCalculationProcess<TDim> const& rOther) = delete;
 

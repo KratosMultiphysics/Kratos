@@ -310,16 +310,12 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<ParallelDistanceCalculationProcess<2>, ParallelDistanceCalculationProcess<2>::Pointer, Process>(m,"ParallelDistanceCalculationProcess2D")
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<Model&, Parameters>())
-        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double>())
-        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double, const bool>())
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<2>::FindMaximumEdgeSize)
     ;
 
     py::class_<ParallelDistanceCalculationProcess<3>, ParallelDistanceCalculationProcess<3>::Pointer, Process>(m,"ParallelDistanceCalculationProcess3D")
         .def(py::init<ModelPart&, Parameters>())
         .def(py::init<Model&, Parameters>())
-        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double>())
-        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const unsigned int, const double, const bool>())
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<3>::FindMaximumEdgeSize)
     ;
 

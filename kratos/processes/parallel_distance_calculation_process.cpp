@@ -50,22 +50,6 @@ ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
 }
 
 template<unsigned int TDim>
-ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
-    ModelPart& rModelPart,
-    const Variable<double>& rDistanceVar,
-    const Variable<double>& rAreaVar,
-    const unsigned int MaxLevels,
-    const double MaxDistance,
-    const bool CalculateExactDistancesToPlane)
-    : mrModelPart(rModelPart),
-      mpDistanceVar(&rDistanceVar),
-      mpAreaVar(&rAreaVar),
-      mMaxLevels(MaxLevels),
-      mMaxDistance(MaxDistance),
-      mCalculateExactDistancesToPlane(CalculateExactDistancesToPlane)
-{}
-
-template<unsigned int TDim>
 const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters() const
 {
     return Parameters(R"({
