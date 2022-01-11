@@ -43,11 +43,11 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 if model is None:
                     self.kratos_model = KratosMultiphysics.Model()
                     self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
+                    KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
+                    self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
                 else:
                     self.kratos_model = model
                 super().__init__(self.kratos_model, self.project_parameters)
-                KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
-                self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
 
             except AttributeError:
                 raise Exception("The model part must be especified.")
@@ -599,10 +599,11 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
     def AdvanceInTime(self):
         self.time += self.timestep
-        new_time = self.model_geometry.ProcessInfo[KratosMultiphysics.TIME] + self.timestep
-        self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.TIME, new_time)
-        new_step = self.model_geometry.ProcessInfo[KratosMultiphysics.STEP] + 1
-        self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.STEP, new_step)
+        if hasattr(self, 'model_geometry'):
+            new_time = self.model_geometry.ProcessInfo[KratosMultiphysics.TIME] + self.timestep
+            self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.TIME, new_time)
+            new_step = self.model_geometry.ProcessInfo[KratosMultiphysics.STEP] + 1
+            self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.STEP, new_step)
 
 
     def _CreateSolver(self):
