@@ -3,6 +3,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.compressible_navier_stokes_symbolic_generator import SymbolicGenerator
 import os
 
+
+
 class TestSymbolicGeneration(KratosUnittest.TestCase):
 
     def SetUp(self):
@@ -34,13 +36,10 @@ class TestSymbolicGeneration(KratosUnittest.TestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             # generator = SymbolicGenerator(parameters["Parameters"])
-
-            # print(parameters)
-
             # generator.Generate()
             # generator.Write()
 
-            with open(parameters["Parameters"]["template_filename"].GetString(), "r") as f:
+            with open(parameters["Parameters"]["output_filename"].GetString(), "r") as f:
                 result = f.readlines()
 
             with open(parameters["reference"].GetString(), "r") as f:
