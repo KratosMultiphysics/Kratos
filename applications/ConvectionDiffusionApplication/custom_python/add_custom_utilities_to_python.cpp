@@ -50,6 +50,18 @@ void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_mo
     }
 }
 
+template<unsigned int TDim>
+void MountBin1(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility)
+{
+    rMoveParticleUtility.MountBin();
+}
+
+template<unsigned int TDim>
+void MountBin2(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility, const double CellSize)
+{
+    rMoveParticleUtility.MountBin(CellSize);
+}
+
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -96,7 +108,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<BFECCConvection<2> > (m,"BFECCConvection2D")
     .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool >())
-    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<2>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<2>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<2>::CopyScalarVarToPreviousTimeStep)
@@ -105,14 +116,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<BFECCConvection<3> > (m,"BFECCConvection3D")
     .def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
     .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool >())
-    .def(py::init< BinBasedFastPointLocator < 3 >::Pointer, const bool, const bool >())
     .def("BFECCconvect", &BFECCConvection<3>::BFECCconvect)
     .def("ResetBoundaryConditions", &BFECCConvection<3>::ResetBoundaryConditions)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvection<3>::CopyScalarVarToPreviousTimeStep)
     ;
 
     py::class_< MoveParticleUtilityScalarTransport<2> > (m,"MoveParticleUtilityScalarTransport2D").def(py::init<ModelPart& , int >())
-    .def("MountBin", &MoveParticleUtilityScalarTransport<2>::MountBin)
+    .def("MountBin", MountBin1<2>)
+    .def("MountBin", MountBin2<2>)
     .def("MoveParticles", &MoveParticleUtilityScalarTransport<2>::MoveParticles)
     .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<2>::CorrectParticlesWithoutMovingUsingDeltaVariables)
     .def("PreReseed", &MoveParticleUtilityScalarTransport<2>::PreReseed)
@@ -126,7 +137,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     ;
 
     py::class_< MoveParticleUtilityScalarTransport<3> > (m,"MoveParticleUtilityScalarTransport3D").def(py::init<ModelPart& , int >())
-    .def("MountBin", &MoveParticleUtilityScalarTransport<3>::MountBin)
+    .def("MountBin", MountBin1<3>)
+    .def("MountBin", MountBin2<3>)
     .def("MoveParticles", &MoveParticleUtilityScalarTransport<3>::MoveParticles)
     .def("CorrectParticlesWithoutMovingUsingDeltaVariables", &MoveParticleUtilityScalarTransport<3>::CorrectParticlesWithoutMovingUsingDeltaVariables)
     .def("PreReseed", &MoveParticleUtilityScalarTransport<3>::PreReseed)

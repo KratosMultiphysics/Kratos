@@ -59,6 +59,7 @@ void TestEstimateDtUtilitiesInitializeModelPart(
     for (auto& rNode : rModelPart.Nodes()) {
         rNode.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, rNode.Id());
         rNode.SetValue(ARTIFICIAL_CONDUCTIVITY, 2.0 * rNode.Id());
+        rNode.SetValue(SOUND_VELOCITY, 340.0);
         rNode.FastGetSolutionStepValue(DENSITY) = rNode.Id() / 10.0;
         rNode.FastGetSolutionStepValue(VELOCITY_X) = rNode.Id() * rNode.X();
         rNode.FastGetSolutionStepValue(VELOCITY_Y) = rNode.Id() * rNode.Y();
@@ -105,21 +106,22 @@ KRATOS_TEST_CASE_IN_SUITE(EstimateDtUtilitiesEstimateDtCompressibleFlow, FluidDy
 
     // Estimate the delta time
     Parameters estimate_dt_settings = Parameters(R"({
-        "automatic_time_step"           : true,
-        "CFL_number"                    : 1.0,
-        "Viscous_Fourier_number"        : 1.0,
-        "Thermal_Fourier_number"        : 1.0,
-        "minimum_delta_time"            : 1e-4,
-        "maximum_delta_time"            : 1e+1,
-        "consider_artificial_diffusion" : true,
-        "nodal_density_formulation"     : true
+        "automatic_time_step"             : true,
+        "CFL_number"                      : 1.0,
+        "Viscous_Fourier_number"          : 1.0,
+        "Thermal_Fourier_number"          : 1.0,
+        "minimum_delta_time"              : 1e-4,
+        "maximum_delta_time"              : 1e+1,
+        "consider_artificial_diffusion"   : true,
+        "nodal_density_formulation"       : true,
+        "consider_compressibility_in_CFL" : true
     })");
     const auto estimate_dt_utility = EstimateDtUtility(r_model_part, estimate_dt_settings);
     const double obtained_dt = estimate_dt_utility.EstimateDt();
 
     // Check results
     const double tolerance = 1.0e-6;
-    const double expected_dt = 0.0075;
+    const double expected_dt = 0.0013017675;
     KRATOS_CHECK_NEAR(expected_dt, obtained_dt, tolerance);
 }
 

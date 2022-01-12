@@ -38,7 +38,7 @@ namespace Kratos
         /**
         * Checks the correct work of the sub modelparts list utility
         */
-        KRATOS_TEST_CASE_IN_SUITE(AssignMPIUniqueModelPartCollectionTagUtility, KratosMPICoreFastSuite)
+        KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(AssignMPIUniqueModelPartCollectionTagUtility, KratosMPICoreFastSuite)
         {
             // Creating the reference model part and the relative submodelparts non alphabetically ordered
             Model current_model;
@@ -48,7 +48,7 @@ namespace Kratos
             ModelPart& r_sub_modelpart_3 = r_model_part.CreateSubModelPart("ZSubModelPart3");
             ModelPart& r_sub_modelpart_4 = r_model_part.CreateSubModelPart("YSubModelPart4");
 
-            Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&r_model_part.GetNodalSolutionStepVariablesList(), DataCommunicator::GetDefault());
+            Communicator::Pointer pnew_comm = Kratos::make_shared< MPICommunicator >(&r_model_part.GetNodalSolutionStepVariablesList(), Testing::GetDefaultDataCommunicator());
             r_model_part.SetCommunicator(pnew_comm);
             auto& r_data_communicator = r_model_part.GetCommunicator().GetDataCommunicator();
             auto rank = r_data_communicator.Rank();

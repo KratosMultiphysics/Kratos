@@ -88,7 +88,10 @@ class CustomizedSolutionForTimeStepTesting(DEM_analysis_stage.DEMAnalysisStage):
                 "RemoveBallsInEmbeddedOption"      : false,
                 "solver_settings" :{
                     "strategy"                 : "sphere_strategy",
-                    "RemoveBallsInitiallyTouchingWalls": false
+                    "RemoveBallsInitiallyTouchingWalls": false,
+                    "material_import_settings"           : {
+                        "materials_filename" : "MaterialsDEM.json"
+                    }
                 },
 
                 "DeltaOption"                      : "Absolute",

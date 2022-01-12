@@ -8,8 +8,9 @@ include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## ShapeOptimization core sources
-set( KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE
+file( GLOB_RECURSE KRATOS_SHAPE_OPTIMIZATION_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
 ## ShapeOptimization python interface sources
@@ -66,3 +67,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosShapeOptimizationCore DESTINATION libs )
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosShapeOptimizationCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosShapeOptimizationApplication" PARENT_SCOPE)

@@ -145,10 +145,13 @@ void RigidFace3D::CalculateNormal(array_1d<double, 3>& rnormal){
     if (geom.size()>2){
         double v1[3];
         double v2[3];
+        const auto& n0 = geom[0];
+        const auto& n1 = geom[1];
+        const auto& n2 = geom[2];
 
-        double p0[3] = {geom[0][0], geom[0][1], geom[0][2]};
-        double p1[3] = {geom[1][0], geom[1][1], geom[1][2]};
-        double p2[3] = {geom[2][0], geom[2][1], geom[2][2]};
+        double p0[3] = {n0[0], n0[1], n0[2]};
+        double p1[3] = {n1[0], n1[1], n1[2]};
+        double p2[3] = {n2[0], n2[1], n2[2]};
 
         v1[0] = p1[0] - p0[0];
         v1[1] = p1[1] - p0[1];
@@ -387,9 +390,10 @@ void RigidFace3D::ComputeConditionRelativeData(int rigid_neighbour_index,
 int RigidFace3D::CheckSide(SphericParticle *p_particle){
     const array_1d<double, 3>& particle_center_coors = p_particle->GetGeometry()[0];
     const Geometry<Node<3> >& geom = this->GetGeometry();
-    const array_1d<double, 3> a0 = geom[1] - geom[0];
-    const array_1d<double, 3> a1 = geom[2] - geom[0];
-    const array_1d<double, 3> a2 = particle_center_coors - geom[0];
+    const auto& n0 = geom[0];
+    const array_1d<double, 3> a0 = geom[1] - n0;
+    const array_1d<double, 3> a1 = geom[2] - n0;
+    const array_1d<double, 3> a2 = particle_center_coors - n0;
     const double ball_to_vertices_determinant = DEM_DETERMINANT_3x3(a0, a1, a2);  // each side corresponds to a different sign of this determinant
 
     return RigidFace3D::Sign(ball_to_vertices_determinant);
@@ -419,7 +423,7 @@ bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
     const double alpha = 1 - beta - gamma;
     const bool falls_inside = (alpha >= 0 && beta >= 0 && gamma >= 0
                             && alpha <= 1 && beta <= 1 && gamma <= 1);
-    
+
     return falls_inside;
 }
 

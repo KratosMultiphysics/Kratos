@@ -417,12 +417,6 @@ private:
         const bool CalculateResidualVectorFlag
     );
 
-    /// Calculates Initial Stiffness Matrix for Damping
-    void CalculateInitialStiffnessMatrix(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    );
-
     /// Initialize Operations
     void InitializeMaterial();
 

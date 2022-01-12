@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -231,132 +232,132 @@ private:
 
     /**
      * @brief This method sets as active a node and it predicts the value of its LM
-     * @param ItNode The node iterator to set
+     * @param ItNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void SetActiveNodeWithRegression(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the scalar LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectScalarMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the vector LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectALMFrictionlessMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless in components LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectALMFrictionlessComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictional LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void CorrectALMFrictionalMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the scalar LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictScalarMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the vector LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictALMFrictionlessMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictionless in components LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictALMFrictionlessComponentsMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );
 
     /**
      * @brief This function predicts the ALM frictional LM
-     * @param ItNode The node iterator to set
+     * @param rNode The node reference to set
      * @param a The first component of the regression
      * @param b The second component of the regression
      */
     void PredictALMFrictionalMortarLM(
-        typename NodesArrayType::iterator ItNode,
+        NodeType& rNode,
         const double a,
         const double b
         );

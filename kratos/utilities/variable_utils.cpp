@@ -14,7 +14,9 @@
 //
 
 /* System includes */
+#include <algorithm>
 #include <functional>
+#include <unordered_set>
 
 /* External includes */
 
@@ -59,7 +61,7 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<Array3Reduction>(r_comm.LocalMesh().Nodes(),[&](NodeType& rNode){
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Nodes(),[&](NodeType& rNode){
         return rNode.GetValue(rVar);
     });
 
@@ -81,7 +83,7 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<Array3Reduction>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
         return rCond.GetValue(rVar);
     });
 
@@ -103,13 +105,116 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    sum_value = block_for_each<Array3Reduction>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
         return rElem.GetValue(rVar);
     });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::AddDofsList(
+    const std::vector<std::string>& rDofsVarNamesList,
+    ModelPart& rModelPart)
+{
+    // Create a set with the variables to be added as DOFs
+    std::unordered_set<const Variable<double>*> dofs_vars_set;
+    const IndexType n_dofs = rDofsVarNamesList.size();
+    for (IndexType i = 0; i < n_dofs; ++i) {
+        const std::string var_name = rDofsVarNamesList[i];
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(var_name)) << "Provided variable \'" << var_name << "\' is not in KratosComponents." << std::endl;
+        const auto& r_dof_var = KratosComponents<Variable<double>>::Get(var_name);
+        const Variable<double>* p_dof_var = &r_dof_var;
+        dofs_vars_set.insert(p_dof_var);
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&r_dof_var);
+    }
+
+    // Add the DOFs to the model part nodes
+    block_for_each(rModelPart.Nodes(), [&dofs_vars_set](Node<3>& rNode){
+        for (auto p_var : dofs_vars_set) {
+            rNode.AddDof(*p_var);
+        }
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::AddDofsWithReactionsList(
+    const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+    ModelPart& rModelPart)
+{
+    // Create auxiliary hasher and comparors for the variable array type
+    struct VariableNamesArrayHasher
+    {
+        std::size_t operator()(const std::array<const Variable<double>*, 2>& rDofAndReactArray) const
+        {
+            std::size_t seed = 0;
+            HashCombine(seed, rDofAndReactArray[0]);
+            HashCombine(seed, rDofAndReactArray[1]);
+            return seed;
+        }
+    };
+
+    struct VariableNamesArrayComparor
+    {
+        bool operator()(
+            const std::array<const Variable<double>*, 2>& rDofAndReactArray1,
+            const std::array<const Variable<double>*, 2>& rDofAndReactArray2) const
+        {
+            return ((rDofAndReactArray1[0] == rDofAndReactArray2[0]) && (rDofAndReactArray1[1] == rDofAndReactArray2[1]));
+        }
+    };
+
+    // Create a set with the variables to be added as DOFs and reactions
+    std::vector<std::string> aux_dof_var_names;
+    std::vector<std::string> aux_react_var_names;
+    std::array<const Variable<double>*,2> aux_dof_vars;
+    const IndexType n_dofs = rDofsAndReactionsNamesList.size();
+    std::unordered_set<std::array<const Variable<double>*, 2>, VariableNamesArrayHasher, VariableNamesArrayComparor> dofs_and_react_vars_set;
+    for (IndexType i = 0; i < n_dofs; ++i) {
+        // Get current DOF data pair
+        const auto& r_dof_data = rDofsAndReactionsNamesList[i];
+        const std::string var_name = r_dof_data[0];
+        const std::string react_name = r_dof_data[1];
+
+        // Check current pair data values
+        KRATOS_ERROR_IF(var_name == react_name) << "DOF and reaction variable name are the same." << std::endl;
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(var_name)) << "Provided variable \'" << var_name << "\' is not in KratosComponents." << std::endl;
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(react_name)) << "Provided reaction \'" << react_name << "\' is not in KratosComponents." << std::endl;
+
+        // Get variables from KratosComponents and insert in the auxiliary set
+        // Note that using a set ensures that the insertion is done once if repeated data is provided
+        const auto& r_dof_var = KratosComponents<Variable<double>>::Get(var_name);
+        const auto& r_react_var = KratosComponents<Variable<double>>::Get(react_name);
+        aux_dof_vars[0] = &r_dof_var;
+        aux_dof_vars[1] = &r_react_var;
+        auto insert_result = dofs_and_react_vars_set.insert(aux_dof_vars);
+
+        // If the pair has been inserted, check that neither the DOF nor the reaction variables have been used before in a different pair
+        if (std::get<1>(insert_result)) {
+            KRATOS_ERROR_IF(std::any_of(aux_dof_var_names.begin(), aux_dof_var_names.end(), [&var_name](std::string& r_val){return r_val == var_name;}))
+                << var_name << " has been already added as DOF. Use a different variable." << std::endl;
+            KRATOS_ERROR_IF(std::any_of(aux_react_var_names.begin(), aux_react_var_names.end(), [&react_name](std::string& r_val){return r_val == react_name;}))
+                << react_name << " has been already added as reaction to DOF. Use a different variable." << std::endl;
+            aux_dof_var_names.push_back(var_name);
+            aux_react_var_names.push_back(react_name);
+        }
+
+        // Add the current pair as a DOF and reaction to the nodal historical variables list
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&r_dof_var, &r_react_var);
+    }
+
+    // Add the DOFs and reactions to the model part nodes
+    block_for_each(rModelPart.Nodes(), [&dofs_and_react_vars_set](Node<3>& rNode){
+        for (auto& r_dof_data : dofs_and_react_vars_set) {
+            rNode.AddDof(*(r_dof_data[0]), *(r_dof_data[1]));
+        }
+    });
 }
 
 /***********************************************************************************/
@@ -175,8 +280,7 @@ void VariableUtils::UpdateCurrentPosition(
     KRATOS_TRY;
 
     block_for_each(rNodes, [&](Node<3>& rNode){
-        const auto& r_update_coords = rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
-        noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + r_update_coords;
+        noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
     });
 
     KRATOS_CATCH("");

@@ -154,8 +154,12 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,
-                                      3> >& rVariable, std::vector<array_1d<double, 3> >& rOutput,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+                                      std::vector<array_1d<double, 3> >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     // Calculate functions
@@ -201,6 +205,8 @@ public:
     ///@name Input and output
     ///@{
 
+    const Parameters GetSpecifications() const override;
+
     /// Turn back information as a string.
     virtual std::string Info() const override;
 
@@ -225,7 +231,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
+    IntegrationMethod mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
     CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
 

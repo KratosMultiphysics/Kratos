@@ -16,7 +16,7 @@
 #include "custom_elements/updated_lagrangian_U_W_element.hpp"
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
-#include "custom_utilities/water_pressure_utilities.hpp" 
+#include "custom_utilities/water_pressure_utilities.hpp"
 
 namespace Kratos
 {
@@ -418,7 +418,7 @@ namespace Kratos
 
    void UpdatedLagrangianUWElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo)
    {
-      if ( rVariable == TOTAL_CAUCHY_STRESS) 
+      if ( rVariable == TOTAL_CAUCHY_STRESS)
       {
          CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
       }
@@ -445,7 +445,7 @@ namespace Kratos
          if ( rOutput.size() != mConstitutiveLawVector.size() )
             rOutput.resize( mConstitutiveLawVector.size() );
 
-         std::vector<double>  DetF0; 
+         std::vector<double>  DetF0;
          GetValueOnIntegrationPoints( DETERMINANT_F, DetF0, rCurrentProcessInfo);
 
          if (rOutput.size() != integration_points_number)
@@ -497,7 +497,7 @@ namespace Kratos
          DensityRigid = (DensityMixtureInitial-PorosityInitial*DensityWater) / (1.0 - PorosityInitial);
 
          Jacobian = mDeterminantF0[0];
-         Porosity = 1.0 - ( 1.0 - PorosityInitial) / Jacobian; 
+         Porosity = 1.0 - ( 1.0 - PorosityInitial) / Jacobian;
 
          DensityMixtureFinal = (1.0 - Porosity) * DensityRigid + Porosity * DensityWater;
 
@@ -537,7 +537,7 @@ namespace Kratos
          const unsigned int number_of_nodes = GetGeometry().size();
 
          double GaussPointPressure = 0.0;
-         unsigned int ThisDimension = rOutput[0].size1(); 
+         unsigned int ThisDimension = rOutput[0].size1();
          Matrix Eye = ZeroMatrix(ThisDimension, ThisDimension);
 
          for (unsigned int i = 0; i < ThisDimension; ++i)
@@ -573,7 +573,7 @@ namespace Kratos
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
 
       // KC permeability constitutive equation
-      bool KozenyCarman = false; 
+      bool KozenyCarman = false;
       if( GetProperties().Has(KOZENY_CARMAN) ){
          KozenyCarman = GetProperties()[KOZENY_CARMAN];
       }
@@ -582,7 +582,7 @@ namespace Kratos
       }
       GetProperties().SetValue(KOZENY_CARMAN, KozenyCarman);
 
-      double initial_porosity  = 0.3; 
+      double initial_porosity  = 0.3;
       if( GetProperties().Has(INITIAL_POROSITY) ){
          initial_porosity = GetProperties()[INITIAL_POROSITY];
       }
@@ -671,7 +671,7 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension);
 
-      noalias( SmallMatrix ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); 	
+      noalias( SmallMatrix ) = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) );
 
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int j = 0; j < number_of_nodes; j++) {
@@ -707,7 +707,7 @@ namespace Kratos
       CalculateB2Matrix( B2, rVariables.DN_DX );   //No valdria para 3D PNA
 
       Matrix Q = ZeroMatrix(mat_B2_size, mat_B2_size);
-      double Bulk = GetProperties()[WATER_BULK_MODULUS]; 
+      double Bulk = GetProperties()[WATER_BULK_MODULUS];
       double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
       double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0;
       Bulk /= porosity;
@@ -771,13 +771,13 @@ namespace Kratos
 
 
       //contribution of the internal and external forces
-      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
 
 
-      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
+      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
-      this->CalculateAndAddExternalWaterForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
+      this->CalculateAndAddExternalWaterForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
@@ -794,7 +794,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUWElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
+   void UpdatedLagrangianUWElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementDataType & rVariables,
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -803,19 +803,19 @@ namespace Kratos
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       unsigned int dofs_per_node = dimension * 2;
 
-      rVolumeForce *= rVariables.detF0; 
+      rVolumeForce *= rVariables.detF0;
       double density_mixture0 = GetProperties().GetValue(DENSITY);
       if ( density_mixture0 > 0) {
-         rVolumeForce /= density_mixture0; 
+         rVolumeForce /= density_mixture0;
       }
       else {
-         return; 
+         return;
       }
 
       double density_water =GetProperties().GetValue(DENSITY_WATER);
       double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
 
-      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
+      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0;
       double density_solid = (density_mixture0 - porosity0*density_water) / ( 1.0 - porosity0);
       double density_mixture = ( 1.0 - porosity) * density_solid + porosity * density_water;
 
@@ -827,7 +827,7 @@ namespace Kratos
          }
       }
 
-      rVolumeForce /= rVariables.detF0; 
+      rVolumeForce /= rVariables.detF0;
       rVolumeForce *=density_mixture0;
       return;
 
@@ -837,7 +837,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUWElement::CalculateAndAddExternalWaterForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
+   void UpdatedLagrangianUWElement::CalculateAndAddExternalWaterForces( VectorType & rRightHandSideVector, ElementDataType & rVariables,
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -846,13 +846,13 @@ namespace Kratos
       unsigned int dimension = GetGeometry().WorkingSpaceDimension();
       unsigned int dofs_per_node = dimension * 2;
 
-      rVolumeForce *= rVariables.detF0; 
+      rVolumeForce *= rVariables.detF0;
       double density_mixture0 = GetProperties().GetValue(DENSITY);
       if ( density_mixture0 > 0) {
-         rVolumeForce /= density_mixture0; 
+         rVolumeForce /= density_mixture0;
       }
       else {
-         return; 
+         return;
       }
 
       double density_water =GetProperties().GetValue(DENSITY_WATER);
@@ -960,7 +960,7 @@ namespace Kratos
          }
       }
 
-      double Bulk = GetProperties()[WATER_BULK_MODULUS]; 
+      double Bulk = GetProperties()[WATER_BULK_MODULUS];
 
       double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
       double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0;
@@ -992,7 +992,7 @@ namespace Kratos
 
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
@@ -1003,7 +1003,7 @@ namespace Kratos
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
       double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
 
-      double porosity = 1.0 - (1.0-porosity0) / Variables.detF0; 
+      double porosity = 1.0 - (1.0-porosity0) / Variables.detF0;
       double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
       double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
 
@@ -1059,7 +1059,7 @@ namespace Kratos
 
 
       //reading integration points
-      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::GI_GAUSS_2; //GeometryData::GI_GAUSS_1;
+      IntegrationMethod CurrentIntegrationMethod = mThisIntegrationMethod; //GeometryData::IntegrationMethod::GI_GAUSS_2; //GeometryData::IntegrationMethod::GI_GAUSS_1;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
@@ -1068,7 +1068,7 @@ namespace Kratos
 
 
 
-      double CurrentPermeability = GetProperties()[PERMEABILITY]; 
+      double CurrentPermeability = GetProperties()[PERMEABILITY];
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {

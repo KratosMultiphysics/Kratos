@@ -59,6 +59,10 @@ bin/*
 *.vtk
 *.vtu
 
+# HDF5 files
+*.h5
+*.hdf5
+
 # Output of tests of meshing application (MMG)
 *.sol
 *.mesh
@@ -70,3 +74,7 @@ bin/*
 
 # Most used editor files
 *.vscode
+/compile_commands.json
+
+# External downloaded libs (TPL downloaded libs, etc...)
+external_libraries/tetgen/*

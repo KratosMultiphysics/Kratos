@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers_define.h"
 #if defined EIGEN_USE_MKL_ALL
 #include "eigen_pardiso_lu_solver.h"
 #endif // defined EIGEN_USE_MKL_ALL
@@ -89,8 +90,8 @@ class EigensystemSolver
         DenseMatrixType& rEigenvectors) override
     {
         using scalar_t = double;
-        using vector_t = Eigen::VectorXd;
-        using matrix_t = Eigen::MatrixXd;
+        using vector_t = Kratos::EigenDynamicVector<scalar_t>;
+        using matrix_t = Kratos::EigenDynamicMatrix<scalar_t>;
 
         // --- get settings
 
@@ -313,8 +314,8 @@ private:
 
     struct DirectSolverWrapperBase
     {
-        typedef Eigen::Map<const Eigen::SparseMatrix<double, Eigen::RowMajor, int>> MatrixMapType;
-        typedef Eigen::Matrix<double, Eigen::Dynamic, 1> EigenVectorType;
+        typedef Eigen::Map<const Kratos::EigenSparseMatrix<double>> MatrixMapType;
+        typedef Kratos::EigenDynamicVector<double> EigenVectorType;
         typedef Eigen::Ref<const EigenVectorType> ConstVectorRefType;
         typedef Eigen::Ref<EigenVectorType> VectorRefType;
 

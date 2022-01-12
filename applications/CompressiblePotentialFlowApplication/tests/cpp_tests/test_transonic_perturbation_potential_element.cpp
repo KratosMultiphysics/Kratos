@@ -37,8 +37,7 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
-    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
-    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.73205080756887729;
     rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
     rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
@@ -594,7 +593,7 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS, Comp
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
-    std::vector<double> reference{146.392649744264,-0.9625396130203431,0.4812698065101715,-0.4812698065101715,-121.8478896122452,-24.06349032550858};
+    std::vector<double> reference{146.392649744264,-1.225,0.6125,-0.6125,-122.1426284341492,-24.12169769218525};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
@@ -621,12 +620,11 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Comp
     p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     // Check the LHS values
-    std::array<double,36> reference{0.061142784644415527,-0.1306215050744058,0.06947872042999037,0,0,0,
-    -0.1306215050744058,0.67107585089141042,-0.5404543458170046,0.1306215050744058,-0.67107585089141042,0.5404543458170046,
-    0.06947872042999037,-0.5404543458170046,0.4709756253870142,-0.06947872042999037,0.5404543458170046,-0.4709756253870142,
-    -0.061142784644415527,0.1306215050744058,-0.06947872042999037,0.061142784644415527,-0.1306215050744058,0.06947872042999037,
-    0,0,0,-0.1306215050744058,0.67107585089141042,-0.5404543458170046,
-    0,0,0,0.06947872042999037,-0.5404543458170046,0.4709756253870142};
+    std::array<double,36> reference{0.06114278464441553,-0.1306215050744058,
+    0.06947872042999036,0,0,0,-0.6125,1.225,-0.6125,0.6125,-1.225,0.6125,0,
+    -0.6125,0.6125,-0,0.6125,-0.6125,-0.6125,0.6125,-0,0.6125,-0.6125,0,0,0,
+    0,-0.1306215050744058,0.6710758508914104,-0.5404543458170046,0,0,0,
+    0.06947872042999036,-0.5404543458170046,0.4709756253870142};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {

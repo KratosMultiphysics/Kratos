@@ -23,6 +23,7 @@
 #include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -231,10 +232,8 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
     if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
         const std::string output_path = mOutputSettings["output_path"].GetString();
 
-        // create folder if it doesn't exist before
-        if (!Kratos::filesystem::is_directory(output_path)) {
-            Kratos::filesystem::create_directories(output_path);
-        }
+        // Create folder if it doesn't exist before
+        FilesystemExtensions::MPISafeCreateDirectories(output_path);
 
         output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }
@@ -402,6 +401,7 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
         { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 },
         { GeometryData::KratosGeometryType::Kratos_Prism3D6,         13 },
+        { GeometryData::KratosGeometryType::Kratos_Pyramid3D5,       14 },
         { GeometryData::KratosGeometryType::Kratos_Line2D3,          21 },
         { GeometryData::KratosGeometryType::Kratos_Line3D3,          21 },
         { GeometryData::KratosGeometryType::Kratos_Triangle2D6,      22 },
