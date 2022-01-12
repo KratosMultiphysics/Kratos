@@ -125,12 +125,12 @@ class ArcLengthStrategy
         if (ThisParameters["loads_sub_model_part_list"].size() > 0) {
             mSubModelPartList.resize(ThisParameters["loads_sub_model_part_list"].size());
             mVariableNames.resize(ThisParameters["loads_variable_list"].size());
-
-            if (mSubModelPartList.size() != mVariableNames.size())
-                KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "")
-
-            for (unsigned int i = 0; i < mVariableNames.size(); i++) {
-                mSubModelPartList[i] = &( r_model_part.GetSubModelPart(ThisParameters["loads_sub_model_part_list"][i].GetString()));
+	    
+	    KRATOS_ERROR_IF(mSubModelPartList.size() != mVariableNames.size()) << "For each SubModelPart there must be a corresponding nodal Variable" << std::endl;
+		
+	    const auto& r_sub_model_parts_names = ThisParameters["loads_sub_model_part_list"].GetStringArray();
+            for (std::size_t i = 0; i < mVariableNames.size(); i++) {
+                mSubModelPartList[i] = &( r_model_part.GetSubModelPart(r_sub_model_parts_names[i]));
                 mVariableNames[i] = ThisParameters["loads_variable_list"][i].GetString();
             }
         }
