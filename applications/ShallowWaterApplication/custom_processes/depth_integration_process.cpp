@@ -37,9 +37,9 @@ const Parameters DepthIntegrationProcess::GetDefaultParameters() const
         "interface_model_part_name" : "",
         "direction_of_integration"  : [0.0, 0.0, 1.0],
         "store_historical_database" : false,
-        "calculate_mean_velocity"   : true,
-        "specific_relative_depth"   : -0.531,
-        "water_level_reference"     : 0.0
+        "velocity_depth_integration": true,
+        "velocity_relative_depth"   : -0.531,
+        "mean_water_level"          : 0.0
     })");
     return default_parameters;
 }
@@ -60,9 +60,9 @@ DepthIntegrationProcess::DepthIntegrationProcess(
     } else {
         mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
     }
-    mCalculateMeanVelocity = ThisParameters["calculate_mean_velocity"].GetBool();
-    mSpecificRelativeDepth = ThisParameters["specific_relative_depth"].GetDouble();
-    mWaterLevelReference = ThisParameters["water_level_reference"].GetDouble();
+    mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
+    mVelocityRelativeDepth = ThisParameters["velocity_relative_depth"].GetDouble();
+    mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
 }
 
 void DepthIntegrationProcess::Execute()
@@ -167,9 +167,9 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
         momentum = height*velocity;
 
         // If we are interested in the velocity at a certain depth, then we replace the mean value by the specific value
-        if (!mCalculateMeanVelocity) {
-            const double reference_depth = mWaterLevelReference - min_elevation;
-            const double target_depth = mWaterLevelReference + mSpecificRelativeDepth * reference_depth;
+        if (!mVelocityDepthIntegration) {
+            const double reference_depth = mMeanWaterLevel - min_elevation;
+            const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
             const double target_distance = target_depth - inner_prod(mDirection, rNode);
             array_1d<double,3> target_point = rNode + mDirection * target_distance;
             Point local_coordinates;
