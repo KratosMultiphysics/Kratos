@@ -22,22 +22,22 @@ namespace Kratos
 
 template <class TElementData>
 TwoFluidNavierStokesAlphaMethod<TElementData>::TwoFluidNavierStokesAlphaMethod(IndexType NewId)
-    : FluidElement<TElementData>(NewId) {}
+    : TwoFluidNavierStokes<TElementData>(NewId) {}
 
 template <class TElementData>
 TwoFluidNavierStokesAlphaMethod<TElementData>::TwoFluidNavierStokesAlphaMethod(
     IndexType NewId, const NodesArrayType &ThisNodes)
-    : FluidElement<TElementData>(NewId, ThisNodes) {}
+    : TwoFluidNavierStokes<TElementData>(NewId, ThisNodes) {}
 
 template <class TElementData>
 TwoFluidNavierStokesAlphaMethod<TElementData>::TwoFluidNavierStokesAlphaMethod(
     IndexType NewId, GeometryType::Pointer pGeometry)
-    : FluidElement<TElementData>(NewId, pGeometry) {}
+    : TwoFluidNavierStokes<TElementData>(NewId, pGeometry) {}
 
 template <class TElementData>
 TwoFluidNavierStokesAlphaMethod<TElementData>::TwoFluidNavierStokesAlphaMethod(
     IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties)
-    : FluidElement<TElementData>(NewId, pGeometry, pProperties) {}
+    : TwoFluidNavierStokes<TElementData>(NewId, pGeometry, pProperties) {}
 
 template <class TElementData>
 TwoFluidNavierStokesAlphaMethod<TElementData>::~TwoFluidNavierStokesAlphaMethod() {}
@@ -63,153 +63,8 @@ Element::Pointer TwoFluidNavierStokesAlphaMethod<TElementData>::Create(
     return Kratos::make_intrusive<TwoFluidNavierStokesAlphaMethod>(NewId, pGeom, pProperties);
 }
 
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateLocalSystem(
-    MatrixType &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    const ProcessInfo &rCurrentProcessInfo)
-{
-    // Resize and intialize output
-    if (rLeftHandSideMatrix.size1() != LocalSize)
-        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
-    if (rRightHandSideVector.size() != LocalSize)
-        rRightHandSideVector.resize(LocalSize, false);
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
-    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-
-    if (TElementData::ElementManagesTimeIntegration){
-        TElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
-
-        if (data.IsCut()){
-            GeometryType::Pointer p_geom = this->pGetGeometry();
-            Matrix shape_functions_pos, shape_functions_neg;
-            Matrix shape_functions_enr_pos, shape_functions_enr_neg;
-            GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
-            GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
-            Matrix int_shape_function_neg;                                       // interface shape functions
-            Matrix int_shape_function_enr_neg, int_shape_function_enr_pos;       // interface enriched shape functions
-            GeometryType::ShapeFunctionsGradientsType int_shape_derivatives_neg; // interface shape functions derivatives
-            Vector int_gauss_pts_weights;                                // interface Gauss points weights
-            std::vector<array_1d<double,3>> int_normals_neg;                                 // interface normal vector based on the negative side
-            Vector gauss_pts_curvature;                                  // curvatures calculated on interface Gauss points
-
-            ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance);
-
-            ComputeSplitting(
-                data,
-                shape_functions_pos,
-                shape_functions_neg,
-                shape_functions_enr_pos,
-                shape_functions_enr_neg,
-                shape_derivatives_pos,
-                shape_derivatives_neg,
-                shape_derivatives_enr_pos,
-                shape_derivatives_enr_neg,
-                p_modified_sh_func);
-
-            if (data.NumberOfDivisions == 1){
-                // Cases exist when the element is not subdivided due to the characteristics of the provided distance
-                // In this cases the element is treated as AIR or FLUID depending on the side
-                Vector gauss_weights;
-                Matrix shape_functions;
-                ShapeFunctionDerivativesArrayType shape_derivatives;
-                this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-                const unsigned int number_of_gauss_points = gauss_weights.size();
-                array_1d<double, NumNodes> Ncenter;
-                for (unsigned int i = 0; i < NumNodes; ++i){
-                    Ncenter[i] = 1.0/NumNodes;
-                }
-                for (unsigned int g = 0; g < number_of_gauss_points; ++g){
-                    UpdateIntegrationPointData(
-                        data,
-                        g,
-                        gauss_weights[g],
-                        row(shape_functions, g),
-                        shape_derivatives[g]);
-                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                }
-            } else {
-                MatrixType Vtot = ZeroMatrix(NumNodes * (Dim + 1), NumNodes);
-                MatrixType Htot = ZeroMatrix(NumNodes, NumNodes * (Dim + 1));
-                MatrixType Kee_tot = ZeroMatrix(NumNodes, NumNodes);
-                VectorType rhs_ee_tot = ZeroVector(NumNodes);
-
-                for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos){
-                    UpdateIntegrationPointData(
-                        data,
-                        g_pos,
-                        data.w_gauss_pos_side[g_pos],
-                        row(shape_functions_pos, g_pos),
-                        shape_derivatives_pos[g_pos],
-                        row(shape_functions_enr_pos, g_pos),
-                        shape_derivatives_enr_pos[g_pos]);
-
-                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
-                }
-
-                for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); ++g_neg){
-                    UpdateIntegrationPointData(
-                        data,
-                        g_neg,
-                        data.w_gauss_neg_side[g_neg],
-                        row(shape_functions_neg, g_neg),
-                        shape_derivatives_neg[g_neg],
-                        row(shape_functions_enr_neg, g_neg),
-                        shape_derivatives_enr_neg[g_neg]);
-                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-                    ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
-                }
-
-                if (rCurrentProcessInfo[SURFACE_TENSION]){
-
-                    AddSurfaceTensionContribution(
-                        data,
-                        p_modified_sh_func,
-                        rLeftHandSideMatrix,
-                        rRightHandSideVector,
-                        Htot,
-                        Vtot,
-                        Kee_tot,
-                        rhs_ee_tot
-                    );
-
-                } else{
-                    // Without pressure gradient stabilization, volume ratio is checked during condensation
-                    // Also, without surface tension, zero pressure difference is penalized
-                    CondenseEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
-                }
-
-            }
-        } else {
-            //Get Shape function data
-            Vector gauss_weights;
-            Matrix shape_functions;
-            ShapeFunctionDerivativesArrayType shape_derivatives;
-            this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-            const unsigned int number_of_gauss_points = gauss_weights.size();
-            // Iterate over integration points to evaluate local contribution
-            for (unsigned int g = 0; g < number_of_gauss_points; ++g){
-                UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-                this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
-            }
-        }
-    } else{
-        KRATOS_ERROR << "TwoFluidNavierStokesAlphaMethod is supposed to manage time integration." << std::endl;
-    }
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateRightHandSide(
-    VectorType &rRightHandSideVector,
-    const ProcessInfo &rCurrentProcessInfo)
-{
-    MatrixType tmp;
-    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
-}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
@@ -217,7 +72,7 @@ template <class TElementData>
 int TwoFluidNavierStokesAlphaMethod<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-    int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
+    int out = TwoFluidNavierStokes<TElementData>::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
@@ -230,90 +85,8 @@ int TwoFluidNavierStokesAlphaMethod<TElementData>::Check(const ProcessInfo &rCur
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public I/O
 
-template <class TElementData>
-std::string TwoFluidNavierStokesAlphaMethod<TElementData>::Info() const
-{
-    std::stringstream buffer;
-    buffer << "TwoFluidNavierStokesAlphaMethod" << Dim << "D" << NumNodes << "N #" << this->Id();
-    return buffer.str();
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::PrintInfo(
-    std::ostream &rOStream) const
-{
-    rOStream << this->Info() << std::endl;
-
-    if (this->GetConstitutiveLaw() != nullptr){
-        rOStream << "with constitutive law " << std::endl;
-        this->GetConstitutiveLaw()->PrintInfo(rOStream);
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected operations
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::AddTimeIntegratedSystem(
-    TElementData &rData,
-    MatrixType &rLHS,
-    VectorType &rRHS)
-{
-    this->ComputeGaussPointLHSContribution(rData, rLHS);
-    this->ComputeGaussPointRHSContribution(rData, rRHS);
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::AddTimeIntegratedLHS(
-    TElementData &rData,
-    MatrixType &rLHS)
-{
-    this->ComputeGaussPointLHSContribution(rData, rLHS);
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::AddTimeIntegratedRHS(
-    TElementData &rData,
-    VectorType &rRHS)
-{
-    this->ComputeGaussPointRHSContribution(rData, rRHS);
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::UpdateIntegrationPointData(
-    TElementData& rData,
-    unsigned int IntegrationPointIndex,
-    double Weight,
-    const typename TElementData::MatrixRowType& rN,
-    const typename TElementData::ShapeDerivativesType& rDN_DX) const
-{
-    rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
-
-    // Calculate current material response
-    const double d_gauss = inner_prod(rData.Distance, rN);
-    if (d_gauss > 0.0)
-        rData.CalculateAirMaterialResponse();
-    else
-        this->CalculateMaterialResponse(rData);
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::UpdateIntegrationPointData(
-    TElementData& rData,
-    unsigned int IntegrationPointIndex,
-    double Weight,
-    const typename TElementData::MatrixRowType& rN,
-    const typename TElementData::ShapeDerivativesType& rDN_DX,
-    const typename TElementData::MatrixRowType& rNenr,
-    const typename TElementData::ShapeDerivativesType& rDN_DXenr) const
-{
-    rData.UpdateGeometryValues(IntegrationPointIndex,Weight,rN,rDN_DX,rNenr,rDN_DXenr);
-    const double d_gauss = inner_prod(rData.Distance, rN);
-    if (d_gauss > 0.0)
-        rData.CalculateAirMaterialResponse();
-    else
-        this->CalculateMaterialResponse(rData);
-}
 
 template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<2, 3>& rData) const
@@ -648,171 +421,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 }
 
 template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::ComputeSplitting(
-    TElementData &rData,
-    MatrixType &rShapeFunctionsPos,
-    MatrixType &rShapeFunctionsNeg,
-    MatrixType &rEnrichedShapeFunctionsPos,
-    MatrixType &rEnrichedShapeFunctionsNeg,
-    GeometryType::ShapeFunctionsGradientsType &rShapeDerivativesPos,
-    GeometryType::ShapeFunctionsGradientsType &rShapeDerivativesNeg,
-    GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesPos,
-    GeometryType::ShapeFunctionsGradientsType &rEnrichedShapeDerivativesNeg,
-    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
-{
-    // Set the positive and negative enrichment interpolation matrices
-    // Note that the enrichment is constructed using the standard shape functions such that:
-    // In the negative distance region, the enrichment functions correspondig to the negative
-    // distance nodes are null and the positive distance nodes are equal to the standard shape
-    // functions. On the contrary, for the positive distance region, the enrichment functions
-    // corresponding to the positive distance nodes are null meanwhile the negative distance
-    // nodes are equal to the standard. This yields a discontinuous enrichment space.
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
-    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
-
-    for (unsigned int i = 0; i < NumNodes; ++i){
-        if (rData.Distance[i] > 0.0){
-            enr_neg_interp(i, i) = 1.0;
-        } else{
-            enr_pos_interp(i, i) = 1.0;
-        }
-    }
-
-    // Call the positive side modified shape functions calculator
-    pModifiedShapeFunctions->ComputePositiveSideShapeFunctionsAndGradientsValues(
-        rShapeFunctionsPos,
-        rShapeDerivativesPos,
-        rData.w_gauss_pos_side,
-        GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Call the negative side modified shape functions calculator
-    pModifiedShapeFunctions->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-        rShapeFunctionsNeg,
-        rShapeDerivativesNeg,
-        rData.w_gauss_neg_side,
-         GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Compute the enrichment shape function values using the enrichment interpolation matrices
-    rEnrichedShapeFunctionsPos = prod(rShapeFunctionsPos, enr_pos_interp);
-    rEnrichedShapeFunctionsNeg = prod(rShapeFunctionsNeg, enr_neg_interp);
-
-    // Compute the enrichment shape function gradient values using the enrichment interpolation matrices
-    rEnrichedShapeDerivativesPos = rShapeDerivativesPos;
-    rEnrichedShapeDerivativesNeg = rShapeDerivativesNeg;
-
-    for (unsigned int i = 0; i < rShapeDerivativesPos.size(); ++i){
-        rEnrichedShapeDerivativesPos[i] = prod(enr_pos_interp, rShapeDerivativesPos[i]);
-    }
-
-    for (unsigned int i = 0; i < rShapeDerivativesNeg.size(); ++i){
-        rEnrichedShapeDerivativesNeg[i] = prod(enr_neg_interp, rShapeDerivativesNeg[i]);
-    }
-
-    rData.NumberOfDivisions = (pModifiedShapeFunctions->pGetSplittingUtil())->mDivisionsNumber;
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::ComputeSplitInterface(
-    const TElementData &rData,
-    MatrixType& rInterfaceShapeFunctionNeg,
-    MatrixType& rEnrInterfaceShapeFunctionPos,
-    MatrixType& rEnrInterfaceShapeFunctionNeg,
-    GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
-    Vector& rInterfaceWeightsNeg,
-    std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
-    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
-{
-    Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
-    Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
-
-    for (unsigned int i = 0; i < NumNodes; ++i){
-        if (rData.Distance[i] > 0.0){
-            enr_neg_interp(i, i) = 1.0;
-        } else{
-            enr_pos_interp(i, i) = 1.0;
-        }
-    }
-
-    // Call the Interface negative side shape functions calculator
-    pModifiedShapeFunctions->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
-        rInterfaceShapeFunctionNeg,
-        rInterfaceShapeDerivativesNeg,
-        rInterfaceWeightsNeg,
-         GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    // Call the Interface negative side normal functions calculator
-    pModifiedShapeFunctions->ComputeNegativeSideInterfaceAreaNormals(
-        rInterfaceNormalsNeg,
-         GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-    for (unsigned int gp = 0; gp < rInterfaceNormalsNeg.size(); ++gp){
-        const double normal_norm = norm_2(rInterfaceNormalsNeg[gp]);
-        rInterfaceNormalsNeg[gp] /= normal_norm;
-    }
-
-    // Compute the enrichment shape function values at the interface gauss points using the enrichment interpolation matrices
-    rEnrInterfaceShapeFunctionPos = prod(rInterfaceShapeFunctionNeg, enr_pos_interp);
-    rEnrInterfaceShapeFunctionNeg = prod(rInterfaceShapeFunctionNeg, enr_neg_interp);
-}
-
-template <>
-ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<2, 3> >::pGetModifiedShapeFunctionsUtility(
-    const GeometryType::Pointer pGeometry,
-    const Vector& rDistances)
-{
-   return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-}
-
-template <>
-ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> >::pGetModifiedShapeFunctionsUtility(
-        const GeometryType::Pointer pGeometry,
-        const Vector& rDistances)
-{
-    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateCurvatureOnInterfaceGaussPoints(
-        const Matrix& rInterfaceShapeFunctions,
-        Vector& rInterfaceCurvature)
-{
-    const auto& r_geom = this->GetGeometry();
-    const unsigned int n_gpt = rInterfaceShapeFunctions.size1();
-
-    rInterfaceCurvature.resize(n_gpt, false);
-
-    for (unsigned int gpt = 0; gpt < n_gpt; ++gpt){
-        double curvature = 0.0;
-        for (unsigned int i = 0; i < NumNodes; ++i){
-            curvature += rInterfaceShapeFunctions(gpt,i) * r_geom[i].GetValue(CURVATURE);
-        }
-        rInterfaceCurvature[gpt] = curvature;
-    }
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::SurfaceTension(
-    const double SurfaceTensionCoefficient,
-    const Vector& rCurvature,
-    const Vector& rInterfaceWeights,
-    const Matrix& rInterfaceShapeFunctions,
-    const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
-    VectorType& rRHS)
-{
-    for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); ++intgp){
-        const double intgp_curv = rCurvature(intgp);
-        const double intgp_w = rInterfaceWeights(intgp);
-        const auto& intgp_normal = rInterfaceNormalsNeg[intgp];
-        for (unsigned int j = 0; j < NumNodes; ++j){
-            for (unsigned int dim = 0; dim < NumNodes-1; ++dim){
-                rRHS[ j*(NumNodes) + dim ] -= SurfaceTensionCoefficient*intgp_normal[dim]
-                    *intgp_curv*intgp_w*rInterfaceShapeFunctions(intgp,j);
-            }
-        }
-    }
-}
-
-template <class TElementData>
 void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilization(
     const TElementData& rData,
     const Vector& rInterfaceWeights,
@@ -940,200 +548,18 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
     noalias(rKeeTot) += kee;
     noalias(rRHSeeTot) += rhs_enr;
 }
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::CondenseEnrichmentWithContinuity(
-    const TElementData &rData,
-    Matrix &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    const MatrixType &rHtot,
-    const MatrixType &rVtot,
-    MatrixType &rKeeTot,
-    const VectorType &rRHSeeTot)
-{
-    const double min_area_ratio = 1e-7;
-
-    // Compute positive side, negative side and total volumes
-    double positive_volume = 0.0;
-    double negative_volume = 0.0;
-    for (unsigned int igauss_pos = 0; igauss_pos < rData.w_gauss_pos_side.size(); ++igauss_pos){
-        positive_volume += rData.w_gauss_pos_side[igauss_pos];
-    }
-
-    for (unsigned int igauss_neg = 0; igauss_neg < rData.w_gauss_neg_side.size(); ++igauss_neg){
-        negative_volume += rData.w_gauss_neg_side[igauss_neg];
-    }
-    const double Vol = positive_volume + negative_volume;
-
-    //We only enrich elements which are not almost empty/full
-    if (positive_volume / Vol > min_area_ratio && negative_volume / Vol > min_area_ratio) {
-
-        // Compute the maximum diagonal value in the enrichment stiffness matrix
-        double max_diag = 0.0;
-        for (unsigned int k = 0; k < NumNodes; ++k){
-            if (std::abs(rKeeTot(k, k)) > max_diag){
-                max_diag = std::abs(rKeeTot(k, k));
-            }
-        }
-        if (max_diag == 0.0){
-            max_diag = 1.0;
-        }
-        // "weakly" impose continuity
-        for (unsigned int i = 0; i < Dim; ++i){
-            const double di = std::abs(rData.Distance[i]);
-            for (unsigned int j = i + 1; j < NumNodes; ++j){
-                const double dj = std::abs(rData.Distance[j]);
-                // Check if the edge is cut, if it is, set the penalty constraint
-                if (rData.Distance[i] * rData.Distance[j] < 0.0){
-                    double sum_d = di + dj;
-                    double Ni = dj / sum_d;
-                    double Nj = di / sum_d;
-                    double penalty_coeff = max_diag * 0.001;
-                    rKeeTot(i, i) += penalty_coeff * Ni * Ni;
-                    rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
-                    rKeeTot(j, i) -= penalty_coeff * Nj * Ni;
-                    rKeeTot(j, j) += penalty_coeff * Nj * Nj;
-                }
-            }
-        }
-
-        // Enrichment condensation (add to LHS and RHS the enrichment contributions)
-        double det;
-        MatrixType inverse_diag(NumNodes, NumNodes);
-        MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
-
-        const Matrix tmp = prod(inverse_diag, rHtot);
-        noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
-
-        const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
-        noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
-    }
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::CondenseEnrichment(
-    Matrix &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    const MatrixType &rHtot,
-    const MatrixType &rVtot,
-    MatrixType &rKeeTot,
-    const VectorType &rRHSeeTot)
-{
-    // Enrichment condensation (add to LHS and RHS the enrichment contributions)
-    double det;
-    MatrixType inverse_diag(NumNodes, NumNodes);
-    MathUtils<double>::InvertMatrix(rKeeTot, inverse_diag, det);
-
-    const Matrix tmp = prod(inverse_diag, rHtot);
-    noalias(rLeftHandSideMatrix) -= prod(rVtot, tmp);
-
-    const Vector tmp2 = prod(inverse_diag, rRHSeeTot);
-    noalias(rRightHandSideVector) -= prod(rVtot, tmp2);
-}
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::AddSurfaceTensionContribution(
-    const TElementData& rData,
-    ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
-    Matrix &rLeftHandSideMatrix,
-    VectorType &rRightHandSideVector,
-    const MatrixType &rHtot,
-    const MatrixType &rVtot,
-    MatrixType &rKeeTot,
-    VectorType &rRHSeeTot)
-{
-    // Surface tension coefficient is set in material properties
-    const double surface_tension_coefficient = this->GetProperties().GetValue(SURFACE_TENSION_COEFFICIENT);
-    Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
-    GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
-    Vector int_gauss_pts_weights;
-    std::vector<array_1d<double,3>> int_normals_neg;
-    Vector gauss_pts_curvature;
-
-    ComputeSplitInterface(
-        rData,
-        int_shape_function,
-        int_shape_function_enr_pos,
-        int_shape_function_enr_neg,
-        int_shape_derivatives,
-        int_gauss_pts_weights,
-        int_normals_neg,
-        pModifiedShapeFunctions);
-
-    CalculateCurvatureOnInterfaceGaussPoints(
-        int_shape_function,
-        gauss_pts_curvature);
-
-    SurfaceTension(
-        surface_tension_coefficient,
-        gauss_pts_curvature,
-        int_gauss_pts_weights,
-        int_shape_function,
-        int_normals_neg,
-        rRightHandSideVector);
-
-    PressureGradientStabilization(
-        rData,
-        int_gauss_pts_weights,
-        int_shape_function_enr_pos,
-        int_shape_function_enr_neg,
-        int_shape_derivatives,
-        rKeeTot,
-        rRHSeeTot);
-
-    CondenseEnrichment(rLeftHandSideMatrix, rRightHandSideVector, rHtot, rVtot, rKeeTot, rRHSeeTot);
-}
-
 template <class TElementData>
 void TwoFluidNavierStokesAlphaMethod<TElementData>::save(Serializer &rSerializer) const
 {
-    using BaseType = FluidElement<TElementData>;
+    using BaseType = TwoFluidNavierStokes<TElementData>;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
 
 template <class TElementData>
 void TwoFluidNavierStokesAlphaMethod<TElementData>::load(Serializer &rSerializer)
 {
-    using BaseType = FluidElement<TElementData>;
+    using BaseType = TwoFluidNavierStokes<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
-}
-
-
-template <class TElementData>
-void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints(
-    const Variable<double> &rVariable,
-    std::vector<double> &rValues,
-    const ProcessInfo &rCurrentProcessInfo )
-{
-    if (rVariable == DIVERGENCE){
-
-        const auto& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( GeometryData::IntegrationMethod::GI_GAUSS_2);
-        const unsigned int num_gauss = IntegrationPoints.size();
-
-        if (rValues.size() != num_gauss){
-            rValues.resize(num_gauss);
-        }
-
-        Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
-        GeometryData::ShapeFunctionsGradientsType DN_DX;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant,  GeometryData::IntegrationMethod::GI_GAUSS_2);
-
-        for (unsigned int i_gauss = 0; i_gauss < num_gauss; ++i_gauss){
-
-            const Matrix gp_DN_DX = DN_DX[i_gauss];
-            double DVi_DXi = 0.0;
-
-            for(unsigned int nnode = 0; nnode < NumNodes; ++nnode){
-
-                const array_1d<double,3> vel = rGeom[nnode].GetSolutionStepValue(VELOCITY);
-                for(unsigned int ndim = 0; ndim < Dim; ++ndim){
-                    DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
-                }
-            }
-            rValues[i_gauss] = DVi_DXi;
-        }
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

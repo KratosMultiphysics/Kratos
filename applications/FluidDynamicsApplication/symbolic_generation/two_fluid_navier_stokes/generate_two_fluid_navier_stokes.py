@@ -21,6 +21,22 @@ linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR
 divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
+time_integration="bdf2"
+alpha_method=True               
+theta_method=True
+
+if time_integration == "bdf2":
+    output_filename = ".cpp"
+    template_filename = "weakly_compressible_navier_stokes_cpp_template.cpp"
+elif time_integration == "alpha_method":
+    output_filename = "two_fluid_navier_stokes_alpha_method.cpp"
+    template_filename = "two_fluid_navier_stokes_alpha_method_template.cpp"
+elif time_integration == "theta_method":
+    output_filename = "two_fluid_navier_stokes_CN.cpp"
+    template_filename = "two_fluid_navier_stokes_template_CN.cpp"
+else:
+    err_msg = "Wrong formulation. Given \'" + time_integration + "\'. Available options are \'bdf2\' , \'alpha_method\'and \'theta_scheme\'."
+    raise Exception(err_msg)
 
 
 if (dim_to_compute == "2D"):
@@ -31,7 +47,7 @@ elif (dim_to_compute == "Both"):
     dim_vector = [2,3]
 
 ## Read the template file
-templatefile = open("two_fluid_navier_stokes_template.cpp")
+templatefile = open(template_filename)
 outstring = templatefile.read()
 
 for dim in dim_vector:
@@ -282,7 +298,7 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_3D", rhs_ee_out)
 
 #We write in the file
-out = open("two_fluid_navier_stokes.cpp",'w')
+out = open(output_filename,'w')
 out.write(outstring)
 out.close()
 

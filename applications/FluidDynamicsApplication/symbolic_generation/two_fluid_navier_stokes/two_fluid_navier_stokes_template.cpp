@@ -13,6 +13,8 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_CN_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 
 namespace Kratos
 {
@@ -1167,5 +1169,11 @@ void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
 
 template class TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>;
 template class TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>;
+
+template class TwoFluidNavierStokes< TwoFluidNavierStokesCNData<2, 3> >;
+template class TwoFluidNavierStokes< TwoFluidNavierStokesCNData<3, 4> >;
+
+template class TwoFluidNavierStokes<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class TwoFluidNavierStokes< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
 
 } // namespace Kratos
