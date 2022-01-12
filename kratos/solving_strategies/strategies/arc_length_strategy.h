@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //                   Ignasi Pouplana
@@ -125,10 +125,10 @@ class ArcLengthStrategy
         if (ThisParameters["loads_sub_model_part_list"].size() > 0) {
             mSubModelPartList.resize(ThisParameters["loads_sub_model_part_list"].size());
             mVariableNames.resize(ThisParameters["loads_variable_list"].size());
-	    
-	    KRATOS_ERROR_IF(mSubModelPartList.size() != mVariableNames.size()) << "For each SubModelPart there must be a corresponding nodal Variable" << std::endl;
-	    
-	    const auto& r_sub_model_parts_names = ThisParameters["loads_sub_model_part_list"].GetStringArray();
+        
+            KRATOS_ERROR_IF(mSubModelPartList.size() != mVariableNames.size()) << "For each SubModelPart there must be a corresponding nodal Variable" << std::endl;
+        
+            const auto& r_sub_model_parts_names = ThisParameters["loads_sub_model_part_list"].GetStringArray();
             for (std::size_t i = 0; i < mVariableNames.size(); i++) {
                 mSubModelPartList[i] = &( r_model_part.GetSubModelPart(r_sub_model_parts_names[i]));
                 mVariableNames[i] = ThisParameters["loads_variable_list"][i].GetString();
@@ -188,10 +188,10 @@ class ArcLengthStrategy
             ModelPart& r_model_part = BaseType::GetModelPart();
             //set up the system
             if (!this->mpBuilderAndSolver->GetDofSetIsInitializedFlag()) {
-                //setting up the list of the DOFs to be solved
+                // Setting up the list of the DOFs to be solved
                 this->mpBuilderAndSolver->SetUpDofSet(this->mpScheme, r_model_part);
 
-                //shaping correctly the system
+                // Shaping correctly the system
                 this->mpBuilderAndSolver->SetUpSystem(r_model_part);
             }
 
@@ -228,8 +228,8 @@ class ArcLengthStrategy
 
             KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Strategy Initialized" << std::endl;
         }
-	
-	if (!BaseType::mSolutionStepIsInitialized) {
+    
+        if (!BaseType::mSolutionStepIsInitialized) {
             BaseType::InitializeSolutionStep();
             SaveInitializeSystemVector(mpf);
             InitializeSystemVector(mpDxf);
@@ -252,14 +252,14 @@ class ArcLengthStrategy
         ModelPart& r_model_part  = BaseType::GetModelPart();
 
         const std::size_t iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
-	
+    
         // Update the radius
         mRadius = mRadius * std::sqrt(double(mDesiredIterations) / double(iteration_number));
         if (mRadius > mMaxRadiusFactor*mRadius_0) {
             mRadius = mMaxRadiusFactor*mRadius_0;
         } else if (mRadius < mMinRadiusFactor*mRadius_0) {
             mRadius = mMinRadiusFactor*mRadius_0;
-	}
+        }
 
         BaseType::FinalizeSolutionStep();
 
@@ -278,7 +278,7 @@ class ArcLengthStrategy
         ModelPart& r_model_part = BaseType::GetModelPart();
 
         // Initialize variables
-		DofsArrayType& r_dof_set    = this->mpBuilderAndSolver->GetDofSet();
+        DofsArrayType& r_dof_set    = this->mpBuilderAndSolver->GetDofSet();
         TSystemMatrixType& r_A      = *(this->mpA);
         TSystemVectorType& r_Dx     = *(this->mpDx);
         TSystemVectorType& r_b      = *(this->mpb);
@@ -402,8 +402,7 @@ class ArcLengthStrategy
                 block_for_each(r_sub_model_part.Nodes(), [&](Node<3>& r_node){
                     r_node.FastGetSolutionStepValue(var) *= (mLambda/mLambda_old);
                 });
-            }
-            else if (KratosComponents<Variable<array_1d<double,3>>>::Has(r_variable_name)) {
+            } else if (KratosComponents<Variable<array_1d<double,3>>>::Has(r_variable_name)) {
                 typedef Variable<array_1d<double,3>> array_type;
                 const array_type& r_var = KratosComponents<array_type>::Get(r_variable_name);
 
@@ -420,7 +419,7 @@ class ArcLengthStrategy
                 // TODO-> add for node loads
 
             } else {
-                KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", r_variable_name )
+                KRATOS_ERROR << "One variable of the applied loads has a non supported type. Variable: " << r_variable_name << std::endl;
             }
         }
 
@@ -464,8 +463,7 @@ class ArcLengthStrategy
      */
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
-        if (!pv)
-        {
+        if (!pv) {
             TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
             pv.swap(pNewv);
         }
