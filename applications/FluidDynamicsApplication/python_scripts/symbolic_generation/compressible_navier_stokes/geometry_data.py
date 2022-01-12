@@ -5,7 +5,7 @@ def GeometryDataFactory(geometry_name, ngauss = None):
     geodata_dict = {
         "triangle":      TriangleData,
         "quadrilateral": QuadrilateralData,
-        "tetrahedron":    TetrahedronData
+        "tetrahedron":   TetrahedronData
     }
 
     if geometry_name not in geodata_dict:
@@ -22,10 +22,6 @@ def GeometryDataFactory(geometry_name, ngauss = None):
 
 
 class GeometryData:
-    nnodes: int
-    ndims: int
-    blocksize: int
-    ndofs: int
     def __init__(self, ngauss):
         self.ngauss = ngauss
         self._N = None
@@ -79,7 +75,6 @@ class TriangleData(GeometryData):
         return DefineMatrix('DN', self.nnodes, self.ndims)
 
 
-
 class QuadrilateralData(GeometryData):
     nnodes = 4
     ndims = 2
@@ -107,7 +102,6 @@ class QuadrilateralData(GeometryData):
 
     def _ComputeShapeFunctionsGradients(self):
         return DefineMatrix('DN', self.nnodes, self.ndims)
-
 
 
 class TetrahedronData(GeometryData):
