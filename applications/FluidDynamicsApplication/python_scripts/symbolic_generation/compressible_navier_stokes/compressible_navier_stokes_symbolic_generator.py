@@ -5,12 +5,16 @@ import KratosMultiphysics
 import sympy
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
-from params_dict import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
-from geometry_data import GeometryDataFactory
-import generate_convective_flux
-import generate_diffusive_flux
-import generate_source_term
-import generate_stabilization_matrix
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.params_dict \
+     import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.geometry_data \
+     import GeometryDataFactory
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_convective_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_diffusive_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_source_term
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_stabilization_matrix
 
 class SymbolicGenerator:
     def __init__(self, settings):
