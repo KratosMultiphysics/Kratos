@@ -24,10 +24,16 @@ class NeuralNetworkSolver(PythonSolver):
 
         #TODO: This should be done through default parameters
 
+        self.echo_level = project_parameters["echo_level"].GetInt()
 
         self.model = model
         self.model_geometry_name = project_parameters["model_part_name"].GetString()
-
+        self.model_geometry_file = project_parameters["model_part_file"].GetString()
+        self.model_import_settings = KratosMultiphysics.Parameters()
+        self.model_import_settings.AddEmptyValue("input_type")
+        self.model_import_settings["input_type"].SetString("mdpa")
+        self.model_import_settings.AddEmptyValue("input_filename")
+        self.model_import_settings["input_filename"].SetString(self.model_geometry_file)
 
         self.lookback = project_parameters ["lookback"].GetInt()
         self.time_buffer = project_parameters["time_buffer"].GetInt()
@@ -110,7 +116,7 @@ class NeuralNetworkSolver(PythonSolver):
             self.output_order = "variables_first"
 
     def Initialize(self):
-        self.LoadGeometry()
+        # self.LoadGeometry()
 
         self.input_data_structure = InputDataclasses.NeuralNetworkData()
         if self.lookback>0:
@@ -316,6 +322,23 @@ class NeuralNetworkSolver(PythonSolver):
         except UnboundLocalError:
             return data_out
 
+    def Preprocessing(self, data_in = None, data_out = None):
+        if not hasattr(self, '_list_of_processes'):
+            self.__CreateListOfProcesses()
+        self._PrintInfo("Starting data preprocessing...")
+        for process in self._GetListOfProcesses():
+            try:
+                preprocessing_settings = process.Preprocess(data_in, data_out)
+            except AttributeError:
+                preprocessing_settings = None
+
+            if not preprocessing_settings is None:
+                data_in = preprocessing_settings[0]
+                data_out = preprocessing_settings[1]
+        self._PrintInfo("Data preprocessing done.")
+
+        return [data_in, data_out]
+
     def FinalizeSolutionStep(self):
 
         if self.record:
@@ -346,7 +369,7 @@ class NeuralNetworkSolver(PythonSolver):
         self.model_geometry = self.model[self.model_geometry_name]
 
     def ImportModelPart(self):
-        pass
+        self._ImportModelPart(self.model[self.model_geometry_name], self.model_import_settings)
 
     def _GetListOfProcesses(self):
         return self._list_of_processes
