@@ -3,10 +3,8 @@ import KratosMultiphysics
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
 ## Computation of the flux
-def ComputeDiffusiveFlux(dofs, dUdx, params):
+def ComputeDiffusiveFlux(dofs, dUdx, params, printfun):
     """Calculate the diffusive flux matrix without shock capturing contribution."""
-
-    print("\nCompute diffusive flux (without shock capturing)\n")
 
     ## Auxiliary variables
     dim = params.dim
@@ -43,8 +41,6 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
 def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
     """Calculate the diffusive flux matrix with a physics-based shock capturing contribution.
     See A physics-based shock capturing methods for large-eddy simulation, Fernandez, Nguyen and Peraire (2018)."""
-
-    print("\nCompute diffusive flux (with physics-based shock capturing)\n")
 
     ## Auxiliary variables
     dim = params.dim

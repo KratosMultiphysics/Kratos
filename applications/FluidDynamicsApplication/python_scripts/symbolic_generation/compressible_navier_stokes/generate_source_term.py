@@ -4,7 +4,6 @@ import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 def ComputeSourceMatrix(dofs, mass_source, body_force, heat_source, params):
     """This function calculates the source matrix"""
 
-    print("\nCompute Source Matrix \n")
     dim = params.dim	# Spatial dimensions
 
     ## Source fields definition

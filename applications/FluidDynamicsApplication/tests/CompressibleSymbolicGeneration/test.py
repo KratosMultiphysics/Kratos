@@ -1,41 +1,59 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.compressible_navier_stokes_symbolic_generator import SymbolicGenerator
-
+import os
 
 class TestSymbolicGeneration(KratosUnittest.TestCase):
+
     def SetUp(self):
-        self.scope = KratosUnittest.WorkFolderScope()
-        self.scope.__enter__()
+        self.maxDiff = None
 
-    def tearDown(self):
-        self.scope.__exit__()
-
-    def test_Generator(self):
-        parameters = KratosMultiphysics.Parameters("""
+    @classmethod
+    def _GetParameters(cls, geometry_name):
+        return KratosMultiphysics.Parameters("""
         {
-            "2D" :
-            {
-                "geometry": "triangle",
-                "template_filename" : "test_compressible_symbolic.template",
-                "output_filename"   : "test_compressible_symbolic.result"
+            "Parameters" : {
+                "geometry": "{geometry}",
+                "template_filename" : "test_compressible_symbolic_{geometry}.template",
+                "output_filename"   : "test_compressible_symbolic_{geometry}.result",
+                "echo_level" : 0
             },
-            "3D" :
-            {
-                "geometry": "tetrahedron",
-                "template_filename" : "test_compressible_symbolic.result",
-                "output_filename"   : "test_compressible_symbolic.result"
-            }
+            "reference": "test_compressible_symbolic_{geometry}.reference"
         }
-        """)
+        """.replace("{geometry}", geometry_name)
+        )
 
-        generator_2d = SymbolicGenerator(parameters["2D"])
-        generator_2d.Generate()
-        generator_2d.Write()
 
-        generator_3d = SymbolicGenerator(parameters["3D"])
-        generator_3d.Generate()
-        generator_3d.Write()
+    def _RunTest(self, geometry_name):
+        parameters = self._GetParameters(geometry_name)
+
+        try:
+            os.remove(parameters["Parameters"]["output_filename"].GetString())
+        except FileNotFoundError:
+            pass
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            # generator = SymbolicGenerator(parameters["Parameters"])
+
+            # print(parameters)
+
+            # generator.Generate()
+            # generator.Write()
+
+            with open(parameters["Parameters"]["template_filename"].GetString(), "r") as f:
+                result = f.readlines()
+
+            with open(parameters["reference"].GetString(), "r") as f:
+                reference = f.readlines()
+
+        self.assertEqual(result, reference)
+
+
+    def testGeneratorTetra(self):
+        self._RunTest("tetrahedron")
+
+    def testGeneratorTriangle(self):
+        self._RunTest("triangle")
 
 
 if __name__ == '__main__':

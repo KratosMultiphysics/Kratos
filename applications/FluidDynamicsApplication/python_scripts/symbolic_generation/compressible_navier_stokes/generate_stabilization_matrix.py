@@ -5,8 +5,6 @@ from KratosMultiphysics.sympy_fe_utilities import *
 def ComputeStabilizationMatrix(params):
     """This function calculates the stabilization matrix"""
 
-    print("\nCompute stabilization matrix\n")
-
     dim = params.dim         # Spatial dimensions
     Tau = zeros(dim+2,dim+2) # Stabilization Matrix
 

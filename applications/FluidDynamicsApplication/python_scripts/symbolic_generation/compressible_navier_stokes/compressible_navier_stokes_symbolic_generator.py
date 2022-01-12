@@ -23,6 +23,8 @@ class SymbolicGenerator:
         self.geometry = GeometryDataFactory(self.settings["geometry"].GetString())
         self._GenerateFiles()
 
+        self._print(2, self.settings)
+
     @classmethod
     def GetDefaultParameters(cls):
         return KratosMultiphysics.Parameters("""
@@ -46,6 +48,7 @@ class SymbolicGenerator:
             print(*text)
 
     def _GenerateFiles(self):
+        print(os.getcwd())
         with open(self.settings["template_filename"].GetString(), "r") as template:
             self.outstring = template.read()
 
@@ -269,7 +272,7 @@ class SymbolicGenerator:
 
     def _OutputLHSandRHS(self, lhs, rhs, outstring, subscales_type):
         ## Reading and filling the template file
-        self._print(1, "\n- Substituting outstring in {}\n".format(self.settings["template_filename"].GetString()))
+        self._print(1, "\n- Substituting outstring from {}\n".format(self.settings["template_filename"].GetString()))
         mode = self.settings["mode"].GetString()
 
         rhs_out = KratosSympy.OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
@@ -364,13 +367,18 @@ class SymbolicGenerator:
 
         ## Calculate the Gauss point residual
         ## Matrix Computation
+        self._print(1, "\nCompute Source Matrix \n")
         S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
         A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
         if self.settings["shock_capturing"].GetBool():
             sc_params = ShockCapturingParameters()
+            self._print(1, "\nCompute diffusive flux (with physics-based shock capturing)\n")
             G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(Ug, H, params, sc_params)
         else:
+            self._print(1, "\nCompute diffusive flux (without shock capturing)\n")
             G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
+
+        self._print(1, "\nCompute stabilization matrix\n")
         Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
 
         ## Non-linear operator definition
