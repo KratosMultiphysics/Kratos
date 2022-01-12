@@ -5,7 +5,7 @@ def GeometryDataFactory(geometry_name, ngauss = None):
     geodata_dict = {
         "triangle":      TriangleData,
         "quadrilateral": QuadrilateralData,
-        "hexahedron":    TetrahedronData
+        "tetrahedron":    TetrahedronData
     }
 
     if geometry_name not in geodata_dict:

@@ -16,6 +16,7 @@ class SymbolicGenerator:
     def __init__(self, settings):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.geometry = GeometryDataFactory(self.settings["geometry"].GetString())
         self._GenerateFiles()
 
     @classmethod
@@ -42,11 +43,10 @@ class SymbolicGenerator:
 
     def _GenerateFiles(self):
         with open(self.settings["template_filename"].GetString(), "r") as template:
-            self.outstring = template.readlines()
+            self.outstring = template.read()
 
         # Checking if outfile is valid
         self.outputfile = open(self.settings["output_filename"].GetString(), "w")
-        self.outputfile.close()
 
     def _ComputeNonLinearOperator(self, A, H, S, Ug):
         L = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.blocksize, 1))
@@ -184,7 +184,7 @@ class SymbolicGenerator:
         self._print(1, "\tGauss point: " + str(i_gauss))
 
         ## Get Gauss point geometry data
-        Ng = sympy.Matrix(self.geometry().nnodes, 1, lambda i,_: self.geometry.N()[i_gauss, i])
+        Ng = sympy.Matrix(self.geometry.nnodes, 1, lambda i,_: self.geometry.N()[i_gauss, i])
 
         ## Data interpolation at the gauss point
         U_gauss = U.transpose() * Ng
@@ -205,7 +205,7 @@ class SymbolicGenerator:
             acc_gauss = dUdt.transpose()*Ng
 
         ## Gauss pt. stabilization matrix calculation
-        if self.settings["sock_capturing"].GetBool():
+        if self.settings["shock_capturing"].GetBool():
             tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss, lamb_sc_gauss)
         else:
             tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
@@ -239,7 +239,7 @@ class SymbolicGenerator:
         return rv_gauss
 
     def _SubscalesTypes(self):
-        return [name for (name, enabled) in self.settings.subscales["subscales"].items() if enabled]
+        return [name for (name, enabled) in self.settings["subscales"].items() if enabled]
 
     def _ComputeLHSandRHS(self, rv_tot, U, w):
         ## Set the DOFs and test function matrices to do the differentiation
@@ -264,52 +264,51 @@ class SymbolicGenerator:
         return(lhs, rhs)
 
     def _OutputLHSandRHS(self, lhs, rhs, outstring, subscales_type):
-        mode = self.settings["mode"].GetString()
-        lhs_out = KratosSympy.OutputMatrix_CollectingFactors(lhs, "lhs", mode)
-        rhs_out = KratosSympy.OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
-
         ## Reading and filling the template file
-        self._print(1, "\n- Substituting outstring in {filename}\n".format(self.settings["template_filename"].GetString()))
+        self._print(1, "\n- Substituting outstring in {}\n".format(self.settings["template_filename"].GetString()))
+        mode = self.settings["mode"].GetString()
 
-        outstring = outstring.replace("//substitute_rhs_{dim}D_{subscales}".format(self.geometry.ndims, subscales_type), rhs_out)
+        rhs_out = KratosSympy.OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
+        outstring = outstring.replace("//substitute_rhs_{}D_{}".format(self.geometry.ndims, subscales_type), rhs_out)
+
         if not self.is_explicit:
-            outstring = outstring.replace("//substitute_lhs_{dim}D_{subscales}".format(self.geometry.ndims, subscales_type), lhs_out)
+            lhs_out = KratosSympy.OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+            outstring = outstring.replace("//substitute_lhs_{}D_{}".format(self.geometry.ndims, subscales_type), lhs_out)
 
         ## In the explicit element case the container values are referenced in the cpp to limit the container accesses to one per element
         if self.is_explicit:
             ## Substitute the solution values container accesses
             for i_node in range(self.geometry.nnodes):
                 for j_block in range(self.geometry.blocksize):
-                    to_substitute = 'U({i},{j})'.format(i_node, j_block)
-                    substituted_value = 'U_{i}_{j}'.format(i_node, j_block)
+                    to_substitute = 'U({},{})'.format(i_node, j_block)
+                    substituted_value = 'U_{}_{}'.format(i_node, j_block)
                     outstring = outstring.replace(to_substitute, substituted_value)
 
             ## Substitute the solution values time derivatives container accesses
             for i_node in range(self.geometry.nnodes):
                 for j_block in range(self.geometry.blocksize):
-                    to_substitute = 'dUdt({i},{j})'.format(i_node, j_block)
-                    substituted_value = 'dUdt_{i}_{j}'.format(i_node, j_block)
+                    to_substitute = 'dUdt({},{})'.format(i_node, j_block)
+                    substituted_value = 'dUdt_{}_{}'.format(i_node, j_block)
                     outstring = outstring.replace(to_substitute, substituted_value)
 
             ## Substitute the shape function gradients container accesses
             for i_node in range(self.geometry.nnodes):
                 for j_dim in range(self.geometry.ndims):
-                    to_substitute = 'DN({i},{j})'.format(i_node, j_dim)
-                    substituted_value = 'DN_DX_{i}_{j}'.format(i_node, j_dim)
+                    to_substitute = 'DN({},{})'.format(i_node, j_dim)
+                    substituted_value = 'DN_DX_{}_{}'.format(i_node, j_dim)
                     outstring = outstring.replace(to_substitute, substituted_value)
 
             ## Substitute the residuals projection container accesses
             for i_node in range(self.geometry.nnodes):
-                for j_dim in range(self.geometry.blocksize):
-                    to_substitute = 'ResProj({i},{j})'.format(i_node, j_block)
-                    substituted_value = 'ResProj_{i}_{j}'.format(i_node, j_block)
+                for j_block in range(self.geometry.blocksize):
+                    to_substitute = 'ResProj({},{})'.format(i_node, j_block)
+                    substituted_value = 'ResProj_{}_{}'.format(i_node, j_block)
                     outstring = outstring.replace(to_substitute, substituted_value)
 
         return outstring
 
     def Generate(self):
         self._print(1, "\nComputing geometry: {}\n".format(self.settings["geometry"].GetString()))
-        self.geometry = GeometryDataFactory(self.settings["geometry"].GetString())
 
         dim = self.geometry.ndims
         n_nodes = self.geometry.nnodes
@@ -422,11 +421,12 @@ class SymbolicGenerator:
 
     def Write(self):
         filename = self.settings["output_filename"].GetString()
-        self._print(1, "\nWriting {filename}\n".format(filename))
-        with open(self.outputfile) as outfile:
-            outfile.write(self.outstring)
+        self._print(1, "\nWriting {}\n".format(filename))
 
-        self._print(1, "{filename} generated\n".format(filename))
+        self.outputfile.write(self.outstring)
+        self.outputfile.close()
+
+        self._print(1, "{} generated\n".format(filename))
 
 
 if __name__ == "__main__":
@@ -452,8 +452,8 @@ if __name__ == "__main__":
 
     generator_2d = SymbolicGenerator(parameters["2D"])
     generator_2d.Generate()
-    generator_2d.Commit()
+    generator_2d.Write()
 
     generator_3d = SymbolicGenerator(parameters["3D"])
     generator_3d.Generate()
-    generator_3d.Commit()
+    generator_3d.Write()

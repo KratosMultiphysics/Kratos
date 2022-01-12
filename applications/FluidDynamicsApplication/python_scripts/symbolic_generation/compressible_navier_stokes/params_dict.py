@@ -46,7 +46,7 @@ class ShockCapturingNodalParameters:
     lambda_ : sympy.Symbol
 
     def __init__(self, geometry):
-        self.alpha   = KratosSympy.DefineVector('alpha_sc_nodes', geometry.nnodes),# Nodal artificial mass diffusivity
-        self.mu      = KratosSympy.DefineVector('mu_sc_nodes', geometry.nnodes),   # Nodal artificial dynamic viscosity
-        self.beta    = KratosSympy.DefineVector('beta_sc_nodes', geometry.nnodes), # Nodal artificial bulk viscosity
+        self.alpha   = KratosSympy.DefineVector('alpha_sc_nodes', geometry.nnodes) # Nodal artificial mass diffusivity
+        self.mu      = KratosSympy.DefineVector('mu_sc_nodes', geometry.nnodes)    # Nodal artificial dynamic viscosity
+        self.beta    = KratosSympy.DefineVector('beta_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity
         self.lambda_ = KratosSympy.DefineVector('lamb_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity
