@@ -5,8 +5,6 @@ import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 def ComputeEulerJacobianMatrix(dofs, params):
     """This function calculates the Euler Jacobian matrix for convection"""
 
-    print("\nCompute Euler Jacobian matrix \n")
-
     ## Auxiliary variables
     dim = params.dim
     gamma = params.gamma

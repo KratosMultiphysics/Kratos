@@ -21,8 +21,6 @@ def ComputeStabilizationMatrix(params):
 def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss = 0.0, lamb_sc_gauss = 0.0):
     """This function calculates the stabilization matrix on a Gauss point"""
 
-    print("\t- Compute stabilization matrix on Gauss pt.")
-
     # Calculate auxiliary values
     rho_g = U_gauss[0]
     e_t_g = U_gauss[params.dim + 1]

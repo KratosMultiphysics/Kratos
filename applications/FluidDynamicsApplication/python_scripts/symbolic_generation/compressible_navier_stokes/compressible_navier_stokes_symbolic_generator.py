@@ -212,6 +212,7 @@ class SymbolicGenerator:
             acc_gauss = dUdt.transpose()*Ng
 
         ## Gauss pt. stabilization matrix calculation
+        self._print(1, "\t- Compute stabilization matrix on Gauss pt.")
         if self.settings["shock_capturing"].GetBool():
             tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss, lamb_sc_gauss)
         else:
@@ -369,7 +370,10 @@ class SymbolicGenerator:
         ## Matrix Computation
         self._print(1, "\nCompute Source Matrix \n")
         S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
+
+        self._print(1, "\nCompute Euler Jacobian matrix \n")
         A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
+
         if self.settings["shock_capturing"].GetBool():
             sc_params = ShockCapturingParameters()
             self._print(1, "\nCompute diffusive flux (with physics-based shock capturing)\n")
