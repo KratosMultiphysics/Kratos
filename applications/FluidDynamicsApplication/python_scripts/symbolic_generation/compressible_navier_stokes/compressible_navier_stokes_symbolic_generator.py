@@ -16,7 +16,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_source_term
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_stabilization_matrix
 
-class SymbolicGenerator:
+class CompressibleNavierStokesSymbolicGenerator:
     def __init__(self, settings):
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
@@ -466,10 +466,10 @@ if __name__ == "__main__":
     path = pathlib.Path(__file__).parent
     os.chdir(path)
 
-    generator_2d = SymbolicGenerator(parameters["2D"])
+    generator_2d = CompressibleNavierStokesSymbolicGenerator(parameters["2D"])
     generator_2d.Generate()
     generator_2d.Write()
 
-    generator_3d = SymbolicGenerator(parameters["3D"])
+    generator_3d = CompressibleNavierStokesSymbolicGenerator(parameters["3D"])
     generator_3d.Generate()
     generator_3d.Write()

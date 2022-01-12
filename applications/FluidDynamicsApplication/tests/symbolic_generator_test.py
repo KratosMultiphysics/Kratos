@@ -1,14 +1,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.compressible_navier_stokes_symbolic_generator import SymbolicGenerator
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 import os
 
 
-
-class TestSymbolicGeneration(KratosUnittest.TestCase):
-
-    def SetUp(self):
-        self.maxDiff = None
+class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
 
     @classmethod
     def _GetParameters(cls, geometry_name):
@@ -35,9 +31,9 @@ class TestSymbolicGeneration(KratosUnittest.TestCase):
             pass
 
         with KratosUnittest.WorkFolderScope(".", __file__):
-            # generator = SymbolicGenerator(parameters["Parameters"])
-            # generator.Generate()
-            # generator.Write()
+            generator = CompressibleNavierStokesSymbolicGenerator(parameters["Parameters"])
+            generator.Generate()
+            generator.Write()
 
             with open(parameters["Parameters"]["output_filename"].GetString(), "r") as f:
                 result = f.readlines()
