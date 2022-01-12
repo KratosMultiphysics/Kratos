@@ -16,14 +16,14 @@ class FormulationParameters:
     dim: int
 
     def __init__(self, geometry):
-        self.mu      = sympy.Symbol('mu', positive = True),       # Dynamic viscosity
-        self.h       = sympy.Symbol('h', positive = True),        # Element size
-        self.lambda_ = sympy.Symbol('lambda', positive = True),   # Thermal Conductivity of the fluid
-        self.c_v     = sympy.Symbol('c_v', positive = True),      # Specific Heat at Constant volume
-        self.gamma   = sympy.Symbol('gamma',positive = True),     # Gamma (Cp/Cv)
-        self.stab_c1 = sympy.Symbol('stab_c1', positive = True),  # Algorithm constant
-        self.stab_c2 = sympy.Symbol('stab_c2', positive = True),  # Algorithm constant
-        self.stab_c3 = sympy.Symbol('stab_c3', positive = True),  # Algorithm constant
+        self.mu      = sympy.Symbol('mu', positive = True)       # Dynamic viscosity
+        self.h       = sympy.Symbol('h', positive = True)        # Element size
+        self.lambda_ = sympy.Symbol('lambda', positive = True)   # Thermal Conductivity of the fluid
+        self.c_v     = sympy.Symbol('c_v', positive = True)      # Specific Heat at Constant volume
+        self.gamma   = sympy.Symbol('gamma',positive = True)     # Gamma (Cp/Cv)
+        self.stab_c1 = sympy.Symbol('stab_c1', positive = True)  # Algorithm constant
+        self.stab_c2 = sympy.Symbol('stab_c2', positive = True)  # Algorithm constant
+        self.stab_c3 = sympy.Symbol('stab_c3', positive = True)  # Algorithm constant
         self.dim = geometry.ndims
 
 @dataclass

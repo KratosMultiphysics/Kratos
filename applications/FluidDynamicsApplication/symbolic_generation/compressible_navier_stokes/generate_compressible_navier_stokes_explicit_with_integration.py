@@ -1,5 +1,5 @@
 import pathlib
-import sys
+import os
 
 import KratosMultiphysics
 import sympy
@@ -38,7 +38,7 @@ class SymbolicGenerator:
 
     def _print(self, lvl, *text):
         if self.settings["echo_level"].GetInt() >= lvl:
-            print(text)
+            print(*text)
 
     def _GenerateFiles(self):
         with open(self.settings["template_filename"].GetString(), "r") as template:
@@ -50,7 +50,7 @@ class SymbolicGenerator:
 
     def _ComputeNonLinearOperator(self, A, H, S, Ug):
         L = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.blocksize, 1))
-        for j in range(self.geometry.ndim):
+        for j in range(self.geometry.ndims):
             # Convective operator product (A x grad(U))
             A_j = A[j]
             H_j = H.col(j)
@@ -153,7 +153,7 @@ class SymbolicGenerator:
         for i_node in range(self.geometry.nnodes):
             # Note that the weights will be added later on in the cpp
             projections["rho"][i_node] += N[i_node] * res_gauss[0]
-            for d in range(self.geometry.ndim):
+            for d in range(self.geometry.ndims):
                 projections["momentum"][i_node * self.geometry.ndims + d] += N[i_node] * res_gauss[1 + d]
             projections["energy"][i_node] += N[i_node] * res_gauss[self.geometry.ndims + 1]
 
@@ -162,7 +162,7 @@ class SymbolicGenerator:
         res_rho_proj_out = KratosSympy.OutputVector_CollectingFactors(res_rho_proj, "rho_proj", mode)
         res_mom_proj_out = KratosSympy.OutputVector_CollectingFactors(res_mom_proj, "mom_proj", mode)
         res_tot_ener_proj_out = KratosSympy.OutputVector_CollectingFactors(res_tot_ener_proj, "tot_ener_proj", mode)
-        dim = self.geometry.ndim
+        dim = self.geometry.ndims
         outstring = outstring.replace("//substitute_rho_proj_{}D".format(dim), res_rho_proj_out)
         outstring = outstring.replace("//substitute_mom_proj_{}D".format(dim), res_mom_proj_out)
         outstring = outstring.replace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj_out)
@@ -324,7 +324,10 @@ class SymbolicGenerator:
 
         if self.is_explicit:
             dUdt = KratosSympy.DefineMatrix('dUdt', n_nodes, block_size)     # Vector of Unknowns time derivatives (Density, Velocity[dim], Total Energy)
+            Un = None
+            Unn = None
         else:
+            dUdt = None
             Un = KratosSympy.DefineMatrix('Un', n_nodes, block_size)         # Vector of Unknowns one step back
             Unn = KratosSympy.DefineMatrix('Unn', n_nodes, block_size)       # Vector of Unknowns two steps back
 
@@ -341,10 +344,8 @@ class SymbolicGenerator:
         # Nodal artificial magnitudes
         sc_nodes = ShockCapturingNodalParameters(self.geometry)
 
-        # Definition of other symbols
-        if not self.is_explicit:
-            # Backward differantiation coefficients
-            bdf = [sympy.Symbol('bdf'+ i) for i in range(3)]
+        # Backward differantiation coefficients
+        bdf = None if self.is_explicit else [sympy.Symbol('bdf'+ i) for i in range(3)]
 
         ### Construction of the variational equation
         Ug  = KratosSympy.DefineVector('Ug',block_size) # Dofs vector
@@ -447,7 +448,7 @@ if __name__ == "__main__":
     """)
 
     path = pathlib.Path(__file__).parent
-    sys.path.append(str(path))
+    os.chdir(path)
 
     generator_2d = SymbolicGenerator(parameters["2D"])
     generator_2d.Generate()

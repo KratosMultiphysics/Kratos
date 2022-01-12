@@ -41,7 +41,7 @@ class GeometryData:
 
     def DN(self):
         if self._DN is None:
-            self._DN = self._ComputeShapeFunctionGradients()
+            self._DN = self._ComputeShapeFunctionsGradients()
         return self._DN
 
     def _ComputeShapeFunctionsGradients(self):
