@@ -1,0 +1,39 @@
+// This file is a template to generate the output for the test
+
+/**
+ * 2D
+ */
+
+// ------------------------- substitute_rho_proj_2D -------------------------
+//substitute_rho_proj_2D
+
+// ------------------------- substitute_mom_proj_2D -------------------------
+//substitute_mom_proj_2D
+
+// ------------------------- substitute_tot_ener_proj_2D -------------------------
+//substitute_tot_ener_proj_2D
+
+// ------------------------- substitute_rhs_2D -------------------------
+//substitute_rhs_2D
+
+// ------------------------- substitute_lhs_2D -------------------------
+//substitute_lhs_2D
+
+/**
+ * 3D
+ */
+
+// ------------------------- substitute_rho_proj_2D -------------------------
+//substitute_rho_proj_2D
+
+// ------------------------- substitute_mom_proj_2D -------------------------
+//substitute_mom_proj_2D
+
+// ------------------------- substitute_tot_ener_proj_2D -------------------------
+//substitute_tot_ener_proj_2D
+
+// ------------------------- substitute_rhs_2D -------------------------
+//substitute_rhs_2D
+
+// ------------------------- substitute_lhs_2D -------------------------
+//substitute_lhs_2D

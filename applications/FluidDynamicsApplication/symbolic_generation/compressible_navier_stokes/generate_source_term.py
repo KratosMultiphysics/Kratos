@@ -7,11 +7,11 @@ def ComputeSourceMatrix(dofs, mass_source, body_force, heat_source, params):
     """This function calculates the source matrix"""
 
     print("\nCompute Source Matrix \n")
-    dim = params["dim"]	# Spatial dimensions
+    dim = params.dim	# Spatial dimensions
 
     ## Source fields definition
     rho = dofs[0]           # Density
-    m = mass_source         # Mass source (kg/m³s) 
+    m = mass_source         # Mass source (kg/m³s)
     f = body_force.copy()	# Body force vector
     r = heat_source			# Heat source/sink
 
@@ -34,7 +34,7 @@ def ComputeSourceMatrix(dofs, mass_source, body_force, heat_source, params):
 def PrintSourceMatrix(S,params):
     """Auxiliary function to print the source matrix (S)"""
 
-    dim = params["dim"]	# Spatial dimensions
+    dim = params.dim	# Spatial dimensions
     print("The source term matrix is:\n")
     for i in range (0,dim+2):
         for j in range (0,dim+2):

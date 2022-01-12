@@ -1,6 +1,6 @@
-from sympy import *
-from KratosMultiphysics import *
-from KratosMultiphysics.sympy_fe_utilities import *
+import sympy
+import KratosMultiphysics
+import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
 ## Computation of the flux
 def ComputeDiffusiveFlux(dofs, dUdx, params):
@@ -9,8 +9,8 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
     print("\nCompute diffusive flux (without shock capturing)\n")
 
     ## Auxiliary variables
-    dim = params["dim"]
-    gamma = params["gamma"]
+    dim = params.dim
+    gamma = params.gamma
     rho = dofs[0]
     mom = []
     vel = []
@@ -20,17 +20,17 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
     e_tot = dofs[dim + 1]
 
     ## Calculate the viscous stress tensor
-    mu = params["mu"] # Dynamic viscosity
-    beta = 0.0 # Null bulk viscosity (Stoke's assumption)
+    mu = params.mu  # Dynamic viscosity
+    beta = 0.0      # Null bulk viscosity (Stoke's assumption)
     tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
     ## Calculate the heat flux vector
-    c_v = params["c_v"]	# Specific heat at constant volume
-    lamb = params["lambda"] # Thermal conductivity
+    c_v = params.c_v	  # Specific heat at constant volume
+    lamb = params.lambda_ # Thermal conductivity
     heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
     ## Define and fill the diffusive flux matrix
-    G = DefineMatrix('G', dim + 2, dim)
+    G = KratosSympy.DefineMatrix('G', dim + 2, dim)
     for j in range(dim):
         G[0,j] = 0.0
         G[dim + 1, j] = heat_flux[j]
@@ -40,14 +40,14 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
 
     return G
 
-def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, alpha_sc, beta_sc, lamb_sc, mu_sc):
+def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
     """Calculate the diffusive flux matrix with a physics-based shock capturing contribution.
     See A physics-based shock capturing methods for large-eddy simulation, Fernandez, Nguyen and Peraire (2018)."""
 
     print("\nCompute diffusive flux (with physics-based shock capturing)\n")
 
     ## Auxiliary variables
-    dim = params["dim"]
+    dim = params.dim
     rho = dofs[0]
     mom = []
     vel = []
@@ -57,24 +57,24 @@ def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, alpha_sc, beta_sc
     e_tot = dofs[dim + 1]
 
     # Calculate the density flux
-    mass_flux = CalculuateMassFluxVector(alpha_sc, dUdx)
+    mass_flux = CalculuateMassFluxVector(sc_params.alpha, dUdx)
 
     ## Calculate the viscous stress tensor
-    mu = params["mu"] # Dynamic viscosity
-    mu += mu_sc # Artificial dynamic viscosity
+    mu = params.mu # Dynamic viscosity
+    mu += sc_params.mu # Artificial dynamic viscosity
     beta = 0.0 # Null physical bulk viscosity (Stoke's assumption)
-    beta += beta_sc # Artificial bulk viscosity
+    beta += sc_params.beta # Artificial bulk viscosity
     tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
     ## Calculate the heat flux vector
-    c_v = params["c_v"]	# Specific heat at constant volume
-    lamb = params["lambda"] # Thermal conductivity
-    lamb += lamb_sc # Artificial thermal conductivity for shock capturing
-    gamma = params["gamma"] # Heat capacity ratio
+    c_v = params.c_v	# Specific heat at constant volume
+    lamb = params.lambda_ # Thermal conductivity
+    lamb += sc_params.lambda_ # Artificial thermal conductivity for shock capturing
+    gamma = params.gamma # Heat capacity ratio
     heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
     ## Define and fill the isotropic shock capturing diffusive flux matrix
-    G = DefineMatrix('G', dim + 2, dim)
+    G = KratosSympy.DefineMatrix('G', dim + 2, dim)
     G[0,:] = mass_flux
     for j in range(dim):
         G[dim + 1, j] = heat_flux[j]
@@ -104,7 +104,7 @@ def CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx):
 
     ## Calculate the viscous stress tensor
     ## Note that the derivatives in here involve grad(mom/rho) = (dx(mom)*rho - mom*dx(rho))/rho**2
-    tau_stress = DefineMatrix('tau_stress', dim, dim)
+    tau_stress = KratosSympy.DefineMatrix('tau_stress', dim, dim)
     for d1 in range(dim):
         for d2 in range(dim):
             dv1_dx2 = (dUdx[d1 + 1, d2] * rho - mom[d1] * dUdx[0,d2]) / rho**2
@@ -136,7 +136,7 @@ def WriteInVoigtNotation(dim, tensor):
     """Auxiliary function to represent a 2nd order tensor in Voigt notation"""
 
     voigt_size = 3 * dim - 3
-    voigt_tensor = zeros(voigt_size, 1)
+    voigt_tensor = KratosSympy.zeros(voigt_size, 1)
     voigt_tensor[0] = tensor[0,0]
     voigt_tensor[1] = tensor[1,1]
     if dim == 2:
@@ -153,7 +153,7 @@ def RevertVoigtNotation(dim, voigt_tensor):
     """Auxiliary function to set a 2nd order tensor from its Voigt representation"""
 
     # Revert the Voigt notation
-    tensor = zeros(dim, dim)
+    tensor = KratosSympy.zeros(dim, dim)
     for d in range(dim):
         tensor[d,d] = voigt_tensor[d]
     if dim == 2:
@@ -172,7 +172,7 @@ def RevertVoigtNotation(dim, voigt_tensor):
 def PrintDiffusiveFluxMatrix(G,params):
     """Auxiliary function to print the diffusive flux matrix (G)"""
 
-    dim = params["dim"]
+    dim = params.dim
     print("The diffusive matrix is:\n")
     for ll in range(dim+2):
         for mm in range(dim):
