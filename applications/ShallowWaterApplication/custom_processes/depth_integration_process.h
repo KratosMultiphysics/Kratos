@@ -153,6 +153,9 @@ private:
     ModelPart* mpIntegrationModelPart;
     array_1d<double,3> mDirection;
     bool mStoreHistorical;
+    bool mCalculateMeanVelocity;
+    double mSpecificRelativeDepth;
+    double mWaterLevelReference;
 
     ///@}
     ///@name Member Variables
