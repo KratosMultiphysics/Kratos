@@ -48,11 +48,9 @@ class CompressibleNavierStokesSymbolicGenerator:
             print(*text)
 
     def _GenerateFiles(self):
-        print(os.getcwd())
         with open(self.settings["template_filename"].GetString(), "r") as template:
             self.outstring = template.read()
 
-        # Checking if outfile is valid
         self.outputfile = open(self.settings["output_filename"].GetString(), "w")
 
     def _ComputeNonLinearOperator(self, A, H, S, Ug):
@@ -116,7 +114,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         n5 = L_adj.transpose() * subscales
 
         # Variational formulation (Galerkin functional)
-        self._print(1, "\nCompute variational formulation\n")
+        self._print(1, " - Compute variational formulation")
         if not self.is_explicit:
             rv = n1 + n2 + n3 + n4 + n5 # Implicit case (includes the inertial term n1)
         else:
@@ -188,7 +186,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         return rv_gauss
 
     def _ComputeResidualAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w):
-        self._print(1, "\tGauss point: " + str(i_gauss))
+        self._print(1, "    Gauss point: " + str(i_gauss))
 
         ## Get Gauss point geometry data
         Ng = sympy.Matrix(self.geometry.nnodes, 1, lambda i,_: self.geometry.N()[i_gauss, i])
@@ -212,7 +210,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             acc_gauss = dUdt.transpose()*Ng
 
         ## Gauss pt. stabilization matrix calculation
-        self._print(1, "\t- Compute stabilization matrix on Gauss pt.")
+        self._print(1, "    - Compute stabilization matrix on Gauss pt.")
         if self.settings["shock_capturing"].GetBool():
             tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss, lamb_sc_gauss)
         else:
@@ -226,7 +224,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         grad_U = KratosSympy.DfjDxi(self.geometry.DN(), U).transpose()
         grad_w = KratosSympy.DfjDxi(self.geometry.DN(), w).transpose()
 
-        self._print(1, "\t- Substitution in the variational formulation")
+        self._print(1, "    - Substitution in the variational formulation")
         KratosSympy.SubstituteMatrixValue(rv_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, H, grad_U)
@@ -260,11 +258,11 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         ## Compute LHS and RHS
         do_simplifications =  self.settings["do_simplifications"].GetBool()
-        self._print(1, "\n- Compute RHS")
+        self._print(1, "    - Compute RHS")
         rhs = KratosSympy.Compute_RHS(rv_tot.copy(), testfunc, do_simplifications)
 
         if not self.is_explicit:
-            self._print(1, "\n- Compute LHS")
+            self._print(1, "    - Compute LHS")
             lhs = KratosSympy.Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS
         else:
             lhs = None
@@ -273,7 +271,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _OutputLHSandRHS(self, lhs, rhs, outstring, subscales_type):
         ## Reading and filling the template file
-        self._print(1, "\n- Substituting outstring from {}\n".format(self.settings["template_filename"].GetString()))
+        self._print(1, "    - Substituting outstring from {}".format(self.settings["template_filename"].GetString()))
         mode = self.settings["mode"].GetString()
 
         rhs_out = KratosSympy.OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
@@ -316,7 +314,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         return outstring
 
     def Generate(self):
-        self._print(1, "\nComputing geometry: {}\n".format(self.settings["geometry"].GetString()))
+        self._print(1, " - Computing geometry: {}".format(self.settings["geometry"].GetString()))
 
         dim = self.geometry.ndims
         n_nodes = self.geometry.nnodes
@@ -368,25 +366,25 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         ## Calculate the Gauss point residual
         ## Matrix Computation
-        self._print(1, "\nCompute Source Matrix \n")
+        self._print(1, " - Compute Source Matrix")
         S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
 
-        self._print(1, "\nCompute Euler Jacobian matrix \n")
+        self._print(1, " - Compute Euler Jacobian matrix")
         A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
 
         if self.settings["shock_capturing"].GetBool():
             sc_params = ShockCapturingParameters()
-            self._print(1, "\nCompute diffusive flux (with physics-based shock capturing)\n")
+            self._print(1, " - Compute diffusive flux (with physics-based shock capturing)")
             G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(Ug, H, params, sc_params)
         else:
-            self._print(1, "\nCompute diffusive flux (without shock capturing)\n")
+            self._print(1, " - Compute diffusive flux (without shock capturing)")
             G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
 
-        self._print(1, "\nCompute stabilization matrix\n")
+        self._print(1, " - Compute stabilization matrix")
         Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
 
         ## Non-linear operator definition
-        self._print(1, "\nCompute non-linear operator\n")
+        self._print(1, " - Compute non-linear operator")
         L = self._ComputeNonLinearOperator(A, H, S, Ug)
 
         ## FE residuals definition
@@ -397,7 +395,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         res = - acc - L
 
         ## Non-linear adjoint operator definition
-        self._print(1, "\nCompute non-linear adjoint operator\n")
+        self._print(1, " - Compute non-linear adjoint operator")
         L_adj = self._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
 
         ## Variational Formulation - Final equation
@@ -405,14 +403,14 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         #### OSS Residual projections calculation ####
         # Calculate the residuals projection
-        self._print(1, "\nCalculate the projections of the residuals")
+        self._print(1, " - Calculate the projections of the residuals")
         projections = {
             "rho"      : KratosSympy.Matrix(KratosSympy.zeros(n_nodes,1)),
             "momentum" : KratosSympy.Matrix(KratosSympy.zeros(n_nodes*dim,1)),
             "energy"   : KratosSympy.Matrix(KratosSympy.zeros(n_nodes,1))
         }
         for i_gauss in range(self.geometry.ngauss):
-            self._print(1, "\tGauss point: " + str(i_gauss))
+            self._print(1, "   - Gauss point: " + str(i_gauss))
             self._ComputeProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
 
         ## Output the projections
@@ -424,8 +422,8 @@ class CompressibleNavierStokesSymbolicGenerator:
             ## Loop and accumulate the residual in each Gauss point
             rv_tot = KratosSympy.Matrix(KratosSympy.zeros(1,1))
 
-            self._print(1, "\nSubscales type: " + subscales_type)
-            self._print(1, "\n- Substitution of the discretized values at the gauss points")
+            self._print(1, " - Subscales type: " + subscales_type)
+            self._print(1, " - Substitution of the discretized values at the gauss points")
             for i_gauss in range(self.geometry.ngauss):
                 ## Substitute the subscales model
                 rv_gauss = self._SubstituteSubscales(res, res_proj, rv, subscales, subscales_type, Tau)
@@ -437,12 +435,12 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def Write(self):
         filename = self.settings["output_filename"].GetString()
-        self._print(1, "\nWriting {}\n".format(filename))
+        self._print(1, " - Writing {}".format(filename))
 
         self.outputfile.write(self.outstring)
         self.outputfile.close()
 
-        self._print(1, "{} generated\n".format(filename))
+        self._print(1, " - {} generated".format(filename))
 
 
 if __name__ == "__main__":

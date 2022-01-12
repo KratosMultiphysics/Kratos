@@ -12,11 +12,11 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
         {
             "Parameters" : {
                 "geometry": "{geometry}",
-                "template_filename" : "test_compressible_symbolic_{geometry}.template",
-                "output_filename"   : "test_compressible_symbolic_{geometry}.result",
-                "echo_level" : 0
+                "template_filename" : "CompressibleSymbolicGeneration/test_compressible_symbolic_{geometry}.template",
+                "output_filename"   : "CompressibleSymbolicGeneration/test_compressible_symbolic_{geometry}.result",
+                "echo_level" : 1
             },
-            "reference": "test_compressible_symbolic_{geometry}.reference"
+            "reference": "CompressibleSymbolicGeneration/test_compressible_symbolic_{geometry}.reference"
         }
         """.replace("{geometry}", geometry_name)
         )
