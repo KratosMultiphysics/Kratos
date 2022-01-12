@@ -42,7 +42,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    // typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
     //********************************************************************
