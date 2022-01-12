@@ -6,7 +6,7 @@ from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDa
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_solver import NeuralNetworkSolver, CreateSolver
-import tensorflow.keras as keras
+from KratosMultiphysics.NeuralNetworkApplication.neural_network_model import MachineLearningModel
 import numpy as np
 
 class NeuralNetworkAnalysis(AnalysisStage):
@@ -20,15 +20,14 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
         self.project_parameters = project_parameters
         self.problem_type = self.project_parameters["problem_data"]["problem_type"].GetString()
-        
+        self.ml_model = MachineLearningModel(self.project_parameters["problem_data"]["library_name"].GetString())
 
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         if self.problem_type == "predict_with_modelpart" or self.problem_type == "predict_without_modelpart":
             try:
                 neural_network_file = self.project_parameters["problem_data"]["neural_network_file"].GetString()
                 self._PrintInfo("Compiling neural network model from file...")
-                self.neural_network_model = keras.models.load_model(neural_network_file)
-                self.neural_network_model.compile()
+                self.neural_network_model = self.ml_model.load_model(neural_network_file)
             except AttributeError:
                 self._PrintInfo("Model type predict must have a pre-trained model.")
         if self.problem_type == "predict_with_modelpart":
@@ -54,6 +53,50 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 super().__init__(self.kratos_model, self.project_parameters)
                 KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.kratos_model[self.model_geometry_name])
                 self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
+
+    def _CreateSolver(self):
+        """This function creates the PHYSICS solver."""
+        return import_module(self.solver_module).CreateSolver(self.kratos_model, self.solver_settings)
+
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of processes
+        Format:
+        "processes" : {
+            initial_processes : [
+                { proces_specific_params },
+                { proces_specific_params }
+            ],
+            boundary_processes : [
+                { proces_specific_params },
+                { proces_specific_params }
+            ]
+        }
+        The order of intialization can be specified by setting it in "initialization_order"
+        if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
+        initialization_order should be a list containing ["boundary_processes", "initial_processes"]
+        see the functions _GetOrderOfProcessesInitialization and _GetOrderOfOutputProcessesInitialization
+        """
+        list_of_processes = []
+
+        factory = NeuralNetworkProcessFactory()
+
+        if self.project_parameters.Has(parameter_name):
+            processes_params = self.project_parameters[parameter_name]
+
+            # first initialize the processes that depend on the order
+            for processes_names in initialization_order:
+                if processes_params.Has(processes_names):
+                    list_of_processes += factory.ConstructListOfProcesses(processes_params[processes_names])
+
+            # then initialize the processes that don't depend on the order
+            for name, value in processes_params.items():
+                if not name in initialization_order:
+                    if self.problem_type == "predict_with_modelpart":
+                        list_of_processes += factory.ConstructListOfProcesses(value,self.kratos_model) # Does this work? or should it be processes[name]
+                    else:
+                        list_of_processes += factory.ConstructListOfProcesses(value) # Does this work? or should it be processes[name]
+
+        return list_of_processes
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -117,8 +160,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
             # Generate the model and save it
             self._PrintInfo("Generating the model...")
             if not inputs == None:
-                self.neural_network_model = keras.Model(inputs = inputs, outputs = outputs)
-                self.neural_network_model.summary()
+                self.neural_network_model = self.ml_model.create_model(inputs = inputs, outputs = outputs)
                 for process in self._GetListOfProcesses():
                     process.Save(self.neural_network_model)
             else:
@@ -176,7 +218,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
                 # Generate the model and save it
                 self._PrintInfo("Generating the model...")
-                model = keras.Model(inputs = inputs, outputs = outputs)
+                model = self.ml_model.create_model(inputs = inputs, outputs = outputs)
                 self.loss_function = None
                 self.optimizer = None
                 for process in self._GetListOfProcesses():
@@ -345,11 +387,6 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
         return [data_in, data_out]
 
-    def _CreateSolver(self):
-        """This function creates the PHYSICS solver."""
-        solver = import_module(self.solver_module).CreateSolver(self.kratos_model, self.solver_settings)
-        return solver
-
     def _CreateNeuralNetworkSolver(self, project_parameters, model):
         return CreateSolver(project_parameters, model)
 
@@ -372,46 +409,6 @@ class NeuralNetworkAnalysis(AnalysisStage):
             raise Exception("The list of output-processes was not yet created!")
         return self._list_of_output_processes
 
-    def _CreateProcesses(self, parameter_name, initialization_order):
-        """Create a list of processes
-        Format:
-        "processes" : {
-            initial_processes : [
-                { proces_specific_params },
-                { proces_specific_params }
-            ],
-            boundary_processes : [
-                { proces_specific_params },
-                { proces_specific_params }
-            ]
-        }
-        The order of intialization can be specified by setting it in "initialization_order"
-        if e.g. the "boundary_processes" should be constructed before the "initial_processes", then
-        initialization_order should be a list containing ["boundary_processes", "initial_processes"]
-        see the functions _GetOrderOfProcessesInitialization and _GetOrderOfOutputProcessesInitialization
-        """
-        list_of_processes = []
-
-        factory = NeuralNetworkProcessFactory()
-
-        if self.project_parameters.Has(parameter_name):
-            processes_params = self.project_parameters[parameter_name]
-
-            # first initialize the processes that depend on the order
-            for processes_names in initialization_order:
-                if processes_params.Has(processes_names):
-                    list_of_processes += factory.ConstructListOfProcesses(processes_params[processes_names])
-
-            # then initialize the processes that don't depend on the order
-            for name, value in processes_params.items():
-                if not name in initialization_order:
-                    if self.problem_type == "predict_with_modelpart":
-                        list_of_processes += factory.ConstructListOfProcesses(value,self.kratos_model) # Does this work? or should it be processes[name]
-                    else:
-                        list_of_processes += factory.ConstructListOfProcesses(value) # Does this work? or should it be processes[name]
-
-        return list_of_processes
-
     def _GetOrderOfProcessesInitialization(self):
         """This function can be overridden in derived classes if the order of
         initialization for the processes matters
@@ -427,7 +424,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
-        return "Analysis"
+        return "Neural Network Analysis"
 
     def __CreateListOfProcesses(self):
         """This function creates the processes and the output-processes
