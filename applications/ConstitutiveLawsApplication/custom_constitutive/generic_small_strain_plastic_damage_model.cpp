@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -14,7 +16,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_constitutive/generic_small_strain_plastic_damage_model.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
@@ -109,7 +111,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         cl_parameters.PlasticStrain = mPlasticStrain;
         cl_parameters.DamageDissipation = mDamageDissipation;
         cl_parameters.PlasticConsistencyIncrement = 0.0;
-        cl_parameters.CharacteristicLength = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, cl_parameters.StrainVector - cl_parameters.PlasticStrain);
@@ -352,7 +354,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         cl_parameters.PlasticStrain = mPlasticStrain;
         cl_parameters.DamageDissipation = mDamageDissipation;
         cl_parameters.PlasticConsistencyIncrement = 0.0;
-        cl_parameters.CharacteristicLength = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, cl_parameters.StrainVector - cl_parameters.PlasticStrain);
@@ -645,7 +647,7 @@ int GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInteg
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     const int check_integrator_plasticity = TPlasticityIntegratorType::Check(rMaterialProperties);
@@ -672,7 +674,7 @@ CalculateDamageParameters(
 
     TDamageIntegratorType::YieldSurfaceType::CalculateEquivalentStress(rParameters.StressVector, rParameters.StrainVector, rParameters.UniaxialStressDamage, rValues);
     const double I1 = rParameters.StressVector[0] + rParameters.StressVector[1] + rParameters.StressVector[2];
-    ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rParameters.StressVector, I1, deviator, J2);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rParameters.StressVector, I1, deviator, J2);
     TDamageIntegratorType::YieldSurfaceType::CalculateYieldSurfaceDerivative(rParameters.StressVector, deviator, J2, rParameters.DamageYieldFLux, rValues);
     this->CalculateIndicatorsFactors(rParameters.StressVector, tensile_indicator_factor, compression_indicator_factor, suma, principal_stresses);
 
@@ -729,14 +731,14 @@ CalculateIndicatorsFactors(
 {
     // We do an initial check
     if (norm_2(rPredictiveStressVector) < 1.0e-8) {
-        rTensileIndicatorFactor = 0.0;
+        rTensileIndicatorFactor = 1.0;
         rCompressionIndicatorFactor = 0.0;
         return;
     }
 
     // We proceed as usual
     rPrincipalStresses = ZeroVector(Dimension);
-    ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(rPrincipalStresses, rPredictiveStressVector);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(rPrincipalStresses, rPredictiveStressVector);
 
     double suma = 0.0, sumb = 0.0, sumc = 0.0;
     double aux_sa;
@@ -788,8 +790,8 @@ CalculateIncrementsPlasticDamageCase(
 {
     const Vector effective_stress_vector = prod(rElasticMatrix, rParameters.StrainVector - rParameters.PlasticStrain);
     const Vector stress_vector = (1.0 - rParameters.Damage) * effective_stress_vector;
-    const double inner_fluxdamage_eff_stress = inner_prod(rParameters.DamageYieldFLux, effective_stress_vector);
-	const double inner_fluxplast_eff_stress = inner_prod(rParameters.PlasticityFFLux, effective_stress_vector);
+    const double inner_fluxdamage_eff_stress = inner_prod(rParameters.PlasticityFFLux, effective_stress_vector);
+	const double inner_fluxplast_eff_stress = inner_prod(rParameters.DamageYieldFLux, effective_stress_vector);
     double fact1 = 0.0, inner_normstress_gflux = 0.0;
 
     const Vector normalized_stress = stress_vector / rParameters.UniaxialStressPlasticity;
@@ -835,14 +837,14 @@ CalculatePlasticParameters(
 
         TPlasticityIntegratorType::YieldSurfaceType::CalculateEquivalentStress(rParameters.StressVector, rParameters.StrainVector, rParameters.UniaxialStressPlasticity, rValues);
         const double I1 = rParameters.StressVector[0] + rParameters.StressVector[1] + rParameters.StressVector[2];
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rParameters.StressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rParameters.StressVector, I1, deviator, J2);
         TPlasticityIntegratorType::CalculateFFluxVector(rParameters.StressVector, deviator, J2, rParameters.PlasticityFFLux, rValues);
         TPlasticityIntegratorType::CalculateGFluxVector(rParameters.StressVector, deviator, J2, rParameters.PlasticityGFLux, rValues);
         TPlasticityIntegratorType::CalculateIndicatorsFactors(rParameters.StressVector, tensile_indicator_factor, compression_indicator_factor);
         TPlasticityIntegratorType::CalculatePlasticDissipation(rParameters.StressVector, tensile_indicator_factor, compression_indicator_factor, rParameters.PlasticStrainIncrement, rParameters.PlasticDissipation, h_capa, rValues, rParameters.CharacteristicLength);
         TPlasticityIntegratorType::CalculateEquivalentPlasticStrain(rParameters.StressVector, rParameters.UniaxialStressPlasticity, rParameters.PlasticStrain, tensile_indicator_factor, rValues, equivalent_plastic_strain);
         TPlasticityIntegratorType::CalculateEquivalentStressThreshold(rParameters.PlasticDissipation, tensile_indicator_factor, compression_indicator_factor, rParameters.PlasticityThreshold, slope, rValues, equivalent_plastic_strain, rParameters.CharacteristicLength);
-        TPlasticityIntegratorType::CalculateHardeningParameter(rParameters.PlasticityFFLux, slope, h_capa, hardening_parameter);
+        TPlasticityIntegratorType::CalculateHardeningParameter(rParameters.PlasticityGFLux, slope, h_capa, hardening_parameter);
 
         // Has to be slightly modified
         this->CalculatePlasticDenominator(rParameters.PlasticityFFLux, rParameters.PlasticityGFLux, rConstitutiveMatrix, hardening_parameter, rParameters.Damage, rParameters.PlasticDenominator);

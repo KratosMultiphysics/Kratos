@@ -8,49 +8,49 @@
 // Project includes
 #include "includes/define_python.h"
 
-#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
-#include "../custom_constitutive/DEM_compound_constitutive_law.h"
+#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "custom_constitutive/DEM_compound_constitutive_law.h"
 
-#include "../custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
-#include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
-#include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
-#include "../custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
-#include "../custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
-#include "../custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
-#include "../custom_constitutive/DEM_D_JKR_cohesive_law.h"
-#include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
-#include "../custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
+#include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_Nestle_CL.h"
+#include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
+#include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_2D_CL.h"
+#include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
+#include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 
-#include "../custom_constitutive/DEM_D_Hertz_confined_CL.h"
-#include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
-#include "../custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
+#include "custom_constitutive/DEM_D_Hertz_confined_CL.h"
+#include "custom_constitutive/DEM_D_Linear_confined_CL.h"
+#include "custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
 
-#include "../custom_constitutive/DEM_Dempack_CL.h"
-#include "../custom_constitutive/DEM_Dempack_2D_CL.h"
-#include "../custom_constitutive/DEM_KDEM_CL.h"
-#include "../custom_constitutive/DEM_KDEM_soft_torque_CL.h"
-#include "../custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.h"
-#include "../custom_constitutive/DEM_KDEM_with_damage_CL.h"
-#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.h"
-#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_bilinear_CL.h"
-#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.h"
-#include "../custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.h"
-#include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
-#include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
-#include "../custom_constitutive/DEM_KDEM_CamClay_CL.h"
-#include "../custom_constitutive/dem_kdem_fissured_rock_cl.h"
-#include "../custom_constitutive/DEM_sintering_continuum_CL.h"
-#include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
-#include "../custom_constitutive/DEM_beam_constitutive_law.h"
-#include "../custom_constitutive/DEM_ExponentialHC_CL.h"
-#include "../custom_constitutive/DEM_Dempack_torque_CL.h"
-#include "../custom_constitutive/DEM_Dempack_dev_CL.h"
-#include "../custom_constitutive/DEM_Dempack_2D_dev_CL.h"
-#include "../custom_constitutive/dem_d_linear_custom_constants_cl.h"
-#include "../custom_constitutive/DEM_D_Conical_damage_CL.h"
-#include "../custom_constitutive/dem_kdem_2d_cl.h"
-#include "../custom_constitutive/dem_kdem_fabric_2d_cl.h"
+#include "custom_constitutive/DEM_Dempack_CL.h"
+#include "custom_constitutive/DEM_Dempack_2D_CL.h"
+#include "custom_constitutive/DEM_KDEM_CL.h"
+#include "custom_constitutive/DEM_KDEM_soft_torque_CL.h"
+#include "custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.h"
+#include "custom_constitutive/DEM_KDEM_with_damage_CL.h"
+#include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.h"
+#include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.h"
+#include "custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_CL.h"
+#include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
+#include "custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
+#include "custom_constitutive/DEM_KDEM_CamClay_CL.h"
+#include "custom_constitutive/dem_kdem_fissured_rock_cl.h"
+#include "custom_constitutive/DEM_sintering_continuum_CL.h"
+#include "custom_constitutive/DEM_KDEM_fabric_CL.h"
+#include "custom_constitutive/DEM_beam_constitutive_law.h"
+#include "custom_constitutive/DEM_ExponentialHC_CL.h"
+#include "custom_constitutive/DEM_Dempack_torque_CL.h"
+#include "custom_constitutive/DEM_Dempack_dev_CL.h"
+#include "custom_constitutive/DEM_Dempack_2D_dev_CL.h"
+#include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
+#include "custom_constitutive/DEM_D_Conical_damage_CL.h"
+#include "custom_constitutive/dem_kdem_2d_cl.h"
+#include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 
 namespace Kratos {
 namespace Python {
@@ -142,6 +142,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         .def("Clone", &DEMContinuumConstitutiveLaw::Clone)
         .def("SetConstitutiveLawInProperties", &DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties)
+        .def("SetConstitutiveLawInPropertiesWithParameters", &DEMContinuumConstitutiveLaw::SetConstitutiveLawInPropertiesWithParameters)
         .def("GetTypeOfLaw", &DEMContinuumConstitutiveLaw::GetTypeOfLaw)
         .def("CheckRequirementsOfStressTensor", &DEMContinuumConstitutiveLaw::CheckRequirementsOfStressTensor)
         ;
@@ -190,15 +191,15 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_KDEM_with_damage_parallel_bond_bilinear, DEM_KDEM_with_damage_parallel_bond_bilinear::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_bilinear")
-        .def(py::init<>())
-        ;
-
     py::class_<DEM_KDEM_with_damage_parallel_bond_capped, DEM_KDEM_with_damage_parallel_bond_capped::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_capped")
         .def(py::init<>())
         ;
 
     py::class_<DEM_KDEM_with_damage_parallel_bond_2D, DEM_KDEM_with_damage_parallel_bond_2D::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_2D")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_KDEM_with_damage_parallel_bond_Hertz, DEM_KDEM_with_damage_parallel_bond_Hertz::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_Hertz")
         .def(py::init<>())
         ;
 

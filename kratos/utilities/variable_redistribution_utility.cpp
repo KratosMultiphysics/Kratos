@@ -14,6 +14,7 @@
 #include "includes/fsi_variables.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "variable_redistribution_utility.h"
 
 namespace Kratos
@@ -248,20 +249,20 @@ void VariableRedistributionUtility::CallSpecializedConvertDistributedValuesToPoi
             const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
-            if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2){
-                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::Kratos_Linear,2,TValueType>(
+            if (GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear && PointsNumber == 2){
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::KratosGeometryFamily::Kratos_Linear,2,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rDistributedVariable,
                     rPointVariable);
-            } else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3) {
-                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::Kratos_Triangle,3,TValueType>(
+            } else if (GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Triangle && PointsNumber == 3) {
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::KratosGeometryFamily::Kratos_Triangle,3,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rDistributedVariable,
                     rPointVariable);
-            } else if (GeometryFamily == GeometryData::Kratos_Quadrilateral && PointsNumber == 4) {
-                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::Kratos_Quadrilateral,4,TValueType>(
+            } else if (GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral && PointsNumber == 4) {
+                VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint<TIsHistorical,TContainerType,GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,4,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rDistributedVariable,
@@ -298,24 +299,24 @@ void VariableRedistributionUtility::CallSpecializedDistributePointValues(
             const GeometryData::KratosGeometryFamily GeometryFamily = rReferenceGeometry.GetGeometryFamily();
             const unsigned int PointsNumber = rReferenceGeometry.PointsNumber();
 
-            if (GeometryFamily == GeometryData::Kratos_Linear && PointsNumber == 2){
-                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::Kratos_Linear,2,TValueType>(
+            if (GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Linear && PointsNumber == 2){
+                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::KratosGeometryFamily::Kratos_Linear,2,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rPointVariable,
                     rDistributedVariable,
                     Tolerance,
                     MaximumIterations);
-            } else if (GeometryFamily == GeometryData::Kratos_Triangle && PointsNumber == 3){
-                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::Kratos_Triangle,3,TValueType>(
+            } else if (GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Triangle && PointsNumber == 3){
+                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::KratosGeometryFamily::Kratos_Triangle,3,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rPointVariable,
                     rDistributedVariable,
                     Tolerance,
                     MaximumIterations);
-            } else if (GeometryFamily == GeometryData::Kratos_Quadrilateral && PointsNumber == 4){
-                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::Kratos_Quadrilateral,4,TValueType>(
+            } else if (GeometryFamily == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral && PointsNumber == 4){
+                VariableRedistributionUtility::SpecializedDistributePointValues<TIsHistorical, TContainerType,GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,4,TValueType>(
                     rModelPart,
                     rEntitiesContainer,
                     rPointVariable,
@@ -364,7 +365,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
         rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
     }
 
-    TValueType value_j;
+    TValueType value_j = rPointVariable.Zero();
     block_for_each(rEntitiesContainer, value_j, [&](typename TContainerType::value_type& rEntity, TValueType& rValueJ){
         auto& r_geometry = rEntity.GetGeometry();
         const double size = r_geometry.DomainSize();
@@ -513,7 +514,7 @@ void VariableRedistributionUtility::ComputeNodalSizes(
 }
 
 template<>
-void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Linear, 2 >(
+void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::KratosGeometryFamily::Kratos_Linear, 2 >(
     BoundedMatrix<double, 2, 2>& rMassMatrix)
 {
     // First row
@@ -527,7 +528,7 @@ void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_L
 
 
 template<>
-void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Triangle, 3 >(
+void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::KratosGeometryFamily::Kratos_Triangle, 3 >(
     BoundedMatrix<double, 3, 3>& rMassMatrix)
 {
     // First row
@@ -547,7 +548,7 @@ void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_T
 }
 
 template<>
-void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::Kratos_Quadrilateral, 4 >(
+void VariableRedistributionUtility::ConsistentMassMatrix< GeometryData::KratosGeometryFamily::Kratos_Quadrilateral, 4 >(
     BoundedMatrix<double, 4, 4>& rMassMatrix)
 {
     const double one_div_36 = 1.0 / 36.0;
@@ -632,8 +633,8 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable)
 {
-    TValueType delta;
     double domain_size, error_l2_norm;
+    TValueType delta = rDistributedVariable.Zero();
     const auto& r_rhs_variable = GetRHSVariable(rDistributedVariable);
     typedef CombinedReduction<SumReduction<double>,SumReduction<double>> TwoSumReduction;
     std::tie(domain_size, error_l2_norm) = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){

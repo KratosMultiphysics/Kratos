@@ -1,12 +1,11 @@
 __version__ = "2.0.0-dev"
-# Alphabeticak order
+# Alphabetical order
 # TODO add method and class definition modules
 
 from .bayesianEstimator import BayesianEstimator
 from .errorEstimator import ErrorEstimator
 from .estimationAssembler import EstimationAssembler
 from .hierarchyOptimiser import HierarchyOptimiser
-from .distributedEnvironmentFramework import *
 from .modelEstimator import ModelEstimator
 from .momentEstimator import (
     MomentEstimator,
@@ -24,3 +23,10 @@ from .classDefs_solverWrapper.singleLevelRNGSolverWrapper import SingleLevelRNGS
 from .classDefs_solverWrapper.multiLevelRNGSolverWrapper import MultiLevelRNGSolverWrapper
 from .statisticalEstimator import StatisticalEstimator
 from .xmcAlgorithm import XMCAlgorithm
+
+
+# Initialise ExaQUte API
+from exaqute import init as exaqute_init
+
+# Must not be called more than once
+exaqute_init()

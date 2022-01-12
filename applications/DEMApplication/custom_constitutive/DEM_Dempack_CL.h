@@ -4,19 +4,20 @@
 
 /* Project includes */
 #include "DEM_continuum_constitutive_law.h"
-//#include "DEM_discontinuum_constitutive_law.h"
-
 
 
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_Dempack : public DEMContinuumConstitutiveLaw {
+
+        typedef DEMContinuumConstitutiveLaw BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_Dempack);
 
-        DEM_Dempack() {
-        }
+        DEM_Dempack() {}
+        ~DEM_Dempack() {}
 
         //DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw &rReferenceContinuumConstitutiveLaw);
 
@@ -27,15 +28,13 @@ namespace Kratos {
         double mHistoryDisp;
         double mHistoryShearFlag;
 
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere) override;
-
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
-        ~DEM_Dempack() {
-        }
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
+
+        void Check(Properties::Pointer pProp) const override;
 
         virtual void CalculateContactArea(double radius,
                                           double other_radius,
@@ -54,76 +53,77 @@ namespace Kratos {
                                                double equiv_poisson,
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
-                                               SphericContinuumParticle* element2) override;
+                                               SphericContinuumParticle* element2, double indentation) override;
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
-                double &equiv_visco_damp_coeff_tangential,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                const double kn_el,
-                const double kt_el) override;
+                                                double &equiv_visco_damp_coeff_tangential,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2,
+                                                const double kn_el,
+                                                const double kt_el) override;
 
         virtual double LocalMaxSearchDistance(const int i,
                                               SphericContinuumParticle* element1,
                                               SphericContinuumParticle* element2) override;
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
-                double OldLocalElasticContactForce[3],
-                double LocalElasticContactForce[3],
-                double LocalElasticExtraContactForce[3],
-                double LocalCoordSystem[3][3],
-                double LocalDeltDisp[3],
-                const double kn_el,
-                const double kt_el,
-                double& contact_sigma,
-                double& contact_tau,
-                double& failure_criterion_state,
-                double equiv_young,
-                double equiv_shear,
-                double indentation,
-                double calculation_area,
-                double& acumulated_damage,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                int time_steps,
-                bool& sliding,
-                double &equiv_visco_damp_coeff_normal,
-                double &equiv_visco_damp_coeff_tangential,
-                double LocalRelVel[3],
-                double ViscoDampingLocalContactForce[3]) override;
+                                    double OldLocalElasticContactForce[3],
+                                    double LocalElasticContactForce[3],
+                                    double LocalElasticExtraContactForce[3],
+                                    double LocalCoordSystem[3][3],
+                                    double LocalDeltDisp[3],
+                                    const double kn_el,
+                                    const double kt_el,
+                                    double& contact_sigma,
+                                    double& contact_tau,
+                                    double& failure_criterion_state,
+                                    double equiv_young,
+                                    double equiv_shear,
+                                    double indentation,
+                                    double calculation_area,
+                                    double& acumulated_damage,
+                                    SphericContinuumParticle* element1,
+                                    SphericContinuumParticle* element2,
+                                    int i_neighbour_count,
+                                    int time_steps,
+                                    bool& sliding,
+                                    double &equiv_visco_damp_coeff_normal,
+                                    double &equiv_visco_damp_coeff_tangential,
+                                    double LocalRelVel[3],
+                                    double ViscoDampingLocalContactForce[3]) override;
 
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
-                const double kn_el,
-                double equiv_young,
-                double indentation,
-                double calculation_area,
-                double& acumulated_damage,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                int time_steps,
-            const ProcessInfo& r_process_info) override;
+                                            const double kn_el,
+                                            double equiv_young,
+                                            double indentation,
+                                            double calculation_area,
+                                            double& acumulated_damage,
+                                            SphericContinuumParticle* element1,
+                                            SphericContinuumParticle* element2,
+                                            int i_neighbour_count,
+                                            int time_steps,
+                                            const ProcessInfo& r_process_info) override;
 
 
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
-                double LocalElasticContactForce[3],
-                double LocalElasticExtraContactForce[3],
-                double LocalCoordSystem[3][3],
-                double LocalDeltDisp[3],
-                double LocalRelVel[3],
-                const double kt_el,
-                const double equiv_shear,
-                double& contact_sigma,
-                double& contact_tau,
-                double indentation,
-                double calculation_area,
-                double& failure_criterion_state,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                bool& sliding,
-                const ProcessInfo& r_process_info) override;
+                                                double LocalElasticContactForce[3],
+                                                double LocalElasticExtraContactForce[3],
+                                                double ViscoDampingLocalContactForce[3],
+                                                double LocalCoordSystem[3][3],
+                                                double LocalDeltDisp[3],
+                                                double LocalRelVel[3],
+                                                const double kt_el,
+                                                const double equiv_shear,
+                                                double& contact_sigma,
+                                                double& contact_tau,
+                                                double indentation,
+                                                double calculation_area,
+                                                double& failure_criterion_state,
+                                                SphericContinuumParticle* element1,
+                                                SphericContinuumParticle* element2,
+                                                int i_neighbour_count,
+                                                bool& sliding,
+                                                const ProcessInfo& r_process_info) override;
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                       SphericContinuumParticle* neighbor,

@@ -141,22 +141,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(D
     }
 }
 
-template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
-
-    const IncompressiblePerturbationPotentialFlowElement& r_this = *this;
-    const int wake = r_this.GetValue(WAKE);
-
-    if (wake != 0 && active == true)
-    {
-        ComputePotentialJump(rCurrentProcessInfo);
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -296,12 +280,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::PrintData(st
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
-{
-    noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -325,8 +303,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationI
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
 {
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Positive part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -374,8 +351,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListKu
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList) const
 {
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Positive part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -454,13 +430,12 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-
-    GetWakeDistances(data.distances);
-
     BoundedMatrix<double, NumNodes, NumNodes> lhs_total = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_wake_condition = ZeroMatrix(NumNodes, NumNodes);
 
-    ComputeLHSGaussPointContribution(data.vol*free_stream_density, lhs_total, data);
+    CalculateBlockLeftHandSideWakeElement(lhs_total, lhs_wake_condition, data, rCurrentProcessInfo);
+
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     if (this->Is(STRUCTURE))
     {
@@ -469,10 +444,42 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
 
         CalculateLeftHandSideSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
         AssignLeftHandSideSubdividedElement(rLeftHandSideMatrix, lhs_positive,
-                                           lhs_negative, lhs_total, data);
+                                           lhs_negative, lhs_total, lhs_wake_condition, data);
     }
     else
-        AssignLeftHandSideWakeElement(rLeftHandSideMatrix, lhs_total, data);
+        AssignLeftHandSideWakeElement(rLeftHandSideMatrix, lhs_total, lhs_wake_condition, data);
+}
+
+// In 2D
+template <>
+void IncompressiblePerturbationPotentialFlowElement<2, 3>::CalculateBlockLeftHandSideWakeElement( BoundedMatrix<double, 3, 3>& rLhs_total, BoundedMatrix<double, 3, 3>& rLhs_wake_condition, const ElementalData<3, 2>& rData, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    ComputeLHSGaussPointContribution(rData.vol*free_stream_density, rLhs_total, rData);
+    rLhs_wake_condition = rLhs_total;
+}
+
+// In 3D
+template <>
+void IncompressiblePerturbationPotentialFlowElement<3, 4>::CalculateBlockLeftHandSideWakeElement( BoundedMatrix<double, 4, 4>& rLhs_total, BoundedMatrix<double, 4, 4>& rLhs_wake_condition, const ElementalData<4, 3>& rData, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    ComputeLHSGaussPointContribution(rData.vol*free_stream_density, rLhs_total, rData);
+
+    // Computing linearized pressure equality condition lhs
+    const array_1d<double, 3>& free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const BoundedVector<double, 4> DNv = prod(rData.DN_DX, free_stream_velocity_direction);
+    const BoundedMatrix<double, 4, 4> pressure_equality_lhs = outer_prod(DNv,trans(DNv));
+
+    // Computing wake normal condition lhs
+    // Attention: this only works for straight trailing edges
+    // TODO: Make it work for curved trailing edges, i.e., find the way to store the local normal vector of the skin in the element.
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const BoundedVector<double, 4> DNn = prod(rData.DN_DX, wake_normal);
+    const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn,trans(DNn));
+
+    // Adding contributions
+    rLhs_wake_condition = rData.vol * (pressure_equality_lhs + normal_condition_lhs);
 }
 
 template <int Dim, int NumNodes>
@@ -492,7 +499,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
@@ -505,7 +512,8 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
     const BoundedVector<double, NumNodes> upper_rhs = - data.vol * free_stream_density * prod(data.DN_DX, upper_velocity);
     const BoundedVector<double, NumNodes> lower_rhs = - data.vol * free_stream_density * prod(data.DN_DX, lower_velocity);
-    const BoundedVector<double, NumNodes> wake_rhs = - data.vol * free_stream_density * prod(data.DN_DX, diff_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs = CalculateRightHandSideWakeCondition(data, rCurrentProcessInfo, diff_velocity);
+
 
     if (this->Is(STRUCTURE))
     {
@@ -530,6 +538,33 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
     }
 }
 
+// In 2D
+template <>
+BoundedVector<double, 3> IncompressiblePerturbationPotentialFlowElement<2, 3>::CalculateRightHandSideWakeCondition(const ElementalData<3, 2>& rData, const ProcessInfo& rCurrentProcessInfo, const array_1d<double, 2>& rDiff_velocity)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    return - rData.vol * free_stream_density * prod(rData.DN_DX, rDiff_velocity);
+}
+
+// In 3D
+template <>
+BoundedVector<double, 4> IncompressiblePerturbationPotentialFlowElement<3, 4>::CalculateRightHandSideWakeCondition(const ElementalData<4, 3>& rData, const ProcessInfo& rCurrentProcessInfo, const array_1d<double, 3>& rDiff_velocity)
+{
+    // Computing linearized pressure equality condition
+    const array_1d<double, 3>& free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const double pressure_equality_condition = inner_prod(free_stream_velocity_direction, rDiff_velocity);
+    const array_1d<double, 3> vp = free_stream_velocity_direction * pressure_equality_condition;
+
+    // Computing wake normal flux condition
+    // Attention: this only works for straight trailing edges
+    // TODO: Make it work for curved trailing edges, i.e., find the way to store the local normal vector of the skin in the element.
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const double wake_normal_condition = inner_prod(wake_normal, rDiff_velocity);
+    const array_1d<double, 3> nn = wake_normal * wake_normal_condition;
+
+    return - rData.vol * prod(rData.DN_DX, vp + nn);
+}
+
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideSubdividedElement(
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
@@ -543,7 +578,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
@@ -591,7 +626,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateVol
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
@@ -643,6 +678,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHa
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+    BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
     const ElementalData<NumNodes, Dim>& data) const
 {
     const auto& r_geometry = this->GetGeometry();
@@ -659,7 +695,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHa
             }
         }
         else
-            AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, data, i);
+            AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, rLhs_wake_condition, data, i);
     }
 }
 
@@ -667,33 +703,40 @@ template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHandSideWakeElement(
     MatrixType& rLeftHandSideMatrix,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+    BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
     const ElementalData<NumNodes, Dim>& data) const
 {
     for (unsigned int row = 0; row < NumNodes; ++row)
-        AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, data, row);
+        AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, rLhs_wake_condition, data, row);
 }
 
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHandSideWakeNode(
     MatrixType& rLeftHandSideMatrix,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+    BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
     const ElementalData<NumNodes, Dim>& data,
     unsigned int& row) const
 {
-    // Filling the diagonal blocks (i.e. decoupling upper and lower dofs)
-    for (unsigned int column = 0; column < NumNodes; ++column)
-    {
-        rLeftHandSideMatrix(row, column) = lhs_total(row, column);
-        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
-    }
-
-    // Applying wake condition on the AUXILIARY_VELOCITY_POTENTIAL dofs
     if (data.distances[row] < 0.0)
-        for (unsigned int column = 0; column < NumNodes; ++column)
-            rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
+        for (unsigned int column = 0; column < NumNodes; ++column){
+            // Applying conservation of mass in VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+
+            // Applying wake condition in AUXILIARY_VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row, column) = rLhs_wake_condition(row, column);
+            rLeftHandSideMatrix(row, column + NumNodes) = -rLhs_wake_condition(row, column); // Side 1
+        }
+
     else if (data.distances[row] > 0.0)
-        for (unsigned int column = 0; column < NumNodes; ++column)
-            rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
+        for (unsigned int column = 0; column < NumNodes; ++column){
+            // Applying conservation of mass in VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+
+            // Applying wake condition in AUXILIARY_VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = rLhs_wake_condition(row, column);
+            rLeftHandSideMatrix(row + NumNodes, column) = -rLhs_wake_condition(row, column); // Side 2
+        }
 }
 
 template <int Dim, int NumNodes>
@@ -712,35 +755,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignRightH
     else{
         rRightHandSideVector[rRow] = rWake_rhs(rRow);
         rRightHandSideVector[rRow + NumNodes] = rLower_rhs(rRow);
-    }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
-{
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double free_stream_velocity_norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
-    const double reference_chord = rCurrentProcessInfo[REFERENCE_CHORD];
-
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
-
-    auto r_geometry = GetGeometry();
-    for (unsigned int i = 0; i < NumNodes; i++){
-        double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        double potential_jump = aux_potential - potential;
-
-        if (distances[i] > 0){
-            r_geometry[i].SetLock();
-            r_geometry[i].SetValue(POTENTIAL_JUMP, - (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
-            r_geometry[i].UnSetLock();
-        }
-        else{
-            r_geometry[i].SetLock();
-            r_geometry[i].SetValue(POTENTIAL_JUMP, (2.0 * potential_jump) / (free_stream_velocity_norm * reference_chord));
-            r_geometry[i].UnSetLock();
-        }
     }
 }
 

@@ -76,6 +76,24 @@ const Vector& Triangle2D3AusasIncisedShapeFunctions::GetExtrapolatedEdgeRatios()
     return mExtraEdgeRatios;
 }
 
+void Triangle2D3AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix)
+{
+    Triangle2D3AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(
+        rPosSideCondMatrix,
+        Triangle2D3AusasModifiedShapeFunctions::mpTriangleSplitter->mEdgeNodeI,
+        Triangle2D3AusasModifiedShapeFunctions::mpTriangleSplitter->mEdgeNodeJ,
+        Triangle2D3AusasModifiedShapeFunctions::mpTriangleSplitter->mSplitEdges);
+}
+
+void Triangle2D3AusasIncisedShapeFunctions::SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix)
+{
+    Triangle2D3AusasIncisedShapeFunctions::SetNegativeSideCondensationMatrix(
+        rNegSideCondMatrix,
+        Triangle2D3AusasModifiedShapeFunctions::mpTriangleSplitter->mEdgeNodeI,
+        Triangle2D3AusasModifiedShapeFunctions::mpTriangleSplitter->mEdgeNodeJ,
+        Triangle2D3AusasModifiedShapeFunctions::mpTriangleSplitter->mSplitEdges);
+}
+
 // Sets the condensation matrix to transform the subdivsion positive side values to entire element ones.
 void Triangle2D3AusasIncisedShapeFunctions::SetPositiveSideCondensationMatrix(
     Matrix& rPosSideCondMatrix,

@@ -25,7 +25,7 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"

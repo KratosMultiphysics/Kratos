@@ -94,11 +94,9 @@ public:
     * later accesse by the MapperLocalSystem for assembling it's local system.
     * This happens in the remote partition.
     * @param rpInterfaceObject The InterfaceObject found by the search
-    * @param rpInterfaceObject The distance to the InterfaceObject found by the search
     * @author Philipp Bucher
     */
-    virtual void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                                     const double NeighborDistance) = 0;
+    virtual void ProcessSearchResult(const InterfaceObject& rInterfaceObject) = 0;
 
     /**
     * @brief Processing the result of the search for computing an approximation
@@ -110,14 +108,11 @@ public:
     * This happens in the remote partition.
     * It's implementation is optional
     * @param rpInterfaceObject The InterfaceObject found by the search
-    * @param rpInterfaceObject The distance to the InterfaceObject found by the search
     * @see ProcessSearchResult
     * @see SetIsApproximation
     * @author Philipp Bucher
     */
-    virtual void ProcessSearchResultForApproximation(
-        const InterfaceObject& rInterfaceObject,
-        const double NeighborDistance) {}
+    virtual void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) {}
 
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,

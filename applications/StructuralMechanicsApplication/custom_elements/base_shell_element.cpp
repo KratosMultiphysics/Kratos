@@ -506,6 +506,25 @@ void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
 }
 
 template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        rValues.clear();
+        for (auto p_sec : mSections) {
+            auto vec_integration_points = p_sec->GetConstitutiveLawsVector(GetProperties());
+            rValues.reserve(rValues.size() + vec_integration_points.size());
+            for (std::size_t i=0; i<vec_integration_points.size(); ++i) {
+                rValues.push_back(vec_integration_points[i]);
+            }
+        }
+    }
+}
+
+template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::Calculate(
     const Variable<Matrix>& rVariable, Matrix& Output,
     const ProcessInfo& rCurrentProcessInfo)
@@ -552,6 +571,37 @@ void BaseShellElement<TCoordinateTransformation>::SetCrossSectionsOnIntegrationP
     }
     SetupOrientationAngles();
     KRATOS_CATCH("")
+}
+
+template <class TCoordinateTransformation>
+const Parameters BaseShellElement<TCoordinateTransformation>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","ROTATION"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z","ROTATION_X","ROTATION_Y","ROTATION_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Triangle3D3", "Quadrilateral3D4"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["PlaneStress"],
+            "dimension"   : ["3D"],
+            "strain_size" : [3]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "Base element for thin/thick shell formulations."
+    })");
+
+    return specifications;
 }
 
 template <class TCoordinateTransformation>

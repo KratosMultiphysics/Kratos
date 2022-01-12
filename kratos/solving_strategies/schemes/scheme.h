@@ -376,6 +376,10 @@ public:
         )
     {
         KRATOS_TRY
+
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+
         KRATOS_CATCH("")
     }
 
@@ -385,7 +389,7 @@ public:
      * @param rCurrentElement The element to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -400,7 +404,7 @@ public:
      * @param rCurrentCondition The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
         )
