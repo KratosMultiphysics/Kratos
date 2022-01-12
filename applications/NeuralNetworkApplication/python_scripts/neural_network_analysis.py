@@ -5,7 +5,7 @@ import KratosMultiphysics
 from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDataWithLookback, ListNeuralNetworkData, NeuralNetworkData
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
-
+from KratosMultiphysics.NeuralNetworkApplication.neural_network_solver import NeuralNetworkSolver, CreateSolver
 import tensorflow.keras as keras
 import numpy as np
 
@@ -37,104 +37,128 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 self.solver_settings = self.project_parameters["problem_data"]["solver_settings"]
             except AttributeError:
                 print("Warning: No solver especified.")
-            try:
-                self.model_geometry_file = self.project_parameters["problem_data"]["model_part_file"].GetString()
-                self.model_geometry_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-                if model is None:
-                    self.kratos_model = KratosMultiphysics.Model()
-                    self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
-                    super().__init__(self.kratos_model, self.project_parameters)
-                    KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
-                    self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
-                else:
-                    self.kratos_model = model
-                    super().__init__(self.kratos_model, self.project_parameters)
+            # try:
+            self.model_geometry_file = self.project_parameters["problem_data"]["model_part_file"].GetString()
+            self.model_geometry_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
+            if model is None:
+                self.kratos_model = KratosMultiphysics.Model()
+                self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
+                self.solver = self._CreateNeuralNetworkSolver(self.project_parameters["problem_data"], self.kratos_model)
+                super().__init__(self.kratos_model, self.project_parameters)
+                KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
+                self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
+            else:
+                self.kratos_model = model
+                self.solver = self._CreateNeuralNetworkSolver(self.project_parameters["problem_data"], self.kratos_model)
+                super().__init__(self.kratos_model, self.project_parameters)
 
-            except AttributeError:
-                raise Exception("The model part must be especified.")
-
+            # except AttributeError:
+            #     raise Exception("The model part must be especified.")
+            
+            # self.solver = self._CreateNeuralNetworkSolver(self.project_parameters["problem_data"], self.kratos_model)
 
             #TODO: This should be done through default parameters
 
-            self.lookback = self.project_parameters["problem_data"] ["lookback"].GetInt()
-            self.time_buffer = self.project_parameters["problem_data"]["time_buffer"].GetInt()
-            self.timestep = self.project_parameters["problem_data"]["timestep"].GetDouble()
-            self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
-            self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-            try:
-                self.record = self.project_parameters["problem_data"]["record"].GetBool()
-            except RuntimeError:
-                self.record = False
-            try:
-                self.only_input = self.project_parameters["problem_data"]["only_input"].GetBool()
-            except RuntimeError:
-                self.only_input = False
-            try:
-                self.timesteps_as_features = self.project_parameters["problem_data"]["timesteps_as_features"].GetBool()
-            except RuntimeError:
-                self.timesteps_as_features = False
-            try:
-                self.feaures_as_timestpes = self.project_parameters["problem_data"]["features_as_timesteps"].GetBool()
-            except RuntimeError:
-                self.feaures_as_timestpes = False
-            try:
-                self.soft_start_flag = self.project_parameters["problem_data"]["soft_start"].GetBool()
-            except RuntimeError:
-                self.soft_start_flag = True
-            try:
-                self.dimension_in = self.project_parameters["problem_data"]["dimension_input"].GetInt()
-            except RuntimeError:
-                self.dimension_in = 1
-            try:
-                self.reorder_partitions = self.project_parameters["problem_data"]["reorder_partitions"].GetInt()
-            except RuntimeError:
-                self.reorder_partitions = 1
+            # self.lookback = self.project_parameters["problem_data"] ["lookback"].GetInt()
+            # self.time_buffer = self.project_parameters["problem_data"]["time_buffer"].GetInt()
+            # self.timestep = self.project_parameters["problem_data"]["timestep"].GetDouble()
+            # self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+            # self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            # try:
+            #     self.record = self.project_parameters["problem_data"]["record"].GetBool()
+            # except RuntimeError:
+            #     self.record = False
+            # try:
+            #     self.only_input = self.project_parameters["problem_data"]["only_input"].GetBool()
+            # except RuntimeError:
+            #     self.only_input = False
+            # try:
+            #     self.timesteps_as_features = self.project_parameters["problem_data"]["timesteps_as_features"].GetBool()
+            # except RuntimeError:
+            #     self.timesteps_as_features = False
+            # try:
+            #     self.feaures_as_timestpes = self.project_parameters["problem_data"]["features_as_timesteps"].GetBool()
+            # except RuntimeError:
+            #     self.feaures_as_timestpes = False
+            # try:
+            #     self.soft_start_flag = self.project_parameters["problem_data"]["soft_start"].GetBool()
+            # except RuntimeError:
+            #     self.soft_start_flag = True
+            # try:
+            #     self.dimension_in = self.project_parameters["problem_data"]["dimension_input"].GetInt()
+            # except RuntimeError:
+            #     self.dimension_in = 1
+            # try:
+            #     self.reorder_partitions = self.project_parameters["problem_data"]["reorder_partitions"].GetInt()
+            # except RuntimeError:
+            #     self.reorder_partitions = 1
 
-            # TODO: This block is shared with data_generator_process, it could be separated and shared throug a function
+            # # TODO: This block is shared with data_generator_process, it could be separated and shared throug a function
 
-            # getting the ModelPart from the Model
-            self.output_model_part_name = self.project_parameters["problem_data"]["output_model_part"].GetString()
-            if self.output_model_part_name == "":
-                raise Exception('No "output_model_part" was specified!')
+            # # getting the ModelPart from the Model
+            # output_model_part_name = self.project_parameters["problem_data"]["output_model_part"].GetString()
+            # if output_model_part_name == "":
+            #     raise Exception('No "output_model_part" was specified!')
 
-            # getting the input ModelPart from the Model
-            self.input_model_part_name = self.project_parameters["problem_data"]["input_model_part"].GetString()
-            if self.input_model_part_name == "":
-                raise Exception('No "input_model_part" was specified!')
+            # # getting the input ModelPart from the Model
+            # input_model_part_name = self.project_parameters["problem_data"]["input_model_part"].GetString()
+            # if input_model_part_name == "":
+            #     raise Exception('No "input_model_part" was specified!')
 
-            # retrieving the input variables
-            input_var_names = self.project_parameters["problem_data"]["input_variables"]
-            variable_names = [ input_var_names[i].GetString() for i in range( input_var_names.size() ) ]
-            input_sources_names = self.project_parameters["problem_data"]["input_sources"]
-            self.input_sources = [ input_sources_names[i].GetString() for i in range( input_sources_names.size() ) ]
-            self.input_variables = [ KratosMultiphysics.KratosGlobals.GetVariable( var ) for var in variable_names ]
-            if len(self.input_variables) == 0:
-                raise Exception('No variables specified for input!')
-            if not (len(self.input_variables) == len(self.input_sources)):
-                raise Exception('The number of input variables and sources are different.')
-            self.dict_input = dict(zip(self.input_variables, self.input_sources))
-            # getting input order
-            try:
-                self.input_order = self.project_parameters["problem_data"]["input_order"].GetString()
-            except RuntimeError:
-                self.input_order = "variables_first"
+            # # retrieving the input variables
+            # input_var_names = self.project_parameters["problem_data"]["input_variables"]
+            # input_sources_names = self.project_parameters["problem_data"]["input_sources"]
+            # variable_names = [ input_var_names[i].GetString() for i in range( input_var_names.size() ) ]
+            # self.input_sources = [ input_sources_names[i].GetString() for i in range( input_sources_names.size() ) ]
+            # self.input_variables = [ KratosMultiphysics.KratosGlobals.GetVariable( var ) for var in variable_names ]
+            # if len(self.input_variables) == 0:
+            #     raise Exception('No variables specified for input!')
+            # if not (len(self.input_variables) == len(self.input_sources)):
+            #     raise Exception('The number of input variables and sources are different.')
+            # self.dict_input = dict(zip(self.input_variables, self.input_sources))
+            # # getting input order
+            # try:
+            #     input_order = self.project_parameters["problem_data"]["input_order"].GetString()
+            # except RuntimeError:
+            #     input_order = "variables_first"
 
-            # retrieving the output variables
-            output_var_names = self.project_parameters["problem_data"]["output_variables"]
-            variable_names = [ output_var_names[i].GetString() for i in range( output_var_names.size() ) ]
-            output_sources_names = self.project_parameters["problem_data"]["output_sources"]
-            self.output_sources = [ output_sources_names[i].GetString() for i in range( output_sources_names.size() ) ]
-            self.output_variables = [ KratosMultiphysics.KratosGlobals.GetVariable( var ) for var in variable_names ]
-            if len(self.output_variables) == 0:
-                raise Exception('No variables specified for output!')
-            if not (len(self.output_variables) == len(self.output_sources)):
-                raise Exception('The number of output variables and sources are different.')
-            self.dict_output = dict(zip(self.output_variables, self.output_sources))
-            # getting output order
-            try:
-                self.output_order = self.project_parameters["problem_data"]["output_order"].GetString()
-            except RuntimeError:
-                self.output_order = "variables_first"
+            # # retrieving the output variables
+            # output_var_names = self.project_parameters["problem_data"]["output_variables"]
+            # output_sources_names = self.project_parameters["problem_data"]["output_sources"]
+            # variable_names = [ output_var_names[i].GetString() for i in range( output_var_names.size() ) ]
+            # self.output_sources = [ output_sources_names[i].GetString() for i in range( output_sources_names.size() ) ]
+            # self.output_variables = [ KratosMultiphysics.KratosGlobals.GetVariable( var ) for var in variable_names ]
+            # if len(self.output_variables) == 0:
+            #     raise Exception('No variables specified for output!')
+            # if not (len(self.output_variables) == len(self.output_sources)):
+            #     raise Exception('The number of output variables and sources are different.')
+            # self.dict_output = dict(zip(self.output_variables, self.output_sources))
+            # # getting output order
+            # try:
+            #     output_order = self.project_parameters["problem_data"]["output_order"].GetString()
+            # except RuntimeError:
+            #     output_order = "variables_first"
+
+            # creating the solver parameters
+            # solver_parameters = KratosMultiphysics.Parameters()
+
+            # solver_parameters.AddEmptyValue("input_model_part_name")
+            # solver_parameters.SetString(input_model_part_name)
+            # solver_parameters.AddEmptyValue("output_model_part_name")
+            # solver_parameters.SetString(output_model_part_name)
+
+            # solver_parameters.AddEmptyValue("input_var_names")
+            # solver_parameters.SetStringVector(input_var_names)
+            # solver_parameters.AddEmptyValue("input_sources_names")
+            # solver_parameters.SetStringVector(input_sources_names)
+            # solver_parameters.AddEmptyValue("output_var_names")
+            # solver_parameters.SetStringVector(output_var_names)
+            # solver_parameters.AddEmptyValue("output_sources_names")
+            # solver_parameters.SetStringVector(output_sources_names)
+            # solver_parameters.AddEmptyValue("input_order")
+            # solver_parameters.SetString(input_order)
+            # solver_parameters.AddEmptyValue("output_order")
+            # solver_parameters.SetString(output_order)
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -149,22 +173,21 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
     def Initialize(self, data_input = None, data_output = None):
         
-        # Create list of processes
-        self.__CreateListOfProcesses()
+        print(self.kratos_model)
         
         if self.problem_type == "predict_with_modelpart":
             super().Initialize()
-            self.input_data_structure = InputDataclasses.NeuralNetworkData()
-            if self.lookback>0:
-                self.preprocessed_data_structure = InputDataclasses.DataWithLookback(lookback_index=self.lookback)  
-                self.preprocessed_previous = InputDataclasses.DataWithLookback(lookback_index=self.lookback)
-            else:
-                self.preprocessed_data_structure = InputDataclasses.NeuralNetworkData()
-                self.preprocessed_previous = InputDataclasses.NeuralNetworkData()
-            self.output_data_structure = InputDataclasses.NeuralNetworkData()
-            self.time = 0.0
-            self.output_model_part = self.kratos_model[self.output_model_part_name]
-            self.input_model_part = self.kratos_model[self.input_model_part_name]
+            # self.input_data_structure = InputDataclasses.NeuralNetworkData()
+            # if self.lookback>0:
+            #     self.preprocessed_data_structure = InputDataclasses.DataWithLookback(lookback_index=self.lookback)  
+            #     self.preprocessed_previous = InputDataclasses.DataWithLookback(lookback_index=self.lookback)
+            # else:
+            #     self.preprocessed_data_structure = InputDataclasses.NeuralNetworkData()
+            #     self.preprocessed_previous = InputDataclasses.NeuralNetworkData()
+            # self.output_data_structure = InputDataclasses.NeuralNetworkData()
+            # self.time = 0.0
+            # self.output_model_part = self.kratos_model[self.output_model_part_name]
+            # self.input_model_part = self.kratos_model[self.input_model_part_name]
 
         else:
             if data_input != None:
@@ -176,10 +199,18 @@ class NeuralNetworkAnalysis(AnalysisStage):
             else:
                 self.data_out = []
 
+        # Create list of processes
+
         # Preprocessing
         
             [self.data_in, self.data_out] = self.Preprocessing()
         
+        self.__CreateListOfProcesses()
+
+        if self.problem_type == "predict_with_modelpart":
+            self.solver.LoadProcessesList(self._GetListOfProcesses)
+            self.solver.LoadNeuralNetworkModel(self.neural_network_model)
+
         ### TRAINING ###
 
         if self.problem_type == "train":
@@ -350,9 +381,9 @@ class NeuralNetworkAnalysis(AnalysisStage):
         It can be overridden by derived classes
         """
         while self.KeepAdvancingSolutionLoop():
-            self.AdvanceInTime()
+            self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
-            self.SolveSolutionStep()
+            self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
@@ -362,179 +393,46 @@ class NeuralNetworkAnalysis(AnalysisStage):
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
 
-        input_value_list=[]
+        self._GetSolver().InitializeSolutionStep()
+        # input_value_list=[]
 
-        for variable, source in self.dict_input.items():
-            # Process related variables (e.g. TIME, STEP)
-            if source == 'process':
-                input_value_list.append(self.input_model_part.ProcessInfo[variable])
-            # Node properties (e.g. position)
-            elif source == 'node':
-                for node in self.input_model_part.Nodes:
-                    input_value_list.append(getattr(node,variable.Name()))
-            # Node step values (e.g. variables like displacement)
-            elif source == "solution_step":
-                for node in self.input_model_part.Nodes:
-                    input_value_list.append(node.GetSolutionStepValue(variable,0))
-            # Condition values
-            elif source == "condition":
-                for condition in self.input_model_part.GetConditions():
-                    input_value_list.append(condition.GetValue(variable))
-        # Reorder if indicated
-        if self.input_order == 'sources_first':
-            try:
-                input_value_list = self._OrderSourcesFirst(input_value_list, self.dict_output.items())
-            except IndexError:
-                pass
+        # for variable, source in self.dict_input.items():
+        #     # Process related variables (e.g. TIME, STEP)
+        #     if source == 'process':
+        #         input_value_list.append(self.input_model_part.ProcessInfo[variable])
+        #     # Node properties (e.g. position)
+        #     elif source == 'node':
+        #         for node in self.input_model_part.Nodes:
+        #             input_value_list.append(getattr(node,variable.Name()))
+        #     # Node step values (e.g. variables like displacement)
+        #     elif source == "solution_step":
+        #         for node in self.input_model_part.Nodes:
+        #             input_value_list.append(node.GetSolutionStepValue(variable,0))
+        #     # Condition values
+        #     elif source == "condition":
+        #         for condition in self.input_model_part.GetConditions():
+        #             input_value_list.append(condition.GetValue(variable))
+        # # Reorder if indicated
+        # if self.input_order == 'sources_first':
+        #     try:
+        #         input_value_list = self._OrderSourcesFirst(input_value_list, self.dict_output.items())
+        #     except IndexError:
+        #         pass
 
-        self.input_from_modelpart = np.array(input_value_list)
+        # self.input_from_modelpart = np.array(input_value_list)
 
-
-    def SolveSolutionStep(self):
-
-        print("Receiving data into the neural network model")
-
-        # Restarting preprocessed data if no FinalizeSolutionStep took place
-        try:
-            if self.converge_flag == False:
-                self.preprocessed_data_structure.UpdateData(self.preprocessed_previous.data)
-                if hasattr(self.preprocessed_previous,'lookback_data'):
-                    if not self.only_input:
-                        self.preprocessed_data_structure.UpdateLookbackAll(self.preprocessed_previous.lookback_data)
-                elif self.preprocessed_data_structure.data is None:
-                    if not self.only_input:
-                        self.preprocessed_data_structure.UpdateLookbackAll(np.zeros_like(self.preprocessed_data_structure.lookback_data))
-                    self.soft_start_flag = True
-                    if self.only_input:
-                        if self.record:
-                            self.preprocessed_data_structure.record_data = False
-                        self.preprocessed_data_structure.lookback_state = False
-                        delattr(self.preprocessed_data_structure, 'lookback_data')
-                else:
-                    if self.only_input:
-                        delattr(self.preprocessed_data_structure, 'lookback_data')
-                        self.preprocessed_data_structure.lookback_state = False
-                    else:
-                        self.preprocessed_data_structure.lookback_state = False
-                        if self.record:
-                            self.preprocessed_data_structure.record_data = False
-            else: self.converge_flag = False
-        except AttributeError:
-            pass
-
-        # Retrieve input from geometry
-        self.input_from_modelpart = np.squeeze(np.reshape(self.input_from_modelpart, (int(self.input_from_modelpart.size/self.dimension_in), self.dimension_in)))
-        self.input_data_structure.UpdateData(self.input_from_modelpart)
-
-        # Initialize output from interface in first iteration
-        if self.output_data_structure.data is None:
-            for variable, source in self.dict_output.items():
-                output_value_list = []
-                # Process related variables (e.g. TIME, STEP)
-                if source == 'process':
-                    output_value_list.append(self.output_model_part.ProcessInfo[variable])
-                # Node properties (e.g. position)
-                elif source == 'node':
-                    for node in self.output_model_part.Nodes:
-                        output_value_list.append(getattr(node,variable.Name()))
-                # Node step values (e.g. variables like displacement)
-                elif source == "solution_step":
-                    for node in self.output_model_part.Nodes:
-                        output_value_list.append(node.GetSolutionStepValue(variable,0))
-                # Condition values
-                elif source == "condition":
-                    for condition in self.output_model_part.GetConditions():
-                        output_value_list.append(condition.GetValue(variable))
-            # Reorder if indicated
-            if self.output_order == 'sources_first':
-                try:
-                    output_value_list = self._OrderSourcesFirst(output_value_list, self.dict_output.items())
-                except IndexError:
-                    pass
-            self.output_data_structure.UpdateData(output_value_list)
-        
-        # Preprocess input and output 
-        [self.input_data_structure, self.output_data_structure] = self.Preprocessing(
-            data_in = self.input_data_structure, data_out = self.output_data_structure)
-        # Initialize preprocessed input to the network in first iteration
-        if self.lookback>0 and not self.preprocessed_data_structure.lookback_state:
-            if not self.only_input:
-                self.preprocessed_data_structure.CheckLookbackAndUpdate(self.output_data_structure.ExportAsArray())
-            if self.record:
-                self.preprocessed_data_structure.CheckRecordAndUpdate(self.input_data_structure.ExportAsArray())
-        # Update input to the structure with the new preprocessed input
-        if self.record:
-            if self.preprocessed_data_structure.data is None:
-                self.preprocessed_data_structure.record_data = False
-                self.preprocessed_data_structure.CheckRecordAndUpdate(self.input_data_structure.ExportAsArray())
-            # This flag softens the initial lookback in the record (stabilizes the behaviour)
-            if self.soft_start_flag:
-                for i in range(self.lookback-1):
-                    if not self.only_input:
-                        self.preprocessed_data_structure.CheckLookbackAndUpdate(self.output_data_structure.ExportAsArray())
-                    self.preprocessed_data_structure.UpdateRecordLast(self.input_data_structure.ExportAsArray())
-                self.preprocessed_data_structure.UpdateRecordLast(self.input_data_structure.ExportAsArray())
-                self.soft_start_flag = False
-            else:
-                self.preprocessed_data_structure.UpdateRecordLast(self.input_data_structure.ExportAsArray())
-            self.record_data = self.preprocessed_data_structure.data
-        else:
-            self.preprocessed_data_structure.UpdateData(self.input_data_structure.ExportAsArray())
-        # Set the reordering of the preprocessed data structure
-        if self.reorder_partitions > 1:
-            self.preprocessed_data_structure.reorder_partitions = self.reorder_partitions
-            
-            # RUndo the reorder if indicated
-        if self.output_order == 'sources_first':
-            try:
-                output_value_list = self._OrderVariablesFirst(output_value_list, self.dict_output.items())
-            except IndexError:
-                pass
-
-        # Predict (and invert the transformations) from the new input and update it to the output
-        self.output_data_structure.UpdateData(self.Predict(data_structure_in = self.preprocessed_data_structure))
-        output_value_list = np.squeeze(self.output_data_structure.ExportAsArray())
-
-        # TODO: Right now, it only works with one variable that has the same shape as the output.
-        if self.time >= self.time_buffer:
-            output_value_index = 0
-            for variable, source in self.dict_output.items():
-            # Process related variables (e.g. TIME, STEP)
-                if source == 'process':
-                    self.output_model_part.ProcessInfo[variable] = output_value_list
-                    output_value_index += 1
-                # Node properties (e.g. position)
-                elif source == 'node':
-                    for node, node_id in zip(self.output_model_part.Nodes, range(self.output_model_part.NumberOfNodes())):
-                        node.SetValue(variable, output_value_list)
-                        output_value_index += 1
-                # Node step values (e.g. variables like displacement)
-                elif source == "solution_step":
-                    for node, node_id in zip(self.output_model_part.Nodes, range(self.output_model_part.NumberOfNodes())):
-                        node.SetSolutionStepValue(variable,0, output_value_list[node_id])
-                        output_value_index += 1
-                # Condition values
-                elif source == "condition":
-                    for condition, conditions_id in zip(self.output_model_part.GetConditions(), range(self.output_model_part.NumberOfConditions())):
-                        condition.SetValue(variable, output_value_list[conditions_id])
-                        output_value_index += 1
 
     def FinalizeSolutionStep(self):
+        
+        self._GetSolver().FinalizeSolutionStep()
 
         for process in self._GetListOfProcesses():
             process.ExecuteFinalizeSolutionStep()
 
-        if self.record:
-            self.preprocessed_data_structure.data=self.record_data
-        self.preprocessed_previous.UpdateData(self.preprocessed_data_structure.data)
-        if not self.only_input:
-            self.preprocessed_previous.UpdateLookbackAll(self.preprocessed_data_structure.lookback_data)
-            self.preprocessed_previous.reorder_partitions = self.reorder_partitions
-            self.reorder_partitions = 0 # Flag for only setting the reorder once
-        self.converge_flag = True
-
     def Predict(self, data_structure_in = None):
        
+       # TODO: This is no longer neccessary, it is only for legacy wrappers. It should be deleted.
+
         data_out = NeuralNetworkData()
         
         if self.problem_type in ["predict_with_modelpart","predict_without_modelpart", "predict"] :
@@ -598,19 +496,27 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
         return [data_in, data_out]
 
-    def AdvanceInTime(self):
-        self.time += self.timestep
-        if hasattr(self, 'model_geometry'):
-            new_time = self.model_geometry.ProcessInfo[KratosMultiphysics.TIME] + self.timestep
-            self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.TIME, new_time)
-            new_step = self.model_geometry.ProcessInfo[KratosMultiphysics.STEP] + 1
-            self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.STEP, new_step)
+    # def AdvanceInTime(self):
+    #     self.time += self.timestep
+    #     if hasattr(self, 'model_geometry'):
+    #         new_time = self.model_geometry.ProcessInfo[KratosMultiphysics.TIME] + self.timestep
+    #         self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.TIME, new_time)
+    #         new_step = self.model_geometry.ProcessInfo[KratosMultiphysics.STEP] + 1
+    #         self.model_geometry.ProcessInfo.SetValue(KratosMultiphysics.STEP, new_step)
 
 
     def _CreateSolver(self):
-        
+        """This function creates the PHYSICS solver."""
         solver = import_module(self.solver_module).CreateSolver(self.kratos_model, self.solver_settings)
         return solver
+
+    def _CreateNeuralNetworkSolver(self, project_parameters, model):
+        return CreateSolver(project_parameters, model)
+
+
+    def _GetSolver(self):
+        """This function gets the NEURAL NETWORK solver."""
+        return self.solver
 
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
@@ -698,30 +604,4 @@ class NeuralNetworkAnalysis(AnalysisStage):
         if self.echo_level > 0:
             print(message)
 
-    @staticmethod
-    def _OrderSourcesFirst(values_list, variables_dictionary):
-        """ Reorders the values list by sources instead of by variables (e.g. node by node)."""
-        ordered_list = []
-        k, m = divmod(len(values_list), len(variables_dictionary))
-        # Split the lists
-        split_list = list(values_list[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(len(variables_dictionary)))
-        # Reorder the lists by source entry
-        for index in range(len(split_list[0])):
-            for variable_list in split_list:
-                ordered_list.append(variable_list[index])
-
-        return ordered_list
-
-    @staticmethod
-    def _OrderVariablesFirst(values_list, variables_dictionary):
-        """ Reorders the values list by sources instead of by variables (e.g. node by node)."""
-        ordered_list = []
-        k, m = divmod(len(values_list), len(values_list)/len(variables_dictionary))
-        # Split the lists
-        split_list = list(values_list[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(len(values_list)/len(variables_dictionary)))
-        # Reorder the lists by source entry
-        for index in range(len(split_list[0])):
-            for variable_list in split_list:
-                ordered_list.append(variable_list[index])
-
-        return ordered_list
+    
