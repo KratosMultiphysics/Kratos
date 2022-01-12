@@ -520,12 +520,7 @@ class MechanicalSolver(PythonSolver):
         return strategy
 
     def _create_arc_length_strategy(self):
-        settings = KratosMultiphysics.Parameters("""{}""")
-        settings.AddValue("desired_iterations", self.settings["solving_strategy_settings"]["advanced_settings"]["desired_iterations"])
-        settings.AddValue("max_radius_factor", self.settings["solving_strategy_settings"]["advanced_settings"]["max_radius_factor"])
-        settings.AddValue("min_radius_factor", self.settings["solving_strategy_settings"]["advanced_settings"]["min_radius_factor"])
-        settings.AddValue("loads_sub_model_part_list", self.settings["solving_strategy_settings"]["advanced_settings"]["loads_sub_model_part_list"])
-        settings.AddValue("loads_variable_list", self.settings["solving_strategy_settings"]["advanced_settings"]["loads_variable_list"])
+        settings = self.settings["solving_strategy_settings"]["advanced_settings"]
         settings.AddValue("max_iteration", self.settings["max_iteration"])
         settings.AddValue("compute_reactions", self.settings["compute_reactions"])
         settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
