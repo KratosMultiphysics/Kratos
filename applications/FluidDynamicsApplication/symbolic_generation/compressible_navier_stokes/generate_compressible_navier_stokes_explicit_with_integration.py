@@ -246,9 +246,9 @@ class SymbolicGenerator:
         dofs = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.ndofs, 1))
         testfunc = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.ndofs, 1))
         for i in range(0, self.geometry.nnodes):
-                for j in range(0,self.geometry.blocksize):
-                    dofs[i*self.geometry.blocksize + j] = U[i,j]
-                    testfunc[i*self.geometry.blocksize +j] = w[i,j]
+            for j in range(0,self.geometry.blocksize):
+                dofs[i*self.geometry.blocksize + j] = U[i,j]
+                testfunc[i*self.geometry.blocksize +j] = w[i,j]
 
         ## Compute LHS and RHS
         do_simplifications =  self.settings["do_simplifications"].GetBool()
@@ -429,7 +429,7 @@ class SymbolicGenerator:
 
 
 if __name__ == "__main__":
-    settings = KratosMultiphysics.Parameters("""
+    parameters = KratosMultiphysics.Parameters("""
     {
         "2D" :
         {
@@ -449,10 +449,10 @@ if __name__ == "__main__":
     path = pathlib.Path(__file__).parent
     sys.path.append(str(path))
 
-    generator_2d = SymbolicGenerator(settings["2D"])
+    generator_2d = SymbolicGenerator(parameters["2D"])
     generator_2d.Generate()
     generator_2d.Commit()
 
-    generator_3d = SymbolicGenerator(settings["3D"])
+    generator_3d = SymbolicGenerator(parameters["3D"])
     generator_3d.Generate()
     generator_3d.Commit()
