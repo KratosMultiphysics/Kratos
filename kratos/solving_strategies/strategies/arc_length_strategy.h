@@ -437,14 +437,6 @@ class ArcLengthStrategy
         Parameters default_parameters = Parameters(R"(
         {
             "name"                                 : "arc_length_strategy",
-            "use_old_stiffness_in_first_iteration" : false,
-            "max_iteration"                        : 10,
-            "reform_dofs_at_each_step"             : false,
-            "compute_reactions"                    : false,
-            "builder_and_solver_settings"          : {},
-            "convergence_criteria_settings"        : {},
-            "linear_solver_settings"               : {},
-            "scheme_settings"                      : {},
             "desired_iterations"                   : 4,
             "max_radius_factor"                    : 10.0,
             "min_radius_factor"                    : 0.1,
