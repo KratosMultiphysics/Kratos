@@ -168,9 +168,10 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
 
         // If we are interested in the velocity at a certain depth, then we replace the mean value by the specific value
         if (!mCalculateMeanVelocity) {
-            double reference_depth = mWaterLevelReference - min_elevation;
-            double target_depth = mWaterLevelReference + mSpecificRelativeDepth * reference_depth;
-            Point target_point = rNode + mDirection(target_depth - inner_prod(mDirection, rNode));
+            const double reference_depth = mWaterLevelReference - min_elevation;
+            const double target_depth = mWaterLevelReference + mSpecificRelativeDepth * reference_depth;
+            const double target_distance = target_depth - inner_prod(mDirection, rNode);
+            array_1d<double,3> target_point = rNode + mDirection * target_distance;
             Point local_coordinates;
             velocity = ZeroVector(3);
             for (auto& object : rObjects) {
