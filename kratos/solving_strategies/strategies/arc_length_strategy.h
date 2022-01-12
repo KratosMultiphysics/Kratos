@@ -127,7 +127,7 @@ class ArcLengthStrategy
             mVariableNames.resize(ThisParameters["loads_variable_list"].size());
 	    
 	    KRATOS_ERROR_IF(mSubModelPartList.size() != mVariableNames.size()) << "For each SubModelPart there must be a corresponding nodal Variable" << std::endl;
-		
+	    
 	    const auto& r_sub_model_parts_names = ThisParameters["loads_sub_model_part_list"].GetStringArray();
             for (std::size_t i = 0; i < mVariableNames.size(); i++) {
                 mSubModelPartList[i] = &( r_model_part.GetSubModelPart(r_sub_model_parts_names[i]));
@@ -135,7 +135,6 @@ class ArcLengthStrategy
             }
         }
     }
-
 
     /**
      * @brief Initialization of member variables and prior operations
@@ -176,7 +175,6 @@ class ArcLengthStrategy
 
         KRATOS_CATCH("");
     }
-
 
     /**
      * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
@@ -230,8 +228,8 @@ class ArcLengthStrategy
 
             KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Strategy Initialized" << std::endl;
         }
-
-		if (!BaseType::mSolutionStepIsInitialized) {
+	
+	if (!BaseType::mSolutionStepIsInitialized) {
             BaseType::InitializeSolutionStep();
             SaveInitializeSystemVector(mpf);
             InitializeSystemVector(mpDxf);
@@ -253,13 +251,15 @@ class ArcLengthStrategy
 
         ModelPart& r_model_part  = BaseType::GetModelPart();
 
-        const unsigned int iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
+        const std::size_t iteration_number = r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER];
+	
         // Update the radius
         mRadius = mRadius * std::sqrt(double(mDesiredIterations) / double(iteration_number));
-        if (mRadius > mMaxRadiusFactor*mRadius_0)
+        if (mRadius > mMaxRadiusFactor*mRadius_0) {
             mRadius = mMaxRadiusFactor*mRadius_0;
-        else if (mRadius < mMinRadiusFactor*mRadius_0)
+        } else if (mRadius < mMinRadiusFactor*mRadius_0) {
             mRadius = mMinRadiusFactor*mRadius_0;
+	}
 
         BaseType::FinalizeSolutionStep();
 
