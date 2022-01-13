@@ -20,4 +20,4 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def SolveSolutionStep(self):
         with self.thread_manager:
             self._analysis_stage._GetNeuralNetworkSolver().SolveSolutionStep()
-        super().SolveSolutionStep()
+        # super().SolveSolutionStep()

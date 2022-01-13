@@ -15,6 +15,7 @@ class MachineLearningModel():
         if self.library_name=="keras":
             self.model = keras.models.load_model(file_name)
             self.model.compile()
+            self.model.summary()
         return self.model
 
     def create_model(self, inputs, outputs):
