@@ -34,12 +34,8 @@ void CompressibleNavierStokesExplicit<3,4>::EquationIdVector(
 {
     KRATOS_TRY
 
-    constexpr unsigned int n_nodes = 4;
-    constexpr unsigned int block_size = 5;
-    constexpr unsigned int dof_size = n_nodes * block_size;
-
-    if (rResult.size() != dof_size) {
-        rResult.resize(dof_size);
+    if (rResult.size() != DofSize) {
+        rResult.resize(DofSize);
     }
 
     unsigned int local_index = 0;
@@ -47,7 +43,7 @@ void CompressibleNavierStokesExplicit<3,4>::EquationIdVector(
     const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
     const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
     const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         rResult[local_index++] = r_geometry[i_node].GetDof(DENSITY, den_pos).EquationId();
         rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_X, mom_pos).EquationId();
         rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_Y, mom_pos + 1).EquationId();
@@ -65,12 +61,8 @@ void CompressibleNavierStokesExplicit<3,4>::GetDofList(
 {
     KRATOS_TRY
 
-    constexpr unsigned int n_nodes = 4;
-    constexpr unsigned int block_size = 5;
-    unsigned int dof_size = n_nodes * block_size;
-
-    if (ElementalDofList.size() != dof_size) {
-        ElementalDofList.resize(dof_size);
+    if (ElementalDofList.size() != DofSize) {
+        ElementalDofList.resize(DofSize);
     }
 
     unsigned int local_index = 0;
@@ -78,7 +70,7 @@ void CompressibleNavierStokesExplicit<3,4>::GetDofList(
     const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
     const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
     const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(DENSITY, den_pos);
         ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(MOMENTUM_X, mom_pos);
         ElementalDofList[local_index++] = this->GetGeometry()[i_node].pGetDof(MOMENTUM_Y, mom_pos + 1);
@@ -94,7 +86,6 @@ array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVeloc
 {
     // Get geometry data
     const auto& r_geom = GetGeometry();
-    const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
@@ -111,7 +102,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVeloc
     double midpoint_rho_dy = 0.0;
     double midpoint_rho_dz = 0.0;
     array_1d<double,3> midpoint_mom = ZeroVector(3);
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto& r_node = r_geom[i_node];
         const auto node_dNdX = row(r_dNdX, i_node);
         const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
@@ -128,8 +119,8 @@ array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVeloc
         midpoint_rho_dy += r_rho * node_dNdX[1];
         midpoint_rho_dz += r_rho * node_dNdX[2];
     }
-    midpoint_rho /= n_nodes;
-    midpoint_mom /= n_nodes;
+    midpoint_rho /= static_cast<double>(NumNodes);
+    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity rotational
     // Note that the formulation is written in conservative variables. Hence we do rot(mom/rho).
@@ -154,7 +145,6 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMid
 
     // Get geometry data
     const auto& r_geom = GetGeometry();
-    const unsigned int n_nodes = r_geom.PointsNumber();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
@@ -174,7 +164,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMid
     double midpoint_rho_dy = 0.0;
     double midpoint_rho_dz = 0.0;
     array_1d<double,3> midpoint_mom = ZeroVector(3);
-    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
         auto& r_node = r_geom[i_node];
         const auto node_dNdX = row(r_dNdX, i_node);
         const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
@@ -194,8 +184,8 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMid
         midpoint_rho_dy += r_rho * node_dNdX[1];
         midpoint_rho_dz += r_rho * node_dNdX[2];
     }
-    midpoint_rho /= n_nodes;
-    midpoint_mom /= n_nodes;
+    midpoint_rho /= static_cast<double>(NumNodes);
+    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity gradient
     // Note that the formulation is written in conservative variables. Hence we do grad(mom/rho).
@@ -221,83 +211,25 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMomentumProjection(const Pr
 {
     KRATOS_TRY
 
-    constexpr unsigned int dim = 3;
-    constexpr unsigned int n_nodes = 4;
-
     // Struct to pass around the data
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
-    // Substitute the formulation symbols by the data structure values
-    const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
-    const double gamma = data.gamma;
-
-    // Solution vector values and time derivatives from nodal data
-    // This is intentionally done in this way to limit the matrix acceses
-    // The notation U_i_j DOF j value in node i
-    const double &U_0_0 = data.U(0, 0);
-    const double &U_0_1 = data.U(0, 1);
-    const double &U_0_2 = data.U(0, 2);
-    const double &U_0_3 = data.U(0, 3);
-    const double &U_0_4 = data.U(0, 4);
-    const double &U_1_0 = data.U(1, 0);
-    const double &U_1_1 = data.U(1, 1);
-    const double &U_1_2 = data.U(1, 2);
-    const double &U_1_3 = data.U(1, 3);
-    const double &U_1_4 = data.U(1, 4);
-    const double &U_2_0 = data.U(2, 0);
-    const double &U_2_1 = data.U(2, 1);
-    const double &U_2_2 = data.U(2, 2);
-    const double &U_2_3 = data.U(2, 3);
-    const double &U_2_4 = data.U(2, 4);
-    const double &U_3_0 = data.U(3, 0);
-    const double &U_3_1 = data.U(3, 1);
-    const double &U_3_2 = data.U(3, 2);
-    const double &U_3_3 = data.U(3, 3);
-    const double &U_3_4 = data.U(3, 4);
-
-    const double &dUdt_0_1 = data.dUdt(0, 1);
-    const double &dUdt_0_2 = data.dUdt(0, 2);
-    const double &dUdt_0_3 = data.dUdt(0, 3);
-    const double &dUdt_1_1 = data.dUdt(1, 1);
-    const double &dUdt_1_2 = data.dUdt(1, 2);
-    const double &dUdt_1_3 = data.dUdt(1, 3);
-    const double &dUdt_2_1 = data.dUdt(2, 1);
-    const double &dUdt_2_2 = data.dUdt(2, 2);
-    const double &dUdt_2_3 = data.dUdt(2, 3);
-    const double &dUdt_3_1 = data.dUdt(3, 1);
-    const double &dUdt_3_2 = data.dUdt(3, 2);
-    const double &dUdt_3_3 = data.dUdt(3, 3);
-
-    // Hardcoded shape functions gradients for linear tetrahedra element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_0_2 = data.DN_DX(0, 2);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_1_2 = data.DN_DX(1, 2);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-    const double &DN_DX_2_2 = data.DN_DX(2, 2);
-    const double &DN_DX_3_0 = data.DN_DX(3, 0);
-    const double &DN_DX_3_1 = data.DN_DX(3, 1);
-    const double &DN_DX_3_2 = data.DN_DX(3, 2);
-
     // Calculate shock capturing values
-    BoundedVector<double, 12> mom_proj;
+    BoundedVector<double, Dim*NumNodes> mom_proj;
+    const auto& DN_DX = data.DN_DX;
 
-    //substitute_mom_proj_3D
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    mom_proj *= data.volume / static_cast<double>(n_nodes);
+//substitute_mom_proj_3D
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
+    mom_proj *= data.volume / static_cast<double>(NumNodes);
 
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-        const IndexType aux = i_node * dim;
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
+        const IndexType aux = i_node * Dim;
         auto& r_mom_proj = r_geometry[i_node].GetValue(MOMENTUM_PROJECTION);
-        for (IndexType d = 0; d < dim; ++d) {
+        for (IndexType d = 0; d < Dim; ++d) {
 #pragma omp atomic
             r_mom_proj[d] += mom_proj[aux + d];
         }
@@ -311,62 +243,22 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateDensityProjection(const Pro
 {
     KRATOS_TRY
 
-    constexpr unsigned int n_nodes = 4;
-
     // Struct to pass around the data
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
-    // Substitute the formulation symbols by the data structure values
-    const array_1d<double, n_nodes> &m_ext = data.m_ext;
-
-    // Solution vector values and time derivatives from nodal data
-    // This is intentionally done in this way to limit the matrix acceses
-    // The notation U_i_j DOF j value in node i
-    const double &U_0_1 = data.U(0, 1);
-    const double &U_0_2 = data.U(0, 2);
-    const double &U_0_3 = data.U(0, 3);
-    const double &U_1_1 = data.U(1, 1);
-    const double &U_1_2 = data.U(1, 2);
-    const double &U_1_3 = data.U(1, 3);
-    const double &U_2_1 = data.U(2, 1);
-    const double &U_2_2 = data.U(2, 2);
-    const double &U_2_3 = data.U(2, 3);
-    const double &U_3_1 = data.U(3, 1);
-    const double &U_3_2 = data.U(3, 2);
-    const double &U_3_3 = data.U(3, 3);
-
-    const double &dUdt_0_0 = data.dUdt(0, 0);
-    const double &dUdt_1_0 = data.dUdt(1, 0);
-    const double &dUdt_2_0 = data.dUdt(2, 0);
-    const double &dUdt_3_0 = data.dUdt(3, 0);
-
-    // Hardcoded shape functions gradients for linear tetrahedra element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_0_2 = data.DN_DX(0, 2);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_1_2 = data.DN_DX(1, 2);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-    const double &DN_DX_2_2 = data.DN_DX(2, 2);
-    const double &DN_DX_3_0 = data.DN_DX(3, 0);
-    const double &DN_DX_3_1 = data.DN_DX(3, 1);
-    const double &DN_DX_3_2 = data.DN_DX(3, 2);
-
     // Calculate shock capturing values
     BoundedVector<double, 4> rho_proj;
+    const auto& DN_DX = data.DN_DX;
 
-    //substitute_rho_proj_3D
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rho_proj *= data.volume / static_cast<double>(n_nodes);
+//substitute_rho_proj_3D
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
+    rho_proj *= data.volume / static_cast<double>(NumNodes);
 
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
 #pragma omp atomic
         r_geometry[i_node].GetValue(DENSITY_PROJECTION) += rho_proj[i_node];
     }
@@ -379,72 +271,22 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateTotalEnergyProjection(const
 {
     KRATOS_TRY
 
-    constexpr unsigned int n_nodes = 4;
-
     // Struct to pass around the data
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
-    // Substitute the formulation symbols by the data structure values
-    const array_1d<double, n_nodes> &r_ext = data.r_ext;
-    const BoundedMatrix<double, n_nodes, 3> &f_ext = data.f_ext;
-    const double gamma = data.gamma;
-
-    // Solution vector values and time derivatives from nodal data
-    // This is intentionally done in this way to limit the matrix acceses
-    // The notation U_i_j DOF j value in node i
-    const double &U_0_0 = data.U(0, 0);
-    const double &U_0_1 = data.U(0, 1);
-    const double &U_0_2 = data.U(0, 2);
-    const double &U_0_3 = data.U(0, 3);
-    const double &U_0_4 = data.U(0, 4);
-    const double &U_1_0 = data.U(1, 0);
-    const double &U_1_1 = data.U(1, 1);
-    const double &U_1_2 = data.U(1, 2);
-    const double &U_1_3 = data.U(1, 3);
-    const double &U_1_4 = data.U(1, 4);
-    const double &U_2_0 = data.U(2, 0);
-    const double &U_2_1 = data.U(2, 1);
-    const double &U_2_2 = data.U(2, 2);
-    const double &U_2_3 = data.U(2, 3);
-    const double &U_2_4 = data.U(2, 4);
-    const double &U_3_0 = data.U(3, 0);
-    const double &U_3_1 = data.U(3, 1);
-    const double &U_3_2 = data.U(3, 2);
-    const double &U_3_3 = data.U(3, 3);
-    const double &U_3_4 = data.U(3, 4);
-
-    const double &dUdt_0_4 = data.dUdt(0, 4);
-    const double &dUdt_1_4 = data.dUdt(1, 4);
-    const double &dUdt_2_4 = data.dUdt(2, 4);
-    const double &dUdt_3_4 = data.dUdt(3, 4);
-
-    // Hardcoded shape functions gradients for linear tetrahedra element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double &DN_DX_0_0 = data.DN_DX(0, 0);
-    const double &DN_DX_0_1 = data.DN_DX(0, 1);
-    const double &DN_DX_0_2 = data.DN_DX(0, 2);
-    const double &DN_DX_1_0 = data.DN_DX(1, 0);
-    const double &DN_DX_1_1 = data.DN_DX(1, 1);
-    const double &DN_DX_1_2 = data.DN_DX(1, 2);
-    const double &DN_DX_2_0 = data.DN_DX(2, 0);
-    const double &DN_DX_2_1 = data.DN_DX(2, 1);
-    const double &DN_DX_2_2 = data.DN_DX(2, 2);
-    const double &DN_DX_3_0 = data.DN_DX(3, 0);
-    const double &DN_DX_3_1 = data.DN_DX(3, 1);
-    const double &DN_DX_3_2 = data.DN_DX(3, 2);
-
     // Calculate shock capturing values
     BoundedVector<double, 4> tot_ener_proj;
+    const auto& DN_DX = data.DN_DX;
 
-    //substitute_tot_ener_proj_3D
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    tot_ener_proj *= data.volume / static_cast<double>(n_nodes);
+//substitute_tot_ener_proj_3D
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
+    tot_ener_proj *= data.volume / static_cast<double>(NumNodes);
 
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
-    for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+    for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
 #pragma omp atomic
         r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION) += tot_ener_proj[i_node];
     }
@@ -459,122 +301,23 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateRightHandSideInternal(
 {
     KRATOS_TRY
 
-    constexpr unsigned int n_nodes = 4;
-
     // Struct to pass around the data
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
-    // Substitute the formulation symbols by the data structure values
-    const double h = data.h;
-    const array_1d<double, n_nodes>& r_ext = data.r_ext;
-    const array_1d<double, n_nodes>& m_ext = data.m_ext;
-    const array_1d<double, n_nodes>& alpha_sc_nodes = data.alpha_sc_nodes;
-    const array_1d<double, n_nodes>& mu_sc_nodes = data.mu_sc_nodes;
-    const array_1d<double, n_nodes>& beta_sc_nodes = data.beta_sc_nodes;
-    const array_1d<double, n_nodes>& lamb_sc_nodes = data.lamb_sc_nodes;
-    const BoundedMatrix<double, n_nodes, 3>& f_ext = data.f_ext;
-    const double mu = data.mu;
-    const double c_v = data.c_v;
-    const double gamma = data.gamma;
-    const double lambda = data.lambda;
-
     // Stabilization parameters
-    const double stab_c1 = 12.0;
-    const double stab_c2 = 2.0;
-    const double stab_c3 = 1.0;
-
-    // Solution vector values and time derivatives from nodal data
-    // This is intentionally done in this way to limit the matrix acceses
-    // The notation U_i_j DOF j value in node i
-    const double& U_0_0 = data.U(0, 0);
-    const double& U_0_1 = data.U(0, 1);
-    const double& U_0_2 = data.U(0, 2);
-    const double& U_0_3 = data.U(0, 3);
-    const double& U_0_4 = data.U(0, 4);
-    const double& U_1_0 = data.U(1, 0);
-    const double& U_1_1 = data.U(1, 1);
-    const double& U_1_2 = data.U(1, 2);
-    const double& U_1_3 = data.U(1, 3);
-    const double& U_1_4 = data.U(1, 4);
-    const double& U_2_0 = data.U(2, 0);
-    const double& U_2_1 = data.U(2, 1);
-    const double& U_2_2 = data.U(2, 2);
-    const double& U_2_3 = data.U(2, 3);
-    const double& U_2_4 = data.U(2, 4);
-    const double& U_3_0 = data.U(3, 0);
-    const double& U_3_1 = data.U(3, 1);
-    const double& U_3_2 = data.U(3, 2);
-    const double& U_3_3 = data.U(3, 3);
-    const double& U_3_4 = data.U(3, 4);
-
-    const double& dUdt_0_0 = data.dUdt(0, 0);
-    const double& dUdt_0_1 = data.dUdt(0, 1);
-    const double& dUdt_0_2 = data.dUdt(0, 2);
-    const double& dUdt_0_3 = data.dUdt(0, 3);
-    const double& dUdt_0_4 = data.dUdt(0, 4);
-    const double& dUdt_1_0 = data.dUdt(1, 0);
-    const double& dUdt_1_1 = data.dUdt(1, 1);
-    const double& dUdt_1_2 = data.dUdt(1, 2);
-    const double& dUdt_1_3 = data.dUdt(1, 3);
-    const double& dUdt_1_4 = data.dUdt(1, 4);
-    const double& dUdt_2_0 = data.dUdt(2, 0);
-    const double& dUdt_2_1 = data.dUdt(2, 1);
-    const double& dUdt_2_2 = data.dUdt(2, 2);
-    const double& dUdt_2_3 = data.dUdt(2, 3);
-    const double& dUdt_2_4 = data.dUdt(2, 4);
-    const double& dUdt_3_0 = data.dUdt(3, 0);
-    const double& dUdt_3_1 = data.dUdt(3, 1);
-    const double& dUdt_3_2 = data.dUdt(3, 2);
-    const double& dUdt_3_3 = data.dUdt(3, 3);
-    const double& dUdt_3_4 = data.dUdt(3, 4);
-
-    // Hardcoded shape functions gradients for linear tetrahedra element
-    // This is explicitly done to minimize the matrix acceses
-    // The notation DN_i_j means shape function for node i in dimension j
-    const double& DN_DX_0_0 = data.DN_DX(0, 0);
-    const double& DN_DX_0_1 = data.DN_DX(0, 1);
-    const double& DN_DX_0_2 = data.DN_DX(0, 2);
-    const double& DN_DX_1_0 = data.DN_DX(1, 0);
-    const double& DN_DX_1_1 = data.DN_DX(1, 1);
-    const double& DN_DX_1_2 = data.DN_DX(1, 2);
-    const double& DN_DX_2_0 = data.DN_DX(2, 0);
-    const double& DN_DX_2_1 = data.DN_DX(2, 1);
-    const double& DN_DX_2_2 = data.DN_DX(2, 2);
-    const double& DN_DX_3_0 = data.DN_DX(3, 0);
-    const double& DN_DX_3_1 = data.DN_DX(3, 1);
-    const double& DN_DX_3_2 = data.DN_DX(3, 2);
+    constexpr double stab_c1 = 12.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 1.0;
 
     if (data.UseOSS) {
-        // Projections container accesses
-        const double& ResProj_0_0 = data.ResProj(0, 0);
-        const double& ResProj_0_1 = data.ResProj(0, 1);
-        const double& ResProj_0_2 = data.ResProj(0, 2);
-        const double& ResProj_0_3 = data.ResProj(0, 3);
-        const double& ResProj_0_4 = data.ResProj(0, 4);
-        const double& ResProj_1_0 = data.ResProj(1, 0);
-        const double& ResProj_1_1 = data.ResProj(1, 1);
-        const double& ResProj_1_2 = data.ResProj(1, 2);
-        const double& ResProj_1_3 = data.ResProj(1, 3);
-        const double& ResProj_1_4 = data.ResProj(1, 4);
-        const double& ResProj_2_0 = data.ResProj(2, 0);
-        const double& ResProj_2_1 = data.ResProj(2, 1);
-        const double& ResProj_2_2 = data.ResProj(2, 2);
-        const double& ResProj_2_3 = data.ResProj(2, 3);
-        const double& ResProj_2_4 = data.ResProj(2, 4);
-        const double& ResProj_3_0 = data.ResProj(3, 0);
-        const double& ResProj_3_1 = data.ResProj(3, 1);
-        const double& ResProj_3_2 = data.ResProj(3, 2);
-        const double& ResProj_3_3 = data.ResProj(3, 3);
-        const double& ResProj_3_4 = data.ResProj(3, 4);
-
-        //substitute_rhs_3D_OSS
+    //substitute_rhs_3D_OSS
     } else {
-        //substitute_rhs_3D_ASGS
+    //substitute_rhs_3D_ASGS
     }
 
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideBoundedVector *= data.volume / static_cast<double>(n_nodes);
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
+    rRightHandSideBoundedVector *= data.volume / static_cast<double>(NumNodes);
 
     KRATOS_CATCH("")
 }
@@ -585,14 +328,11 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    constexpr IndexType n_nodes = 4;
-    constexpr IndexType block_size = 5;
 
     // Initialize and fill the mass matrix values
-    const double one_ten = 0.1;
-    const double one_twenty = 0.05;
-    const unsigned int size = n_nodes * block_size;
-    rMassMatrix = ZeroMatrix(size, size);
+    constexpr double one_ten = 0.1;
+    constexpr double one_twenty = 0.05;
+    rMassMatrix = ZeroMatrix(DofSize, DofSize);
     rMassMatrix(0, 0) = one_ten; rMassMatrix(0, 5) = one_twenty; rMassMatrix(0, 10) = one_twenty; rMassMatrix(0,15) = one_twenty;
     rMassMatrix(1, 1) = one_ten; rMassMatrix(1, 6) = one_twenty; rMassMatrix(1, 11) = one_twenty; rMassMatrix(1,16) = one_twenty;
     rMassMatrix(2, 2) = one_ten; rMassMatrix(2, 7) = one_twenty; rMassMatrix(2, 12) = one_twenty; rMassMatrix(2,17) = one_twenty;

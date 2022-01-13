@@ -8,9 +8,9 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 parameters = KratosMultiphysics.Parameters("""
 {
-    "geometry": "triangle",
-    "template_filename" : "templates/compressible_navier_stokes_explicit_template_2D3N.cpp",
-    "output_filename"   : "compressible_navier_stokes_explicit_2D3N.cpp"
+    "geometry": "tetrahedron",
+    "template_filename" : "templates/compressible_navier_stokes_explicit_template_3D4N.cpp",
+    "output_filename"   : "compressible_navier_stokes_explicit_3D4N.cpp"
 }
 """)
 
