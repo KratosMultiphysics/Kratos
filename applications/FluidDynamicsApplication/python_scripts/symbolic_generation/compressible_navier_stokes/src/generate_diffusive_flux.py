@@ -2,8 +2,11 @@ import sympy
 import KratosMultiphysics
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
+    import DefineMatrix, ZeroMatrix
+
 ## Computation of the flux
-def ComputeDiffusiveFlux(dofs, dUdx, params, printfun):
+def ComputeDiffusiveFlux(dofs, dUdx, params):
     """Calculate the diffusive flux matrix without shock capturing contribution."""
 
     ## Auxiliary variables
@@ -28,7 +31,7 @@ def ComputeDiffusiveFlux(dofs, dUdx, params, printfun):
     heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
     ## Define and fill the diffusive flux matrix
-    G = KratosSympy.DefineMatrix('G', dim + 2, dim)
+    G = DefineMatrix('G', dim + 2, dim)
     for j in range(dim):
         G[0,j] = 0.0
         G[dim + 1, j] = heat_flux[j]
@@ -70,7 +73,7 @@ def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
     heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
     ## Define and fill the isotropic shock capturing diffusive flux matrix
-    G = KratosSympy.DefineMatrix('G', dim + 2, dim)
+    G = DefineMatrix('G', dim + 2, dim)
     G[0,:] = mass_flux
     for j in range(dim):
         G[dim + 1, j] = heat_flux[j]
@@ -100,7 +103,7 @@ def CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx):
 
     ## Calculate the viscous stress tensor
     ## Note that the derivatives in here involve grad(mom/rho) = (dx(mom)*rho - mom*dx(rho))/rho**2
-    tau_stress = KratosSympy.DefineMatrix('tau_stress', dim, dim)
+    tau_stress = DefineMatrix('tau_stress', dim, dim)
     for d1 in range(dim):
         for d2 in range(dim):
             dv1_dx2 = (dUdx[d1 + 1, d2] * rho - mom[d1] * dUdx[0,d2]) / rho**2
@@ -132,7 +135,7 @@ def WriteInVoigtNotation(dim, tensor):
     """Auxiliary function to represent a 2nd order tensor in Voigt notation"""
 
     voigt_size = 3 * dim - 3
-    voigt_tensor = KratosSympy.zeros(voigt_size, 1)
+    voigt_tensor = ZeroMatrix(voigt_size, 1)
     voigt_tensor[0] = tensor[0,0]
     voigt_tensor[1] = tensor[1,1]
     if dim == 2:
@@ -149,7 +152,7 @@ def RevertVoigtNotation(dim, voigt_tensor):
     """Auxiliary function to set a 2nd order tensor from its Voigt representation"""
 
     # Revert the Voigt notation
-    tensor = KratosSympy.zeros(dim, dim)
+    tensor = ZeroMatrix(dim, dim)
     for d in range(dim):
         tensor[d,d] = voigt_tensor[d]
     if dim == 2:

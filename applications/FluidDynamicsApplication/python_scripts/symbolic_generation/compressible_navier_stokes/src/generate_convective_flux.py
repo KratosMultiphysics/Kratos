@@ -2,6 +2,9 @@ import sympy
 import KratosMultiphysics
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
+    import DefineMatrix
+
 def ComputeEulerJacobianMatrix(dofs, params):
     """This function calculates the Euler Jacobian matrix for convection"""
 
@@ -20,7 +23,7 @@ def ComputeEulerJacobianMatrix(dofs, params):
     p = (gamma - 1) * (e_tot - 0.5 * mom_prod / rho)
 
     ## Define and fill the convective flux matrix
-    E = KratosSympy.DefineMatrix('E', dim + 2, dim)
+    E = DefineMatrix('E', dim + 2, dim)
     for j in range(dim):
         E[0,j] = mom[j]
         for d in range(dim):
@@ -32,7 +35,7 @@ def ComputeEulerJacobianMatrix(dofs, params):
     ## Define and derive the Euler Jacobian matrix
     A = []
     for j in range(dim):
-        A_j = KratosSympy.DefineMatrix('A_j', dim + 2, dim + 2)
+        A_j = DefineMatrix('A_j', dim + 2, dim + 2)
         for m in range(dim + 2):
             for n in range(dim + 2):
                 A_j[m,n] = sympy.diff(E[m,j], dofs[n])

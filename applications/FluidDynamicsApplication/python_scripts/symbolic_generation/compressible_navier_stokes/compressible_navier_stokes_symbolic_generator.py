@@ -1,20 +1,21 @@
-import pathlib
-import os
-
 import KratosMultiphysics
 import sympy
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
-
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.symbolic_parameters \
-     import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
-
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.symbolic_geometry \
-     import GeometryDataFactory
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_source_term
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_stabilization_matrix
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .symbolic_parameters import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .symbolic_geometry import GeometryDataFactory
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .defines import DefineMatrix, DefineVector, ZeroMatrix, ZeroVector
+
 
 class CompressibleNavierStokesSymbolicGenerator:
     def __init__(self, settings):
@@ -24,6 +25,15 @@ class CompressibleNavierStokesSymbolicGenerator:
         self._GenerateFiles()
 
         self._print(2, self.settings)
+
+    def _CollectAndReplace(self, target_substring, expression, name):
+        mode = self.settings["mode"].GetString()
+
+        # If integrated during run-time, the assignment has to be an accumulation:
+        assignment_op = " = " if self.geometry.symbolic_integration else " += "
+
+        out = KratosSympy.OutputVector_CollectingFactors(expression, name, mode, replace_indices=False, assignment_op=assignment_op)
+        self.outstring = self.outstring.replace(target_substring, out)
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -54,7 +64,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         self.outputfile = open(self.settings["output_filename"].GetString(), "w")
 
     def _ComputeNonLinearOperator(self, A, H, S, Ug):
-        L = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.blocksize, 1))
+        L = ZeroVector(self.geometry.blocksize)
         for j in range(self.geometry.ndims):
             # Convective operator product (A x grad(U))
             A_j = A[j]
@@ -68,14 +78,14 @@ class CompressibleNavierStokesSymbolicGenerator:
         return L
 
     def _ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
-        L_adj = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.blocksize, 1))
+        L_adj = ZeroVector(self.geometry.blocksize)
         for j in range(self.geometry.ndims):
             Q_j = Q.col(j)
             H_j = H.col(j)
             # Convective operator product
             A_j_trans = A[j].transpose()
             L_adj += A_j_trans * Q_j
-            aux_conv = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.blocksize, self.geometry.blocksize))
+            aux_conv = ZeroMatrix(self.geometry.blocksize, self.geometry.blocksize)
             for m in range(self.geometry.blocksize):
                 for n in range(self.geometry.blocksize):
                     A_j_trans_mn = A_j_trans[m,n]
@@ -95,13 +105,13 @@ class CompressibleNavierStokesSymbolicGenerator:
             n1 = - V.transpose()*acc
 
         # Convective term - FE scale
-        conv_flux = KratosSympy.zeros(self.geometry.blocksize, 1)
+        conv_flux = ZeroVector(self.geometry.blocksize)
         for j in range(self.geometry.ndims):
             conv_flux += A[j] * H.col(j)
         n2 = - V.transpose() * conv_flux
 
         # Diffusive term - FE scale
-        n3 = KratosSympy.Matrix(KratosSympy.zeros(1,1))
+        n3 = ZeroMatrix(1,1)
         for j in range(self.geometry.ndims):
             for k in range(self.geometry.blocksize):
                 n3[0,0] += Q[k,j] * G[k,j]
@@ -110,7 +120,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         n4 = V.transpose() * (S * Ug)
 
         # VMS_adjoint - Subscales
-        subscales = KratosSympy.DefineVector('subscales', self.geometry.blocksize)
+        subscales = DefineVector('subscales', self.geometry.blocksize)
         n5 = L_adj.transpose() * subscales
 
         # Variational formulation (Galerkin functional)
@@ -124,9 +134,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _ComputeProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn):
         ## Get Gauss point geometry data
-        N = KratosSympy.DefineVector('N', self.geometry.nnodes)
-        for i_node in range(self.geometry.nnodes):
-            N[i_node] = self.geometry.N()[i_gauss, i_node]
+        N = self.geometry.N_gauss(i_gauss)
 
         ## Data interpolation at the gauss point
         U_gauss = U.transpose() * N
@@ -162,16 +170,11 @@ class CompressibleNavierStokesSymbolicGenerator:
                 projections["momentum"][i_node * self.geometry.ndims + d] += N[i_node] * res_gauss[1 + d]
             projections["energy"][i_node] += N[i_node] * res_gauss[self.geometry.ndims + 1]
 
-    def _OutputProjections(self, outstring, res_rho_proj, res_mom_proj, res_tot_ener_proj):
-        mode = self.settings["mode"].GetString()
-        res_rho_proj_out = KratosSympy.OutputVector_CollectingFactors(res_rho_proj, "rho_proj", mode)
-        res_mom_proj_out = KratosSympy.OutputVector_CollectingFactors(res_mom_proj, "mom_proj", mode)
-        res_tot_ener_proj_out = KratosSympy.OutputVector_CollectingFactors(res_tot_ener_proj, "tot_ener_proj", mode)
+    def _OutputProjections(self, res_rho_proj, res_mom_proj, res_tot_ener_proj):
         dim = self.geometry.ndims
-        outstring = outstring.replace("//substitute_rho_proj_{}D".format(dim), res_rho_proj_out)
-        outstring = outstring.replace("//substitute_mom_proj_{}D".format(dim), res_mom_proj_out)
-        outstring = outstring.replace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj_out)
-        return outstring
+        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, "rho_proj")
+        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, "mom_proj")
+        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, "tot_ener_proj")
 
     def _SubstituteSubscales(self, res, res_proj, rv, subscales, subscales_type, Tau):
         rv_gauss = rv.copy()
@@ -189,7 +192,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         self._print(1, "    Gauss point: " + str(i_gauss))
 
         ## Get Gauss point geometry data
-        Ng = sympy.Matrix(self.geometry.nnodes, 1, lambda i,_: self.geometry.N()[i_gauss, i])
+        Ng = self.geometry.N_gauss(i_gauss)
 
         ## Data interpolation at the gauss point
         U_gauss = U.transpose() * Ng
@@ -249,8 +252,8 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _ComputeLHSandRHS(self, rv_tot, U, w):
         ## Set the DOFs and test function matrices to do the differentiation
-        dofs = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.ndofs, 1))
-        testfunc = KratosSympy.Matrix(KratosSympy.zeros(self.geometry.ndofs, 1))
+        dofs = ZeroVector(self.geometry.ndofs)
+        testfunc = ZeroVector(self.geometry.ndofs)
         for i in range(0, self.geometry.nnodes):
             for j in range(0,self.geometry.blocksize):
                 dofs[i*self.geometry.blocksize + j] = U[i,j]
@@ -258,60 +261,27 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         ## Compute LHS and RHS
         do_simplifications =  self.settings["do_simplifications"].GetBool()
-        self._print(1, "    - Compute RHS")
+        self._print(1, "    Compute RHS")
         rhs = KratosSympy.Compute_RHS(rv_tot.copy(), testfunc, do_simplifications)
 
         if not self.is_explicit:
-            self._print(1, "    - Compute LHS")
+            self._print(1, "    Compute LHS")
             lhs = KratosSympy.Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS
         else:
             lhs = None
 
         return(lhs, rhs)
 
-    def _OutputLHSandRHS(self, lhs, rhs, outstring, subscales_type):
+    def _OutputLHSandRHS(self, lhs, rhs, subscales_type):
         ## Reading and filling the template file
-        self._print(1, "    - Substituting outstring from {}".format(self.settings["template_filename"].GetString()))
-        mode = self.settings["mode"].GetString()
+        self._print(1, "    Substituting outstring from {}".format(self.settings["template_filename"].GetString()))
 
-        rhs_out = KratosSympy.OutputVector_CollectingFactors(rhs, "rRightHandSideBoundedVector", mode)
-        outstring = outstring.replace("//substitute_rhs_{}D_{}".format(self.geometry.ndims, subscales_type), rhs_out)
+        target = "//substitute_rhs_{}D_{}".format(self.geometry.ndims, subscales_type)
+        self._CollectAndReplace(target, rhs, "rRightHandSideBoundedVector")
 
         if not self.is_explicit:
-            lhs_out = KratosSympy.OutputMatrix_CollectingFactors(lhs, "lhs", mode)
-            outstring = outstring.replace("//substitute_lhs_{}D_{}".format(self.geometry.ndims, subscales_type), lhs_out)
-
-        ## In the explicit element case the container values are referenced in the cpp to limit the container accesses to one per element
-        if self.is_explicit:
-            ## Substitute the solution values container accesses
-            for i_node in range(self.geometry.nnodes):
-                for j_block in range(self.geometry.blocksize):
-                    to_substitute = 'U({},{})'.format(i_node, j_block)
-                    substituted_value = 'U_{}_{}'.format(i_node, j_block)
-                    outstring = outstring.replace(to_substitute, substituted_value)
-
-            ## Substitute the solution values time derivatives container accesses
-            for i_node in range(self.geometry.nnodes):
-                for j_block in range(self.geometry.blocksize):
-                    to_substitute = 'dUdt({},{})'.format(i_node, j_block)
-                    substituted_value = 'dUdt_{}_{}'.format(i_node, j_block)
-                    outstring = outstring.replace(to_substitute, substituted_value)
-
-            ## Substitute the shape function gradients container accesses
-            for i_node in range(self.geometry.nnodes):
-                for j_dim in range(self.geometry.ndims):
-                    to_substitute = 'DN({},{})'.format(i_node, j_dim)
-                    substituted_value = 'DN_DX_{}_{}'.format(i_node, j_dim)
-                    outstring = outstring.replace(to_substitute, substituted_value)
-
-            ## Substitute the residuals projection container accesses
-            for i_node in range(self.geometry.nnodes):
-                for j_block in range(self.geometry.blocksize):
-                    to_substitute = 'ResProj({},{})'.format(i_node, j_block)
-                    substituted_value = 'ResProj_{}_{}'.format(i_node, j_block)
-                    outstring = outstring.replace(to_substitute, substituted_value)
-
-        return outstring
+            target = "//substitute_lhs_{}D_{}".format(self.geometry.ndims, subscales_type)
+            self._CollectAndReplace(target, lhs, "rLeftHandSideBoundedVector")
 
     def Generate(self):
         self._print(1, " - Computing geometry: {}".format(self.settings["geometry"].GetString()))
@@ -324,26 +294,26 @@ class CompressibleNavierStokesSymbolicGenerator:
         params = FormulationParameters(self.geometry)
 
         # Unknown fields definition (Used later for the gauss point interpolation)
-        U = KratosSympy.DefineMatrix('U', n_nodes, block_size)               # Vector of Unknowns (Density, Velocity[dim], Total Energy)
-        ResProj = KratosSympy.DefineMatrix('ResProj', n_nodes, block_size)   # Vector of residuals projection
+        U = DefineMatrix('data.U', n_nodes, block_size)               # Vector of Unknowns (Density, Velocity[dim], Total Energy)
+        ResProj = DefineMatrix('data.ResProj', n_nodes, block_size)   # Vector of residuals projection
 
         if self.is_explicit:
-            dUdt = KratosSympy.DefineMatrix('dUdt', n_nodes, block_size)     # Vector of Unknowns time derivatives (Density, Velocity[dim], Total Energy)
+            dUdt = DefineMatrix('data.dUdt', n_nodes, block_size)     # Vector of Unknowns time derivatives (Density, Velocity[dim], Total Energy)
             Un = None
             Unn = None
         else:
             dUdt = None
-            Un = KratosSympy.DefineMatrix('Un', n_nodes, block_size)         # Vector of Unknowns one step back
-            Unn = KratosSympy.DefineMatrix('Unn', n_nodes, block_size)       # Vector of Unknowns two steps back
+            Un = DefineMatrix('data.Un', n_nodes, block_size)         # Vector of Unknowns one step back
+            Unn = DefineMatrix('data.Unn', n_nodes, block_size)       # Vector of Unknowns two steps back
 
         # Test functions defintiion
-        w = KratosSympy.DefineMatrix('w', n_nodes, block_size)     # Variables field test
+        w = DefineMatrix('w', n_nodes, block_size)     # Variables field test
 
         # External terms definition
         forcing_terms = {
-            "mass":    KratosSympy.DefineVector('m_ext', n_nodes),        # Mass source term
-            "thermal": KratosSympy.DefineVector('r_ext', n_nodes),        # Thermal sink/source term
-            "force":   KratosSympy.DefineMatrix('f_ext', n_nodes, dim)    # Forcing term
+            "mass":    DefineVector('data.m_ext', n_nodes),        # Mass source term
+            "thermal": DefineVector('data.r_ext', n_nodes),        # Thermal sink/source term
+            "force":   DefineMatrix('data.f_ext', n_nodes, dim)    # Forcing term
         }
 
         # Nodal artificial magnitudes
@@ -353,16 +323,16 @@ class CompressibleNavierStokesSymbolicGenerator:
         bdf = None if self.is_explicit else [sympy.Symbol('bdf'+ i) for i in range(3)]
 
         ### Construction of the variational equation
-        Ug  = KratosSympy.DefineVector('Ug',block_size) # Dofs vector
-        H   = KratosSympy.DefineMatrix('H',block_size, dim) # Gradient of U
+        Ug  = DefineVector('Ug',block_size) # Dofs vector
+        H   = DefineMatrix('H',block_size, dim) # Gradient of U
         mg  = sympy.Symbol('mg') # Mass source term
-        f   = KratosSympy.DefineVector('f', dim) # Body force vector
+        f   = DefineVector('f', dim) # Body force vector
         rg  = sympy.Symbol('rg') # Thermal source/sink term
-        V   = KratosSympy.DefineVector('V',block_size) # Test function
-        Q   = KratosSympy.DefineMatrix('Q',block_size, dim) # Gradient of V
-        acc = KratosSympy.DefineVector('acc',block_size) # Derivative of Dofs/Time
-        G   = KratosSympy.DefineMatrix('G',block_size, dim) # Diffusive Flux matrix
-        res_proj = KratosSympy.DefineVector('res_proj',block_size) # Residuals projection for the OSS
+        V   = DefineVector('V',block_size) # Test function
+        Q   = DefineMatrix('Q',block_size, dim) # Gradient of V
+        acc = DefineVector('acc',block_size) # Derivative of Dofs/Time
+        G   = DefineMatrix('G',block_size, dim) # Diffusive Flux matrix
+        res_proj = DefineVector('res_proj',block_size) # Residuals projection for the OSS
 
         ## Calculate the Gauss point residual
         ## Matrix Computation
@@ -405,33 +375,32 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Calculate the residuals projection
         self._print(1, " - Calculate the projections of the residuals")
         projections = {
-            "rho"      : KratosSympy.Matrix(KratosSympy.zeros(n_nodes,1)),
-            "momentum" : KratosSympy.Matrix(KratosSympy.zeros(n_nodes*dim,1)),
-            "energy"   : KratosSympy.Matrix(KratosSympy.zeros(n_nodes,1))
+            "rho"      : ZeroVector(n_nodes),
+            "momentum" : ZeroVector(n_nodes*dim),
+            "energy"   : ZeroVector(n_nodes)
         }
-        for i_gauss in range(self.geometry.ngauss):
+        for i_gauss in self.geometry.SymbolicIntegrationPoints():
             self._print(1, "   - Gauss point: " + str(i_gauss))
             self._ComputeProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
 
         ## Output the projections
-        self.outstring = self._OutputProjections(self.outstring, *projections.values())
+        self._OutputProjections(*projections.values())
 
         #### Algebraic form calculation ####
         for subscales_type in self._SubscalesTypes():
             ### Substitution of the discretized values at the gauss points
             ## Loop and accumulate the residual in each Gauss point
-            rv_tot = KratosSympy.Matrix(KratosSympy.zeros(1,1))
+            rv_tot = ZeroMatrix(1,1)
 
             self._print(1, " - Subscales type: " + subscales_type)
             self._print(1, " - Substitution of the discretized values at the gauss points")
-            for i_gauss in range(self.geometry.ngauss):
+            for i_gauss in self.geometry.SymbolicIntegrationPoints():
                 ## Substitute the subscales model
                 rv_gauss = self._SubstituteSubscales(res, res_proj, rv, subscales, subscales_type, Tau)
                 rv_tot += self._ComputeResidualAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w)
 
-
             (lhs, rhs) = self._ComputeLHSandRHS(rv_tot, U, w)
-            self.outstring = self._OutputLHSandRHS(lhs, rhs, self.outstring, subscales_type)
+            self._OutputLHSandRHS(lhs, rhs, subscales_type)
 
     def Write(self):
         filename = self.settings["output_filename"].GetString()

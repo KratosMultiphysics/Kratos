@@ -1,4 +1,5 @@
-import KratosMultiphysics.sympy_fe_utilities as KratosSympy
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
+    import ZeroMatrix
 
 ## Computation of the Source Matrix
 def ComputeSourceMatrix(dofs, mass_source, body_force, heat_source, params):
@@ -19,7 +20,7 @@ def ComputeSourceMatrix(dofs, mass_source, body_force, heat_source, params):
      fy    0  0  0
      r     fx fy 0
     '''
-    S = KratosSympy.zeros(dim+2, dim+2) # Reactive matrix (source terms)
+    S = ZeroMatrix(dim+2, dim+2) # Reactive matrix (source terms)
     S[0, 0] = m / rho # Mass source term (divided by rho as S matrix will be later on multiplied by U vector)
     for i in range(1, dim+1): # Body force
         S[i, 0] = f[i-1]

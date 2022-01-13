@@ -6,16 +6,16 @@ from KratosMultiphysics.sympy_fe_utilities import                  \
     SubstituteMatrixValue, SubstituteScalarValue,                  \
     OutputMatrix_CollectingFactors, OutputVector_CollectingFactors
 
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.symbolic_parameters \
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.symbolic_parameters \
     import FormulationParameters, ShockCapturingParameters
 
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.symbolic_geometry \
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.symbolic_geometry \
      import GeometryDataFactory
 
-import generate_convective_flux
-import generate_diffusive_flux
-import generate_source_term
-import generate_stabilization_matrix
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_source_term
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_stabilization_matrix
 
 
 #################################################
@@ -32,8 +32,8 @@ is_explicit = True                  # Explicit or implicit time integration
 shock_capturing = True
 mode = 'c'
 
-template_filename = "template.txt"
-output_filename = "result.out"
+template_filename = "../templates/compressible_navier_stokes_explicit_cpp_quad_template_with_integration.cpp"
+output_filename = "../result.out"
 
 
 #################################################
@@ -300,6 +300,9 @@ def WriteLeftAndRightHandSide(lhs, rhs, outstring):
 #                                               #
 #################################################
 
+import os
+import pathlib
+os.chdir(pathlib.Path(__file__).parent)
 
 with open(template_filename) as f:
     outstring = f.read()

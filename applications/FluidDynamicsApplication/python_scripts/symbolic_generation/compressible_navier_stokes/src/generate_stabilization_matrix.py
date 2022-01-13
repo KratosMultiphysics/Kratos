@@ -1,16 +1,17 @@
-from sympy import *
-from KratosMultiphysics import *
-from KratosMultiphysics.sympy_fe_utilities import *
+import sympy
+from KratosMultiphysics.sympy_fe_utilities import sqrt
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
+    import ZeroMatrix
 
 def ComputeStabilizationMatrix(params):
     """This function calculates the stabilization matrix"""
 
     dim = params.dim         # Spatial dimensions
-    Tau = zeros(dim+2,dim+2) # Stabilization Matrix
+    Tau = ZeroMatrix(dim+2,dim+2) # Stabilization Matrix
 
-    tau1 = Symbol('tau1')
-    tau2 = Symbol('tau2')
-    tau3 = Symbol('tau3')
+    tau1 = sympy.Symbol('tau1')
+    tau2 = sympy.Symbol('tau2')
+    tau3 = sympy.Symbol('tau3')
 
     Tau[0,0] = tau1
     for i in range (0,dim):
@@ -43,7 +44,7 @@ def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu
     tau3_inv = (params.stab_c1 * alpha / params.h**2) + tau1_inv
 
     # Save the obtained values in the stabilization matrix
-    Tau = zeros(params.dim + 2, params.dim + 2)
+    Tau = ZeroMatrix(params.dim + 2, params.dim + 2)
     Tau[0,0] = 1.0 / tau1_inv
     for i in range (params.dim):
         Tau[i + 1, i + 1] = 1.0 / tau2_inv

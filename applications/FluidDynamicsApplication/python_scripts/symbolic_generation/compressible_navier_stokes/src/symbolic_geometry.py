@@ -1,5 +1,6 @@
 import sympy
-from KratosMultiphysics.sympy_fe_utilities import DefineMatrix
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
+    import DefineMatrix, DefineVector
 
 def GeometryDataFactory(geometry_name, ngauss = None):
     geodata_dict = {
@@ -22,26 +23,48 @@ def GeometryDataFactory(geometry_name, ngauss = None):
 
 
 class GeometryData:
+    nnodes = None                   # Number of nodes
+    ndims = None                    # Dimension the geometry is embeded in
+    blocksize = None                # Number of Dof per node. Generally = ndims+2
+    ndofs = None                    # Number of Dof per element. Generally = blocksize*nnodes
+
+    symbolic_integration = None     # True if the integration loop is to be performed in the generator (only valid for simplex geometries)
+                                    # False if the integration loop is in the template
+
     def __init__(self, ngauss):
         self.ngauss = ngauss
         self._N = None
         self._DN = None
 
+
+    def SymbolicIntegrationPoints(self):
+        "Returns the number of gauss points to be evaluated at symbolic time"
+        return range(self.ngauss) if self.symbolic_integration else [0]
+
     def N(self):
+        "Shape functions evaluated at all gauss points"
         if self._N is None:
             self._N = self._ComputeShapeFunctions()
         return self._N
 
+    def N_gauss(self, i_gauss):
+        "Returns the shape functions at a gauss point as a vertical vector"
+        if self.symbolic_integration:
+            return sympy.Matrix(self.N()[i_gauss,:]).T
+        else:
+            return self.N()
+
     def _ComputeShapeFunctions(self):
-        raise NotImplementedError("Calling base class GeometryData's ShapeFunctions.")
+        raise NotImplementedError("Calling base class GeometryData's _ComputeShapeFunctions.")
 
     def DN(self):
+        "Shape functions gradients evaluated at all gauss points"
         if self._DN is None:
             self._DN = self._ComputeShapeFunctionsGradients()
         return self._DN
 
     def _ComputeShapeFunctionsGradients(self):
-        raise NotImplementedError("Calling base class GeometryData's ShapeFunctionsGradients.")
+        raise NotImplementedError("Calling base class GeometryData's _ComputeShapeFunctionsGradients.")
 
 
 class TriangleData(GeometryData):
@@ -49,6 +72,7 @@ class TriangleData(GeometryData):
     ndims = 2
     blocksize = ndims+2
     ndofs = blocksize*nnodes
+    symbolic_integration = True
 
     def __init__(self, ngauss = 3):
         super().__init__(ngauss)
@@ -72,7 +96,7 @@ class TriangleData(GeometryData):
         raise NotImplementedError(msg)
 
     def _ComputeShapeFunctionsGradients(self):
-        return DefineMatrix('DN', self.nnodes, self.ndims)
+        return DefineMatrix('DN_DX', self.nnodes, self.ndims)
 
 
 class QuadrilateralData(GeometryData):
@@ -80,28 +104,16 @@ class QuadrilateralData(GeometryData):
     ndims = 2
     blocksize = ndims+2
     ndofs = blocksize*nnodes
+    symbolic_integration = False
 
     def __init__(self, ngauss = 4):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
-        N = [lambda xi, eta: 0.25 * (1 - xi) * (1 - eta),
-            lambda xi, eta: 0.25 * (1 + xi) * (1 - eta),
-            lambda xi, eta: 0.25 * (1 - xi) * (1 + eta),
-            lambda xi, eta: 0.25 * (1 + xi) * (1 + eta)]
-
-        if self.ngauss == 1:
-            return sympy.Matrix(self.ngauss, 4, lambda _, j: N[j](0, 0))
-        if self.ngauss == 4:
-            xi = [-3**-0.5,  3**0.5, -3**-0.5, 3**0.5]
-            eta = [-3**-0.5, -3**0.5,  3**-0.5, 3**0.5]
-            return sympy.Matrix(self.ngauss, 4, lambda i, j: N[j](xi[i], eta[i]))
-
-        msg = "Quadrilateral with {} gauss points not implemented".format(self.ngauss)
-        raise NotImplementedError(msg)
+        return DefineVector('N', self.nnodes)
 
     def _ComputeShapeFunctionsGradients(self):
-        return DefineMatrix('DN', self.nnodes, self.ndims)
+        return DefineMatrix('DN_DX', self.nnodes, self.ndims)
 
 
 class TetrahedronData(GeometryData):
@@ -109,6 +121,7 @@ class TetrahedronData(GeometryData):
     ndims = 3
     blocksize = ndims+2
     ndofs = blocksize*nnodes
+    symbolic_integration = True
 
     def __init__(self, ngauss = 4):
         super().__init__(ngauss)
@@ -139,5 +152,5 @@ class TetrahedronData(GeometryData):
         raise NotImplementedError(msg)
 
     def _ComputeShapeFunctionsGradients(self):
-        return DefineMatrix('DN', self.nnodes, self.ndims)
+        return DefineMatrix('DN_DX', self.nnodes, self.ndims)
 
