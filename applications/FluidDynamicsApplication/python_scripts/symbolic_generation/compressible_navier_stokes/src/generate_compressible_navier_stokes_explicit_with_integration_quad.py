@@ -1,10 +1,16 @@
 # import KratosMultiphysics
-from sympy import Symbol, Matrix, zeros, diff
+from sympy import Symbol, Matrix, geometry, zeros, diff
 
 from KratosMultiphysics.sympy_fe_utilities import                  \
-    DfjDxi, Compute_RHS, Compute_LHS,  \
+    DfjDxi, Compute_RHS, Compute_LHS,                              \
     SubstituteMatrixValue, SubstituteScalarValue,                  \
     OutputMatrix_CollectingFactors, OutputVector_CollectingFactors
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.symbolic_parameters \
+    import FormulationParameters, ShockCapturingParameters
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.symbolic_geometry \
+     import GeometryDataFactory
 
 import generate_convective_flux
 import generate_diffusive_flux
@@ -26,8 +32,8 @@ is_explicit = True                  # Explicit or implicit time integration
 shock_capturing = True
 mode = 'c'
 
-template_filename = "compressible_navier_stokes_explicit_cpp_quad_template_with_integration.cpp"
-output_filename = "compressible_navier_stokes_quad.cpp"
+template_filename = "template.txt"
+output_filename = "result.out"
 
 
 #################################################
@@ -246,10 +252,10 @@ def ComputeLeftAndRightHandSide():
     SubstituteMatrixValue(rv_, f, f_gauss)
     SubstituteScalarValue(rv_, rg, r_gauss)
     SubstituteScalarValue(rv_, mg, mass_gauss)
-    SubstituteScalarValue(rv_, alpha_sc, alpha_sc_gauss)
-    SubstituteScalarValue(rv_, mu_sc, mu_sc_gauss)
-    SubstituteScalarValue(rv_, beta_sc, beta_sc_gauss)
-    SubstituteScalarValue(rv_, lamb_sc, lamb_sc_gauss)
+    SubstituteScalarValue(rv_, sc.alpha, alpha_sc_gauss)
+    SubstituteScalarValue(rv_, sc.mu, mu_sc_gauss)
+    SubstituteScalarValue(rv_, sc.beta, beta_sc_gauss)
+    SubstituteScalarValue(rv_, sc.lambda_, lamb_sc_gauss)
     if subscales_type == "OSS":
         SubstituteMatrixValue(rv_, res_proj, res_proj_gauss)
 
@@ -298,119 +304,102 @@ def WriteLeftAndRightHandSide(lhs, rhs, outstring):
 with open(template_filename) as f:
     outstring = f.read()
 
-params = {
-    "dim": -1,                                       # Dimension
-    "mu": Symbol('data.mu', positive=True),          # Dynamic viscosity
-    "h": Symbol('data.h', positive=True),            # Element size
-    "lambda": Symbol('data.lambda', positive=True),  # Thermal Conductivity
-    "c_v": Symbol('data.c_v', positive=True),        # Specific Heat at constant volume
-    "gamma": Symbol('data.gamma', positive=True),    # Gamma (Cp/Cv)
-    "stab_c1": Symbol('stab_c1', positive=True),     # Algorithm constant
-    "stab_c2": Symbol('stab_c2', positive=True),     # Algorithm constant
-    "stab_c3": Symbol('stab_c3', positive=True),     # Algorithm constant
-}
+
+geometry = GeometryDataFactory("quadrilateral")
+params = FormulationParameters(geometry)
 
 
-for dim in dim_vector:
-    # Change dimension accordingly
-    params["dim"] = dim
+# Shape functions and Gauss pts. settings
+n_nodes = geometry.nnodes
+n_gauss = geometry.ngauss
+dim = geometry.ndims
 
-    # Shape functions and Gauss pts. settings
-    (n_nodes, n_gauss) = {
-        1: (2, 2),  # Line
-        2: (4, 4),  # Quad
-        3: (8, 8)   # Hexa
-    }[dim]
+N = DefineVector("N", n_nodes)
+DN_DX = DefineMatrix("DN_DX", n_nodes, dim)
 
-    N = DefineVector("N", n_nodes)
-    DN_DX = DefineMatrix("DN_DX", n_nodes, dim)
+# Unknown fields definition (Used later for the gauss point interpolation)
+block_size = dim + 2
+U = DefineMatrix('data.U', n_nodes, block_size)  # Vector of Unknowns
+ResProj = DefineMatrix('data.ResProj', n_nodes, block_size)
+if is_explicit:  # Previous step data
+    dUdt = DefineMatrix('data.dUdt', n_nodes, block_size)
+else:
+    Un = DefineMatrix('data.Un', n_nodes, block_size)
+    Unn = DefineMatrix('data.Unn', n_nodes, block_size)
+    # Backward differantiation coefficients
+    bdf = [Symbol('bdf0'), Symbol('bdf1'), Symbol('bdf2')]
 
-    # Unknown fields definition (Used later for the gauss point interpolation)
-    block_size = dim + 2
-    U = DefineMatrix('data.U', n_nodes, block_size)  # Vector of Unknowns
-    ResProj = DefineMatrix('data.ResProj', n_nodes, block_size)
-    if is_explicit:  # Previous step data
-        dUdt = DefineMatrix('data.dUdt', n_nodes, block_size)
-    else:
-        Un = DefineMatrix('data.Un', n_nodes, block_size)
-        Unn = DefineMatrix('data.Unn', n_nodes, block_size)
-        # Backward differantiation coefficients
-        bdf = [Symbol('bdf0'), Symbol('bdf1'), Symbol('bdf2')]
+# Test functions defintiion
+w = DefineMatrix('w', n_nodes, block_size)   # Variables field test
 
-    # Test functions defintiion
-    w = DefineMatrix('w', n_nodes, block_size)   # Variables field test
+# External terms definition
+m_ext = DefineVector('data.m_ext', n_nodes)       # Mass source term
+r_ext = DefineVector('data.r_ext', n_nodes)       # Thermal sink/source term
+f_ext = DefineMatrix('data.f_ext', n_nodes, dim)  # Forcing term
 
-    # External terms definition
-    m_ext = DefineVector('data.m_ext', n_nodes)       # Mass source term
-    r_ext = DefineVector('data.r_ext', n_nodes)       # Thermal sink/source term
-    f_ext = DefineMatrix('data.f_ext', n_nodes, dim)  # Forcing term
+# Nodal artificial magnitudes
+alpha_sc_nodes = DefineVector('data.alpha_sc_nodes', n_nodes)  # mass diffusivity
+mu_sc_nodes = DefineVector('data.mu_sc_nodes', n_nodes)        # dynamic viscosity
+beta_sc_nodes = DefineVector('data.beta_sc_nodes', n_nodes)    # bulk viscosity
+lamb_sc_nodes = DefineVector('data.lamb_sc_nodes', n_nodes)    # bulk viscosity
 
-    # Nodal artificial magnitudes
-    alpha_sc_nodes = DefineVector('data.alpha_sc_nodes', n_nodes)  # mass diffusivity
-    mu_sc_nodes = DefineVector('data.mu_sc_nodes', n_nodes)        # dynamic viscosity
-    beta_sc_nodes = DefineVector('data.beta_sc_nodes', n_nodes)    # bulk viscosity
-    lamb_sc_nodes = DefineVector('data.lamb_sc_nodes', n_nodes)    # bulk viscosity
+# Construction of the variational equation
+Ug = DefineVector('Ug', block_size)     # Dofs vector
+H = DefineMatrix('H', block_size, dim)  # Gradient of U
+mg = Symbol('mg')                       # Mass source term
+f = DefineVector('f', dim)              # Body force vector
+rg = Symbol('rg')                       # Thermal source/sink term
+V = DefineVector('V', block_size)       # Test function
+Q = DefineMatrix('Q', block_size, dim)  # Gradient of V
+acc = DefineVector('acc', block_size)   # Derivative of Dofs/Time
+G = DefineMatrix('G', block_size, dim)  # Diffusive Flux matrix
+res_proj = DefineVector('res_proj', block_size)  # OSS Residuals projection
 
-    # Construction of the variational equation
-    Ug = DefineVector('Ug', block_size)     # Dofs vector
-    H = DefineMatrix('H', block_size, dim)  # Gradient of U
-    mg = Symbol('mg')                       # Mass source term
-    f = DefineVector('f', dim)              # Body force vector
-    rg = Symbol('rg')                       # Thermal source/sink term
-    V = DefineVector('V', block_size)       # Test function
-    Q = DefineMatrix('Q', block_size, dim)  # Gradient of V
-    acc = DefineVector('acc', block_size)   # Derivative of Dofs/Time
-    G = DefineMatrix('G', block_size, dim)  # Diffusive Flux matrix
-    res_proj = DefineVector('res_proj', block_size)  # OSS Residuals projection
+# Calculate the Gauss point residual
+# Matrix Computation
+S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
+A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
+# Shock capturing artificial magnitudes
+if shock_capturing:
+    sc = ShockCapturingParameters()
+    G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(
+        Ug, H, params, sc)
+else:
+    G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
+Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
 
-    # Calculate the Gauss point residual
-    # Matrix Computation
-    S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
-    A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
-    # Shock capturing artificial magnitudes
-    if shock_capturing:
-        alpha_sc = Symbol('alpha_sc', positive=True)  # density diffusivity
-        mu_sc = Symbol('mu_sc', positive=True)      # dynamic viscosity
-        beta_sc = Symbol('beta_sc', positive=True)  # bulk viscosity
-        lamb_sc = Symbol('lamb_sc', positive=True)  # thermal conductivity
-        G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(
-            Ug, H, params, alpha_sc, beta_sc, lamb_sc, mu_sc)
-    else:
-        G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
-    Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
+# Non-linear operator definition
+print("\nCompute non-linear operator\n")
+L = ComputeNonLinearOperator()
 
-    # Non-linear operator definition
-    print("\nCompute non-linear operator\n")
-    L = ComputeNonLinearOperator()
+# FE residuals definition
+# Note that we include the DOF time derivatives in both the implicit and
+# the explicit cases
+# It is required to include it in both cases to calculate the subscale
+# inertial component
+# In the implicit case it is computed with the BDF formulas
+# In the explicit case it is linearised by using the values already stored
+# in the database
+res = - acc - L
 
-    # FE residuals definition
-    # Note that we include the DOF time derivatives in both the implicit and
-    # the explicit cases
-    # It is required to include it in both cases to calculate the subscale
-    # inertial component
-    # In the implicit case it is computed with the BDF formulas
-    # In the explicit case it is linearised by using the values already stored
-    # in the database
-    res = - acc - L
+# Non-linear adjoint operator definition
+print("\nCompute non-linear adjoint operator\n")
+L_adj = ComputeAdjointOperator()
 
-    # Non-linear adjoint operator definition
-    print("\nCompute non-linear adjoint operator\n")
-    L_adj = ComputeAdjointOperator()
+# Variational formulation (Galerkin functional)
+print("\nCompute variational formulation\n")
+(rv, subscales) = ComputeVariationalFormulation()
 
-    # Variational formulation (Galerkin functional)
-    print("\nCompute variational formulation\n")
-    (rv, subscales) = ComputeVariationalFormulation()
+# OSS Residual projections calculation #
+# Calculate the residuals projection
+print("\nCalculate the projections of the residuals")
+projections = CalculateResidualsProjections()
+outstring = OutputProjections(*projections, outstring)
 
-    # OSS Residual projections calculation #
-    # Calculate the residuals projection
-    print("\nCalculate the projections of the residuals")
-    projections = CalculateResidualsProjections()
-    outstring = OutputProjections(*projections, outstring)
-
-    # LSH and RHS
-    for subscales_type in subscales_vector:
-        matrices = ComputeLeftAndRightHandSide()
-        outstring = WriteLeftAndRightHandSide(*matrices, outstring)
+# LSH and RHS
+for subscales_type in subscales_vector:
+    matrices = ComputeLeftAndRightHandSide()
+    outstring = WriteLeftAndRightHandSide(*matrices, outstring)
 
 
 print("\nWriting " + output_filename + " \n")

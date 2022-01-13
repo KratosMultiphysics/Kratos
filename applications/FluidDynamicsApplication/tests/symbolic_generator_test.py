@@ -1,6 +1,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
+import KratosMultiphysics
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes. \
+    compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
+
 import os
 
 

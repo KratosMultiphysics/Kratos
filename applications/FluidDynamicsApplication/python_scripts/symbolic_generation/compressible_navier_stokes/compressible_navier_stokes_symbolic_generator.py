@@ -5,16 +5,16 @@ import KratosMultiphysics
 import sympy
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.params_dict \
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.symbolic_parameters \
      import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
 
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.geometry_data \
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.symbolic_geometry \
      import GeometryDataFactory
 
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_convective_flux
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_diffusive_flux
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_source_term
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes import generate_stabilization_matrix
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_source_term
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_stabilization_matrix
 
 class CompressibleNavierStokesSymbolicGenerator:
     def __init__(self, settings):
@@ -441,33 +441,3 @@ class CompressibleNavierStokesSymbolicGenerator:
         self.outputfile.close()
 
         self._print(1, " - {} generated".format(filename))
-
-
-if __name__ == "__main__":
-    parameters = KratosMultiphysics.Parameters("""
-    {
-        "2D" :
-        {
-            "geometry": "triangle",
-            "template_filename" : "compressible_navier_stokes_explicit_cpp_template_with_integration.cpp",
-            "output_filename"   : "compressible_explicit_navier_stokes.cpp"
-        },
-        "3D" :
-        {
-            "geometry": "tetrahedron",
-            "template_filename" : "compressible_explicit_navier_stokes.cpp",
-            "output_filename"   : "compressible_explicit_navier_stokes.cpp"
-        }
-    }
-    """)
-
-    path = pathlib.Path(__file__).parent
-    os.chdir(path)
-
-    generator_2d = CompressibleNavierStokesSymbolicGenerator(parameters["2D"])
-    generator_2d.Generate()
-    generator_2d.Write()
-
-    generator_3d = CompressibleNavierStokesSymbolicGenerator(parameters["3D"])
-    generator_3d.Generate()
-    generator_3d.Write()
