@@ -398,13 +398,12 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
     Matrix DN_DX_iso;
     Matrix DN_DX;
     Matrix Jinv;
-    
-    r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
 
     if (data.UseOSS)
     {
         for(const auto& gauss_point: gauss_points)
         {
+            r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
             r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
             r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
             GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);

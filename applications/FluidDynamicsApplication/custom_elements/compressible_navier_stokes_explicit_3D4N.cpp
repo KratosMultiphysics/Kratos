@@ -230,7 +230,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMomentumProjection(const Pr
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Calculate shock capturing values
-    BoundedVector<double, 12> mom_proj;
+    BoundedVector<double, Dim*NumNodes> mom_proj;
     const auto& DN_DX = data.DN_DX;
 
 const double cmom_proj0 =             0.1381966*data.f_ext(1,0);

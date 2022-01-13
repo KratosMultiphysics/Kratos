@@ -212,6 +212,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMomentumProjection(const Pr
     KRATOS_TRY
 
     // Struct to pass around the data
+    const auto& DN_DX = data.DN_DX;
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
@@ -244,6 +245,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateDensityProjection(const Pro
     KRATOS_TRY
 
     // Struct to pass around the data
+    const auto& DN_DX = data.DN_DX;
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
@@ -272,6 +274,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateTotalEnergyProjection(const
     KRATOS_TRY
 
     // Struct to pass around the data
+    const auto& DN_DX = data.DN_DX;
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
@@ -304,16 +307,20 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateRightHandSideInternal(
     // Struct to pass around the data
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
+    const auto& DN_DX = data.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 12.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 1.0;
 
-    if (data.UseOSS) {
-    //substitute_rhs_3D_OSS
-    } else {
-    //substitute_rhs_3D_ASGS
+    if (data.UseOSS)
+    {
+//substitute_rhs_3D_OSS
+    }
+    else
+    {
+//substitute_rhs_3D_ASGS
     }
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
