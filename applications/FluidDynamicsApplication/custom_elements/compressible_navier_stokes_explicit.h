@@ -683,16 +683,43 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
     }
 }
 
+/**
+ *  This namespace is used to implement the compile-time choice of:
+ *  1. Shape function calculator
+ *  2. Element size calculator
+ *
+ *  [1] This is necessary because simplex geometries' shape functions are known
+ *  at compile-time whereas non-simplex's ones are not (because they depend on
+ *  the actual shape of the element).
+ *
+ *  [2] This is useful because GradientsElementSize is only implemented for
+ *  simplex types.
+ *
+ *  This problem is solved using SFINAE
+ */
 namespace CompressibleNavierStokesExplicitInternal
 {
     template<unsigned int TDim, unsigned int TNumNodes>
     using ElementDataStruct = typename CompressibleNavierStokesExplicit<TDim, TNumNodes>::ElementDataStruct;
 
-    // Using SFINAE to select the shape function and element size computation
 
-    // Specialization for geometries with uniform jacobian
+    constexpr bool IsSimplex(const bool dimensions, const bool nnodes)
+    {
+        return dimensions == nnodes-1;
+    }
+
+    // If is simplex, it becomes: using EnableIfSimplex = T
+    // Otherwise it causes a Substitution Failure
+    template<unsigned int TDim, unsigned int TNumNodes, typename T>
+    using EnableIfSimplex = typename std::enable_if<IsSimplex(TDim, TNumNodes), T>::type;
+
+    // The oposite of EnableIfSimplex
+    template<unsigned int TDim, unsigned int TNumNodes, typename T>
+    using EnableIfNotSimplex = typename std::enable_if<!IsSimplex(TDim, TNumNodes), T>::type;
+
+    // Specialization for simplex geometries
     template<unsigned int TDim, unsigned int TNumNodes>
-    typename std::enable_if<TDim+1 == TNumNodes, void>::type ComputeGeometryData(
+    EnableIfSimplex<TDim, TNumNodes, void> ComputeGeometryData(
         const Geometry<Node<3>> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
@@ -700,15 +727,16 @@ namespace CompressibleNavierStokesExplicitInternal
         rData.h = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rData.DN_DX);
     }
 
-    /* Specialization for geometries with non-uniform jacobian
+    /**
+     * Specialization for geometries with non-uniform jacobian (non-simplex)
      * Shape functions cannot be obtained here. They will need to be calculated
      * during integration at each gauss point.
      */
     template<unsigned int TDim, unsigned int TNumNodes>
-    typename std::enable_if<TDim+1 != TNumNodes, void>::type ComputeGeometryData(
+    EnableIfNotSimplex<TDim, TNumNodes, void> ComputeGeometryData(
         const Geometry<Node<3>> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
-    {        
+    {
         switch (TDim) {
             case 2: rData.volume = rGeometry.Area();   break;
             case 3: rData.volume = rGeometry.Volume(); break;
@@ -975,11 +1003,11 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::AddExplicitContribution(
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node)
     {
         auto& r_node = r_geometry[i_node];
-        
+
         IndexType i_dof = BlockSize * i_node;
-        
+
         AtomicAdd(r_node.FastGetSolutionStepValue(REACTION_DENSITY), rhs[i_dof++]);
-        
+
         for (IndexType d = 0; d < Dim; ++d)
         {
             AtomicAdd(r_node.FastGetSolutionStepValue(REACTION)[d], rhs[i_dof++]);
