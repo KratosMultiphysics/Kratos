@@ -703,7 +703,7 @@ namespace CompressibleNavierStokesExplicitInternal
     using ElementDataStruct = typename CompressibleNavierStokesExplicit<TDim, TNumNodes>::ElementDataStruct;
 
 
-    constexpr bool IsSimplex(const bool dimensions, const bool nnodes)
+    constexpr bool IsSimplex(const unsigned int dimensions, const unsigned int nnodes)
     {
         return dimensions == nnodes-1;
     }
