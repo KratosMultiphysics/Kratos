@@ -54,6 +54,9 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
     def testGeneratorTriangle(self):
         self._RunTest("triangle")
 
+    def testGeneratorQuad(self):
+        self._RunTest("quadrilateral")
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
