@@ -99,7 +99,7 @@ namespace Kratos
                 for (IndexType i = 0; i < number_of_nodes_master; ++i)
                 {
                     IndexType index = 2 * i;
-                    u[index]     = r_geometry_master[i].FastGetSolutionStepValue(DIRECTORINC_X);
+                    u[index] = r_geometry_master[i].FastGetSolutionStepValue(DIRECTORINC_X);
                     u[index + 1] = r_geometry_master[i].FastGetSolutionStepValue(DIRECTORINC_Y);
                 }
                 for (IndexType i = 0; i < number_of_nodes_slave; ++i)
@@ -174,8 +174,8 @@ namespace Kratos
         const SizeType number_of_nodes_master = r_geometry_master.size();
         const SizeType number_of_nodes_slave = r_geometry_slave.size();
 
-        if (rResult.size() != 5 * (number_of_nodes_master + number_of_nodes_slave))
-            rResult.resize(5 * (number_of_nodes_master + number_of_nodes_slave), false);
+        if (rResult.size() != 2 * (number_of_nodes_master + number_of_nodes_slave))
+            rResult.resize(2 * (number_of_nodes_master + number_of_nodes_slave), false);
 
         for (IndexType i = 0; i < number_of_nodes_master; ++i) {
             const IndexType index = i * 2;
