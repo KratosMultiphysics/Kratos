@@ -464,6 +464,10 @@ KRATOS_CREATE_VARIABLE(TableStreamUtility::Pointer, TABLE_UTILITY )
 //for Geometry Variables
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
 
+//for Variational redistance
+KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_1)
+KRATOS_CREATE_VARIABLE(double, VARIATIONAL_REDISTANCE_COEFFICIENT_2)
+
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -928,5 +932,9 @@ void KratosApplication::RegisterVariables() {
 
     //--------------- Geometry Variables -------------------//
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARAMETER_2D_COORDINATES)
+
+    // Variational redistance
+    KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_1)
+    KRATOS_REGISTER_VARIABLE(VARIATIONAL_REDISTANCE_COEFFICIENT_2)
 }
 }  // namespace Kratos.
