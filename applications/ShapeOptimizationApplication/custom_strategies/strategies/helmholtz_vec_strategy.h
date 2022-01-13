@@ -24,6 +24,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h"
+#include "utilities/condition_number_utility.h"
 
 namespace Kratos {
 
@@ -61,7 +62,8 @@ public:
   KRATOS_CLASS_POINTER_DEFINITION(HelmholtzVecStrategy);
 
   typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;  
+  typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
   typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
 
   /*@} */
@@ -120,8 +122,18 @@ public:
     VariableUtils().UpdateCurrentToInitialConfiguration(
         BaseType::GetModelPart().GetCommunicator().LocalMesh().Nodes());
 
+ 
+
     // Solve for the mesh movement
     mstrategy->Solve();
+
+        // double condition_number = ConditionNumberUtility().GetConditionNumber(mstrategy->GetSystemMatrix());
+        // std::cout<<"condition_number : "<<condition_number<<std::endl;   
+
+    std::cout<<"system matrix : "<<mstrategy->GetSystemMatrix()<<std::endl;
+
+
+
 
     // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)
@@ -148,7 +160,10 @@ public:
   /*@} */
   /**@name Inquiry */
   /*@{ */
-
+    TSystemMatrixType &GetSystemMatrix() override
+    {
+        return mstrategy->GetSystemMatrix();
+    }
   /*@} */
   /**@name Friends */
   /*@{ */

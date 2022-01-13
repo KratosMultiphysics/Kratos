@@ -38,8 +38,10 @@ class ImplicitVertexMorphingMapper():
     def GetDefaultImplicitVMSettings(cls):
         return KM.Parameters("""{
             "element_type" : "helmholtz_vec_element",
-            "surface_filter_radius" : 0.000000000001,
+            "only_design_surface_parameterization" : true,
+            "surface_filter_radius" : 0.000000000001,            
             "bulk_filter_radius" : 0.000000000001,
+            "poisson_ratio" : 0.3,
             "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",

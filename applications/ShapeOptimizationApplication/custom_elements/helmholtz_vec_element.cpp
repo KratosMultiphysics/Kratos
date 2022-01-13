@@ -102,23 +102,13 @@ void HelmholtzVecElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         nodal_vals[3 * node_element + 2] = source[2]/node_weight;
     }
 
-    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
-        noalias(rLeftHandSideMatrix) += M;
-        noalias(rRightHandSideVector) += prod(K,nodal_vals);
-        //apply drichlet BC
-        Vector temp(number_of_points*3);
-        for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
-            const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS,0);
-            temp[3*iNode] = vars[0];
-            temp[3*iNode+1] = vars[1];
-            temp[3*iNode+2] = vars[2];
-        }
-        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);     
-    }            
-    else{
-        noalias(rLeftHandSideMatrix) += K;
-        noalias(rRightHandSideVector) += nodal_vals;
-    } 
+    noalias(rLeftHandSideMatrix) += K;
+    noalias(rRightHandSideVector) += nodal_vals;
+
+    //apply drichlet BC
+    Vector temp;
+    GetValuesVector(temp,0);    
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);    
 
     KRATOS_CATCH("")
 }

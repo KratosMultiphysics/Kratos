@@ -12,14 +12,14 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/helmholtz_condition.h"
+#include "custom_conditions/helmholtz_vec_condition.h"
 #include "includes/variables.h"
 #include "includes/checks.h"
 #include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
-HelmholtzCondition::HelmholtzCondition(HelmholtzCondition const& rOther)
+HelmholtzVecCondition::HelmholtzVecCondition(HelmholtzVecCondition const& rOther)
     : BaseType(rOther)
 {
 }
@@ -27,7 +27,7 @@ HelmholtzCondition::HelmholtzCondition(HelmholtzCondition const& rOther)
 /***********************************************************************************/
 /***********************************************************************************/
 
-HelmholtzCondition& HelmholtzCondition::operator=(HelmholtzCondition const& rOther)
+HelmholtzVecCondition& HelmholtzVecCondition::operator=(HelmholtzVecCondition const& rOther)
 {
     //ALL MEMBER VARIABLES THAT MUST BE KEPT IN AN "=" OPERATION NEEDS TO BE COPIED HERE
 
@@ -39,42 +39,42 @@ HelmholtzCondition& HelmholtzCondition::operator=(HelmholtzCondition const& rOth
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer HelmholtzCondition::Create(
+Condition::Pointer HelmholtzVecCondition::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<HelmholtzCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<HelmholtzVecCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer HelmholtzCondition::Create(
+Condition::Pointer HelmholtzVecCondition::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties
     ) const
 {
     KRATOS_TRY
-    return Kratos::make_intrusive<HelmholtzCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<HelmholtzVecCondition>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer HelmholtzCondition::Clone (
+Condition::Pointer HelmholtzVecCondition::Clone (
     IndexType NewId,
     NodesArrayType const& ThisNodes
     ) const
 {
     KRATOS_TRY
 
-    Condition::Pointer p_new_cond = Kratos::make_intrusive<HelmholtzCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+    Condition::Pointer p_new_cond = Kratos::make_intrusive<HelmholtzVecCondition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
     p_new_cond->SetData(this->GetData());
     p_new_cond->Set(Flags(*this));
     return p_new_cond;
@@ -85,7 +85,7 @@ Condition::Pointer HelmholtzCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzCondition::EquationIdVector(
+void HelmholtzVecCondition::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -120,7 +120,7 @@ void HelmholtzCondition::EquationIdVector(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void HelmholtzCondition::GetDofList(
+void HelmholtzVecCondition::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -150,7 +150,7 @@ void HelmholtzCondition::GetDofList(
 
 //******************************************************************************
 //******************************************************************************
-void HelmholtzCondition::GetValuesVector(VectorType &rValues,
+void HelmholtzVecCondition::GetValuesVector(VectorType &rValues,
                                             int Step) const {
   const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
@@ -184,7 +184,7 @@ void HelmholtzCondition::GetValuesVector(VectorType &rValues,
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzCondition::CalculateRightHandSide(
+void HelmholtzVecCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -196,7 +196,7 @@ void HelmholtzCondition::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzCondition::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void HelmholtzVecCondition::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == HELMHOLTZ_MASS_MATRIX)
         CalculateSurfaceMassMatrix(rOutput,rCurrentProcessInfo);
@@ -204,7 +204,7 @@ void HelmholtzCondition::Calculate(const Variable<Matrix>& rVariable, Matrix& rO
 }
 /***********************************************************************************/
 /***********************************************************************************/
-void HelmholtzCondition::CalculateLocalSystem(
+void HelmholtzVecCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo
@@ -241,19 +241,44 @@ void HelmholtzCondition::CalculateLocalSystem(
 
     MatrixType K = A + M;     
 
-    noalias(rLeftHandSideMatrix) += K;
 
-    //apply drichlet BC
-    Vector temp;
-    GetValuesVector(temp,0);    
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);    
+    const unsigned int number_of_points = r_geometry.size();
+    Vector nodal_vals(number_of_points*dimension);
+    for(unsigned int node_element = 0; node_element<number_of_points; node_element++)
+    {
+        const VectorType &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
+        auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+        if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS])
+            node_weight = 1.0;
+        nodal_vals[3 * node_element + 0] = source[0]/node_weight;
+        nodal_vals[3 * node_element + 1] = source[1]/node_weight;
+        nodal_vals[3 * node_element + 2] = source[2]/node_weight;
+    }
+
+    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS]){
+        noalias(rLeftHandSideMatrix) += M;
+        noalias(rRightHandSideVector) += prod(K,nodal_vals);
+        //apply drichlet BC
+        Vector temp(number_of_points*3);
+        for (SizeType iNode = 0; iNode < number_of_points; ++iNode) {
+            const VectorType &vars = r_geometry[iNode].FastGetSolutionStepValue(HELMHOLTZ_VARS,0);
+            temp[3*iNode] = vars[0];
+            temp[3*iNode+1] = vars[1];
+            temp[3*iNode+2] = vars[2];
+        }
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);     
+    }            
+    else{
+        noalias(rLeftHandSideMatrix) += K;
+        // noalias(rRightHandSideVector) += nodal_vals;
+    } 
 
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-int HelmholtzCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int HelmholtzVecCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
@@ -273,7 +298,7 @@ int HelmholtzCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzCondition::save( Serializer& rSerializer ) const
+void HelmholtzVecCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
 }
@@ -281,7 +306,7 @@ void HelmholtzCondition::save( Serializer& rSerializer ) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzCondition::load( Serializer& rSerializer )
+void HelmholtzVecCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
 }
@@ -289,7 +314,7 @@ void HelmholtzCondition::load( Serializer& rSerializer )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzCondition::CalculateNormal(VectorType & r_n) const
+void HelmholtzVecCondition::CalculateNormal(VectorType & r_n) const
 {
     const auto& r_cond_geom = GetGeometry();
 
@@ -310,7 +335,7 @@ void HelmholtzCondition::CalculateNormal(VectorType & r_n) const
 
 /***********************************************************************************/
 /***********************************************************************************/
-void HelmholtzCondition::CalculateSurfaceMassMatrix(
+void HelmholtzVecCondition::CalculateSurfaceMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -360,7 +385,7 @@ void HelmholtzCondition::CalculateSurfaceMassMatrix(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void HelmholtzCondition::GetParentElementShapeFunctionsValues(
+void HelmholtzVecCondition::GetParentElementShapeFunctionsValues(
     MatrixType& rNMatrix,
     const IntegrationMethod& rIntegrationMethod,
     const ProcessInfo& rCurrentProcessInfo
@@ -403,7 +428,7 @@ void HelmholtzCondition::GetParentElementShapeFunctionsValues(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzCondition::CalculateSurfaceStiffnessMatrix(
+void HelmholtzVecCondition::CalculateSurfaceStiffnessMatrix(
     MatrixType& rStiffnessMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -413,7 +438,7 @@ void HelmholtzCondition::CalculateSurfaceStiffnessMatrix(
     const auto& r_cond_prop = GetProperties();
 
     // Checking radius
-    KRATOS_ERROR_IF_NOT(r_cond_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzCondition!" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_cond_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzVecCondition!" << std::endl;
 
     const auto& r_cond_geom = GetGeometry();
     SizeType dimension = r_cond_geom.WorkingSpaceDimension();
@@ -443,8 +468,10 @@ void HelmholtzCondition::CalculateSurfaceStiffnessMatrix(
         MatrixType DN_DX;
         GetParentElementShapeFunctionsGlobalGradients(DN_DX,point_number,integration_method,rCurrentProcessInfo);
         MatrixType DN_DX_t = prod(DN_DX,tangent_projection_matrix);
+        MatrixType D = SetAndModifyConstitutiveLaw(GaussPtsJDet[point_number]);
+        MatrixType B = CalculateBMatrix(DN_DX_t);
         const double r_helmholtz = r_cond_prop[HELMHOLTZ_RADIUS];
-        noalias(A_dirc) += integration_weight * r_helmholtz * r_helmholtz * prod(DN_DX_t, trans(DN_DX_t));
+        noalias(A_dirc) += integration_weight * r_helmholtz * r_helmholtz * prod(trans(B), Matrix(prod(D, B)));
     }
 
     //contruct the stifness matrix in all dims
@@ -459,7 +486,7 @@ void HelmholtzCondition::CalculateSurfaceStiffnessMatrix(
 
 /***********************************************************************************/
 /***********************************************************************************/
-void HelmholtzCondition::GetParentElementShapeFunctionsGlobalGradients(
+void HelmholtzVecCondition::GetParentElementShapeFunctionsGlobalGradients(
     MatrixType& rDN_DX,
     const IndexType PointNumber,
     const IntegrationMethod& rIntegrationMethod,
@@ -505,6 +532,116 @@ void HelmholtzCondition::GetParentElementShapeFunctionsGlobalGradients(
     }    
 
     KRATOS_CATCH("");
+}
+//******************************************************************************
+//******************************************************************************
+HelmholtzVecCondition::MatrixType
+HelmholtzVecCondition::CalculateBMatrix(const MatrixType& rDN_DX) const {
+  KRATOS_TRY;
+
+  const GeometryType &rgeom = this->GetGeometry();
+  SizeType dimension = rgeom.WorkingSpaceDimension();
+  const SizeType num_nodes = rgeom.PointsNumber();
+
+  MatrixType B;
+
+  if (dimension == 2) {
+    B = ZeroMatrix(3, num_nodes * 2);
+
+    SizeType index = 0;
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      B(0, index + 0) = rDN_DX(i_node, 0);
+      B(0, index + 1) = 0.0;
+      B(1, index + 0) = 0.0;
+      B(1, index + 1) = rDN_DX(i_node, 1);
+      B(2, index + 0) = rDN_DX(i_node, 1);
+      B(2, index + 1) = rDN_DX(i_node, 0);
+      index += 2;
+    }
+  }
+
+  else if (dimension == 3) {
+    B = ZeroMatrix(6, num_nodes * 3);
+
+    SizeType index = 0;
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      B(0, index + 0) = rDN_DX(i_node, 0);
+      B(1, index + 1) = rDN_DX(i_node, 1);
+      B(2, index + 2) = rDN_DX(i_node, 2);
+      B(3, index + 0) = rDN_DX(i_node, 1);
+      B(3, index + 1) = rDN_DX(i_node, 0);
+      B(4, index + 1) = rDN_DX(i_node, 2);
+      B(4, index + 2) = rDN_DX(i_node, 1);
+      B(5, index + 0) = rDN_DX(i_node, 2);
+      B(5, index + 2) = rDN_DX(i_node, 0);
+      index += 3;
+    }
+  }
+
+  return B;
+
+  KRATOS_CATCH("");
+}
+
+//******************************************************************************
+//******************************************************************************
+HelmholtzVecCondition::MatrixType
+HelmholtzVecCondition::SetAndModifyConstitutiveLaw(const double detJ0) const {
+  KRATOS_TRY;
+
+  const GeometryType &rgeom = this->GetGeometry();
+  SizeType dimension = rgeom.WorkingSpaceDimension();
+
+  // Stiffening of elements using Jacobian determinants and exponent between
+  // 0.0 and 2.0
+  const double factor =
+      100;               // Factor influences how far the HELMHOLTZ_VARS spreads
+                         // into the fluid mesh
+  const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
+                         // elements; 0 = no stiffening
+  const double quotient = factor / detJ0;
+  const double weighting_factor = 1.0;
+  const double poisson_coefficient = this->pGetProperties()->Has(HELMHOLTZ_POISSON_RATIO)
+    ? this->pGetProperties()->GetValue(HELMHOLTZ_POISSON_RATIO) : 0.3;
+
+  // The ratio between lambda and mu affects relative stiffening against
+  // volume or shape change.
+  const double lambda =
+      weighting_factor * poisson_coefficient /
+      ((1 + poisson_coefficient) * (1 - 2 * poisson_coefficient));
+  const double mu = weighting_factor / (2 * (1 + poisson_coefficient));
+
+  MatrixType constitutive_matrix;
+
+  // stress = lambda*tr(strain tensor)*I + 2*mu*(strain tensor).
+  if (dimension == 2) {
+    constitutive_matrix = ZeroMatrix(3, 3);
+    constitutive_matrix(0, 0) = lambda + 2 * mu;
+    constitutive_matrix(1, 1) = constitutive_matrix(0, 0);
+    constitutive_matrix(2, 2) = mu;
+    constitutive_matrix(0, 1) = lambda;
+    constitutive_matrix(1, 0) = lambda;
+  }
+
+  else if (dimension == 3) {
+    constitutive_matrix = ZeroMatrix(6, 6);
+    constitutive_matrix(0, 0) = lambda + 2 * mu;
+    constitutive_matrix(1, 1) = constitutive_matrix(0, 0);
+    constitutive_matrix(2, 2) = constitutive_matrix(0, 0);
+    constitutive_matrix(3, 3) = mu;
+    constitutive_matrix(4, 4) = mu;
+    constitutive_matrix(5, 5) = mu;
+    constitutive_matrix(0, 1) = lambda;
+    constitutive_matrix(1, 0) = lambda;
+    constitutive_matrix(0, 2) = lambda;
+    constitutive_matrix(2, 0) = lambda;
+    constitutive_matrix(1, 2) = lambda;
+    constitutive_matrix(2, 1) = lambda;
+  }
+
+  return constitutive_matrix;
+
+  KRATOS_CATCH("");
 }
 
 } // Namespace Kratos

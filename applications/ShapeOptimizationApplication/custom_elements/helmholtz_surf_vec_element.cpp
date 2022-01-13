@@ -17,7 +17,8 @@
 
 
 // Project includes
-#include "custom_elements/helmholtz_element.h"
+#include "custom_elements/helmholtz_surf_vec_element.h"
+#include "../StructuralMechanicsApplication/custom_utilities/shellt3_local_coordinate_system.hpp"
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "utilities/math_utils.h"
@@ -27,7 +28,7 @@ namespace Kratos
 
 //************************************************************************************
 //************************************************************************************
-HelmholtzElement::HelmholtzElement(IndexType NewId, GeometryType::Pointer pGeometry)
+HelmholtzSurfVecElement::HelmholtzSurfVecElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -36,36 +37,36 @@ HelmholtzElement::HelmholtzElement(IndexType NewId, GeometryType::Pointer pGeome
 
 //************************************************************************************
 //************************************************************************************
-HelmholtzElement::HelmholtzElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+HelmholtzSurfVecElement::HelmholtzSurfVecElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
-Element::Pointer HelmholtzElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+Element::Pointer HelmholtzSurfVecElement::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<HelmholtzElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<HelmholtzSurfVecElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-Element::Pointer HelmholtzElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
+Element::Pointer HelmholtzSurfVecElement::Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<HelmholtzElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<HelmholtzSurfVecElement>(NewId, pGeom, pProperties);
 }
 
-HelmholtzElement::~HelmholtzElement()
+HelmholtzSurfVecElement::~HelmholtzSurfVecElement()
 {
 }
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
+void HelmholtzSurfVecElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == HELMHOLTZ_MASS_MATRIX)
-        CalculateBulkMassMatrix(rOutput,rCurrentProcessInfo);
+        CalculateSurfaceMassMatrix(rOutput,rCurrentProcessInfo);
 
 }
 //************************************************************************************
 //************************************************************************************
-void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void HelmholtzSurfVecElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
@@ -90,9 +91,9 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     rRightHandSideVector = ZeroVector( mat_size ); //resetting RHS
 
     MatrixType M;
-    CalculateBulkMassMatrix(M,rCurrentProcessInfo);
+    CalculateSurfaceMassMatrix(M,rCurrentProcessInfo);
     MatrixType A;
-    CalculateBulkStiffnessMatrix(A,rCurrentProcessInfo);
+    CalculateSurfaceStiffnessMatrix(A,rCurrentProcessInfo);
 
     MatrixType K = A + M;
 
@@ -107,11 +108,10 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         nodal_vals[3 * node_element + 0] = source[0]/node_weight;
         nodal_vals[3 * node_element + 1] = source[1]/node_weight;
         nodal_vals[3 * node_element + 2] = source[2]/node_weight;
-    }
-
+    } 
 
     noalias(rLeftHandSideMatrix) += K;
-    noalias(rRightHandSideVector) += nodal_vals;    
+    noalias(rRightHandSideVector) += nodal_vals;
 
     //apply drichlet BC
     Vector temp;
@@ -123,7 +123,7 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+void HelmholtzSurfVecElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
@@ -131,7 +131,7 @@ void HelmholtzElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, co
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+void HelmholtzSurfVecElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -139,7 +139,7 @@ void HelmholtzElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+void HelmholtzSurfVecElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -171,7 +171,7 @@ void HelmholtzElement::EquationIdVector(EquationIdVectorType& rResult, const Pro
 
 //************************************************************************************
 //************************************************************************************
-void HelmholtzElement::GetDofList(DofsVectorType& rElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
+void HelmholtzSurfVecElement::GetDofList(DofsVectorType& rElementalDofList,const ProcessInfo& rCurrentProcessInfo) const
 {
 
     KRATOS_TRY;
@@ -199,7 +199,7 @@ void HelmholtzElement::GetDofList(DofsVectorType& rElementalDofList,const Proces
 }
 //******************************************************************************
 //******************************************************************************
-void HelmholtzElement::GetValuesVector(VectorType &rValues,
+void HelmholtzSurfVecElement::GetValuesVector(VectorType &rValues,
                                             int Step) const {
   const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
@@ -231,7 +231,7 @@ void HelmholtzElement::GetValuesVector(VectorType &rValues,
 }
 //************************************************************************************
 //************************************************************************************
-int HelmholtzElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+int HelmholtzSurfVecElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -257,7 +257,7 @@ int HelmholtzElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzElement::CalculateBulkMassMatrix(
+void HelmholtzSurfVecElement::CalculateSurfaceMassMatrix(
     MatrixType& rMassMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -282,9 +282,7 @@ void HelmholtzElement::CalculateBulkMassMatrix(
     const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-        GeometryUtils::JacobianOnInitialConfiguration(
-            r_geom, integration_points[point_number], J0);
-        const double detJ0 = MathUtils<double>::Det(J0);
+        const double detJ0 = r_geom.DeterminantOfJacobian(point_number,integration_method);
         const double integration_weight = integration_points[point_number].Weight() * detJ0;
         const Vector& rN = row(Ncontainer,point_number);
 
@@ -307,7 +305,7 @@ void HelmholtzElement::CalculateBulkMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HelmholtzElement::CalculateBulkStiffnessMatrix(
+void HelmholtzSurfVecElement::CalculateSurfaceStiffnessMatrix(
     MatrixType& rStiffnessMatrix,
     const ProcessInfo& rCurrentProcessInfo
     ) const
@@ -317,7 +315,7 @@ void HelmholtzElement::CalculateBulkStiffnessMatrix(
     const auto& r_prop = GetProperties();
 
     // Checking radius
-    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzElement!" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS)) << "HELMHOLTZ_RADIUS has to be provided for the calculations of the HelmholtzSurfVecElement!" << std::endl;
 
     const auto& r_geom = GetGeometry();
     SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -330,37 +328,188 @@ void HelmholtzElement::CalculateBulkStiffnessMatrix(
     rStiffnessMatrix = ZeroMatrix( mat_size, mat_size );
 
     //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_4);
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_4);
+    IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
 
-    Element::GeometryType::JacobiansType J0;
-    Matrix DN_DX(number_of_nodes,dimension);
-    Matrix InvJ0(dimension,dimension);
-    r_geom.Jacobian(J0,GeometryData::IntegrationMethod::GI_GAUSS_4);
-    double DetJ0;
-
-    MatrixType A_dirc = ZeroMatrix(number_of_nodes,number_of_nodes);
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
     {
-        //calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
-
-        //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
-
+        Matrix B;
+        CalculateBMatrix(B,rCurrentProcessInfo);
+        MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(i_point);
+        const double DetJ0 = r_geom.DeterminantOfJacobian(i_point,integration_method);
         const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
         const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
-        noalias(A_dirc) += IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX));
-        
+        noalias(rStiffnessMatrix) += r_helmholtz * r_helmholtz * prod(trans(B), IntToReferenceWeight * Matrix(prod(constitutive_matrix, B)));        
     }
 
 
-    //contruct the stifness matrix in all dims
-    for(IndexType i=0;i<number_of_nodes;i++)
-        for(IndexType j=0;j<dimension;j++)
-            for(IndexType k=0;k<number_of_nodes;k++)
-                rStiffnessMatrix(dimension*i+j,dimension*k+j) = A_dirc(i,k);
+    Matrix RotMatrix;
+    CalculateRotationMatrix(RotMatrix,rCurrentProcessInfo);
 
+    MatrixType temp(9, 9);
+    noalias(temp) = prod(trans(RotMatrix), rStiffnessMatrix);
+    noalias(rStiffnessMatrix) = prod(temp, RotMatrix);    
+
+    KRATOS_CATCH("");
+}
+
+//******************************************************************************
+//******************************************************************************
+HelmholtzSurfVecElement::MatrixType
+HelmholtzSurfVecElement::SetAndModifyConstitutiveLaw(const int PointNumber) const {
+  KRATOS_TRY;
+
+  const GeometryType &rgeom = this->GetGeometry();
+  IntegrationMethod this_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
+
+  const double DetJ0 = rgeom.DeterminantOfJacobian(PointNumber,this_integration_method);
+
+  // Stiffening of elements using Jacobian determinants and exponent between
+  // 0.0 and 2.0
+  const double factor =
+      100;               // Factor influences how far the HELMHOLTZ_VARS spreads
+                         // into the fluid mesh
+  const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
+                         // elements; 0 = no stiffening
+  const double quotient = factor / DetJ0;
+  double weighting_factor = DetJ0 * std::pow(quotient, xi);
+  weighting_factor = 1.0;
+  const double poisson_coefficient = this->pGetProperties()->Has(HELMHOLTZ_POISSON_RATIO)
+    ? this->pGetProperties()->GetValue(HELMHOLTZ_POISSON_RATIO) : 0.3;
+
+  // The ratio between lambda and mu affects relative stiffening against
+  // volume or shape change.
+  const double lambda =
+      weighting_factor * poisson_coefficient /
+      ((1 + poisson_coefficient) * (1 - 2 * poisson_coefficient));
+  const double mu = weighting_factor / (2 * (1 + poisson_coefficient));
+
+    MatrixType constitutive_matrix;
+
+  // stress = lambda*tr(strain tensor)*I + 2*mu*(strain tensor).
+    constitutive_matrix = ZeroMatrix(6, 6);
+    constitutive_matrix(0, 0) = lambda + 2 * mu;
+    constitutive_matrix(1, 1) = constitutive_matrix(0, 0);
+    constitutive_matrix(2, 2) = constitutive_matrix(0, 0);
+    constitutive_matrix(3, 3) = mu;
+    constitutive_matrix(4, 4) = mu;
+    constitutive_matrix(5, 5) = mu;
+    constitutive_matrix(0, 1) = lambda;
+    constitutive_matrix(1, 0) = lambda;
+    constitutive_matrix(0, 2) = lambda;
+    constitutive_matrix(2, 0) = lambda;
+    constitutive_matrix(1, 2) = lambda;
+    constitutive_matrix(2, 1) = lambda;
+
+  return constitutive_matrix;
+
+  KRATOS_CATCH("");
+}
+
+void HelmholtzSurfVecElement::CalculateDN_DXMatrix(
+    MatrixType& rDN_DX,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY;
+
+    rDN_DX.resize(3,2,false);
+    noalias(rDN_DX) = ZeroMatrix(3, 2);
+
+    const auto& r_geom = GetGeometry();    
+    ShellT3_LocalCoordinateSystem LCS(r_geom[0].Coordinates(),
+                                      r_geom[1].Coordinates(),
+                                      r_geom[2].Coordinates());
+
+    const double x12 = LCS.X1() - LCS.X2();
+    const double x23 = LCS.X2() - LCS.X3();
+    const double x31 = LCS.X3() - LCS.X1();
+    const double x21 = -x12;
+    const double x32 = -x23;
+    const double x13 = -x31;
+
+    const double y12 = LCS.Y1() - LCS.Y2();
+    const double y23 = LCS.Y2() - LCS.Y3();
+    const double y31 = LCS.Y3() - LCS.Y1();
+    const double y21 = -y12;
+
+    const double y13 = -y31;
+
+    const double A = 0.5*(y21*x13 - x21*y13);
+    const double A2 = 2.0*A;                                      
+
+
+    // cartesian derivatives
+    rDN_DX(0, 0) = (y13 - y12) / A2;
+    rDN_DX(0, 1) = (x12 - x13) / A2;
+    rDN_DX(1, 0) = -y13 / A2;
+    rDN_DX(1, 1) = x13 / A2;
+    rDN_DX(2, 0) = y12 / A2;
+    rDN_DX(2, 1) = -x12 / A2;
+
+    KRATOS_CATCH("");
+}
+
+void HelmholtzSurfVecElement::CalculateBMatrix(
+    MatrixType& rB,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY;
+
+    Matrix DN_DX;
+    CalculateDN_DXMatrix(DN_DX,rCurrentProcessInfo);
+
+    rB.resize(6, 9,false);
+    rB = ZeroMatrix(6, 9);
+
+    SizeType index = 0;
+    for (SizeType i_node = 0; i_node < 3; ++i_node) {
+    rB(0, index + 0) = DN_DX(i_node, 0);
+    rB(1, index + 1) = DN_DX(i_node, 1);
+    rB(2, index + 2) = DN_DX(i_node, 2);
+    rB(3, index + 0) = DN_DX(i_node, 1);
+    rB(3, index + 1) = DN_DX(i_node, 0);
+    rB(4, index + 1) = DN_DX(i_node, 2);
+    rB(4, index + 2) = DN_DX(i_node, 1);
+    rB(5, index + 0) = DN_DX(i_node, 2);
+    rB(5, index + 2) = DN_DX(i_node, 0);
+    index += 3;
+    }
+
+    KRATOS_CATCH("");
+}
+
+void HelmholtzSurfVecElement::CalculateRotationMatrix(
+    MatrixType& rRotMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    KRATOS_TRY;
+
+    rRotMatrix.resize(9,9,false);
+    noalias(rRotMatrix) = ZeroMatrix(9, 9);
+
+    const auto& r_geom = GetGeometry();    
+    ShellT3_LocalCoordinateSystem LCS(r_geom[0].Coordinates(),
+                                      r_geom[1].Coordinates(),
+                                      r_geom[2].Coordinates());
+
+    const Matrix& rOrientation = LCS.Orientation();                           
+
+
+    for (size_t k = 0; k < 3; k++) {
+        size_t i = k * 3;
+        rRotMatrix(i  , i) = rOrientation(0, 0);
+        rRotMatrix(i  , i+1) = rOrientation(0, 1);
+        rRotMatrix(i  , i+2) = rOrientation(0, 2);
+        rRotMatrix(i+1, i) = rOrientation(1, 0);
+        rRotMatrix(i+1, i+1) = rOrientation(1, 1);
+        rRotMatrix(i+1, i+2) = rOrientation(1, 2);
+        rRotMatrix(i+2, i) = rOrientation(2, 0);
+        rRotMatrix(i+2, i+1) = rOrientation(2, 1);
+        rRotMatrix(i+2, i+2) = rOrientation(2, 2);
+    }
 
     KRATOS_CATCH("");
 }

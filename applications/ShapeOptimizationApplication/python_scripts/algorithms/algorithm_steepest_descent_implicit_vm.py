@@ -76,6 +76,7 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_VARS)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_SOURCE)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SHAPE)
 
 
 
@@ -88,29 +89,54 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
+        
         self.model_part_controller.Initialize()
-
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
-        # here we add DOFs needed by implicit vertex-morphing.
-        for node in self.optimization_model_part.Nodes:
-            node.AddDof(KSO.HELMHOLTZ_VARS_X)
-            node.AddDof(KSO.HELMHOLTZ_VARS_Y)
-            node.AddDof(KSO.HELMHOLTZ_VARS_Z)
 
-        # here we fixed the damping/fixed regions
+        self.mapper = mapper_factory.CreateMapper(self.optimization_model_part, self.design_surface, self.mapper_settings)
+
+        # here we add DOFs needed by implicit vertex-morphing.
+        if(self.mapper.implicit_settings["only_design_surface_parameterization"].GetBool()):
+            for node in self.design_surface.Nodes:
+                node.AddDof(KSO.HELMHOLTZ_VARS_X)
+                node.AddDof(KSO.HELMHOLTZ_VARS_Y)
+                node.AddDof(KSO.HELMHOLTZ_VARS_Z)
+            for key, value in self.model_part_controller.damping_regions.items():
+                for node in value.Nodes:
+                    node.AddDof(KSO.HELMHOLTZ_VARS_X)
+                    node.AddDof(KSO.HELMHOLTZ_VARS_Y)
+                    node.AddDof(KSO.HELMHOLTZ_VARS_Z)                
+        else:
+            for node in self.optimization_model_part.Nodes:
+                node.AddDof(KSO.HELMHOLTZ_VARS_X)
+                node.AddDof(KSO.HELMHOLTZ_VARS_Y)
+                node.AddDof(KSO.HELMHOLTZ_VARS_Z)            
+
+        # here we fixed the damping/fixed regions        
+        index=0
         for key, value in self.model_part_controller.damping_regions.items():
             for node in value.Nodes:
-                node.Fix(KSO.HELMHOLTZ_VARS_X)
-                node.Fix(KSO.HELMHOLTZ_VARS_Y)            
-                node.Fix(KSO.HELMHOLTZ_VARS_Z)   
-                node.SetSolutionStepValue(KSO.HELMHOLTZ_VARS_X,0,node.X0)
-                node.SetSolutionStepValue(KSO.HELMHOLTZ_VARS_Y,0,node.Y0)            
-                node.SetSolutionStepValue(KSO.HELMHOLTZ_VARS_Z,0,node.Z0)                             
+                if(self.model_part_controller.model_settings["damping"]["damping_regions"][index]["damp_X"].GetBool()):
+                    node.Fix(KSO.HELMHOLTZ_VARS_X)
+                if(self.model_part_controller.model_settings["damping"]["damping_regions"][index]["damp_Y"].GetBool()):
+                    node.Fix(KSO.HELMHOLTZ_VARS_Y)            
+                if(self.model_part_controller.model_settings["damping"]["damping_regions"][index]["damp_Z"].GetBool()):
+                    node.Fix(KSO.HELMHOLTZ_VARS_Z)   
+            index += 1
+
+        # here we save the initial coords
+        self.init_coords = []
+        for node in self.optimization_model_part.Nodes:
+            self.init_coords.append(node.X0)
+            self.init_coords.append(node.Y0)
+            self.init_coords.append(node.Z0)
+
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 
-        self.mapper = mapper_factory.CreateMapper(self.optimization_model_part, self.design_surface, self.mapper_settings)
+        self.model_part_controller.ComputeUnitSurfaceNormals()
+
         self.mapper.Initialize()
 
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
@@ -159,6 +185,19 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
+        if(self.mapper.implicit_settings["only_design_surface_parameterization"].GetBool()):
+            self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
+            self.model_part_controller.SetReferenceMeshToMesh()
+        else:
+            for node in self.optimization_model_part.Nodes:
+                node_shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)  
+                node.X += node_shape_update[0]
+                node.X0 += node_shape_update[0]
+                node.Y += node_shape_update[1]
+                node.Y0 += node_shape_update[1]
+                node.Z += node_shape_update[2]
+                node.Z0 += node_shape_update[2] 
+             
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
@@ -182,30 +221,59 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
+
+        # index=0
+        # self.curr_coords = []
+        # for node in self.optimization_model_part.Nodes:     
+        #     self.curr_coords.append(node.X)            
+        #     node.X = self.init_coords[3*index+0]
+        #     node.X0 = node.X
+        #     self.curr_coords.append(node.Y)
+        #     node.Y = self.init_coords[3*index+1]
+        #     node.Y0 = node.Y
+        #     self.curr_coords.append(node.Z)
+        #     node.Z = self.init_coords[3*index+2]
+        #     node.Z0 = node.Z           
+        #     index = index + 1       
+
+
+        # self.model_part_controller.ComputeUnitSurfaceNormals()
+
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
+             
 
-        # self.optimization_utilities.ComputeSearchDirectionSteepestDescent(self.design_surface)
-        # normalize = self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool()
-        # self.optimization_utilities.ComputeControlPointUpdate(self.design_surface, self.step_size, normalize)
-
-        self.mapper.Map(KSO.DF1DX_MAPPED, KSO.SHAPE_UPDATE)
-        max_norm = 0
-        for node in self.optimization_model_part.Nodes:
-            node_shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)
-            norm = math.sqrt(node_shape_update[0]**2 + node_shape_update[1]**2 + node_shape_update[2]**2)
-            if norm > max_norm :
-                max_norm = norm
-
-        for node in self.optimization_model_part.Nodes:
-            node_shape_update = node.GetSolutionStepValue(KSO.SHAPE_UPDATE)  
-            node.X -= self.step_size * (node_shape_update[0]/max_norm)
-            node.X0 = node.X
-            node.Y -= self.step_size * (node_shape_update[1]/max_norm)
-            node.Y0 = node.Y
-            node.Z -= self.step_size * (node_shape_update[2]/max_norm)   
-            node.Z0 = node.Z 
+        # max_norm = 1
+        # if self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool():
+        #     max_norm = 0
+        #     for node in self.optimization_model_part.Nodes:
+        #         node_df_dx_mapped = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
+        #         norm = math.sqrt(node_df_dx_mapped[0]**2 + node_df_dx_mapped[1]**2 + node_df_dx_mapped[2]**2)
+        #         if norm > max_norm :
+        #             max_norm = norm
 
 
+        # for node in self.optimization_model_part.Nodes:
+        #     node_df_dx_mapped = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
+        #     node_control_point = node.GetSolutionStepValue(KSO.CONTROL_POINT)
+        #     node_control_point_update = -self.step_size * node_df_dx_mapped / max_norm
+        #     node_control_point += node_control_point_update                       
+        #     node.SetSolutionStepValue(KSO.CONTROL_POINT_UPDATE,node_control_point_update)
+        #     node.SetSolutionStepValue(KSO.CONTROL_POINT,node_control_point)            
+
+
+        # self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)    
+
+        # index=0
+        # for node in self.optimization_model_part.Nodes:
+        #     node_curr_coords = self.curr_coords[3*index:3*index+3]
+        #     node.X = node_curr_coords[0]
+        #     node.X0 = node.X   
+        #     node.Y = node_curr_coords[1]
+        #     node.Y0 = node.Y   
+        #     node.Z = node_curr_coords[2]
+        #     node.Z0 = node.Z                         
+        #     index = index + 1          
+                                                
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
