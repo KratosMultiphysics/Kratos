@@ -12,13 +12,13 @@ parameters = KratosMultiphysics.Parameters("""
     {
         "geometry": "triangle",
         "template_filename" : "templates/compressible_navier_stokes_explicit_cpp_template_with_integration.cpp",
-        "output_filename"   : "templates/compressible_explicit_navier_stokes.cpp"
+        "output_filename"   : "compressible_explicit_navier_stokes.cpp"
     },
     "3D" :
     {
         "geometry": "tetrahedron",
         "template_filename" : "templates/compressible_explicit_navier_stokes.cpp",
-        "output_filename"   : "templates/compressible_explicit_navier_stokes.cpp"
+        "output_filename"   : "compressible_explicit_navier_stokes.cpp"
     }
 }
 """)

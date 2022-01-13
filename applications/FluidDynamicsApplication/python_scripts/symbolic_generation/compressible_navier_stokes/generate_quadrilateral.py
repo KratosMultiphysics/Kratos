@@ -9,7 +9,7 @@ parameters = KratosMultiphysics.Parameters("""
 {
     "geometry": "quadrilateral",
     "template_filename" : "templates/compressible_navier_stokes_explicit_cpp_template_with_integration.cpp",
-    "output_filename"   : "templates/compressible_explicit_navier_stokes_quad.cpp"
+    "output_filename"   : "compressible_explicit_navier_stokes_quad.cpp"
 }
 """)
 
