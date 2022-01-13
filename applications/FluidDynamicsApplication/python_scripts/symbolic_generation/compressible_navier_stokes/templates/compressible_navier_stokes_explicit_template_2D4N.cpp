@@ -7,8 +7,10 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Eduard Gómez
+//  Main authors:    Eduard Gómez, Eduard Gómez
 //
+
+//automated_message
 
 // System includes
 
@@ -18,9 +20,6 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/key_hash.h"
-#include "includes/ublas_interface.h"
-#include "utilities/atomic_utilities.h"
 #include "utilities/element_size_calculator.h"
 
 // Application includes

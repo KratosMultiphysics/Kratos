@@ -8,8 +8,8 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 parameters = KratosMultiphysics.Parameters("""
 {
     "geometry": "quadrilateral",
-    "template_filename" : "templates/compressible_navier_stokes_explicit_cpp_quad_template_with_integration.cpp",
-    "output_filename"   : "compressible_explicit_navier_stokes_quad.cpp",
+    "template_filename" : "templates/compressible_navier_stokes_explicit_template_2D4N.cpp",
+    "output_filename"   : "compressible_explicit_navier_stokes_2D4.cpp",
     "subscales": {
         "ASGS" : true,
         "OSS" : true
