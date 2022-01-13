@@ -196,8 +196,7 @@ void CompressibleNavierStokesExplicit<2,3>::CalculateMomentumProjection(const Pr
         const IndexType aux = i_node * Dim;
         auto& r_mom_proj = r_geometry[i_node].GetValue(MOMENTUM_PROJECTION);
         for (IndexType d = 0; d < Dim; ++d) {
-#pragma omp atomic
-            r_mom_proj[d] += mom_proj[aux + d];
+            AtomicAdd(r_mom_proj[d], mom_proj[aux + d]);
         }
     }
 
@@ -226,8 +225,7 @@ void CompressibleNavierStokesExplicit<2,3>::CalculateDensityProjection(const Pro
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-#pragma omp atomic
-        r_geometry[i_node].GetValue(DENSITY_PROJECTION) += rho_proj[i_node];
+        AtomicAdd(r_geometry[i_node].GetValue(DENSITY_PROJECTION), rho_proj[i_node]);
     }
 
     KRATOS_CATCH("")
@@ -254,8 +252,7 @@ void CompressibleNavierStokesExplicit<2,3>::CalculateTotalEnergyProjection(const
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-#pragma omp atomic
-        r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION) += tot_ener_proj[i_node];
+        AtomicAdd(r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION), tot_ener_proj[i_node]);
     }
 
     KRATOS_CATCH("")

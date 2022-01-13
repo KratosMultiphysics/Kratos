@@ -212,7 +212,6 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMomentumProjection(const Pr
     KRATOS_TRY
 
     // Struct to pass around the data
-    const auto& DN_DX = data.DN_DX;
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
@@ -231,8 +230,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateMomentumProjection(const Pr
         const IndexType aux = i_node * Dim;
         auto& r_mom_proj = r_geometry[i_node].GetValue(MOMENTUM_PROJECTION);
         for (IndexType d = 0; d < Dim; ++d) {
-#pragma omp atomic
-            r_mom_proj[d] += mom_proj[aux + d];
+            AtomicAdd(r_mom_proj[d], mom_proj[aux + d]);
         }
     }
 
@@ -245,7 +243,6 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateDensityProjection(const Pro
     KRATOS_TRY
 
     // Struct to pass around the data
-    const auto& DN_DX = data.DN_DX;
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
@@ -261,8 +258,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateDensityProjection(const Pro
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-#pragma omp atomic
-        r_geometry[i_node].GetValue(DENSITY_PROJECTION) += rho_proj[i_node];
+        AtomicAdd(r_geometry[i_node].GetValue(DENSITY_PROJECTION), rho_proj[i_node]);
     }
 
     KRATOS_CATCH("")
@@ -274,7 +270,6 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateTotalEnergyProjection(const
     KRATOS_TRY
 
     // Struct to pass around the data
-    const auto& DN_DX = data.DN_DX;
     ElementDataStruct data;
     this->FillElementData(data, rCurrentProcessInfo);
 
@@ -290,8 +285,7 @@ void CompressibleNavierStokesExplicit<3,4>::CalculateTotalEnergyProjection(const
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-#pragma omp atomic
-        r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION) += tot_ener_proj[i_node];
+        AtomicAdd(r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION), tot_ener_proj[i_node]);
     }
 
     KRATOS_CATCH("")

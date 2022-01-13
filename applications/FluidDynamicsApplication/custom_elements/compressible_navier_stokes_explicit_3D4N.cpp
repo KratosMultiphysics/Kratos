@@ -571,8 +571,7 @@ const double cmom_proj314 =             cmom_proj128*cmom_proj311;
         const IndexType aux = i_node * Dim;
         auto& r_mom_proj = r_geometry[i_node].GetValue(MOMENTUM_PROJECTION);
         for (IndexType d = 0; d < Dim; ++d) {
-#pragma omp atomic
-            r_mom_proj[d] += mom_proj[aux + d];
+            AtomicAdd(r_mom_proj[d], mom_proj[aux + d]);
         }
     }
 
@@ -620,8 +619,7 @@ const double crho_proj15 =             -0.19999999899375998*data.dUdt(0,0) - 0.1
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-#pragma omp atomic
-        r_geometry[i_node].GetValue(DENSITY_PROJECTION) += rho_proj[i_node];
+        AtomicAdd(r_geometry[i_node].GetValue(DENSITY_PROJECTION), rho_proj[i_node]);
     }
 
     KRATOS_CATCH("")
@@ -978,8 +976,7 @@ const double ctot_ener_proj325 =             ctot_ener_proj259*ctot_ener_proj323
     // Assembly the projection contributions
     auto& r_geometry = GetGeometry();
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
-#pragma omp atomic
-        r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION) += tot_ener_proj[i_node];
+        AtomicAdd(r_geometry[i_node].GetValue(TOTAL_ENERGY_PROJECTION), tot_ener_proj[i_node]);
     }
 
     KRATOS_CATCH("")
