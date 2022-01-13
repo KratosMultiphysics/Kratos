@@ -285,27 +285,29 @@ public:
         mpHelmholtzStrategy->Solve();
 
         //first we set origin values to zero
-        SetVariableZero(rOriginVariable);
-        //now we need to multiply with the mass matrix with results to be consistence.
-        for(auto& elem_i : mpVMModePart->Elements())
-        {
-            VectorType helmholtz_values;
-            elem_i.GetValuesVector(helmholtz_values);
-            MatrixType mass_matrix;
-            elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());
-            VectorType int_vals = prod(mass_matrix,helmholtz_values);
-            AddElementVariableValuesVector(elem_i,rOriginVariable,int_vals);
-        }
+        // SetVariableZero(rOriginVariable);
+        // //now we need to multiply with the mass matrix with results to be consistence.
+        // for(auto& elem_i : mpVMModePart->Elements())
+        // {
+        //     VectorType helmholtz_values;
+        //     elem_i.GetValuesVector(helmholtz_values);
+        //     MatrixType mass_matrix;
+        //     elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());
+        //     VectorType int_vals = prod(mass_matrix,helmholtz_values);
+        //     AddElementVariableValuesVector(elem_i,rOriginVariable,int_vals);
+        // }
 
-        for(auto& cond_i : mpVMModePart->Conditions())
-        {
-            VectorType helmholtz_values;
-            cond_i.GetValuesVector(helmholtz_values);
-            MatrixType mass_matrix;
-            cond_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());
-            VectorType int_vals = prod(mass_matrix,helmholtz_values);
-            AddConditionVariableValuesVector(cond_i,rOriginVariable,int_vals);
-        }
+        // for(auto& cond_i : mpVMModePart->Conditions())
+        // {
+        //     VectorType helmholtz_values;
+        //     cond_i.GetValuesVector(helmholtz_values);
+        //     MatrixType mass_matrix;
+        //     cond_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());
+        //     VectorType int_vals = prod(mass_matrix,helmholtz_values);
+        //     AddConditionVariableValuesVector(cond_i,rOriginVariable,int_vals);
+        // }
+
+        SetVariable1ToVarible2(HELMHOLTZ_VARS,rOriginVariable);
     
         KRATOS_INFO("ShapeOpt") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
     }

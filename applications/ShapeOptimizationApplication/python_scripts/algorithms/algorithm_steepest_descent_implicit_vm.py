@@ -222,57 +222,56 @@ class AlgorithmSteepestDescentImplicitVM(OptimizationAlgorithm):
     def __computeShapeUpdate(self):
         self.mapper.Update()
 
-        # index=0
-        # self.curr_coords = []
-        # for node in self.optimization_model_part.Nodes:     
-        #     self.curr_coords.append(node.X)            
-        #     node.X = self.init_coords[3*index+0]
-        #     node.X0 = node.X
-        #     self.curr_coords.append(node.Y)
-        #     node.Y = self.init_coords[3*index+1]
-        #     node.Y0 = node.Y
-        #     self.curr_coords.append(node.Z)
-        #     node.Z = self.init_coords[3*index+2]
-        #     node.Z0 = node.Z           
-        #     index = index + 1       
+        index=0
+        self.curr_coords = []
+        for node in self.optimization_model_part.Nodes:     
+            self.curr_coords.append(node.X)            
+            node.X = self.init_coords[3*index+0]
+            node.X0 = node.X
+            self.curr_coords.append(node.Y)
+            node.Y = self.init_coords[3*index+1]
+            node.Y0 = node.Y
+            self.curr_coords.append(node.Z)
+            node.Z = self.init_coords[3*index+2]
+            node.Z0 = node.Z           
+            index = index + 1       
 
 
-        # self.model_part_controller.ComputeUnitSurfaceNormals()
+        self.model_part_controller.ComputeUnitSurfaceNormals()
 
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
              
 
-        # max_norm = 1
-        # if self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool():
-        #     max_norm = 0
-        #     for node in self.optimization_model_part.Nodes:
-        #         node_df_dx_mapped = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
-        #         norm = math.sqrt(node_df_dx_mapped[0]**2 + node_df_dx_mapped[1]**2 + node_df_dx_mapped[2]**2)
-        #         if norm > max_norm :
-        #             max_norm = norm
+        max_norm = 1
+        if self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool():
+            max_norm = 0
+            for node in self.optimization_model_part.Nodes:
+                node_df_dx_mapped = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
+                norm = math.sqrt(node_df_dx_mapped[0]**2 + node_df_dx_mapped[1]**2 + node_df_dx_mapped[2]**2)
+                if norm > max_norm :
+                    max_norm = norm
+
+        for node in self.optimization_model_part.Nodes:
+            node_df_dx_mapped = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
+            node_control_point = node.GetSolutionStepValue(KSO.CONTROL_POINT)
+            node_control_point_update = -self.step_size * node_df_dx_mapped / max_norm
+            node_control_point += node_control_point_update                       
+            node.SetSolutionStepValue(KSO.CONTROL_POINT_UPDATE,node_control_point_update)
+            node.SetSolutionStepValue(KSO.CONTROL_POINT,node_control_point)            
 
 
-        # for node in self.optimization_model_part.Nodes:
-        #     node_df_dx_mapped = node.GetSolutionStepValue(KSO.DF1DX_MAPPED)
-        #     node_control_point = node.GetSolutionStepValue(KSO.CONTROL_POINT)
-        #     node_control_point_update = -self.step_size * node_df_dx_mapped / max_norm
-        #     node_control_point += node_control_point_update                       
-        #     node.SetSolutionStepValue(KSO.CONTROL_POINT_UPDATE,node_control_point_update)
-        #     node.SetSolutionStepValue(KSO.CONTROL_POINT,node_control_point)            
+        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)    
 
-
-        # self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)    
-
-        # index=0
-        # for node in self.optimization_model_part.Nodes:
-        #     node_curr_coords = self.curr_coords[3*index:3*index+3]
-        #     node.X = node_curr_coords[0]
-        #     node.X0 = node.X   
-        #     node.Y = node_curr_coords[1]
-        #     node.Y0 = node.Y   
-        #     node.Z = node_curr_coords[2]
-        #     node.Z0 = node.Z                         
-        #     index = index + 1          
+        index=0
+        for node in self.optimization_model_part.Nodes:
+            node_curr_coords = self.curr_coords[3*index:3*index+3]
+            node.X = node_curr_coords[0]
+            node.X0 = node.X   
+            node.Y = node_curr_coords[1]
+            node.Y0 = node.Y   
+            node.Z = node_curr_coords[2]
+            node.Z0 = node.Z                         
+            index = index + 1          
                                                 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):

@@ -122,18 +122,8 @@ public:
     VariableUtils().UpdateCurrentToInitialConfiguration(
         BaseType::GetModelPart().GetCommunicator().LocalMesh().Nodes());
 
- 
-
     // Solve for the mesh movement
     mstrategy->Solve();
-
-        // double condition_number = ConditionNumberUtility().GetConditionNumber(mstrategy->GetSystemMatrix());
-        // std::cout<<"condition_number : "<<condition_number<<std::endl;   
-
-    std::cout<<"system matrix : "<<mstrategy->GetSystemMatrix()<<std::endl;
-
-
-
 
     // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)
