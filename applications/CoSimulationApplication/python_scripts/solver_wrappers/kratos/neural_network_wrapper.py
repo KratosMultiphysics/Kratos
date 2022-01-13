@@ -16,3 +16,8 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the NeuralNetworkApplication of Kratos"""
     def _CreateAnalysisStage(self):
         return NeuralNetworkAnalysis(self.project_parameters, self.model)
+   
+    def SolveSolutionStep(self):
+        with self.thread_manager:
+            self._analysis_stage._GetNeuralNetworkSolver().SolveSolutionStep()
+        super().SolveSolutionStep()
