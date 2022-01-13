@@ -353,6 +353,12 @@ void CalculateEffectiveViscosityAtGaussPoint()
     this->EffectiveViscosity = DynamicViscosity;
 }
 
+void ComputeDarcyTerm()
+{
+    //TODO: We need to implement this in order to do the explicit template instantiation in the base TwoFluidNavierStokesElement
+    //TODO: Properly implement it (with the requirer member variables) once we add the Darcy contribution to the Alpha method element
+}
+
 ///@}
 
 };
