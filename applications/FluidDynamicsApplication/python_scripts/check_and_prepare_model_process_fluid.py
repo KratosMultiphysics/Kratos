@@ -62,7 +62,12 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
         fluid_computational_model_part.AddConditions(list(list_of_ids))
 
-        #verify the orientation of the skin
+        #verify the orientation of the skin (only implemented for tris and tets)
+        geometry = self.main_model_part.GetElement(1).GetGeometry()
+        is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
+        if not is_simplex:
+            return
+
         tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
         throw_errors = False
         flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
@@ -70,4 +75,4 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
         else:
             flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
-        # KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors, flags).Execute()
+        KratosMultiphysics.TetrahedralMeshOrientationCheck(fluid_computational_model_part,throw_errors, flags).Execute()
