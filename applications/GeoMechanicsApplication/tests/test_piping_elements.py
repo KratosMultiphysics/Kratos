@@ -3,10 +3,8 @@ import os
 
 sys.path.append(os.path.join('..', '..', '..'))
 sys.path.append(os.path.join('..', 'python_scripts'))
-sys.path.append(os.path.join('D:\\kratos'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import test_helper
 
 class TestPipingElements(KratosUnittest.TestCase):
@@ -29,7 +27,6 @@ class TestPipingElements(KratosUnittest.TestCase):
                       'SteadyStatePipeElementWithEmbankment_4_4',
                       'SteadyStatePipeElementWithEmbankment_4_5',
                       'SteadyStatePipeElementWithEmbankment_4_6']
-        pipe_elements = [210,211,212,213,214,215,216,217,218]
 
         for test_name in tests_name:
             file_path = test_helper.get_file_path(os.path.join('./SteadyStatePipeElementWithEmbankment', test_name + '.gid'))
@@ -40,7 +37,7 @@ class TestPipingElements(KratosUnittest.TestCase):
 if __name__ == '__main__':
     suites = KratosUnittest.KratosSuites
     smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsTransientGroundWaterFlowTests]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPipingElements]))
     allSuite = suites['all']
     allSuite.addTests(smallSuite)
     KratosUnittest.runTests(suites)
