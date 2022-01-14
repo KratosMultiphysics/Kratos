@@ -39,6 +39,21 @@ Begin Nodes
 974                   0                   8                   0
 End Nodes
 
+Begin Geometries Triangle2D3
+1        1        2        3
+2        2        3        972
+3        3        972      973
+1796     972      973      974
+End Geometries
+
+Begin Geometries Line2D2
+10         1          2
+1800       2          3
+1801       3          972
+1947       972        973
+1948       973        974
+End Geometries
+
 Begin Elements Element2D3N
 1 1        1        2        3
 2 1        2        3        972
@@ -83,6 +98,10 @@ Begin NodalData VISCOSITY
 2 0 0.010000
 973 0 0.010000
 974 0 0.010000
+End NodalData
+
+Begin NodalData VELOCITY
+1 0 [3](1.1,2.2,3.3)
 End NodalData
 
 

@@ -24,6 +24,14 @@
    "CleanIndentationsOption"        : false,
    "RemoveBallsInEmbeddedOption"    : true,
 
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+		"material_import_settings"   : {
+					"materials_filename" : "small_tests/pressure_face_load/MaterialsDEM.json"
+		}
+    },
+    
    "DeltaOption"                    : "Absolute",
    "SearchTolerance"                : 0.0,
    "AmplifiedSearchRadiusExtension" : 0.0,
@@ -45,7 +53,7 @@
 
    "GraphExportFreq"                : 1e-3,
    "VelTrapGraphExportFreq"         : 1e-3,
-   "OutputTimeStep"                 : 1,
+   "OutputTimeStep"                 : 5,
    "PostBoundingBox"                : false,
    "PostDisplacement"               : true,
    "PostVelocity"                   : true,

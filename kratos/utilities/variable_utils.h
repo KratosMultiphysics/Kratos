@@ -26,6 +26,7 @@
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -650,13 +651,13 @@ public:
     void SetVariable(
         const TVarType& rVariable,
         const TDataType& rValue,
-        NodesContainerType& rNodes
-        )
+        NodesContainerType& rNodes,
+        const unsigned int Step = 0)
     {
         KRATOS_TRY
 
         block_for_each(rNodes, [&](Node<3>& rNode) {
-            rNode.FastGetSolutionStepValue(rVariable) = rValue;
+            rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         });
 
         KRATOS_CATCH("")
@@ -813,20 +814,20 @@ public:
     /**
      * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
-     * @param rFlagValue flag value to be set
+     * @param FlagValue flag value to be set
      * @param rContainer Reference to the objective container
      */
     template< class TContainerType >
     void SetFlag(
         const Flags& rFlag,
-        const bool& rFlagValue,
+        const bool FlagValue,
         TContainerType& rContainer
         )
     {
         KRATOS_TRY
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-                rEntity.Set(rFlag, rFlagValue);
+                rEntity.Set(rFlag, FlagValue);
         });
 
         KRATOS_CATCH("")
@@ -1336,6 +1337,28 @@ public:
     }
 
     /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs variable names, this method adds such variables as DOFs
+     * to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsVarNamesList List with the string variable names to be added as DOFs
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsList(
+        const std::vector<std::string>& rDofsVarNamesList,
+        ModelPart& rModelPart);
+
+    /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs and reactions variable names, this method adds such variables
+     * as DOFs and reaction to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsAndReactionsNamesList List with the DOF and reaction string variable names to be added as DOFs and reaction
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsWithReactionsList(
+        const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+        ModelPart& rModelPart);
+
+    /**
      * @brief This method checks the variable keys
      * @return True if all the keys are correct
      */
@@ -1462,7 +1485,6 @@ private:
 
         KRATOS_CATCH("");
     }
-
 
     ///@}
     ///@name Private  Acces

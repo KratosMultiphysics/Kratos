@@ -45,6 +45,29 @@ public:
     typedef std::vector<IntegrationPointType> IntegrationPointsArrayType;
 
     ///@}
+    ///@name Generic generation of Integration Points
+    ///@{
+    /// 
+    static void CreateIntegrationPoints1D(
+        IntegrationPointsArrayType & rIntegrationPoints,
+        const std::vector<double>&rSpansLocalSpace,
+        const IntegrationInfo& rIntegrationInfo);
+
+    ///@}
+    ///@name Create Integration Points
+    ///@{
+
+    static void CreateIntegrationPoints1DGauss(
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpanIntervals,
+        const SizeType IntegrationPointsPerSpan);
+
+    static void CreateIntegrationPoints1DGrid(
+        IntegrationPointsArrayType & rIntegrationPoints,
+        const std::vector<double>& rSpanIntervals,
+        const SizeType IntegrationPointsPerSpan);
+
+    ///@}
     ///@name Define Integration Points
     ///@{
 

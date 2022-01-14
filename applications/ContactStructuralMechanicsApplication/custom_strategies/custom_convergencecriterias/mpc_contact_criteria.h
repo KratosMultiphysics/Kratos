@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -61,41 +62,53 @@ public:
     /// Pointer definition of MPCContactCriteria
     KRATOS_CLASS_POINTER_DEFINITION( MPCContactCriteria );
 
-    /// The base class definition (and it subclasses)
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                    BaseType;
-    typedef typename BaseType::TDataType                                       TDataType;
-    typedef typename BaseType::DofsArrayType                               DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                       TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                       TSystemVectorType;
+    /// The base class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-    /// The sparse space used
-    typedef TSparseSpace                                                 SparseSpaceType;
+    /// The definition of the current class
+    typedef MPCContactCriteria< TSparseSpace, TDenseSpace > ClassType;
 
-    /// The components containers
-    typedef ModelPart::NodesContainerType                                 NodesArrayType;
-    typedef ModelPart::ElementsContainerType                           ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
-    typedef ModelPart::MasterSlaveConstraintContainerType            ConstraintArrayType;
+    /// The dofs array type
+    typedef typename BaseType::DofsArrayType            DofsArrayType;
+
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
+
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
 
     /// The index type definition
-    typedef std::size_t                                                        IndexType;
+    typedef std::size_t                                     IndexType;
 
     // Geometry definition
-    typedef Node<3>                                                             NodeType;
-    typedef Geometry<NodeType>                                              GeometryType;
-    typedef CouplingGeometry<NodeType>                              CouplingGeometryType;
+    typedef Node<3>                                          NodeType;
+    typedef CouplingGeometry<NodeType>           CouplingGeometryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructors
+    /**
+     * @brief Default constructor.
+     */
     explicit MPCContactCriteria()
         : BaseType()
     {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param ThisParameters The configuration parameters
+     */
+    explicit MPCContactCriteria(Kratos::Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     ///Copy constructor
@@ -110,6 +123,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief Criterias that need to be called before getting the solution
@@ -134,16 +160,13 @@ public:
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // We initailize the contact force
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        const auto it_node_begin = r_nodes_array.begin();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
         // We save the current WEIGHTED_GAP in the buffer and reset the CONTACT_FORCE
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-            auto it_node = it_node_begin + i;
-            it_node->SetValue(CONTACT_FORCE, zero_array);
-            it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-        }
+        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+            rNode.SetValue(CONTACT_FORCE, zero_array);
+            rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
+        });
 
         // Compute weighted gap
         ComputeWeightedGap(rModelPart);
@@ -219,104 +242,95 @@ public:
             const double auxiliar_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
 
             // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
-            NodesArrayType& r_nodes_array = r_contact_model_part.Nodes();
-            const auto it_node_begin = r_nodes_array.begin();
+            auto& r_nodes_array = r_contact_model_part.Nodes();
 
             // If frictionaless or mesh tying
             if (rModelPart.IsNot(SLIP)) {
-                #pragma omp parallel for reduction(+:is_active_set_converged)
-                for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-
-                    if (it_node->Is(SLAVE)) {
+                is_active_set_converged = block_for_each<SumReduction<IndexType>>(r_nodes_array, [&](NodeType& rNode) {
+                    if (rNode.Is(SLAVE)) {
                         // The contact force corresponds with the reaction in the normal direction
-                        const array_1d<double, 3>& r_total_force = it_node->FastGetSolutionStepValue(REACTION);
+                        const array_1d<double, 3>& r_total_force = rNode.FastGetSolutionStepValue(REACTION);
 
-                        const double nodal_area = it_node->Has(NODAL_AREA) ? it_node->GetValue(NODAL_AREA) : 1.0;
-                        const double gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
-                        const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
+                        const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
+                        const double gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
+                        const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
                         const double contact_force = inner_prod(r_total_force, r_normal);
-                        const double contact_pressure = contact_force/it_node->GetValue(NODAL_MAUX);
+                        const double contact_pressure = contact_force/rNode.GetValue(NODAL_MAUX);
 
                         if (contact_pressure < auxiliar_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
                             // We save the contact force
-                            it_node->SetValue(CONTACT_FORCE, contact_force/it_node->GetValue(NODAL_PAUX) * r_normal);
-                            it_node->SetValue(NORMAL_CONTACT_STRESS, contact_pressure);
-                            if (it_node->IsNot(ACTIVE)) {
-                                it_node->Set(ACTIVE, true);
-                                is_active_set_converged += 1;
+                            rNode.SetValue(CONTACT_FORCE, contact_force/rNode.GetValue(NODAL_PAUX) * r_normal);
+                            rNode.SetValue(NORMAL_CONTACT_STRESS, contact_pressure);
+                            if (rNode.IsNot(ACTIVE)) {
+                                rNode.Set(ACTIVE, true);
+                                return 1;
                             }
                         } else {
-                            if (it_node->Is(ACTIVE)) {
-                                it_node->Set(ACTIVE, false);
-                                is_active_set_converged += 1;
+                            if (rNode.Is(ACTIVE)) {
+                                rNode.Set(ACTIVE, false);
+                                return 1;
                             }
                         }
                     }
-                }
+                    return 0;
+                });
             } else { // If frictional
-                #pragma omp parallel for reduction(+:is_active_set_converged, is_slip_converged)
-                for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = it_node_begin + i;
-
-                    if (it_node->Is(SLAVE)) {
+                using TwoReduction = CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>;
+                std::tie(is_active_set_converged, is_slip_converged) = block_for_each<TwoReduction>(r_nodes_array, [&](NodeType& rNode) {
+                    if (rNode.Is(SLAVE)) {
                         const double auxiliar_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
                         // The contact force corresponds with the reaction in the normal direction
-                        const array_1d<double, 3>& r_total_force = it_node->FastGetSolutionStepValue(REACTION);
+                        const array_1d<double, 3>& r_total_force = rNode.FastGetSolutionStepValue(REACTION);
 
-                        const double nodal_area = it_node->Has(NODAL_AREA) ? it_node->GetValue(NODAL_AREA) : 1.0;
-                        const double gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
-                        const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
+                        const double nodal_area = rNode.Has(NODAL_AREA) ? rNode.GetValue(NODAL_AREA) : 1.0;
+                        const double gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
+                        const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
                         const double contact_force = inner_prod(r_total_force, r_normal);
-                        const double normal_contact_pressure = contact_force/it_node->GetValue(NODAL_MAUX);
+                        const double normal_contact_pressure = contact_force/rNode.GetValue(NODAL_MAUX);
 
                         if (normal_contact_pressure < auxiliar_check || gap < 0.0) { // NOTE: This could be conflictive (< or <=)
                             // We save the contact force
-                            it_node->SetValue(CONTACT_FORCE, r_total_force/it_node->GetValue(NODAL_PAUX));
-                            it_node->SetValue(NORMAL_CONTACT_STRESS, normal_contact_pressure);
-                            if (it_node->IsNot(ACTIVE)) {
-                                it_node->Set(ACTIVE, true);
-                                is_active_set_converged += 1;
+                            rNode.SetValue(CONTACT_FORCE, r_total_force/rNode.GetValue(NODAL_PAUX));
+                            rNode.SetValue(NORMAL_CONTACT_STRESS, normal_contact_pressure);
+                            if (rNode.IsNot(ACTIVE)) {
+                                rNode.Set(ACTIVE, true);
+                                return std::make_tuple(1,0);
                             }
 
                             // The friction coefficient
-                            const double tangential_contact_pressure = norm_2(r_total_force - contact_force * r_normal)/it_node->GetValue(NODAL_MAUX);
-                            const bool is_slip = it_node->Is(SLIP);
-                            const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
+                            const double tangential_contact_pressure = norm_2(r_total_force - contact_force * r_normal)/rNode.GetValue(NODAL_MAUX);
+                            const bool is_slip = rNode.Is(SLIP);
+                            const double mu = rNode.GetValue(FRICTION_COEFFICIENT);
 
                             if (tangential_contact_pressure <= - mu * contact_force) { // STICK CASE // TODO: Check the <=
-                                it_node->SetValue(TANGENTIAL_CONTACT_STRESS, tangential_contact_pressure);
+                                rNode.SetValue(TANGENTIAL_CONTACT_STRESS, tangential_contact_pressure);
                                 if (is_slip) {
-                                    it_node->Set(SLIP, false);
-                                    is_slip_converged += 1;
+                                    rNode.Set(SLIP, false);
+                                    return std::make_tuple(0,1);
                                 }
                             } else { // SLIP CASE
-                                it_node->SetValue(TANGENTIAL_CONTACT_STRESS, - mu * contact_force);
+                                rNode.SetValue(TANGENTIAL_CONTACT_STRESS, - mu * contact_force);
                                 if (!is_slip) {
-                                    it_node->Set(SLIP, true);
-                                    is_slip_converged += 1;
+                                    rNode.Set(SLIP, true);
+                                    return std::make_tuple(0,1);
                                 }
                             }
                         } else {
-                            if (it_node->Is(ACTIVE)) {
-                                it_node->Set(ACTIVE, false);
-                                it_node->Reset(SLIP);
-                                is_active_set_converged += 1;
+                            if (rNode.Is(ACTIVE)) {
+                                rNode.Set(ACTIVE, false);
+                                rNode.Reset(SLIP);
+                                return std::make_tuple(1,0);
                             }
                         }
                     }
-                }
+                    return std::make_tuple(0,0);
+                });
             }
 
             // We set the constraints active and inactive in function of the active set
-            ConditionsArrayType& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
-            auto it_cond_begin = r_conditions_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-                auto it_cond = it_cond_begin + i;
-
-                const auto& r_slave_geometry = it_cond->GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
+            auto& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+            block_for_each(r_conditions_array, [&](Condition& rCond) {
+                const auto& r_slave_geometry = rCond.GetGeometry().GetGeometryPart(CouplingGeometryType::Master);
                 std::size_t counter = 0;
                 for (auto& r_node : r_slave_geometry) {
                     if (r_node.IsNot(ACTIVE)) {
@@ -326,10 +340,10 @@ public:
 
                 // In case of traction we deactivate
                 if (counter == r_slave_geometry.size()) {
-                    it_cond->Set(ACTIVE, false);
+                    rCond.Set(ACTIVE, false);
                     // We deactivate the constraints on inactive conditions
-                    if (it_cond->Has(CONSTRAINT_POINTER)) {
-                        auto p_const = it_cond->GetValue(CONSTRAINT_POINTER);
+                    if (rCond.Has(CONSTRAINT_POINTER)) {
+                        auto p_const = rCond.GetValue(CONSTRAINT_POINTER);
 
                         // In case of traction we deactivate
                         p_const->Set(ACTIVE, false);
@@ -337,7 +351,7 @@ public:
                         KRATOS_ERROR << "Contact conditions must have defined CONSTRAINT_POINTER" << std::endl;
                     }
                 }
-            }
+            });
 
             // We save to the process info if the active set has converged
             const bool active_set_converged = (is_active_set_converged == 0 ? true : false);
@@ -371,9 +385,31 @@ public:
         BaseType::Initialize(rModelPart);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "mpc_contact_criteria"
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "mpc_contact_criteria";
+    }
 
     ///@}
     ///@name Acces
@@ -382,6 +418,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "MPCContactCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -403,6 +461,15 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+    }
 
     ///@}
     ///@name Protected  Access
@@ -440,7 +507,7 @@ private:
      */
     void ComputeWeightedGap(ModelPart& rModelPart)
     {
-        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
         // Set to zero the weighted gap
         if (rModelPart.Is(SLIP)) {
             // Reset

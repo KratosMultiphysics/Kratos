@@ -186,6 +186,7 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStruct
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
 from structural_mechanics_test_factory import InitialStateElasticityTest as TInitialStateElasticityTest
+from structural_mechanics_test_factory import InitialStrainShellQ4ThickTest as TInitialStrainShellQ4ThickTest
 
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -259,6 +260,7 @@ def AssembleTestSuites():
     # Constitutive Law tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
+    nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -445,6 +447,7 @@ def AssembleTestSuites():
     ### Adding Validation Tests
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
     validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
@@ -493,8 +496,7 @@ def AssembleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # Already contains the smallSuite
-    validationSuite.addTests(allSuite) # Validation contains all
+    allSuite.addTests(validationSuite)
 
     return suites
 

@@ -54,9 +54,12 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.RunTestCase()
 
     def test_FSI_problem_emulator_with_MVQN(self):
-        abs_cut_off = 1.0e-2
-        used_in_block_newton = False
-        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation, abs_cut_off, used_in_block_newton)
+        mvqn_settings = Parameters(r'''{
+            "w_0" : 0.825,
+            "abs_cut_off_tol" : 1.0e-2,
+            "interface_block_newton" : false
+        }''')
+        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(mvqn_settings)
         self.RunTestCase()
 
     def test_FSI_problem_emulator_with_IBQN_MVQN(self):

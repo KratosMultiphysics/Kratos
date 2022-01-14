@@ -156,17 +156,11 @@ using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_mat
 using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
 using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
 using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
-using RealLinearSolverType = LinearSolver<RealSparseSpace, RealDenseSpace>;
 
 template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<SolvingStrategy<RealSparseSpace, RealDenseSpace, RealLinearSolverType>>;
-template class KratosComponents<ExplicitSolvingStrategy<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<BuilderAndSolver<RealSparseSpace, RealDenseSpace, RealLinearSolverType>>;
 template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<Scheme<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<ConvergenceCriteria<RealSparseSpace, RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;

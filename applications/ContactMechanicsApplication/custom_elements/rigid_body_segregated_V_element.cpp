@@ -87,7 +87,7 @@ RigidBodySegregatedVElement::~RigidBodySegregatedVElement()
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
   rElementalDofList.resize(0);
 
@@ -126,9 +126,9 @@ void RigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,P
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void RigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
-  this->SetProcessInformation(rCurrentProcessInfo);
+  //this->SetProcessInformation(rCurrentProcessInfo);
 
   switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
@@ -202,7 +202,7 @@ void RigidBodySegregatedVElement::GetValuesVector(Vector& rValues, int Step) con
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int Step) const 
+void RigidBodySegregatedVElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
   KRATOS_TRY
 
@@ -258,11 +258,11 @@ void RigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::Initialize()
+void RigidBodySegregatedVElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
-  RigidBodyElement::Initialize();
+  RigidBodyElement::Initialize(rCurrentProcessInfo);
 
   KRATOS_CATCH("")
 }
@@ -270,7 +270,7 @@ void RigidBodySegregatedVElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void RigidBodySegregatedVElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -298,7 +298,7 @@ void RigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentPr
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void RigidBodySegregatedVElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -312,7 +312,7 @@ void RigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCu
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void RigidBodySegregatedVElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -340,7 +340,7 @@ void RigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurr
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void RigidBodySegregatedVElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -371,7 +371,7 @@ void RigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentPro
 //************************************************************************************
 
 void RigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                         ProcessInfo& rCurrentProcessInfo)
+                                                         const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -388,7 +388,7 @@ void RigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandS
 //************************************************************************************
 
 void RigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                        ProcessInfo& rCurrentProcessInfo)
+                                                        const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -406,7 +406,7 @@ void RigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& rLeftHandSid
 
 void RigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                        VectorType& rRightHandSideVector,
-                                                       ProcessInfo& rCurrentProcessInfo)
+                                                       const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -424,7 +424,7 @@ void RigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSide
 
 void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                                                                           VectorType& rRightHandSideVector,
-                                                                          ProcessInfo& rCurrentProcessInfo)
+                                                                          const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -454,7 +454,7 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesContributions(Matrix
 //************************************************************************************
 
 void RigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                                                ProcessInfo& rCurrentProcessInfo)
+                                                                const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -484,7 +484,7 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLef
 //************************************************************************************
 
 void RigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                                                ProcessInfo& rCurrentProcessInfo)
+                                                                const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -512,7 +512,7 @@ void RigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRig
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodySegregatedVElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBodySegregatedVElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -591,7 +591,7 @@ RigidBodySegregatedVElement::SizeType RigidBodySegregatedVElement::GetDofsSize()
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodySegregatedVElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
+void RigidBodySegregatedVElement::UpdateRigidBodyNodes(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -631,7 +631,7 @@ void RigidBodySegregatedVElement::SetProcessInformation(const ProcessInfo& rCurr
 //************************************************************************************
 //************************************************************************************
 
-int RigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int RigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY
 

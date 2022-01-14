@@ -133,24 +133,52 @@ IndexType CalculatePosition(CoordinateType const& ThisCoord, const SizeType& Thi
     return index;
 }
 
-SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, const SizeType& MaxNumberOfResults) override
+SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject,
+                                        const double& Radius,
+                                        ResultIteratorType& Results,
+                                        const SizeType& MaxNumberOfResults) override
 {
   PointType Low, High;
   SearchStructureType Box;
   SizeType NumberOfResults = 0;
 
   TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
-  //
+
   Box.Set(this->CalculateCell(Low), this->CalculateCell(High), this->mN );
 
-  SearchInRadiusExclusivePeriodic(ThisObject, Radius, Results, NumberOfResults, MaxNumberOfResults, Box);
+  SearchInRadiusExclusivePeriodic(ThisObject,
+                                  Radius,
+                                  Results,
+                                  NumberOfResults,
+                                  MaxNumberOfResults,
+                                  Box);
 
   return NumberOfResults;
 }
 
-SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results, DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults) override
+SizeType SearchObjectsInRadiusExclusive(PointerType& ThisObject,
+                                        const double& Radius,
+                                        ResultIteratorType& Results,
+                                        DistanceIteratorType ResultDistances,
+                                        const SizeType& MaxNumberOfResults) override
 {
-  return SearchObjectsInRadiusExclusive(ThisObject, Radius, Results, MaxNumberOfResults);
+  PointType Low, High;
+  SearchStructureType Box;
+  SizeType NumberOfResults = 0;
+
+  TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
+
+  Box.Set(this->CalculateCell(Low), this->CalculateCell(High), this->mN );
+
+  SearchInRadiusExclusivePeriodic(ThisObject,
+                                  Radius,
+                                  Results,
+                                  ResultDistances,
+                                  NumberOfResults,
+                                  MaxNumberOfResults,
+                                  Box);
+
+  return NumberOfResults;
 }
 
 protected:
@@ -160,104 +188,106 @@ void GenerateBins() override
     PointType Low, High;
     SearchStructureType Box;
     /// Fill container with objects
-    int i = 0;
-    for(IteratorType i_object = this->mObjectsBegin ; i_object != this->mObjectsEnd ; i_object++)
-    {
-        ++i;
+
+    for (IteratorType i_object = this->mObjectsBegin ; i_object != this->mObjectsEnd ; i_object++){
         TConfigure::CalculateBoundingBox(*i_object, Low, High);
         Box.Set( this->CalculateCell(Low), this->CalculateCell(High), this->mN );
         FillObjectPeriodic(Box, *i_object);
     }
 }
 
-void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                  SearchStructureType& Box )
+void SearchInRadiusExclusivePeriodic(PointerType& ThisObject,
+                                     CoordinateType const& Radius,
+                                     ResultIteratorType& Result,
+                                     SizeType& NumberOfResults,
+                                     const SizeType& MaxNumberOfResults,
+                                     SearchStructureType& Box)
 {
 
   PointType  MinCell, MaxCell;
   PointType  MinBox, MaxBox;
 
-  for(SizeType i = 0; i < 3; i++)
-  {
+  for (SizeType i = 0; i < 3; ++i){
       MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
       MaxBox[i] = MinBox[i] + this->mCellSize[i];
   }
 
-  MinCell[2] = MinBox[2];
-  MaxCell[2] = MaxBox[2];
   IndexType I_begin = Box.Axis[0].BeginIndex();
   IndexType II_begin = Box.Axis[1].BeginIndex();
   IndexType III_begin = Box.Axis[2].BeginIndex();
-
+  MinCell[2] = MinBox[2];
+  MaxCell[2] = MaxBox[2];
   int III_size = int(Box.Axis[2].Size()) + 1;
 
-  for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2))
-  {
+  for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2)){
       MinCell[1] = MinBox[1];
       MaxCell[1] = MaxBox[1];
       int II_size = int(Box.Axis[1].Size()) + 1;
 
-      for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1))
-      {
+      for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1)){
           MinCell[0] = MinBox[0];
           MaxCell[0] = MaxBox[0];
           int I_size = int(Box.Axis[0].Size()) + 1;
 
-          for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
-          {
+          for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0)){
               IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
               //this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
-
-              if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-              {
-                  this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
+              if (TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius)){
+                  this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject,
+                                                                           Radius,
+                                                                           Result,
+                                                                           NumberOfResults,
+                                                                           MaxNumberOfResults);
               }
           }
       }
    }
 }
 
-void SearchInRadiusExclusivePeriodic(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
-                    SearchStructureType& Box )
+void SearchInRadiusExclusivePeriodic(PointerType& ThisObject,
+                                     CoordinateType const& Radius,
+                                     ResultIteratorType& Result,
+                                     DistanceIteratorType ResultDistances,
+                                     SizeType& NumberOfResults,
+                                     const SizeType& MaxNumberOfResults,
+                                     SearchStructureType& Box)
 {
-
-
     PointType  MinCell, MaxCell;
     PointType  MinBox, MaxBox;
 
-    for(SizeType i = 0; i < 3; i++)
-    {
+    for (SizeType i = 0; i < 3; ++i){
         MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
         MaxBox[i] = MinBox[i] + this->mCellSize[i];
     }
 
-    MinCell[2] = MinBox[2];
-    MaxCell[2] = MaxBox[2];
     IndexType I_begin = Box.Axis[0].BeginIndex();
     IndexType II_begin = Box.Axis[1].BeginIndex();
     IndexType III_begin = Box.Axis[2].BeginIndex();
+    MinCell[2] = MinBox[2];
+    MaxCell[2] = MaxBox[2];
 
     int III_size = int(Box.Axis[2].Size()) + 1;
 
-    for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2))
-    {
+    for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2)){
         MinCell[1] = MinBox[1];
         MaxCell[1] = MaxBox[1];
         int II_size = int(Box.Axis[1].Size()) + 1;
 
-        for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1))
-        {
+        for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1)){
             MinCell[0] = MinBox[0];
             MaxCell[0] = MaxBox[0];
             int I_size = int(Box.Axis[0].Size()) + 1;
 
-            for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
-            {
+            for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0)){
                 IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
                 //this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
-                if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-                {
-                    this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
+                if (TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius)){
+                    this->mCells[GlobalIndex].SearchObjectsInRadiusExclusive(ThisObject,
+                                                                             Radius,
+                                                                             Result,
+                                                                             ResultDistances,
+                                                                             NumberOfResults,
+                                                                             MaxNumberOfResults);
                 }
             }
         }
@@ -269,8 +299,7 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
     PointType  MinCell, MaxCell;
     PointType  MinBox, MaxBox;
 
-    for(SizeType i = 0; i < 3; i++)
-    {
+    for(SizeType i = 0; i < 3; ++i){
         MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * this->mCellSize[i] + this->mMinPoint[i];
         MaxBox[i] = MinBox[i] + this->mCellSize[i];
     }
@@ -283,25 +312,22 @@ void FillObjectPeriodic(SearchStructureType& Box, const PointerType& i_object)
 
     int III_size = int(Box.Axis[2].Size()) + 1;
 
-    for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2))
-    {
+    for (IndexType III = III_begin; III_size > 0; NextIndex(III, III_size, MinCell, MaxCell, Box.Axis, 2)){
         MinCell[1] = MinBox[1];
         MaxCell[1] = MaxBox[1];
         int II_size = int(Box.Axis[1].Size()) + 1;
 
-        for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1))
-        {
+        for (IndexType II = II_begin; II_size > 0; NextIndex(II, II_size, MinCell, MaxCell, Box.Axis, 1)){
             MinCell[0] = MinBox[0];
             MaxCell[0] = MaxBox[0];
             int I_size = int(Box.Axis[0].Size()) + 1;
 
-            for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0))
-            {
+            for (IndexType I = I_begin; I_size > 0; NextIndex(I, I_size, MinCell, MaxCell, Box.Axis, 0)){
                 IndexType GlobalIndex = III * Box.Axis[2].Block + II * Box.Axis[1].Block + I * Box.Axis[0].Block;
                 this->mCells[GlobalIndex].Add(i_object);
-//                if(TConfigure::IntersectionBox(i_object,MinCell,MaxCell)){
-//                    this->mCells[GlobalIndex].Add(i_object);
-//                }
+                // if (TConfigure::IntersectionBox(i_object, MinCell,MaxCell)){
+                //     this->mCells[GlobalIndex].Add(i_object);
+                // }
             }
         }
     }
@@ -322,12 +348,12 @@ void SetDomainLimits(const array_1d<double, 3> domain_min, const array_1d<double
     mDomainMax[1] = domain_max[1];
     mDomainMax[2] = domain_max[2];
 
-//    for (SizeType i = 0 ; i < Dimension ; i++){
+//    for (SizeType i = 0 ; i < Dimension ; ++i){
 //        this->mMaxPoint[i] = std::min(this->mMaxPoint[i], mDomainMax[i]);
 //        this->mMinPoint[i] = std::max(this->mMinPoint[i], mDomainMin[i]);
 //    }
 
-    for (SizeType i = 0 ; i < Dimension ; i++){
+    for (SizeType i = 0 ; i < Dimension ; ++i){
         this->mMaxPoint[i] = mDomainMax[i];
         this->mMinPoint[i] = mDomainMin[i];
     }
@@ -342,8 +368,8 @@ inline void NextIndex(IndexType& Index, int& box_size_counter, PointType& MinCel
     }
     else {
         Index = 0;
-        MinCell[dimension] += - MinCell[dimension];
-        MaxCell[dimension] += - MaxCell[dimension] + this->mCellSize[dimension];
+        MinCell[dimension] = 0;
+        MaxCell[dimension] = this->mCellSize[dimension];
     }
 
     --box_size_counter;

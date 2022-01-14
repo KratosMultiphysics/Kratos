@@ -16,6 +16,11 @@
 
 // System includes
 #include <iostream>
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
 #include "containers/csr_matrix.h"
 #include "containers/distributed_sparse_graph.h"
 #include "containers/distributed_vector_importer.h"
@@ -23,14 +28,9 @@
 #include "includes/key_hash.h"
 #include "utilities/atomic_utilities.h"
 
-
-// Project includes
-#include "includes/define.h"
-
-
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -54,7 +54,7 @@ namespace Kratos
 
 /// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
-class DistributedCsrMatrix
+class DistributedCsrMatrix final
 {
 public:
     ///@name Type Definitions
@@ -70,20 +70,25 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    DistributedCsrMatrix(const DataCommunicator& rComm=ParallelEnvironment::GetDefaultDataCommunicator()) //default constructor. To be used for low level operations
-        : mrComm(rComm)
+
+    //default constructor. To be used for low level operations
+    DistributedCsrMatrix() 
+    {}
+
+    DistributedCsrMatrix(const DataCommunicator& rComm) 
+        : mpComm(&rComm)
     {}
 
     DistributedCsrMatrix(const DistributedSparseGraph<TIndexType>& rSparseGraph)
         :
-        mrComm(rSparseGraph.GetComm())
+        mpComm(&rSparseGraph.GetComm())
     {
         mpRowNumbering = Kratos::make_unique< DistributedNumbering<TIndexType> >( rSparseGraph.GetRowNumbering());
 
         //compute the columns size
         TIndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         TIndexType tot_col_size = max_col_index+1;
-        mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(mrComm, tot_col_size, mrComm.Size());
+        mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
 
         mOffDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
@@ -223,7 +228,7 @@ public:
 
     explicit DistributedCsrMatrix(const DistributedCsrMatrix& rOtherMatrix)
         :
-        mrComm(rOtherMatrix.mrComm),
+        mpComm(rOtherMatrix.mpComm),
         mpRowNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetRowNumbering())),
         mpColNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetColNumbering())),
         mpDiagonalBlock(Kratos::make_unique<>(rOtherMatrix.GetDiagonalBlock())),
@@ -242,7 +247,7 @@ public:
 
     //move constructor
     DistributedCsrMatrix(DistributedCsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
-        :mrComm(rOtherMatrix.mrComm)
+        :mpComm(rOtherMatrix.mpComm)
     {
         mpRowNumbering.swap(rOtherMatrix.pGetRowNumbering());
         mpColNumbering.swap(rOtherMatrix.pGetColNumbering());
@@ -260,7 +265,7 @@ public:
     //move assignement operator
     DistributedCsrMatrix& operator=(DistributedCsrMatrix&& rOtherMatrix)
     {
-        mrComm = rOtherMatrix.mrComm,
+        mpComm = rOtherMatrix.mpComm,
         mpRowNumbering.swap(rOtherMatrix.pGetRowNumbering());
         mpColNumbering.swap(rOtherMatrix.pGetColNumbering());
         mpDiagonalBlock = std::move(rOtherMatrix.mpDiagonalBlock);
@@ -274,7 +279,7 @@ public:
         mpVectorImporter = std::move(rOtherMatrix.mpVectorImporter);
     }
     /// Destructor.
-    virtual ~DistributedCsrMatrix() {}
+    ~DistributedCsrMatrix() {}
 
     /// Assignment operator. TODO: decide if we do want to allow it
     DistributedCsrMatrix& operator=(DistributedCsrMatrix const& rOther)=delete;
@@ -339,7 +344,12 @@ public:
 
     const DataCommunicator& GetComm() const
     {
-        return mrComm;
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
     }
 
     inline typename CsrMatrix<TDataType,TIndexType>::UniquePointer& pGetDiagonalBlock()
@@ -725,7 +735,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "DistributedCsrMatrix" ;
@@ -733,13 +743,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "DistributedCsrMatrix";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << "--- Diagonal Block: ---" << std::endl;
         rOStream << "size1 : " << GetDiagonalBlock().size1() <<std::endl;
@@ -918,7 +928,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const DataCommunicator& mrComm;
+    const DataCommunicator* mpComm;
 
     typename DistributedNumbering<TIndexType>::UniquePointer mpRowNumbering;
     typename DistributedNumbering<TIndexType>::UniquePointer mpColNumbering;
@@ -946,7 +956,7 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        rSerializer.save("CSRcommunicator",mrComm);
+        rSerializer.save("CommunicatorName",ParallelEnvironment::RetrieveRegisteredName(*mpComm));
         rSerializer.save("RowNumbering",mpRowNumbering);
         rSerializer.save("ColNumbering",mpColNumbering);
         rSerializer.save("mpDiagonalBlock",mpDiagonalBlock);
@@ -963,7 +973,9 @@ private:
 
     void load(Serializer& rSerializer)
     {
-        rSerializer.load("CSRcommunicator",mrComm);
+        std::string comm_name;
+        rSerializer.load("CommunicatorName",comm_name);
+        mpComm = &ParallelEnvironment::GetDataCommunicator(comm_name);
         rSerializer.load("RowNumbering",mpRowNumbering);
         rSerializer.load("ColNumbering",mpColNumbering);
         rSerializer.load("mpDiagonalBlock",mpDiagonalBlock);

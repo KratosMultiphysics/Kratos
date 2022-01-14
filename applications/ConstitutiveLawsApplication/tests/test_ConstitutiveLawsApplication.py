@@ -15,12 +15,14 @@ from test_factory import BigCubeSmallDeformationPlasticityVMTest
 from test_factory import BigCubeSmallDeformationPlasticityDPTest
 from test_factory import BigCubeSmallDeformationPlasticityTTest
 from test_factory import SerialParallelRuleOfMixturesCubeDamageTest
+from test_factory import PlasticDamageTest
 from test_factory import AnisotropyTest
 from test_factory import InitialStateInelasticityTest
 from test_factory import InitialStateInelasticity2Test
 from test_factory import SmallDeformationPlasticityTest
 from test_factory import SimpleJ2PlasticityTest
 from test_factory import TensileTestStructuralTest
+from test_factory import HighCycleFatigueTest
 
 
 def AssembleTestSuites():
@@ -52,6 +54,7 @@ def AssembleTestSuites():
     smallSuite.addTest(InitialStateInelasticityTest('test_execution'))
     smallSuite.addTest(InitialStateInelasticity2Test('test_execution'))
     smallSuite.addTest(SimpleJ2PlasticityTest('test_execution'))
+    smallSuite.addTest(HighCycleFatigueTest('test_execution'))
 
     # Create a test suit with the selected tests (Nightly tests):
     nightSuite = suites['nightly']
@@ -61,6 +64,7 @@ def AssembleTestSuites():
     nightSuite.addTest(SmallDeformationPlasticityTest('test_execution'))
     nightSuite.addTest(SimpleSmallDeformationPlasticityMCTest('test_execution'))
     nightSuite.addTest(SerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
+    nightSuite.addTest(PlasticDamageTest('test_execution'))
 
     ### Adding Validation Tests
     # For very long tests that should not be in nighly and you can use to validate

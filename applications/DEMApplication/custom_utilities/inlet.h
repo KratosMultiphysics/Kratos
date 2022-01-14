@@ -11,10 +11,6 @@
 #include <iostream>
 #include <random>
 
-// External includes
-
-// Project includes
-
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -27,9 +23,12 @@
 #include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../applications/DEMApplication/custom_utilities/properties_proxies.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/random_variable.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/discrete_random_variable.h"
+#include "custom_utilities/properties_proxies.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
@@ -48,9 +47,13 @@ namespace Kratos {
 
         /// Constructor:
         DEM_Inlet(ModelPart& inlet_modelpart, const int seed=42);
+        DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_inlet_settings, const int seed=42);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}
+
+        DEM_Inlet(const DEM_Inlet&) = delete;
+        DEM_Inlet& operator=(const DEM_Inlet&) = delete;
 
         template<class TDataType> void CheckIfSubModelPartHasVariable(ModelPart& smp, const Variable<TDataType>& rThisVariable) {
             if(!smp.Has(rThisVariable)) KRATOS_ERROR<<"The SubModelPart '"<<smp.Name()<<"' does not have the variable '"<<rThisVariable.Name()<<"'";
@@ -69,11 +72,17 @@ namespace Kratos {
         int GetTotalNumberOfParticlesInjectedSoFar();
         double GetPartialMassInjectedSoFar(const int i);
         double GetTotalMassInjectedSoFar();
+        virtual double SetMaxDistributionRadius(ModelPart& mp);
+        virtual double SetDistributionMeanRadius(ModelPart& mp);
+        virtual double GetMaxRadius(ModelPart& mp);
+
     protected:
         virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
         virtual void AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_degrees);
 
     private:
+
+
         void UpdateInjectedParticleVelocity(Element &particle, Element &injector_element);
         virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element, Element* p_injector_element);
@@ -116,6 +125,9 @@ namespace Kratos {
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
         std::vector<ModelPart*> mListOfSubModelParts;
+        std::map<std::string, std::unique_ptr<RandomVariable>> mInletsRandomVariables;
+        std::map<std::string, Parameters> mInletsRandomSettings;
+        Parameters mInletsSettings;
     };
 }// namespace Kratos.
 
