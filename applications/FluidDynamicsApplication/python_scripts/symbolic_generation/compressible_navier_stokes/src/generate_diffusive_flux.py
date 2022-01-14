@@ -69,7 +69,7 @@ def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
 
     # Calculate the heat flux vector
     c_v = params.c_v        # Specific heat at constant volume
-    lamb = params.lambda_   # Thermal conductivity
+    lamb = params.lamb      # Thermal conductivity
     lamb += sc_params.lamb  # Artificial thermal conductivity for shock capturing
     heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
