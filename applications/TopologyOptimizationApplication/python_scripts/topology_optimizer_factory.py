@@ -25,7 +25,7 @@ import os
 
 # For GID output
 #from KratosMultiphysics import gid_output
-from KratosMultiphysics.gid_output_process import GiDOutput
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 # Further necessary imports
 import csv
@@ -53,7 +53,7 @@ class SIMPMethod:
         self.config = config
 
         # For GID output
-        self.gid_io = GiDOutput(config.GiD_output_file_name,
+        self.gid_io = GiDOutputProcess(config.GiD_output_file_name,
                         config.VolumeOutput,
                         config.GiDPostMode,
                         config.GiDMultiFileFlag,
@@ -84,11 +84,11 @@ class SIMPMethod:
 
         # Initialize element variables
         for element_i in opt_model_part.Elements:
-            element_i.SetValue(E_MIN, config.E_min)
+            element_i.SetValue(YOUNGS_MODULUS_MIN, config.E_min)
             element_i.SetValue(PENAL, config.penalty)
             element_i.SetValue(X_PHYS, config.initial_volume_fraction)
             element_i.SetValue(X_PHYS_OLD, config.initial_volume_fraction)
-            element_i.SetValue(E_0, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
+            element_i.SetValue(YOUNGS_MODULUS_0, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
             element_i.SetValue(YOUNG_MODULUS, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
 
         # Only happens if continuation strategy is activated (Initialization of penalty factor)
@@ -124,13 +124,6 @@ class SIMPMethod:
         # Call for the specified optimization algorithm
         if(self.config.optimization_algorithm == "oc_algorithm"):
            self.start_oc_algorithm()
-
-        elif(self.config.optimization_algorithm == "MMA_algorithm"):
-           self.start_mma_algorithm()
-
-        elif(self.config.optimization_algorithm == "GCMMA_algorithm"):
-           self.start_gcmma_algorithm()
-
 
         else:
             raise TypeError("Specified optimization_algorithm not implemented!")
@@ -301,10 +294,6 @@ class SIMPMethod:
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
                     self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
-                    
-                    # Displacement showing
-                    #for node_i in self.opt_model_part.Nodes:
-                       # print("\n  Displacement:", node_i.GetValue(DISPLACEMENT))
 
                     break
             

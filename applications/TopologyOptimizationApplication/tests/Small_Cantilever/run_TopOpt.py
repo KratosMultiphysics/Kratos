@@ -1,5 +1,6 @@
 #import kratos core and applications
 import KratosMultiphysics as km
+from KratosMultiphysics import gid_output_process
 import KratosMultiphysics.StructuralMechanicsApplication as ksm
 import KratosMultiphysics.TopologyOptimizationApplication as kto
 import KratosMultiphysics.LinearSolversApplication as kls
@@ -57,20 +58,20 @@ problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 # initialize GiD  I/O (gid outputs, file_lists)
 #from gid_output_process import GiDOutputProcess
 output_settings = ProjectParameters["processes"]["output_configuration"]
-gid_output = GiDOutputProcess(computing_model_part,
+gid_output_process = GiDOutputProcess(computing_model_part,
                               problem_name,
                               output_settings)
 
-gid_output.ExecuteInitialize()
+gid_output_process.ExecuteInitialize()
 solver.Initialize()
 for process in list_of_processes:
     process.ExecuteBeforeSolutionLoop()
-gid_output.ExecuteBeforeSolutionLoop()
+gid_output_process.ExecuteBeforeSolutionLoop()
 
 def solve_structure(opt_itr):    
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
-    gid_output.ExecuteInitializeSolutionStep() 
+    gid_output_process.ExecuteInitializeSolutionStep() 
 
     #solve problem
     solver.InitializeSolutionStep()
@@ -79,13 +80,13 @@ def solve_structure(opt_itr):
    
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
-    gid_output.ExecuteFinalizeSolutionStep()
+    gid_output_process.ExecuteFinalizeSolutionStep()
     for process in list_of_processes:
         process.ExecuteFinalizeSolutionStep()
     for process in list_of_processes:
         process.ExecuteBeforeOutputStep()
-    if(gid_output.IsOutputStep()):
-        gid_output.PrintOutput()
+    if(gid_output_process.IsOutputStep()):
+        gid_output_process.PrintOutput()
     for process in list_of_processes:
         process.ExecuteAfterOutputStep() 
 
@@ -93,7 +94,7 @@ def FinalizeKSMProcess():
     for process in list_of_processes:
         process.ExecuteFinalize()
     # ending the problem (time integration finished)
-    gid_output.ExecuteFinalize()
+    gid_output_process.ExecuteFinalize()
     
 def Analyzer(controls, response, opt_itr):
     # Create object to analyze structure response functions if required

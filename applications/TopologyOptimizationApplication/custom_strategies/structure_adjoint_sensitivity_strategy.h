@@ -104,7 +104,7 @@ public:
             i++;
         }
         clock_t end = clock();
-        std::cout << "  Objective Function sensitivities computed  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        KRATOS_INFO("TopOpt") << "  Objective Function sensitivities computed  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -127,7 +127,7 @@ public:
         }
 
         clock_t end = clock();
-        std::cout << "  Volume fraction sensitivities computed     [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        KRATOS_INFO("TopOpt") << "  Volume fraction sensitivities computed     [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
         KRATOS_CATCH("");
     }

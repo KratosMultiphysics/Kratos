@@ -67,7 +67,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< ResidualBasedIncrementalUpdateStaticSIMPScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedIncrementalUpdateStaticSIMPScheme );
 
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
@@ -101,7 +100,6 @@ public:
     /** Destructor.
     */
     ~ResidualBasedIncrementalUpdateStaticSIMPScheme() override {} 
-    ///virtual ~ResidualBasedIncrementalUpdateStaticSIMPScheme() {} alte Version 14.12
 
 
     /*@} */
@@ -135,8 +133,8 @@ public:
         
 
         //Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
-        double E_min     = rCurrentElement.GetValue(E_MIN);
-        double E_initial = rCurrentElement.GetValue(E_0);
+        double E_min     = rCurrentElement.GetValue(YOUNGS_MODULUS_MIN);
+        double E_initial = rCurrentElement.GetValue(YOUNGS_MODULUS_0);
         double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
         double penalty   = rCurrentElement.GetValue(PENAL);
         double x_phys    = rCurrentElement.GetValue(X_PHYS);

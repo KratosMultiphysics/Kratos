@@ -100,10 +100,6 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 //************************************************************************************
 //************************************************************************************
 
-
-/*  void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
-		std::vector<double>& rValues,
-		const ProcessInfo& rCurrentProcessInfo ) */
 	
 void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -197,8 +193,8 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
     if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
     {
         // Get values
-        double E_min     = this->GetValue(E_MIN);
-        double E_initial = this->GetValue(E_0);
+        double E_min     = this->GetValue(YOUNGS_MODULUS_MIN);
+        double E_initial = this->GetValue(YOUNGS_MODULUS_0);
         double E_current = this->GetValue(YOUNG_MODULUS);
         double penalty   = this->GetValue(PENAL);
         double x_phys    = this->GetValue(X_PHYS);
@@ -210,7 +206,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
         double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
         ///Normalize the youngs modulus
-        double factor    = (1/E_current)*E_new; 
+        double factor    = E_new/E_current; 
         MatrixType Ke = Ke0 * factor;
 
         // Loop through nodes of elements and create elemental displacement vector "ue"

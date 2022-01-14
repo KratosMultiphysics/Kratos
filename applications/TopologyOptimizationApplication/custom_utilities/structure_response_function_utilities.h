@@ -101,8 +101,7 @@ public:
         KRATOS_TRY;
 
         clock_t begin = clock();
-        std::cout<<"  Start calculating strain energy."<<std::endl;
-    /* 	std::cout<< "respones function bevor Schleife:" << std::endl;  */
+        KRATOS_INFO("TopOpt") << "  Start calculating strain energy."<<std::endl;
 
         double Out = 0.0;
         double Global_Strain_Energy = 0.0;
@@ -119,7 +118,7 @@ public:
         }
 
         clock_t end = clock();
-        std::cout << "  Strain energy calculated                  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        KRATOS_INFO("TopOpt") <<  "  Strain energy calculated                  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
         // Return this obtained Global Strain Energy value as the objective function of the complete system
         return Global_Strain_Energy;
@@ -132,7 +131,7 @@ public:
         KRATOS_TRY;
 
         clock_t begin = clock();
-        std::cout<<"  Start calculating volume fraction."<<std::endl;
+        KRATOS_INFO("TopOpt") <<"  Start calculating volume fraction."<<std::endl;
 
         int number_elements = 0;
         double Global_Volume_Fraction = 0.0;
@@ -148,9 +147,9 @@ public:
 
         // Calculate and return the Global Volume Fraction by knowing how many elements the model has
         Global_Volume_Fraction = Global_Volume_Fraction/number_elements;
-        std::cout<< "Global Volume Fraction: " << Global_Volume_Fraction << " Wert"<< std::endl;
+        KRATOS_INFO("TopOpt") <<"Global Volume Fraction: " << Global_Volume_Fraction << std::endl;
         clock_t end = clock();
-        std::cout << "  Volume fraction calculated                [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        KRATOS_INFO("TopOpt") <<"  Volume fraction calculated                [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
         return Global_Volume_Fraction;
 
         KRATOS_CATCH("");

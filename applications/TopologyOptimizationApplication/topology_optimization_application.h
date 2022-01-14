@@ -43,8 +43,8 @@ namespace Kratos
     ///@{
 
     // Variables definition with Python connection
-    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, E_MIN )
-    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, E_0 )
+    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, YOUNGS_MODULUS_MIN)
+    KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, YOUNGS_MODULUS_0 )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION,double, PENAL )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, X_PHYS )
     KRATOS_DEFINE_APPLICATION_VARIABLE( TOPOLOGY_OPTIMIZATION_APPLICATION, double, X_PHYS_OLD )
@@ -205,19 +205,11 @@ namespace Kratos
         ///@{
 
         //small_displacement
-        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
-        ///const SmallDisplacement mSmallDisplacement3D3N;
+        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D4N;
-        ///const SmallDisplacement mSmallDisplacement3D4N;
         const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D8N;
-        ///const SmallDisplacement mSmallDisplacement3D8N;
 
-//        Extra elements to be added in the future
-//        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D6N;
-//        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D10N;
-//        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D15N;
-//        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D20N;
-//        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D27N;
+
 
 
         ///@}

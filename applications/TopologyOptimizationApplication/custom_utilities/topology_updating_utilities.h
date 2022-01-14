@@ -105,7 +105,7 @@ public:
 
         if ( strcmp( update_type , "oc_algorithm" ) == 0 ){
             clock_t begin = clock();
-            std::cout << "  Optimality Criterion Method (OC) chosen to solve the optimization problem" << std::endl;
+            KRATOS_INFO("TopOpt") << "  Optimality Criterion Method (OC) chosen to solve the optimization problem" << std::endl;
 
             // Check if Grey Scale Filter should be used
             double q = 1;
@@ -116,11 +116,11 @@ public:
                 else
                     q = std::min(qmax, 1.1*q);
 
-                std::cout << "  Grey Scale Filter activated, q = " << q << std::endl;
+                KRATOS_INFO("TopOpt") << "  Grey Scale Filter activated, q = " << q << std::endl;
             }
             else
             {
-                std::cout << "  Grey Scale Filter deactivated, q = " << q << std::endl;
+                KRATOS_INFO("TopOpt") << "  Grey Scale Filter deactivated, q = " << q << std::endl;
             }
 
             // Update Densities procedure
@@ -172,7 +172,7 @@ public:
                     default:
                     {
                         // If no element identification was found
-                        std::cout << "This value for SOLID_VOID does not exist."<< std::endl;
+                        KRATOS_INFO("TopOpt") << "This value for SOLID_VOID does not exist."<< std::endl;
                     }
                     }
 
@@ -192,7 +192,7 @@ public:
 
             // Printing of results
             clock_t end = clock();
-            std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("TopOpt") << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
         } else {
             KRATOS_ERROR << "No valid optimization_algorithm selected for the simulation. Selected one: " << update_type << std::endl;
         }

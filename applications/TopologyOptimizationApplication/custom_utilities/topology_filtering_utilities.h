@@ -165,10 +165,10 @@ public:
         // Function to Filter Sensitivities
         if ( strcmp( FilterType , "sensitivity" ) == 0 ){
             clock_t begin = clock();
-            std::cout << "  Sensitivity filter chosen as filter for sensitivities" << std::endl;
+            KRATOS_INFO("TopOpt") << "  Sensitivity filter chosen as filter for sensitivities" << std::endl;
 
             if ( strcmp( FilterFunctionType , "linear" ) == 0 )
-                std::cout << "  Linear filter kernel selected" << std::endl;
+                KRATOS_INFO("TopOpt") << "  Linear filter kernel selected" << std::endl;
             else
                 KRATOS_ERROR << "No valid FilterFunction selected for the simulation. Selected one: " << FilterFunctionType << std::endl;
 
@@ -183,7 +183,7 @@ public:
                 array_1d<double,3> center_coord = ZeroVector(3);
                 Geometry< Node<3> >& geom = elem_i->GetGeometry();
                 for(unsigned int i=0; i<geom.size(); i++)
-                    noalias(center_coord) += (geom[i].Coordinates() - geom[i].FastGetSolutionStepValue(DISPLACEMENT));
+                    noalias(center_coord) += (geom[i].GetInitialPosition());
                 center_coord /= static_cast<double>(geom.size());
 
                 // new "ElementPositionItem" for every element and assigns a pointer to the base element *it.base()
@@ -200,7 +200,7 @@ public:
             std::vector<double> resulting_squared_distances(mMaxElementsAffected);
 
             clock_t tree_time = clock();
-            std::cout << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("TopOpt") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
             // Compute filtered sensitivities
             Vector dcdx_filtered;
@@ -219,9 +219,8 @@ public:
                 ElementPositionItem ElemPositionItem(center_coord,*elem_i.base());
 
                 // This is broken. Bug found when using ResultingSquaredDistances, so we calculate our own distances
-                int num_nodes_found = 0;
+                const int num_nodes_found = MyTree.SearchInRadius(ElemPositionItem,mSearchRadius,Results.begin(),resulting_squared_distances.begin(),mMaxElementsAffected);
 
-                num_nodes_found = MyTree.SearchInRadius(ElemPositionItem,mSearchRadius,Results.begin(),resulting_squared_distances.begin(),mMaxElementsAffected);
 
 
                 double Hxdc = 0.0;
@@ -257,7 +256,7 @@ public:
                 elem_i->SetValue(DCDX,dcdx_filtered[i++]);
 
             clock_t end = clock();
-            std::cout << "  Filtered sensitivities calculated          [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("TopOpt") << "  Filtered sensitivities calculated          [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
         }
         else
             KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;
@@ -277,10 +276,10 @@ public:
         // Function to Filter Sensitivities
         if ( strcmp( FilterType , "density" ) == 0 ){
             clock_t begin = clock();
-            std::cout << "  Density filter chosen as filter for densities" << std::endl;
+            KRATOS_INFO("TopOpt") << "  Density filter chosen as filter for densities" << std::endl;
 
             if ( strcmp( FilterFunctionType , "linear" ) == 0 )
-                std::cout << "  Linear filter kernel selected" << std::endl;
+                KRATOS_INFO("TopOpt") << "  Linear filter kernel selected" << std::endl;
             else
                 KRATOS_ERROR << "No valid FilterFunction selected for the simulation. Selected one: " << FilterFunctionType << std::endl;
 
@@ -295,7 +294,7 @@ public:
                 array_1d<double,3> center_coord = ZeroVector(3);
                 Geometry< Node<3> >& geom = elem_i->GetGeometry();
                 for(unsigned int i=0; i<geom.size(); i++)
-                    noalias(center_coord) += (geom[i].Coordinates() - geom[i].FastGetSolutionStepValue(DISPLACEMENT));
+                    noalias(center_coord) += (geom[i].GetInitialPosition());
                 center_coord /= static_cast<double>(geom.size());
 
                 // new "ElementPositionItem" for every element and assigns a pointer to the base element *it.base()
@@ -312,7 +311,7 @@ public:
             std::vector<double> resulting_squared_distances(mMaxElementsAffected);
 
             clock_t tree_time = clock();
-            std::cout << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("TopOpt") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
             // Compute filtered sensitivities
             Vector x_phys_filtered;
@@ -377,7 +376,7 @@ public:
                 elem_i->SetValue(X_PHYS, x_phys_filtered[i++]);
 
             clock_t end = clock();
-            std::cout << "  Filtered densities calculated          	[ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("TopOpt") << "  Filtered densities calculated          	[ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
         }
         else
             KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;

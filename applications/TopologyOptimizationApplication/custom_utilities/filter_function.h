@@ -71,14 +71,11 @@ public:
     FilterFunction( std::string FilterFunctionType, const double SearchRadius )
     :mSearchRadius(SearchRadius)
     {
-        // Set precision for output
-        std::cout.precision(12);
 
         // Set type of weighting function
 
         // Type 1: Gaussian function
-        std::string linear("linear");
-        if(FilterFunctionType.compare(linear)==0)
+        if(FilterFunctionType == "linear")
             mFilterFunctionType = 1;
     }
     /// Destructor.

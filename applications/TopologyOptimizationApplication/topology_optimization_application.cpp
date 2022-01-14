@@ -34,19 +34,11 @@
 #include "topology_optimization_application.h"
 
 
-// Geometries that must be added when more elements are added into the application (SOLID MECHANICS APPLICATION)
-//#include "geometries/tetrahedra_3d_10.h"
-//#include "geometries/hexahedra_3d_20.h"
-//#include "geometries/hexahedra_3d_27.h"
-//#include "geometries/prism_3d_6.h"
-//#include "geometries/prism_3d_15.h"
-
-
 namespace Kratos
 {
     //Create Variables with Python connection
-    KRATOS_CREATE_VARIABLE( double, E_MIN )
-    KRATOS_CREATE_VARIABLE( double, E_0 )
+    KRATOS_CREATE_VARIABLE( double, YOUNGS_MODULUS_MIN)
+    KRATOS_CREATE_VARIABLE( double, YOUNGS_MODULUS_0 )
     KRATOS_CREATE_VARIABLE( double, PENAL )
     KRATOS_CREATE_VARIABLE( double, X_PHYS )
     KRATOS_CREATE_VARIABLE( double, X_PHYS_OLD )
@@ -62,19 +54,9 @@ namespace Kratos
     KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication() 
         : KratosApplication("TopologyOptimizationApplication"),
 
-            mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ), // dummy element for surface representation
-        ///mSmallDisplacement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+            mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
             mSmallDisplacementSIMPElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
-        ///mSmallDisplacement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
             mSmallDisplacementSIMPElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType( 8 ) ) ) ){}
-        ///mSmallDisplacement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<NodeType >(Element::GeometryType::PointsArrayType(8)))){}
-
-//        Extra elements that can be added in the future
-//        mSmallDisplacementSIMPElement3D6N( 0, Element::GeometryType::Pointer( new Prism3D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
-//        mSmallDisplacementSIMPElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <Node<3> >( Element::GeometryType::PointsArrayType( 10 ) ) ) ),
-//        mSmallDisplacementSIMPElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15 ) ) ) ),
-//        mSmallDisplacementSIMPElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20 ) ) ) ),
-//        mSmallDisplacementSIMPElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27 ) ) ) )
 
 
 
@@ -93,16 +75,9 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D4N", mSmallDisplacementSIMPElement3D4N )
         KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D8N", mSmallDisplacementSIMPElement3D8N )
 
-//        Extra elements that can be added in the future
-//        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D6N", mSmallDisplacementSIMPElement3D6N )
-//        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D10N", mSmallDisplacementSIMPElement3D10N )
-//        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D15N", mSmallDisplacementSIMPElement3D15N )
-//        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D20N", mSmallDisplacementSIMPElement3D20N )
-//        KRATOS_REGISTER_ELEMENT( "SmallDisplacementSIMPElement3D27N", mSmallDisplacementSIMPElement3D27N )
-
         //Register Variables with Python connection
-        KRATOS_REGISTER_VARIABLE( E_MIN )
-        KRATOS_REGISTER_VARIABLE( E_0 )
+        KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_MIN)
+        KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_0 )
         KRATOS_REGISTER_VARIABLE( PENAL )
         KRATOS_REGISTER_VARIABLE( X_PHYS )
         KRATOS_REGISTER_VARIABLE( X_PHYS_OLD )
