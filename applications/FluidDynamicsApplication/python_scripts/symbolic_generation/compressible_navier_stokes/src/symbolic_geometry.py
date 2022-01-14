@@ -118,7 +118,7 @@ class QuadrilateralData(GeometryData):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
-        return defs.Vector('N', self.nnodes, real=True)
+        return defs.Vector('N', self.nnodes, positive=True)
 
     def _ComputeShapeFunctionsGradients(self):
         return defs.Matrix('DN_DX', self.nnodes, self.ndims)
