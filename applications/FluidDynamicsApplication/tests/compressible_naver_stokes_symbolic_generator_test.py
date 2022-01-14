@@ -23,15 +23,19 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
         """.replace("{geometry}", geometry_name)
         )
 
-    def _RunTest(self, geometry_name):
-        parameters = self._GetParameters(geometry_name)
-
+    @classmethod
+    def RemoveTestOutput(cls, parameters):
         try:
             os.remove(parameters["Parameters"]["output_filename"].GetString())
         except FileNotFoundError:
             pass
 
+    def _RunTest(self, geometry_name):
+        parameters = self._GetParameters(geometry_name)
+
         with KratosUnittest.WorkFolderScope(".", __file__):
+            self.RemoveTestOutput(parameters)
+
             generator = CompressibleNavierStokesSymbolicGenerator(parameters["Parameters"])
             generator.Generate()
             generator.Write()
@@ -41,6 +45,8 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
 
             with open(parameters["reference"].GetString(), "r") as f:
                 reference = f.readlines()
+
+            self.RemoveTestOutput(parameters)
 
         self.assertEqual(result, reference)
 
