@@ -737,11 +737,7 @@ namespace CompressibleNavierStokesExplicitInternal
         const Geometry<Node<3>> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
-        switch (TDim) {
-            case 2: rData.volume = rGeometry.Area();   break;
-            case 3: rData.volume = rGeometry.Volume(); break;
-        }
-
+        rData.volume = rGeometry.DomainSize();
         rData.h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(rGeometry);
     }
 }
