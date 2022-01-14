@@ -513,6 +513,8 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables)
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
     unsigned int index_p = dimension;
 
+    rVariables.Identity = IdentityMatrix(dimension);
+
     // Set Pressure and Pressure Gradient in gauss points
     rVariables.PressureGP = 0;
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
@@ -616,7 +618,67 @@ void UpdatedLagrangianUPVMS::CalculateTaus(
     KRATOS_CATCH( "" )
 }
 
+//************************************************************************************
+//************************************************************************************
 
+
+void UpdatedLagrangianUPVMS::CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix)
+{
+
+    rTensorIdentityMatrix.clear();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int msIndexVoigt3D6C [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+    //const unsigned int msIndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    const unsigned int msIndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
+
+    double tens = (dimension - 1)*(dimension - 1)+2;
+
+    if (dimension == 2)
+    {
+        for(unsigned int i=0; i<tens; i++)
+        {
+            for(unsigned int j=0; j<tens; j++)
+            {
+            rTensorIdentityMatrix( i, j ) = TensorIdentityComponent(rTensorIdentityMatrix( i, j ), rVariables,
+                                          msIndexVoigt2D3C[i][0], msIndexVoigt2D3C[i][1], msIndexVoigt2D3C[j][0], msIndexVoigt2D3C[j][1]);
+            }
+        }
+
+    }
+    else
+    {
+        for(unsigned int i=0; i<tens; i++)
+        {
+            for(unsigned int j=0; j<tens; j++)
+            {
+            rTensorIdentityMatrix( i, j ) = TensorIdentityComponent(rTensorIdentityMatrix( i, j ), rVariables,
+                                          msIndexVoigt3D6C[i][0], msIndexVoigt3D6C[i][1], msIndexVoigt3D6C[j][0], msIndexVoigt3D6C[j][1]);
+            }
+        }
+
+    }
+
+
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
+double& UpdatedLagrangianUPVMS::TensorIdentityComponent (double& rCabcd, GeneralVariables& rVariables,
+    const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d)
+{
+
+    double IdotI = rVariables.Identity(a, b) * rVariables.Identity(c, d);
+    double Isym = (rVariables.Identity(a, c) * rVariables.Identity(b, d) +
+        rVariables.Identity(a, d) * rVariables.Identity(b, c)) / 2.0;
+    
+    rCabcd = IdotI;
+    rCabcd -= 2 * Isym;
+
+    return rCabcd;
+
+}
 //************************************************************************************
 //************************************************************************************
 
@@ -641,10 +703,10 @@ void UpdatedLagrangianUPVMS::CalculateAndAddRHS(
     CalculateAndAddPressureForces( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized terms of the momentum equation
-    CalculateAndAddStabilizedDisplacement( rRightHandSideVector, rVariables, rIntegrationWeight);
+    CalculateAndAddStabilizedDisplacement( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
     // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
-    CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
+    CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
 
     //rVariables.detF     = determinant_F;
     //rVariables.detF0   /= rVariables.detF;
@@ -719,6 +781,8 @@ void UpdatedLagrangianUPVMS::CalculateAndAddPressureForces(VectorType& rRightHan
     unsigned int index_p = dimension;
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
+    
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 
@@ -734,12 +798,34 @@ void UpdatedLagrangianUPVMS::CalculateAndAddPressureForces(VectorType& rRightHan
 
 void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
+        Vector& rVolumeForce,
         const double& rIntegrationWeight)
 {
     KRATOS_TRY
 
-   
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.PointsNumber();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    //unsigned int index_p = dimension;
+    Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector Stab1 = rVolumeForce-rVariables.PressureGradient;
 
+    // double bulk_modulus = 1.0 // CORREGIR
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int index_up = dimension * i + i;
+        
+        // unsigned int index_u  = dimension * i;
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rRightHandSideVector[index_up + j] -= rVariables.tau1 * Stab1(j) * Testf1(i)  * rIntegrationWeight;
+            //rRightHandSideVector[index_up + j] += rVariables.tau2  * ((rVariables.PressureGP/bulk_modulus) -(1.0 - 1.0 / rVariables.detFT)) * rVariables.DN_DX(i,j) *rIntegrationWeight;
+        }
+    }
+
+ 
     KRATOS_CATCH( "" )
 }
 
@@ -749,6 +835,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
 
 void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
+        Vector& rVolumeForce,
         const double& rIntegrationWeight)
 {
     KRATOS_TRY
@@ -757,71 +844,15 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
+    Vector Stab1 = prod(rVariables.DN_DX,rVolumeForce-rVariables.PressureGradient);
 
-    // Stabilization alpha parameters
-    double alpha_stabilization  = 1.0;
-    if( GetProperties().Has(STABILIZATION_FACTOR) ){
-        alpha_stabilization = GetProperties()[STABILIZATION_FACTOR];
-    }
+    //double bulk_modulus = 1.0 // CORREGIR
 
-    double shear_modulus = 0;
-    if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
-    {
-        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-        const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
-
-        //double consistent = 1;
-        double factor_value = 8.0; //JMR deffault value
-        if (dimension == 3)
-            factor_value = 10.0; //JMC deffault value
-
-        alpha_stabilization = alpha_stabilization * factor_value / shear_modulus;
-    }
-    else if (GetProperties().Has(DYNAMIC_VISCOSITY))
-    {
-        /*
-        Stabilization parameter for shallow water: 
-        alpha stabilization = c_tau/sqrt(h)
-        h: characteristic water depth
-        c_tau : [0.1, 1]
-        */
-        double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
-        alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
-
-    }
-    else
-    {
-        KRATOS_ERROR << "No pressure stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
-    }
-
-
-    double consistent = 1.0;
-    // TODO: Check what is the meaning of this equation
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            const double& pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE);
+        rRightHandSideVector[index_p] += rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
+        //rRightHandSideVector[index_p] -= rVariables.tau2  * (rVariables.PressureGP/bulk_modulus -(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * rIntegrationWeight;
 
-            if( dimension == 2 )
-            {
-                consistent = (-1) * alpha_stabilization / 36.0;
-                if (i == j)
-                    consistent = 2 * alpha_stabilization / 36.0;
-
-
-                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / rVariables.detFT; //2D
-            }
-            else
-            {
-                consistent = (-1) * alpha_stabilization / 80.0;
-                if (i == j)
-                    consistent = 3 * alpha_stabilization / 80.0;
-
-                rRightHandSideVector[index_p] += consistent * pressure * rIntegrationWeight / rVariables.detFT; //3D
-            }
-        }
         index_p += (dimension + 1);
     }
 
@@ -1029,7 +1060,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
 
         // ATTENTION: class not used in the current implementation!!
 
-    /* const unsigned int number_of_nodes = GetGeometry().size();
+     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
 
@@ -1060,7 +1091,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
         indexpi += (dimension + 1);
     }
 
- */
+ 
     KRATOS_CATCH( "" )
 }
 
@@ -1094,7 +1125,8 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
             {
                 for ( unsigned int jdim = 0; jdim < dimension ; jdim ++)
                 {
-                    rLeftHandSideMatrix(indexi+i,indexj+j)+=- rVariables.tau1 * Kuustab(i)*rIntegrationWeight* Kuustab(j);
+                    rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab(i)*rIntegrationWeight* Kuustab(j);
+                    rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau2 * rVariables.DN_DX(i,idim)*rIntegrationWeight* rVariables.DN_DX(j,jdim);
                     indexj++;
                 }
             }
@@ -1119,6 +1151,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    Vector Stab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -1130,6 +1163,9 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
             for ( unsigned int k = 0; k < dimension; k++ )
             {
                 // rLeftHandSideMatrix(index_up + k, index_p) += rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
+
+                rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau1 * Stab1(i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau2 * rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
             }
             index_p += (dimension + 1);
         }
@@ -1152,8 +1188,10 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    //const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
+
+    //double bulk_modulus = 1.0 // CORREGIR!!!!
 
     // Assemble components considering added DOF matrix system
     unsigned int index_p = dimension;
@@ -1164,9 +1202,8 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
             unsigned int index_up = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                //rLeftHandSideMatrix(index_p, index_up + k) += r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
                 rLeftHandSideMatrix(index_p, index_up + k) += - rVariables.tau1 * rVariables.DN_DX(i, k) * Testf1(j) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau2 * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+                //rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau2 * (1.0 / bulk_modulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
         }
         index_p += (dimension + 1);
@@ -1185,15 +1222,19 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
     KRATOS_TRY;
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    //const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     unsigned int indexpi = dimension;
+    Matrix Stab1 = prod(rVariables.DN_DX, trans(rVariables.DN_DX));
+
+    //double bulk_modulus = 1.0 // CORREGIR!!!!
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau2 * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
+            rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau1 * Stab1(i,j)  * rIntegrationWeight;
+            //rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau2 * (1.0 / bulk_modulus) *r_N(0, i) * r_N(0, j) * rIntegrationWeight;
 
             indexpj += (dimension + 1);
         }
@@ -1207,86 +1248,6 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
 } 
 
 
-//***********************************************************************************
-//***********************************************************************************
-
-/*void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables & rVariables,
-        const double& rIntegrationWeight)
-{
-    KRATOS_TRY
-
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Stabilization alpha parameters
-    double alpha_stabilization = 1.0;
-    if (GetProperties().Has(STABILIZATION_FACTOR)) {
-        alpha_stabilization = GetProperties()[STABILIZATION_FACTOR];
-    }
-
-    double shear_modulus = 0;
-    if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
-    {
-        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-        const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-        shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
-
-        //double consistent = 1;
-        double factor_value = 8.0; //JMR deffault value
-        if (dimension == 3)
-            factor_value = 10.0; //JMC deffault value
-
-        alpha_stabilization = alpha_stabilization * factor_value / shear_modulus;
-    }
-    else if (GetProperties().Has(DYNAMIC_VISCOSITY))
-    {
-        
-        Stabilization parameter for shallow water:
-        alpha stabilization = c_tau/sqrt(h)
-        h: characteristic water depth
-        c_tau : [0.1, 1]
-        
-        double characteristic_size = r_geometry.GetGeometryParent(0).MinEdgeLength();
-        alpha_stabilization = pow(alpha_stabilization * characteristic_size / (2.0 * sqrt(9.81)), 2);
-
-    }
-    else
-    {
-        KRATOS_ERROR << "No pressure stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
-    }
-
-    double consistent = 1.0;
-    unsigned int indexpi = dimension;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int indexpj = dimension;
-        for ( unsigned int j = 0; j < number_of_nodes; j++ )
-        {
-            if( dimension == 2 )  //consistent 2D
-            {
-                consistent = (-1) * alpha_stabilization / 36.0;
-                if (indexpi == indexpj)
-                    consistent = 2 * alpha_stabilization / 36.0;
-
-                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight / rVariables.detFT; //2D
-            }
-            else
-            {
-                consistent = (-1) * alpha_stabilization / 80.0;
-                if (indexpi == indexpj)
-                    consistent = 3 * alpha_stabilization / 80.0;
-
-                rLeftHandSideMatrix(indexpi, indexpj) -= consistent * rIntegrationWeight / rVariables.detFT; //3D
-            }
-            indexpj += (dimension + 1);
-        }
-        indexpi += (dimension + 1);
-    }
-
-    KRATOS_CATCH( "" )
-} */
 
 //************************************CALCULATE VOLUME CHANGE*************************
 //************************************************************************************

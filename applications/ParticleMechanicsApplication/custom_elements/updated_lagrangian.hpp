@@ -225,6 +225,7 @@ protected:
         // Variables including all integration points
         Matrix CurrentDisp;
 
+        //  ONLY FOR UP VMS -------
         // Stabilization parameters
         double tau1;
         double tau2;
@@ -232,7 +233,8 @@ protected:
         // Pressure at gauss points and pressure gradient
         double PressureGP;
         Vector PressureGradient;
-        Matrix VolumetricConstitutiveMatrix;
+        // Matrix VolumetricConstitutiveMatrix;
+        Matrix Identity;
     };
 
 public:

@@ -273,6 +273,15 @@ protected:
 
     void CalculateTaus(GeneralVariables& rVariables);
 
+     /*
+     * To compute identity tensor 
+     */
+
+    void CalculateTensorIdentityMatrix (GeneralVariables& rVariables, Matrix& rTensorIdentityMatrix);
+
+    double& TensorIdentityComponent (double& rCabcd, GeneralVariables& rVariables,
+    const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
+
 
     /*
      * Calculation of Specific variables: pressure and gradient pressure 
@@ -406,6 +415,7 @@ protected:
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
+            Vector& rVolumeForce,
             const double& rIntegrationWeight
                                                   );
 
@@ -415,6 +425,7 @@ protected:
      */
     virtual void CalculateAndAddStabilizedDisplacement(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
+            Vector& rVolumeForce,
             const double& rIntegrationWeight
                                                   );
 
