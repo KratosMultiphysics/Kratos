@@ -221,7 +221,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         alpha_sc_gauss = (sc_nodes.alpha.transpose()*Ng)[0]
         mu_sc_gauss    = (sc_nodes.mu.transpose()*Ng)[0]
         beta_sc_gauss  = (sc_nodes.beta.transpose()*Ng)[0]
-        lamb_sc_gauss  = (sc_nodes.lambda_.transpose()*Ng)[0]
+        lamb_sc_gauss  = (sc_nodes.lamb.transpose()*Ng)[0]
 
         if not self.is_explicit:
             # In the implicit case, calculate the time derivatives with the
@@ -261,7 +261,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.alpha, alpha_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.mu, mu_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.beta, beta_sc_gauss)
-        KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.lambda_, lamb_sc_gauss)
+        KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.lamb, lamb_sc_gauss)
         if subscales_type == "OSS":
             KratosSympy.SubstituteMatrixValue(rv_gauss, res_proj, res_proj_gauss)
 

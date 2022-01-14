@@ -20,15 +20,15 @@ class FormulationParameters:
 @dataclass
 class ShockCapturingParameters:
     def __init__(self):
-        self.alpha   = sympy.Symbol('data.alpha_sc', positive = True) # Artificial density diffusivity for shock capturing
-        self.mu      = sympy.Symbol('data.mu_sc', positive = True) # Artificial dynamic viscosity for shock capturing
-        self.beta    = sympy.Symbol('data.beta_sc', positive = True) # Artificial bulk viscosity for shock capturing
-        self.lambda_ = sympy.Symbol('data.lamb_sc', positive = True) # Artificial thermal conductivity for shock capturing
+        self.alpha = sympy.Symbol('data.alpha_sc', positive = True) # Artificial density diffusivity for shock capturing
+        self.mu    = sympy.Symbol('data.mu_sc', positive = True) # Artificial dynamic viscosity for shock capturing
+        self.beta  = sympy.Symbol('data.beta_sc', positive = True) # Artificial bulk viscosity for shock capturing
+        self.lamb  = sympy.Symbol('data.lamb_sc', positive = True) # Artificial thermal conductivity for shock capturing
 
 @dataclass
 class ShockCapturingNodalParameters:
     def __init__(self, geometry):
-        self.alpha   = DefineVector('data.alpha_sc_nodes', geometry.nnodes) # Nodal artificial mass diffusivity
-        self.mu      = DefineVector('data.mu_sc_nodes', geometry.nnodes)    # Nodal artificial dynamic viscosity
-        self.beta    = DefineVector('data.beta_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity
-        self.lambda_ = DefineVector('data.lamb_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity
+        self.alpha = DefineVector('data.alpha_sc_nodes', geometry.nnodes) # Nodal artificial mass diffusivity
+        self.mu    = DefineVector('data.mu_sc_nodes', geometry.nnodes)    # Nodal artificial dynamic viscosity
+        self.beta  = DefineVector('data.beta_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity
+        self.lamb  = DefineVector('data.lamb_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity

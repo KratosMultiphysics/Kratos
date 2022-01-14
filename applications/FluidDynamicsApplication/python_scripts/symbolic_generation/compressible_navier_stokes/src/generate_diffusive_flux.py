@@ -21,8 +21,8 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
     tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
     # Calculate the heat flux vector
-    c_v = params.c_v       # Specific heat at constant volume
-    lamb = params.lambda_  # Thermal conductivity
+    c_v = params.c_v    # Specific heat at constant volume
+    lamb = params.lamb  # Thermal conductivity
     heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
     # Define and fill the diffusive flux matrix
@@ -39,7 +39,7 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
 
 def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
     """
-    Calculate the diffusive flux matrix with a physics-based shock 
+    Calculate the diffusive flux matrix with a physics-based shock
     capturing contribution. See:
 
     2018. Fernandez, Nguyen and Peraire
@@ -68,9 +68,9 @@ def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
     tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
 
     # Calculate the heat flux vector
-    c_v = params.c_v           # Specific heat at constant volume
-    lamb = params.lambda_      # Thermal conductivity
-    lamb += sc_params.lambda_  # Artificial thermal conductivity for shock capturing
+    c_v = params.c_v        # Specific heat at constant volume
+    lamb = params.lambda_   # Thermal conductivity
+    lamb += sc_params.lamb  # Artificial thermal conductivity for shock capturing
     heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
 
     # Define and fill the isotropic shock capturing diffusive flux matrix
