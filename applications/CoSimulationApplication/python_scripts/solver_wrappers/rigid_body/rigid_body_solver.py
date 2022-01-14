@@ -243,7 +243,7 @@ class RigidBodySolver(object):
                 for index, dof in enumerate(self.available_dofs):
                     if dof in self.active_dofs:
                         with open(self.output_file_name[dof], "a") as results_rigid_body:
-                            results_rigid_body.write(str(np.around(self.time, 3)) + " " +
+                            results_rigid_body.write(str(self.time) + " " +
                                                     str(self.x[index,0]) + " " +
                                                     str(self.v[index,0]) + " " +
                                                     str(self.a[index,0]) + " " +
