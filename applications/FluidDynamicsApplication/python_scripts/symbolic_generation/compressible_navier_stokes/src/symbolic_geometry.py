@@ -85,7 +85,7 @@ class TriangleData(GeometryData):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
-        mat_N = ZeroMatrix(self.ngauss, self.nnodes)
+        mat_N = defs.Matrix(self.ngauss, self.nnodes)
         if self.ngauss == 1:
             return sympy.Matrix(self.ngauss, 3, lambda *_: 1/3)
         if self.ngauss == 3:
@@ -139,7 +139,7 @@ class TetrahedronData(GeometryData):
         if self.ngauss == 1:
             return sympy.Matrix(self.ngauss, self.nnodes, lambda *_: 0.25)
         if self.ngauss == 4:
-            mat_N = defs.ZeroMatrix(self.ngauss,  self.nnodes)
+            mat_N = defs.Matrix(self.ngauss,  self.nnodes)
             mat_N[0, 0] = 0.58541020
             mat_N[0, 1] = 0.13819660
             mat_N[0, 2] = 0.13819660
