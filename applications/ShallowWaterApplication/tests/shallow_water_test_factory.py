@@ -4,6 +4,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_analysis import ShallowWaterAnalysis
 
 try:
+    import numpy
+    numpy_available = True
+except ImportError:
+    numpy_available = False
+
+try:
     import scipy
     scipy_available = True
 except ImportError:
@@ -16,9 +22,12 @@ except ImportError:
     mpmath_available = False
 
 class ShallowWaterTestFactory(KratosUnittest.TestCase):
+    need_numpy = False
     need_scipy = False
     need_mpmath = False
     def test_execution(self):
+        if self.need_numpy and not numpy_available:
+            self.skipTest("numpy not available")
         if self.need_scipy and not scipy_available:
             self.skipTest("scipy not available")
         if self.need_mpmath and not mpmath_available:
@@ -76,10 +85,12 @@ class TestDamBreakBenchmark(ShallowWaterTestFactory):
 class TestDryDamBreakBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "dry_dam_break_benchmark"
+    need_scipy = True
 
 class TestPlanarSurfaceInParabolaBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "planar_surface_in_parabola_benchmark"
+    need_scipy = True
 
 class TestSolitaryWaveBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
@@ -89,3 +100,4 @@ class TestSolitaryWaveBenchmark(ShallowWaterTestFactory):
 class TestMeshMovingStrategy(ShallowWaterTestFactory):
     execution_directory = "nightly_tests"
     execution_file = "mesh_moving_strategy"
+    need_numpy = True
