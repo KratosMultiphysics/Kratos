@@ -34,7 +34,7 @@ def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu
         norm_f_squared += f_gauss[d] * f_gauss[d]
     norm_v = sqrt(norm_v_squared)
     nu = (params.mu + mu_sc_gauss) / rho_g
-    alpha = (params.lambda_ + lamb_sc_gauss) / (rho_g * params.gamma * params.c_v)
+    alpha = (params.lamb + lamb_sc_gauss) / (rho_g * params.gamma * params.c_v)
 
     # Calculate sound speed
     c = sqrt(params.gamma * (params.gamma - 1) * ((e_t_g / rho_g) - ((1.0 / 2.0) * norm_v_squared)))

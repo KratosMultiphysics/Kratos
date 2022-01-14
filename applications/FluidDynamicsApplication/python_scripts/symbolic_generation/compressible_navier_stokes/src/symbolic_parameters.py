@@ -9,7 +9,7 @@ class FormulationParameters:
     def __init__(self, geometry):
         self.mu      = sympy.Symbol('data.mu', positive = True)       # Dynamic viscosity
         self.h       = sympy.Symbol('data.h', positive = True)        # Element size
-        self.lambda_ = sympy.Symbol('data.lambda', positive = True)   # Thermal Conductivity of the fluid
+        self.lamb    = sympy.Symbol('data.lambda', positive = True)   # Thermal Conductivity of the fluid
         self.c_v     = sympy.Symbol('data.c_v', positive = True)      # Specific Heat at Constant volume
         self.gamma   = sympy.Symbol('data.gamma',positive = True)     # Gamma (Cp/Cv)
         self.stab_c1 = sympy.Symbol('stab_c1', positive = True)  # Algorithm constant
