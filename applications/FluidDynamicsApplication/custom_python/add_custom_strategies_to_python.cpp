@@ -96,6 +96,14 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
     py::class_<
+        CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyForwardEuler")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+        
+    py::class_<
         CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
         typename CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
         ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4")
@@ -112,18 +120,9 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
     py::class_<
-        CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>,
-        typename CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>::Pointer,
-        ExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta1")
-    .def(py::init<ModelPart&, bool, int>())
-    .def(py::init<ModelPart&, Parameters>())
-    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
-
-
-    py::class_<
-        CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>,
-        typename CompressibleNavierStokesExplicitSolvingStrategyForwardEuler<SparseSpaceType, LocalSpaceType>::Pointer,
-        ExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNavierStokesExplicitSolvingStrategyForwardEuler")
+        CompressibleNSBiphaseExplicitSolvingStrategyRungeKuttaForwardEuler<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNSBiphaseExplicitSolvingStrategyRungeKuttaForwardEuler<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNSBiphaseExplicitSolvingStrategyRungeKuttaForwardEuler")
     .def(py::init<ModelPart&, bool, int>())
     .def(py::init<ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());

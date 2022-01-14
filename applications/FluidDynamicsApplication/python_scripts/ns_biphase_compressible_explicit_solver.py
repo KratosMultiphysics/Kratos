@@ -138,9 +138,9 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
 
         rk_startegies = {
             
-            "RK3-TVD": KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD,
-            "RK4"    : KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4,
-            "RK1"    : KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta1
+            "RK3-TVD"           : KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"               : KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4,
+            "forward_euler"     : KratosFluid.CompressibleNSBiphaseExplicitSolvingStrategyRungeKuttaForwardEuler
         }
 
         if rk_parameter in rk_startegies:
