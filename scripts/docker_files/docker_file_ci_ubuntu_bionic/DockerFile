@@ -46,7 +46,8 @@ RUN apt-get update -y && apt-get upgrade -y && \
     python3 -m pip install --upgrade pip && \
     pip3 install \
         numpy \
-        scipy && \
+        scipy \
+        sympy && \
     git clone -b 'v5.4.1' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg && \
     mkdir /tmp/mmg/build && \
     cd /tmp/mmg/build && \
