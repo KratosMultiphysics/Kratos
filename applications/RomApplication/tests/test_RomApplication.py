@@ -10,7 +10,7 @@ from test_thermal_rom import TestThermalRom
 from test_structural_rom import TestStructuralRom
 from test_randomized_singular_value_decomposition import TestRandomizedSVD
 from test_empirical_cubature_method import TestEmpiricalCubatureMethod
-
+from test_calculate_rom_basis_output_process import TestCalculateRomBasisOutputProcess
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -34,6 +34,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCalculateRomBasisOutputProcess]))
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
 
