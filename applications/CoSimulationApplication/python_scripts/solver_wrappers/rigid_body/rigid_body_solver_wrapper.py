@@ -7,6 +7,7 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solve
 
 # Other imports
 from .rigid_body_solver import RigidBodySolver
+from KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities import GetRankZeroDataCommunicator
 
 def Create(settings, model, solver_name):
     return RigidBodySolverWrapper(settings, model, solver_name)
@@ -65,3 +66,7 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         for data in self.data_dict.values():
             if data.variable.Name() not in admissible_variables:
                 raise Exception('Variable "{}" of interface data "{}" of solver "{}" cannot be used for the Rigid Body Solver!\nOnly the following variables are allowed: {}'.format(data.variable.Name(), data.name, data.solver_name, admissible_variables))
+    
+    def _GetDataCommunicator(self):
+        # this solver does not support MPI
+        return GetRankZeroDataCommunicator()
