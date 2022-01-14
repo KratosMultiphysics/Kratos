@@ -126,8 +126,7 @@ const Parameters SymbolicStokes<TElementData>::GetSpecifications() const
         },
         "required_polynomial_degree_of_geometry" : 1,
         "documentation"   :
-            "This implements an Stokes element with quasi-static Variational MultiScales (VMS) stabilization.
-            Note that no viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
+            "This implements an Stokes element with quasi-static Variational MultiScales (VMS) stabilization. Note that no viscous behavior is hardcoded, meaning that any fluid constitutive model can be used through a constitutive law."
     })");
 
     if (Dim == 2) {
