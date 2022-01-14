@@ -407,9 +407,9 @@ private:
     const EmbeddedAusasNavierStokesWallCondition<3> mEmbeddedAusasNavierStokesWallCondition3D;
 
     /// Compressible Navier-Stokes symbolic element
-    const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D;
+    const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D3N;
     const CompressibleNavierStokesExplicit<2, 4> mCompressibleNavierStokesExplicit2D4N;
-    const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D;
+    const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D4N;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
