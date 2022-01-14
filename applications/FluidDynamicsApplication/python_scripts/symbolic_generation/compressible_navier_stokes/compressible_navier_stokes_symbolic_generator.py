@@ -230,7 +230,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosSympy.SubstituteMatrixValue(rv_gauss, subscales, subs)
         return rv_gauss
 
-    def _ComputeResidualAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w):
+    def _ComputeResidualAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, primitives, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w):
         self._print(1, "    Gauss point: " + str(i_gauss))
 
         # Get Gauss point geometry data

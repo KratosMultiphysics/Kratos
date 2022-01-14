@@ -21,23 +21,19 @@ def ComputeStabilizationMatrix(params):
     return(Tau)
 
 
-def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss=0.0, lamb_sc_gauss=0.0):
+def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, primitives, mu_sc_gauss=0.0, lamb_sc_gauss=0.0):
     """This function calculates the stabilization matrix on a Gauss point"""
 
     # Calculate auxiliary values
     rho_g = U_gauss[0]
-    e_t_g = U_gauss[params.dim + 1]
-    norm_v_squared = 0.0
-    norm_f_squared = 0.0
-    for d in range(params.dim):
-        norm_v_squared += (U_gauss[d + 1] * U_gauss[d + 1]) / (rho_g * rho_g)
-        norm_f_squared += f_gauss[d] * f_gauss[d]
+    norm_v_squared = sum([v**2 for v in primitives.V])
+    norm_f_squared = sum([f**2 for f in f_gauss])
     norm_v = sqrt(norm_v_squared)
     nu = (params.mu + mu_sc_gauss) / rho_g
     alpha = (params.lambda_ + lamb_sc_gauss) / (rho_g * params.gamma * params.c_v)
 
     # Calculate sound speed
-    c = sqrt(params.gamma * (params.gamma - 1) * ((e_t_g / rho_g) - ((1.0 / 2.0) * norm_v_squared)))
+    c = sqrt(params.gamma * primitives.P / rho_g)
 
     # Calculate stabilization constants
     tau1_inv = (params.stab_c2 * (norm_v + c)) / params.h
