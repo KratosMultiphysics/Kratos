@@ -263,9 +263,9 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Gauss pt. stabilization matrix calculation
         self._print(1, "    - Compute stabilization matrix on Gauss pt.")
         if self.shock_capturing:
-            tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, mu_sc_gauss, lamb_sc_gauss)
+            tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, primitives, mu_sc_gauss, lamb_sc_gauss)
         else:
-            tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss)
+            tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, primitives)
 
         # If OSS, residual projections interpolation
         res_proj_gauss = ResProj.T * Ng if subscales_type == "OSS" else None
@@ -362,7 +362,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Unknowns
         U = defs.Matrix('data.U', n_nodes, block_size, real=True)
-        primitives = PrimitiveMagnitudes(geometry)
+        primitives = PrimitiveMagnitudes(self.geometry)
 
         # Residuals projection
         ResProj = defs.Matrix('data.ResProj', n_nodes, block_size, real=True)
@@ -473,7 +473,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             for i_gauss in self.geometry.SymbolicIntegrationPoints():
                 # Substitute the subscales model
                 rv_gauss = self._SubstituteSubscales(res, res_proj, rv, subscales, subscales_type, Tau)
-                rv_tot += self._ComputeResidualAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w)
+                rv_tot += self._ComputeResidualAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, primitives, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w)
 
             (lhs, rhs) = self._ComputeLHSandRHS(rv_tot, U, w)
             self._OutputLHSandRHS(lhs, rhs, subscales_type)
