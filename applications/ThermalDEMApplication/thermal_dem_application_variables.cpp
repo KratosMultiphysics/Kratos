@@ -10,6 +10,7 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
+// Project includes
 #include "thermal_dem_application_variables.h"
 
 namespace Kratos
