@@ -1030,7 +1030,7 @@ const Parameters CompressibleNavierStokesExplicit<TDim, TNumNodes>::GetSpecifica
         "required_variables"         : ["DENSITY","MOMENTUM","TOTAL_ENERGY","BODY_FORCE","HEAT_SOURCE"],
         "required_dofs"              : [],
         "flags_used"                 : [],
-        "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+        "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Tetrahedra3D4"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
             "type"        : [],
