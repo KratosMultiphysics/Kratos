@@ -14,7 +14,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
     .symbolic_geometry import GeometryDataFactory
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
-    .defines import DefineMatrix, DefineVector, ZeroMatrix, ZeroVector
+    .defines import CompressibleNavierStokesDefines as defs
 
 
 class CompressibleNavierStokesSymbolicGenerator:
@@ -76,7 +76,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             tmp.write("This file is currently being processed by" + __file__)
 
     def _ComputeNonLinearOperator(self, A, H, S, Ug):
-        L = ZeroVector(self.geometry.blocksize)
+        L = defs.ZeroVector(self.geometry.blocksize)
         for j in range(self.geometry.ndims):
             # Convective operator product (A x grad(U))
             A_j = A[j]
@@ -92,14 +92,14 @@ class CompressibleNavierStokesSymbolicGenerator:
         return L
 
     def _ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
-        L_adj = ZeroVector(self.geometry.blocksize)
+        L_adj = defs.ZeroVector(self.geometry.blocksize)
         for j in range(self.geometry.ndims):
             Q_j = Q.col(j)
             H_j = H.col(j)
             # Convective operator product
             A_j_trans = A[j].transpose()
             L_adj += A_j_trans * Q_j
-            aux_conv = ZeroMatrix(self.geometry.blocksize, self.geometry.blocksize)
+            aux_conv = defs.ZeroMatrix(self.geometry.blocksize, self.geometry.blocksize)
             for m in range(self.geometry.blocksize):
                 for n in range(self.geometry.blocksize):
                     A_j_trans_mn = A_j_trans[m, n]
@@ -117,16 +117,16 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _ComputeVariationalFormulation(self, A, acc, G, H, L_adj, Q, S, Ug, V):
         # Mass (inertial) term - FE scale (only computed in the implicit case)
-        n1 = ZeroMatrix(1, 1) if self.is_explicit else -V.T*acc
+        n1 = defs.ZeroMatrix(1, 1) if self.is_explicit else -V.T*acc
 
         # Convective term - FE scale
-        conv_flux = ZeroVector(self.geometry.blocksize)
+        conv_flux = defs.ZeroVector(self.geometry.blocksize)
         for j in range(self.geometry.ndims):
             conv_flux += A[j] * H.col(j)
         n2 = - V.transpose() * conv_flux
 
         # Diffusive term - FE scale
-        n3 = ZeroMatrix(1, 1)
+        n3 = defs.ZeroMatrix(1, 1)
         for j in range(self.geometry.ndims):
             for k in range(self.geometry.blocksize):
                 n3[0, 0] += Q[k, j] * G[k, j]
@@ -135,7 +135,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         n4 = V.transpose() * (S * Ug)
 
         # VMS_adjoint - Subscales
-        subscales = DefineVector('subscales', self.geometry.blocksize)
+        subscales = defs.Vector('subscales', self.geometry.blocksize)
         n5 = L_adj.transpose() * subscales
 
         # Variational formulation (Galerkin functional)
@@ -270,8 +270,8 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _ComputeLHSandRHS(self, rv_tot, U, w):
         # Set the DOFs and test function matrices to do the differentiation
-        dofs = ZeroVector(self.geometry.ndofs)
-        testfunc = ZeroVector(self.geometry.ndofs)
+        dofs = defs.ZeroVector(self.geometry.ndofs)
+        testfunc = defs.ZeroVector(self.geometry.ndofs)
         for i in range(0, self.geometry.nnodes):
             for j in range(0, self.geometry.blocksize):
                 dofs[i*self.geometry.blocksize + j] = U[i, j]
@@ -335,30 +335,30 @@ class CompressibleNavierStokesSymbolicGenerator:
         params = FormulationParameters(self.geometry)
 
         # Unknowns
-        U = DefineMatrix('data.U', n_nodes, block_size)
+        U = defs.Matrix('data.U', n_nodes, block_size, real=True)
 
         # Residuals projection
-        ResProj = DefineMatrix('data.ResProj', n_nodes, block_size)
+        ResProj = defs.Matrix('data.ResProj', n_nodes, block_size, real=True)
 
         if self.is_explicit:
             # Unknowns time derivatives
-            dUdt = DefineMatrix('data.dUdt', n_nodes, block_size)
+            dUdt = defs.Matrix('data.dUdt', n_nodes, block_size, real=True)
             # Unknowns in previous steps
             Un = None
             Unn = None
         else:
             dUdt = None
-            Un = DefineMatrix('data.Un', n_nodes, block_size)
-            Unn = DefineMatrix('data.Unn', n_nodes, block_size)
+            Un = defs.Matrix('data.Un', n_nodes, block_size, real=True)
+            Unn = defs.Matrix('data.Unn', n_nodes, block_size, real=True)
 
         # Test functions defintion
-        w = DefineMatrix('w', n_nodes, block_size)
+        w = defs.Matrix('w', n_nodes, block_size, real=True)
 
         # External terms definition
         forcing_terms = {
-            "mass":    DefineVector('data.m_ext', n_nodes),
-            "thermal": DefineVector('data.r_ext', n_nodes),
-            "force":   DefineMatrix('data.f_ext', n_nodes, dim)
+            "mass":    defs.Vector('data.m_ext', n_nodes, real=True),
+            "thermal": defs.Vector('data.r_ext', n_nodes, real=True),
+            "force":   defs.Matrix('data.f_ext', n_nodes, dim, real=True)
         }
 
         # Nodal artificial magnitudes
@@ -371,16 +371,16 @@ class CompressibleNavierStokesSymbolicGenerator:
             bdf = [sympy.Symbol('bdf{}'.format(i)) for i in range(3)]
 
         # Construction of the variational equation
-        Ug  = DefineVector('Ug', block_size)             # Dofs vector
-        H   = DefineMatrix('H', block_size, dim)         # Gradient of U
+        Ug  = defs.Vector('Ug', block_size)             # Dofs vector
+        H   = defs.Matrix('H', block_size, dim)         # Gradient of , real=TrueU
         mg  = sympy.Symbol('mg')                         # Mass source term
-        f   = DefineVector('f',  dim)                    # Body force vector
+        f   = defs.Vector('f',  dim)                    # Body force vector
         rg  = sympy.Symbol('rg')                         # Thermal source/sink term
-        V   = DefineVector('V', block_size)              # Test function
-        Q   = DefineMatrix('Q', block_size, dim)         # Gradient of V
-        acc = DefineVector('acc', block_size)            # Derivative of Dofs/Time
-        G   = DefineMatrix('G', block_size, dim)         # Diffusive Flux matrix
-        res_proj = DefineVector('res_proj', block_size)  # Residuals projection for the OSS
+        V   = defs.Vector('V', block_size)              # Test function
+        Q   = defs.Matrix('Q', block_size, dim)         # Gradient of , real=TrueV
+        acc = defs.Vector('acc', block_size)            # Derivative of Dofs/Time
+        G   = defs.Matrix('G', block_size, dim)         # Diffusive Flux matri, real=Truex
+        res_proj = defs.Vector('res_proj', block_size)  # Residuals projection for the OSS
 
         # Calculate the Gauss point residual
         # Matrix Computation
@@ -423,9 +423,9 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Calculate the residuals projection
         self._print(1, " - Calculate the projections of the residuals")
         projections = {
-            "rho"      : ZeroVector(n_nodes),
-            "momentum" : ZeroVector(n_nodes*dim),
-            "energy"   : ZeroVector(n_nodes)
+            "rho"      : defs.ZeroVector(n_nodes),
+            "momentum" : defs.ZeroVector(n_nodes*dim),
+            "energy"   : defs.ZeroVector(n_nodes)
         }
 
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
@@ -439,7 +439,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         for subscales_type in self.subscales_types:
             # Substitution of the discretized values at the gauss points
             # Loop and accumulate the residual in each Gauss point
-            rv_tot = ZeroMatrix(1, 1)
+            rv_tot = defs.ZeroMatrix(1, 1)
 
             self._print(1, " - Subscales type: " + subscales_type)
             self._print(1, " - Substitution of the discretized values at the gauss points")

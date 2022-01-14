@@ -2,7 +2,7 @@
 import sympy
 from dataclasses import dataclass
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
-    import DefineVector
+    import CompressibleNavierStokesDefines as defs
 
 @dataclass
 class FormulationParameters:
@@ -28,7 +28,7 @@ class ShockCapturingParameters:
 @dataclass
 class ShockCapturingNodalParameters:
     def __init__(self, geometry):
-        self.alpha = DefineVector('data.alpha_sc_nodes', geometry.nnodes) # Nodal artificial mass diffusivity
-        self.mu    = DefineVector('data.mu_sc_nodes', geometry.nnodes)    # Nodal artificial dynamic viscosity
-        self.beta  = DefineVector('data.beta_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity
-        self.lamb  = DefineVector('data.lamb_sc_nodes', geometry.nnodes)  # Nodal artificial bulk viscosity
+        self.alpha = defs.Vector('data.alpha_sc_nodes', geometry.nnodes, positive=True) # Nodal artificial mass diffusivity
+        self.mu    = defs.Vector('data.mu_sc_nodes', geometry.nnodes, positive=True)    # Nodal artificial dynamic viscosity
+        self.beta  = defs.Vector('data.beta_sc_nodes', geometry.nnodes, positive=True)  # Nodal artificial bulk viscosity
+        self.lamb  = defs.Vector('data.lamb_sc_nodes', geometry.nnodes, positive=True)  # Nodal artificial bulk viscosity

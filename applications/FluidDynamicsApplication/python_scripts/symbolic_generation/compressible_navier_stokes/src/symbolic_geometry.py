@@ -1,6 +1,6 @@
 import sympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
-    import DefineMatrix, DefineVector, ZeroMatrix
+    import CompressibleNavierStokesDefines as defs
 
 
 def GeometryDataFactory(geometry_name, ngauss=None):
@@ -103,7 +103,7 @@ class TriangleData(GeometryData):
         raise NotImplementedError(msg)
 
     def _ComputeShapeFunctionsGradients(self):
-        return DefineMatrix('DN_DX', self.nnodes, self.ndims)
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
 
 
 class QuadrilateralData(GeometryData):
@@ -118,10 +118,10 @@ class QuadrilateralData(GeometryData):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
-        return DefineVector('N', self.nnodes)
+        return defs.Vector('N', self.nnodes, real=True)
 
     def _ComputeShapeFunctionsGradients(self):
-        return DefineMatrix('DN_DX', self.nnodes, self.ndims)
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
 
 
 class TetrahedronData(GeometryData):
@@ -139,7 +139,7 @@ class TetrahedronData(GeometryData):
         if self.ngauss == 1:
             return sympy.Matrix(self.ngauss, self.nnodes, lambda *_: 0.25)
         if self.ngauss == 4:
-            mat_N = ZeroMatrix(self.ngauss,  self.nnodes)
+            mat_N = defs.ZeroMatrix(self.ngauss,  self.nnodes)
             mat_N[0, 0] = 0.58541020
             mat_N[0, 1] = 0.13819660
             mat_N[0, 2] = 0.13819660
@@ -161,4 +161,4 @@ class TetrahedronData(GeometryData):
         raise NotImplementedError(msg)
 
     def _ComputeShapeFunctionsGradients(self):
-        return DefineMatrix('DN_DX', self.nnodes, self.ndims)
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
