@@ -8,7 +8,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_stabilization_matrix
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
-    .symbolic_parameters import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
+    .symbolic_parameters import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters, PrimitiveMagnitudes
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
     .symbolic_geometry import GeometryDataFactory
@@ -50,6 +50,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         self.simplify = settings["do_simplifications"].GetBool()
         self.shock_capturing = settings["shock_capturing"].GetBool()
         self.echo_level = settings["echo_level"].GetInt()
+        self.primitive_interpolation = settings["primitive_interpolation"].GetString()
 
         self.subscales_types = [s for (s, enabled) in settings["subscales"].items() if enabled]
 
@@ -84,7 +85,8 @@ class CompressibleNavierStokesSymbolicGenerator:
             },
             "template_filename" : "PLEASE PROVIDE A template_filename",
             "output_filename"   : "symbolic_generator_name_not_provided.cpp",
-            "echo_level" : 1
+            "echo_level" : 1,
+            "primitive_interpolation" : "nodal"
         }""")
 
     def _print(self, lvl, *text):
@@ -360,6 +362,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Unknowns
         U = defs.Matrix('data.U', n_nodes, block_size, real=True)
+        primitives = PrimitiveMagnitudes(geometry)
 
         # Residuals projection
         ResProj = defs.Matrix('data.ResProj', n_nodes, block_size, real=True)

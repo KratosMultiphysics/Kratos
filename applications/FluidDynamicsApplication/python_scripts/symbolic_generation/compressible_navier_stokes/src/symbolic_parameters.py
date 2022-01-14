@@ -32,3 +32,9 @@ class ShockCapturingNodalParameters:
         self.mu    = defs.Vector('data.mu_sc_nodes', geometry.nnodes, positive=True)    # Nodal artificial dynamic viscosity
         self.beta  = defs.Vector('data.beta_sc_nodes', geometry.nnodes, positive=True)  # Nodal artificial bulk viscosity
         self.lamb  = defs.Vector('data.lamb_sc_nodes', geometry.nnodes, positive=True)  # Nodal artificial bulk viscosity
+
+class PrimitiveMagnitudes:
+    def __init__(self, geometry):
+        self.P = sympy.Symbol('P', real=True)
+        self.T = sympy.Symbol('T', real=True)
+        self.V = defs.Vector('V', geometry.nnodes, real=True)
