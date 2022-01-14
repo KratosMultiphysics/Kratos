@@ -1,8 +1,9 @@
 import sympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
-    import DefineMatrix, DefineVector
+    import DefineMatrix, DefineVector, ZeroMatrix
 
-def GeometryDataFactory(geometry_name, ngauss = None):
+
+def GeometryDataFactory(geometry_name, ngauss=None):
     geodata_dict = {
         "triangle":      TriangleData,
         "quadrilateral": QuadrilateralData,
@@ -28,14 +29,19 @@ class GeometryData:
     blocksize = None                # Number of Dof per node. Generally = ndims+2
     ndofs = None                    # Number of Dof per element. Generally = blocksize*nnodes
 
-    symbolic_integration = None     # True if the integration loop is to be performed in the generator (only valid for simplex geometries)
-                                    # False if the integration loop is in the template
+    symbolic_integration = None
+    # True if the integration loop is to be performed in the generator (only valid for simplex geometries)
+    # False if the integration loop is in the template
+
+    name = None
 
     def __init__(self, ngauss):
         self.ngauss = ngauss
         self._N = None
         self._DN = None
 
+    def __str__(self):
+        return self.name
 
     def SymbolicIntegrationPoints(self):
         "Returns the number of gauss points to be evaluated at symbolic time"
@@ -50,7 +56,7 @@ class GeometryData:
     def N_gauss(self, i_gauss):
         "Returns the shape functions at a gauss point as a vertical vector"
         if self.symbolic_integration:
-            return sympy.Matrix(self.N()[i_gauss,:]).T
+            return sympy.Matrix(self.N()[i_gauss, :]).T
         else:
             return self.N()
 
@@ -73,12 +79,13 @@ class TriangleData(GeometryData):
     blocksize = ndims+2
     ndofs = blocksize*nnodes
     symbolic_integration = True
+    name = "triangle (2D3N)"
 
-    def __init__(self, ngauss = 3):
+    def __init__(self, ngauss=3):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
-        mat_N = sympy.zeros(self.ngauss, 3)
+        mat_N = ZeroMatrix(self.ngauss, self.nnodes)
         if self.ngauss == 1:
             return sympy.Matrix(self.ngauss, 3, lambda *_: 1/3)
         if self.ngauss == 3:
@@ -105,8 +112,9 @@ class QuadrilateralData(GeometryData):
     blocksize = ndims+2
     ndofs = blocksize*nnodes
     symbolic_integration = False
+    name = "quadrilateral (2D4N)"
 
-    def __init__(self, ngauss = 4):
+    def __init__(self, ngauss=4):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
@@ -122,15 +130,16 @@ class TetrahedronData(GeometryData):
     blocksize = ndims+2
     ndofs = blocksize*nnodes
     symbolic_integration = True
+    name = "tetrahedron (3D4N)"
 
-    def __init__(self, ngauss = 4):
+    def __init__(self, ngauss=4):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
         if self.ngauss == 1:
             return sympy.Matrix(self.ngauss, self.nnodes, lambda *_: 0.25)
         if self.ngauss == 4:
-            mat_N = sympy.zeros(self.ngauss,  self.nnodes)
+            mat_N = ZeroMatrix(self.ngauss,  self.nnodes)
             mat_N[0, 0] = 0.58541020
             mat_N[0, 1] = 0.13819660
             mat_N[0, 2] = 0.13819660
@@ -153,4 +162,3 @@ class TetrahedronData(GeometryData):
 
     def _ComputeShapeFunctionsGradients(self):
         return DefineMatrix('DN_DX', self.nnodes, self.ndims)
-

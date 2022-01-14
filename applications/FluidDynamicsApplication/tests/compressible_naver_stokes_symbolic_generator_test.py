@@ -1,15 +1,13 @@
+import os
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics
 
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes. \
-    compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
-
-import os
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
+    .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 
 
 class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
-
     @classmethod
     def _GetParameters(cls, geometry_name):
         return KratosMultiphysics.Parameters("""
@@ -24,7 +22,6 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
         }
         """.replace("{geometry}", geometry_name)
         )
-
 
     def _RunTest(self, geometry_name):
         parameters = self._GetParameters(geometry_name)
@@ -46,7 +43,6 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
                 reference = f.readlines()
 
         self.assertEqual(result, reference)
-
 
     def testGeneratorTetra(self):
         self._RunTest("tetrahedron")
