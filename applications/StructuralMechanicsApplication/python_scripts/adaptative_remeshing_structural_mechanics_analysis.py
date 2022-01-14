@@ -108,7 +108,7 @@ class AdaptativeRemeshingStructuralMechanicsAnalysis(BaseClass):
             remeshing_process = self._GetSolver().get_remeshing_process()
             convergence_criteria = self._GetSolver()._GetConvergenceCriterion()
             builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
-            mechanical_solution_strategy = self._GetSolver().get_mechanical_solution_strategy()
+            mechanical_solution_strategy = self._GetSolver()._GetSolutionStrategy()
 
             while self.time < self.end_time:
                 self.time = self._GetSolver().AdvanceInTime(self.time)

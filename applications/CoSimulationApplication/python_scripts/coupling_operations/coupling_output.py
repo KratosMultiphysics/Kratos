@@ -14,8 +14,8 @@ class CouplingOutput(CoSimulationCouplingOperation):
     - add tests
     - more cleanup
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
         self.execution_point = self.settings["execution_point"].GetString()
         model_part_name = self.settings["output_parameters"]["model_part_name"].GetString()

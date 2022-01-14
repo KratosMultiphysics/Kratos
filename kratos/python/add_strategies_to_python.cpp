@@ -607,6 +607,13 @@ namespace Kratos
                 .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
                 ;
 
+            typedef ExplicitSolvingStrategyRungeKutta1< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta1Type;
+            py::class_<ExplicitSolvingStrategyRungeKutta1Type, typename ExplicitSolvingStrategyRungeKutta1Type::Pointer, BaseExplicitSolvingStrategyType>(m, "ExplicitSolvingStrategyRungeKutta1")
+                .def(py::init<ModelPart&, bool, int>())
+                .def(py::init<ModelPart&, Parameters>())
+                .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
+                ;
+
             typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
 
             py::class_< ResidualBasedLinearStrategyType, typename ResidualBasedLinearStrategyType::Pointer,ImplicitSolvingStrategyType >
