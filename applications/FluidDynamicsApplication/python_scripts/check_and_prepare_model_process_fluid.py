@@ -66,6 +66,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         geometry = self.main_model_part.GetElement(1).GetGeometry()
         is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
         if not is_simplex:
+            msg = "Geoemetry is not simplex. Orientation check is only available"
+            msg += "for simplex geometries and hence it will be skipped"
+            KratosMultiphysics.Logger.PrintWarning(type(self).__name__, msg)
+
             return
 
         tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
