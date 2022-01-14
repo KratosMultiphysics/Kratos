@@ -144,7 +144,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         return (rv, subscales)
 
-    def _ComputeProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn):
+    def _ComputeOSSProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn):
         # Get Gauss point geometry data
         N = self.geometry.N_gauss(i_gauss)
 
@@ -430,7 +430,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
             self._print(1, "   - Gauss point: " + str(i_gauss))
-            self._ComputeProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
+            self._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
 
         # Output the projections
         self._OutputProjections(*projections.values())
