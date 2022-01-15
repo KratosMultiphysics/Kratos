@@ -282,7 +282,9 @@ protected:
     double& TensorIdentityComponent (double& rCabcd, GeneralVariables& rVariables,
     const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d);
 
+    // To compute vector in voigt notation to multiply
 
+    void ConvertPressureGradient(Vector& PressureGradientVoigt,Vector& PressureGradient);
     /*
      * Calculation of Specific variables: pressure and gradient pressure 
      */

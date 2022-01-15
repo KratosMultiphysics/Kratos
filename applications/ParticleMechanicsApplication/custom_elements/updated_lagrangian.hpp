@@ -233,8 +233,10 @@ protected:
         // Pressure at gauss points and pressure gradient
         double PressureGP;
         Vector PressureGradient;
+        Vector PressureGradientVoigt;
         // Matrix VolumetricConstitutiveMatrix;
         Matrix Identity;
+        Matrix TensorIdentityMatrix;
     };
 
 public:
