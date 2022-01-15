@@ -135,6 +135,7 @@ PYBIND11_MODULE(Kratos, m)
     AddSearchStrategiesToPython(m);
     AddTestingToPython(m);
     AddLoggerToPython(m);
+    AddMemoryInfoToPython(m);
     AddConstraintToPython(m);
     AddResponseFunctionsToPython(m);
     AddCommunicatorToPython(m);
