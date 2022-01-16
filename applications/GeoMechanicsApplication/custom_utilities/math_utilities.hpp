@@ -1546,6 +1546,50 @@ public:
         Matrix(5,5) = 2.0*Tensor[60];
 
     }
+
+    static inline void StressVectorToTensor(const Vector& StressVector, Matrix& StressTensor)
+    {
+        if(StressVector.size() == 3) // plane strain
+        {
+            noalias(StressTensor) = ZeroMatrix(3, 3);
+            StressTensor(0, 0) = StressVector(0);
+            StressTensor(0, 1) = StressVector(2);
+            StressTensor(1, 0) = StressVector(2);
+            StressTensor(1, 1) = StressVector(1);
+        }
+        else if(StressVector.size() == 6) // 3d
+        {
+            StressTensor(0, 0) = StressVector(0);
+            StressTensor(0, 1) = StressVector(3);
+            StressTensor(0, 2) = StressVector(5);
+            StressTensor(1, 0) = StressVector(3);
+            StressTensor(1, 1) = StressVector(1);
+            StressTensor(1, 2) = StressVector(4);
+            StressTensor(2, 0) = StressVector(5);
+            StressTensor(2, 1) = StressVector(4);
+            StressTensor(2, 2) = StressVector(2);
+        }
+    }
+
+    static inline void StressTensorToVector(const Matrix& StressTensor, Vector& StressVector)
+    {
+        if(StressVector.size() == 3)
+        {
+            StressVector[0] = StressTensor(0, 0);
+            StressVector[1] = StressTensor(1, 1);
+            StressVector[2] = StressTensor(0, 1);
+        }
+        else if(StressVector.size() == 6)
+        {
+            StressVector[0] = StressTensor(0, 0);
+            StressVector[1] = StressTensor(1, 1);
+            StressVector[2] = StressTensor(2, 2);
+            StressVector[3] = StressTensor(0, 1);
+            StressVector[4] = StressTensor(1, 2);
+            StressVector[5] = StressTensor(0, 2);
+        }
+    }
+
     /**
     * Generates the fourth order deviatoric unity tensor
     * @param Unity the deviatoric unity (will be overwritten)

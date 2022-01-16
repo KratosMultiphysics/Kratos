@@ -21,6 +21,7 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 //constitutive laws
+#include "custom_constitutive/linear_elastic_3D_law.h"
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 
@@ -41,6 +42,9 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m, "BilinearCohesive2DLaw")
     .def( init<>() ) ;
 
+    class_< LinearElastic<3>, typename LinearElastic<3>::Pointer, ConstitutiveLaw >
+    (m, "LinearElastic3DLaw")
+    .def( init<>() );
 }
 
 }  // namespace Python.
