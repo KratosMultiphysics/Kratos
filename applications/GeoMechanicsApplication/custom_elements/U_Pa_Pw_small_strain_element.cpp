@@ -2042,8 +2042,14 @@ void UPaPwSmallStrainElement::CalculateStressAndTangentialStiffness( const int& 
     const_params.SetMaterialProperties(GetProperties());
     const_params.SetElementGeometry(GetGeometry());
 
+    Flags& const_options = const_params.GetOptions();
+    const_options.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true );
+    const_options.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+    const_options.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+
     //Set suction in const. law
-    mConstitutiveLawVector[PointNumber]->SetValue( SUCTION, airPressure - waterPressure, rCurrentProcessInfo );
+    if (mConstitutiveLawVector[PointNumber]->Has(SUCTION))
+        mConstitutiveLawVector[PointNumber]->SetValue( SUCTION, airPressure - waterPressure, rCurrentProcessInfo );
 
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(const_params);
 
@@ -2609,9 +2615,10 @@ void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<Matri
         KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
     }
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
     {
-        mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+        if ( mConstitutiveLawVector[PointNumber]->Has( rVariable ) )
+            mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
     }
 }
 
@@ -2634,7 +2641,8 @@ void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<Vecto
 
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
     {
-        mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
+        if ( mConstitutiveLawVector[PointNumber]->Has( rVariable ) )
+            mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
     }
 }
 
@@ -2662,9 +2670,10 @@ void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<doubl
             KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
         }
 
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
         {
-            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+            if ( mConstitutiveLawVector[PointNumber]->Has( rVariable ) )
+                mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
         }
     }
 }
@@ -2686,9 +2695,10 @@ void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<int>&
         KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
     }
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
     {
-        mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+        if ( mConstitutiveLawVector[PointNumber]->Has( rVariable ) )
+            mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
     }
 }
 
