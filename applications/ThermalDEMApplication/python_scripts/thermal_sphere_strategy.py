@@ -1,7 +1,7 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-
+from   KratosMultiphysics import *
+from   KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
+
 BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):
@@ -10,7 +10,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Initialize base class
         BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
-        # Get an validate input thermal parameters
+        # Get and validate input parameters
         self.GetProjectParameters(DEM_parameters)
         self.CheckProjectParameters()
 
@@ -18,13 +18,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetVoronoiPorosityFlags()
         self.SetGraphFlags()
 
-        self.thermal_utils = ThermalUtilities()
+        #self.thermal_utils = ThermalUtilities()
 
-        if (self.compute_voronoi or self.compute_porosity):
-            self.tesselation_utils = TesselationUtilities()
+        #if (self.compute_voronoi or self.compute_porosity):
+            #self.tesselation_utils = TesselationUtilities()
             
-        if (self.write_graph):
-            self.graph_utils = GraphUtilities()
+        #if (self.write_graph):
+            #self.graph_utils = GraphUtilities()
 
     def GetProjectParameters(self, DEM_parameters):
         # Get thermal settings and assign default values
@@ -68,11 +68,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
             }
         }""")
 
-        self.thermal_settings = DEM_parameters["thermal_settings"]
+        if "thermal_settings" in self.DEM_parameters.keys():
+            self.thermal_settings = DEM_parameters["thermal_settings"]
+        else:
+            self.thermal_settings = Parameters("""{}""")
+        
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
-
-        if (DEM_parameters["solver_settings"]["strategy"].GetString() != "thermal_sphere_strategy"):
-            raise Exception('DEM', '"strategy" not available.')
         
         # General options
         self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
@@ -123,49 +124,67 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Graph writing
-        self.PostGraphParticleTempMin   = DEM_parameters["PostGraphParticleTempMin"].GetBool()
-        self.PostGraphParticleTempMax   = DEM_parameters["PostGraphParticleTempMax"].GetBool()
-        self.PostGraphParticleTempAvg   = DEM_parameters["PostGraphParticleTempAvg"].GetBool()
-        self.PostGraphParticleTempDev   = DEM_parameters["PostGraphParticleTempDev"].GetBool()
-        self.PostGraphModelTempAvg      = DEM_parameters["PostGraphModelTempAvg"].GetBool()
-        self.PostGraphFluxContributions = DEM_parameters["PostGraphHeatFluxContributions"].GetBool()
+        if "PostGraphParticleTempMin" in self.DEM_parameters.keys():
+            self.PostGraphParticleTempMin = DEM_parameters["PostGraphParticleTempMin"]
+        else:
+            self.PostGraphParticleTempMin = False
+        if "PostGraphParticleTempMax" in self.DEM_parameters.keys():
+            self.PostGraphParticleTempMax = DEM_parameters["PostGraphParticleTempMax"]
+        else:
+            self.PostGraphParticleTempMax = False
+        if "PostGraphParticleTempAvg" in self.DEM_parameters.keys():
+            self.PostGraphParticleTempAvg = DEM_parameters["PostGraphParticleTempAvg"]
+        else:
+            self.PostGraphParticleTempAvg = False
+        if "PostGraphParticleTempDev" in self.DEM_parameters.keys():
+            self.PostGraphParticleTempDev = DEM_parameters["PostGraphParticleTempDev"]
+        else:
+            self.PostGraphParticleTempDev = False
+        if "PostGraphModelTempAvg" in self.DEM_parameters.keys():
+            self.PostGraphModelTempAvg = DEM_parameters["PostGraphModelTempAvg"]
+        else:
+            self.PostGraphModelTempAvg = False
+        if "PostGraphFluxContributions" in self.DEM_parameters.keys():
+            self.PostGraphFluxContributions = DEM_parameters["PostGraphFluxContributions"]
+        else:
+            self.PostGraphFluxContributions = False
 
     def CheckProjectParameters(self):
         # Models for heat transfer
         if (self.direct_conduction_model != "batchelor_obrien" and
             self.direct_conduction_model != "thermal_pipe"     and
             self.direct_conduction_model != "collisional"):
-            raise Exception('DEM', 'Direct thermal conduction model \'' + self.direct_conduction_model + '\' is not implemented.')
+            raise Exception('ThermalDEM', 'Direct thermal conduction model \'' + self.direct_conduction_model + '\' is not implemented.')
 
         if (self.indirect_conduction_model != "surrounding_layer" and
             self.indirect_conduction_model != "voronoi_a"         and
             self.indirect_conduction_model != "voronoi_b"         and
             self.indirect_conduction_model != "vargas_mccarthy"):
-            raise Exception('DEM', 'Indirect thermal conduction model \'' + self.indirect_conduction_model + '\' is not implemented.')
+            raise Exception('ThermalDEM', 'Indirect thermal conduction model \'' + self.indirect_conduction_model + '\' is not implemented.')
 
         if (self.nusselt_correlation != "sphere_hanz_marshall" and
             self.nusselt_correlation != "sphere_whitaker"      and
             self.nusselt_correlation != "sphere_gunn"          and
             self.nusselt_correlation != "sphere_li_mason"):
-            raise Exception('DEM', 'Nusselt number correlation \'' + self.nusselt_correlation + '\' is not implemented.')
+            raise Exception('ThermalDEM', 'Nusselt number correlation \'' + self.nusselt_correlation + '\' is not implemented.')
         
         if (self.radiation_model != "continuum_zhou" and
             self.radiation_model != "continuum_krause"):
-            raise Exception('DEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
+            raise Exception('ThermalDEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
 
         if (self.adjusted_contact_model != "zhou" and
             self.adjusted_contact_model != "lu"   and
             self.adjusted_contact_model != "morris"):
-            raise Exception('DEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
+            raise Exception('ThermalDEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
         if (self.voronoi_method != "tesselation" and
             self.voronoi_method != "posority"):
-            raise Exception('DEM', 'Voronoi method \'' + self.voronoi_method + '\' is not implemented.')
+            raise Exception('ThermalDEM', 'Voronoi method \'' + self.voronoi_method + '\' is not implemented.')
         
         if (self.porosity_method != "global"              and
             self.porosity_method != "average_convex_hull" and
             self.porosity_method != "average_alpha_shape"):
-            raise Exception('DEM', 'Porosity method \'' + self.porosity_method + '\' is not implemented.')
+            raise Exception('ThermalDEM', 'Porosity method \'' + self.porosity_method + '\' is not implemented.')
 
         # Model parameters
         if (self.thermal_solve_frequency <= 0):
@@ -175,7 +194,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.porosity_update_frequency < 0):
             self.porosity_update_frequency = 0
         if (self.min_conduction_distance <= 0):
-            raise Exception('DEM', '"min_conduction_distance" must be positive.')
+            raise Exception('ThermalDEM', '"min_conduction_distance" must be positive.')
         if (self.max_conduction_distance < 0):
             self.max_conduction_distance = 0
         if (self.fluid_layer_thickness < 0):
@@ -187,20 +206,20 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.max_radiation_distance < 0 ):
             self.max_radiation_distance = 0
         if (self.friction_heat_conversion < 0 or self.friction_heat_conversion > 1):
-            raise Exception('DEM', '"friction_heat_conversion_ratio" must be between zero and one.')
+            raise Exception('ThermalDEM', '"friction_heat_conversion_ratio" must be between zero and one.')
         if (self.global_porosity < 0 or self.global_porosity >= 1):
-            raise Exception('DEM', '"global_porosity" must be between zero and one.')
+            raise Exception('ThermalDEM', '"global_porosity" must be between zero and one.')
         if (self.alpha_parameter < 0):
-            raise Exception('DEM', '"alpha_shape_parameter" must be positive.')
+            raise Exception('ThermalDEM', '"alpha_shape_parameter" must be positive.')
         if (self.integral_tolerance <= 0):
-            raise Exception('DEM', '"integral_tolerance" must be positive.')
+            raise Exception('ThermalDEM', '"integral_tolerance" must be positive.')
         
         # Fluid properties
         if (self.fluid_density              <= 0 or
             self.fluid_viscosity            <= 0 or
             self.fluid_thermal_conductivity <= 0 or
             self.fluid_heat_capacity        <= 0):
-            raise Exception('DEM', '"global_fluid_properties" must contain positive values for material properties.')
+            raise Exception('ThermalDEM', '"global_fluid_properties" must contain positive values for material properties.')
         
     def SetVoronoiPorosityFlags(self):
         # Flag for computing voronoi diagram in a given frequency
