@@ -521,6 +521,26 @@ private:
             ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
             FillMappingMatrixWithWeights( node_i, neighbor_nodes, number_of_neighbors, list_of_weights, sum_of_weights );
         }
+        // now export the mapping matrix
+        if(mMapperSettings["export_linear_system"].GetBool()){
+            std::stringstream matrix_market_name;
+            matrix_market_name << "A_explicit.mm";
+            SparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mMappingMatrix, false); 
+
+            VectorType coords;
+            coords.resize(3*mrDestinationModelPart.NumberOfNodes());
+            for(auto& node_i : mrDestinationModelPart.Nodes())
+            {
+                int i = node_i.GetValue(MAPPING_ID);
+                coords[3*i+0] = node_i.X0();
+                coords[3*i+1] = node_i.Y0();
+                coords[3*i+2] = node_i.Z0();
+            }
+
+            std::stringstream matrix_market_vectname;
+            matrix_market_vectname << "b_explicit.mm";
+            SparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), coords);
+        }
     }
 
     // --------------------------------------------------------------------------

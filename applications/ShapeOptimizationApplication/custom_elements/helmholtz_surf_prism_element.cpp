@@ -426,7 +426,8 @@ void HelmholtzSurfPrismElement::CalculateSurfaceStiffnessMatrix(
     MatrixType id_matrix = IdentityMatrix(dimension,dimension);
     MatrixType tangent_projection_matrix = id_matrix - outer_prod(n_surf, n_surf);
 
-    if(false){
+    // if(r_prop.Has(HELMHOLTZ_POISSON_RATIO)){
+    if(false){        
         for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
         {
             Matrix DN_DX;

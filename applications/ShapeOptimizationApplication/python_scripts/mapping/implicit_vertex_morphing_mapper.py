@@ -25,6 +25,7 @@ class ImplicitVertexMorphingMapper():
         self.implicit_settings = self.settings["implicit_vm_settings"]
         self.implicit_settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultImplicitVMSettings())
         self.implicit_settings.AddString("design_surface_sub_model_part_name",str(self.destination_model_part.Name))
+        self.implicit_settings.AddBool("export_linear_system",bool(self.settings["export_linear_system"]))
 
 
         ## Construct the linear solver
@@ -41,7 +42,7 @@ class ImplicitVertexMorphingMapper():
             "only_design_surface_parameterization" : true,
             "surface_filter_radius" : 0.000000000001,            
             "bulk_filter_radius" : 0.000000000001,
-            "poisson_ratio" : 0.3,
+            "poisson_ratio" : 0.3,            
             "linear_solver_settings" : {
                 "solver_type" : "amgcl",
                 "smoother_type":"ilu0",

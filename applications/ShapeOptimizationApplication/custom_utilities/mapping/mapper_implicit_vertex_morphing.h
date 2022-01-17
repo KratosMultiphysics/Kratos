@@ -211,6 +211,15 @@ public:
             MatrixType lhs;
             cond_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
             AddConditionVariableValuesVector(cond_i,CONTROL_POINT,rhs,-1.0);
+        }
+
+        //now export the linear system if needed
+        if(mMapperSettings["export_linear_system"].GetBool()){            
+            SetVariable1ToVarible2(HELMHOLTZ_VARS,HELMHOLTZ_SOURCE); 
+            SetVariableZero(HELMHOLTZ_VARS);
+            mpHelmholtzStrategy->ExportSystem();
+            SetVariableZero(HELMHOLTZ_VARS);
+            SetVariableZero(HELMHOLTZ_SOURCE);
         }        
 
         mIsMappingInitialized = true;
@@ -383,7 +392,7 @@ protected:
     Parameters mMapperSettings;
     bool mIsMappingInitialized = false;
     ModelPart* mpVMModePart;
-    ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>* mpHelmholtzStrategy;
+    HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>* mpHelmholtzStrategy;
 
     ///@}
     ///@name Protected Operators

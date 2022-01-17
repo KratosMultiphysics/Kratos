@@ -27,6 +27,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
         "matrix_free_filtering"      : false,
         "consistent_mapping"         : false,
         "improved_integration"       : false,
+        "export_linear_system"       : false,
         "implicit_vm"                : false,
         "implicit_vm_settings"       : {},        
         "integration_method"         : "gauss_integration",

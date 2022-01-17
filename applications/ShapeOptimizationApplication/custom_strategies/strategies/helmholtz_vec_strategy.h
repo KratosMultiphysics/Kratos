@@ -64,6 +64,7 @@ public:
   typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
   typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;  
   typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
+  typedef typename BaseType::TSystemVectorType                          TSystemVectorType;  
   typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
 
   /*@} */
@@ -87,7 +88,7 @@ public:
     mecho_level = EchoLevel;
     bool calculate_norm_dx_flag = false;
 
-    typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
+    mpscheme = typename SchemeType::Pointer(
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
 
@@ -96,15 +97,15 @@ public:
                                                TLinearSolver>(
             pNewLinearSolver));
 
-    mstrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
+    mpstrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
         BaseType::GetModelPart(),
-        pscheme,
+        mpscheme,
         mpbulider_and_solver,
         mcompute_reactions,
         mreform_dof_set_at_each_step,
         calculate_norm_dx_flag));
 
-    mstrategy->SetEchoLevel(mecho_level);
+    mpstrategy->SetEchoLevel(mecho_level);
 
     KRATOS_CATCH("")
   }
@@ -123,11 +124,11 @@ public:
         BaseType::GetModelPart().GetCommunicator().LocalMesh().Nodes());
 
     // Solve for the mesh movement
-    mstrategy->Solve();
+    mpstrategy->Solve();
 
     // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)
-      mstrategy->Clear();
+      mpstrategy->Clear();
 
     return 0.0;
 
@@ -152,8 +153,53 @@ public:
   /*@{ */
     TSystemMatrixType &GetSystemMatrix() override
     {
-        return mstrategy->GetSystemMatrix();
+        return mpstrategy->GetSystemMatrix();
     }
+
+    TSystemVectorType &GetSystemVector() override
+    {
+        return mpstrategy->GetSystemVector();
+    }
+
+    TSystemVectorType &GetSolutionVector() override
+    {
+        return mpstrategy->GetSolutionVector();
+    }   
+
+    void ExportSystem() 
+    { 
+        mpstrategy->Initialize();
+        mpstrategy->InitializeSolutionStep();
+        mpstrategy->Predict();         
+        mpbulider_and_solver->Build(mpscheme,BaseType::GetModelPart(),mpstrategy->GetSystemMatrix(),mpstrategy->GetSystemVector());
+
+        std::stringstream matrix_market_name;
+        matrix_market_name << "A_wo_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mpstrategy->GetSystemMatrix(), false);
+
+        std::stringstream matrix_market_vectname;
+        matrix_market_vectname << "b_wo_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mpstrategy->GetSystemVector()); 
+
+        mpstrategy->SolveSolutionStep();
+
+        matrix_market_name.str("");
+        matrix_market_name << "A_wi_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mpstrategy->GetSystemMatrix(), false);
+
+        matrix_market_vectname.str("");
+        matrix_market_vectname << "b_wi_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mpstrategy->GetSystemVector()); 
+
+        mpstrategy->FinalizeSolutionStep();
+
+    }       
+
+    typename BaseType::Pointer GetStrategy() 
+    {
+        return mpstrategy;
+    }     
+
   /*@} */
   /**@name Friends */
   /*@{ */
@@ -198,7 +244,8 @@ private:
   /**@name Member Variables */
   /*@{ */
 
-  typename BaseType::Pointer mstrategy;
+  typename SchemeType::Pointer mpscheme;
+  typename BaseType::Pointer mpstrategy;
   typename TBuilderAndSolverType::Pointer mpbulider_and_solver;
 
   int mecho_level;
