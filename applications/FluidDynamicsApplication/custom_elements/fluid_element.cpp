@@ -940,9 +940,6 @@ template class FluidElement< TimeIntegratedFICData<3,4> >;
 template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
 template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
-template class FluidElement< TwoFluidNavierStokesCNData<2, 3> >;
-template class FluidElement< TwoFluidNavierStokesCNData<3, 4> >;
-
 template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
 template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
