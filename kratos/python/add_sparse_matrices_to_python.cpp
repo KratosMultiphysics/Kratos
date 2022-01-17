@@ -24,6 +24,7 @@
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"
+
 namespace Kratos
 {
 
