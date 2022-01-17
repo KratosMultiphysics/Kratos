@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
+
 import numpy as np 
 
 class TestSparseMatrixInterface(KratosUnittest.TestCase):
