@@ -220,7 +220,6 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
     array_1d<double,2> derivatives_i;
     array_1d<double,2> derivatives_j;
 
-    // Adding the contribution of the dispersive fields
     for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         derivatives_i[0] = rDN_DX(i,0);
@@ -239,7 +238,7 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
             const double g2_ij = rDN_DX(i,1) * rN[j];
             MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
 
-            /// Disperive term
+            /// Dispersive term
             derivatives_j[0] = rDN_DX(j,0);
             derivatives_j[1] = rDN_DX(j,1);
             noalias(K) = -outer_prod(derivatives_i, derivatives_j);
