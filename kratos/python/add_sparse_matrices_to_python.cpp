@@ -23,7 +23,7 @@
 #include "containers/sparse_contiguous_row_graph.h"
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
-
+#include "utilities/amgcl_csr_spmm_utilities.h"
 namespace Kratos
 {
 
@@ -53,6 +53,9 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("AddEntries", [](SparseGraph<IndexType>& self, std::vector<IndexType>& indices){
         self.AddEntries(indices);
     })
+    .def("AddEntries", [](SparseGraph<IndexType>& self, std::vector<IndexType>& row_indices, std::vector<IndexType>& col_indices){
+        self.AddEntries(row_indices, col_indices);
+    })
     .def("ExportSingleVectorRepresentation", &SparseGraph<IndexType>::ExportSingleVectorRepresentation)
     .def("__str__", PrintObject<SparseGraph<IndexType>>);
 
@@ -67,6 +70,9 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("AddEntry", &SparseContiguousRowGraph<IndexType>::AddEntry)
     .def("AddEntries", [](SparseContiguousRowGraph<IndexType>& self, std::vector<IndexType>& indices){
         self.AddEntries(indices);
+    })
+    .def("AddEntries", [](SparseContiguousRowGraph<IndexType>& self, std::vector<IndexType>& row_indices, std::vector<IndexType>& col_indices){
+        self.AddEntries(row_indices, col_indices);
     })
     .def("Finalize", &SparseContiguousRowGraph<IndexType>::Finalize)
     .def("GetGraph", &SparseContiguousRowGraph<IndexType>::GetGraph)
@@ -103,11 +109,32 @@ void AddSparseMatricesToPython(pybind11::module& m)
         std::vector<double> v(data.begin(), data.end());
         return v;
     })
+    .def("__setitem__", [](CsrMatrix<double,IndexType>& self, const std::pair<int,int> index, const  double value)
+        {
+            const int index_i = index.first;
+            const int index_j = index.second;
+            self(index_i,index_j) = value;
+        })
+    .def("__getitem__", [](const CsrMatrix<double,IndexType>& self, const std::pair<int,int> index)
+        {
+            const int index_i = index.first;
+            const int index_j = index.second;
+            return self(index_i, index_j);
+        })        
     .def("SpMV", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
         rA.SpMV(x,y);
     })
+    // .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
+    //     rA.SpMV(x,y);
+    // })
     .def("TransposeSpMV", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
         rA.TransposeSpMV(x,y);
+    })
+    .def("SpMM", [](CsrMatrix<double,IndexType>& rA,CsrMatrix<double,IndexType>& rB){
+        return AmgclCSRSpMMUtilities::SparseMultiply(rA,rB);
+    })
+    .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,CsrMatrix<double,IndexType>& rB){
+        return AmgclCSRSpMMUtilities::SparseMultiply(rA,rB);
     })
     .def("BeginAssemble", &CsrMatrix<double,IndexType>::BeginAssemble)
     .def("FinalizeAssemble", &CsrMatrix<double,IndexType>::FinalizeAssemble)
@@ -142,6 +169,8 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("size", &SystemVector<double,IndexType>::size)
     .def("Clear", &SystemVector<double,IndexType>::Clear)
     .def("SetValue", &SystemVector<double,IndexType>::SetValue)
+    .def("__setitem__", [](SystemVector<double,IndexType>& self, const IndexType i, const double value){self[i] = value;} )
+    .def("__getitem__", [](const SystemVector<double,IndexType>& self, const IndexType i){return self[i];} )
     .def("Add", &SystemVector<double,IndexType>::Add)
     .def("BeginAssemble", &SystemVector<double,IndexType>::BeginAssemble)
     .def("FinalizeAssemble", &SystemVector<double,IndexType>::FinalizeAssemble)
