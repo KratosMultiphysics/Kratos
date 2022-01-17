@@ -148,23 +148,6 @@ public:
     }
 
     /**
-     * @brief Calculate the global projection of the auxiliary fields.
-     * @details This function is empty because the intermediate laplacian is kept constant during iterations.
-     * @param rModelPart The model part of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-    ) override
-    {
-    }
-
-    /**
      * @brief Perform the prediction using the explicit Adams-Bashforth scheme
      * @param rModelPart The model of the problem to solve
      * @param rDofSet set of all primary variables
@@ -196,14 +179,9 @@ public:
 
         // Recover the laplacian
         ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
-        DerivativesRecoveryUtility<2>::RecoverLaplacian(
-            rModelPart,
-            VELOCITY,
-            VELOCITY_LAPLACIAN);
-        DerivativesRecoveryUtility<2>::RecoverLaplacian(
-            rModelPart,
-            MOMENTUM,
-            VELOCITY_H_LAPLACIAN);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, VELOCITY, VELOCITY_LAPLACIAN);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, MOMENTUM, VELOCITY_H_LAPLACIAN);
+        ApplyLaplacianBoundaryConditions(rModelPart);
 
         // Calculate the prediction
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
@@ -228,6 +206,26 @@ public:
         });
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.Predict");
+    }
+
+    /**
+     * @brief Calculate the global projection of the auxiliary fields.
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+    ) override
+    {
+        ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, VELOCITY, VELOCITY_LAPLACIAN);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, MOMENTUM, VELOCITY_H_LAPLACIAN);
+        ApplyLaplacianBoundaryConditions(rModelPart);
     }
 
     /**
@@ -668,6 +666,20 @@ private:
         AddDynamicsToRHS(rObject, rRHSContribution, mM[this_thread], rCurrentProcessInfo);
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.TCalculateRHSContribution");
+    }
+
+    void ApplyLaplacianBoundaryConditions(ModelPart& rModelPart)
+    {
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+            if (rNode.IsFixed(VELOCITY_X)) {
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_X) = 0.0;
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_X) = 0.0;
+            }
+            if (rNode.IsFixed(VELOCITY_Y)) {
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_Y) = 0.0;
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_Y) = 0.0;
+            }
+        });
     }
 
     ///@}
