@@ -2,9 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import numpy as np 
-import scipy
-import scipy.sparse
-import KratosMultiphysics.scipy_conversion_tools
 
 class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
@@ -46,7 +43,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
     def test_matrix_assembly(self):
         #data to be assembled
         values = np.array([[1.0,-1.0],[-1.0,1.0]])
-
+        
         x = KratosMultiphysics.SystemVector(3)
         x[0] = 1.0
         x[1] = 2.0
@@ -69,27 +66,49 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
         A.SpMV(x,y)
 
-        #test conversion to scipy matrix
-        Ascipy = KratosMultiphysics.scipy_conversion_tools.to_csr(A)
+        validation_data = [ 2., -3.,  1., -3.,  6., -3.,  1., -3.,  2.]                                                                                                                                 
+        validation_index2 = [0, 1, 2, 0, 1, 2, 0, 1, 2]                                                                                                                                                 
+        validation_index1 = [0, 3, 6, 9]    
 
-        #verify compatibility with numpy arrays
-        xscipy = np.array(x).T
-        yscipy = Ascipy@x 
-
-        self.assertEqual(yscipy[0],-1.0)
-        self.assertEqual(yscipy[1],0.0)
-        self.assertEqual(yscipy[2],1.0)
-
-        B_scipy = Ascipy@Ascipy
-        B_scipy.sort_indices() #it is crucial that the index are sorted to do the following comparison
         B = A.SpMM(A)
 
-        for i in range(len(B.value_data())):
-            self.assertEqual(B.value_data()[i], B_scipy.data[i])
-            self.assertEqual(B.index2_data()[i], B_scipy.indices[i])
+        for i in range(len(validation_data)):
+            self.assertEqual(B.value_data()[i], validation_data[i])
+            self.assertEqual(B.index2_data()[i], validation_index2[i])
 
-        for i in range(len(B.index1_data())):
-            self.assertEqual(B.index1_data()[i], B_scipy.indptr[i])
+        for i in range(len(validation_index1)):
+            self.assertEqual(B.index1_data()[i], validation_index1[i])
+
+        # the following should be added back in case scipy support is enabled in testing
+        # try:
+        #     import scipy
+        #     import scipy.sparse
+        #     import KratosMultiphysics.scipy_conversion_tools
+
+        #      #test conversion to scipy matrix
+        #     Ascipy = KratosMultiphysics.scipy_conversion_tools.to_csr(A)
+
+        #     #verify compatibility with numpy arrays
+        #     xscipy = np.array(x).T
+        #     yscipy = Ascipy@x 
+
+        #     self.assertEqual(yscipy[0],-1.0)
+        #     self.assertEqual(yscipy[1],0.0)
+        #     self.assertEqual(yscipy[2],1.0)
+
+        #     B_scipy = Ascipy@Ascipy
+        #     B_scipy.sort_indices() #it is crucial that the index are sorted to do the following comparison
+        # for i in range(len(validation_data)):
+        #     self.assertEqual(B_scipy.data[i], validation_data[i])
+        #     self.assertEqual(B_scipy.index2[i], validation_index2[i])
+
+        # for i in range(len(validation_index1)):
+        #     self.assertEqual(B_scipy.indptr[i], validation_index1[i])
+        # except ImportError:
+        #     pass
+       
+
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
