@@ -10,7 +10,7 @@ def ImportDataFromFile(external_file,category, lookback = False):
     "Import the data from a file generated for neural network training."
     # Data loading for h5
     if external_file.endswith('.h5'):
-        data = ImportH5(external_file, category, lookback)
+        data = ImportH5(external_file, lookback)
     # Data loading for dat
     elif external_file.endswith('.dat') or external_file.endswith('.csv'):
         data = ImportAscii(external_file, lookback)
@@ -25,8 +25,9 @@ def ImportDataFromFile(external_file,category, lookback = False):
         raise Exception(category + " data format not supported. Supported formats are .dat, .npy, .pkl and .h5")
     return data
 
-def ImportH5(external_file,category,lookback):
-    "Import the data of an h5 file generated for neural network training."
+def ImportH5(external_file,model_parts,lookback):
+    "Import the data of an h5 file generated for neural network training. Check the expected format."
+    print("Warning: HDF5 functionalities are not fully implemented.")
     if lookback:
         raw = ListDataWithLookback()
     else:
@@ -34,9 +35,10 @@ def ImportH5(external_file,category,lookback):
     with h5py.File(external_file,'r') as f:
         for time in f.keys():
             time_array = []
-            for variables in f[time][category]['NodalSolutionStepData'].keys():
-                value = f[time][category]['NodalSolutionStepData'][variables][:]
-                time_array = value[:]
+            for model_part in f[time].keys():
+                for variables in f[time][model_part]['NodalSolutionStepData'].keys():
+                    value = f[time][model_part]['NodalSolutionStepData'][variables][:]
+                    time_array.append(value[:])
             raw.AddToList(np.squeeze(time_array))
     return raw
 
@@ -59,7 +61,7 @@ def ImportAscii(external_file,lookback):
             if not isfloat(data.split(' ')[0]):
                 array = ''.join(data[4:-1])
                 array_floats = list(map(float,array.split(',',)))
-                raw_splits_line.append(array_floats)
+                raw_splits_line.extend(array_floats)
             else:
                 array_floats = float(data)
                 raw_splits_line.append(array_floats)
