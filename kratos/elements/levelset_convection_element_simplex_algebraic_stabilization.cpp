@@ -199,7 +199,7 @@ namespace Kratos
                 }
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
-                    S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( /* grad_phi_mean */grad_phi, (X_gauss - X_mean) ) )*N[i];
+                    S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean/* grad_phi */, (X_gauss - X_mean) ) )*N[i];
                 }
             }
         }
