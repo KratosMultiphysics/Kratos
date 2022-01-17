@@ -155,6 +155,8 @@ namespace Kratos
 
         const double limiter = this->GetValue(LIMITER_COEFFICIENT);
 
+        const auto grad_phi = prod(phi,DN_DX);
+
         for(unsigned int igauss=0; igauss<TDim+1; ++igauss)
         {
             noalias(N) = row(Ncontainer,igauss);
@@ -197,7 +199,7 @@ namespace Kratos
                 }
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
-                    S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean, (X_gauss - X_mean) ) )*N[i];
+                    S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( /* grad_phi_mean */grad_phi, (X_gauss - X_mean) ) )*N[i];
                 }
             }
         }
