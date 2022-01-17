@@ -144,11 +144,13 @@ public:
         return mData[I];
     }
 
+    ///provides low level access to internal data
     DenseVector<TDataType>& data()
     {
         return mData;
     }
 
+    ///provides low level access to internal data
     const DenseVector<TDataType>& data() const
     {
         return mData;
