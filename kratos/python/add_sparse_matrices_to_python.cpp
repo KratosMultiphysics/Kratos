@@ -35,7 +35,6 @@ namespace py = pybind11;
 void AddSparseMatricesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
     typedef std::size_t IndexType;
 
 
@@ -194,24 +193,19 @@ void AddSparseMatricesToPython(pybind11::module& m)
                         std::vector<IndexType>& indices){
        self.Assemble(values,indices);
     })
-
     //inplace
     .def("__iadd__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self += other_vec; }, py::is_operator())
     .def("__isub__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self -= other_vec;  }, py::is_operator())
     .def("__imul__", [](SystemVector<double,IndexType>& self, const double& value){ self*=value; }, py::is_operator())
     .def("__itruediv__", [](SystemVector<double,IndexType>& self, const double& value){ self/=value; }, py::is_operator())
-
     //out of place
     //.def("__add__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){SystemVector<double,IndexType> aux(vec1); aux += vec2; return std::move(aux);}, py::is_operator())
     // .def("__sub__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){SystemVector<double,IndexType> aux(vec1); aux -= vec2; return aux;}, py::is_operator())
-
     //access operators
     .def("__setitem__", [](SystemVector<double,IndexType>& self, const unsigned int i, const double value){self[i] = value;} )
     .def("__getitem__", [](const SystemVector<double,IndexType>& self, const unsigned int i){return self[i];} )
     .def("__str__", PrintObject<SystemVector<double,IndexType>>)
     ;
-
-
 }
 
 } // namespace Python.

@@ -39,8 +39,6 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         self.assertEqual(y[1],0.0)
         self.assertEqual(y[2],13.0)
 
-
-
     def test_matrix_assembly(self):
         #data to be assembled
         values = np.array([[1.0,-1.0],[-1.0,1.0]])
@@ -107,9 +105,6 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         #     self.assertEqual(B_scipy.indptr[i], validation_index1[i])
         # except ImportError:
         #     pass
-       
-
-
 
 if __name__ == '__main__':
     KratosUnittest.main()
