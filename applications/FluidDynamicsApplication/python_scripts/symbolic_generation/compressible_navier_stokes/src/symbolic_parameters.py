@@ -38,6 +38,8 @@ class PrimitiveMagnitudes:
         self.P = sympy.Symbol('pressure', real=True)
         self.T = sympy.Symbol('temperature', real=True)
         self.V = defs.Vector('velocity', geometry.ndims, real=True)
+        self.nnodes = geometry.nnodes
+        self.ndims = geometry.ndims
 
     def Interpolate(self, mode, U_nodes, U_gauss, N_gauss, params):
         if mode == "gaussian":
@@ -57,19 +59,33 @@ class PrimitiveMagnitudes:
         return (P_g, V_g, T_g)
 
     def _NodalInterpolation(self, U_nodes, N_gauss, params):
-        mom_nodes = sympy.Matrix(U_nodes[:, 1:-1])
-        rho_nodes = sympy.Matrix(U_nodes[:, 0])
-        e_tot_nodes = sympy.Matrix(U_nodes[:, -1])
+        V_nodes = defs.ZeroMatrix(self.nnodes, self.ndims)
+        T_nodes = defs.ZeroVector(self.nnodes)
+        P_nodes = defs.ZeroVector(self.nnodes)
 
-        V_nodes = self._velocity(rho_nodes, mom_nodes)
-        T_nodes = self._temperature(rho_nodes, V_nodes, e_tot_nodes, params)
-        P_nodes = self._pressure(rho_nodes, T_nodes, params)
+        for n in range(self.nnodes):
+            mom_n = U_nodes[n, 1:-1]
+            rho_n = U_nodes[n, 0]
+            e_tot_n = U_nodes[n, -1]
+
+            V_nodes[n, :] = self._velocity(rho_n, mom_n)
+            T_nodes[n] = self._temperature(rho_n, V_nodes[n, :], e_tot_n, params)
+            P_nodes[n] = self._pressure(rho_n, T_nodes[n], params)
 
         V_g = V_nodes.transpose() * N_gauss
         T_g = T_nodes.transpose() * N_gauss
         P_g = P_nodes.transpose() * N_gauss
 
-        return (P_g, V_g, T_g)
+        V_g.simplify()
+        T_g.simplify()
+        P_g.simplify()
+
+        # Asserts to avoid unintelligible errors from the depths of sympy
+        assert(sympy.shape(V_g) == (self.ndims,1))
+        assert(sympy.shape(T_g) == (1,1))
+        assert(sympy.shape(P_g) == (1,1))
+
+        return (P_g[0, 0], V_g, T_g[0,0])
 
     @classmethod
     def _velocity(cls, rho, mom):
