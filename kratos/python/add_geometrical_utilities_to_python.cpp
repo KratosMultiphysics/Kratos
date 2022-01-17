@@ -39,6 +39,7 @@
 #include "utilities/interval_utility.h"
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/mls_shape_functions_utility.h"
+#include "utilities/radial_basis_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 
 namespace Kratos {
@@ -317,6 +318,12 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
         .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
         .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        ;
+    
+    //  RBF shape functions utility
+    py::class_<RadialBasisFunctionsUtility>(m,"RadialBasisFunctionsUtility")
+        .def_static("CalculateShapeFunctions", &RadialBasisFunctionsUtility::CalculateShapeFunctions)
+        .def_static("CalculateShapeFunctionsAndInterpolation", &RadialBasisFunctionsUtility::CalculateShapeFunctionsAndInterpolation)
         ;
 }
 
