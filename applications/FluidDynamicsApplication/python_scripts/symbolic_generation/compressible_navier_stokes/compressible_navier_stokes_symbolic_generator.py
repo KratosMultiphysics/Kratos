@@ -50,7 +50,8 @@ class CompressibleNavierStokesSymbolicGenerator:
         self.simplify = settings["do_simplifications"].GetBool()
         self.shock_capturing = settings["shock_capturing"].GetBool()
         self.echo_level = settings["echo_level"].GetInt()
-        self.primitive_interpolation = settings["primitive_interpolation"].GetString()
+
+        self._ReadPrimitiveInterpolation(settings)
 
         self.subscales_types = [s for (s, enabled) in settings["subscales"].items() if enabled]
 
@@ -61,6 +62,18 @@ class CompressibleNavierStokesSymbolicGenerator:
         self._GenerateFiles()
 
         self._print(2, settings)
+
+    def _ReadPrimitiveInterpolation(self, settings):
+        valid_modes = ["nodal", "gaussian"]
+        interp =  settings["primitive_interpolation"].GetString()
+        if interp not in valid_modes:
+            msg = "Primitive interpollation mode not recongized: {}.".format(interp)
+            msg += "Valid values are:\n"
+            for vm in valid_modes:
+                msg += " - " + vm + "\n"
+            raise ValueError(msg)
+        self.primitive_interpolation = interp
+
 
     def _CollectAndReplace(self, target_substring, expression, name):
         # If integrated during run-time, the assignment has to be an accumulation:
@@ -86,7 +99,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             "template_filename" : "PLEASE PROVIDE A template_filename",
             "output_filename"   : "symbolic_generator_name_not_provided.cpp",
             "echo_level" : 1,
-            "primitive_interpolation" : "nodal"
+            "primitive_interpolation" : "gaussian"
         }""")
 
     def _print(self, lvl, *text):
@@ -270,6 +283,9 @@ class CompressibleNavierStokesSymbolicGenerator:
         # If OSS, residual projections interpolation
         res_proj_gauss = ResProj.T * Ng if subscales_type == "OSS" else None
 
+        # Primitive interpolation
+        (pressure, vel, temp) = primitives.Interpolate(self.primitive_interpolation, U, U_gauss, Ng, params)
+
         # Gradients computation
         grad_U = KratosSympy.DfjDxi(self.geometry.DN(), U).transpose()
         grad_w = KratosSympy.DfjDxi(self.geometry.DN(), w).transpose()
@@ -288,6 +304,10 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.mu, mu_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.beta, beta_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.lamb, lamb_sc_gauss)
+        KratosSympy.SubstituteScalarValue(rv_gauss, primitives.P, pressure)
+        KratosSympy.SubstituteMatrixValue(rv_gauss, primitives.V, vel)
+        KratosSympy.SubstituteScalarValue(rv_gauss, primitives.T, temp)
+
         if subscales_type == "OSS":
             KratosSympy.SubstituteMatrixValue(rv_gauss, res_proj, res_proj_gauss)
 
