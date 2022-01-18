@@ -2207,7 +2207,6 @@ int ModelPart::Check() const
 {
     KRATOS_TRY
 
-    const int num_threads = ParallelUtilities::GetNumThreads();
     const ProcessInfo& r_current_process_info = this->GetProcessInfo();
 
     // Checks for all of the elements
