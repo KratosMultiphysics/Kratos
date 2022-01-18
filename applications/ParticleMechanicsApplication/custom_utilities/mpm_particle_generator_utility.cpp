@@ -429,9 +429,6 @@ namespace MPMParticleGeneratorUtility
                             Condition::Pointer p_condition = new_condition.Create(
                                 new_condition_id, p_new_geometry, properties);
 
-
-                            KRATOS_WATCH(new_condition_id)
-
                             ProcessInfo process_info = ProcessInfo();
 
 
