@@ -125,7 +125,7 @@ for dim in dim_vector:
     elif time_integration=="alpha_method":
         max_sprectral_radius=Symbol('max_spectral_radius', positive = True)
         acceleration_alpha_method=DefineMatrix('acceleration_alpha_method',nnodes,dim)
-        # alpha methods parameters
+        # alpha method parameters
         alpha_m= 0.5*((3-max_sprectral_radius)/(1+max_sprectral_radius))
         alpha_f=1/(1+max_sprectral_radius)
         ganma= 0.5+ alpha_m -alpha_f
