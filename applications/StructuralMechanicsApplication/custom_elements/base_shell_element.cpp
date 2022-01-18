@@ -506,6 +506,25 @@ void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
 }
 
 template <class TCoordinateTransformation>
+void BaseShellElement<TCoordinateTransformation>::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        rValues.clear();
+        for (auto p_sec : mSections) {
+            auto vec_integration_points = p_sec->GetConstitutiveLawsVector(GetProperties());
+            rValues.reserve(rValues.size() + vec_integration_points.size());
+            for (std::size_t i=0; i<vec_integration_points.size(); ++i) {
+                rValues.push_back(vec_integration_points[i]);
+            }
+        }
+    }
+}
+
+template <class TCoordinateTransformation>
 void BaseShellElement<TCoordinateTransformation>::Calculate(
     const Variable<Matrix>& rVariable, Matrix& Output,
     const ProcessInfo& rCurrentProcessInfo)

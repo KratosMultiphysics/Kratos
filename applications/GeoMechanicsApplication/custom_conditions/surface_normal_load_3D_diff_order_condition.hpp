@@ -18,14 +18,14 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalLoad3DDiffOrderCondition : public GeneralUPwDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalLoad3DDiffOrderCondition : public SurfaceLoad3DDiffOrderCondition
 {
 
 public:
@@ -60,7 +60,9 @@ protected:
 
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
-    void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight) override;
+    double CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                           const GeometryType::JacobiansType& JContainer,
+                                           const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
     void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
 
@@ -74,12 +76,12 @@ private:
     
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SurfaceLoad3DDiffOrderCondition )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SurfaceLoad3DDiffOrderCondition )
     }
     
 }; // class SurfaceNormalLoad3DDiffOrderCondition.
