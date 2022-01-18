@@ -200,7 +200,7 @@ public:
         GlobalPointerCommunicator< Node<3 > > pointer_comm(r_data_comm, gp_list);
 
         auto combined_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
+            [&](const GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
                 return std::make_pair(
                     global_pointer->GetValue(DISTANCE),
                     global_pointer->Coordinates());
