@@ -283,14 +283,14 @@ class CompressibleNavierStokesSymbolicGenerator:
         # If OSS, residual projections interpolation
         res_proj_gauss = ResProj.T * Ng if subscales_type == "OSS" else None
 
-        # Primitive interpolation
-        (pressure, vel, temp) = primitives.Interpolate(self.primitive_interpolation, U, U_gauss, Ng, params)
-
         # Gradients computation
-        grad_U = KratosSympy.DfjDxi(self.geometry.DN(), U).transpose()
-        grad_w = KratosSympy.DfjDxi(self.geometry.DN(), w).transpose()
+        grad_U = KratosSympy.DfiDxj(self.geometry.DN(), U)
+        grad_w = KratosSympy.DfiDxj(self.geometry.DN(), w)
 
         self._print(1, "    - Substitution in the variational formulation")
+
+        # Primitive interpolation
+        primitives.InterpolateAndSubstitute(rv_gauss, U, Ng, self.geometry.DN(), params)
         KratosSympy.SubstituteMatrixValue(rv_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, H, grad_U)
@@ -304,9 +304,6 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.mu, mu_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.beta, beta_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.lamb, lamb_sc_gauss)
-        KratosSympy.SubstituteScalarValue(rv_gauss, primitives.P, pressure)
-        KratosSympy.SubstituteMatrixValue(rv_gauss, primitives.V, vel)
-        KratosSympy.SubstituteScalarValue(rv_gauss, primitives.T, temp)
 
         if subscales_type == "OSS":
             KratosSympy.SubstituteMatrixValue(rv_gauss, res_proj, res_proj_gauss)
@@ -382,7 +379,6 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Unknowns
         U = defs.Matrix('data.U', n_nodes, block_size, real=True)
-        primitives = PrimitiveMagnitudes(self.geometry)
 
         # Residuals projection
         ResProj = defs.Matrix('data.ResProj', n_nodes, block_size, real=True)
@@ -418,16 +414,19 @@ class CompressibleNavierStokesSymbolicGenerator:
             bdf = [sympy.Symbol('bdf{}'.format(i)) for i in range(3)]
 
         # Construction of the variational equation
-        Ug  = defs.Vector('Ug', block_size)             # Dofs vector
-        H   = defs.Matrix('H', block_size, dim)         # Gradient of , real=TrueU
+        Ug  = defs.Vector('Ug', block_size, real=True)   # Dofs vector
+        H   = defs.Matrix('H', block_size, dim)          # Gradient of dofs vector
         mg  = sympy.Symbol('mg')                         # Mass source term
-        f   = defs.Vector('f',  dim)                    # Body force vector
+        f   = defs.Vector('f',  dim, real=True)          # Body force vector
         rg  = sympy.Symbol('rg')                         # Thermal source/sink term
-        V   = defs.Vector('V', block_size)              # Test function
-        Q   = defs.Matrix('Q', block_size, dim)         # Gradient of , real=TrueV
-        acc = defs.Vector('acc', block_size)            # Derivative of Dofs/Time
-        G   = defs.Matrix('G', block_size, dim)         # Diffusive Flux matri, real=Truex
-        res_proj = defs.Vector('res_proj', block_size)  # Residuals projection for the OSS
+        V   = defs.Vector('V', block_size, real=True)    # Test function
+        Q   = defs.Matrix('Q', block_size, dim)          # Gradient of V
+        acc = defs.Vector('acc', block_size, real=True)  # Derivative of Dofs/Time
+        G   = defs.Matrix('G', block_size, dim)          # Diffusive Flux matrix
+        res_proj = defs.Vector('res_proj', block_size, real=True)  # Residuals projection for the OSS
+
+        # Primitive variables
+        primitives = PrimitiveMagnitudes(self.geometry, params, Ug, H, self.primitive_interpolation)
 
         # Calculate the Gauss point residual
         # Matrix Computation
@@ -435,16 +434,16 @@ class CompressibleNavierStokesSymbolicGenerator:
         S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
 
         self._print(1, " - Compute Euler Jacobian matrix")
-        A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
+        A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params, primitives)
 
         if self.shock_capturing:
             sc_params = ShockCapturingParameters()
             self._print(1, " - Compute diffusive flux (shock capturing ON)")
-            G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(Ug, H, params, sc_params)
+            G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(H, primitives, params, sc_params)
         else:
             sc_params = None
             self._print(1, " - Compute diffusive flux (shock capturing OFF)")
-            G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
+            G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, params)
 
         self._print(1, " - Compute stabilization matrix")
         Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)

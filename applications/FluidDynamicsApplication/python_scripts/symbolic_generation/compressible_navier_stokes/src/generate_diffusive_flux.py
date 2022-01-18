@@ -1,29 +1,23 @@
+import sympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
     .src.defines import CompressibleNavierStokesDefines as defs
 
 
-def ComputeDiffusiveFlux(dofs, dUdx, params):
+def ComputeDiffusiveFlux(primitives, params):
     """Calculate the diffusive flux matrix without shock capturing contribution."""
 
     # Auxiliary variables
     dim = params.dim
-    rho = dofs[0]
-    mom = []
-    vel = []
-    for i in range(dim):
-        mom.append(dofs[i + 1])
-        vel.append(dofs[i + 1] / rho)
-    e_tot = dofs[dim + 1]
+    vel = primitives.V
 
     # Calculate the viscous stress tensor
     mu = params.mu  # Dynamic viscosity
     beta = 0.0      # Null bulk viscosity (Stoke's assumption)
-    tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
+    tau_stress = CalculateViscousStressTensor(mu, beta, primitives, dim)
 
     # Calculate the heat flux vector
-    c_v = params.c_v    # Specific heat at constant volume
     lamb = params.lamb  # Thermal conductivity
-    heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
+    heat_flux = CalculateHeatFluxVector(lamb, primitives)
 
     # Define and fill the diffusive flux matrix
     G = defs.Matrix('G', dim + 2, dim, real=True)
@@ -37,7 +31,7 @@ def ComputeDiffusiveFlux(dofs, dUdx, params):
     return G
 
 
-def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
+def ComputeDiffusiveFluxWithShockCapturing(dUdx, primitives, params, sc_params):
     """
     Calculate the diffusive flux matrix with a physics-based shock
     capturing contribution. See:
@@ -49,13 +43,7 @@ def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
 
     # Auxiliary variables
     dim = params.dim
-    rho = dofs[0]
-    mom = []
-    vel = []
-    for i in range(dim):
-        mom.append(dofs[i + 1])
-        vel.append(dofs[i + 1] / rho)
-    e_tot = dofs[dim + 1]
+    vel = primitives.V
 
     # Calculate the density flux
     mass_flux = CalculuateMassFluxVector(sc_params.alpha, dUdx)
@@ -65,13 +53,12 @@ def ComputeDiffusiveFluxWithShockCapturing(dofs, dUdx, params, sc_params):
     mu += sc_params.mu      # Artificial dynamic viscosity
     beta = 0.0              # Null physical bulk viscosity (Stoke's assumption)
     beta += sc_params.beta  # Artificial bulk viscosity
-    tau_stress = CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx)
+    tau_stress = CalculateViscousStressTensor(mu, beta, primitives, dim)
 
     # Calculate the heat flux vector
-    c_v = params.c_v        # Specific heat at constant volume
     lamb = params.lamb      # Thermal conductivity
     lamb += sc_params.lamb  # Artificial thermal conductivity for shock capturing
-    heat_flux = CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx)
+    heat_flux = CalculateHeatFluxVector(lamb, primitives)
 
     # Define and fill the isotropic shock capturing diffusive flux matrix
     G = defs.Matrix('G', dim + 2, dim, real=True)
@@ -95,50 +82,29 @@ def CalculuateMassFluxVector(alpha, dUdx):
     return alpha * dUdx[0, :]
 
 
-def CalculateViscousStressTensor(mu, beta, rho, mom, dim, dUdx):
+def CalculateViscousStressTensor(mu, beta, primitives, dim):
     """
     Auxiliary function to calculate the viscous stress tensor for the given
     dynamic and bulk viscosity values
     """
 
-    # Calculate velocity divergence
-    # Note that this is computed as div(mom/rho) = (dx(mom)*rho - mom*dx(rho))/rho**2
-    div_vel = 0.0
-    for d in range(dim):
-        div_vel += (dUdx[d + 1, d] * rho - mom[d] * dUdx[0, d])
-    div_vel /= rho**2
 
     # Calculate the viscous stress tensor
-    # Note that the derivatives in here involve grad(mom/rho) = (dx(mom)*rho - mom*dx(rho))/rho**2
-    tau_stress = defs.Matrix('tau_stress', dim, dim, real=True)
-    for d1 in range(dim):
-        for d2 in range(dim):
-            dv1_dx2 = (dUdx[d1 + 1, d2] * rho - mom[d1] * dUdx[0, d2]) / rho**2
-            dv2_dx1 = (dUdx[d2 + 1, d1] * rho - mom[d2] * dUdx[0, d1]) / rho**2
-            tau_stress[d1, d2] = mu * (dv1_dx2 + dv2_dx1)
-            if d1 == d2:
-                # Note that in here the second viscosity coefficient is computed
-                # as the bulk viscosity minus 2/3 of the dynamic one
-                tau_stress[d1, d2] += (beta - 2.0 * mu / 3.0) * div_vel
+    # Note that the second viscosity coefficient is computed
+    # as the bulk viscosity minus 2/3 of the dynamic one
+    kappa = (beta - 2/3*mu)
 
-    return tau_stress
+    dynamic = mu * (primitives.grad_V + primitives.grad_V.transpose())
+    bulk    = - kappa * sympy.trace(primitives.grad_V) * sympy.eye(dim)
+
+    return dynamic + bulk
 
 
-def CalculateHeatFluxVector(c_v, lamb, rho, mom, e_tot, dim, dUdx):
+def CalculateHeatFluxVector(lamb, primitives):
     """Auxiliary function to calculate the heat flux vector with Fourier's law"""
 
-    # Calculate the heat flux vector (Fourier's law q = -lambda * grad(theta))
-    # Note that the temperature is expressed in terms of the total energy
-    heat_flux = []
-    for d in range(dim):
-        aux_1 = (dUdx[dim + 1, d]*rho - e_tot * dUdx[0, d]) / rho**2
-        aux_2 = 0.0
-        for i in range(dim):
-            aux_2 += mom[i] * dUdx[i + 1, d] / rho**2
-            aux_2 -= mom[i]**2 * dUdx[0, d] / rho**3
-        heat_flux.append(- (lamb / c_v) * (aux_1 - aux_2))
-
-    return heat_flux
+    # Calculate the heat flux vector (Fourier's law q = -lambda * grad(theta))¡
+    return - lamb * primitives.grad_T
 
 
 def WriteInVoigtNotation(dim, tensor):
