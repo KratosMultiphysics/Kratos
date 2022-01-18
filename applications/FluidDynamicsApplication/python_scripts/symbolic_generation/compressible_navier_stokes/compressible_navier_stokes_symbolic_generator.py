@@ -290,13 +290,13 @@ class CompressibleNavierStokesSymbolicGenerator:
         self._print(1, "    - Substitution in the variational formulation")
 
         # Primitive interpolation
+        KratosSympy.SubstituteMatrixValue(rv_gauss, Tau, tau_gauss)
         primitives.InterpolateAndSubstitute(rv_gauss, U, Ng, self.geometry.DN(), params)
         KratosSympy.SubstituteMatrixValue(rv_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, H, grad_U)
         KratosSympy.SubstituteMatrixValue(rv_gauss, V, w_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, Q, grad_w)
-        KratosSympy.SubstituteMatrixValue(rv_gauss, Tau, tau_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, f, f_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, rg, r_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, mg, mass_gauss)
