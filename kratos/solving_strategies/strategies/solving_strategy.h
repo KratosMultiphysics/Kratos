@@ -387,7 +387,7 @@ public:
             VariableUtils().CheckVariableExists<>(DISPLACEMENT, GetModelPart().Nodes());
         }
 
-        GetModelPart.Check();
+        GetModelPart().Check();
 
         return 0;
 
