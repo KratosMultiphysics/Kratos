@@ -1,10 +1,8 @@
 ## Dictionary of the constant parameters used in the Variational Formulation
 import sympy
-from dataclasses import dataclass
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
     import CompressibleNavierStokesDefines as defs
 
-@dataclass
 class FormulationParameters:
     def __init__(self, geometry):
         self.mu      = sympy.Symbol('data.mu', positive = True)       # Dynamic viscosity
@@ -17,7 +15,6 @@ class FormulationParameters:
         self.stab_c3 = sympy.Symbol('stab_c3', positive = True)  # Algorithm constant
         self.dim = geometry.ndims
 
-@dataclass
 class ShockCapturingParameters:
     def __init__(self):
         self.alpha = sympy.Symbol('data.alpha_sc', positive = True) # Artificial density diffusivity for shock capturing
@@ -25,7 +22,6 @@ class ShockCapturingParameters:
         self.beta  = sympy.Symbol('data.beta_sc', positive = True) # Artificial bulk viscosity for shock capturing
         self.lamb  = sympy.Symbol('data.lamb_sc', positive = True) # Artificial thermal conductivity for shock capturing
 
-@dataclass
 class ShockCapturingNodalParameters:
     def __init__(self, geometry):
         self.alpha = defs.Vector('data.alpha_sc_nodes', geometry.nnodes, positive=True) # Nodal artificial mass diffusivity
