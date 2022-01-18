@@ -84,7 +84,8 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_bounding_box.TestBoundingBox]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_print_info_in_file.TestPrintInfoInFile]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_print_info_in_file.TestPrintNodalInfoInFile]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_print_info_in_file.TestPrintElementalInfoInFile]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_embedded_skin_mapping.TestEmbeddedSkinMapping]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part.TestModelPart]))
