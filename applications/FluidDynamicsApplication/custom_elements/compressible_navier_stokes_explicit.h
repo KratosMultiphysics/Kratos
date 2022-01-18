@@ -708,18 +708,9 @@ namespace CompressibleNavierStokesExplicitInternal
         return dimensions == nnodes-1;
     }
 
-    // If is simplex, it becomes: using EnableIfSimplex = T
-    // Otherwise it causes a Substitution Failure
-    template<unsigned int TDim, unsigned int TNumNodes, typename T>
-    using EnableIfSimplex = typename std::enable_if<IsSimplex(TDim, TNumNodes), T>::type;
-
-    // The oposite of EnableIfSimplex
-    template<unsigned int TDim, unsigned int TNumNodes, typename T>
-    using EnableIfNotSimplex = typename std::enable_if<!IsSimplex(TDim, TNumNodes), T>::type;
-
     // Specialization for simplex geometries
     template<unsigned int TDim, unsigned int TNumNodes>
-    inline EnableIfSimplex<TDim, TNumNodes, void> ComputeGeometryData(
+    inline std::enable_if<IsSimplex(TDim, TNumNodes), T>::type ComputeGeometryData(
         const Geometry<Node<3>> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
@@ -733,7 +724,7 @@ namespace CompressibleNavierStokesExplicitInternal
      * during integration at each gauss point.
      */
     template<unsigned int TDim, unsigned int TNumNodes>
-    inline EnableIfNotSimplex<TDim, TNumNodes, void> ComputeGeometryData(
+    inline std::enable_if<!IsSimplex(TDim, TNumNodes), T>::type ComputeGeometryData(
         const Geometry<Node<3>> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
