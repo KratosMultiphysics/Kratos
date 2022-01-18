@@ -237,6 +237,12 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    static const unsigned int msIndexVoigt3D6C [6][2];
+    static const unsigned int msIndexVoigt2D4C [4][2];
+    static const unsigned int msIndexVoigt2D3C [3][2];
+
+
+
     SizeType GetNumberOfDofs() override {
         return GetGeometry().WorkingSpaceDimension() + 1;
     }

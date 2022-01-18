@@ -200,6 +200,8 @@ void HyperElasticUP3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValue
 
         ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric;
 
+        //KRATOS_INFO("HYPERELASTIC") << "Constitutive Matrix: " << SplitConstitutiveMatrix.Volumetric  << std::endl;
+
         //VolumetricConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
 
         if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
