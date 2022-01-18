@@ -2211,17 +2211,17 @@ int ModelPart::Check() const
     const ProcessInfo& r_current_process_info = this->GetProcessInfo();
 
     // Checks for all of the elements
-    BlockPartition<const ModelPart::ElementsContainerType>(this->Elements(), num_threads).for_each([&r_current_process_info](const Element& rElement){
+    block_for_each(this->Elements(), [&r_current_process_info](const Element& rElement){
         rElement.Check(r_current_process_info);
     });
 
     // Checks for all of the conditions
-    BlockPartition<const ModelPart::ConditionsContainerType>(this->Conditions(), num_threads).for_each([&r_current_process_info](const Condition& rCondition){
+    block_for_each(this->Conditions(), [&r_current_process_info](const Condition& rCondition){
         rCondition.Check(r_current_process_info);
     });
 
     // Checks for all of the constraints
-    BlockPartition<const ModelPart::MasterSlaveConstraintContainerType>(this->MasterSlaveConstraints(), num_threads).for_each([&r_current_process_info](const MasterSlaveConstraint& rConstraint){
+    block_for_each(this->MasterSlaveConstraints(), [&r_current_process_info](const MasterSlaveConstraint& rConstraint){
         rConstraint.Check(r_current_process_info);
     });
 
