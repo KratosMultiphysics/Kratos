@@ -1,12 +1,11 @@
 #import kratos core and applications
 import KratosMultiphysics as km
-from KratosMultiphysics import gid_output_process
 import KratosMultiphysics.StructuralMechanicsApplication as ksm
 import KratosMultiphysics.TopologyOptimizationApplication as kto
 import KratosMultiphysics.LinearSolversApplication as kls
 import os
-import OptimizationParameters as opt_parameters
 from importlib import import_module
+import OptimizationParameters as objective_and_constraint
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.TopologyOptimizationApplication import topology_optimizer_factory
 from KratosMultiphysics import process_factory
@@ -14,6 +13,8 @@ from KratosMultiphysics import process_factory
 
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = km.Parameters(parameter_file.read())
+optimization_file = open("Optimization_Parameters.json",'r')
+OptimizationParameters = km.Parameters(optimization_file.read())
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 current_model = km.Model()
 dimension = 2
@@ -110,7 +111,7 @@ def Analyzer(controls, response, opt_itr):
         response["strain_energy"]["func"] = response_analyzer.ComputeStrainEnergy()
     # Compute constraint function value
     if(controls["volume_fraction"]["calc_func"]):
-        target_volume_fraction = opt_parameters.initial_volume_fraction
+        target_volume_fraction = OptimizationParameters["optimization_parameters"]["initial_volume_fraction"].GetDouble()
         response["volume_fraction"]["func"] = response_analyzer.ComputeVolumeFraction() - target_volume_fraction
     # Compute sensitivities of objective function
     if(controls["strain_energy"]["calc_grad"]):        
@@ -120,6 +121,6 @@ def Analyzer(controls, response, opt_itr):
         sensitivity_solver.ComputeVolumeFractionSensitivities()
 
 # optimization
-optimizer = kto.topology_optimizer_factory.ConstructOptimizer(model_part, opt_parameters, Analyzer)
+optimizer = kto.topology_optimizer_factory.ConstructOptimizer(model_part, OptimizationParameters["optimization_parameters"], Analyzer, objective_and_constraint)
 optimizer.optimize()
 FinalizeKSMProcess()

@@ -147,7 +147,7 @@ public:
 
         // Calculate and return the Global Volume Fraction by knowing how many elements the model has
         Global_Volume_Fraction = Global_Volume_Fraction/number_elements;
-        KRATOS_INFO("TopOpt") <<"Global Volume Fraction: " << Global_Volume_Fraction << std::endl;
+        KRATOS_INFO("TopOpt") <<"   Global Volume Fraction: " << Global_Volume_Fraction << std::endl;
         clock_t end = clock();
         KRATOS_INFO("TopOpt") <<"  Volume fraction calculated                [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
         return Global_Volume_Fraction;

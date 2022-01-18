@@ -20,7 +20,7 @@
 
 # importing the Kratos Library
 import KratosMultiphysics as km
-import KratosMultiphysics.TopologyOptimizationApplication as KratosTopOpt
+import KratosMultiphysics.TopologyOptimizationApplication as kto
 import os
 
 # For GID output
@@ -33,103 +33,122 @@ import math
 import time
 
 # ==============================================================================
-def ConstructOptimizer( opt_model_part, config, analyzer ):
+def ConstructOptimizer( opt_model_part, config, analyzer, obj_and_const ):
+    optimizer = SIMPMethod( opt_model_part, config, analyzer, obj_and_const )
+    return optimizer
 
-    # Creat optimizer according to selected optimization method
-    if( config.optimization_method == "simp_method" ):
-        optimizer = SIMPMethod( opt_model_part, config, analyzer )
-        return optimizer
 
-    else:
-        sys.exit( "Specified optimization_method not implemented" )
 
 # ==============================================================================
 class SIMPMethod:
 
     # --------------------------------------------------------------------------
-    def __init__(self, opt_model_part, config, analyzer):
+    def __init__(self, opt_model_part, config, analyzer, obj_and_const):
 
         # Set Topology Optimization configurations
         self.config = config
 
         # For GID output
-        self.gid_io = GiDOutputProcess(config.GiD_output_file_name,
-                        config.VolumeOutput,
-                        config.GiDPostMode,
-                        config.GiDMultiFileFlag,
-                        config.GiDWriteMeshFlag,
-                        config.GiDWriteConditionsFlag)
-
+        self.gid_io = GiDOutputProcess(opt_model_part, 
+                                        "Topology_Optimization_Results",    
+                                        km.Parameters("""
+                                    {
+                                        "result_file_configuration": {
+                                            "gidpost_flags": {
+                                                "GiDPostMode": "GiD_PostBinary",
+                                                "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                "WriteConditionsFlag": "WriteConditions",
+                                                "MultiFileFlag": "SingleFile"
+                                            },
+                                            "file_label": "time",
+                                            "output_control_type": "step",
+                                            "output_interval": 1.0,
+                                            "body_output": true,
+                                            "node_output": false,
+                                            "skin_output": false,
+                                            "plane_output": [],
+                                            "nodal_results": ["DISPLACEMENT","REACTION"],
+                                            "nodal_nonhistorical_results": [],
+                                            "nodal_flags_results": [],
+                                            "gauss_point_results": ["X_PHYS","VON_MISES_STRESS"],
+                                            "additional_list_files": []
+                                        }
+                                    }
+                                    """))
         # Set analyzer
         self.analyzer = analyzer
 
         # Set response functions
-        self.objectives = config.objectives
-        self.constraints = config.constraints
+        self.objectives = obj_and_const.objectives
+        self.constraints = obj_and_const.constraints
 
         print("\n::[Initializing Topology Optimization Application]::")
         print("  The following objectives are defined:")
-        for func_id in config.objectives:
-            print("   ",func_id,":",config.objectives[func_id],"\n")
+        for func_id in obj_and_const.objectives:
+            print("   ",func_id,":",obj_and_const.objectives[func_id],"\n")
 
         print("  The following constraints are defined:")
-        for func_id in config.constraints:
-            print("   ",func_id,":",config.constraints[func_id])
+        for func_id in obj_and_const.constraints:
+            print("   ",func_id,":", obj_and_const.constraints[func_id])
+
 
         # Create controller object
-        self.controller = Controller( config )
+        self.controller = Controller( obj_and_const )
 
         # Model parameters
         self.opt_model_part = opt_model_part
 
         # Initialize element variables
         for element_i in opt_model_part.Elements:
-            element_i.SetValue(YOUNGS_MODULUS_MIN, config.E_min)
-            element_i.SetValue(PENAL, config.penalty)
-            element_i.SetValue(X_PHYS, config.initial_volume_fraction)
-            element_i.SetValue(X_PHYS_OLD, config.initial_volume_fraction)
-            element_i.SetValue(YOUNGS_MODULUS_0, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
-            element_i.SetValue(YOUNG_MODULUS, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
+            element_i.SetValue(kto.YOUNGS_MODULUS_MIN, config["E_min"].GetDouble())
+            element_i.SetValue(kto.PENAL, config["penalty"].GetInt())
+            element_i.SetValue(kto.X_PHYS, config["initial_volume_fraction"].GetDouble())
+            element_i.SetValue(kto.X_PHYS_OLD, config["initial_volume_fraction"].GetDouble())
+            element_i.SetValue(kto.YOUNGS_MODULUS_0, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
+            element_i.SetValue(km.YOUNG_MODULUS, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
 
         # Only happens if continuation strategy is activated (Initialization of penalty factor)
-        if(self.config.continuation_strategy == 1):
+        if(self.config["continuation_strategy"] == 1):
             for element_i in self.opt_model_part.Elements:
-                element_i.SetValue(PENAL,1)
+                element_i.SetValue(kto.PENAL,1)
 
         # Add toolbox for topology filtering utilities
-        self.filter_utils = TopologyFilteringUtilities( opt_model_part,
-                                                        self.config.filter_radius,
-                                                        self.config.max_elements_in_filter_radius )
+        self.filter_utils = kto.TopologyFilteringUtilities( opt_model_part,
+                                                        self.config["filter_radius"].GetDouble(),
+                                                        self.config["max_elements_in_filter_radius"].GetInt() )
 
         # Add toolbox for topology updating utilities
-        self.design_update_utils = TopologyUpdatingUtilities( opt_model_part )
+        self.design_update_utils = kto.TopologyUpdatingUtilities( opt_model_part )
 
         # Add toolbox for I/O
-        self.io_utils = IOUtilities()
+        self.io_utils = kto.IOUtilities()
 
     # --------------------------------------------------------------------------
     def optimize(self):
 
         print("\n> ==============================================================================================================")
-        print("> Starting optimization using the following algorithm: ",self.config.optimization_algorithm)
+        print("> Starting optimization using the following algorithm: ",self.config["optimization_algorithm"].GetString())
         print("> ==============================================================================================================")
 
         # Start timer and assign to object such that total time of opt may be measured at each step
         self.opt_start_time = time.time()
 
         # Initialize the design output in GiD format and print initial 0 state
-        self.gid_io.initialize_results(self.opt_model_part)
-        self.gid_io.write_results(0, self.opt_model_part, self.config.nodal_results, self.config.gauss_points_results)
+        self.gid_io.ExecuteInitialize()
+        self.gid_io.ExecuteBeforeSolutionLoop()
+        
 
         # Call for the specified optimization algorithm
-        if(self.config.optimization_algorithm == "oc_algorithm"):
+        if(self.config["optimization_algorithm"].GetString() == "oc_algorithm"):
            self.start_oc_algorithm()
 
         else:
             raise TypeError("Specified optimization_algorithm not implemented!")
 
         # Finalize the design output in GiD format
-        self.gid_io.finalize_results()
+        self.gid_io.PrintOutput()
+        self.gid_io.ExecuteFinalizeSolutionStep()
+        self.gid_io.ExecuteFinalize()
 
         # Stop timer
         opt_end_time = time.time()
@@ -155,7 +174,7 @@ class SIMPMethod:
             break
 
         # Initialize variables for comparison purposes in Topology Optimization Tool
-        pmax                          = self.config.penalty   # Maximum penalty value used for continuation strategy
+        pmax                          = self.config["penalty"].GetInt()  # Maximum penalty value used for continuation strategy
         Obj_Function                  = None
         Obj_Function_old              = None
         Obj_Function_initial          = None
@@ -164,18 +183,18 @@ class SIMPMethod:
 
         # Print the Topology Optimization Settings that will be used in the program
         print("\n::[Topology Optimization Settings]::")
-        print("  E_min:          ", self.config.E_min)
-        print("  Filter radius:  ", self.config.filter_radius)
-        print("  Penalty factor: ", self.config.penalty)
-        print("  Rel. Tolerance: ", self.config.relative_tolerance)
-        print("  Volume Fraction:", self.config.initial_volume_fraction)
-        print("  Max. number of iterations:", self.config.max_opt_iterations)
+        print("  E_min:          ", self.config["E_min"].GetDouble())
+        print("  Filter radius:  ", self.config["filter_radius"].GetDouble())
+        print("  Penalty factor: ", self.config["penalty"].GetInt())
+        print("  Rel. Tolerance: ", self.config["relative_tolerance"].GetDouble())
+        print("  Volume Fraction:", self.config["initial_volume_fraction"].GetDouble())
+        print("  Max. number of iterations:", self.config["max_opt_iterations"].GetInt())
 
-        if (self.config.restart_write_frequency < self.config.max_opt_iterations):
-            if (self.config.restart_write_frequency == 1):
+        if (self.config["restart_write_frequency"].GetInt() < self.config["max_opt_iterations"].GetInt()):
+            if (self.config["restart_write_frequency"].GetInt() == 1):
                 print("  Make a restart file every iteration")
-            elif (self.config.restart_write_frequency > 1):
-                print("  Make a restart file every", self.config.restart_write_frequency, "iterations")
+            elif (self.config["restart_write_frequency"].GetInt() > 1):
+                print("  Make a restart file every", self.config["restart_write_frequency"].GetInt(), "iterations")
             else:
                 print("  No restart file will be done during the simulation")
         else:
@@ -183,7 +202,7 @@ class SIMPMethod:
          
 
         # Start optimization loop
-        for opt_itr in range(1,self.config.max_opt_iterations+1):
+        for opt_itr in range(1,self.config["max_opt_iterations"].GetInt()+1):
 
             # Some output
             print("\n> ==============================================================================================")
@@ -212,22 +231,22 @@ class SIMPMethod:
             
             # Filter sensitivities
             print("\n::[Filter Sensitivities]::")
-            self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
+            self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
 
 
             # Update design variables ( densities )  --> new X by:
             print("\n::[Update Densities with OC]::")
-            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config.optimization_algorithm,
-                                                                   self.config.initial_volume_fraction,
-                                                                   self.config.grey_scale_filter,
+            self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config["optimization_algorithm"].GetString(),
+                                                                   self.config["initial_volume_fraction"].GetDouble(),
+                                                                   self.config["grey_scale_filter"].GetInt(),
                                                                    opt_itr,
-                                                                   self.config.q_max )
+                                                                   self.config["q_max"].GetDouble() )
 
 
 
-            if (self.config.density_filter == "density"):
+            if (self.config["density_filter"].GetString() == "density"):
                 print("\n::[Filter Densities]::") 
-                self.filter_utils.ApplyFilterDensity(self.config.density_filter , self.config.filter_kernel )
+                self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString() )
 
 
 
@@ -254,46 +273,46 @@ class SIMPMethod:
             Obj_Function_old = Obj_Function
 
             # Write design in GiD format
-            self.gid_io.write_results(opt_itr, self.opt_model_part, self.config.nodal_results, self.config.gauss_points_results)
+            self.gid_io.ExecuteFinalizeSolutionStep()
 
             # Continuation Strategy
-            if(self.config.continuation_strategy == 1):
+            if(self.config["continuation_strategy"].GetInt() == 1):
                 print("  Continuation Strategy for current iteration was ACTIVE")
                 if opt_itr < 20:
                     for element_i in self.opt_model_part.Elements:
-                        element_i.SetValue(PENAL, 1)
+                        element_i.SetValue(kto.PENAL, 1)
                 else:
                     for element_i in self.opt_model_part.Elements:
-                        element_i.SetValue(PENAL, min(pmax,1.02*element_i.GetValue(PENAL)))
+                        element_i.SetValue(kto.PENAL, min(pmax,1.02*element_i.GetValue(kto.PENAL)))
             else:
                 print("  Continuation Strategy for current iteration was UNACTIVE")
 
             # Write restart file every selected number of iterations
-            restart_filename = self.config.restart_output_file.replace(".mdpa","_"+str(opt_itr)+".mdpa")
-            if (self.config.restart_write_frequency > 0):
-                if (opt_itr % self.config.restart_write_frequency == False):
+            restart_filename = self.config["restart_output_file"].GetString().replace(".mdpa","_"+str(opt_itr)+".mdpa")
+            if (self.config["restart_write_frequency"].GetInt() > 0):
+                if (opt_itr % self.config["restart_write_frequency"].GetInt() == False):
                     print("\n::[Restart File]::")
                     print("  Saving file at iteration", opt_itr)
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
 
             # Check convergence
             if opt_itr > 1:
                 # Check if maximum iterations were reached
-                if(opt_itr==self.config.max_opt_iterations):
+                if(opt_itr==self.config["max_opt_iterations"].GetInt()):
                     end_time = time.time()
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     print("\n  Maximal iterations of optimization problem reached!")
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
                     break
 
                 # Check for relative tolerance
-                if(abs(Obj_Function_relative_change)<self.config.relative_tolerance):
+                if(abs(Obj_Function_relative_change)<self.config["relative_tolerance"].GetDouble()):
                     end_time = time.time()
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-                    print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
-                    self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
+                    print("\n  Optimization problem converged within a relative objective tolerance of",self.config["relative_tolerance"].GetDouble())
+                    self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
 
                     break
             
@@ -301,7 +320,7 @@ class SIMPMethod:
 
             # Set X_PHYS_OLD to update the value for the next simulation's "change percentage"
             for element_i in self.opt_model_part.Elements:
-                element_i.SetValue(X_PHYS_OLD, element_i.GetValue(X_PHYS))
+                element_i.SetValue(kto.X_PHYS_OLD, element_i.GetValue(kto.X_PHYS))
 
             # Take time needed for current optimization step
             end_time = time.time()
@@ -316,20 +335,20 @@ class SIMPMethod:
 class Controller:
 
     # --------------------------------------------------------------------------
-    def __init__( self, config ):
+    def __init__( self, obj_and_const ):
 
         # Create and initialize controller
         self.controls = {}
-        for func_id in config.objectives:
+        for func_id in obj_and_const.objectives:
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
-        for func_id in config.constraints:
+        for func_id in obj_and_const.constraints:
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
 
         # Initialize response container to provide storage for any response
         self.response_container = {}
-        for func_id in config.objectives:
+        for func_id in obj_and_const.objectives:
             self.response_container[func_id] = {"func": None, "grad": None}
-        for func_id in config.constraints:
+        for func_id in obj_and_const.constraints:
             self.response_container[func_id] = {"func": None, "grad": None}
 
     # --------------------------------------------------------------------------
