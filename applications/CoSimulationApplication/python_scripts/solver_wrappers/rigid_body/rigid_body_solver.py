@@ -155,9 +155,9 @@ class RigidBodySolver(object):
         self.a = np.zeros((self.system_size, self.buffer_size))
 
         # Initialize the displacement, velocity and accelerration of the root point
-        self.x_f = np.zeros((self.system_size, self.buffer_size))
-        self.v_f = np.zeros((self.system_size, self.buffer_size))
-        self.a_f = np.zeros((self.system_size, self.buffer_size))
+        self.x_root = np.zeros((self.system_size, self.buffer_size))
+        self.v_root = np.zeros((self.system_size, self.buffer_size))
+        self.a_root = np.zeros((self.system_size, self.buffer_size))
 
         # Other variables that are used in SolveSolutionStep()
         self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
@@ -247,12 +247,12 @@ class RigidBodySolver(object):
                                                     str(self.x[index,0]) + " " +
                                                     str(self.v[index,0]) + " " +
                                                     str(self.a[index,0]) + " " +
-                                                    str(self.x_f[index,0]) + " " +
-                                                    str(self.v_f[index,0]) + " " +
-                                                    str(self.a_f[index,0]) + " " +
-                                                    str(self.x[index,0] - self.x_f[index,0]) + " " +
-                                                    str(self.v[index,0] - self.v_f[index,0]) + " " +
-                                                    str(self.a[index,0] - self.a_f[index,0]) + " " +
+                                                    str(self.x_root[index,0]) + " " +
+                                                    str(self.v_root[index,0]) + " " +
+                                                    str(self.a_root[index,0]) + " " +
+                                                    str(self.x[index,0] - self.x_root[index,0]) + " " +
+                                                    str(self.v[index,0] - self.v_root[index,0]) + " " +
+                                                    str(self.a[index,0] - self.a_root[index,0]) + " " +
                                                     str(reaction[index]) + "\n")
 
 
@@ -263,11 +263,11 @@ class RigidBodySolver(object):
 
         # Variables whith buffer. Column 0 will be overwriten later
         self.x = np.roll(self.x,1,axis=1)
-        self.x_f = np.roll(self.x_f,1,axis=1)
+        self.x_root = np.roll(self.x_root,1,axis=1)
         self.v = np.roll(self.v,1,axis=1)
-        self.v_f = np.roll(self.v_f,1,axis=1)
+        self.v_root = np.roll(self.v_root,1,axis=1)
         self.a = np.roll(self.a,1,axis=1)
-        self.a_f = np.roll(self.a_f,1,axis=1)
+        self.a_root = np.roll(self.a_root,1,axis=1)
         self.total_load = np.roll(self.total_load,1,axis=1)
         self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
         self.effective_load = np.roll(self.effective_load,1,axis=1)
@@ -327,17 +327,17 @@ class RigidBodySolver(object):
 
     def _UpdateRootPointDisplacement(self, displ):
         # Save root point displacement
-        self.x_f[:,0] = displ
+        self.x_root[:,0] = displ
         # Update the velocity and acceleration according to the gen-alpha method
-        self.v_f[:,0] = self.a1v * (self.x_f[:,0] - self.x_f[:,1]) + self.a2v * \
-            self.v_f[:,1] + self.a3v * self.a_f[:,1]
-        self.a_f[:,0] = self.a1a * (self.x_f[:,0] - self.x_f[:,1]) + self.a2a * \
-            self.v_f[:,1] + self.a3a * self.a_f[:,1]
+        self.v_root[:,0] = self.a1v * (self.x_root[:,0] - self.x_root[:,1]) + self.a2v * \
+            self.v_root[:,1] + self.a3v * self.a_root[:,1]
+        self.a_root[:,0] = self.a1a * (self.x_root[:,0] - self.x_root[:,1]) + self.a2a * \
+            self.v_root[:,1] + self.a3a * self.a_root[:,1]
 
 
     def _CalculateEquivalentForceFromRootPointDisplacement(self):
         # Transform the movement of the root point into an equivalent force
-        equivalent_force = self.K.dot(self.x_f[:,0]) + self.C.dot(self.v_f[:,0])
+        equivalent_force = self.K.dot(self.x_root[:,0]) + self.C.dot(self.v_root[:,0])
         return equivalent_force
 
 
@@ -368,8 +368,8 @@ class RigidBodySolver(object):
 
     def CalculateReaction(self, buffer_idx=0):
         # TODO: Check how does it work with constrained DOFs
-        reaction = self.C.dot(self.v[:,buffer_idx] - self.v_f[:,buffer_idx]) \
-                + self.K.dot(self.x[:,buffer_idx] - self.x_f[:,buffer_idx])
+        reaction = self.C.dot(self.v[:,buffer_idx] - self.v_root[:,buffer_idx]) \
+                + self.K.dot(self.x[:,buffer_idx] - self.x_root[:,buffer_idx])
         return reaction
 
 
