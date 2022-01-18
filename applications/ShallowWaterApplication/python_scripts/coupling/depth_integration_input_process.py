@@ -59,6 +59,15 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
         '''Check the processes.'''
         self.hdf5_import.Check()
         self.hdf5_process.Check()
+        free_surface_is_present = False
+        height_is_present = False
+        for variable in self.variables:
+            if variable == SW.FREE_SURFACE_ELEVATION:
+                free_surface_is_present = True
+            if variable == SW.HEIGHT:
+                height_is_present = True
+        if free_surface_is_present and not height_is_present:
+            self.variables.append(SW.HEIGHT)
 
 
     def ExecuteInitialize(self):
@@ -138,10 +147,19 @@ class DepthIntegrationInputProcess(KM.OutputProcess):
 
     def _MapToBoundaryCondition(self):
         for variable in self.variables:
-            if self.settings["read_historical_database"].GetBool():
-                self.mapper.Map(variable, variable)
+            if variable == SW.FREE_SURFACE_ELEVATION:
+                pass
             else:
-                self.mapper.Map(variable, variable, KM.Mapper.FROM_NON_HISTORICAL)
+                if self.settings["read_historical_database"].GetBool():
+                    self.mapper.Map(variable, variable)
+                else:
+                    self.mapper.Map(variable, variable, KM.Mapper.FROM_NON_HISTORICAL)
+
+        for variable in self.variables:
+            if variable == SW.FREE_SURFACE_ELEVATION:
+                SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.interface_model_part)
+            else:
+                pass
 
         for variable in self.variables_to_fix:
             KM.VariableUtils().ApplyFixity(variable, True, self.interface_model_part.Nodes)

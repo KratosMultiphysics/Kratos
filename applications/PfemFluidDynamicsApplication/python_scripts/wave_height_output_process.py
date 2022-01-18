@@ -15,10 +15,10 @@ class WaveHeightOutputProcess(KM.OutputProcess):
     If no node is found, Nan will be printed.
     Possible specifications of the Parameters:
      - coordinates: it can be a single coordinate or a list of coordinates for each gauge.
-     - file_names:  it can be a single string or a list of string. If there is a single string and
+     - file_name:   it can be a single string or a list of string. If there is a single string and
                     multiple coordinates, the string will be repeated for all the coordinates.
                     Some replacements can be added, such as 'gauge_<X>'.
-     - output_path: same as file_names.
+     - output_path: same as file_name.
     """
 
     def GetDefaultParameters(self):
@@ -28,13 +28,15 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             "mean_water_level"       : 0.0,
             "relative_search_radius" : 1.0,
             "search_tolerance"       : 1e-6,
-            "file_names"             : [""],
+            "file_name"              : [""],
             "output_path"            : [""],
-            "time_between_outputs"   : 0.01
+            "time_between_outputs"   : 0.01,
+            "print_format"           : "{:.6f}"
         }""")
-        if self.settings.Has("file_names"):
-            if self.settings["file_names"].IsString():
-                default_parameters["file_names"].SetString("")
+        # Trick to allow the 'file_name' and 'output_path' to be a string or a string array
+        if self.settings.Has("file_name"):
+            if self.settings["file_name"].IsString():
+                default_parameters["file_name"].SetString("")
         if self.settings.Has("output_path"):
             if self.settings["output_path"].IsString():
                 default_parameters["output_path"].SetString("")
@@ -50,7 +52,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         self.model_part = model.GetModelPart(self.settings["model_part_name"].GetString())
 
         self.coordinates_list = self._GetCoordinatesList()
-        self.file_names_list = self._GetNamesList(self.settings["file_names"])
+        self.file_names_list = self._GetNamesList(self.settings["file_name"])
         self.output_path_list = self._GetNamesList(self.settings["output_path"])
 
         self.next_output = self.model_part.ProcessInfo[KM.TIME]
@@ -74,7 +76,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
             file_settings = KM.Parameters()
             file_settings.AddString("file_name", file_name)
             file_settings.AddString("output_path", output_path)
-            header = "#Time \tHeight\n"
+            header = "#Time \t\tHeight\n"
             self.files.append(TimeBasedAsciiFileWriterUtility(self.model_part, file_settings, header).file)
         utility_settings = KM.Parameters()
         utility_settings.AddValue("mean_water_level", self.settings["mean_water_level"])
@@ -89,10 +91,12 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
     def PrintOutput(self):
         """Print the wave height corresponding to each gauge and schedule the next output"""
+        print_format = self.settings["print_format"].GetString()
+        row = print_format + "\t" + print_format + "\n"
         time = self.model_part.ProcessInfo[KM.TIME]
         for file, coordinates in zip(self.files, self.coordinates_list):
             height = self.wave_height_utility.Calculate(coordinates)
-            value = "{}\t{}\n".format(time, height)
+            value = row.format(time, height)
             file.write(value)
             file.flush()
 
@@ -114,9 +118,18 @@ class WaveHeightOutputProcess(KM.OutputProcess):
 
     def _GetNamesList(self, settings):
         if settings.IsString():
+            name_pattern = settings.GetString()
+            number_of_names = 1
+        else:
+            names = settings.GetStringArray()
+            number_of_names = len(names)
+            if number_of_names == 1:
+                name_pattern = names[0]
+
+        if number_of_names == 1:
             names_list = []
             for coordinate in self.coordinates_list:
-                name = settings.GetString()
+                name = name_pattern
                 name = name.replace("<x>", str(coordinate[0]))
                 name = name.replace("<X>", str(coordinate[0]))
                 name = name.replace("<y>", str(coordinate[1]))
