@@ -97,7 +97,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ WaveCondition(){}
+    ~ WaveCondition() override {};
 
     ///@}
     ///@name Operations
@@ -177,6 +177,17 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
+     * @brief Access for variables on Integration points
+     * @param rVariable Te specified vector variable
+     * @param rOutput Where to store the itegrated values for the specified variable
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate(
+        const Variable<array_1d<double,3>>& rVariable,
+        array_1d<double,3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Calculate the conditional contribution to the problem
      * @param rRightHandSideVector Conditional right hand side vector
      * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the condition
@@ -192,8 +203,8 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Calculate the elemental mass matrix
-     * @param rMassMatrix the elemental mass matrix
+     * @brief Calculate the condition mass matrix
+     * @param rMassMatrix the condition mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
@@ -250,39 +261,59 @@ protected:
     static constexpr IndexType mLocalSize = 3 * TNumNodes;
 
     ///@}
-    ///@name Protected classes
+    ///@name Protected Classes
     ///@{
 
     struct ConditionData
     {
-        double gravity;
-        double height;
-        double length;
+        bool integrate_by_parts;
         double stab_factor;
         double relative_dry_height;
+        double length;
+        double gravity;
+
+        double depth;
+        double height;
         array_1d<double,3> velocity;
+
+        BoundedMatrix<double,3,3> A1;
+        BoundedMatrix<double,3,3> A2;
+        array_1d<double,3> b1;
+        array_1d<double,3> b2;
+
+        array_1d<double,TNumNodes> nodal_f;
+        array_1d<double,TNumNodes> nodal_h;
+        array_1d<double,TNumNodes> nodal_z;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+
         array_1d<double,3> normal;
-
-        std::array<double,TNumNodes> topography;
-        LocalVectorType unknown;
     };
-
+ 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    void CalculateGeometryData(
-        Vector &rGaussWeights,
-        Matrix &rNContainer,
-        ShapeFunctionsGradientsType &rDN_DXContainer) const;
+    virtual const Variable<double>& GetUnknownComponent(int Index) const;
 
-    void InitializeData(
+    virtual LocalVectorType GetUnknownVector(ConditionData& rData);
+
+    virtual void InitializeData(
         ConditionData& rData,
         const ProcessInfo& rProcessInfo);
 
-    void CalculateGaussPointData(
+    virtual void CalculateGaussPointData(
         ConditionData& rData,
         const IndexType PointIndex,
+        const array_1d<double,TNumNodes>& rN);
+
+    static void CalculateGeometryData(
+        const GeometryType& rGeometry,
+        Vector &rGaussWeights,
+        Matrix &rNContainer);
+
+    static const array_1d<double,3> VectorProduct(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
     void AddWaveTerms(
@@ -303,10 +334,6 @@ protected:
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight);
-
-    double StabilizationParameter(const ConditionData& rData) const;
-
-    double InverseHeight(const ConditionData& rData) const;
 
     ///@}
 

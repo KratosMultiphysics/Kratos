@@ -62,7 +62,7 @@ namespace Kratos
         /// Pointer definition of TwoStepVPSolverSettings
         KRATOS_CLASS_POINTER_DEFINITION(TwoStepVPSolverSettings);
 
-        typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> StrategyType;
+        typedef SolvingStrategy<TSparseSpace, TDenseSpace> StrategyType;
         typedef typename StrategyType::Pointer StrategyPointerType;
         typedef typename Process::Pointer ProcessPointerType;
 

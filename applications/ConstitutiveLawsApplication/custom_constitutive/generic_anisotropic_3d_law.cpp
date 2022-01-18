@@ -637,7 +637,7 @@ int GenericAnisotropic3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const auto it_cl_begin     = rMaterialProperties.GetSubProperties().begin();
     const auto& r_props_iso_cl = *(it_cl_begin);
