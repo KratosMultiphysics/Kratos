@@ -134,7 +134,7 @@ for dim in dim_vector:
         v_alpha= vn+alpha_f*(v-vn)
         v_gauss = v_alpha.transpose()*N
         f_gauss = f_alpha.transpose()*N
-        acceleration_n=(v-vn)/(ganma*dt)+acceleration_alpha_method*(ganma-1)/ganma
+        acceleration_n=(v-vn)/(gamma*dt)+acceleration_alpha_method*(gamma-1)/gamma
         acceleration = acceleration_alpha_method+alpha_m*(acceleration_n-acceleration_alpha_method)
     else:
         err_msg = "Wrong time integration scheme {}.".format(time_integration)
