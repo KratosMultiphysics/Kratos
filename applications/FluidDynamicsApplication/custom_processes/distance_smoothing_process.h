@@ -205,11 +205,12 @@ public:
                     global_pointer->GetValue(DISTANCE),
                     global_pointer->Coordinates());
             });
-
+        
         auto contact_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3> >& global_pointer) -> bool
+            [&](const GlobalPointer<Node<3> >& global_pointer) -> int
             {
-                return global_pointer->Is(CONTACT);
+                // Casting to int to avoid using std::vector<bool> inside the communicator
+                return static_cast<int>(global_pointer->Is(CONTACT));
             }
         );
 
@@ -229,7 +230,7 @@ public:
             {
                 auto& global_pointer = global_pointer_list(j);
 
-                if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
+                if (static_cast<bool>(contact_proxy.Get(global_pointer)) == rNode.Is(CONTACT)){
 
                     auto result = combined_proxy.Get(global_pointer);
                     const array_1d<double,3>& x_j = std::get<1>(result);
