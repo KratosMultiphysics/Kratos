@@ -290,7 +290,7 @@ public:
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
-            "BFECC_limiter_accuteness" : 2.0,
+            "BFECC_limiter_acuteness" : 2.0,
             "element_type" : "levelset_convection_supg",
             "element_settings" : {}
         })");
@@ -807,8 +807,8 @@ private:
         mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
         mElementRequiresLimiter =  ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
 
-        if (ThisParameters["element_settings"].Has("elemental_limiter_accuteness") && mElementRequiresLimiter) {
-            mPowerElementalLimiter = ThisParameters["element_settings"]["elemental_limiter_accuteness"].GetDouble();
+        if (ThisParameters["element_settings"].Has("elemental_limiter_acuteness") && mElementRequiresLimiter) {
+            mPowerElementalLimiter = ThisParameters["element_settings"]["elemental_limiter_acuteness"].GetDouble();
         }
 
         if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization"){
@@ -822,7 +822,7 @@ private:
         mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
         if (mIsBfecc) {
-            mPowerBfeccLimiter = ThisParameters["BFECC_limiter_accuteness"].GetDouble();
+            mPowerBfeccLimiter = ThisParameters["BFECC_limiter_acuteness"].GetDouble();
         }
 
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
@@ -887,7 +887,7 @@ private:
         } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({
                 "include_anti_diffusivity_terms" : false,
-                "elemental_limiter_accuteness" : 4.0,
+                "elemental_limiter_acuteness" : 4.0,
                 "requires_distance_gradient" : false,
                 "time_integration_theta" : 0.5
             })");
