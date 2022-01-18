@@ -710,7 +710,7 @@ namespace CompressibleNavierStokesExplicitInternal
 
     // Specialization for simplex geometries
     template<unsigned int TDim, unsigned int TNumNodes>
-    inline std::enable_if<IsSimplex(TDim, TNumNodes), T>::type ComputeGeometryData(
+    static typename std::enable_if<IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
         const Geometry<Node<3>> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
@@ -724,7 +724,7 @@ namespace CompressibleNavierStokesExplicitInternal
      * during integration at each gauss point.
      */
     template<unsigned int TDim, unsigned int TNumNodes>
-    inline std::enable_if<!IsSimplex(TDim, TNumNodes), T>::type ComputeGeometryData(
+    static typename std::enable_if<!IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
         const Geometry<Node<3>> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
