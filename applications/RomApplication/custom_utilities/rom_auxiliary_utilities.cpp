@@ -27,6 +27,17 @@
 namespace Kratos
 {
 
+namespace
+{
+    std::map<GeometryData::KratosGeometryType, std::string> AuxiliaryGeometryToConditionMap {
+        {GeometryData::KratosGeometryType::Kratos_Triangle3D3, "SurfaceCondition3D3N"},
+        {GeometryData::KratosGeometryType::Kratos_Triangle3D6, "SurfaceCondition3D6N"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, "SurfaceCondition3D4N"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8, "SurfaceCondition3D8N"},
+        {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D9, "SurfaceCondition3D9N"},
+    };
+}
+
 void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     const Parameters HRomWeights,
     const ModelPart& rOriginModelPart,
@@ -37,7 +48,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
 
     // Auxiliary containers to save the entities involved in the HROM mesh
     // Note that we use a set for the nodes to make sure that the same node is not added by more than one element/condition
-    NodesPointerSet hrom_nodes_set;
+    NodesPointerSetType hrom_nodes_set;
     std::vector<Element::Pointer> hrom_elems_vect;
     std::vector<Condition::Pointer> hrom_conds_vect;
 
@@ -102,7 +113,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
 }
 
 void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
-    const NodesPointerSet& rNodesSet,
+    const NodesPointerSetType& rNodesSet,
     const std::vector<Element::Pointer>& rElementsVector,
     const std::vector<Condition::Pointer>& rConditionsVector,
     const ModelPart& rOriginModelPart,
@@ -157,11 +168,98 @@ void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
     }
 }
 
-void RomAuxiliaryUtilities::SetHRomVisualizationModelPart(
+//TODO: Make it thin walled and beam compatible
+void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     const ModelPart& rOriginModelPart,
     ModelPart& rHRomVisualizationModelPart)
 {
-    KRATOS_ERROR << "TO BE IMPLEMENTED" << std::endl;
+    // Create a map for the potential skin entities
+    // Key is a sorted vector with the face ids
+    // Value is a tuple with a bool indicating if the entity is repeated (first) with a pointer to the origin face entity to be cloned (second)
+    ElementFacesMapType element_faces_map;
+
+    // Find the volumetric body skin
+    std::vector<IndexType> bd_ids;
+    GeometryType::GeometriesArrayType boundary_entities;
+    for (const auto& r_elem : rOriginModelPart.Elements()) {
+        // Get the geometry face ids
+        const auto& r_geom = r_elem.GetGeometry();
+        boundary_entities = r_geom.GenerateBoundariesEntities();
+
+        // Loop the boundary entities
+        const SizeType n_bd_entities = boundary_entities.size();
+        for (IndexType i_bd_entity = 0; i_bd_entity < n_bd_entities; ++i_bd_entity) {
+            // Get the boundary entity geometry
+            const auto& r_bd_entity_geom = boundary_entities[i_bd_entity];
+
+            // Set an auxiliary array with the sorted ids to be used as key
+            SizeType n_nodes_bd = r_bd_entity_geom.PointsNumber();
+            if (bd_ids.size() != n_nodes_bd) {
+                bd_ids.resize(n_nodes_bd);
+            }
+            IndexType i = 0;
+            for (const auto& r_node : r_bd_entity_geom) {
+                bd_ids[i++] = r_node.Id();
+            }
+            std::sort(bd_ids.begin(), bd_ids.end());
+
+            // Search for the current boundary entity ids
+            // If not added, do the first insert in the map with a false value of the repeated flag
+            // If already added, modify the existent value to flag the entity as repeated
+            auto p_bd_geom = boundary_entities(i_bd_entity);
+            auto it_search = element_faces_map.find(bd_ids);
+            if (it_search == element_faces_map.end()) {
+                auto value = std::make_pair(false, p_bd_geom);
+                element_faces_map.insert(std::make_pair(bd_ids, value));
+            } else {
+                auto value = std::make_pair(true, p_bd_geom);
+                it_search->second = value;
+            }
+        }
+    }
+
+    // Filter the skin entities from the face entities in the map
+    NodesPointerSetType skin_nodes_set;
+    std::vector<GeometryPointerType> skin_geom_prototypes;
+    for (auto& r_map_entry : element_faces_map) {
+        const auto value = r_map_entry.second;
+        // Note that the first pair value indicates if the face entity is repeated (interior)
+        if (!std::get<0>(value)) {
+            // Add current boundary face to the prototypes list
+            auto p_bd_geom_prot = std::get<1>(value);
+            skin_geom_prototypes.push_back(p_bd_geom_prot);
+
+            // Add current boundary face nodes to the auxiliary set
+            const auto& r_geom = *p_bd_geom_prot;
+            const SizeType n_face_nodes = r_geom.PointsNumber();
+            for (IndexType i_node = 0; i_node < n_face_nodes; ++i_node) {
+                auto p_node = r_geom(i_node);
+                skin_nodes_set.insert(skin_nodes_set.end(), p_node);
+            }
+        }
+    }
+
+    // Add missing nodes to the HROM main model part
+    std::vector<IndexType> skin_nodes_ids;
+    skin_nodes_ids.reserve(skin_nodes_set.size());
+    for (auto it_p_node = skin_nodes_set.ptr_begin(); it_p_node != skin_nodes_set.ptr_end(); ++it_p_node) {
+        skin_nodes_ids.push_back((*it_p_node)->Id());
+        rHRomVisualizationModelPart.AddNode(*it_p_node);
+    }
+
+    // Add entities to the HROM visualization model part
+    std::sort(skin_nodes_ids.begin(), skin_nodes_ids.end());
+    rHRomVisualizationModelPart.AddNodes(skin_nodes_ids);
+
+    // Create fake conditions for the HROM visualization
+    IndexType max_cond_id = (rHRomVisualizationModelPart.GetRootModelPart().ConditionsEnd()-1)->Id();
+    const IndexType max_prop_id = (rHRomVisualizationModelPart.GetRootModelPart().PropertiesEnd()-1)->Id();
+    auto p_prop = rHRomVisualizationModelPart.CreateNewProperties(max_prop_id + 1);
+    for (auto it_p_geom = skin_geom_prototypes.begin(); it_p_geom != skin_geom_prototypes.end(); ++it_p_geom) {
+        // Get condition type from geometry type and create new condition
+        const std::string condition_name = AuxiliaryGeometryToConditionMap[(*it_p_geom)->GetGeometryType()];
+        rHRomVisualizationModelPart.CreateNewCondition(condition_name, ++max_cond_id, *it_p_geom, p_prop);
+    }
 }
 
 } // namespace Kratos

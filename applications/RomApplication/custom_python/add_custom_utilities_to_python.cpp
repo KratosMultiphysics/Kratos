@@ -47,7 +47,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
         .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
-        .def_static("SetHRomVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVisualizationModelPart)
+        .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
         ;
 }
 

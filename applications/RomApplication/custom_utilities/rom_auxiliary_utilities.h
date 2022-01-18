@@ -15,6 +15,7 @@
 #define KRATOS_ROM_AUXILIARY_UTILITIES_H
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
@@ -51,8 +52,15 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
-    using NodesPointerSet = ModelPart::NodesContainerType;
-    // using NodesPointerSet = std::set<NodeType::Pointer, IndexedObjectPointerComparator<NodeType::Pointer>>;
+    using GeometryPointerType = Geometry<NodeType>::Pointer;
+
+    using NodesPointerSetType = ModelPart::NodesContainerType;
+
+    using ElementFacesMapType = std::unordered_map<
+        std::vector<IndexType>,
+        std::pair<bool, GeometryPointerType>,
+        KeyHasherRange<std::vector<IndexType>>,
+        KeyComparorRange<std::vector<IndexType>>>;
 
     ///@}
     ///@name Static Operations
@@ -73,14 +81,15 @@ public:
         ModelPart& rHRomComputingModelPart);
 
     /**
-     * @brief Sets the HROM skin visualization model part
+     * @brief Sets the HROM skin visualization model part for a volumetric body
      * This function detects the skin of the origin modelpart and creates the corresponding skin
      * entities (conditions) which are stored in an auxiliary modelpart to visualize the HROM solution
+     * It is important to mention that this function only works with volumetric (a.k.a. solid) bodies
      * @param HRomWeights
      * @param rOriginModelPart
      * @param rHRomVisualizationModelPart
      */
-    static void SetHRomVisualizationModelPart(
+    static void SetHRomVolumetricVisualizationModelPart(
         const ModelPart& rOriginModelPart,
         ModelPart& rHRomVisualizationModelPart);
 
@@ -92,7 +101,7 @@ public:
     ///@{
 
     static void RecursiveHRomModelPartCreation(
-        const NodesPointerSet& rNodesSet,
+        const NodesPointerSetType& rNodesSet,
         const std::vector<Element::Pointer>& rElementsVector,
         const std::vector<Condition::Pointer>& rConditionsVector,
         const ModelPart& rOriginModelPart,

@@ -152,5 +152,4 @@ if __name__ == "__main__":
 
     global_model = KratosMultiphysics.Model()
     simulation = CreateRomAnalysisInstance(analysis_stage_class, global_model, parameters)
-    # simulation = CreateHRomAnalysisInstance(analysis_stage_class, global_model, parameters)
     simulation.Run()

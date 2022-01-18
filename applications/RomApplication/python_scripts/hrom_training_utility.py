@@ -36,6 +36,7 @@ class HRomTrainingUtility(object):
         self.time_step_residual_matrix_container = []
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"]
+        self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -87,10 +88,10 @@ class HRomTrainingUtility(object):
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
         # Create the HROM visualization model part
-        set_visualization_modelpart = False #TODO: Make this user-definable
-        if set_visualization_modelpart:
-            hrom_visualization_model_part = hrom_main_model_part.CreateSubModelPart("VISUALIZATION_HROM") #TODO: Use the Kratos naming convention
-            KratosROM.RomAuxiliaryUtilities.SetHRomVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
+        if self.hrom_visualization_model_part:
+            hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
+            hrom_visualization_model_part = hrom_main_model_part.CreateSubModelPart(hrom_visualization_model_part_name)
+            KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
 
@@ -107,7 +108,8 @@ class HRomTrainingUtility(object):
         default_settings = KratosMultiphysics.Parameters("""{
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
-            "echo_level" : 0
+            "echo_level" : 0,
+            "create_hrom_visualization_model_part" : true
         }""")
         return default_settings
 
