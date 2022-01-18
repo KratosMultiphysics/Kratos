@@ -1864,7 +1864,7 @@ public:
     }
 
     /// run input validation
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const;
+    virtual int Check() const;
 
     ///@}
     ///@name Access
