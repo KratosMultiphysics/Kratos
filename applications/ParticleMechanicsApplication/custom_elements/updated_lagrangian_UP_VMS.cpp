@@ -222,7 +222,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
         CalculateTaus(Variables);
         
         //Variables.tau1=0.0;
-        Variables.tau2=0.0;
+        //Variables.tau2=0.0;
 
         //KRATOS_INFO("UPVMS") << "Constitutive Matrix: " << Variables.TensorIdentityMatrix  << std::endl;
 
@@ -602,8 +602,8 @@ void UpdatedLagrangianUPVMS::CalculateTaus(
 
     // Add computations for the tau stabilization
 
-    const double constant1=0.5; 
-    const double constant2=0.5;
+    const double constant1=1.0; 
+    const double constant2=1.0;
     double characteristic_element_size;
 
      ComputeElementSize(characteristic_element_size);
@@ -861,7 +861,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     //unsigned int index_p = dimension;
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector Stab1 = rVolumeForce+rVariables.PressureGradient;
+    Vector Stab1 = rVolumeForce + rVariables.PressureGradient;
     Vector Testf2   = prod(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix),rVariables.PressureGradientVoigt);
 
     // double bulk_modulus = 1.0 // CORREGIR
@@ -877,7 +877,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
             rRightHandSideVector[index_up + j] += rVariables.tau1 * Stab1(j) * Testf1(i)  * rIntegrationWeight;
             rRightHandSideVector[index_up + j] += rVariables.tau1 * Stab1(j) * Testf2(index_up)  * rIntegrationWeight;
 
-            rRightHandSideVector[index_up + j] += rVariables.tau2  * ((1.0 - 1.0 / rVariables.detFT)) * rVariables.DN_DX(i,j) *rIntegrationWeight;
+            rRightHandSideVector[index_up + j] -= rVariables.tau2  * ((1.0 - 1.0 / rVariables.detFT)) * rVariables.DN_DX(i,j) *rIntegrationWeight;
             // rVariables.PressureGP/bulk_modulus)
         }
     }
@@ -909,7 +909,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         rRightHandSideVector[index_p] -= rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
-        rRightHandSideVector[index_p] -= rVariables.tau2  * ((1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * rIntegrationWeight;
+        //rRightHandSideVector[index_p] -= rVariables.tau2  * ((1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * rIntegrationWeight;
         // rVariables.PressureGP/bulk_modulus 
         index_p += (dimension + 1);
     }
@@ -1190,7 +1190,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab2(indexi) * rIntegrationWeight * testf1(j);
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab1(i) * rIntegrationWeight * testf2(indexj);
                     rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau1 * Kuustab2(indexi) * rIntegrationWeight * testf2(indexj);
-                    rLeftHandSideMatrix(indexi+i,indexj+j)-= rVariables.tau2 * rVariables.DN_DX(i,idim) * rIntegrationWeight * rVariables.DN_DX(j,jdim);
+                    rLeftHandSideMatrix(indexi+i,indexj+j)+= rVariables.tau2 * rVariables.DN_DX(i,idim) * rIntegrationWeight * rVariables.DN_DX(j,jdim);
                     indexj++;
                 }
             }
@@ -1256,6 +1256,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     //const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
+    Vector Testf2   = prod(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix),rVariables.PressureGradientVoigt);
 
     //double bulk_modulus = 1.0 // CORREGIR!!!!
 
@@ -1269,6 +1270,8 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
             for ( unsigned int k = 0; k < dimension; k++ )
             {
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf1(j) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf2(index_up) * rIntegrationWeight;
+                
                 //rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau2 * (1.0 / bulk_modulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
         }
