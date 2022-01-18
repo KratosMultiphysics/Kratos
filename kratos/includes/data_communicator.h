@@ -313,6 +313,10 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type. Please implement direct communication support for this type.")
     void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const {}
 
+    template<bool value>
+    KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for type bool. Communicating bools is generally problematic due to the nature of std::vector<bool>. It is recommended to cast them to ints for communication purposes.")
+    void CheckSerializationForSimpleType(const std::vector<bool>& rSerializedType, TypeFromBool<value>) const {}
+
   public:
     ///@name Type Definitions
     ///@{
