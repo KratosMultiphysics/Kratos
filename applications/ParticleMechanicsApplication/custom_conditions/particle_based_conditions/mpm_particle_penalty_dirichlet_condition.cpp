@@ -167,6 +167,18 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         }
     }
 
+    GeometryType& r_geometry = GetGeometry();
+    int counter = 0;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            counter +=1;
+        }
+    }
+
+    if (counter >= (number_of_nodes-1))
+        apply_constraints = false;
+
     if (apply_constraints)
     {
         // Arrange shape function
