@@ -147,7 +147,7 @@ for dim in dim_vector:
     tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1
 
     ## Data interpolation to the Gauss points
-    p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration scheme 
+    p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes 
     penr_gauss = penr.transpose()*Nenr
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
