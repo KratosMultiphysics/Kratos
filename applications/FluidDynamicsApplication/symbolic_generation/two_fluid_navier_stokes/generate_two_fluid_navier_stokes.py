@@ -128,7 +128,7 @@ for dim in dim_vector:
         # alpha method parameters
         alpha_m= 0.5*((3-max_sprectral_radius)/(1+max_sprectral_radius))
         alpha_f=1/(1+max_sprectral_radius)
-        ganma= 0.5+ alpha_m -alpha_f
+        gamma= 0.5+ alpha_m -alpha_f
         ## alpha method affected variables
         f_alpha= fn+alpha_f*(f-fn)
         v_alpha= vn+alpha_f*(v-vn)
