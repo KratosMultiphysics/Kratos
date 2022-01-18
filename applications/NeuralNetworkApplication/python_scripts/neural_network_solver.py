@@ -72,13 +72,30 @@ class NeuralNetworkSolver(PythonSolver):
         # TODO: This block is shared with data_generator_process, it could be separated and shared throug a function
 
         # getting the ModelPart from the Model
-        self.output_model_part_name = project_parameters["output_model_part"].GetString()
-        if self.output_model_part_name == "":
+        self.output_model_parts = []
+        if not project_parameters.Has("output_model_part"):
+            raise Exception("Output model part not present")
+        if project_parameters["output_model_part"].IsArray():
+            self.output_is_vector = True
+            self.output_model_parts_names = project_parameters["output_model_part"].GetStringArray()
+            
+        else:
+            self.output_is_vector = False
+            self.output_model_parts_names = [project_parameters["output_model_part"].GetString()]
+        if not self.output_model_parts_names:
             raise Exception('No "output_model_part" was specified!')
 
         # getting the input ModelPart from the Model
-        self.input_model_part_name = project_parameters["input_model_part"].GetString()
-        if self.input_model_part_name == "":
+        self.input_model_parts = []
+        if not project_parameters.Has("input_model_part"):
+            raise Exception("Input model part not present")
+        if project_parameters["input_model_part"].IsArray():
+            self.input_is_vector = True
+            self.input_model_parts_names = project_parameters["input_model_part"].GetStringArray()
+        else:
+            self.input_is_vector = False
+            self.input_model_parts_names = [project_parameters["input_model_part"].GetString()]
+        if not self.input_model_parts_names:
             raise Exception('No "input_model_part" was specified!')
 
         # retrieving the input variables
@@ -91,7 +108,8 @@ class NeuralNetworkSolver(PythonSolver):
             raise Exception('No variables specified for input!')
         if not (len(self.input_variables) == len(self.input_sources)):
             raise Exception('The number of input variables and sources are different.')
-        self.dict_input = dict(zip(self.input_variables, self.input_sources))
+        
+        
         # getting input order
         try:
             self.input_order = project_parameters["input_order"].GetString()
@@ -108,7 +126,7 @@ class NeuralNetworkSolver(PythonSolver):
             raise Exception('No variables specified for output!')
         if not (len(self.output_variables) == len(self.output_sources)):
             raise Exception('The number of output variables and sources are different.')
-        self.dict_output = dict(zip(self.output_variables, self.output_sources))
+        
         # getting output order
         try:
             self.output_order = project_parameters["output_order"].GetString()
@@ -116,7 +134,6 @@ class NeuralNetworkSolver(PythonSolver):
             self.output_order = "variables_first"
 
     def Initialize(self):
-        # self.LoadGeometry()
 
         self.input_data_structure = InputDataclasses.NeuralNetworkData()
         if self.lookback>0:
@@ -127,36 +144,55 @@ class NeuralNetworkSolver(PythonSolver):
             self.preprocessed_previous = InputDataclasses.NeuralNetworkData()
         self.output_data_structure = InputDataclasses.NeuralNetworkData()
         self.time = 0.0
-        self.output_model_part = self.model[self.output_model_part_name]
-        self.input_model_part = self.model[self.input_model_part_name]
+        for name in self.output_model_parts_names:
+            self.output_model_parts.append(self.model[name])
+        if not (len(self.output_variables) == len(self.output_model_parts)):
+            if self.output_is_vector:
+                raise Exception('The output_model_parts are given as vector -- The number of output variables and model parts must be the same.')
+            else:
+                while not (len(self.output_variables) == len(self.output_model_parts)):
+                    self.output_model_parts.append(self.output_model_parts[-1])
+        self.dict_output = list(zip(self.output_model_parts, self.output_variables, self.output_sources))
+        
+        for name in self.input_model_parts_names:
+            self.input_model_parts.append(self.model[name])
+        if not (len(self.input_variables) == len(self.input_model_parts)):
+            if self.input_is_vector:
+                raise Exception('The input_model_parts are given as vector -- The number of input variables and model parts must be the same.')
+            else:
+                while not (len(self.input_variables) == len(self.input_model_parts)):
+                    self.input_model_parts.append(self.input_model_parts[-1])
+        self.dict_input = list(zip(self.input_model_parts, self.input_variables, self.input_sources))
 
 
     def InitializeSolutionStep(self):
 
         input_value_list=[]
 
-        for variable, source in self.dict_input.items():
+        for model_part, variable, source in self.dict_input:
+            model_input_value_list = []
             # Process related variables (e.g. TIME, STEP)
             if source == 'process':
-                input_value_list.append(self.input_model_part.ProcessInfo[variable])
+                model_input_value_list.append(model_part.ProcessInfo[variable])
             # Node properties (e.g. position)
             elif source == 'node':
-                for node in self.input_model_part.Nodes:
-                    input_value_list.append(getattr(node,variable.Name()))
+                for node in model_part.Nodes:
+                    model_input_value_list.append(getattr(node,variable.Name()))
             # Node step values (e.g. variables like displacement)
             elif source == "solution_step":
-                for node in self.input_model_part.Nodes:
-                    input_value_list.append(node.GetSolutionStepValue(variable,0))
+                for node in model_part.Nodes:
+                    model_input_value_list.append(node.GetSolutionStepValue(variable,0))
             # Condition values
             elif source == "condition":
-                for condition in self.input_model_part.GetConditions():
-                    input_value_list.append(condition.GetValue(variable))
-        # Reorder if indicated
-        if self.input_order == 'sources_first':
-            try:
-                input_value_list = self._OrderSourcesFirst(input_value_list, self.dict_output.items())
-            except IndexError:
-                pass
+                for condition in model_part.GetConditions():
+                    model_input_value_list.append(condition.GetValue(variable))
+            # Reorder if indicated
+            if self.input_order == 'sources_first':
+                try:
+                    model_input_value_list = self._OrderSourcesFirst(model_input_value_list, self.dict_input.items())
+                except IndexError:
+                    pass
+            input_value_list.extend(model_input_value_list)
 
         self.input_from_modelpart = np.array(input_value_list)
 
@@ -199,27 +235,27 @@ class NeuralNetworkSolver(PythonSolver):
 
         # Initialize output from interface in first iteration
         if self.output_data_structure.data is None:
-            for variable, source in self.dict_output.items():
+            for model_part, variable, source in self.dict_output:
                 output_value_list = []
                 # Process related variables (e.g. TIME, STEP)
                 if source == 'process':
-                    output_value_list.append(self.output_model_part.ProcessInfo[variable])
+                    output_value_list.append(model_part.ProcessInfo[variable])
                 # Node properties (e.g. position)
                 elif source == 'node':
-                    for node in self.output_model_part.Nodes:
+                    for node in model_part.Nodes:
                         output_value_list.append(getattr(node,variable.Name()))
                 # Node step values (e.g. variables like displacement)
                 elif source == "solution_step":
-                    for node in self.output_model_part.Nodes:
+                    for node in model_part.Nodes:
                         output_value_list.append(node.GetSolutionStepValue(variable,0))
                 # Condition values
                 elif source == "condition":
-                    for condition in self.output_model_part.GetConditions():
+                    for condition in model_part.GetConditions():
                         output_value_list.append(condition.GetValue(variable))
             # Reorder if indicated
             if self.output_order == 'sources_first':
                 try:
-                    output_value_list = self._OrderSourcesFirst(output_value_list, self.dict_output.items())
+                    output_value_list = self._OrderSourcesFirst(output_value_list, self.dict_output)
                 except IndexError:
                     pass
             self.output_data_structure.UpdateData(output_value_list)
@@ -269,24 +305,24 @@ class NeuralNetworkSolver(PythonSolver):
         # TODO: Right now, it only works with one variable that has the same shape as the output.
         if self.time >= self.time_buffer:
             output_value_index = 0
-            for variable, source in self.dict_output.items():
+            for model_part, variable, source in self.dict_output:
             # Process related variables (e.g. TIME, STEP)
                 if source == 'process':
-                    self.output_model_part.ProcessInfo[variable] = output_value_list
+                    model_part.ProcessInfo[variable] = output_value_list
                     output_value_index += 1
                 # Node properties (e.g. position)
                 elif source == 'node':
-                    for node, node_id in zip(self.output_model_part.Nodes, range(self.output_model_part.NumberOfNodes())):
+                    for node, node_id in zip(model_part.Nodes, range(model_part.NumberOfNodes())):
                         node.SetValue(variable, output_value_list)
                         output_value_index += 1
                 # Node step values (e.g. variables like displacement)
                 elif source == "solution_step":
-                    for node, node_id in zip(self.output_model_part.Nodes, range(self.output_model_part.NumberOfNodes())):
+                    for node, node_id in zip(model_part.Nodes, range(model_part.NumberOfNodes())):
                         node.SetSolutionStepValue(variable,0, output_value_list[node_id])
                         output_value_index += 1
                 # Condition values
                 elif source == "condition":
-                    for condition, conditions_id in zip(self.output_model_part.GetConditions(), range(self.output_model_part.NumberOfConditions())):
+                    for condition, conditions_id in zip(model_part.GetConditions(), range(model_part.NumberOfConditions())):
                         condition.SetValue(variable, output_value_list[conditions_id])
                         output_value_index += 1
 

@@ -60,14 +60,13 @@ class DataGeneratorProcess(KM.Process):
         if settings["model_part_name"].IsArray():
             output_is_vector = True
             self.output_model_parts_names = settings["model_part_name"].GetStringArray()
-            for name in self.output_model_parts_names:
-                self.output_model_parts.append(model[name])
         else:
             output_is_vector = False
-            model_part_name = settings["model_part_name"].GetString()
-            if model_part_name == "":
-                raise Exception('No "model_part_name" was specified!')
-            self.output_model_parts.append(model[model_part_name])
+            self.output_model_parts_names = [settings["model_part_name"].GetString()]
+        if not self.output_model_parts_names:
+            raise Exception('No "model_part_name" was specified!')
+        for name in self.output_model_parts_names:
+            self.output_model_parts.append(model[name])
         settings.RemoveValue("model_part_name")
 
         # getting the input ModelPart from the Model
@@ -77,14 +76,13 @@ class DataGeneratorProcess(KM.Process):
         if settings["input_model_part"].IsArray():
             input_is_vector = True
             self.input_model_parts_names = settings["input_model_part"].GetStringArray()
-            for name in self.input_model_parts_names:
-                self.input_model_parts.append(model[name])
         else:
             input_is_vector = False
-            model_part_name = settings["input_model_part"].GetString()
-            if model_part_name == "":
-                raise Exception('No "input_model_part" was specified!')
-            self.input_model_parts.append(model[model_part_name])
+            self.input_model_parts_names = [settings["input_model_part"].GetString()]
+        if not self.input_model_parts_names:
+            raise Exception('No "input_model_part" was specified!')
+        for name in self.input_model_parts_names:
+            self.input_model_parts.append(model[name])
         settings.RemoveValue("input_model_part")
 
         settings.ValidateAndAssignDefaults(default_settings)
