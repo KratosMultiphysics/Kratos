@@ -145,15 +145,13 @@ namespace Kratos
     
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
-        KRATOS_WATCH(m_xg)
+
         // m_velocity = MPC_PreviousVelocity + 0.5 * delta_time * (MPC_acceleration + MPC_PreviousAcceleration);
         m_velocity = MPC_velocity;
         m_acceleration = MPC_acceleration;
         // total displacement of boundary particle
         m_displacement += delta_xg;
-        KRATOS_WATCH(m_displacement)
-
-        
+ 
     }
 
     void MPMLagrangianMovingParticle::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
