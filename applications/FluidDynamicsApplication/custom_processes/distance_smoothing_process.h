@@ -205,7 +205,7 @@ public:
                     global_pointer->GetValue(DISTANCE),
                     global_pointer->Coordinates());
             });
-        
+
         auto contact_proxy = pointer_comm.Apply(
             [&](const GlobalPointer<Node<3> >& global_pointer) -> int
             {
