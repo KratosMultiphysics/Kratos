@@ -2206,13 +2206,8 @@ void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
 int ModelPart::Check() const
 {
     KRATOS_TRY
-    //TODO: This is required for the exception handling. It can be removed once we move to the C++ parallelism
-    #ifdef KRATOS_SMP_CXX11
-        int num_threads = ParallelUtilities::GetNumThreads();
-    #else
-        int num_threads = 1;
-    #endif
 
+    const int num_threads = ParallelUtilities::GetNumThreads();
     const ProcessInfo& r_current_process_info = this->GetProcessInfo();
 
     // Checks for all of the elements
