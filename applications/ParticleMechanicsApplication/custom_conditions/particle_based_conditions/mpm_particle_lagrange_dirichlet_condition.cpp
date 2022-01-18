@@ -124,6 +124,17 @@ void MPMParticleLagrangeDirichletCondition::InitializeNonLinearIteration(const P
         r_geometry[i].UnSetLock();
     }
 
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+
+    array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+    for ( unsigned int j = 0; j < dimension; j++ )
+    {
+        r_lagrange_multiplier[0] *= 0.0;
+    }
+
+
       
 }
 
@@ -136,24 +147,22 @@ void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector&
     // Additional check to eliminate loss of point load quantity
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    // Lagrange multiplier more sensitive to small cut
     
-    // double denominator = 1.0;
-    int counter = 0;
+    double denominator = 1.0;
+    const double small_cut_instability_tolerance = 0.1;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
-            // denominator -= rResult[i];
-            // rResult[i] = 0;
-            counter +=1;
+        if (rResult[i] < small_cut_instability_tolerance){
+            denominator += (small_cut_instability_tolerance - rResult[i]);
+            rResult[i] = small_cut_instability_tolerance;
         }
     }
 
-    // avoid singular matrices if BC is in an empty background element
-    // at least 2 nodes have to be connected to a node with mass to ensure that BC is not imposed twice in the same node
-    if (counter > 1)
-        rResult *=0;
-    // else
-    //     rResult = rResult/denominator;
+    rResult = rResult / denominator;
+    
+    
         
 
     
@@ -233,6 +242,21 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         }
 
     }
+
+    int counter = 0;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            counter +=1;
+        }
+    }
+
+    // avoid singular matrices if BC is in an empty background element
+    // at least 2 nodes have to be connected to a node with mass to ensure that BC is not imposed twice in the same node
+    // inf-sub condition has to be fulfilled
+
+    if (counter >= (number_of_nodes-1))
+        apply_constraints = false;
     
 
     if (apply_constraints)
@@ -299,7 +323,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
     }
     else{
 
-        KRATOS_WATCH("NO CONDITIONS APPLIED")
+        // KRATOS_WATCH("NO CONDITIONS APPLIED")
         
     }
 
