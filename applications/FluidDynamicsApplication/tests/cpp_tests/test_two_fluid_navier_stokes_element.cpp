@@ -565,7 +565,6 @@ namespace Kratos {
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-            // std::cout << pElement->Info() << std::setprecision(10) << std::endl;
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             KRATOS_CHECK_NEAR(RHS(0), 4.375729989, 1e-7);
