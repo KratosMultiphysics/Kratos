@@ -49,6 +49,7 @@ def RemoveFilesFromPreviousSimulations():
     # Get a list of all the output and mesh file paths
     file_list = glob.glob(working_path + 'Outputs/*')
     file_list += glob.glob(working_path + 'Mesh/airfoil_Structured_scaliert.grid.def*')
+    #file_list += glob.glob(working_path + 'Mesh/FW_al05_NoRef_002.grid.def*')
 
     # Iterate over the list of filepaths and remove each file.
     for file_path in file_list:
@@ -419,9 +420,11 @@ def FindPrimaryGridFilename(working_path, step_mesh):
     CheckIfPathExists(mesh_path)
     if step_mesh == 0:
         pattern = 'airfoil_Structured_scaliert.grid'
+        #pattern = 'FW_al05_NoRef_002.tau_grid'
         return FindInitialMeshFilename(mesh_path, pattern)
     else:
         pattern = 'airfoil_Structured_scaliert.grid.def.'
+        #pattern = 'FW_al05_NoRef_002.tau_grid.def.'
         mesh_file = FindMeshFilename(mesh_path, pattern, step_mesh )
         print("mesh_file = ", mesh_file)
         if 'domain' in mesh_file:

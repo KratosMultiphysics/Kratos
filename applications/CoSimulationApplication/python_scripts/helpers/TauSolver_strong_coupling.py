@@ -3,7 +3,7 @@ import shutil, sys, os, time, json
 import numpy as np
 import CoSimIO
 
-from mpi4py import MPI
+# from mpi4py import MPI
 
 def print_on_rank_zero(*args):
     if tau_mpi_rank() == 0:
@@ -23,7 +23,7 @@ output_file_pattern = tau_settings["output_file_pattern"]
 is_strong_coupling = tau_settings["strong_coupling"]
 sys.path.append(tau_settings["kratos_path"])
 sys.path.append(tau_path + "py_turb1eq/")
-comm = MPI.COMM_WORLD
+# comm = MPI.COMM_WORLD
 step_mesh = 0
 
 #sys.path.append("/work/piquee/Softwares/TAU/TAU_2016.2/2016.2.0/bin/py_turb1eq/")
@@ -34,7 +34,8 @@ rank = tau_mpi_rank()
 from tau_python import *
 
 # tau_functions can only be imported after appending kratos' path
-import tau_functions as TauFunctions
+# import tau_functions as TauFunctions
+import tau_functions_triangle as TauFunctions
 import MotionStringGenerator as MSG
 
 if tau_mpi_rank() == 0:
@@ -46,16 +47,19 @@ tau_parallel_sync()
 if rotate:
     para_path='input/airfoil_Structured_rotation.cntl'
 else:
-    para_path='input/airfoil_Structured_rotation.cntl'
+    # para_path='input/airfoil_Structured_rotation.cntl'
+    para_path='input/FW_al05_NoRef_003.cntl'
 
 para_path_mod = para_path + ".mod"
-para_path_up = 'input/airfoil_Structured_up.cntl'
-para_path_down = 'input/airfoil_Structured_down.cntl'
+# para_path_up = 'input/airfoil_Structured_up.cntl'
+# para_path_down = 'input/airfoil_Structured_down.cntl'
+para_path_up = 'input/FW_al05_NoRef_003_up.cntl'
+para_path_down = 'input/FW_al05_NoRef_003_down.cntl'
 shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
 Para = PyPara.Parafile(para_path_mod)
-tau_time_step = float(Para.get_para_value('Unsteady physical time step size'))
+tau_time_step = 0.001#float(Para.get_para_value('Unsteady physical time step size'))
 tau_parallel_sync()
 
 if is_strong_coupling:
@@ -63,7 +67,7 @@ if is_strong_coupling:
     Para.update({"Unsteady allow external control over progress in time (0/1)": 1,
                  "Unsteady enable external control over progress in time (0/1)": 1})
 
-velocity = float(Para.get_para_value('Reference velocity'))
+velocity = 30.0#float(Para.get_para_value('Reference velocity'))
 print('The reference velocity is = ', velocity)
 
 if rotate:
@@ -193,7 +197,8 @@ def ImportData(conn_name, identifier, factor):
             global old_displacements_up
             if step_mesh == 0:
                 old_displacements_up = 0.0 * new_displacements
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_up,"MEMBRANE_UP")
+            # TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_up,"MEMBRANE_UP")
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_up,"MEM_TOP")
             old_displacements_up = new_displacements
             # with open('new_displacement_up' + str(step) + '.dat','w') as fname:
             #    for i in range(len(new_displacements)):
@@ -209,7 +214,8 @@ def ImportData(conn_name, identifier, factor):
             global old_displacements_down
             if step_mesh == 0:
                 old_displacements_down = 0.0 * new_displacements
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_down,"MEMBRANE_DOWN")
+            # TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_down,"MEMBRANE_DOWN")
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_down,"MEM_BOT")
             old_displacements_down = new_displacements
         tau_parallel_sync()
     else:
@@ -231,13 +237,15 @@ def ExportData(conn_name, identifier):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
+            # forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
+            forces = 1e3*TauFunctions.ComputeFluidForces(working_path, step, "MEM_TOP", output_file_pattern, sub_step, velocity)
             # with open('forces_up' + str(step) + '.dat','w') as fname:
             #    for i in range(len(forces)/3):
             #        fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
-            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
+            # forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
+            forces = 1e3*TauFunctions.ComputeFluidForces(working_path, step, "MEM_BOT", output_file_pattern, sub_step, velocity)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -255,9 +263,11 @@ def ExportMesh(conn_name, identifier, sub_step):
 
         # identifier is the data-name in json
         if identifier == "UpperInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
+            # nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEM_TOP", output_file_pattern, sub_step, velocity)
         elif identifier == "LowerInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
+            # nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEM_BOT", output_file_pattern, sub_step, velocity)
             # elem_connectivities += int(30000)
             # print(elem_connectivities)
         else:
@@ -286,14 +296,16 @@ def InnerLoop(coupling_interface_imported, advanceTime, sub_step, factor):
     if not coupling_interface_imported and not first_iteration:
         advanceTime = False
         if tau_mpi_rank() == 0:
-            TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", output_file_pattern, sub_step)
+            # TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", output_file_pattern, sub_step)
+            TauFunctions.ChangeFormat(working_path, step, "MEM_TOP", "MEM_BOT", output_file_pattern, sub_step)
         tau_parallel_sync()
         ExportMesh(connection_name, "UpperInterface", sub_step)
         ExportMesh(connection_name, "LowerInterface", sub_step)
         coupling_interface_imported = True
 
     if tau_mpi_rank() == 0 and not first_iteration:
-        TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", output_file_pattern, sub_step)
+        # TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_UP", "MEMBRANE_DOWN", output_file_pattern, sub_step)
+        TauFunctions.ChangeFormat(working_path, step, "MEM_TOP", "MEM_BOT", output_file_pattern, sub_step)
     tau_parallel_sync()
 
     if not first_iteration:
@@ -325,12 +337,12 @@ settings = {
 if rank == 0:
     CoSimIO.Connect(connection_name, settings)
 
-n_steps = int(Para.get_para_value('Unsteady physical time steps'))
+n_steps = 300#int(Para.get_para_value('Unsteady physical time steps'))
 coupling_interface_imported = False
 
 first_iteration = False
 
-n_iterations = 3
+n_iterations = 2
 factor = 1.0
 for i in range(n_steps):
 
@@ -370,10 +382,6 @@ for i in range(n_steps):
 
             first_iteration = False
 
-    tau_parallel_sync()
-    FinalizeSolutionStep()
-    #factor = 1.0
-
 if rank == 0:
     CoSimIO.Disconnect(connection_name)
 
@@ -396,6 +404,8 @@ if tau_mpi_rank() == 0:
 
     CoSimIO.Disconnect(connection_name)
 '''
+tau_parallel_sync()
+FinalizeSolutionStep()
 tau("exit")
 
 #print(comm)

@@ -119,7 +119,7 @@ def GetFluidMesh(working_path, step, word, ouput_file_pattern, velocity):
     nodal_coords = ReadNodalCoordinates(X, Y, Z)
     print("after ReadNodalCoordinates")
     # Save element types in a numpy array
-    element_types = ReadElementTypes(int(len(elem_connectivities)/4))
+    element_types = ReadElementTypes(int(len(elem_connectivities)/3))
 
     # In vtk format element connectivities start from 0, not from 1
     elem_connectivities -= 1
@@ -281,7 +281,7 @@ def ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern):
 def CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities):
     nodal_forces = np.zeros(3*len(X))
     # Loop over cells
-    for cell in range(int(len(elem_connectivities)/4)):
+    for cell in range(int(len(elem_connectivities)/3)):
         # Get the node ids of the cell
         node_ids = GetCellNodeIds(elem_connectivities, cell)
 
@@ -289,10 +289,10 @@ def CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities):
         cell_force = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
 
         # Extrapolating cell force to the nodes
-        for node in range(4):
+        for node in range(3):
             # Loop over xyz components
             for component in range(3):
-                nodal_forces[3*node_ids[node]+component] += 0.25 * cell_force[component]
+                nodal_forces[3*node_ids[node]+component] += cell_force[component] / 3.0
 
     return nodal_forces
 
@@ -313,7 +313,7 @@ def ReadNodalCoordinates(X, Y, Z):
 
 # Save element types in a numpy array
 def ReadElementTypes(ElemsNr):
-    return np.full(ElemsNr, 9, dtype=int)
+    return np.full(ElemsNr, 5, dtype=int)
 
 
 # Check if file exist and remove it, otherwise print a warning
@@ -391,10 +391,10 @@ def SavePressure(nodal_data, position_info, NodesNr, velocity):
 
 # Get the node ids of the cell
 def GetCellNodeIds(elem_connectivities, cell):
-    node_ids = np.zeros(4, dtype=int)
+    node_ids = np.zeros(3, dtype=int)
     # Loop over cell nodes
-    for node in range(4):
-        node_ids[node] = elem_connectivities[cell*4+node]-1
+    for node in range(3):
+        node_ids[node] = elem_connectivities[cell*3+node]-1
 
     return node_ids
 
@@ -406,22 +406,23 @@ def CalculateCellForce(node_ids, nodal_pressures, X, Y, Z):
 
     # Calculate cell area and normal
     area = CalculateCellArea(X, Y, Z, node_ids)
-    normal = CalculateCellNormal(X, Y, Z, node_ids)
+    #normal = CalculateCellNormal(X, Y, Z, node_ids)
 
     # Calculate cell force
-    cell_force = pressure * area * normal
+    cell_force = pressure * area# * normal
 
     return cell_force
+
 def CalculateCellArea(X, Y, Z, node_ids):
     # Calculate cell sides
     cell_side_01 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[1])
-    cell_side_03 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[3])
+    cell_side_02 = CalculateDistanceVector(X, Y, Z, node_ids[0], node_ids[2])
 
     # Calculate cell area
-    cell_area = np.cross(cell_side_01, cell_side_03)
+    cell_area = np.cross(cell_side_01, cell_side_02)
 
-    # hold only for 2d case, MUST be modified for 3d interfaces
-    cell_area = np.linalg.norm(cell_area)
+    # # hold only for 2d case, MUST be modified for 3d interfaces
+    # cell_area = np.linalg.norm(cell_area)
 
     return cell_area
 
@@ -506,16 +507,15 @@ def ReadNodalData(interface_file,line):
 # Read element connectivities from interface file
 def ReadElementConnectivities(interface_file,line,ElemsNr):
     # reading element connectivities
-    elem_connectivities = np.zeros(4*ElemsNr, dtype=int)
+    elem_connectivities = np.zeros(3*ElemsNr, dtype=int)
     i = 0
     while line:
         if line == "\n":
             line = interface_file.readline()
         else:
-            elem_connectivities[i*4+0] = int(line.split()[0])
-            elem_connectivities[i*4+1] = int(line.split()[1])
-            elem_connectivities[i*4+2] = int(line.split()[2])
-            elem_connectivities[i*4+3] = int(line.split()[3])
+            elem_connectivities[i*3+0] = int(line.split()[0])
+            elem_connectivities[i*3+1] = int(line.split()[1])
+            elem_connectivities[i*3+2] = int(line.split()[2])
             i = i+1
             line = interface_file.readline()
 
@@ -527,8 +527,8 @@ def CalculateCellPressure(nodal_pressures, node_ids):
     cell_pressure = 0.0
 
     # Interpolating nodal pressures
-    for node in range(4):
-        cell_pressure += 0.25 * nodal_pressures[node_ids[node]]
+    for node in range(3):
+        cell_pressure += nodal_pressures[node_ids[node]] / 3.0
 
     return cell_pressure
 

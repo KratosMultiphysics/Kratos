@@ -33,7 +33,8 @@ rank = tau_mpi_rank()
 from tau_python import *
 
 # tau_functions can only be imported after appending kratos' path
-import tau_functions_Steady as TauFunctions
+#import tau_functions_Steady as TauFunctions
+import tau_functions_Steady_triangle as TauFunctions
 import MotionStringGenerator as MSG
 
 if tau_mpi_rank() == 0:
@@ -45,11 +46,14 @@ tau_parallel_sync()
 if rotate:
     para_path='input/airfoil_Structured_rotation.cntl'
 else:
-    para_path='input/airfoil_Structured_rotation_steady_state.cntl'
+    #para_path='input/airfoil_Structured_rotation_steady_state.cntl'
+    para_path='input/FW_al05_NoRef_002.cntl'
 
 para_path_mod = para_path + ".mod"
-para_path_up = 'input/airfoil_Structured_up.cntl'
-para_path_down = 'input/airfoil_Structured_down.cntl'
+# para_path_up = 'input/airfoil_Structured_up.cntl'
+# para_path_down = 'input/airfoil_Structured_down.cntl'
+para_path_up = 'input/FW_al05_NoRef_002_up.cntl'
+para_path_down = 'input/FW_al05_NoRef_002_down.cntl'
 shutil.copy(para_path, para_path_mod)
 
 # Initialize Tau python classes and auxiliary variable step
@@ -59,7 +63,7 @@ print(str(delta_step))
 tau_time_step = float(Para.get_para_value('Maximal time step number'))
 tau_parallel_sync()
 
-velocity = float(Para.get_para_value('Reference velocity'))
+velocity = 30.0#float(Para.get_para_value('Reference velocity'))
 print('The reference velocity is = ', velocity)
 
 if rotate:
@@ -167,6 +171,7 @@ def ImportData(conn_name, identifier, factor):
     if tau_mpi_rank() == 0:
         if tau_settings["echo_level"] > 0:
             print "TAU SOLVER ImportData"
+        factor = 1.0
         print('FACTOR = ', factor)
         displacements = CoSimIO.ImportData(conn_name, identifier)
     tau_parallel_sync()
@@ -182,7 +187,8 @@ def ImportData(conn_name, identifier, factor):
             global old_displacements_up
             if step_mesh == 0:
                 old_displacements_up = 0.0 * new_displacements
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_up,"MEMBRANE_UP")
+            #TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_up,"MEMBRANE_UP")
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_up,"MEM_TOP")
             old_displacements_up = new_displacements
         tau_parallel_sync()
     elif identifier == "Lower_Interface_disp":
@@ -195,7 +201,8 @@ def ImportData(conn_name, identifier, factor):
             global old_displacements_down
             if step_mesh == 0:
                 old_displacements_down = 0.0 * new_displacements
-            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_down,"MEMBRANE_DOWN")
+            #TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_down,"MEMBRANE_DOWN")
+            TauFunctions.WriteInterfaceDeformationFile(ids, coordinates, new_displacements, old_displacements_down,"MEM_BOT")
             old_displacements_down = new_displacements
         tau_parallel_sync()
     else:
@@ -218,9 +225,11 @@ def ExportData(conn_name, identifier, factor):
 
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
-            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, velocity)
+            #forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, velocity)
+            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEM_TOP", output_file_pattern, velocity)
         elif identifier == "Lower_Interface_force":
-            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, velocity)
+            #forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, velocity)
+            forces = factor*TauFunctions.ComputeFluidForces(working_path, step, "MEM_BOT", output_file_pattern, velocity)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -238,9 +247,11 @@ def ExportMesh(conn_name, identifier):
 
         # identifier is the data-name in json
         if identifier == "UpperInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, velocity)
+            #nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_UP", output_file_pattern, velocity)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEM_TOP", output_file_pattern, velocity)
         elif identifier == "LowerInterface":
-            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, velocity)
+            #nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEMBRANE_DOWN", output_file_pattern, velocity)
+            nodal_coords, elem_connectivities, element_types = TauFunctions.GetFluidMesh(working_path, step, "MEM_BOT", output_file_pattern, velocity)
             # elem_connectivities += int(30000)
             # print(elem_connectivities)
         else:
@@ -268,8 +279,8 @@ if rank == 0:
 n_steps = 1
 coupling_interface_imported = False
 
-n_iterations = 3
-factor = 1.0
+n_iterations = 5
+factor = 1e4
 for i in range(n_steps):
     if is_strong_coupling:
         is_converged = False
@@ -284,14 +295,16 @@ for i in range(n_steps):
 
             if not coupling_interface_imported:
                 if tau_mpi_rank() == 0:
-                    TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP", output_file_pattern)
+                    #TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP", output_file_pattern)
+                    TauFunctions.ChangeFormat(working_path, step, "MEM_BOT", "MEM_TOP", output_file_pattern)
                 tau_parallel_sync()
                 ExportMesh(connection_name, "UpperInterface")
                 ExportMesh(connection_name, "LowerInterface")
                 coupling_interface_imported = True
 
             if tau_mpi_rank() == 0:
-                TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP",output_file_pattern)
+                #TauFunctions.ChangeFormat(working_path, step, "MEMBRANE_DOWN", "MEMBRANE_UP",output_file_pattern)
+                TauFunctions.ChangeFormat(working_path, step, "MEM_BOT", "MEM_TOP",output_file_pattern)
             tau_parallel_sync()
             ExportData(connection_name, "Upper_Interface_force", factor)
             ExportData(connection_name, "Lower_Interface_force", factor)
