@@ -61,8 +61,8 @@ class PrimitiveMagnitudes:
         if mode == "nodal":
             self.mode = self.NODAL
             self.P = sympy.Symbol('pressure', real=True)
-            self.T = sympy.Symbol('temperature', real=True)
             self.V = defs.Vector('velocity', geometry.ndims, real=True)
+            self.T = sympy.Symbol('temperature', real=True)
             self.grad_P = defs.Matrix('grad_pressure', 1, geometry.ndims, real=True)
             self.grad_V = defs.Matrix('grad_velocity', geometry.ndims, geometry.ndims, real=True)
             self.grad_T = defs.Matrix('grad_temperature', 1, geometry.ndims, real=True)
@@ -137,6 +137,10 @@ class PrimitiveMagnitudes:
         T = cls._temperature(rho, V, e_tot, params)
         P = cls._pressure(rho, T, params)
 
+        V.simplify()
+        T.simplify()
+        P.simplify()
+
         return (P, V, T)
 
     @classmethod
@@ -153,8 +157,12 @@ class PrimitiveMagnitudes:
         grad_e_tot = sympy.Matrix(grad_U[-1, :])                # d e_tot / dx_i
 
         grad_V = cls._velocity_gradient(rho, mom, grad_rho, grad_mom)
-        grad_T = cls._temperature_gradient(rho, e_tot, grad_rho, grad_e_tot, V, grad_V, params)
+        grad_T = cls._temperature_gradient(rho, e_tot, V, T, grad_rho, grad_e_tot, grad_V, params)
         grad_P = cls._pressure_gradient(rho, grad_rho, T, grad_T, params)
+
+        grad_V.simplify()
+        grad_T.simplify()
+        grad_P.simplify()
 
         return (grad_P.T, grad_V.T, grad_T.T)
 
@@ -184,16 +192,35 @@ class PrimitiveMagnitudes:
 
 
     @classmethod
-    def _temperature_gradient(cls, rho, e_tot, grad_rho, grad_e_tot, vel, grad_vel, params):
+    def _temperature_gradient(cls, rho, e_tot, vel, T, grad_rho, grad_e_tot, grad_vel, params):
         """
         Temperature gradient.  Gradients defined as:
 
         grad_f := df_j/dx_i
 
+        Explanation
+        ---
+        Temperature is defined as:
+        ```
+            T = (e_t - e_k) / (rho * c_v)
+            [with e_k = 1/2 * rho * V²]
+        ```
+        where `e_k` is the kinetic energy.
+
+        The gradient is:
+        ```
+            grad(T) = grad(e_t - e_k) / (rho * c_v)   -   (e_t - e_k)/(rho²*c_v) * grad(rho)
+        ```
+        Rearranging yields:
+        ```
+            grad(T) = (grad(e_t) - grad(e_k)) / (rho * c_v)   -   T/rho * grad(rho)
+            [with grad(e_k) = rho*transp(V)*grad(V) + 1/2 * V² * grad(rho)]
+        ```
+
         """
-        gradient_kinetic_energy = vel.transpose() * grad_vel
-        gradient_total_energy   = (rho*grad_e_tot - e_tot*grad_rho) / rho**2
-        return (gradient_total_energy - gradient_kinetic_energy) / params.c_v
+        V2 = vel.transpose() * vel
+        grad_e_k = rho*vel.transpose()*grad_vel + 0.5 * V2 * grad_rho
+        return (grad_e_tot - grad_e_k)/(rho*params.c_v) - T/rho * grad_rho
 
     @classmethod
     def _pressure_gradient(cls, rho, grad_rho, T, grad_T, params):
