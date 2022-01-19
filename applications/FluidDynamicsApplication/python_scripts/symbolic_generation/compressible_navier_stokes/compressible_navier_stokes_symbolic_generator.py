@@ -183,32 +183,33 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         return (rv, subscales)
 
-    def _ComputeOSSProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn):
+    def _ComputeOSSProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, primitives, projections, res, rg, U, Ug, Un, Unn):
         # Get Gauss point geometry data
-        N = self.geometry.N_gauss(i_gauss)
+        Ng = self.geometry.N_gauss(i_gauss)
 
         # Data interpolation at the gauss point
-        U_gauss = U.transpose() * N
-        f_gauss = forcing_terms["force"].transpose() * N
-        r_gauss = (forcing_terms["thermal"].transpose()*N)[0]
-        mass_gauss = (forcing_terms["mass"].transpose()*N)[0]
+        U_gauss = U.transpose() * Ng
+        f_gauss = forcing_terms["force"].transpose() * Ng
+        r_gauss = (forcing_terms["thermal"].transpose()*Ng)[0]
+        mass_gauss = (forcing_terms["mass"].transpose()*Ng)[0]
 
         if self.is_explicit:
             # In the explicit case, the acceleration is linearised taking the
             # previous step one. Note that in the explicit case this
             # acceleration is only used in the calculation of the stabilization
             # terms
-            acc_gauss = dUdt.transpose()*N
+            acc_gauss = dUdt.transpose()*Ng
         else:
             # In the implicit case, calculate the time derivatives with the
             # BDF2 formula
-            acc_gauss = (bdf[0] * U + bdf[1] * Un + bdf[2] * Unn).transpose()*N
+            acc_gauss = (bdf[0] * U + bdf[1] * Un + bdf[2] * Unn).transpose()*Ng
 
         # Gradients computation
-        grad_U = KratosSympy.DfjDxi(self.geometry.DN(), U).transpose()
+        grad_U = KratosSympy.DfiDxj(self.geometry.DN(), U)
 
         # Substitute the symbols in the residual
         res_gauss = res.copy()
+        primitives.InterpolateAndSubstitute(res_gauss, U, Ng, self.geometry.DN(), params)
         KratosSympy.SubstituteMatrixValue(res_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, H, grad_U)
@@ -219,11 +220,11 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Add the projection contributions
         for i_node in range(self.geometry.nnodes):
             # Note that the weights will be added later on in the cpp
-            projections["rho"][i_node] += N[i_node] * res_gauss[0]
+            projections["rho"][i_node] += Ng[i_node] * res_gauss[0]
             for d in range(self.geometry.ndims):
                 i_mom = i_node * self.geometry.ndims + d
-                projections["momentum"][i_mom] += N[i_node] * res_gauss[1 + d]
-            projections["energy"][i_node] += N[i_node] * res_gauss[self.geometry.ndims + 1]
+                projections["momentum"][i_mom] += Ng[i_node] * res_gauss[1 + d]
+            projections["energy"][i_node] += Ng[i_node] * res_gauss[self.geometry.ndims + 1]
 
     def _OutputProjections(self, res_rho_proj, res_mom_proj, res_tot_ener_proj):
         dim = self.geometry.ndims
@@ -475,7 +476,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
             self._print(1, "   - Gauss point: " + str(i_gauss))
-            self._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
+            self._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, primitives, projections, res, rg, U, Ug, Un, Unn)
 
         # Output the projections
         self._OutputProjections(*projections.values())

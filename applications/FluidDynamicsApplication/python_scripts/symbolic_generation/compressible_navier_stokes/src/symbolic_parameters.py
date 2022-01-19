@@ -70,10 +70,10 @@ class PrimitiveMagnitudes:
             self.mode = self.GAUSSIAN
             (self.P, self.V, self.T) = self._PrimitivesFromConservatives(Ug, params)
             (self.grad_P, self.grad_V, self.grad_T) = self._PrimitiveGradientsFromConservatives(Ug, grad_Ug, params)
-            self.nnodes = geometry.nnodes
-            self.ndims = geometry.ndims
         else:
             raise ValueError("Unrecognized magnitude interpolation mode.")
+        self.nnodes = geometry.nnodes
+        self.ndims = geometry.ndims
 
     def InterpolateAndSubstitute(self, expr, U_nodes, N_gauss, DN_DX_gauss, params):
         """
@@ -99,7 +99,7 @@ class PrimitiveMagnitudes:
         for n in range(self.nnodes):
             (P, V, T) = self._PrimitivesFromConservatives(U_nodes[n, :], params)
             P_nodes[n] = P
-            V_nodes[n, :] = V
+            V_nodes[n, :] = V.transpose()
             T_nodes[n] = T
 
         P_g = P_nodes.transpose() * N_gauss
