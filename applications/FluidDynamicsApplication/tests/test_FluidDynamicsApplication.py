@@ -39,6 +39,7 @@ from test_navier_stokes_compressible_explicit_solver import NavierStokesCompress
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
 from initialize_with_compressible_potential_flow_process_test import InitializeWithCompressiblePotentialSolutionProcessTest
+from compressible_navier_stokes_symbolic_generator_test import CompressibleNavierStokesSymbolicGeneratorTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -117,6 +118,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CompressibleNavierStokesSymbolicGeneratorTest]))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']

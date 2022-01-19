@@ -151,7 +151,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<DerivativesRecoveryUtility<2>>(m, "DerivativesRecoveryUtility2D")
         .def_static("Check", &DerivativesRecoveryUtility<2>::Check)
-        .def_static("ExtendNeighborsPatch", &DerivativesRecoveryUtility<2>::ExtendNeighborsPatch)
         .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<2>::CalculatePolynomialWeights)
         .def_static("RecoverDivergence", &DerivativesRecoveryUtility<2>::RecoverDivergence)
         .def_static("RecoverGradient", &DerivativesRecoveryUtility<2>::RecoverGradient)
@@ -160,17 +159,26 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
             const Variable<double>& rDestinationVariable,
             const std::size_t BufferStep) {
                 DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<array_1d<double,3>>& rOriginVariable,
+            const Variable<array_1d<double,3>>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
         ;
 
     py::class_<DerivativesRecoveryUtility<3>>(m, "DerivativesRecoveryUtility3D")
         .def_static("Check", &DerivativesRecoveryUtility<3>::Check)
-        .def_static("ExtendNeighborsPatch", &DerivativesRecoveryUtility<3>::ExtendNeighborsPatch)
         .def_static("CalculatePolynomialWeights", &DerivativesRecoveryUtility<3>::CalculatePolynomialWeights)
         .def_static("RecoverDivergence", &DerivativesRecoveryUtility<3>::RecoverDivergence)
         .def_static("RecoverGradient", &DerivativesRecoveryUtility<3>::RecoverGradient)
         .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
             const Variable<double>& rOriginVariable,
             const Variable<double>& rDestinationVariable,
+            const std::size_t BufferStep) {
+                DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
+        .def_static("RecoverLaplacian", [](ModelPart& rModelPart,
+            const Variable<array_1d<double,3>>& rOriginVariable,
+            const Variable<array_1d<double,3>>& rDestinationVariable,
             const std::size_t BufferStep) {
                 DerivativesRecoveryUtility<3>::RecoverLaplacian(rModelPart, rOriginVariable, rDestinationVariable, BufferStep);})
         ;

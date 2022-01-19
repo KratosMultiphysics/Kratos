@@ -57,42 +57,41 @@ void BoussinesqCondition<TNumNodes>::CalculateGaussPointData(
     const double eta = inner_prod(rData.nodal_f, rN);
     const double H = -inner_prod(rData.nodal_z, rN);
     const double g = rData.gravity;
-    const double e = rData.amplitude / H;  // the non linearity ratio
     const array_1d<double,3> v = WaveConditionType::VectorProduct(rData.nodal_v, rN);
 
     rData.depth = H;
-    rData.height = H + e * eta;
+    rData.height = H + eta;
     rData.velocity = v;
 
     /**
-     * A_1 = {{ e*u_1      0     g  },
-     *        {   0      e*u_1   0  },
-     *        {H + e*eta   0   e*u_1}}
+     * A_1 = {{  u_1     0    g  },
+     *        {   0     u_1   0  },
+     *        {H + eta   0   u_1}}
      */
-    rData.A1(0,0) = e*v[0];
+    rData.A1(0,0) = v[0];
     rData.A1(0,1) = 0;
     rData.A1(0,2) = g;
     rData.A1(1,0) = 0;
-    rData.A1(1,1) = e*v[0];
+    rData.A1(1,1) = v[0];
     rData.A1(1,2) = 0;
-    rData.A1(2,0) = H + e*eta;
+    rData.A1(2,0) = H + eta;
     rData.A1(2,1) = 0;
-    rData.A1(2,2) = e*v[0];
+    rData.A1(2,2) = v[0];
 
     /*
-     * A_2 = {{ e*u_2      0      0  },
-     *        {   0      e*u_2    g  },
-     *        {   0   H + e*eta e*u_2}}
+     * A_2 = {{ u_2     0      0  },
+     *        {  0     u_2     g  },
+     *        {  0   H + eta  u_2}}
      */
-    rData.A2(0,0) = e*v[1];
+    rData.A2(0,0) = v[1];
     rData.A2(0,1) = 0;
     rData.A2(0,2) = 0;
     rData.A2(1,0) = 0;
-    rData.A2(1,1) = e*v[1];
+    rData.A2(1,1) = v[1];
     rData.A2(1,2) = g;
     rData.A2(2,0) = 0;
-    rData.A2(2,1) = H + e*eta;
-    rData.A2(2,2) = e*v[1];
+    rData.A2(2,1) = H + eta;
+    rData.A2(2,2) = v[1];
 
     /// b_1
     rData.b1[0] = 0;
@@ -118,8 +117,7 @@ void BoussinesqCondition<TNumNodes>::AddAuxiliaryLaplacian(
     const Matrix& rDN_DX,
     const double Weight)
 {
-    array_1d<double,TNumNodes> normal_i;
-    double divergence_j;
+    array_1d<double,3> normal_i;
     std::size_t elem_num_nodes = rParentGeometry.size();
     std::vector<array_1d<double,3>> nodal_v(elem_num_nodes);
 
@@ -129,17 +127,15 @@ void BoussinesqCondition<TNumNodes>::AddAuxiliaryLaplacian(
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        normal_i[0] = rData.normal[0] * rN[i];
-        normal_i[1] = rData.normal[1] * rN[i];
-        normal_i[2] = 0.0;
+        normal_i = rData.normal * rN[i];
 
+        double divergence = 0.0;
         for (IndexType j = 0; j < elem_num_nodes; ++j)
         {
-            divergence_j  = rDN_DX(j,0) * nodal_v[j][0];
-            divergence_j += rDN_DX(j,1) * nodal_v[j][1];
-
-            MathUtils<double>::AddVector(rLaplacian, Weight*normal_i*divergence_j, 3*i);
+            divergence += rDN_DX(j,0) * nodal_v[j][0];
+            divergence += rDN_DX(j,1) * nodal_v[j][1];
         }
+        MathUtils<double>::AddVector(rLaplacian, Weight*normal_i*divergence, 3*i);
     }
 }
 
@@ -176,7 +172,7 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
     Matrix DN_DX;           // Gradients of the parent element
     Vector weights;         // Line integration data
     Matrix N_container;     // Line integration data
-    this->CalculateGeometryData(weights, N_container);
+    this->CalculateGeometryData(r_geom, weights, N_container);
     const std::size_t num_gauss_points = weights.size();
     const auto& g_points = r_geom.IntegrationPoints();
 

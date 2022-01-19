@@ -7,7 +7,7 @@ This is a research application that provides a set of tools for oceanographic an
 |               | BDF                | Crank-Nicolson     | Adams-Moulton      |
 |---------------|:------------------:|:------------------:|:------------------:|
 | Gravity waves | :heavy_check_mark: | :heavy_check_mark: |                    |
-| Boussinesq    | :heavy_check_mark: |                    | :heavy_check_mark: |
+| Boussinesq    |                    |                    | :heavy_check_mark: |
 | Saint-Venant  | :heavy_check_mark: |                    |                    |
 
 ### Dependencies
