@@ -206,14 +206,17 @@ for dim in dim_vector:
         
     # Mass conservation residual
     if (divide_by_rho):
-        mas_residual = -div_v[0,0] + volume_error_ratio
         if time_integration=="alpha_method":
-            mas_residual_stabilization=-div_v_stabilization[0,0]+volume_error_ratio
+            mas_residual=-div_v_stabilization[0,0]+volume_error_ratio
+        else:
+            mas_residual = -div_v[0,0] + volume_error_ratio
+
 
     else:
-        mas_residual = -rho*div_v[0,0] + rho*volume_error_ratio
         if time_integration=="alpha_method":
-            mas_residual_stabilization=-div_v_stabilization[0,0]+volume_error_ratio
+            mas_residual=-rho*div_v_stabilization[0,0]+volume_error_ratio
+        else:
+            mas_residual = -rho*div_v[0,0] + rho*volume_error_ratio
 
     vel_subscale = tau1*vel_residual
     mas_subscale = tau2*mas_residual
