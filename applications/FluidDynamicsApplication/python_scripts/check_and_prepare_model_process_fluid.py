@@ -63,6 +63,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         fluid_computational_model_part.AddConditions(list(list_of_ids))
 
         #verify the orientation of the skin (only implemented for tris and tets)
+        if self.main_model_part.NumberOfElements() == 0:
+            # Empty modelpart
+            return
+
         geometry = self.main_model_part.GetElement(1).GetGeometry()
         is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
         if not is_simplex:
