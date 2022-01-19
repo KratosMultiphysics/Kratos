@@ -67,7 +67,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             # Empty modelpart
             return
 
-        geometry = self.main_model_part.GetElement(1).GetGeometry()
+        geometry = self.main_model_part.Elements().__iter__().__next__().GetGeometry()
         is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
         if not is_simplex:
             msg = "Geoemetry is not simplex. Orientation check is only available"
