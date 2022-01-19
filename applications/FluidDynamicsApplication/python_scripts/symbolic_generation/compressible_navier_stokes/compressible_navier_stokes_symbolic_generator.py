@@ -414,15 +414,15 @@ class CompressibleNavierStokesSymbolicGenerator:
             bdf = [sympy.Symbol('bdf{}'.format(i)) for i in range(3)]
 
         # Construction of the variational equation
-        Ug  = defs.Vector('Ug', block_size, real=True)   # Dofs vector
-        H   = defs.Matrix('H', block_size, dim)          # Gradient of dofs vector
-        mg  = sympy.Symbol('mg')                         # Mass source term
-        f   = defs.Vector('f',  dim, real=True)          # Body force vector
-        rg  = sympy.Symbol('rg')                         # Thermal source/sink term
-        V   = defs.Vector('V', block_size, real=True)    # Test function
-        Q   = defs.Matrix('Q', block_size, dim)          # Gradient of V
-        acc = defs.Vector('acc', block_size, real=True)  # Derivative of Dofs/Time
-        G   = defs.Matrix('G', block_size, dim)          # Diffusive Flux matrix
+        Ug  = defs.Vector('Ug', block_size, real=True)             # Dofs vector
+        H   = defs.Matrix('H', block_size, dim, real=True)         # Gradient of dofs vector
+        mg  = sympy.Symbol('mg', real=True)                        # Mass source term
+        f   = defs.Vector('f',  dim, real=True)                    # Body force vector
+        rg  = sympy.Symbol('rg', real=True)                        # Thermal source/sink term
+        V   = defs.Vector('V', block_size, real=True)              # Test function
+        Q   = defs.Matrix('Q', block_size, dim, real=True)         # Gradient of V
+        acc = defs.Vector('acc', block_size, real=True)            # Derivative of Dofs/Time
+        G   = defs.Matrix('G', block_size, dim, real=True)         # Diffusive Flux matrix
         res_proj = defs.Vector('res_proj', block_size, real=True)  # Residuals projection for the OSS
 
         # Primitive variables
