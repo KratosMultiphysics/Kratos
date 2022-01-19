@@ -304,7 +304,6 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.mu, mu_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.beta, beta_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.lamb, lamb_sc_gauss)
-
         if subscales_type == "OSS":
             KratosSympy.SubstituteMatrixValue(rv_gauss, res_proj, res_proj_gauss)
 
