@@ -283,7 +283,7 @@ class DataGeneratorProcess(KM.Process):
                 # Reorder if indicated
                 if self.input_order == 'sources_first':
                     try:
-                        model_input_value_list = self._OrderSourcesFirst(model_input_value_list, self.dict_input.items())
+                        model_input_value_list = self._OrderSourcesFirst(model_input_value_list, self.dict_input)
                     except IndexError:
                         pass
                 input_value_list.extend(model_input_value_list)
@@ -324,7 +324,7 @@ class DataGeneratorProcess(KM.Process):
                 # Reorder if indicated
                 if self.output_order == 'sources_first':
                     try:
-                        model_output_value_list = self._OrderSourcesFirst(model_output_value_list, self.dict_output.items())
+                        model_output_value_list = self._OrderSourcesFirst(model_output_value_list, self.dict_output)
                     except IndexError:
                         pass
                 output_value_list.extend(model_output_value_list)
