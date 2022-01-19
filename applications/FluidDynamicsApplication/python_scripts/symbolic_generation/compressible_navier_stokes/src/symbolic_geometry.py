@@ -103,7 +103,7 @@ class TriangleData(GeometryData):
         raise NotImplementedError(msg)
 
     def _ComputeShapeFunctionsGradients(self):
-        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims, real=True)
 
 
 class QuadrilateralData(GeometryData):
@@ -121,7 +121,7 @@ class QuadrilateralData(GeometryData):
         return defs.Vector('N', self.nnodes, positive=True)
 
     def _ComputeShapeFunctionsGradients(self):
-        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims, real=True)
 
 
 class TetrahedronData(GeometryData):
@@ -161,4 +161,4 @@ class TetrahedronData(GeometryData):
         raise NotImplementedError(msg)
 
     def _ComputeShapeFunctionsGradients(self):
-        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims, real=True)
