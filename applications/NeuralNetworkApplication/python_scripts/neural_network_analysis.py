@@ -111,7 +111,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
     def Initialize(self, data_input = None, data_output = None):
         
-        print(self.kratos_model)
+        # print(self.kratos_model)
         
         if self.problem_type == "predict_with_modelpart":
             super().Initialize()

@@ -332,6 +332,8 @@ class NeuralNetworkSolver(PythonSolver):
         
         self._PrintInfo("Predicting with the Neural Network...")
 
+        # print(self.model)
+
         if self.timesteps_as_features:
             data_structure_in.SetTimestepsAsFeatures()
         if self.feaures_as_timestpes:
