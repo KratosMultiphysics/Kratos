@@ -94,7 +94,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO("TopOpt") << "\n::[Saving optimization results as restart file]::"<< std::endl;
+        KRATOS_INFO("[TopOpt]") << "::[Saving optimization results as restart file]::"<< std::endl;
 
         // Create an empty .mdpa restart file
         std::ofstream FileToBeCreated;
@@ -133,7 +133,7 @@ public:
         FileToBeCreated.close();
         FileToBeRead.close();
 
-        KRATOS_INFO("TopOpt") <<"  Restart File succesfully generated under the name " << RestartOutputFile <<std::endl;
+        KRATOS_INFO("[TopOpt]") <<"  Restart File succesfully generated under the name " << RestartOutputFile <<std::endl;
 
         KRATOS_CATCH("");
     }
@@ -147,7 +147,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO("TopOpt") <<"\n::[Generating STL file]::"<<std::endl;
+        KRATOS_INFO("[TopOpt]") <<"\n::[Generating STL file]::"<<std::endl;
 
         // Write stl of surface model part
         std::ofstream myfile;
@@ -170,7 +170,7 @@ public:
         myfile << "endsolid Layer0\n";
         myfile.close();
 
-        KRATOS_INFO("TopOpt") <<"  STL File succesfully generated under the name " << file_name <<std::endl;
+        KRATOS_INFO("[TopOpt]") <<"  STL File succesfully generated under the name " << file_name <<std::endl;
 
         KRATOS_CATCH("");
     }

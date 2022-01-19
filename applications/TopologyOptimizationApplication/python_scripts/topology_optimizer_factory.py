@@ -33,8 +33,8 @@ import math
 import time
 
 # ==============================================================================
-def ConstructOptimizer( opt_model_part, config, analyzer, obj_and_const ):
-    optimizer = SIMPMethod( opt_model_part, config, analyzer, obj_and_const )
+def ConstructOptimizer( opt_model_part, config, analyzer ):
+    optimizer = SIMPMethod( opt_model_part, config, analyzer)
     return optimizer
 
 
@@ -43,7 +43,7 @@ def ConstructOptimizer( opt_model_part, config, analyzer, obj_and_const ):
 class SIMPMethod:
 
     # --------------------------------------------------------------------------
-    def __init__(self, opt_model_part, config, analyzer, obj_and_const):
+    def __init__(self, opt_model_part, config, analyzer):
 
         # Set Topology Optimization configurations
         self.config = config
@@ -79,21 +79,23 @@ class SIMPMethod:
         self.analyzer = analyzer
 
         # Set response functions
-        self.objectives = obj_and_const.objectives
-        self.constraints = obj_and_const.constraints
+        self.objectives = config["objectives"].items()
+        self.constraints = config["constraints"].items()
 
         print("\n::[Initializing Topology Optimization Application]::")
         print("  The following objectives are defined:")
-        for func_id in obj_and_const.objectives:
-            print("   ",func_id,":",obj_and_const.objectives[func_id],"\n")
+        for func_id, obj_settings in config["objectives"].items():
+            obj_settings["grad"].GetString()
+            print("   ",func_id,"-> 'grad' : ",obj_settings["grad"].GetString(),"\n")
+
 
         print("  The following constraints are defined:")
-        for func_id in obj_and_const.constraints:
-            print("   ",func_id,":", obj_and_const.constraints[func_id])
-
+        for func_id, const_settings in config["constraints"].items():
+            const_settings["grad"].GetString()
+            print("   ",func_id,"-> 'type' : ",const_settings["type"].GetString(),", 'grad' : ",const_settings["grad"].GetString(),"\n")        
 
         # Create controller object
-        self.controller = Controller( obj_and_const )
+        self.controller = Controller( config )
 
         # Model parameters
         self.opt_model_part = opt_model_part
@@ -166,10 +168,10 @@ class SIMPMethod:
         # Get Id of objective & constraint
         only_F_id = None
         only_C_id = None
-        for F_id in self.objectives:
+        for F_id, empty_id_f in self.objectives:
             only_F_id = F_id
             break
-        for C_id in self.constraints:
+        for C_id, empty_id_c in self.constraints:
             only_C_id = C_id
             break
 
@@ -221,21 +223,21 @@ class SIMPMethod:
             self.controller.get_controls()[only_C_id]["calc_func"] = 1
 
             # Set to evaluate objective & constraint gradient if provided
-            if(self.objectives[only_F_id]["grad"]=="provided"):
+            if(self.config["objectives"][only_F_id]["grad"].GetString() == "provided"):
                 self.controller.get_controls()[only_F_id]["calc_grad"] = 1
-            if(self.constraints[only_C_id]["grad"]=="provided"):
+            if(self.config["constraints"][only_C_id]["grad"].GetString() == "provided"):
                 self.controller.get_controls()[only_C_id]["calc_grad"] = 1
 
             # RUN FEM: Call analyzer with current X to compute response (global_strain_energy, dcdx)
             self.analyzer(self.controller.get_controls(), response, opt_itr)
             
             # Filter sensitivities
-            print("\n::[Filter Sensitivities]::")
+            print("\n[TopOpt]:   ::[Filter Sensitivities]::")
             self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
 
 
             # Update design variables ( densities )  --> new X by:
-            print("\n::[Update Densities with OC]::")
+            print("\n[TopOpt]    ::[Update Densities with OC]::")
             self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config["optimization_algorithm"].GetString(),
                                                                    self.config["initial_volume_fraction"].GetDouble(),
                                                                    self.config["grey_scale_filter"].GetInt(),
@@ -245,7 +247,7 @@ class SIMPMethod:
 
 
             if (self.config["density_filter"].GetString() == "density"):
-                print("\n::[Filter Densities]::") 
+                print("\n[TopOpt]   ::[Filter Densities]::") 
                 self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString() )
 
 
@@ -253,7 +255,7 @@ class SIMPMethod:
 
             
             # Print of results
-            print("\n::[RESULTS]::")
+            print("\n[TopOpt]:   ::[RESULTS]::")
             Obj_Function = response[only_F_id]["func"]
             C_Function = response[only_C_id]["func"]
 
@@ -335,20 +337,23 @@ class SIMPMethod:
 class Controller:
 
     # --------------------------------------------------------------------------
-    def __init__( self, obj_and_const ):
+    def __init__( self, config ):
 
         # Create and initialize controller
         self.controls = {}
-        for func_id in obj_and_const.objectives:
+        for func_id, empty in config["objectives"].items():
+            print(" Print the controller input   ",func_id,"\n")
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
-        for func_id in obj_and_const.constraints:
+            print(" Print the controller output  ",self.controls[func_id],"\n")
+
+        for func_id, empty in config["constraints"].items():
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
 
         # Initialize response container to provide storage for any response
         self.response_container = {}
-        for func_id in obj_and_const.objectives:
+        for func_id, empty in config["objectives"].items():
             self.response_container[func_id] = {"func": None, "grad": None}
-        for func_id in obj_and_const.constraints:
+        for func_id, empty in config["constraints"].items():
             self.response_container[func_id] = {"func": None, "grad": None}
 
     # --------------------------------------------------------------------------

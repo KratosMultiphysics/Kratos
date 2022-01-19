@@ -165,10 +165,10 @@ public:
         // Function to Filter Sensitivities
         if ( strcmp( FilterType , "sensitivity" ) == 0 ){
             clock_t begin = clock();
-            KRATOS_INFO("TopOpt") << "  Sensitivity filter chosen as filter for sensitivities" << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Sensitivity filter chosen as filter for sensitivities" << std::endl;
 
             if ( strcmp( FilterFunctionType , "linear" ) == 0 )
-                KRATOS_INFO("TopOpt") << "  Linear filter kernel selected" << std::endl;
+                KRATOS_INFO("[TopOpt]") << "  Linear filter kernel selected" << std::endl;
             else
                 KRATOS_ERROR << "No valid FilterFunction selected for the simulation. Selected one: " << FilterFunctionType << std::endl;
 
@@ -200,7 +200,7 @@ public:
             std::vector<double> resulting_squared_distances(mMaxElementsAffected);
 
             clock_t tree_time = clock();
-            KRATOS_INFO("TopOpt") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
             // Compute filtered sensitivities
             Vector dcdx_filtered;
@@ -256,7 +256,7 @@ public:
                 elem_i->SetValue(DCDX,dcdx_filtered[i++]);
 
             clock_t end = clock();
-            KRATOS_INFO("TopOpt") << "  Filtered sensitivities calculated          [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Filtered sensitivities calculated          [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
         }
         else
             KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;
@@ -276,10 +276,10 @@ public:
         // Function to Filter Sensitivities
         if ( strcmp( FilterType , "density" ) == 0 ){
             clock_t begin = clock();
-            KRATOS_INFO("TopOpt") << "  Density filter chosen as filter for densities" << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Density filter chosen as filter for densities" << std::endl;
 
             if ( strcmp( FilterFunctionType , "linear" ) == 0 )
-                KRATOS_INFO("TopOpt") << "  Linear filter kernel selected" << std::endl;
+                KRATOS_INFO("[TopOpt]") << "  Linear filter kernel selected" << std::endl;
             else
                 KRATOS_ERROR << "No valid FilterFunction selected for the simulation. Selected one: " << FilterFunctionType << std::endl;
 
@@ -311,7 +311,7 @@ public:
             std::vector<double> resulting_squared_distances(mMaxElementsAffected);
 
             clock_t tree_time = clock();
-            KRATOS_INFO("TopOpt") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
             // Compute filtered sensitivities
             Vector x_phys_filtered;
@@ -376,7 +376,7 @@ public:
                 elem_i->SetValue(X_PHYS, x_phys_filtered[i++]);
 
             clock_t end = clock();
-            KRATOS_INFO("TopOpt") << "  Filtered densities calculated          	[ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Filtered densities calculated          	[ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
         }
         else
             KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;

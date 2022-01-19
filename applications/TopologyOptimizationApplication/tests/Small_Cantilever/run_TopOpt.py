@@ -5,7 +5,6 @@ import KratosMultiphysics.TopologyOptimizationApplication as kto
 import KratosMultiphysics.LinearSolversApplication as kls
 import os
 from importlib import import_module
-import OptimizationParameters as objective_and_constraint
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.TopologyOptimizationApplication import topology_optimizer_factory
 from KratosMultiphysics import process_factory
@@ -121,6 +120,6 @@ def Analyzer(controls, response, opt_itr):
         sensitivity_solver.ComputeVolumeFractionSensitivities()
 
 # optimization
-optimizer = kto.topology_optimizer_factory.ConstructOptimizer(model_part, OptimizationParameters["optimization_parameters"], Analyzer, objective_and_constraint)
+optimizer = kto.topology_optimizer_factory.ConstructOptimizer(model_part, OptimizationParameters["optimization_parameters"], Analyzer)
 optimizer.optimize()
 FinalizeKSMProcess()
