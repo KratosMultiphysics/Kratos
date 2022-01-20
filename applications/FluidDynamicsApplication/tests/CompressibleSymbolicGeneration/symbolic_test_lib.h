@@ -4,6 +4,8 @@
 #include <ostream>
 #include <iostream>
 
+namespace TestCompressibleNavierStokesSymbolic {
+
 template<std::size_t TDim>
 struct Dofs {
     static constexpr std::size_t RHO = 0;
@@ -40,7 +42,7 @@ public:
     }
 
     template<index_t R, index_t C>
-    int assert_almost_equal(Matrix<R,C> const& other, const double delta = 1e-8) const
+    int validate(Matrix<R,C> const& reference, const double delta = 1e-8) const
     {
         static_assert(R==TRows, "Diferent number of rows!");
         static_assert(C==TCols, "Diferent number of cols!");
@@ -50,16 +52,31 @@ public:
         int result = 0;
         for(index_t i=0; i < R*C; ++i)
         {
-            if(std::abs((*this)[i] - other[i]) > delta)
+            if(std::isnan((*this)[i]))
+            {
+                std::cerr << "\nEntry #" << i << " is NaN";
+                result = 1;
+            }
+            else if(std::isinf((*this)[i]))
+            {
+                std::cerr << "\nEntry #" << i << " is is infinite";
+                result = 1;   
+            }
+        }
+
+        for(index_t i=0; i < R*C; ++i)
+        {
+            if(std::abs((*this)[i] - reference[i]) > delta)
             {
                 std::cerr << std::setprecision(precision)
                           << "\nMismatch in entry #" << i <<": " 
-                          << (*this)[i] << " != " << other[i] 
+                          << (*this)[i] << " != " << reference[i] 
                           << " within delta<" 
                           << std::setprecision(2) << delta;
                 result = 1;
             }
         }
+
         return result;
     }
 
@@ -244,4 +261,6 @@ ElementDataT<4, 2, 4> SodQuadData()
     data.h = 2.0;
 
     return data;
+}
+
 }

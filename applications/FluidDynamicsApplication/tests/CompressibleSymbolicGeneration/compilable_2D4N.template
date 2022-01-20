@@ -1,5 +1,8 @@
 #include "symbolic_test_lib.h"
 #include <iomanip>
+#include <cstring>
+
+using namespace TestCompressibleNavierStokesSymbolic;
 
 static constexpr std::size_t nnodes = 4;
 static constexpr std::size_t dim = 2;
@@ -17,11 +20,27 @@ int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, Ele
 int test_substitute_lhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data);
 int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data);
 
-int main()
+int main(int argc, char ** argv)
 {
     int result = 0;
 
-    const auto data = RankineHugoniotQuadData();
+    const auto data = [=]()
+    {
+        if(argc < 2) return RankineHugoniotQuadData();
+
+        if(strcmp(argv[1], "rh") == 0) {
+            return RankineHugoniotQuadData();
+        }
+        if(strcmp(argv[1], "sod") == 0) {
+            return SodQuadData();
+        }
+
+        std::cerr << "Unrecognized test. Try any of:"
+                  <<" - rh for Rankine-Hugoniot\n"
+                  <<" - sod for Sod tube" << std::endl;
+        exit(1);
+    }();
+
     ShapeFunGrad DN_DX;
     ShapeFun N;
 
@@ -49,13 +68,13 @@ int test_substitute_rho_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     //substitute_rho_proj_2D
 
     Vector<nnodes> expected;
-    expected[0] = 0.122021666664901829;
-    expected[1] = 0.0326956070419600897;
-    expected[2] = 0.122021666664901829;
-    expected[3] = 0.455391059617647198;
+    expected[0] = 0.01041666667;
+    expected[1] = 0.002791137421;
+    expected[2] = 0.01041666667;
+    expected[3] = 0.03887552925;
 
     std::cout << "test_substitute_rho_proj_2D:";
-    int test = expected.assert_almost_equal(rho_proj);
+    int test = rho_proj.validate(expected);
     if(test == 0)
     {
         std::cout << " OK";
@@ -74,17 +93,17 @@ int test_substitute_mom_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
 //substitute_mom_proj_2D
 
     Vector<dim * nnodes> expected;
-    expected[0] = -4394.0308473424238;
-    expected[1] = 4394.31412179187009;
-    expected[2] = -1177.37701706284429;
-    expected[3] = 1177.45292022280978;
-    expected[4] = -4394.03084734242384;
-    expected[5] = 4394.31412179187009;
-    expected[6] = -16398.7463723068468;
-    expected[7] = 16399.803566944669;
+    expected[0] =  0.07326336786;
+    expected[1] = -0.03791468141;
+    expected[2] =  0.01963086025;
+    expected[3] = -0.01015920826;
+    expected[4] =  0.07326336786;
+    expected[5] = -0.03791468141;
+    expected[6] =  0.2734226112;
+    expected[7] = -0.1414995174;
     
     std::cout << "test_substitute_mom_proj_2D:";
-    int test = expected.assert_almost_equal(mom_proj);
+    int test = mom_proj.validate(expected);
     if(test == 0)
     {
         std::cout << " OK";
@@ -102,13 +121,13 @@ int test_substitute_tot_ener_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_D
 //substitute_tot_ener_proj_2D
     
     Vector<nnodes> expected;
-    expected[0] = 0.0944634901631313112;
-    expected[1] = 0.0253114159034363399;
-    expected[2] = 0.0944634901631313112;
-    expected[3] = 0.352542544749088915;
+    expected[0] = 0.01452383482;
+    expected[1] = 0.003891649811;
+    expected[2] = 0.01452383482;
+    expected[3] = 0.05420368946;
 
     std::cout << "test_substitute_tot_ener_proj_2D:";
-    int test = expected.assert_almost_equal(tot_ener_proj);
+    int test = tot_ener_proj.validate(expected);
     if(test == 0)
     {
         std::cout << " OK";
@@ -154,7 +173,7 @@ int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, Ele
     expected[15] = -0.3587281757;
 
     std::cout << "test_substitute_rhs_2D_OSS:";
-    int test = expected.assert_almost_equal(rRightHandSideBoundedVector);
+    int test = rRightHandSideBoundedVector.validate(expected);
     if(test == 0)
     {
         std::cout << " OK";
@@ -200,7 +219,7 @@ int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     expected[15] = -0.3587281757;
 
     std::cout << "test_substitute_rhs_2D_ASGS:";
-    int test = expected.assert_almost_equal(rRightHandSideBoundedVector);
+    int test = rRightHandSideBoundedVector.validate(expected);
     if(test == 0)
     {
         std::cout << " OK";

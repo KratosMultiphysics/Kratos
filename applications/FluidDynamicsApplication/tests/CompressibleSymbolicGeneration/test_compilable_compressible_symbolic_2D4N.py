@@ -9,6 +9,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 regenerate = True
 recompile = True
 compiler = "g++"
+test_args = "sod"
 
 parameters = KratosMultiphysics.Parameters("""
 {
@@ -40,14 +41,14 @@ if recompile or regenerate:
     outfile = parameters["output_filename"].GetString()
 
     print("\n---------------------Compiling---------------------------")
-    errcode = os.system("{} {} -g -O0 -o test.out -std=c++11 -Wall -Wextra -fsanitize=address -fsanitize=leak -fsanitize=undefined".format(compiler, outfile))
+    errcode = os.system("{} {} -o test.out".format(compiler, outfile))
     if errcode != 0:
         print("\nGCC returned error code {}\n".format(errcode))
         exit(errcode)
 
 # Testing
 print("\n----------------------Testing----------------------------")
-errcode = os.system("./test.out")
+errcode = os.system("./test.out {}".format(test_args))
 if errcode != 0:
     print("\nTests returned error code {}\n".format(errcode))
     exit(errcode)
