@@ -230,7 +230,7 @@ private:
 
     const Variable<Vector>* mpElementalDistancesVariable = &ELEMENTAL_DISTANCES;
     const Variable<Vector>* mpElementalEdgeDistancesVariable = &ELEMENTAL_EDGE_DISTANCES;
-    const Variable<Vector>* mpElementalEdgeDistancesExtapolatedVariable = &ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+    const Variable<Vector>* mpElementalEdgeDistancesExtrapolatedVariable = &ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
     const Variable<array_1d<double, 3>>* mpEmbeddedVelocityVariable = &EMBEDDED_VELOCITY;
 
     ///@}
