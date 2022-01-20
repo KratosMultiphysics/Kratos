@@ -224,9 +224,6 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
         //Variables.tau1=0.0;
         //Variables.tau2=0.0;
 
-        //KRATOS_INFO("UPVMS") << "Constitutive Matrix: " << Variables.TensorIdentityMatrix  << std::endl;
-
-
         /* NOTE:
         The material points will have constant mass as defined at the beginning.
         However, the density and volume (integration weight) are changing every time step.*/
@@ -257,6 +254,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
             volume_force,
             mMP.volume,
             rCurrentProcessInfo);
+            //KRATOS_INFO("UPVMS") << "Volume force " << volume_force << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -523,7 +521,7 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables)
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-    const unsigned int voigt_dimension = (dimension-1)*(dimension-1)*2;
+    const unsigned int voigt_dimension = (dimension-1)*(dimension-1)+2;
     rVariables.Identity = IdentityMatrix(dimension);
 
     // Set Pressure and Pressure Gradient in gauss points
@@ -574,7 +572,6 @@ void UpdatedLagrangianUPVMS::ComputeElementSize(double& ElemSize){
         
         KRATOS_CATCH("")
 } 
-
 
 /*double UpdatedLagrangianUPVMS::ComputeElementSize(BoundedMatrix<double,TNumNodes, TDim>& DN_DX){
 
@@ -685,7 +682,7 @@ double& UpdatedLagrangianUPVMS::TensorIdentityComponent (double& rCabcd, General
     const unsigned int& a, const unsigned int& b, const unsigned int& c, const unsigned int& d)
 {
 
-    rCabcd = 0;
+    //rCabcd = 0;
 
     double IdotI = rVariables.Identity(a, b) * rVariables.Identity(c, d);
     double Isym = (rVariables.Identity(a, c) * rVariables.Identity(b, d) +
@@ -706,7 +703,7 @@ void UpdatedLagrangianUPVMS::ConvertPressureGradient(Vector& PressureGradientVoi
 {
     KRATOS_TRY
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int voigt_dimension=(dimension -1)*(dimension-1)*2;
+    const unsigned int voigt_dimension=(dimension-1)*(dimension-1)+2;
     PressureGradientVoigt=ZeroVector(voigt_dimension);
 
    if( dimension == 2 )
@@ -861,28 +858,28 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     //unsigned int index_p = dimension;
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector Stab1 = rVolumeForce + rVariables.PressureGradient;
+    // Vector Stab1 = rVolumeForce + rVariables.PressureGradient;
     Vector Testf2   = prod(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix),rVariables.PressureGradientVoigt);
 
     // double bulk_modulus = 1.0 // CORREGIR
+    unsigned int indexi  = 0;
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index_up = dimension * i + i;
+        unsigned int index_u  = dimension * i;
         
-        // unsigned int index_u  = dimension * i;
-
-        for ( unsigned int j = 0; j < dimension; j++ )
+        for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
-            rRightHandSideVector[index_up + j] += rVariables.tau1 * Stab1(j) * Testf1(i)  * rIntegrationWeight;
-            rRightHandSideVector[index_up + j] += rVariables.tau1 * Stab1(j) * Testf2(index_up)  * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (rVolumeForce[jdim] + rVariables.PressureGradient[jdim]) * Testf1(i) * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (rVolumeForce[jdim] + rVariables.PressureGradient[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
-            rRightHandSideVector[index_up + j] -= rVariables.tau2  * ((1.0 - 1.0 / rVariables.detFT)) * rVariables.DN_DX(i,j) *rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] -= rVariables.tau2  * ((1.0 - 1.0 / rVariables.detFT)) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             // rVariables.PressureGP/bulk_modulus)
+            indexi++;
         }
     }
 
- 
     KRATOS_CATCH( "" )
 }
 
@@ -902,13 +899,16 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
-    Vector Stab1 = prod(rVariables.DN_DX,rVolumeForce+rVariables.PressureGradient);
+    Vector aux = rVariables.PressureGradient+ rVolumeForce;
+    Vector Stab1 = prod(rVariables.DN_DX,aux); //
 
     //double bulk_modulus = 1.0 // CORREGIR
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        rRightHandSideVector[index_p] -= rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
+        rRightHandSideVector[index_p] += rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
+        
+        
         //rRightHandSideVector[index_p] -= rVariables.tau2  * ((1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * rIntegrationWeight;
         // rVariables.PressureGP/bulk_modulus 
         index_p += (dimension + 1);
@@ -1168,9 +1168,9 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKuuStab (MatrixType& rLeftHandSideMa
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     
     Vector Kuustab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector Kuustab2 = prod(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B)),rVariables.PressureGradientVoigt);
+    Vector Kuustab2 = prod( Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
     Vector testf1   = Kuustab1;
-    Vector testf2   = prod(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix),rVariables.PressureGradientVoigt);
+    Vector testf2   = prod( Matrix(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix)),rVariables.PressureGradientVoigt);
 
 
     unsigned int indexi = 0;
@@ -1216,22 +1216,26 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKupStab (MatrixType& rLeftHandSideMa
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector Stab1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector Stab2 = prod(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B)),rVariables.PressureGradientVoigt);
+    Vector Stab2 = prod(Matrix(trans(prod(rVariables.TensorIdentityMatrix,rVariables.B))),rVariables.PressureGradientVoigt);
 
     // Assemble components considering added DOF matrix system
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index_p  = dimension;
         unsigned int index_up = dimension * i + i;
+
+        unsigned int indexj = 0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
             for ( unsigned int k = 0; k < dimension; k++ )
             {
-                // rLeftHandSideMatrix(index_up + k, index_p) += rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
-
-                rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau1 * Stab1(i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau1 * Stab2(index_up) * rVariables.DN_DX(j, k) * rIntegrationWeight;
+        
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab1(j) * rVariables.DN_DX(i, k) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_up + k, index_p) -= rVariables.tau1 * Stab2(indexj) * rVariables.DN_DX(i, k) * rIntegrationWeight;
+                
+                //---------
                 //rLeftHandSideMatrix(index_up + k, index_p) += rVariables.tau2 * rVariables.DN_DX(i, k) * r_N(0, j) * rIntegrationWeight;
+                indexj++;
             }
             index_p += (dimension + 1);
         }
@@ -1256,7 +1260,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     //const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     Vector Testf1 = prod(rVariables.DN_DX, rVariables.PressureGradient);
-    Vector Testf2   = prod(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix),rVariables.PressureGradientVoigt);
+    Vector Testf2   = prod(Matrix(prod(trans(rVariables.B),rVariables.TensorIdentityMatrix)),rVariables.PressureGradientVoigt);
 
     //double bulk_modulus = 1.0 // CORREGIR!!!!
 
@@ -1264,14 +1268,16 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKpuStab (MatrixType& rLeftHandSideMa
     unsigned int index_p = dimension;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
+        unsigned int indexj = 0;
         for ( unsigned int j = 0; j < number_of_nodes; j++ )
         {
             unsigned int index_up = dimension*j + j;
             for ( unsigned int k = 0; k < dimension; k++ )
             {
                 rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf1(j) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf2(index_up) * rIntegrationWeight;
+                rLeftHandSideMatrix(index_p, index_up + k) -= rVariables.tau1 * rVariables.DN_DX(i, k) * Testf2(indexj) * rIntegrationWeight;
                 
+                indexj++;
                 //rLeftHandSideMatrix(index_p, index_up + k) += rVariables.tau2 * (1.0 / bulk_modulus) * r_N(0, i) * rVariables.DN_DX(j, k) * rIntegrationWeight;
             }
         }
@@ -1302,7 +1308,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-             rLeftHandSideMatrix(indexpi, indexpj) += rVariables.tau1 * Stab1(i,j)  * rIntegrationWeight;
+             rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau1 * Stab1(i,j)  * rIntegrationWeight;
             //rLeftHandSideMatrix(indexpi, indexpj) -= rVariables.tau2 * (1.0 / bulk_modulus) *r_N(0, i) * r_N(0, j) * rIntegrationWeight;
 
             indexpj += (dimension + 1);
