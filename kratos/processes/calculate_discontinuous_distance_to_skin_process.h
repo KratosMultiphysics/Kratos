@@ -163,6 +163,11 @@ public:
         const Variable<array_1d<double,3>> &rVariable,
         const Variable<array_1d<double,3>> &rEmbeddedVariable);
 
+    /**
+     * @brief Obtain the default parameters to construct the class.
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -592,9 +597,6 @@ private:
      */
     GlobalPointerCommunicator<Element>::Pointer CreatePointerCommunicator();
     ///@}
-
-
-    const Parameters GetDefaultParameters() const override;
 
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
 
