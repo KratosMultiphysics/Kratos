@@ -54,7 +54,7 @@ namespace Kratos
         , mrVolumePart(rVolumePart)
         , mOptions(rOptions)
     {
-        KRATOS_DEPRECATED_MESSAGE("Please use parameter constructor instead of flags.")
+        KRATOS_WARNING("DEPRECATION") << "Please use the parameter constructor instead of flags." << std::endl;
         mParameters = GetDefaultParameters();
         mParameters["calculate_elemental_edge_distances"].SetBool(mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES));
         mParameters["calculate_elemental_edge_distances_extrapolated"].SetBool(mOptions.Is(CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED));
