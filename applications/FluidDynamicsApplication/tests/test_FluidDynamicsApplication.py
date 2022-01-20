@@ -120,7 +120,6 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
     nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTriangle'))
     nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorQuad'))
-    # nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTetra')) # Takes too long
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -135,7 +134,7 @@ def AssembleTestSuites():
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
-
+    validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTetra')) # Takes too long
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
