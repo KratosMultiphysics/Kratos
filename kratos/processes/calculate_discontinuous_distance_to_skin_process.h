@@ -76,6 +76,12 @@ public:
         ModelPart& rSkinPart,
         const Flags rOptions);
 
+    /// Constructor with parameters
+    CalculateDiscontinuousDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        Parameters& rParameters);
+
     /// Destructor.
     ~CalculateDiscontinuousDistanceToSkinProcess() override;
 
@@ -205,6 +211,7 @@ private:
 
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
+    Parameters mParameters;
 
     Flags mOptions;
 
@@ -585,6 +592,9 @@ private:
      */
     GlobalPointerCommunicator<Element>::Pointer CreatePointerCommunicator();
     ///@}
+
+
+    const Parameters GetDefaultParameters() const override;
 
 }; // Class CalculateDiscontinuousDistanceToSkinProcess
 
