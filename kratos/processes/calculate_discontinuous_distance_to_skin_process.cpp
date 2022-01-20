@@ -84,9 +84,8 @@ namespace Kratos
             "use_positive_epsilon_for_zero_values"                   : true
         })" );
 
-    return default_parameters;
-}
-
+        return default_parameters;
+    }
 
     template<std::size_t TDim>
     CalculateDiscontinuousDistanceToSkinProcess<TDim>::~CalculateDiscontinuousDistanceToSkinProcess()
