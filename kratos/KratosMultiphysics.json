@@ -1,6 +1,6 @@
 {
 	"wheel_name": "KratosMultiphysics",
-	"included_modules": [],
+	"included_modules": ["response_functions"],
 	"included_binaries": ["Kratos.*", "KratosCore.*", "KratosCore.*", "zlib.*", "libz.*"],
 	"dependencies": [],
 	"author": "Kratos Team",

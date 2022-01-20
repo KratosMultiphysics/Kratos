@@ -18,12 +18,24 @@ class AdjointFluidSolver(FluidSolver):
         self.min_buffer_size = 2
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, self.main_model_part)
+        dofs_to_add = []
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_X")
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_Y")
+        dofs_to_add.append("ADJOINT_FLUID_VECTOR_1_Z")
+        dofs_to_add.append("ADJOINT_FLUID_SCALAR_1")
+        KratosMultiphysics.VariableUtils.AddDofsList(dofs_to_add, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver DOFs added correctly.")
+
+    def GetDofsList(self):
+        dofs_list = []
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_X")
+        dofs_list.append("ADJOINT_FLUID_VECTOR_1_Y")
+        if self.settings["domain_size"].GetInt() == 3:
+            dofs_list.append("ADJOINT_FLUID_VECTOR_1_Z")
+        dofs_list.append("ADJOINT_FLUID_SCALAR_1")
+
+        return dofs_list
 
     def InitializeSolutionStep(self):
         self._GetSolutionStrategy().InitializeSolutionStep()

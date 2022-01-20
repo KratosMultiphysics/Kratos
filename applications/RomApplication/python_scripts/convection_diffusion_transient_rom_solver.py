@@ -20,6 +20,8 @@ class ROMSolver(ConvectionDiffusionTransientSolver):
     """
 
     def __init__(self, model, custom_settings):
+        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'convection_diffusion_transient_rom_solver\'", "class is deprecated. Use the generic\'RomSolver\' one instead.")
+
         super(ROMSolver, self).__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 

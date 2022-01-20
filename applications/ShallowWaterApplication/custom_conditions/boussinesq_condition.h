@@ -144,11 +144,17 @@ public:
      */
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
-        Condition::Pointer p_new_elem = Create(NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
-        p_new_elem->SetData(this->GetData());
-        p_new_elem->Set(Flags(*this));
-        return p_new_elem;
+        Condition::Pointer p_new_cond = Create(NewId, this->GetGeometry().Create(ThisNodes), this->pGetProperties());
+        p_new_cond->SetData(this->GetData());
+        p_new_cond->Set(Flags(*this));
+        return p_new_cond;
     }
+
+    /**
+     * @brief Calculate the velocity laplacian projection
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the conditions
+     */
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -187,6 +193,19 @@ protected:
         ConditionData& rData,
         const IndexType PointIndex,
         const array_1d<double,TNumNodes>& rN) override;
+
+    void AddAuxiliaryLaplacian(
+        LocalVectorType& rNodalVelocityLaplacian,
+        const GeometryType& rParentGeometry,
+        const ConditionData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const Matrix& rDN_DX,
+        const double Weight = 1.0);
+
+    void CalculateShapeFunctionDerivaties(
+        Matrix& rDN_DX,
+        const GeometryType& rParentGeometry,
+        const Point& rPoint);
 
     ///@}
 
