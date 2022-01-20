@@ -2203,27 +2203,30 @@ void ModelPart::SetBufferSizeSubModelParts(ModelPart::IndexType NewBufferSize)
 }
 
 /// run input validation
-int ModelPart::Check(const ProcessInfo& rCurrentProcessInfo) const
+int ModelPart::Check() const
 {
     KRATOS_TRY
-    int err = 0;
-    for (ElementConstantIterator elem_iterator = ElementsBegin(); elem_iterator != ElementsEnd(); elem_iterator++)
-    {
-        const auto& r_elem = *elem_iterator;
-        err = r_elem.Check(rCurrentProcessInfo);
-    }
-    for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
-    {
-        const auto& r_cond = *condition_iterator;
-        err = r_cond.Check(rCurrentProcessInfo);
-    }
-    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin();
-            constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
-    {
-        const auto& r_constraint = *constraint_iterator;
-        err = r_constraint.Check(rCurrentProcessInfo);
-    }
-    return err;
+
+    const ProcessInfo& r_current_process_info = this->GetProcessInfo();
+
+    // Checks for all of the elements
+    block_for_each(this->Elements(), [&r_current_process_info](const Element& rElement){
+        rElement.Check(r_current_process_info);
+    });
+
+    // Checks for all of the conditions
+    block_for_each(this->Conditions(), [&r_current_process_info](const Condition& rCondition){
+        rCondition.Check(r_current_process_info);
+    });
+
+    // Checks for all of the constraints
+    block_for_each(this->MasterSlaveConstraints(), [&r_current_process_info](const MasterSlaveConstraint& rConstraint){
+        rConstraint.Check(r_current_process_info);
+    });
+
+    return 0;
+
+
     KRATOS_CATCH("");
 }
 
