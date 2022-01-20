@@ -37,21 +37,23 @@ public:
     }
 
     template<index_t R, index_t C>
-    int assert_almost_equal(Matrix<R,C> const& other, const double delta = 1e-7) const
+    int assert_almost_equal(Matrix<R,C> const& other, const double delta = 1e-8) const
     {
         static_assert(R==TRows, "Diferent number of rows!");
         static_assert(C==TCols, "Diferent number of cols!");
 
-        const int precision = - log10(0.5*delta);
+        const int precision = 1 - log10(delta);
 
         int result = 0;
         for(index_t i=0; i < R*C; ++i)
         {
             if(std::abs((*this)[i] - other[i]) > delta)
             {
-                std::cerr <<  std::setprecision(precision) 
+                std::cerr << std::setprecision(precision)
                           << "\nMismatch in entry #" << i <<": " 
-                          << (*this)[i] << " != " << other[i] << " within delta<" << delta;
+                          << (*this)[i] << " != " << other[i] 
+                          << " within delta<" 
+                          << std::setprecision(2) << delta;
                 result = 1;
             }
         }

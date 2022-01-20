@@ -6,7 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
     .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 
 # DATA ENTRY
-regenerate = False
+regenerate = True
 recompile = True
 compiler = "g++"
 
