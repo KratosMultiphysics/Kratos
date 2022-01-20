@@ -42,12 +42,11 @@ public:
     }
 
     template<index_t R, index_t C>
-    int validate(Matrix<R,C> const& reference, const double delta = 1e-6) const
+    int validate(Matrix<R,C> const& reference, const double rel_error = 1e-6) const
     {
         static_assert(R==TRows, "Diferent number of rows!");
         static_assert(C==TCols, "Diferent number of cols!");
 
-        const int precision = 1 - log10(delta);
 
         int result = 0;
         for(index_t i=0; i < R*C; ++i)
@@ -66,15 +65,26 @@ public:
 
         for(index_t i=0; i < R*C; ++i)
         {
-            const data_t diff = (*this)[i] - reference[i];
+            const data_t value = (*this)[i];
+            const data_t ref = reference[i];
+
+            if(value==0 && ref==0) continue;
+
+            const data_t diff = value - ref;
+            const data_t max = std::max(std::abs(value), std::abs(ref));
+
+            const data_t delta = rel_error * max;
+            const int precision = 1 - log10(rel_error);
+    
             if(std::abs(diff) > delta)
             {
                 std::cerr << std::setprecision(precision)
-                          << "\nMismatch in entry #" << i <<": " 
+                          << "\nMismatch in entry #" << i <<":\t" 
                           << (*this)[i] << " != " << reference[i] 
-                          << " within delta<" 
+                          << "\t(delta = " 
                           << std::setprecision(2) << delta
-                          << ". Diff = " << diff;
+                          << ").\tDiff = " << diff
+                          << "\tRel diff = " << diff/max;
                 result = 1;
             }
         }
