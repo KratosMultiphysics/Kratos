@@ -42,7 +42,7 @@ public:
     }
 
     template<index_t R, index_t C>
-    int validate(Matrix<R,C> const& reference, const double delta = 1e-8) const
+    int validate(Matrix<R,C> const& reference, const double delta = 1e-6) const
     {
         static_assert(R==TRows, "Diferent number of rows!");
         static_assert(C==TCols, "Diferent number of cols!");
@@ -66,13 +66,15 @@ public:
 
         for(index_t i=0; i < R*C; ++i)
         {
-            if(std::abs((*this)[i] - reference[i]) > delta)
+            const data_t diff = (*this)[i] - reference[i];
+            if(std::abs(diff) > delta)
             {
                 std::cerr << std::setprecision(precision)
                           << "\nMismatch in entry #" << i <<": " 
                           << (*this)[i] << " != " << reference[i] 
                           << " within delta<" 
-                          << std::setprecision(2) << delta;
+                          << std::setprecision(2) << delta
+                          << ". Diff = " << diff;
                 result = 1;
             }
         }
