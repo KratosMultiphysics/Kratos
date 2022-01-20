@@ -1,0 +1,183 @@
+#include <array>
+#include <iomanip>
+#include <cmath>
+#include <ostream>
+#include <iostream>
+
+enum Dofs {
+    RHO,
+    MOM_X,
+    MOM_Y,
+    E_TOT
+};
+
+/**
+ * @brief      Matrix-like class with only storage access and operator<<
+ *
+ */
+template<std::size_t TRows, std::size_t TCols>
+class Matrix
+{
+public:
+    using data_t = double;
+    using index_t = std::size_t;
+
+    Matrix(data_t fill = 0)
+    {
+        this->fill(fill);
+    };
+
+    Matrix& fill(data_t fill)
+    {
+        for(auto & row: m_data)
+        {
+            std::fill(row.begin(), row.end(), fill);
+        }  
+        return *this;
+    }
+
+    template<index_t R, index_t C>
+    int assert_almost_equal(Matrix<R,C> const& other, const double delta = 1e-7) const
+    {
+        static_assert(R==TRows, "Diferent number of rows!");
+        static_assert(C==TCols, "Diferent number of cols!");
+
+        const int precision = - log10(0.5*delta);
+
+        int result = 0;
+        for(index_t i=0; i < R*C; ++i)
+        {
+            if(std::abs((*this)[i] - other[i]) > delta)
+            {
+                std::cerr <<  std::setprecision(precision) 
+                          << "Mismatch in entry #" << i <<": " 
+                          << (*this)[i] << " != " << other[i] << " within delta<" << delta << "\n";
+                result = 1;
+            }
+        }
+        return result;
+    }
+
+    constexpr data_t const& operator[](const index_t i) const
+    {
+        return (*this)(i);
+    }
+
+    data_t & operator[](const index_t i)
+    {
+        return (*this)(i);
+    }
+
+    constexpr data_t const& operator()(const index_t i, const index_t j) const
+    {
+        return m_data[i][j];
+    }
+
+    constexpr data_t const& operator()(const index_t i) const
+    {
+        return m_data[i / TCols][i % TCols];
+    }
+
+    data_t & operator()(const index_t i, const index_t j)
+    {
+        return m_data[i][j];
+    }
+
+    data_t & operator()(const index_t i)
+    {
+        return m_data[i / TCols][i % TCols];
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, Matrix const& m)
+    {
+        for(auto const& row: m.m_data)
+        {
+            os << "[  " << row[0];
+            for(index_t i=1; i<TCols; ++i)
+            {
+                os << ", " << row[i];
+            }
+            os << "    ]\n";
+        }
+        os << "\n";
+
+        return os;
+    }
+
+private:
+    std::array<std::array<data_t, TCols>, TRows> m_data;
+};
+
+
+template<std::size_t TRows>
+using Vector = Matrix<TRows, 1>;
+
+
+inline void QuadShapeFunctions(Vector<4> & N, Matrix<4, 2> & DN_DX, double x, double y)
+{
+    N[0] = (1-x)*(1-y)/4;
+    N[1] = (1+x)*(1-y)/4;
+    N[2] = (1+x)*(1+y)/4;
+    N[3] = (1-x)*(1+y)/4;
+
+    DN_DX(0,0) = -(1-y)/4;      DN_DX(0,1) = -(1-x)/4;
+    DN_DX(1,0) =  (1-y)/4;      DN_DX(1,1) = -(1+x)/4;
+    DN_DX(2,0) =  (1+y)/4;      DN_DX(2,1) =  (1+x)/4;
+    DN_DX(3,0) = -(1+y)/4;      DN_DX(3,1) =  (1-x)/4;
+}
+
+template<unsigned int Tnodes, unsigned int Tdim, unsigned int Tblocksize>
+struct ElementDataT
+{
+    Matrix<Tblocksize, Tnodes> U;
+    Matrix<Tblocksize, Tnodes> dUdt;
+    
+    Vector<Tnodes> m_ext;
+    Vector<Tnodes> r_ext;
+    Matrix<Tdim, Tnodes> f_ext;
+
+    Vector<Tnodes> alpha_sc_nodes;
+    Vector<Tnodes> beta_sc_nodes;
+    Vector<Tnodes> lamb_sc_nodes;
+    Vector<Tnodes> mu_sc_nodes;
+    double alpha, beta, lambda, mu;
+
+    Matrix<Tnodes, Tblocksize> ResProj;
+
+    double h;
+    double gamma, c_v;
+};
+
+
+ElementDataT<4, 2, 4> RankineHugoniotQuadData()
+{
+    ElementDataT<4,2,4> data;
+
+    constexpr double rho_0 = 1.7712;
+    constexpr double rho_1 = 2.07104;
+
+    constexpr double mom = 411.99;
+
+    constexpr double et_0 = 400452;
+    constexpr double et_1 = 654492;
+
+    data.U(RHO, 0) = rho_0;    data.U(RHO, 1) = rho_1;    data.U(RHO, 2) = rho_1;    data.U(RHO, 3) = rho_0;
+    data.U(MOM_X, 0) = mom;    data.U(MOM_X, 1) = mom;    data.U(MOM_X, 2) = mom;    data.U(MOM_X, 3) = mom;
+    data.U(E_TOT, 0) = et_0;   data.U(E_TOT, 1) = et_1;   data.U(E_TOT, 2) = et_1;   data.U(E_TOT, 3) = et_0;
+
+    data.alpha_sc_nodes.fill(1.5e-4);
+    data.beta_sc_nodes.fill(2.8e-5);
+    data.lamb_sc_nodes.fill(1.3e-7);
+    data.mu_sc_nodes.fill(2.3e-6);
+
+    data.alpha = 0;
+    data.beta = 1.13e-4;
+    data.lambda = 6.84e-6;
+    data.mu = 1.26e-4;
+
+    data.gamma = 1.4;
+    data.c_v = 722.14;
+    data.h = 2.0;
+
+    return data;
+}
