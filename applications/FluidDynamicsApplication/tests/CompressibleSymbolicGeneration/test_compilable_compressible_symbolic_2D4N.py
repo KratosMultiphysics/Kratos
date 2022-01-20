@@ -20,7 +20,6 @@ parameters = KratosMultiphysics.Parameters("""
 """)
 
 # Generation
-
 path = pathlib.Path(__file__).parent
 os.chdir(path)
 
@@ -41,7 +40,7 @@ if recompile or regenerate:
     outfile = parameters["output_filename"].GetString()
 
     print("\n---------------------Compiling---------------------------")
-    errcode = os.system("{} {} -o test.out".format(compiler, outfile))
+    errcode = os.system("{} {} -o test.out -g -O0 -Wall -Wextra -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined".format(compiler, outfile))
     if errcode != 0:
         print("\nGCC returned error code {}\n".format(errcode))
         exit(errcode)
