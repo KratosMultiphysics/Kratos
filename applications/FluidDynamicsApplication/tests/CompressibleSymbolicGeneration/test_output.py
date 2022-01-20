@@ -5,6 +5,11 @@ import KratosMultiphysics
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
     .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 
+# DATA ENTRY
+regenerate = False
+recompile = True
+compiler = "g++"
+
 parameters = KratosMultiphysics.Parameters("""
 {
     "geometry": "quadrilateral",
@@ -13,20 +18,38 @@ parameters = KratosMultiphysics.Parameters("""
 }
 """)
 
+# Generation
+
 path = pathlib.Path(__file__).parent
 os.chdir(path)
 
-generator = CompressibleNavierStokesSymbolicGenerator(parameters)
-generator.Generate()
-generator.Write()
+if regenerate:
+    print("\n--------------------Generating--------------------------")
+    generator = CompressibleNavierStokesSymbolicGenerator(parameters)
+    generator.Generate()
+    generator.Write()
 
 # Compilation
-outfile = parameters["output_filename"].GetString()
+if recompile or regenerate:
+    print("\n----------------Checking compiler exists----------------")
+    errcode = os.system("{} --version".format(compiler))
+    if errcode != 0:
+        print("\n Compiler {} not available".format(compiler))
+        exit(errcode)
 
-errcode = os.system("g++ {} -o test.out".format(outfile))
+    outfile = parameters["output_filename"].GetString()
+
+    print("\n---------------------Compiling---------------------------")
+    errcode = os.system("{} {} -g -O0 -o test.out -std=c++11 -Wall -Wextra -fsanitize=address -fsanitize=leak -fsanitize=undefined".format(compiler, outfile))
+    if errcode != 0:
+        print("\nGCC returned error code {}\n".format(errcode))
+        exit(errcode)
+
+# Testing
+print("\n----------------------Testing----------------------------")
+errcode = os.system("./test.out")
 if errcode != 0:
-    print("\nGCC returned error code {}\n".format(errcode))
+    print("\nTests returned error code {}\n".format(errcode))
     exit(errcode)
 
-errcode = os.system("./test.out")
-exit(errcode)
+exit(0)

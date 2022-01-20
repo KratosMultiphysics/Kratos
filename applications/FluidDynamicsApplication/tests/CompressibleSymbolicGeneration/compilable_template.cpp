@@ -49,24 +49,49 @@ int test_substitute_rho_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     //substitute_rho_proj_2D
 
     Vector<nnodes> expected;
-    expected[0] = 0.1725866667;
-    expected[1] = 0.04624445796;
-    expected[2] = 0.1725866667;
-    expected[3] = 0.6441022087;
+    expected[0] = 0.01041666667;
+    expected[1] = 0.002791137421;
+    expected[2] = 0.01041666667;
+    expected[3] = 0.03887552925;
 
-    std::cout << std::setprecision(10) << "rho_proj:\n" << rho_proj << std::endl;
-
-    return expected.assert_almost_equal(rho_proj);
+    std::cout << "test_substitute_rho_proj_2D:";
+    int test = expected.assert_almost_equal(rho_proj);
+    if(test == 0)
+    {
+        std::cout << "OK";
+    }
+    std::cout << std::endl;
+    
+    return test;
 }
 
 
 int test_substitute_mom_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data)
 {
     Vector<dim * nnodes> mom_proj;
+
 // ------------------------- substitute_mom_proj_2D -------------------------
 //substitute_mom_proj_2D
-    std::cout << std::setprecision(10) << "mom_proj:\n" << mom_proj << std::endl;
-    return 0;
+
+    Vector<dim * nnodes> expected;
+    expected[0] = 0.07326336786;
+    expected[1] = -0.03791468141;
+    expected[2] = 0.01963086025;
+    expected[3] = -0.01015920826;
+    expected[4] = 0.07326336786;
+    expected[5] = -0.03791468141;
+    expected[6] = 0.2734226112;
+    expected[7] = -0.1414995174;
+    
+    std::cout << "test_substitute_rho_proj_2D:";
+    int test = expected.assert_almost_equal(mom_proj);
+    if(test == 0)
+    {
+        std::cout << "OK";
+    }
+    std::cout << std::endl;
+    
+    return test;
 }
 
 int test_substitute_tot_ener_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data)
@@ -74,11 +99,25 @@ int test_substitute_tot_ener_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_D
     Vector<nnodes> tot_ener_proj;
 // ------------------------- substitute_tot_ener_proj_2D -------------------------
 //substitute_tot_ener_proj_2D
-    std::cout << std::setprecision(10) << "tot_ener_proj:\n" << tot_ener_proj << std::endl;
-    return 0;
+    
+    Vector<nnodes> expected;
+    expected[0] = 0.01452383482;
+    expected[1] = 0.003891649811;
+    expected[2] = 0.01452383482;
+    expected[3] = 0.05420368946;
+
+    std::cout << "test_substitute_tot_ener_proj_2D:";
+    int test = expected.assert_almost_equal(tot_ener_proj);
+    if(test == 0)
+    {
+        std::cout << "OK";
+    }
+    std::cout << std::endl;
+    
+    return test;
 }
 
-int test_substitute_lhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data)
+int test_substitute_lhs_2D_OSS(ShapeFun const&, ShapeFunGrad const&, ElementData const&)
 {
 // ------------------------- substitute_lhs_2D_OSS -------------------------
 //substitute_lhs_2D_OSS
@@ -93,11 +132,37 @@ int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, Ele
     const double stab_c3 = 1;
 // ------------------------- substitute_rhs_2D_OSS -------------------------
 //substitute_rhs_2D_OSS
-    std::cout << std::setprecision(10) << "rRightHandSideBoundedVector (OSS):\n" << rRightHandSideBoundedVector << std::endl;
-    return 0;
+
+    Vector<blocksize*nnodes> expected;
+    expected[0] = 0.05903093967;
+    expected[1] = 0.04992055143;
+    expected[2] = -0.0305187576;
+    expected[3] = 0.08084174258;
+    expected[4] = 0.08200115221;
+    expected[5] = 0.03082145388;
+    expected[6] = -0.005004484361;
+    expected[7] = 0.1144782285;
+    expected[8] = 0.1782081785;
+    expected[9] = 0.1268689995;
+    expected[10] = -0.03037472342;
+    expected[11] = 0.2502758974;
+    expected[12] = -0.2567402704;
+    expected[13] = 0.230500113;
+    expected[14] = -0.1575540898;
+    expected[15] = -0.3587281757;
+
+    std::cout << "test_substitute_rhs_2D_OSS:";
+    int test = expected.assert_almost_equal(rRightHandSideBoundedVector);
+    if(test == 0)
+    {
+        std::cout << "OK";
+    }
+    std::cout << std::endl;
+    
+    return test;
 }
 
-int test_substitute_lhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data)
+int test_substitute_lhs_2D_ASGS(ShapeFun const&, ShapeFunGrad const&, ElementData const&)
 {
 // ------------------------- substitute_lhs_2D_ASGS -------------------------
 //substitute_lhs_2D_ASGS
@@ -112,6 +177,32 @@ int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     const double stab_c3 = 1;
 // ------------------------- substitute_rhs_2D_ASGS -------------------------
 //substitute_rhs_2D_ASGS
-    std::cout << std::setprecision(10) << "rRightHandSideBoundedVector (ASGS):\n" << rRightHandSideBoundedVector << std::endl;
-    return 0;
+
+    Vector<blocksize*nnodes> expected;
+    expected[0] = 0.05903093967;
+    expected[1] = 0.04992055143;
+    expected[2] = -0.0305187576;
+    expected[3] = 0.08084174258;
+    expected[4] = 0.08200115221;
+    expected[5] = 0.03082145388;
+    expected[6] = -0.005004484361;
+    expected[7] = 0.1144782285;
+    expected[8] = 0.1782081785;
+    expected[9] = 0.1268689995;
+    expected[10] = -0.03037472342;
+    expected[11] = 0.2502758974;
+    expected[12] = -0.2567402704;
+    expected[13] = 0.230500113;
+    expected[14] = -0.1575540898;
+    expected[15] = -0.3587281757;
+
+    std::cout << "test_substitute_rhs_2D_ASGS:";
+    int test = expected.assert_almost_equal(rRightHandSideBoundedVector);
+    if(test == 0)
+    {
+        std::cout << "OK";
+    }
+    std::cout << std::endl;
+    
+    return test;
 }

@@ -50,8 +50,8 @@ public:
             if(std::abs((*this)[i] - other[i]) > delta)
             {
                 std::cerr <<  std::setprecision(precision) 
-                          << "Mismatch in entry #" << i <<": " 
-                          << (*this)[i] << " != " << other[i] << " within delta<" << delta << "\n";
+                          << "\nMismatch in entry #" << i <<": " 
+                          << (*this)[i] << " != " << other[i] << " within delta<" << delta;
                 result = 1;
             }
         }
@@ -134,7 +134,7 @@ struct ElementDataT
     
     Vector<Tnodes> m_ext;
     Vector<Tnodes> r_ext;
-    Matrix<Tdim, Tnodes> f_ext;
+    Matrix<Tnodes, Tdim> f_ext;
 
     Vector<Tnodes> alpha_sc_nodes;
     Vector<Tnodes> beta_sc_nodes;
@@ -153,17 +153,72 @@ ElementDataT<4, 2, 4> RankineHugoniotQuadData()
 {
     ElementDataT<4,2,4> data;
 
-    constexpr double rho_0 = 1.7712;
-    constexpr double rho_1 = 2.07104;
+    constexpr double rho_0 = 1.16927;
+    constexpr double rho_1 = 1.46426;
 
-    constexpr double mom = 411.99;
+    constexpr double mom = 467.707;
 
-    constexpr double et_0 = 400452;
-    constexpr double et_1 = 654492;
+    constexpr double et_0 = 346854;
+    constexpr double et_1 = 422234;
 
-    data.U(RHO, 0) = rho_0;    data.U(RHO, 1) = rho_1;    data.U(RHO, 2) = rho_1;    data.U(RHO, 3) = rho_0;
-    data.U(MOM_X, 0) = mom;    data.U(MOM_X, 1) = mom;    data.U(MOM_X, 2) = mom;    data.U(MOM_X, 3) = mom;
-    data.U(E_TOT, 0) = et_0;   data.U(E_TOT, 1) = et_1;   data.U(E_TOT, 2) = et_1;   data.U(E_TOT, 3) = et_0;
+    data.U(RHO, 0) = rho_0;
+    data.U(RHO, 1) = rho_1;
+    data.U(RHO, 2) = rho_1;
+    data.U(RHO, 3) = rho_0;
+
+    data.U(MOM_X, 0) = mom;
+    data.U(MOM_X, 1) = mom;
+    data.U(MOM_X, 2) = mom;
+    data.U(MOM_X, 3) = mom;
+
+    data.U(E_TOT, 0) = et_0;
+    data.U(E_TOT, 1) = et_1;
+    data.U(E_TOT, 2) = et_1;
+    data.U(E_TOT, 3) = et_0;
+
+    data.alpha_sc_nodes.fill(1.5e-4);
+    data.beta_sc_nodes.fill(2.8e-5);
+    data.lamb_sc_nodes.fill(1.3e-7);
+    data.mu_sc_nodes.fill(2.3e-6);
+
+    data.alpha = 0;
+    data.beta = 1.13e-4;
+    data.lambda = 6.84e-6;
+    data.mu = 1.26e-4;
+
+    data.gamma = 1.4;
+    data.c_v = 722.14;
+    data.h = 2.0;
+
+    return data;
+}
+
+ElementDataT<4, 2, 4> SodQuadData()
+{
+    ElementDataT<4,2,4> data;
+
+    constexpr double rho_0 = 1.0;
+    constexpr double rho_1 = 0.125;
+
+    constexpr double mom = 0.0;
+
+    constexpr double et_0 = 2.5;
+    constexpr double et_1 = 0.25;
+
+    data.U(RHO, 0) = rho_0;
+    data.U(RHO, 1) = rho_1;
+    data.U(RHO, 2) = rho_1;
+    data.U(RHO, 3) = rho_0;
+
+    data.U(MOM_X, 0) = mom;
+    data.U(MOM_X, 1) = mom;
+    data.U(MOM_X, 2) = mom;
+    data.U(MOM_X, 3) = mom;
+
+    data.U(E_TOT, 0) = et_0;
+    data.U(E_TOT, 1) = et_1;
+    data.U(E_TOT, 2) = et_1;
+    data.U(E_TOT, 3) = et_0;
 
     data.alpha_sc_nodes.fill(1.5e-4);
     data.beta_sc_nodes.fill(2.8e-5);
