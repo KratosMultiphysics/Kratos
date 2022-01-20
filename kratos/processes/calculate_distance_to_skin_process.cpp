@@ -43,6 +43,34 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
+	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
+		ModelPart& rVolumePart,
+		ModelPart& rSkinPart,
+		Parameters& rParameters)
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
+		mParameters(rParameters)
+
+	{
+		mParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
+		mRayCastingRelativeTolerance = mParameters["ray_casting_relative_tolerance"].GetDouble();
+	}
+
+    template<std::size_t TDim>
+    const Parameters CalculateDistanceToSkinProcess<TDim>::GetDefaultParameters() const
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "ray_casting_relative_tolerance"                   : 1.0e-8
+        })" );
+
+		// Getting base class default parameters
+		const Parameters base_default_parameters = CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetDefaultParameters();
+		default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+		return default_parameters;
+    }
+
+	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::~CalculateDistanceToSkinProcess()
 	{
 	}
