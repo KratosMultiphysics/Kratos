@@ -13,8 +13,8 @@ compiler = "g++"
 parameters = KratosMultiphysics.Parameters("""
 {
     "geometry": "quadrilateral",
-    "template_filename" : "compilable_template.cpp",
-    "output_filename"   : "test_2D4N_symbolic.cpp"
+    "template_filename" : "compilable_2D4N.template",
+    "output_filename"   : "symbolic_test.cpp"
 }
 """)
 

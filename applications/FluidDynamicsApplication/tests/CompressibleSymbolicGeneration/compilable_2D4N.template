@@ -1,4 +1,4 @@
-#include "test_symbolic_lib.h"
+#include "symbolic_test_lib.h"
 #include <iomanip>
 
 static constexpr std::size_t nnodes = 4;

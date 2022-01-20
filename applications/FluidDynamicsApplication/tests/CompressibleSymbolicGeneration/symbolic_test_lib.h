@@ -4,16 +4,19 @@
 #include <ostream>
 #include <iostream>
 
-enum Dofs {
-    RHO,
-    MOM_X,
-    MOM_Y,
-    E_TOT
+template<std::size_t TDim>
+struct Dofs {
+    static constexpr std::size_t RHO = 0;
+    static constexpr std::size_t MOM_X = 1;
+    static constexpr std::size_t MOM_Y = 2;
+    static constexpr std::size_t MOM_Z = 3;
+    static constexpr std::size_t E_TOT = TDim + 1;
 };
 
-/**
- * @brief      Matrix-like class with only storage access and operator<<
- *
+/** Matrix-like class with only:
+ * - storage manipulation access
+ * - operator<<
+ * - almost equality check
  */
 template<std::size_t TRows, std::size_t TCols>
 class Matrix
@@ -163,20 +166,22 @@ ElementDataT<4, 2, 4> RankineHugoniotQuadData()
     constexpr double et_0 = 346854;
     constexpr double et_1 = 422234;
 
-    data.U(RHO, 0) = rho_0;
-    data.U(RHO, 1) = rho_1;
-    data.U(RHO, 2) = rho_1;
-    data.U(RHO, 3) = rho_0;
+    using d = Dofs<2>;
 
-    data.U(MOM_X, 0) = mom;
-    data.U(MOM_X, 1) = mom;
-    data.U(MOM_X, 2) = mom;
-    data.U(MOM_X, 3) = mom;
+    data.U(d::RHO, 0) = rho_0;
+    data.U(d::RHO, 1) = rho_1;
+    data.U(d::RHO, 2) = rho_1;
+    data.U(d::RHO, 3) = rho_0;
 
-    data.U(E_TOT, 0) = et_0;
-    data.U(E_TOT, 1) = et_1;
-    data.U(E_TOT, 2) = et_1;
-    data.U(E_TOT, 3) = et_0;
+    data.U(d::MOM_X, 0) = mom;
+    data.U(d::MOM_X, 1) = mom;
+    data.U(d::MOM_X, 2) = mom;
+    data.U(d::MOM_X, 3) = mom;
+
+    data.U(d::E_TOT, 0) = et_0;
+    data.U(d::E_TOT, 1) = et_1;
+    data.U(d::E_TOT, 2) = et_1;
+    data.U(d::E_TOT, 3) = et_0;
 
     data.alpha_sc_nodes.fill(1.5e-4);
     data.beta_sc_nodes.fill(2.8e-5);
@@ -207,20 +212,22 @@ ElementDataT<4, 2, 4> SodQuadData()
     constexpr double et_0 = 2.5;
     constexpr double et_1 = 0.25;
 
-    data.U(RHO, 0) = rho_0;
-    data.U(RHO, 1) = rho_1;
-    data.U(RHO, 2) = rho_1;
-    data.U(RHO, 3) = rho_0;
+    using d = Dofs<2>;
 
-    data.U(MOM_X, 0) = mom;
-    data.U(MOM_X, 1) = mom;
-    data.U(MOM_X, 2) = mom;
-    data.U(MOM_X, 3) = mom;
+    data.U(d::RHO, 0) = rho_0;
+    data.U(d::RHO, 1) = rho_1;
+    data.U(d::RHO, 2) = rho_1;
+    data.U(d::RHO, 3) = rho_0;
 
-    data.U(E_TOT, 0) = et_0;
-    data.U(E_TOT, 1) = et_1;
-    data.U(E_TOT, 2) = et_1;
-    data.U(E_TOT, 3) = et_0;
+    data.U(d::MOM_X, 0) = mom;
+    data.U(d::MOM_X, 1) = mom;
+    data.U(d::MOM_X, 2) = mom;
+    data.U(d::MOM_X, 3) = mom;
+
+    data.U(d::E_TOT, 0) = et_0;
+    data.U(d::E_TOT, 1) = et_1;
+    data.U(d::E_TOT, 2) = et_1;
+    data.U(d::E_TOT, 3) = et_0;
 
     data.alpha_sc_nodes.fill(1.5e-4);
     data.beta_sc_nodes.fill(2.8e-5);
