@@ -35,7 +35,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     def _ElementsAreNotSimplex(self):
         "Checks whether the first element is non-simplex"
         if self.main_model_part.NumberOfElements() == 0:
-            return False
+            return True
         
         geometry = self.main_model_part.Elements.__iter__().__next__().GetGeometry()
         is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
