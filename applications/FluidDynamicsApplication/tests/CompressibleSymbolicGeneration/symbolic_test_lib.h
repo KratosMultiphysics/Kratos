@@ -187,20 +187,20 @@ ElementDataT<4, 2, 4> RankineHugoniotQuadData()
 
     using d = Dofs<2>;
 
-    data.U(d::RHO, 0) = rho_0;
-    data.U(d::RHO, 1) = rho_1;
-    data.U(d::RHO, 2) = rho_1;
-    data.U(d::RHO, 3) = rho_0;
+    data.U(0, d::RHO) = rho_0;
+    data.U(1, d::RHO) = rho_1;
+    data.U(2, d::RHO) = rho_1;
+    data.U(3, d::RHO) = rho_0;
 
-    data.U(d::MOM_X, 0) = mom;
-    data.U(d::MOM_X, 1) = mom;
-    data.U(d::MOM_X, 2) = mom;
-    data.U(d::MOM_X, 3) = mom;
+    data.U(0, d::MOM_X) = mom;
+    data.U(1, d::MOM_X) = mom;
+    data.U(2, d::MOM_X) = mom;
+    data.U(3, d::MOM_X) = mom;
 
-    data.U(d::E_TOT, 0) = et_0;
-    data.U(d::E_TOT, 1) = et_1;
-    data.U(d::E_TOT, 2) = et_1;
-    data.U(d::E_TOT, 3) = et_0;
+    data.U(0, d::E_TOT) = et_0;
+    data.U(1, d::E_TOT) = et_1;
+    data.U(2, d::E_TOT) = et_1;
+    data.U(3, d::E_TOT) = et_0;
 
     data.alpha_sc_nodes.fill(1.5e-4);
     data.beta_sc_nodes.fill(2.8e-5);
@@ -233,20 +233,20 @@ ElementDataT<4, 2, 4> SodQuadData()
 
     using d = Dofs<2>;
 
-    data.U(d::RHO, 0) = rho_0;
-    data.U(d::RHO, 1) = rho_1;
-    data.U(d::RHO, 2) = rho_1;
-    data.U(d::RHO, 3) = rho_0;
+    data.U(0, d::RHO) = rho_0;
+    data.U(1, d::RHO) = rho_1;
+    data.U(2, d::RHO) = rho_1;
+    data.U(3, d::RHO) = rho_0;
 
-    data.U(d::MOM_X, 0) = mom;
-    data.U(d::MOM_X, 1) = mom;
-    data.U(d::MOM_X, 2) = mom;
-    data.U(d::MOM_X, 3) = mom;
+    data.U(0, d::MOM_X) = mom;
+    data.U(1, d::MOM_X) = mom;
+    data.U(2, d::MOM_X) = mom;
+    data.U(3, d::MOM_X) = mom;
 
-    data.U(d::E_TOT, 0) = et_0;
-    data.U(d::E_TOT, 1) = et_1;
-    data.U(d::E_TOT, 2) = et_1;
-    data.U(d::E_TOT, 3) = et_0;
+    data.U(0, d::E_TOT) = et_0;
+    data.U(1, d::E_TOT) = et_1;
+    data.U(2, d::E_TOT) = et_1;
+    data.U(3, d::E_TOT) = et_0;
 
     data.alpha_sc_nodes.fill(1.5e-4);
     data.beta_sc_nodes.fill(2.8e-5);

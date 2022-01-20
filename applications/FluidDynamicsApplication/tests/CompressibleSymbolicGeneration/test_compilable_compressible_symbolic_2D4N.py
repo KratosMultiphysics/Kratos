@@ -9,7 +9,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 regenerate = True
 recompile = True
 compiler = "g++"
-test_args = "sod"
+test_args = "rh"
 
 parameters = KratosMultiphysics.Parameters("""
 {

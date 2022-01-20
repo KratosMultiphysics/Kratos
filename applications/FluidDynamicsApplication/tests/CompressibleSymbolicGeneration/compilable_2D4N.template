@@ -68,10 +68,10 @@ int test_substitute_rho_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     //substitute_rho_proj_2D
 
     Vector<nnodes> expected;
-    expected[0] = 0.01041666667;
-    expected[1] = 0.002791137421;
-    expected[2] = 0.01041666667;
-    expected[3] = 0.03887552925;
+    expected[0] = 0;
+    expected[1] = 0;
+    expected[2] = 0;
+    expected[3] = 0;
 
     std::cout << "test_substitute_rho_proj_2D:";
     int test = rho_proj.validate(expected);
@@ -93,14 +93,14 @@ int test_substitute_mom_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
 //substitute_mom_proj_2D
 
     Vector<dim * nnodes> expected;
-    expected[0] =  0.07326336786;
-    expected[1] = -0.03791468141;
-    expected[2] =  0.01963086025;
-    expected[3] = -0.01015920826;
-    expected[4] =  0.07326336786;
-    expected[5] = -0.03791468141;
-    expected[6] =  0.2734226112;
-    expected[7] = -0.1414995174;
+    expected[0] = 323.41193368440514178;
+    expected[1] = -9.8639477702076238232e-13;
+    expected[2] = 86.657966453324164036;
+    expected[3] = -2.6430368392099063291e-13;
+    expected[4] = 323.41193368440514178;
+    expected[5] = -9.8639477702076238232e-13;
+    expected[6] = 1206.9897682842961331;
+    expected[7] = -3.6812754241620587954e-12;
     
     std::cout << "test_substitute_mom_proj_2D:";
     int test = mom_proj.validate(expected);
@@ -121,10 +121,10 @@ int test_substitute_tot_ener_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_D
 //substitute_tot_ener_proj_2D
     
     Vector<nnodes> expected;
-    expected[0] = 0.01452383482;
-    expected[1] = 0.003891649811;
-    expected[2] = 0.01452383482;
-    expected[3] = 0.05420368946;
+    expected[0] = -28449.159438906241121;
+    expected[1] = -7622.9292969991793143;
+    expected[2] = -28449.159438906241121;
+    expected[3] = -106173.70845862576971;
 
     std::cout << "test_substitute_tot_ener_proj_2D:";
     int test = tot_ener_proj.validate(expected);
@@ -155,22 +155,22 @@ int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, Ele
 //substitute_rhs_2D_OSS
 
     Vector<blocksize*nnodes> expected;
-    expected[0] = 0.05903093967;
-    expected[1] = 0.04992055143;
-    expected[2] = -0.0305187576;
-    expected[3] = 0.08084174258;
-    expected[4] = 0.08200115221;
-    expected[5] = 0.03082145388;
-    expected[6] = -0.005004484361;
-    expected[7] = 0.1144782285;
-    expected[8] = 0.1782081785;
-    expected[9] = 0.1268689995;
-    expected[10] = -0.03037472342;
-    expected[11] = 0.2502758974;
-    expected[12] = -0.2567402704;
-    expected[13] = 0.230500113;
-    expected[14] = -0.1575540898;
-    expected[15] = -0.3587281757;
+    expected[0] = -0.27983535927973562929;
+    expected[1] = 131.11110392555048065;
+    expected[2] = 195.386026326388901;
+    expected[3] = -97816.487139542135992;
+    expected[4] = 0.27983535927973962609;
+    expected[5] = 238.23440538623225393;
+    expected[6] = 52.353527966481571809;
+    expected[7] = 72815.815767064399552;
+    expected[8] = 1.0443597785862750449;
+    expected[9] = 889.10290501237784611;
+    expected[10] = -52.353527966484271872;
+    expected[11] = 271752.32403725769836;
+    expected[12] = -1.0443597785862790417;
+    expected[13] = 489.31330128659192269;
+    expected[14] = -195.38602632639174317;
+    expected[15] = -365056.09982268471504;
 
     std::cout << "test_substitute_rhs_2D_OSS:";
     int test = rRightHandSideBoundedVector.validate(expected);
@@ -201,22 +201,22 @@ int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
 //substitute_rhs_2D_ASGS
 
     Vector<blocksize*nnodes> expected;
-    expected[0] = 0.05903093967;
-    expected[1] = 0.04992055143;
-    expected[2] = -0.0305187576;
-    expected[3] = 0.08084174258;
-    expected[4] = 0.08200115221;
-    expected[5] = 0.03082145388;
-    expected[6] = -0.005004484361;
-    expected[7] = 0.1144782285;
-    expected[8] = 0.1782081785;
-    expected[9] = 0.1268689995;
-    expected[10] = -0.03037472342;
-    expected[11] = 0.2502758974;
-    expected[12] = -0.2567402704;
-    expected[13] = 0.230500113;
-    expected[14] = -0.1575540898;
-    expected[15] = -0.3587281757;
+    expected[0] = -0.27983535927973562929;
+    expected[1] = 131.11110392555048065;
+    expected[2] = 195.386026326388901;
+    expected[3] = -97816.487139542135992;
+    expected[4] = 0.27983535927973962609;
+    expected[5] = 238.23440538623225393;
+    expected[6] = 52.353527966481571809;
+    expected[7] = 72815.815767064399552;
+    expected[8] = 1.0443597785862750449;
+    expected[9] = 889.10290501237784611;
+    expected[10] = -52.353527966484271872;
+    expected[11] = 271752.32403725769836;
+    expected[12] = -1.0443597785862790417;
+    expected[13] = 489.31330128659192269;
+    expected[14] = -195.38602632639174317;
+    expected[15] = -365056.09982268471504;
 
     std::cout << "test_substitute_rhs_2D_ASGS:";
     int test = rRightHandSideBoundedVector.validate(expected);
