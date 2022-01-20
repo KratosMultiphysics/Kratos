@@ -228,10 +228,10 @@ private:
     bool mAreNeighboursComputed = false;
 
 
-    const Variable<Vector>* mElementalDistancesVariable = &ELEMENTAL_DISTANCES;
-    const Variable<Vector>* mElementalEdgeDistancesVariable = &ELEMENTAL_EDGE_DISTANCES;
-    const Variable<Vector>* mElementalEdgeDistancesExtapolatedVariable = &ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
-    const Variable<array_1d<double, 3>>* mEmbeddedVelocityVariable = &EMBEDDED_VELOCITY;
+    const Variable<Vector>* mpElementalDistancesVariable = &ELEMENTAL_DISTANCES;
+    const Variable<Vector>* mpElementalEdgeDistancesVariable = &ELEMENTAL_EDGE_DISTANCES;
+    const Variable<Vector>* mpElementalEdgeDistancesExtapolatedVariable = &ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+    const Variable<array_1d<double, 3>>* mpEmbeddedVelocityVariable = &EMBEDDED_VELOCITY;
 
     ///@}
     ///@name Private Operations

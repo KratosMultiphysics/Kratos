@@ -72,10 +72,10 @@ namespace Kratos
         , mParameters(rParameters)
     {
         mParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
-        mElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_distances_variable"].GetString());;
-        mElementalEdgeDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_edge_distances_variable"].GetString());
-        mElementalEdgeDistancesExtapolatedVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_edge_distances_extrapolated_variable"].GetString());
-        mEmbeddedVelocityVariable = &KratosComponents<Variable<array_1d<double, 3>>>::Get(mParameters["embedded_velocity_variable"].GetString());
+        mpElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_distances_variable"].GetString());;
+        mpElementalEdgeDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_edge_distances_variable"].GetString());
+        mpElementalEdgeDistancesExtapolatedVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_edge_distances_extrapolated_variable"].GetString());
+        mpEmbeddedVelocityVariable = &KratosComponents<Variable<array_1d<double, 3>>>::Get(mParameters["embedded_velocity_variable"].GetString());
     }
 
     template<std::size_t TDim>
