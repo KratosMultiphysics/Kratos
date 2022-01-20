@@ -122,6 +122,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "mesh_based_packaging",
             "surface_normal_shape_change",
             "face_angle",
+            "constant_response",
             "airfoil_angle_of_attack",
             "airfoil_chord_length",
             "airfoil_perimeter"

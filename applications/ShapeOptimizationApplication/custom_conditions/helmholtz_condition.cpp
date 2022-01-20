@@ -202,6 +202,12 @@ void HelmholtzCondition::Calculate(const Variable<Matrix>& rVariable, Matrix& rO
         CalculateSurfaceMassMatrix(rOutput,rCurrentProcessInfo);
 
 }
+
+void HelmholtzCondition::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    auto& parentElement = this->GetValue(NEIGHBOUR_ELEMENTS);
+    parentElement[0].Calculate(rVariable,rOutput,rCurrentProcessInfo);
+}
 /***********************************************************************************/
 /***********************************************************************************/
 void HelmholtzCondition::CalculateLocalSystem(
@@ -210,6 +216,10 @@ void HelmholtzCondition::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS))
+      << "COMPUTE_CONTROL_POINTS not defined in the ProcessInfo!" << std::endl;
+
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -239,7 +249,11 @@ void HelmholtzCondition::CalculateLocalSystem(
     MatrixType A;
     CalculateSurfaceStiffnessMatrix(A,rCurrentProcessInfo); 
 
-    MatrixType K = A + M;     
+    MatrixType K;
+    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS])
+        K = M;
+    else
+        K = M + A;    
 
     noalias(rLeftHandSideMatrix) += K;
 

@@ -40,6 +40,9 @@ class ImplicitVertexMorphingMapper():
         return KM.Parameters("""{
             "element_type" : "helmholtz_vec_element",
             "only_design_surface_parameterization" : true,
+            "formulate_on_the_undeformed_configuration" : true,
+            "automatic_filter_size" : true,
+            "adaptive_filter_size" : false,
             "surface_filter_radius" : 0.000000000001,            
             "bulk_filter_radius" : 0.000000000001,
             "poisson_ratio" : 0.3,            

@@ -32,12 +32,10 @@
 #include "custom_elements/helmholtz_element.h"
 #include "custom_elements/helmholtz_surf_element.h"
 #include "custom_elements/helmholtz_surf_prism_element.h"
-#include "custom_elements/helmholtz_surf_vec_element.h"
 #include "custom_elements/helmholtz_vec_element.h"
 
 /* CONDITIONS */
 #include "custom_conditions/helmholtz_condition.h"
-#include "custom_conditions/helmholtz_vec_condition.h"
 
 // ==============================================================================
 
@@ -206,8 +204,7 @@ namespace Kratos
 			const HelmholtzElement mHelmholtz3D8N;
 			const HelmholtzElement mHelmholtz3D27N;
 			const HelmholtzSurfElement mHelmholtzSurf3D3N;
-			const HelmholtzSurfPrismElement mHelmholtzSurfPrism3D3N;
-			const HelmholtzSurfVecElement mHelmholtzSurfVec3D3N;			
+			const HelmholtzSurfPrismElement mHelmholtzSurfPrism3D3N;		
 			const HelmholtzVecElement mHelmholtzVec2D3N;
 			const HelmholtzVecElement mHelmholtzVec3D4N;
 			const HelmholtzVecElement mHelmholtzVec3D8N;
@@ -221,12 +218,7 @@ namespace Kratos
 			const HelmholtzCondition mHelmholtzCondition3D6N;
 			const HelmholtzCondition mHelmholtzCondition3D8N;
 			const HelmholtzCondition mHelmholtzCondition3D9N;
-
-			const HelmholtzVecCondition mHelmholtzVecCondition3D3N;
-			const HelmholtzVecCondition mHelmholtzVecCondition3D4N;
-			const HelmholtzVecCondition mHelmholtzVecCondition3D6N;
-			const HelmholtzVecCondition mHelmholtzVecCondition3D8N;
-			const HelmholtzVecCondition mHelmholtzVecCondition3D9N;			
+		
 
 		///@}
 		///@name Private Operators

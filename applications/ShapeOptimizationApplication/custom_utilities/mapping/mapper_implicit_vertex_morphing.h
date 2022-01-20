@@ -28,11 +28,9 @@
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
 #include "custom_conditions/helmholtz_condition.h"
-#include "custom_conditions/helmholtz_vec_condition.h"
 #include "custom_elements/helmholtz_element.h"
 #include "custom_elements/helmholtz_surf_element.h"
 #include "custom_elements/helmholtz_surf_prism_element.h"
-#include "custom_elements/helmholtz_surf_vec_element.h"
 #include "custom_elements/helmholtz_vec_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
 #include "custom_strategies/strategies/helmholtz_vec_strategy.h"
@@ -141,11 +139,11 @@ public:
         ModelPart& design_surface_sub_model_part = mrModelPart.GetSubModelPart(mMapperSettings["design_surface_sub_model_part_name"].GetString());
 
         // create a new property for the vm surface       
-        Properties::Pointer p_vm_surf_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
+        p_vm_surf_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
         p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["surface_filter_radius"].GetDouble());   
 
         // create a new property for the vm elements       
-        Properties::Pointer p_vm_bulk_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
+        p_vm_bulk_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
         p_vm_bulk_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["bulk_filter_radius"].GetDouble());              
 
         if(only_suf_param){
@@ -185,10 +183,42 @@ public:
         
         mpHelmholtzStrategy->Initialize();
 
+        // now adjust the filter size if its adaptive
+        if(mMapperSettings["only_design_surface_parameterization"].GetBool() && (mMapperSettings["automatic_filter_size"].GetBool() || 
+        mMapperSettings["adaptive_filter_size"].GetBool()) ){
+
+            double max_length = 0;
+            for(auto& elem_i : mpVMModePart->Elements())
+                if(elem_i.GetGeometry().Length()>max_length)
+                    max_length = elem_i.GetGeometry().Length();
+
+            double surface_filter_size = max_length * 4;
+            p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,surface_filter_size); 
+            KRATOS_INFO("ShapeOpt") << " surface filter size is adjusted to " << surface_filter_size << std::endl;
+        }
+        else if(!mMapperSettings["only_design_surface_parameterization"].GetBool() && element_type.compare("helmholtz_vec_element") == 0){
+            double max_elem_weight = 0;
+            for(auto& elem_i : mpVMModePart->Elements())
+            {
+                double max_gp_weight_factor = 0;
+                elem_i.Calculate(HELMHOLTZ_POISSON_RATIO,max_gp_weight_factor,mpVMModePart->GetProcessInfo());
+                if(max_gp_weight_factor>max_elem_weight)
+                    max_elem_weight = max_gp_weight_factor;
+            }
+            double surface_filter_size = 2.0 * std::sqrt(max_elem_weight);        
+            p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,surface_filter_size);
+            KRATOS_INFO("ShapeOpt") << " surface filter size is adjusted to " << surface_filter_size << std::endl;
+        }        
+
 
         // calculate the initial control points
+        ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
+        
         SetVariableZero(HELMHOLTZ_SOURCE);
         SetVariableZero(CONTROL_POINT);
+
+        // // calculate (K+M) * X element wise, here we treat CONTROL_POINT as an auxilary 
+        rCurrentProcessInfo[COMPUTE_CONTROL_POINTS] = false;
         for(auto& node_i : mpVMModePart->Nodes())
         {
             array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS);
@@ -213,15 +243,54 @@ public:
             AddConditionVariableValuesVector(cond_i,CONTROL_POINT,rhs,-1.0);
         }
 
+        // here we fill the RHS of M * S = (K+M) * X
+        SetVariable1ToVarible2(CONTROL_POINT,HELMHOLTZ_SOURCE);
+        SetVariableZero(HELMHOLTZ_VARS);
+
+        // apply BC on the RHS and unassign BC
+        for(auto& node_i : mpVMModePart->Nodes())
+        {
+            array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS);
+
+            if(node_i.IsFixed(HELMHOLTZ_VARS_X))
+                r_nodal_variable_hl_vars(0) = node_i.X0();
+
+            if(node_i.IsFixed(HELMHOLTZ_VARS_Y))
+                r_nodal_variable_hl_vars(1) = node_i.Y0();
+
+            if(node_i.IsFixed(HELMHOLTZ_VARS_Z))
+                r_nodal_variable_hl_vars(2) = node_i.Z0();                
+        }
+
+        
+
+        // here we compute S = M-1 * (K+M) * X
+        rCurrentProcessInfo[COMPUTE_CONTROL_POINTS] = true;    
+        mpHelmholtzStrategy->Solve();
+        // here we clear/reset the problem for the clearaty's sake
+        mpHelmholtzStrategy->GetStrategy()->Clear();
+        SetVariable1ToVarible2(HELMHOLTZ_VARS,CONTROL_POINT);
+        rCurrentProcessInfo[COMPUTE_CONTROL_POINTS] = false;
+               
         //now export the linear system if needed
         if(mMapperSettings["export_linear_system"].GetBool()){            
-            SetVariable1ToVarible2(HELMHOLTZ_VARS,HELMHOLTZ_SOURCE); 
+
+            //set coords to the HELMHOLTZ_SOURCE to be exported for out processing
+            for(auto& node_i : mpVMModePart->Nodes())
+            {
+                array_3d& r_nodal_variable_hl_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE);
+                r_nodal_variable_hl_source(0) = node_i.X0();
+                r_nodal_variable_hl_source(1) = node_i.Y0();
+                r_nodal_variable_hl_source(2) = node_i.Z0();
+            }
+
             SetVariableZero(HELMHOLTZ_VARS);
             mpHelmholtzStrategy->ExportSystem();
             SetVariableZero(HELMHOLTZ_VARS);
             SetVariableZero(HELMHOLTZ_SOURCE);
-        }        
-
+        }
+       
+        
         mIsMappingInitialized = true;
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -333,7 +402,38 @@ public:
         if (mIsMappingInitialized == false)
             KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
         TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(*mpVMModePart,false);
-        tetrahedralMeshOrientationCheck.Execute();                    
+        tetrahedralMeshOrientationCheck.Execute();
+
+        // now adjust the filter size if it is needed
+        if(mMapperSettings["only_design_surface_parameterization"].GetBool() && mMapperSettings["adaptive_filter_size"].GetBool() && 
+        !mMapperSettings["formulate_on_the_undeformed_configuration"].GetBool()){
+
+            double max_length = 0;
+            for(auto& elem_i : mpVMModePart->Elements())
+                if(elem_i.GetGeometry().Length()>max_length)
+                    max_length = elem_i.GetGeometry().Length();
+
+            double surface_filter_size = max_length * 4;
+            p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,surface_filter_size); 
+            KRATOS_INFO("ShapeOpt") << " surface filter size is adjusted to " << surface_filter_size << std::endl;
+
+        }
+        // else if(!mMapperSettings["only_design_surface_parameterization"].GetBool() && 
+        //         mMapperSettings["element_type"].GetString().compare("helmholtz_vec_element") == 0 &&
+        //         !mMapperSettings["formulate_on_the_undeformed_configuration"].GetBool()){
+        //         double max_elem_weight = 0;
+        //         for(auto& elem_i : mpVMModePart->Elements())
+        //         {
+        //             double max_gp_weight_factor = 0;
+        //             elem_i.Calculate(HELMHOLTZ_POISSON_RATIO,max_gp_weight_factor,mpVMModePart->GetProcessInfo());
+        //             if(max_gp_weight_factor>max_elem_weight)
+        //                 max_elem_weight = max_gp_weight_factor;
+        //         }
+        //         double surface_filter_size = 1.1 * std::sqrt(max_elem_weight);        
+        //         p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,surface_filter_size);
+        //         KRATOS_INFO("ShapeOpt") << " surface filter size is adjusted to " << surface_filter_size << std::endl;
+        // }  
+
     }
 
     // --------------------------------------------------------------------------
@@ -393,6 +493,8 @@ protected:
     bool mIsMappingInitialized = false;
     ModelPart* mpVMModePart;
     HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>* mpHelmholtzStrategy;
+    Properties::Pointer p_vm_bulk_property;
+    Properties::Pointer p_vm_surf_property;
 
     ///@}
     ///@name Protected Operators
@@ -428,7 +530,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    
     ///@}
     ///@name Private Operators
     ///@{

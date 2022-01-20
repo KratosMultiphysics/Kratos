@@ -185,6 +185,9 @@ public:
     void Calculate(const Variable<Matrix>& rVariable,
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Calculate(const Variable<double>& rVariable,
+      double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;      
+
     /**
      * @brief This function provides a more general interface to the element.
      * @details It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output

@@ -64,6 +64,9 @@ void HelmholtzVecElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS))
+      << "COMPUTE_CONTROL_POINTS not defined in the ProcessInfo!" << std::endl;   
+
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -87,7 +90,11 @@ void HelmholtzVecElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     MatrixType A;
     CalculateBulkStiffnessMatrix(A,rCurrentProcessInfo);
 
-    MatrixType K = A + M;
+    MatrixType K;
+    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS])
+        K = M;
+    else
+        K = M + A;
 
     const unsigned int number_of_points = r_geometry.size();
     Vector nodal_vals(number_of_points*3);
@@ -154,6 +161,55 @@ void HelmholtzVecElement::Calculate(const Variable<Matrix>& rVariable, Matrix& r
     if (rVariable == HELMHOLTZ_MASS_MATRIX)
         CalculateBulkMassMatrix(rOutput,rCurrentProcessInfo);
 
+}
+
+void HelmholtzVecElement::Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+
+  GeometryType::JacobiansType J0;
+  GeometryType::JacobiansType invJ0;
+  VectorType detJ0;
+  const GeometryType &rgeom = this->GetGeometry();
+  const IntegrationMethod this_integration_method =
+      rgeom.GetDefaultIntegrationMethod();
+
+
+  const auto& r_integration_points = rgeom.IntegrationPoints(this_integration_method);
+  if (invJ0.size() != r_integration_points.size()) {
+    invJ0.resize(r_integration_points.size());
+  }
+  if (detJ0.size() != r_integration_points.size()) {
+    detJ0.resize(r_integration_points.size());
+  }
+
+  J0 = GetGeometry().Jacobian(J0, this_integration_method);
+
+  double avg_weighting_factor = 0;
+  double sum_weights = 0;
+
+    for ( IndexType PointNumber = 0; PointNumber < r_integration_points.size(); ++PointNumber ) {
+
+        sum_weights += r_integration_points[PointNumber].Weight();
+
+        MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
+                                        detJ0[PointNumber]);
+
+        // Stiffening of elements using Jacobian determinants and exponent between
+        // 0.0 and 2.0
+        const double factor =
+            100;               // Factor influences how far the HELMHOLTZ_VARS spreads
+                                // into the fluid mesh
+        const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
+                                // elements; 0 = no stiffening
+        const double quotient = factor / detJ0[PointNumber];
+        const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);  
+
+        avg_weighting_factor += r_integration_points[PointNumber].Weight() * weighting_factor;
+
+    }
+    avg_weighting_factor/=sum_weights;
+      
+    rOutput =   avg_weighting_factor;
 }
 //************************************************************************************
 //************************************************************************************
@@ -352,7 +408,7 @@ void HelmholtzVecElement::CalculateBulkStiffnessMatrix(
         MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(dimension, i_point);
         const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
 
-        noalias(rStiffnessMatrix) += r_helmholtz * r_helmholtz * prod(trans(B), IntToReferenceWeight * Matrix(prod(constitutive_matrix, B)));
+        noalias(rStiffnessMatrix) += prod(trans(B), IntToReferenceWeight * Matrix(prod(constitutive_matrix, B)));
         
     }
 
@@ -398,6 +454,8 @@ HelmholtzVecElement::SetAndModifyConstitutiveLaw(
   const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);
   const double poisson_coefficient = this->pGetProperties()->Has(HELMHOLTZ_POISSON_RATIO)
     ? this->pGetProperties()->GetValue(HELMHOLTZ_POISSON_RATIO) : 0.3;
+
+    // std::cout<<"weighting_factor : "<<weighting_factor<<std::endl;
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.

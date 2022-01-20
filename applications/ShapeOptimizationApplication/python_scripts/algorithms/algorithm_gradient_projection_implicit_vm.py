@@ -180,7 +180,16 @@ class AlgorithmGradientProjectionImplicitVM(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
-        if(self.mapper.implicit_settings["only_design_surface_parameterization"].GetBool()):
+
+        # update the control points
+        for node in self.optimization_model_part.Nodes:
+            node_control_point = node.GetSolutionStepValue(KSO.CONTROL_POINT)
+            node_control_point_update = node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE)
+            node_control_point += node_control_point_update
+            node.SetSolutionStepValue(KSO.CONTROL_POINT,node_control_point)        
+        # then update the shape  
+
+        if(self.mapper.implicit_settings["only_design_surface_parameterization"].GetBool()):              
             self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
             self.model_part_controller.SetReferenceMeshToMesh()
         else:
@@ -243,19 +252,20 @@ class AlgorithmGradientProjectionImplicitVM(OptimizationAlgorithm):
 
         self.mapper.Update()
 
-        index=0
-        self.curr_coords = []
-        for node in self.optimization_model_part.Nodes:     
-            self.curr_coords.append(node.X)            
-            node.X = self.init_coords[3*index+0]
-            node.X0 = node.X
-            self.curr_coords.append(node.Y)
-            node.Y = self.init_coords[3*index+1]
-            node.Y0 = node.Y
-            self.curr_coords.append(node.Z)
-            node.Z = self.init_coords[3*index+2]
-            node.Z0 = node.Z           
-            index = index + 1   
+        if(self.mapper.implicit_settings["formulate_on_the_undeformed_configuration"].GetBool()):
+            index=0
+            self.curr_coords = []
+            for node in self.optimization_model_part.Nodes:     
+                self.curr_coords.append(node.X)            
+                node.X = self.init_coords[3*index+0]
+                node.X0 = node.X
+                self.curr_coords.append(node.Y)
+                node.Y = self.init_coords[3*index+1]
+                node.Y0 = node.Y
+                self.curr_coords.append(node.Z)
+                node.Z = self.init_coords[3*index+2]
+                node.Z0 = node.Z           
+                index = index + 1   
 
         self.model_part_controller.ComputeUnitSurfaceNormals()
 
@@ -267,23 +277,24 @@ class AlgorithmGradientProjectionImplicitVM(OptimizationAlgorithm):
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
             self.mapper.InverseMap(gradient_variable, mapped_gradient_variable)
 
-        self.__computeControlPoint()
+        self.__computeControlPointUpdate()
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)    
 
-        index=0
-        for node in self.optimization_model_part.Nodes: 
-            node_curr_coords = self.curr_coords[3*index:3*index+3]
-            node.X = node_curr_coords[0]
-            node.X0 = node.X   
-            node.Y = node_curr_coords[1]
-            node.Y0 = node.Y   
-            node.Z = node_curr_coords[2]
-            node.Z0 = node.Z                         
-            index = index + 1        
+        if(self.mapper.implicit_settings["formulate_on_the_undeformed_configuration"].GetBool()):
+            index=0
+            for node in self.optimization_model_part.Nodes: 
+                node_curr_coords = self.curr_coords[3*index:3*index+3]
+                node.X = node_curr_coords[0]
+                node.X0 = node.X   
+                node.Y = node_curr_coords[1]
+                node.Y0 = node.Y   
+                node.Z = node_curr_coords[2]
+                node.Z0 = node.Z                         
+                index = index + 1        
 
     # --------------------------------------------------------------------------
-    def __computeControlPoint(self):
+    def __computeControlPointUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
         g_a, g_a_variables = self.__getActiveConstraints()
 
@@ -334,10 +345,6 @@ class AlgorithmGradientProjectionImplicitVM(OptimizationAlgorithm):
         self.optimization_utilities.AssignVectorToVariable(self.optimization_model_part, c, KSO.CORRECTION)
         self.optimization_utilities.AssignVectorToVariable(self.optimization_model_part, s+c, KSO.CONTROL_POINT_UPDATE)
 
-
-        cp = KM.Vector()
-        self.optimization_utilities.AssembleVector(self.optimization_model_part, cp, KSO.CONTROL_POINT)
-        self.optimization_utilities.AssignVectorToVariable(self.optimization_model_part, cp+s+c, KSO.CONTROL_POINT)
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
         active_constraint_values = []

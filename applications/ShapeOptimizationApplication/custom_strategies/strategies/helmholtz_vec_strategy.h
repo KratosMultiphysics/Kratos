@@ -168,6 +168,7 @@ public:
 
     void ExportSystem() 
     { 
+        mpstrategy->Clear();
         mpstrategy->Initialize();
         mpstrategy->InitializeSolutionStep();
         mpstrategy->Predict();         
@@ -192,6 +193,8 @@ public:
         TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mpstrategy->GetSystemVector()); 
 
         mpstrategy->FinalizeSolutionStep();
+
+        mpstrategy->Clear();
 
     }       
 

@@ -70,7 +70,8 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS))
+      << "COMPUTE_CONTROL_POINTS not defined in the ProcessInfo!" << std::endl;
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dimension = r_geometry.WorkingSpaceDimension();
@@ -94,7 +95,11 @@ void HelmholtzElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     MatrixType A;
     CalculateBulkStiffnessMatrix(A,rCurrentProcessInfo);
 
-    MatrixType K = A + M;
+    MatrixType K;
+    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS])
+        K = M;
+    else
+        K = M + A;
 
     const unsigned int number_of_points = r_geometry.size();
     Vector nodal_vals(number_of_points*dimension);
