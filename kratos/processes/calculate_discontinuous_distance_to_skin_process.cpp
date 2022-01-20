@@ -72,6 +72,10 @@ namespace Kratos
         , mParameters(rParameters)
     {
         mParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
+        mElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_distances_variable"].GetString());;
+        mElementalEdgeDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_edge_distances_variable"].GetString());
+        mElementalEdgeDistancesExtapolatedVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_edge_distances_extrapolated_variable"].GetString());
+        mEmbeddedVelocityVariable = &KratosComponents<Variable<array_1d<double, 3>>>::Get(mParameters["embedded_velocity_variable"].GetString());
     }
 
     template<std::size_t TDim>
@@ -79,9 +83,13 @@ namespace Kratos
     {
         const Parameters default_parameters = Parameters(R"(
         {
-            "calculate_elemental_edge_distances"                     : false,
-            "calculate_elemental_edge_distances_extrapolated"        : false,
-            "use_positive_epsilon_for_zero_values"                   : true
+            "elemental_distances_variable"                          :  "ELEMENTAL_DISTANCES",
+            "elemental_edge_distances_variable"                     :  "ELEMENTAL_EDGE_DISTANCES",
+            "elemental_edge_distances_extrapolated_variable"        :  "ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED",
+            "embedded_velocity_variable"                            :  "EMBEDDED_VELOCITY",
+            "calculate_elemental_edge_distances"                    : false,
+            "calculate_elemental_edge_distances_extrapolated"       : false,
+            "use_positive_epsilon_for_zero_values"                  : true
         })" );
 
         return default_parameters;
