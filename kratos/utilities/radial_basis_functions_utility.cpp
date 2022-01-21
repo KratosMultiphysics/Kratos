@@ -103,6 +103,7 @@ namespace Kratos
 
         // Find shape parameter http://www.math.iit.edu/~fass/Dolomites.pdf [Hardy]
         // TO DO: Build a matrix with distance norm values to recycle for RBFs evaluation.
+        // Make a function for this 
         double d = 0; // Total distance of nearest x_i neighbors 
         double h; // Shape parameter
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
@@ -123,6 +124,7 @@ namespace Kratos
         
 
         // Build the RBF interpolation matrix and RBF interpolated vector
+        // TODO: Make a function for this, get the norm values from the matrix created for finding shape parameter
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
                 norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
