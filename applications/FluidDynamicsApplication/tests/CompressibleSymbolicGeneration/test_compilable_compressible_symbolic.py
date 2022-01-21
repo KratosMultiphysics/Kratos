@@ -7,10 +7,39 @@ import KratosMultiphysics.KratosUnittest as KratosUnitTest
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
     .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 
+
 class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.TestCase):
+    def setUp(self):
+        self.remove_me = []
+
+    def tearDown(self):
+        for file_name in self.remove_me:
+            try:
+                os.remove(file_name)
+            except FileNotFoundError:
+                pass
+        self.remove_me = []
+
     def generate_compile_run(self, **kwargs):
+        """
+        Runs the test.
+
+        kwargs
+        ------
+
+        - regenerate: Instructs the test whether to call the symbolic generator
+            or use a pre-existing source file.
+        -recompile: Instructs the test whether to call the compiler
+            or use a pre-existing binary file.
+        - cleanup: Instructs the test whether to remove generated code and 
+            compiled binary
+        - compiler: Choice of compiler. Must accept GCC-like commands (e.g -00 -g)
+        - geometry: Choice of geometry. Format is xDyN, with x,y integers
+        - dump_values: Whether to print all the results or not
+        """
         regenerate = True if "regenerate" not in kwargs else kwargs["regenerate"]
         recompile = True if "recompile" not in kwargs else kwargs["recompile"]
+        cleanup = True if "cleanup" not in kwargs else kwargs["cleanup"]
         compiler = "g++" if "compiler" not in kwargs else kwargs["compiler"]
         geometry = "2D3N" if "geometry" not in kwargs else kwargs["geometry"]
         dump_values = False if "dump_values" not in kwargs else kwargs["dump_values"]
@@ -32,6 +61,10 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         parameters["geometry"].SetString(geometry_name)
         parameters["template_filename"].SetString("compilable_{}.template".format(geometry))
         parameters["output_filename"].SetString("symbolic_test_{}.cpp".format(geometry))
+
+        if cleanup:
+            self.remove_me.append(parameters["output_filename"].GetString())
+            self.remove_me.append("test.out")
 
         if regenerate:
             print("\n--------------------Generating--------------------------")
@@ -62,6 +95,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         args = {
             "regenerate": True,
             "recompile": True,
+            "cleanup": True,
             "compiler": "g++",
             "geometry": "2D4N",
             "dump_values": False
@@ -73,8 +107,9 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         args = {
             "regenerate": True,
             "recompile": True,
+            "cleanup": True,
             "compiler": "g++",
-            "geometry": "2D4N",
+            "geometry": "2D3N",
             "dump_values": False
         }
         with KratosUnitTest.WorkFolderScope(".", __file__):
