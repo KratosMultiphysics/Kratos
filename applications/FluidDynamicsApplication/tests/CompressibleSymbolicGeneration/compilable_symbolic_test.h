@@ -4,16 +4,12 @@
 #include <ostream>
 #include <iostream>
 
+/**
+ * This namespace containes classes and function mimicking the necessary
+ * behaviour of Kratos in order to run the generated code without having
+ * to modify it.
+ */
 namespace TestCompressibleNavierStokesSymbolic {
-
-template<std::size_t TDim>
-struct Dofs {
-    static constexpr std::size_t RHO = 0;
-    static constexpr std::size_t MOM_X = 1;
-    static constexpr std::size_t MOM_Y = 2;
-    static constexpr std::size_t MOM_Z = 3;
-    static constexpr std::size_t E_TOT = TDim + 1;
-};
 
 /** Matrix-like class with only:
  * - storage manipulation access
@@ -41,12 +37,23 @@ public:
         return *this;
     }
 
+    /**
+     * Performs three cheks on a matrix:
+     * - Ensures that no entries are NaN
+     * - Ensures that no entries are inf
+     * - Ensures almost-equality with a reference matrix
+     *
+     * @param[in]  reference  The reference matrix to compare to
+     * @param[in]  rel_error  The maximum allowable relative error
+     * 
+     * @return An error code. It is 0 if no errors, 1 if there are
+     * The errors are also be printed to std::err
+     */
     template<index_t R, index_t C>
     int validate(Matrix<R,C> const& reference, const double rel_error = 1e-6) const
     {
         static_assert(R==TRows, "Diferent number of rows!");
         static_assert(C==TCols, "Diferent number of cols!");
-
 
         int result = 0;
         for(index_t i=0; i < R*C; ++i)
@@ -146,7 +153,9 @@ private:
 template<std::size_t TRows>
 using Vector = Matrix<TRows, 1>;
 
-
+/**
+ * @brief Shape functions in isoparametric shapes
+ */
 template<std::size_t TDim, std::size_t TNodes>
 void ShapeFunctions(Vector<TNodes> & N, Matrix<TNodes, TDim> & DN_DX, double x, double y);
 
@@ -176,6 +185,13 @@ inline void ShapeFunctions(Vector<3> & N, Matrix<3, 2> & DN_DX, double x, double
     DN_DX(2,0) =  0;        DN_DX(2,1) =  0.5;
 }
 
+/**
+ * Struct containing data mimicking
+ * CompressibleNavierStokesExplicit::ElementDataStruct.
+ * 
+ * By default filled with Rankine-Hugoniot jump condition.
+ * Difusive magnitudes are made-up but within the correct order of magnitude.
+ */
 template<unsigned int Tdim, unsigned int Tnodes, unsigned int Tblocksize = Tdim+2>
 struct ElementDataT
 {
@@ -196,13 +212,14 @@ struct ElementDataT
 
     double h;
     double gamma, c_v;
+
+    ElementDataT();
 };
 
 /// Quad
-inline ElementDataT<2, 4> RankineHugoniotQuadData()
+template<>
+inline ElementDataT<2, 4>::ElementDataT()
 {
-    ElementDataT<2, 4> data;
-
     constexpr double rho_0 = 1.16927;
     constexpr double rho_1 = 1.46426;
 
@@ -211,45 +228,40 @@ inline ElementDataT<2, 4> RankineHugoniotQuadData()
     constexpr double et_0 = 346854;
     constexpr double et_1 = 422234;
 
-    using d = Dofs<2>;
+    this->U(0, 0) = rho_0;
+    this->U(1, 0) = rho_1;
+    this->U(2, 0) = rho_1;
+    this->U(3, 0) = rho_0;
 
-    data.U(0, d::RHO) = rho_0;
-    data.U(1, d::RHO) = rho_1;
-    data.U(2, d::RHO) = rho_1;
-    data.U(3, d::RHO) = rho_0;
+    this->U(0, 1) = mom;
+    this->U(1, 1) = mom;
+    this->U(2, 1) = mom;
+    this->U(3, 1) = mom;
 
-    data.U(0, d::MOM_X) = mom;
-    data.U(1, d::MOM_X) = mom;
-    data.U(2, d::MOM_X) = mom;
-    data.U(3, d::MOM_X) = mom;
+    this->U(0, 3) = et_0;
+    this->U(1, 3) = et_1;
+    this->U(2, 3) = et_1;
+    this->U(3, 3) = et_0;
 
-    data.U(0, d::E_TOT) = et_0;
-    data.U(1, d::E_TOT) = et_1;
-    data.U(2, d::E_TOT) = et_1;
-    data.U(3, d::E_TOT) = et_0;
+    this->alpha_sc_nodes.fill(1.5e-4);
+    this->beta_sc_nodes.fill(2.8e-5);
+    this->lamb_sc_nodes.fill(1.3e-7);
+    this->mu_sc_nodes.fill(2.3e-6);
 
-    data.alpha_sc_nodes.fill(1.5e-4);
-    data.beta_sc_nodes.fill(2.8e-5);
-    data.lamb_sc_nodes.fill(1.3e-7);
-    data.mu_sc_nodes.fill(2.3e-6);
+    this->alpha = 0;
+    this->beta = 1.13e-4;
+    this->lambda = 6.84e-6;
+    this->mu = 1.26e-4;
 
-    data.alpha = 0;
-    data.beta = 1.13e-4;
-    data.lambda = 6.84e-6;
-    data.mu = 1.26e-4;
-
-    data.gamma = 1.4;
-    data.c_v = 722.14;
-    data.h = 2.0;
-
-    return data;
+    this->gamma = 1.4;
+    this->c_v = 722.14;
+    this->h = 2.0;
 }
 
 /// Triangle
-inline ElementDataT<2, 3> RankineHugoniotTriangleData()
+template<>
+inline ElementDataT<2, 3>::ElementDataT()
 {
-    ElementDataT<2, 3> data;
-
     constexpr double rho_0 = 1.16927;
     constexpr double rho_1 = 1.46426;
 
@@ -258,35 +270,31 @@ inline ElementDataT<2, 3> RankineHugoniotTriangleData()
     constexpr double et_0 = 346854;
     constexpr double et_1 = 422234;
 
-    using d = Dofs<2>;
+    this->U(0, 0) = rho_0;
+    this->U(1, 0) = rho_1;
+    this->U(2, 0) = rho_1;
 
-    data.U(0, d::RHO) = rho_0;
-    data.U(1, d::RHO) = rho_1;
-    data.U(2, d::RHO) = rho_1;
+    this->U(0, 1) = mom;
+    this->U(1, 1) = mom;
+    this->U(2, 1) = mom;
 
-    data.U(0, d::MOM_X) = mom;
-    data.U(1, d::MOM_X) = mom;
-    data.U(2, d::MOM_X) = mom;
+    this->U(0, 3) = et_0;
+    this->U(1, 3) = et_1;
+    this->U(2, 3) = et_1;
 
-    data.U(0, d::E_TOT) = et_0;
-    data.U(1, d::E_TOT) = et_1;
-    data.U(2, d::E_TOT) = et_1;
+    this->alpha_sc_nodes.fill(1.5e-4);
+    this->beta_sc_nodes.fill(2.8e-5);
+    this->lamb_sc_nodes.fill(1.3e-7);
+    this->mu_sc_nodes.fill(2.3e-6);
 
-    data.alpha_sc_nodes.fill(1.5e-4);
-    data.beta_sc_nodes.fill(2.8e-5);
-    data.lamb_sc_nodes.fill(1.3e-7);
-    data.mu_sc_nodes.fill(2.3e-6);
+    this->alpha = 0;
+    this->beta = 1.13e-4;
+    this->lambda = 6.84e-6;
+    this->mu = 1.26e-4;
 
-    data.alpha = 0;
-    data.beta = 1.13e-4;
-    data.lambda = 6.84e-6;
-    data.mu = 1.26e-4;
-
-    data.gamma = 1.4;
-    data.c_v = 722.14;
-    data.h = 2.0;
-
-    return data;
+    this->gamma = 1.4;
+    this->c_v = 722.14;
+    this->h = 2.0;
 }
 
 }

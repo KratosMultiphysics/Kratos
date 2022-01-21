@@ -1,4 +1,4 @@
-#include "symbolic_test_lib.h"
+#include "compilable_symbolic_test.h"
 #include <iomanip>
 #include <cstring>
 
@@ -27,15 +27,12 @@ int main(int argc, char** argv)
     bool dump_values = false;
     if(argc > 1 && strcmp(argv[1], "--dump")==0) dump_values = true;
 
-    const auto data = RankineHugoniotTriangleData();
+    const ElementData data;
 
     ShapeFunGrad DN_DX;
     ShapeFun N;
 
-    double xi = -sqrt(3)/3;
-    double eta = sqrt(3)/3;
-
-    ShapeFunctions<dim, nnodes>(N, DN_DX, xi, eta);
+    ShapeFunctions<dim, nnodes>(N, DN_DX, 0, 0);
 
     result += test_substitute_rho_proj_2D(DN_DX, data, dump_values);
     result += test_substitute_mom_proj_2D(DN_DX, data, dump_values);
