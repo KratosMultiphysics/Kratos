@@ -237,6 +237,10 @@ protected:
         // Matrix VolumetricConstitutiveMatrix;
         Matrix Identity;
         Matrix TensorIdentityMatrix;
+        
+        //Modulus
+        double ShearModulus;
+        double BulkModulus;
     };
 
 public:
