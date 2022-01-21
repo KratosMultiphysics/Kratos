@@ -12,10 +12,10 @@
 
 // System includes
 
+// External includes
+
 // Project includes
 #include "graph_utilities.h"
-
-// External includes
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------

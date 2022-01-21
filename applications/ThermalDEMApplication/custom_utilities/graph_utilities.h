@@ -23,7 +23,7 @@
 
 namespace Kratos {
 
-  class KRATOS_API(DEM_APPLICATION) GraphUtilities {
+  class KRATOS_API(THERMAL_DEM_APPLICATION) GraphUtilities {
 
   public:
 

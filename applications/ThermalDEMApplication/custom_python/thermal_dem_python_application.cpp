@@ -45,7 +45,7 @@ PYBIND11_MODULE(KratosThermalDEMApplication, m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
 
-    // Registering variables in python
+    // Register variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DIRECT_CONDUCTION_MODEL)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INDIRECT_CONDUCTION_MODEL)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVECTION_MODEL)

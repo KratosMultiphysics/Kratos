@@ -28,6 +28,7 @@ void KratosThermalDEMApplication::Register()
 {
   std::cout << "Initializing KratosThermalDEMApplication... " << std::endl;
 
+  // Register variables
   KRATOS_REGISTER_VARIABLE(DIRECT_CONDUCTION_MODEL)
   KRATOS_REGISTER_VARIABLE(INDIRECT_CONDUCTION_MODEL)
   KRATOS_REGISTER_VARIABLE(CONVECTION_MODEL)
