@@ -1162,7 +1162,9 @@ private:
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
         rValue.resize(size);
-        mpBuffer->read(&rValue.front(),size);
+	if (size>0) {
+	    mpBuffer->read(&rValue.front(),size);
+	}
 
         KRATOS_SERIALIZER_MODE_ASCII
 
