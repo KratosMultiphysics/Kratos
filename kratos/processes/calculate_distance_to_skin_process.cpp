@@ -53,6 +53,8 @@ namespace Kratos
 	{
 		mParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
 		mRayCastingRelativeTolerance = mParameters["ray_casting_relative_tolerance"].GetDouble();
+        CalculateDiscontinuousDistanceToSkinProcess<TDim>::mpElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_distances_variable"].GetString());;
+        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mParameters["distance_variables"].GetString());;
 	}
 
     template<std::size_t TDim>
@@ -60,7 +62,8 @@ namespace Kratos
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "ray_casting_relative_tolerance"                   : 1.0e-8
+            "distance_variable"                     : "DISTANCE",
+            "ray_casting_relative_tolerance"        : 1.0e-8
         })" );
 
 		// Getting base class default parameters

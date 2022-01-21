@@ -214,6 +214,8 @@ private:
     double mRayCastingRelativeTolerance = 1.0e-8;
     Parameters mParameters;
 
+    const Variable<double>* mpDistanceVariable = &DISTANCE;
+
     ///@}
     ///@name Private Operators
     ///@{
