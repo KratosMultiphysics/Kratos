@@ -115,8 +115,9 @@ public:
         : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
     {
         // Validate and assign defaults
-        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
-        this->AssignSettings(ThisParameters);
+        Parameters this_parameters_copy = ThisParameters.Clone();
+        this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
+        this->AssignSettings(this_parameters_copy);
     }
 
     ~ROMBuilderAndSolver() = default;
