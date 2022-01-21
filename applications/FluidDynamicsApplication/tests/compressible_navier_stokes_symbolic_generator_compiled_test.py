@@ -1,5 +1,6 @@
 import os
 import sys
+import unittest
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnitTest
@@ -63,8 +64,8 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         parameters["output_filename"].SetString("symbolic_test_{}.cpp".format(geometry))
 
         if cleanup:
-            self.remove_me.append(parameters["output_filename"].GetString())
-            self.remove_me.append("test.out")
+            self.remove_me.append(os.path.abspath(parameters["output_filename"].GetString()))
+            self.remove_me.append(os.path.abspath("test.out"))
 
         if regenerate:
             print("\n--------------------Generating--------------------------")
@@ -91,6 +92,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         return 0
 
+    @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
     def test_Quadrilateral(self):
         args = {
             "regenerate": True,
@@ -100,9 +102,10 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "geometry": "2D4N",
             "dump_values": False
         }
-        with KratosUnitTest.WorkFolderScope(".", __file__):
+        with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
             self.generate_compile_run(**args)
 
+    @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
     def test_Triangle(self):
         args = {
             "regenerate": True,
@@ -112,7 +115,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "geometry": "2D3N",
             "dump_values": False
         }
-        with KratosUnitTest.WorkFolderScope(".", __file__):
+        with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
             self.generate_compile_run(**args)
 
 
