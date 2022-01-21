@@ -280,15 +280,18 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
             // #pragma omp for
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
-                if (i%1000==0){
-                  KRATOS_WATCH(i)
-                }
                 // Search cloud of nodes for slave node
                 ResultNodesContainerType  Results;
-                SearchNodesInRadiusForNode(nodes_array[i], Radius, Results);
-                if (i%1000==0){
-                  KRATOS_WATCH(Results.size())
+                double localRadius = Radius;
+                while (Results.size()<3){
+                  Results.clear();
+                  SearchNodesInRadiusForNode(nodes_array[i], localRadius, Results);
+                  localRadius += Radius;
                 }
+                if (nodes_array[i]->Id()==8981){
+                    KRATOS_WATCH(Results.size())
+                }
+                  
 
                 // Get Dofs and Coordinates
                 DofPointerVectorType rCloud_of_dofs_x,rCloud_of_dofs_y,rCloud_of_dofs_z,rSlave_dof_x,rSlave_dof_y,rSlave_dof_z;
@@ -300,17 +303,18 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 // Calculate shape functions
                 Vector rN_container;
                 // const double h = 0.5; 
-                MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(rCloud_of_nodes_coordinates,rSlave_coordinates,h, rN_container);
+                // MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(rCloud_of_nodes_coordinates,rSlave_coordinates,h, rN_container);
                 // RadialBasisFunctionsUtility::CalculateShapeFunctions(rCloud_of_nodes_coordinates,rSlave_coordinates,h,rN_container);
+                RadialBasisFunctionsUtility::CalculateShapeFunctionsAndShapeParameter(rCloud_of_nodes_coordinates,rSlave_coordinates,rN_container);
 
                 //Create MPCs
                 Matrix shape_matrix(1,rN_container.size());
                 noalias(row(shape_matrix,0)) = rN_container;// Shape functions matrix
                 const Vector constant_vector = ZeroVector(rN_container.size());
                 IndexType it = i*3;
-                rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+1,rCloud_of_dofs_x,rSlave_dof_x,shape_matrix,constant_vector);
-                rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+2,rCloud_of_dofs_y,rSlave_dof_y,shape_matrix,constant_vector);
-                rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+3,rCloud_of_dofs_z,rSlave_dof_z,shape_matrix,constant_vector);
+                // rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+1,rCloud_of_dofs_x,rSlave_dof_x,shape_matrix,constant_vector);
+                // rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+2,rCloud_of_dofs_y,rSlave_dof_y,shape_matrix,constant_vector);
+                // rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+3,rCloud_of_dofs_z,rSlave_dof_z,shape_matrix,constant_vector);
               }
           }
           KRATOS_CATCH("");
@@ -361,7 +365,8 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 ResultNodesContainerType  Results;
                 double localRadius = Radius;
                 while (Results.size()<3){
-                  SearchNodesInRadiusForNode(aux_node, localRadius, Results);
+                  Results.clear();
+                  SearchNodesInRadiusForNode(nodes_array[i], localRadius, Results);
                   localRadius += Radius;
                 }
 

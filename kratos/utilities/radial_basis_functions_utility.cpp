@@ -29,6 +29,7 @@ namespace Kratos
         // Evaluate Inverse multiquadric
         const double q = x*h;
         return 1/std::sqrt(1+std::pow(q,2));
+
         // Evaluate Gaussian function
         // const double q = x/h;
         // return std::exp(-0.5*std::pow(q,2));
@@ -87,8 +88,6 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        // KRATOS_ERROR_IF(h < 1.0e-12) << "Reference distance close to zero." << std::endl;
-
         // Set RBF shape functions containers
         const std::size_t n_points = rPoints.size1();
         if (rN.size() != n_points) {
@@ -103,23 +102,24 @@ namespace Kratos
         
 
         // Find shape parameter http://www.math.iit.edu/~fass/Dolomites.pdf [Hardy]
+        // TO DO: Build a matrix with distance norm values to recycle for RBFs evaluation.
         double d = 0; // Total distance of nearest x_i neighbors 
         double h; // Shape parameter
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
             double d_nearest_neighbor = 1e30; // Initialize distance to nearest x_i neighbor 
             for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
-                norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt)); 
-                if (norm_xij < d_nearest_neighbor){
-                    d_nearest_neighbor = norm_xij;
+                if (i_pt!=j_pt){ // Avoid measuring distance between same points
+                    norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt)); 
+                    if (norm_xij < d_nearest_neighbor){
+                        d_nearest_neighbor = norm_xij;
+                    }
                 }
-                KRATOS_WATCH(d_nearest_neighbor)
+                
             }
             d += d_nearest_neighbor;
         }
         d /= n_points;
-        h = 1/(0.815*d);
-        KRATOS_WATCH(d)
-        KRATOS_WATCH(h)
+        h = 1/(0.815*d);// Only for inverted multiquadratic
         
 
         // Build the RBF interpolation matrix and RBF interpolated vector
