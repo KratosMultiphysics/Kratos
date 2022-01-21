@@ -30,6 +30,7 @@ set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
 
 rem Clean
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"

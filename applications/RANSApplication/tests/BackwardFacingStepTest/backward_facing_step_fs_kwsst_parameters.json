@@ -28,7 +28,7 @@
             "time_step": 0.01
         },
         "time_scheme_settings": {
-            "scheme_type": "<TIME_SCHEME_TYPE>"
+            "scheme_type": "bdf2"
         },
         "material_import_settings": {
             "materials_filename": "backward_facing_step_material_properties.json"
@@ -60,17 +60,17 @@
                 },
                 "wall_function_settings": {
                     "wall_function_region_type": "logarithmic_region_only",
-                    "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
+                    "wall_friction_velocity_calculation_method": "fgf"
                 }
             },
             "k_omega_sst_solver_settings": {
-                "stabilization_method": "<STABILIZATION_METHOD>",
+                "stabilization_method": "residual_based_flux_corrected",
                 "turbulent_kinetic_energy_solver_settings": {
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5,
                     "max_iterations": 3,
                     "echo_level": 0,
-                    "relaxation_factor": 0.9,
+                    "relaxation_factor": -1,
                     "linear_solver_settings": {
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
@@ -91,7 +91,8 @@
                     "wall_function_settings": {
                         "wall_function_region_type": "logarithmic_region_only",
                         "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
-                    }
+                    },
+                    "auxiliar_process_list": []                    
                 },
                 "echo_level": 0,
                 "coupling_settings": {
@@ -115,7 +116,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "TURBULENT_KINETIC_ENERGY",
-                    "value": 6.1e-4
+                    "value": 1e-12
                 }
             },
             {
@@ -140,7 +141,7 @@
                 "Parameters": {
                     "model_part_name": "FluidModelPart",
                     "variable_name": "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
-                    "value": 9.422e-5
+                    "value": 1e+4
                 }
             }
         ],
@@ -177,7 +178,7 @@
                 "process_name": "KTurbulentIntensityInletProcess",
                 "Parameters": {
                     "model_part_name": "FluidModelPart.AutomaticInlet2D_inlet",
-                    "turbulent_intensity": 6.1e-4
+                    "turbulent_intensity": 0.1
                 }
             },
             {
@@ -193,9 +194,58 @@
                 "python_module": "apply_wall_function_process",
                 "kratos_module": "KratosMultiphysics.RANSApplication",
                 "Parameters": {
-                    "model_part_name": "FluidModelPart.Slip2D"
+                    "model_part_names": ["FluidModelPart.StructureSide1", "StructureSide2"],
+                    "all_wall_model_part_name": "ALL_WALL_MODEL_PART",
+                    "activate_wall_functions" : true
+
                 }
-            }
+            },
+            {
+                "python_module": "apply_noslip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.ALL_WALL_MODEL_PART"
+
+                }
+            },   
+            {
+                "python_module": "apply_slip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.TOP"
+
+                }
+            }, 
+            {
+                "python_module": "apply_slip_process",
+                "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.Bottom"
+
+                }
+            },  
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.ALL_WALL_MODEL_PART",
+                    "variable_name": "TURBULENT_KINETIC_ENERGY",
+                    "value": 1e-12,
+                    "is_fixed": true
+                }
+            },
+            {
+                "python_module": "process_factory",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "ApplyConstantScalarValueProcess",
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.ALL_WALL_MODEL_PART",
+                    "variable_name": "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
+                    "value": 6e+4,
+                    "is_fixed": true
+                }
+            }                                           
         ],
         "gravity": [
             {
