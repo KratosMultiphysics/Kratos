@@ -147,7 +147,11 @@ template<std::size_t TRows>
 using Vector = Matrix<TRows, 1>;
 
 
-inline void QuadShapeFunctions(Vector<4> & N, Matrix<4, 2> & DN_DX, double x, double y)
+template<std::size_t TDim, std::size_t TNodes>
+void ShapeFunctions(Vector<TNodes> & N, Matrix<TNodes, TDim> & DN_DX, double x, double y);
+
+template<>
+inline void ShapeFunctions(Vector<4> & N, Matrix<4, 2> & DN_DX, double x, double y)
 {
     N[0] = (1-x)*(1-y)/4;
     N[1] = (1+x)*(1-y)/4;
@@ -158,6 +162,18 @@ inline void QuadShapeFunctions(Vector<4> & N, Matrix<4, 2> & DN_DX, double x, do
     DN_DX(1,0) =  (1-y)/4;      DN_DX(1,1) = -(1+x)/4;
     DN_DX(2,0) =  (1+y)/4;      DN_DX(2,1) =  (1+x)/4;
     DN_DX(3,0) = -(1+y)/4;      DN_DX(3,1) =  (1-x)/4;
+}
+
+template<>
+inline void ShapeFunctions(Vector<3> & N, Matrix<3, 2> & DN_DX, double x, double y)
+{
+    N[0] = -(x+y)/2;
+    N[1] = (1+x)/2;;
+    N[2] = (1+y)/2;
+
+    DN_DX(0,0) = -0.5;      DN_DX(0,1) = -0.5;
+    DN_DX(1,0) =  0.5;      DN_DX(1,1) =  0;
+    DN_DX(2,0) =  0;        DN_DX(2,1) =  0.5;
 }
 
 template<unsigned int Tdim, unsigned int Tnodes, unsigned int Tblocksize = Tdim+2>
