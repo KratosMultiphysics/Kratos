@@ -140,6 +140,7 @@ jobs:
       shell: cmd
       run: |
         pip install numpy
+        pip install sympy
         pip install h5py
 
     - name: Build
@@ -324,6 +325,7 @@ jobs:
       shell: cmd
       run: |
         pip install numpy
+        pip install sympy
 
     - name: Build
       shell: cmd
