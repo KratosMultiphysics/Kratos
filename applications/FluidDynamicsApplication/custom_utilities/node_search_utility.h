@@ -32,6 +32,7 @@
 
 // Project includes
 #include "spatial_containers/bins_dynamic_objects.h"
+#include "utilities/builtin_timer.h"
 
 // Configures
 #include "node_configure_for_node_search.h"
@@ -264,11 +265,13 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
        * @param pNodes Nodes to set MPCs.
        * @param Radius Search radius.
        * @param rComputinModelPart Model Part to which MPCs are applied.
+       * @param h Shape parameter (to scale the input of the radial kernel)
        **/
       void AssignMPCsForStaticNodes(
           NodesContainerType pNodes,
           double const Radius,
-          ModelPart& rComputingModelPart)
+          ModelPart& rComputingModelPart,
+          const double h)
       {
           KRATOS_TRY;   
           // #pragma omp parallel
@@ -277,9 +280,15 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
             // #pragma omp for
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
+                if (i%1000==0){
+                  KRATOS_WATCH(i)
+                }
                 // Search cloud of nodes for slave node
                 ResultNodesContainerType  Results;
                 SearchNodesInRadiusForNode(nodes_array[i], Radius, Results);
+                if (i%1000==0){
+                  KRATOS_WATCH(Results.size())
+                }
 
                 // Get Dofs and Coordinates
                 DofPointerVectorType rCloud_of_dofs_x,rCloud_of_dofs_y,rCloud_of_dofs_z,rSlave_dof_x,rSlave_dof_y,rSlave_dof_z;
@@ -290,9 +299,9 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 
                 // Calculate shape functions
                 Vector rN_container;
-                const double h = 0.5; 
-                // MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(rCloud_of_nodes_coordinates,rSlave_coordinates,h, rN_container);
-                RadialBasisFunctionsUtility::CalculateShapeFunctions(rCloud_of_nodes_coordinates,rSlave_coordinates,h,rN_container);
+                // const double h = 0.5; 
+                MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(rCloud_of_nodes_coordinates,rSlave_coordinates,h, rN_container);
+                // RadialBasisFunctionsUtility::CalculateShapeFunctions(rCloud_of_nodes_coordinates,rSlave_coordinates,h,rN_container);
 
                 //Create MPCs
                 Matrix shape_matrix(1,rN_container.size());
@@ -315,6 +324,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
        * @param pNodes Nodes to set MPCs.
        * @param Radius Search radius.
        * @param rComputinModelPart Model Part to which MPCs are applied.
+       * @param h Shape parameter (to scale the input of the radial kernel)
        **/
       void AssignMPCsForRotatingNodes(
           NodesContainerType pNodes,
@@ -331,7 +341,9 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
             // #pragma omp for
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
-                KRATOS_WATCH(i)
+                
+                BuiltinTimer auxiliar_node;
+
                 // Create auxiliar rotated node
                 auto coordinate_vector = nodes_array[i]->GetInitialPosition().Coordinates();
                 Vector delta(coordinate_vector.size());
@@ -339,9 +351,27 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 rComputingModelPart.CreateNewNode(num_nodes+1+i,delta[0],delta[1],delta[2]);
                 NodeType::Pointer aux_node = rComputingModelPart.pGetNode(num_nodes+i+1);
 
+                if (i%1000==0){
+                  KRATOS_WATCH(auxiliar_node.ElapsedSeconds())
+                }
+
+                BuiltinTimer cloud_of_nodes;
+
                 // Search cloud of nodes for slave node
                 ResultNodesContainerType  Results;
-                SearchNodesInRadiusForNode(aux_node, Radius, Results);
+                double localRadius = Radius;
+                while (Results.size()<3){
+                  SearchNodesInRadiusForNode(aux_node, localRadius, Results);
+                  localRadius += Radius;
+                }
+
+                if (i%1000==0){
+                  KRATOS_WATCH(cloud_of_nodes.ElapsedSeconds())
+                }
+                
+                if (i%1000==0){
+                  KRATOS_WATCH(Results.size())
+                }
 
                 // Get Dofs and Coordinates
                 DofPointerVectorType rCloud_of_dofs_x,rCloud_of_dofs_y,rCloud_of_dofs_z,rSlave_dof_x,rSlave_dof_y,rSlave_dof_z;
@@ -350,14 +380,23 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 GetDofsAndCoordinatesForNodes(nodes_array[i], VELOCITY, rSlave_dof_x,rSlave_dof_y,rSlave_dof_z);// Dofs must be from original node, not from auxiliary rotated node
                 GetDofsAndCoordinatesForNodes(Results, VELOCITY, rCloud_of_dofs_x, rCloud_of_dofs_y, rCloud_of_dofs_z, rCloud_of_nodes_coordinates);
                 
+                BuiltinTimer shape_functions;
+
                 // Calculate shape functions
                 Vector rN_container;
-                // const double h = 0.5; 
+                double local_h = h*localRadius; // Trying to avoid bad conditioning of RBFs
                 // MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(rCloud_of_nodes_coordinates,rSlave_coordinates,h, rN_container);
-                RadialBasisFunctionsUtility::CalculateShapeFunctions(rCloud_of_nodes_coordinates,rSlave_coordinates,h,rN_container);
+                // RadialBasisFunctionsUtility::CalculateShapeFunctions(rCloud_of_nodes_coordinates,rSlave_coordinates,local_h,rN_container);
+                RadialBasisFunctionsUtility::CalculateShapeFunctionsAndShapeParameter(rCloud_of_nodes_coordinates,rSlave_coordinates,rN_container);
+
+                if (i%1000==0){
+                  KRATOS_WATCH(shape_functions.ElapsedSeconds())
+                }
 
                 // Erase auxiliar nodes
                 rComputingModelPart.RemoveNodeFromAllLevels(num_nodes+i+1);
+
+                BuiltinTimer create_mpc;
 
                 //Create MPCs
                 Matrix shape_matrix(1,rN_container.size());
@@ -367,6 +406,10 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
                 rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+1,rCloud_of_dofs_x,rSlave_dof_x,shape_matrix,constant_vector);
                 rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+2,rCloud_of_dofs_y,rSlave_dof_y,shape_matrix,constant_vector);
                 rComputingModelPart.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint",it+3,rCloud_of_dofs_z,rSlave_dof_z,shape_matrix,constant_vector);
+              
+                if (i%1000==0){
+                  KRATOS_WATCH(create_mpc.ElapsedSeconds())
+                }
               }
           }
           KRATOS_CATCH("");

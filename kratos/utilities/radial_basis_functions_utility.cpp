@@ -25,10 +25,13 @@ namespace Kratos
     double RadialBasisFunctionsUtility::EvaluateRBF(
         double x,
         const double h)
-    {
+    {   
+        // Evaluate Inverse multiquadric
+        const double q = x*h;
+        return 1/std::sqrt(1+std::pow(q,2));
         // Evaluate Gaussian function
-        const double q = x/h;
-        return std::exp(-0.5*std::pow(q,2));
+        // const double q = x/h;
+        // return std::exp(-0.5*std::pow(q,2));
     }
 
     void RadialBasisFunctionsUtility::CalculateShapeFunctions(
@@ -52,6 +55,72 @@ namespace Kratos
         Vector Phi = ZeroVector(n_points);
         double norm_xij;
         double norm_X;
+
+        // Build the RBF interpolation matrix and RBF interpolated vector
+        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
+            for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
+                norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
+                A(i_pt,j_pt) = EvaluateRBF(norm_xij,h);
+            }
+            norm_X =  norm_2(rX-row(rPoints,i_pt));
+            Phi[i_pt] = EvaluateRBF(norm_X,h);
+        }
+
+        // Invert the RBF interpolation matrix
+        double A_det;
+        Matrix A_inv(n_points,n_points);
+        MathUtils<double>::InvertMatrix(A, A_inv, A_det);
+
+        // Obtain the RBF shape functions 
+        noalias(rN) = prod(Phi,A_inv);
+
+        // Partition of unity
+        noalias(rN) =  rN/sum(rN);
+
+        KRATOS_CATCH("");
+    }
+
+    void RadialBasisFunctionsUtility::CalculateShapeFunctionsAndShapeParameter(
+        const Matrix& rPoints,
+        const array_1d<double,3>& rX,
+        Vector& rN)
+    {
+        KRATOS_TRY;
+
+        // KRATOS_ERROR_IF(h < 1.0e-12) << "Reference distance close to zero." << std::endl;
+
+        // Set RBF shape functions containers
+        const std::size_t n_points = rPoints.size1();
+        if (rN.size() != n_points) {
+            rN.resize(n_points, false);
+        }
+
+        // Initialize the RBF interpolation matrix and RBF interpolated vector
+        Matrix A = ZeroMatrix(n_points,n_points);
+        Vector Phi = ZeroVector(n_points);
+        double norm_xij;
+        double norm_X;
+        
+
+        // Find shape parameter http://www.math.iit.edu/~fass/Dolomites.pdf [Hardy]
+        double d = 0; // Total distance of nearest x_i neighbors 
+        double h; // Shape parameter
+        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
+            double d_nearest_neighbor = 1e30; // Initialize distance to nearest x_i neighbor 
+            for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
+                norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt)); 
+                if (norm_xij < d_nearest_neighbor){
+                    d_nearest_neighbor = norm_xij;
+                }
+                KRATOS_WATCH(d_nearest_neighbor)
+            }
+            d += d_nearest_neighbor;
+        }
+        d /= n_points;
+        h = 1/(0.815*d);
+        KRATOS_WATCH(d)
+        KRATOS_WATCH(h)
+        
 
         // Build the RBF interpolation matrix and RBF interpolated vector
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {

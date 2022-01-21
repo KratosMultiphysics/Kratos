@@ -323,6 +323,9 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
     //  RBF shape functions utility
     py::class_<RadialBasisFunctionsUtility>(m,"RadialBasisFunctionsUtility")
         .def_static("CalculateShapeFunctions", &RadialBasisFunctionsUtility::CalculateShapeFunctions)
+        .def_static("CalculateShapeFunctionsAndShapeParameter", &RadialBasisFunctionsUtility::CalculateShapeFunctionsAndShapeParameter)
+        // .def_static("CalculateShapeFunctions", [](const Matrix& rPoints,const array_1d<double,3>& rX,const double h,Vector& rN){ return &RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
+        // .def_static("CalculateShapeFunctions", [](const Matrix& rPoints,const array_1d<double,3>& rX,Vector& rN){ return &RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);})
         .def_static("CalculateShapeFunctionsAndInterpolation", &RadialBasisFunctionsUtility::CalculateShapeFunctionsAndInterpolation)
         ;
 }

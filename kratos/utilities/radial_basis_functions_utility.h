@@ -60,6 +60,11 @@ public:
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN);
+
+    static void CalculateShapeFunctionsAndShapeParameter(
+        const Matrix& rPoints,
+        const array_1d<double,3>& rX,
+        Vector& rN);
     
     static double CalculateShapeFunctionsAndInterpolation(
         const Matrix& rPoints,
