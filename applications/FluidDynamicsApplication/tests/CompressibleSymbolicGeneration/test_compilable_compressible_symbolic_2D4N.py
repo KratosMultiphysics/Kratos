@@ -9,7 +9,6 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 regenerate = True
 recompile = True
 compiler = "g++"
-test_args = "rh"
 
 parameters = KratosMultiphysics.Parameters("""
 {
@@ -47,7 +46,7 @@ if recompile or regenerate:
 
 # Testing
 print("\n----------------------Testing----------------------------")
-errcode = os.system("./test.out {}".format(test_args))
+errcode = os.system("./test.out")
 if errcode != 0:
     print("\nTests returned error code {}\n".format(errcode))
     exit(errcode)

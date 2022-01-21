@@ -10,7 +10,7 @@ static constexpr std::size_t blocksize = dim + 2;
 
 using ShapeFun = Vector<nnodes>;
 using ShapeFunGrad = Matrix<nnodes, dim>;
-using ElementData = ElementDataT<nnodes, dim, blocksize>;
+using ElementData = ElementDataT<dim, nnodes>;
 
 int test_substitute_rho_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data);
 int test_substitute_mom_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data);
@@ -20,26 +20,11 @@ int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, Ele
 int test_substitute_lhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data);
 int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data);
 
-int main(int argc, char ** argv)
+int main()
 {
     int result = 0;
 
-    const auto data = [=]()
-    {
-        if(argc < 2) return RankineHugoniotQuadData();
-
-        if(strcmp(argv[1], "rh") == 0) {
-            return RankineHugoniotQuadData();
-        }
-        if(strcmp(argv[1], "sod") == 0) {
-            return SodQuadData();
-        }
-
-        std::cerr << "Unrecognized test. Try any of:"
-                  <<" - rh for Rankine-Hugoniot\n"
-                  <<" - sod for Sod tube" << std::endl;
-        exit(1);
-    }();
+    const auto data = RankineHugoniotQuadData();
 
     ShapeFunGrad DN_DX;
     ShapeFun N;

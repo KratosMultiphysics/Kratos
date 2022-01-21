@@ -160,7 +160,7 @@ inline void QuadShapeFunctions(Vector<4> & N, Matrix<4, 2> & DN_DX, double x, do
     DN_DX(3,0) = -(1+y)/4;      DN_DX(3,1) =  (1-x)/4;
 }
 
-template<unsigned int Tnodes, unsigned int Tdim, unsigned int Tblocksize>
+template<unsigned int Tdim, unsigned int Tnodes, unsigned int Tblocksize = Tdim+2>
 struct ElementDataT
 {
     Matrix<Tblocksize, Tnodes> U;
@@ -182,10 +182,10 @@ struct ElementDataT
     double gamma, c_v;
 };
 
-
-ElementDataT<4, 2, 4> RankineHugoniotQuadData()
+/// Quad
+inline ElementDataT<2, 4> RankineHugoniotQuadData()
 {
-    ElementDataT<4,2,4> data;
+    ElementDataT<2, 4> data;
 
     constexpr double rho_0 = 1.16927;
     constexpr double rho_1 = 1.46426;
@@ -229,9 +229,53 @@ ElementDataT<4, 2, 4> RankineHugoniotQuadData()
     return data;
 }
 
-ElementDataT<4, 2, 4> SodQuadData()
+/// Triangle
+inline ElementDataT<2, 3> RankineHugoniotTriangleData()
 {
-    ElementDataT<4,2,4> data;
+    ElementDataT<2, 3> data;
+
+    constexpr double rho_0 = 1.16927;
+    constexpr double rho_1 = 1.46426;
+
+    constexpr double mom = 467.707;
+
+    constexpr double et_0 = 346854;
+    constexpr double et_1 = 422234;
+
+    using d = Dofs<2>;
+
+    data.U(0, d::RHO) = rho_0;
+    data.U(1, d::RHO) = rho_1;
+    data.U(2, d::RHO) = rho_1;
+
+    data.U(0, d::MOM_X) = mom;
+    data.U(1, d::MOM_X) = mom;
+    data.U(2, d::MOM_X) = mom;
+
+    data.U(0, d::E_TOT) = et_0;
+    data.U(1, d::E_TOT) = et_1;
+    data.U(2, d::E_TOT) = et_1;
+
+    data.alpha_sc_nodes.fill(1.5e-4);
+    data.beta_sc_nodes.fill(2.8e-5);
+    data.lamb_sc_nodes.fill(1.3e-7);
+    data.mu_sc_nodes.fill(2.3e-6);
+
+    data.alpha = 0;
+    data.beta = 1.13e-4;
+    data.lambda = 6.84e-6;
+    data.mu = 1.26e-4;
+
+    data.gamma = 1.4;
+    data.c_v = 722.14;
+    data.h = 2.0;
+
+    return data;
+}
+
+inline ElementDataT<2, 4> SodQuadData()
+{
+    ElementDataT<2, 4> data;
 
     constexpr double rho_0 = 1.0;
     constexpr double rho_1 = 0.125;
@@ -274,5 +318,7 @@ ElementDataT<4, 2, 4> SodQuadData()
 
     return data;
 }
+
+
 
 }
