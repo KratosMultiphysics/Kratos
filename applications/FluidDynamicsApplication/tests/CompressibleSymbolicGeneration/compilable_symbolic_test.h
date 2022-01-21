@@ -5,7 +5,7 @@
 #include <iostream>
 
 /**
- * This namespace containes classes and function mimicking the necessary
+ * This namespace contains classes and function mimicking the necessary
  * behaviour of Kratos in order to run the generated code without having
  * to modify it.
  */
