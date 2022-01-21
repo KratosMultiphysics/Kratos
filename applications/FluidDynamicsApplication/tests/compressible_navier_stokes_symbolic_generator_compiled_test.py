@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 import unittest
 
 import KratosMultiphysics
@@ -21,7 +22,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
                 pass
         self.remove_me = []
 
-    def generate_compile_run(self, **kwargs):
+    def _generate_compile_run(self, **kwargs):
         """
         Runs the test.
 
@@ -92,6 +93,29 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         return 0
 
+    def _get_compiler_in_CI(self):
+        """
+        Gets the compiler in continuous integration runs"
+        """
+        if os.system("${{ matrix.compiler }}") != 0:
+            return None
+
+        compiler = subprocess.check_output("${{ matrix.compiler }}", encoding="utf-8")
+
+        if len(compiler) == 0:
+            return None
+
+        compiler_commands = {
+            "gcc": "g++",
+            "clang": "clang++"
+        }
+
+        if compiler in compiler_commands:
+            return compiler_commands[compiler]
+
+        return compiler
+
+
     @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
     def test_Quadrilateral(self):
         args = {
@@ -102,8 +126,13 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "geometry": "2D4N",
             "dump_values": False
         }
+
+        ci_compiler = self._get_compiler_in_CI()
+        if ci_compiler is not None:
+            args["compiler"] = ci_compiler
+
         with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
-            self.generate_compile_run(**args)
+            self._generate_compile_run(**args)
 
     @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
     def test_Triangle(self):
@@ -115,8 +144,13 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "geometry": "2D3N",
             "dump_values": False
         }
+
+        ci_compiler = self._get_compiler_in_CI()
+        if ci_compiler is not None:
+            args["compiler"] = ci_compiler
+
         with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
-            self.generate_compile_run(**args)
+            self._generate_compile_run(**args)
 
 
 if __name__ == '__main__':
