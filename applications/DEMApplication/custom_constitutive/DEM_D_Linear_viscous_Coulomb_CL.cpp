@@ -211,8 +211,7 @@ namespace Kratos {
 
         //const double alpha = 0.05;
         const double modified_radius = effective_radius * 0.31225;
-        const double mKn_augmenter = 1.0; // 100.0;
-        mKn = mKn_augmenter * equiv_young * Globals::Pi * modified_radius; // 2.0 * equiv_young * sqrt_equiv_radius;
+        mKn = equiv_young * Globals::Pi * modified_radius; // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 

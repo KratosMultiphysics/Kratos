@@ -14,15 +14,27 @@ namespace Kratos {
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
+    void DEM_D_Linear_HighStiffness_2D::Check(Properties::Pointer pProp) const {
+
+        DEM_D_Linear_viscous_Coulomb2D::Check(pProp);
+        
+        if (!pProp->Has(STIFFNESS_FACTOR)) {
+            KRATOS_WARNING("DEM") << std::endl;
+            KRATOS_WARNING("DEM") << "WARNING: Variable STIFFNESS_FACTOR should be present in the Properties when using DEM_D_Linear_HighStiffness_2D. A default value of 5.0 was assigned." << std::endl;
+            KRATOS_WARNING("DEM") << std::endl;
+            pProp->GetValue(STIFFNESS_FACTOR) = 5.0;
+        }
+    }
+
     void DEM_D_Linear_HighStiffness_2D::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+        
         DEM_D_Linear_viscous_Coulomb2D::InitializeContact(element1, element2, indentation);
-        const double kn_augmenter = 1.0;
-        mKn *= kn_augmenter;
+        mKn *= (*mpProperties)[STIFFNESS_FACTOR];
     }
 
     void DEM_D_Linear_HighStiffness_2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
+        
         DEM_D_Linear_viscous_Coulomb2D::InitializeContactWithFEM(element, wall, indentation, ini_delta);
-        const double kn_augmenterFEM = 1.0;
-        mKn *= kn_augmenterFEM;
+        mKn *= (*mpProperties)[STIFFNESS_FACTOR];
     }
 } // namespace Kratos

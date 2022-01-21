@@ -37,7 +37,8 @@
             "DEBUG_PRINTING_OPTION": true,
             "DEBUG_PRINTING_ID_1": 1,
             "DEBUG_PRINTING_ID_2": 2,
-            "IS_UNBREAKABLE" : false
+            "IS_UNBREAKABLE" : false,
+            "STIFFNESS_FACTOR": 5.0
         }
     }],
     "material_assignation_table":[
