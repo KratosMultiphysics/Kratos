@@ -166,8 +166,9 @@ class NeuralNetworkSolver(PythonSolver):
 
 
     def InitializeSolutionStep(self):
-
+        current_time = self.input_model_parts[0].ProcessInfo[KratosMultiphysics.TIME]
         input_value_list=[]
+        # TODO: Modify to use vector variables instead of the components (unzip Kratos.Array)
 
         for model_part, variable, source in self.dict_input:
             model_input_value_list = []
@@ -182,6 +183,15 @@ class NeuralNetworkSolver(PythonSolver):
             elif source == "solution_step":
                 for node in model_part.Nodes:
                     model_input_value_list.append(node.GetSolutionStepValue(variable,0))
+            elif source == "previous_solution_step":
+                # TODO: modify to enable the use of the surrogate model only in a set interval
+                # and the physics-based one in the rest. Other parts of the code are also affected.
+                if current_time > 0.0:
+                    for node in model_part.Nodes:
+                        model_input_value_list.append(node.GetSolutionStepValue(variable,1))
+                else:
+                    for node in model_part.Nodes:
+                        model_input_value_list.append(node.GetSolutionStepValue(variable,0))
             # Condition values
             elif source == "condition":
                 for condition in model_part.GetConditions():
@@ -235,23 +245,25 @@ class NeuralNetworkSolver(PythonSolver):
 
         # Initialize output from interface in first iteration
         if self.output_data_structure.data is None:
+            output_value_list = []
             for model_part, variable, source in self.dict_output:
-                output_value_list = []
+                output_model_value_list = []
                 # Process related variables (e.g. TIME, STEP)
                 if source == 'process':
-                    output_value_list.append(model_part.ProcessInfo[variable])
+                    output_model_value_list.append(model_part.ProcessInfo[variable])
                 # Node properties (e.g. position)
                 elif source == 'node':
                     for node in model_part.Nodes:
-                        output_value_list.append(getattr(node,variable.Name()))
+                        output_model_value_list.append(getattr(node,variable.Name()))
                 # Node step values (e.g. variables like displacement)
                 elif source == "solution_step":
                     for node in model_part.Nodes:
-                        output_value_list.append(node.GetSolutionStepValue(variable,0))
+                        output_model_value_list.append(node.GetSolutionStepValue(variable,0))
                 # Condition values
                 elif source == "condition":
                     for condition in model_part.GetConditions():
-                        output_value_list.append(condition.GetValue(variable))
+                        output_model_value_list.append(condition.GetValue(variable))
+                output_value_list.extend(output_model_value_list)
             # Reorder if indicated
             if self.output_order == 'sources_first':
                 try:
@@ -331,8 +343,6 @@ class NeuralNetworkSolver(PythonSolver):
         data_out = NeuralNetworkData()
         
         self._PrintInfo("Predicting with the Neural Network...")
-
-        # print(self.model)
 
         if self.timesteps_as_features:
             data_structure_in.SetTimestepsAsFeatures()

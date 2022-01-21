@@ -78,3 +78,6 @@ class NeuralNetworkProcess(KM.Process):
     def Plot(self):
         """ Process for plotting."""
         pass
+
+    def IsOutputStep(self):
+        return False

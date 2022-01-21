@@ -20,7 +20,10 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
         self.project_parameters = project_parameters
         self.problem_type = self.project_parameters["problem_data"]["problem_type"].GetString()
-        self.ml_model = MachineLearningModel(self.project_parameters["problem_data"]["library_name"].GetString())
+        try:
+            self.ml_model = MachineLearningModel(self.project_parameters["problem_data"]["library_name"].GetString())
+        except RuntimeError:
+            self.ml_model = MachineLearningModel('keras')
 
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         if self.problem_type == "predict_with_modelpart" or self.problem_type == "predict_without_modelpart":
@@ -45,14 +48,20 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 self.solver = self._CreateNeuralNetworkSolver(self.project_parameters["problem_data"], self.kratos_model)
                 super().__init__(self.kratos_model, self.project_parameters)
                 KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
-                self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
+                try:
+                    self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
+                except RuntimeError:
+                    self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["domain_size"].GetInt()
             else:
                 self.kratos_model = model
                 self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
                 self.solver = self._CreateNeuralNetworkSolver(self.project_parameters["problem_data"], self.kratos_model)
                 super().__init__(self.kratos_model, self.project_parameters)
-                KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.kratos_model[self.model_geometry_name])
-                self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
+                # KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.kratos_model[self.model_geometry_name])
+                try:
+                    self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
+                except RuntimeError:
+                    self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["domain_size"].GetInt()
 
     def _CreateSolver(self):
         """This function creates the PHYSICS solver."""
@@ -111,9 +120,8 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
     def Initialize(self, data_input = None, data_output = None):
         
-        # print(self.kratos_model)
-        
         if self.problem_type == "predict_with_modelpart":
+            print(self.kratos_model)
             super().Initialize()
             self._GetNeuralNetworkSolver().Initialize()
             
@@ -276,13 +284,13 @@ class NeuralNetworkAnalysis(AnalysisStage):
         self._PrintInfo("Executing processes that run on finalization...")
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
-
-        self._PrintInfo("Transforming predictions if required...")
-        for process in self._GetListOfProcesses():
-            try:
-                process.TransformPredictions(self._GetListOfProcesses())
-            except AttributeError:
-                pass
+        if not self.problem_type == "predict_with_modelpart":
+            self._PrintInfo("Transforming predictions if required...")
+            for process in self._GetListOfProcesses():
+                try:
+                    process.TransformPredictions(self._GetListOfProcesses())
+                except AttributeError:
+                    pass
         
         self._PrintInfo("Plotting graphs if required...")
         for process in self._GetListOfProcesses():
