@@ -243,7 +243,6 @@ public:
                 Element::Pointer pelement;
 
                 const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(*mpConvectVar);
-                bool has_valid_elem_pointer = false;
                 array_1d<double,3> position = it_particle->Coordinates() - dt*vel;
 
                 bool is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
