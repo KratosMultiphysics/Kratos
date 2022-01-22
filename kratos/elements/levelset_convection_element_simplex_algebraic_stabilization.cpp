@@ -140,6 +140,7 @@ namespace Kratos
         BoundedMatrix<double,TNumNodes, TNumNodes> K_matrix = ZeroMatrix(TNumNodes, TNumNodes); // convection
         BoundedMatrix<double,TNumNodes, TNumNodes> S_matrix = ZeroMatrix(TNumNodes, TNumNodes); // LHS stabilization
         Vector S_vector = ZeroVector(TNumNodes); // RHS stabilization
+        BoundedMatrix<double,TNumNodes, TNumNodes> S_vector_LHS = ZeroMatrix(TNumNodes, TNumNodes); // Resr of S_vector (theta method) stabilization
         BoundedMatrix<double,TNumNodes, TNumNodes> Mc_matrix = ZeroMatrix(TNumNodes, TNumNodes); // consistent mass matrix
         BoundedMatrix<double,TNumNodes, TNumNodes> Ml_matrix = IdentityMatrix(TNumNodes, TNumNodes); // lumped mass matrix
 
@@ -187,19 +188,27 @@ namespace Kratos
             // If the high-order terms are necessary
             if (limiter > 1.0e-15){
                 array_1d<double,3 > grad_phi_mean_tmp = ZeroVector(3);
+                array_1d<double,3 > grad_phi_mean_predicted_tmp = ZeroVector(3);
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
                     const auto& r_node = r_geom[i];
                     grad_phi_mean_tmp += r_node.GetValue(r_grad_var);
+                    grad_phi_mean_predicted_tmp += r_node.FastGetSolutionStepValue(r_grad_var);
                 }
 
                 array_1d<double,TDim> grad_phi_mean;
+                array_1d<double,TDim> grad_phi_mean_predicted;
                 for(unsigned int k = 0; k < TDim; k++) {
                     grad_phi_mean[k] = aux_weight*grad_phi_mean_tmp[k];
+                    grad_phi_mean_predicted[k] = aux_weight*grad_phi_mean_predicted_tmp[k];
                 }
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
-                    S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean/* grad_phi */, (X_gauss - X_mean) ) )*N[i];
+                    S_vector[i] += ( (1.0 - theta)*(phi_gauss_old - phi_mean_old) - inner_prod( (1.0 - theta)*grad_phi_mean + theta*grad_phi_mean_predicted /* grad_phi */, (X_gauss - X_mean) ) )*N[i];
+                    //ADDED TO LHS THETA * (PHI - PHI_MEAN)
+                    for (unsigned int j = 0; j < TNumNodes; ++j){
+                        S_vector_LHS(i, j) = (aux_weight - N[j]) * N[i];
+                    }
                 }
             }
         }
@@ -227,7 +236,7 @@ namespace Kratos
             noalias(L_matrix) = K_matrix + nu_e*S_matrix;
         }
 
-        noalias(rLeftHandSideMatrix)  = M_matrix + theta*L_matrix;
+        noalias(rLeftHandSideMatrix)  = M_matrix + theta*( L_matrix + S_vector_LHS );
         noalias(rRightHandSideVector) = prod( M_matrix - (1.0 - theta)*L_matrix , phi_old) - limiter*nu_e*S_vector;
 
         // Taking out the dirichlet part to finish computing the residual

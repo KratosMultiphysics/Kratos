@@ -38,6 +38,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "utilities/pointer_map_communicator.h"
+#include "utilities/binbased_fast_point_locator.h"  //Needed for estimating the updated GRADIENT
 
 namespace Kratos
 {
@@ -224,6 +225,44 @@ public:
             }
             );
 
+            //estimate GRADIENT(n+1)
+            Vector N(TDim + 1);
+            Vector N_valid(TDim + 1);
+            const int max_results = 10000;
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+
+            const int n_nodes = mpDistanceModelPart->NumberOfNodes();
+
+            #pragma omp parallel for firstprivate(results,N,N_valid)
+            for (int i = 0; i < n_nodes; i++)
+            {
+                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+                ModelPart::NodesContainerType::iterator it_particle = mpDistanceModelPart->NodesBegin() + i;
+
+                Element::Pointer pelement;
+
+                const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(*mpConvectVar);
+                bool has_valid_elem_pointer = false;
+                array_1d<double,3> position = it_particle->Coordinates() - dt*vel;
+
+                bool is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+
+                if (is_found == true)
+                {
+                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                    Vector grad_phi = N[0] * (geom[0].GetValue(*mpLevelSetGradientVar));
+                    for (unsigned int k = 1; k < geom.size(); k++) {
+                        grad_phi = grad_phi + N[k] * (geom[k].GetValue(*mpLevelSetGradientVar));
+                    }
+
+                    it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = grad_phi;
+
+                } else {
+                    it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = it_particle->GetValue(*mpLevelSetGradientVar);
+                }
+            }
+
             // Storing the levelset variable for error calculation and Evaluating the limiter
             if (mEvaluateLimiter) {
                 EvaluateLimiter();
@@ -393,6 +432,8 @@ protected:
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
 
+    typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure = nullptr;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -424,6 +465,12 @@ protected:
             *mpLevelSetGradientVar,
             NODAL_AREA,
             false);
+        }
+
+        if (mElementRequiresLevelSetGradient){
+            mpSearchStructure = Kratos::make_unique< BinBasedFastPointLocator<TDim> >(
+                mrBaseModelPart
+            );
         }
     }
 
