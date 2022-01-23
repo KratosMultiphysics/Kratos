@@ -16,10 +16,11 @@
 // System includes
 #include <iostream>
 
+// External includes
+#include "includes/model_part.h"
+
 // Project includes
 #include "custom_elements/thermal_spheric_particle.h"
-
-// External includes
 
 namespace Kratos {
 

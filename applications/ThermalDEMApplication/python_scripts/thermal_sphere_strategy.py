@@ -18,13 +18,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetVoronoiPorosityFlags()
         self.SetGraphFlags()
 
-        #self.thermal_data_utils = SetThermalDataUtilities()
+        self.thermal_data_utils = SetThermalDataUtilities()
 
-        #if (self.compute_voronoi or self.compute_porosity):
-            #self.tesselation_utils = TesselationUtilities()
+        if (self.compute_voronoi or self.compute_porosity):
+            self.tesselation_utils = TesselationUtilities()
             
-        #if (self.write_graph):
-            #self.graph_utils = GraphUtilities()
+        if (self.write_graph):
+            self.graph_utils = GraphUtilities()
 
     def GetProjectParameters(self, DEM_parameters):
         # Get thermal settings and assign default values

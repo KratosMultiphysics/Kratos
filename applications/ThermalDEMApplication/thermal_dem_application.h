@@ -24,6 +24,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "thermal_dem_application_variables.h"
+#include "custom_elements/thermal_spheric_particle.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos
@@ -65,7 +66,10 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) KratosThermalDEMApplication : public K
   protected:
 
   private:
-	
+	  
+    // Elements
+    const ThermalSphericParticle mThermalSphericParticle3D;
+
     // Assignment operator
     KratosThermalDEMApplication& operator=(KratosThermalDEMApplication const& rOther);
 

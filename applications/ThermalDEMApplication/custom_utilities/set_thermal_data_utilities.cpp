@@ -12,19 +12,19 @@
 
 // System includes
 
-// Project includes
-#include "thermal_utilities.h"
-
 // External includes
+
+// Project includes
+#include "set_thermal_data_utilities.h"
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
-  ThermalUtilities::ThermalUtilities() {}
+  SetThermalDataUtilities::SetThermalDataUtilities() {}
 
-  ThermalUtilities::~ThermalUtilities() {}
+  SetThermalDataUtilities::~SetThermalDataUtilities() {}
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void ThermalUtilities::ExecuteInitialize(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart)
+  void SetThermalDataUtilities::ExecuteInitialize(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart)
   {
     KRATOS_TRY
 
@@ -35,7 +35,7 @@ namespace Kratos {
   }
 
   //-----------------------------------------------------------------------------------------------------------------------
-  void ThermalUtilities::InitializeThermalDataInSubModelParts(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart)
+  void SetThermalDataUtilities::InitializeThermalDataInSubModelParts(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart)
   {
     KRATOS_TRY
 
@@ -50,7 +50,7 @@ namespace Kratos {
 
         block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
           Element* p_element = &(rElement);
-          ThermalSphericParticle<SphericParticle>* particle = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(p_element);
+          ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(p_element);
 
           if (submp.Has(TEMPERATURE))
             particle->SetParticleTemperature(submp[TEMPERATURE]);
@@ -71,14 +71,14 @@ namespace Kratos {
             particle->SetParticleRealYoungRatio(1.0);
 
           if (submp.Has(FIXED_TEMPERATURE))
-            particle->Set(DEMFlags::HAS_FIXED_TEMPERATURE, submp[FIXED_TEMPERATURE]);
+            particle->Set(DEMThermalFlags::HAS_FIXED_TEMPERATURE, submp[FIXED_TEMPERATURE]);
           else
-            particle->Set(DEMFlags::HAS_FIXED_TEMPERATURE, false);
+            particle->Set(DEMThermalFlags::HAS_FIXED_TEMPERATURE, false);
 
           if (submp.Has(ADIABATIC))
-            particle->Set(DEMFlags::IS_ADIABATIC, submp[ADIABATIC]);
+            particle->Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);
           else
-            particle->Set(DEMFlags::IS_ADIABATIC, false);
+            particle->Set(DEMThermalFlags::IS_ADIABATIC, false);
         });
       }
     }
@@ -93,9 +93,9 @@ namespace Kratos {
 
       block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition) {
         if (submp.Has(ADIABATIC))
-          rCondition.Set(DEMFlags::IS_ADIABATIC, submp[ADIABATIC]);
+          rCondition.Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);
         else
-          rCondition.Set(DEMFlags::IS_ADIABATIC, false);
+          rCondition.Set(DEMThermalFlags::IS_ADIABATIC, false);
         });
     }
 

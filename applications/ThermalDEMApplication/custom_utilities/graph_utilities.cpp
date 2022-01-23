@@ -113,7 +113,7 @@ namespace Kratos {
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < num_of_particles; i++) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
 
       // Accumulate values
       const double vol  = particle.CalculateVolume();

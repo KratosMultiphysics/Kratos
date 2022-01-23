@@ -43,6 +43,10 @@ endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/thermal_dem_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/thermal_dem_application_variables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/graph_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/set_thermal_data_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities.cpp
 )
 
 ## Define python interface sources

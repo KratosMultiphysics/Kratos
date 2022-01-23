@@ -15,11 +15,6 @@
 
 // System includes
 
-// Project includes
-#include "GeometryFunctions.h"
-#include "includes/model_part.h"
-#include "custom_elements/thermal_spheric_particle.h"
-
 // External includes
 #ifndef TETLIBRARY
 #define TETLIBRARY
@@ -35,6 +30,10 @@
 #endif
 
 #include "triangle.h"
+#include "includes/model_part.h"
+
+// Project includes
+#include "custom_elements/thermal_spheric_particle.h"
 
 namespace Kratos {
 
@@ -43,7 +42,7 @@ namespace Kratos {
     void trifree(void*);
   }
 
-  class KRATOS_API(DEM_APPLICATION) TesselationUtilities {
+  class KRATOS_API(THERMAL_DEM_APPLICATION) TesselationUtilities {
 
   public:
 

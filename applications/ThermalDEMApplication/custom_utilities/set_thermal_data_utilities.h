@@ -10,27 +10,28 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#ifndef KRATOS_THERMAL_DATA_UTILITY
-#define	KRATOS_THERMAL_DATA_UTILITY
+#ifndef KRATOS_SET_THERMAL_DATA_UTILITIES
+#define	KRATOS_SET_THERMAL_DATA_UTILITIES
 
 // System includes
 
 // External includes
+#include "includes/model_part.h"
 
 // Project includes
 #include "custom_elements/thermal_spheric_particle.h"
 
 namespace Kratos {
 
-  class KRATOS_API(DEM_APPLICATION) ThermalUtilities {
+  class KRATOS_API(THERMAL_DEM_APPLICATION) SetThermalDataUtilities {
 
   public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalUtilities);
+    KRATOS_CLASS_POINTER_DEFINITION(SetThermalDataUtilities);
 
     // Constructor / destructor methods
-    ThermalUtilities();
-    ~ThermalUtilities();
+    SetThermalDataUtilities();
+    ~SetThermalDataUtilities();
 
     // Public methods
     void ExecuteInitialize(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart);
@@ -41,9 +42,9 @@ namespace Kratos {
 
   private:
     // Assignment operator
-    ThermalUtilities& operator=(ThermalUtilities const& rOther);
+    SetThermalDataUtilities& operator=(SetThermalDataUtilities const& rOther);
   };
 
 } // namespace Kratos
 
-#endif // KRATOS_THERMAL_DATA_UTILITY
+#endif // KRATOS_SET_THERMAL_DATA_UTILITIES

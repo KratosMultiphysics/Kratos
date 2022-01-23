@@ -12,10 +12,10 @@
 
 // System includes
 
+// External includes
+
 // Project includes
 #include "tesselation_utilities.h"
-
-// External includes
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ namespace Kratos {
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < in.numberofpoints; i++) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
 
       particle.mDelaunayPointListIndex = i;
 
@@ -172,7 +172,7 @@ namespace Kratos {
     #pragma omp parallel for schedule(dynamic, 100)
     for (int i = 0; i < in.numberofpoints; i++) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + i;
-      ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
 
       particle.mDelaunayPointListIndex = i;
 
@@ -226,7 +226,7 @@ namespace Kratos {
     for (int i = 0; i < rOut.numberofpoints; i++) {
       // Particle corresponding to delaunay vertex
       ModelPart::ElementsContainerType::iterator it = rElements.ptr_begin() + i;
-      ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
 
       for (unsigned int j = 0; j < rOut.numberofedges; j++) {
         // Vertices of delaunay edge
@@ -238,7 +238,7 @@ namespace Kratos {
         if (vd1 == particle.mDelaunayPointListIndex) {
           // Particle corresponding to neighboring delaunay vertex
           ModelPart::ElementsContainerType::iterator itn = rElements.ptr_begin() + vd2;
-          ThermalSphericParticle<SphericParticle>& neighbor = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*itn);
+          ThermalSphericParticle& neighbor = dynamic_cast<ThermalSphericParticle&> (*itn);
 
           // Vertices of voronoi edge dual to delaunay edge
           const int vv1 = rVorOut.edgelist[2 * j + 0] - 1;
@@ -362,8 +362,8 @@ namespace Kratos {
       // Particles corresponding to delaunay vertices
       ModelPart::ElementsContainerType::iterator it1 = rElements.ptr_begin() + vd1;
       ModelPart::ElementsContainerType::iterator it2 = rElements.ptr_begin() + vd2;
-      ThermalSphericParticle<SphericParticle>& particle_1 = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it1);
-      ThermalSphericParticle<SphericParticle>& particle_2 = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it2);
+      ThermalSphericParticle& particle_1 = dynamic_cast<ThermalSphericParticle&> (*it1);
+      ThermalSphericParticle& particle_2 = dynamic_cast<ThermalSphericParticle&> (*it2);
 
       // Compute equivalent radius
       double radius = 0.0;
@@ -722,7 +722,7 @@ namespace Kratos {
   void TesselationUtilities::AddParticleArea(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area, const int id) {
     if (!addedParticle[id]) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + id;
-      ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
       addedParticle[id] = 1;
       const double r = particle.GetRadius();
       particle_area += Globals::Pi * r * r;
@@ -733,7 +733,7 @@ namespace Kratos {
   void TesselationUtilities::AddParticleVolume(ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id) {
     if (!addedParticle[id]) {
       ModelPart::ElementsContainerType::iterator it = rModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin() + id;
-      ThermalSphericParticle<SphericParticle>& particle = dynamic_cast<ThermalSphericParticle<SphericParticle>&> (*it);
+      ThermalSphericParticle& particle = dynamic_cast<ThermalSphericParticle&> (*it);
       addedParticle[id] = 1;
       particle_volume += particle.CalculateVolume();
     }

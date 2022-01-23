@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "thermal_dem_application_variables.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos
@@ -65,14 +66,12 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalSphericParticle : public Spheri
   };
 
   // Constructor
-  ThermalSphericParticle():SphericParticle(){};
-  ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry):SphericParticle(NewId, pGeometry){};
-  ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes){};
-  ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):SphericParticle(NewId, pGeometry, pProperties){};
+  ThermalSphericParticle();
+  ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry);
+  ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes);
+  ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {
-    return Element::Pointer(new ThermalSphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
-  };
+  Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
   // Destructor
   virtual ~ThermalSphericParticle();
@@ -143,7 +142,6 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalSphericParticle : public Spheri
   double EvalIntegrandVoronoiMulti   (IntegrandParams params);
 
   // Neighbor interaction computations
-  virtual void ComputeContactArea            (const double rmin, double indentation, double& calculation_area);
   void   CleanContactParameters              (const ProcessInfo& r_process_info);
   bool   CheckAdiabaticNeighbor              (void);
   bool   CheckSurfaceDistance                (const double radius_factor);

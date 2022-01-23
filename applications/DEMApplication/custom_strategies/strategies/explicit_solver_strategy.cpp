@@ -1289,12 +1289,13 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
+    void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, double added_search_distance, const double amplification) {
 
         KRATOS_TRY
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
+            mListOfSphericParticles[i]->ComputeAddedSearchDistance(r_model_part.GetProcessInfo(), added_search_distance);
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
         });
 
@@ -1312,11 +1313,12 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
+    void ExplicitSolverStrategy::SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, double added_search_distance, const double amplification) {
         KRATOS_TRY
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
+            mListOfSphericParticles[i]->ComputeAddedSearchDistance(r_model_part.GetProcessInfo(), added_search_distance);
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
         });
 
@@ -1653,6 +1655,7 @@ namespace Kratos {
             for (int i = 0; i < number_of_particles; i++) {
                 SphericParticle* p_sphere_i = mListOfSphericParticles[i];
                 p_sphere_i->mNeighbourRigidFaces.resize(0);
+                p_sphere_i->mNeighbourNonContactRigidFaces.resize(0);
                 p_sphere_i->mContactConditionWeights.resize(0);
 
                 Distance_Array.clear();
