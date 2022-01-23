@@ -66,7 +66,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
 
         eigen_scheme = self._GetScheme() # The scheme defines the matrices
         computing_model_part = self.GetComputingModelPart()
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
 
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               eigen_scheme,
@@ -94,7 +94,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         space.SetToZeroVector(xD)
 
         # Build matrix
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         builder_and_solver.Build(scheme, self.GetComputingModelPart(), aux, b)
         # Apply Constraints
         builder_and_solver.ApplyConstraints(scheme, self.GetComputingModelPart(), aux, b)
@@ -123,7 +123,7 @@ class CustomScipyBaseSolver(MechanicalSolver):
         space.SetToZeroVector(xD)
 
         # Build matrix
-        builder_and_solver = self.get_builder_and_solver()
+        builder_and_solver = self._GetBuilderAndSolver()
         builder_and_solver.Build(scheme, self.GetComputingModelPart(), aux, b)
         # Apply constraints
         builder_and_solver.ApplyConstraints(scheme, self.GetComputingModelPart(), aux, b)
