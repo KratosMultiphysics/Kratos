@@ -71,6 +71,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
 
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
+    static constexpr double threshold_tolerance = 1.0e-4;
 
     /// The define the working dimension size, already defined in the integrator
     static constexpr SizeType Dimension = TConstLawIntegratorType::Dimension;
@@ -445,6 +446,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @param values_HCF the needed parameters for the CL calculation
      */
     void FinalizeMaterialResponseHCFModel(
+        double& rHighCycleFatiguePredictiveUniaxialStress,
         Vector& rHighCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_HCF);
 
@@ -453,6 +455,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
      * @param values_ULCF the needed parameters for the CL calculation
      */
     void FinalizeMaterialResponseULCFModel(
+        double& rUltraLowCycleFatiguePredictiveUniaxialStress,
         Vector& rUltraLowCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_ULCF);
 
@@ -551,7 +554,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     // Vector mParallelDirections = ZeroVector(6);
     // Vector mPreviousStrainVector = ZeroVector(6);
 
-    double mFatigueReductionFactor = 1.0;
+    double mFatigueReductionFactor = 0.8;
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
     double mMinStress = 0.0;

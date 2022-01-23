@@ -23,6 +23,7 @@
 #include "unified_fatigue_rule_of_mixtures_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_constitutive/constitutive_laws_integrators/high_cycle_fatigue_law_integrator.h"
+#include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_ultra_low_cycle_fatigue.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
 
@@ -150,7 +151,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         } else {
             max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
         }
-        if (!damage_activation && global_number_of_cycles > 2 && !adnvance_strategy_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
+        if (global_number_of_cycles > 2 && !adnvance_strategy_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.001)) {
             local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
         }
         global_number_of_cycles++;
@@ -294,7 +295,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
     if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Set new flags
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false); //Tangent tensor is not computed at the component level (only at the composite level)
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Total strain vector hich is equal to component CLs strains
@@ -307,7 +308,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
         noalias(r_integrated_stress_vector) = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
                                      + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
-
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
@@ -343,19 +343,18 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::IntegrateStresses
     values_HCF.SetStrainVector(rHCFStrainVector);
     values_ULCF.SetStrainVector(rULCFStrainVector);
 
+
     // Integrate Stress of the HCF part
     values_HCF.SetMaterialProperties(r_props_HCF_cl);
     this->CalculateMaterialResponseHCFModel(values_HCF);
     // mpHCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_HCF);
     rHCFStressVector = values_HCF.GetStressVector();
-    // KRATOS_WATCH(rHCFStressVector)
 
     // Integrate Stress of the UÑCF part
     values_ULCF.SetMaterialProperties(r_props_ULCF_cl);
     this->CalculateMaterialResponseULCFModel(values_ULCF);
     // mpULCFConstitutiveLaw->CalculateMaterialResponseCauchy(values_ULCF);
     rULCFStressVector = values_ULCF.GetStressVector();
-    // KRATOS_WATCH(rULCFStressVector)
 }
 
 /***********************************************************************************/
@@ -388,11 +387,10 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
     double fatigue_reduction_factor = mFatigueReductionFactor;
     double uniaxial_stress;
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, values_HCF);
-
     uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
     const double F = uniaxial_stress - hcf_threshold;
 
-    if (F <= 0.0) { // Elastic case
+    if (F <= threshold_tolerance) { // Elastic case
         noalias(auxiliar_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 		noalias(integrated_stress_vector) = auxiliar_integrated_stress_vector;
 
@@ -497,14 +495,13 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
 
             double fatigue_reduction_factor = mFatigueReductionFactor;
             // Compute the plastic parameters
-            const double F = GenericConstitutiveLawIntegratorPlasticity<TConstLawIntegratorType::YieldSurfaceType>::CalculatePlasticParameters(
+            const double F = GenericConstitutiveLawIntegratorUltraLowCycleFatigue<TConstLawIntegratorType::YieldSurfaceType>::CalculatePlasticParameters(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
                 ulcf_threshold, plastic_denominator, f_flux, g_flux,
                 plastic_dissipation, plastic_strain_increment,
                 r_constitutive_matrix, values_ULCF, characteristic_length,
-                plastic_strain);
+                plastic_strain, fatigue_reduction_factor);
 
-            uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
             const double yield_criteria = uniaxial_stress - ulcf_threshold;
 
             if (yield_criteria <= std::abs(1.0e-4 * ulcf_threshold)) { // Elastic case
@@ -512,12 +509,12 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::CalculateMaterial
             } else { // Plastic case
                 // While loop backward euler
                 /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-                GenericConstitutiveLawIntegratorPlasticity<TConstLawIntegratorType::YieldSurfaceType>::IntegrateStressVector(
+                GenericConstitutiveLawIntegratorUltraLowCycleFatigue<TConstLawIntegratorType::YieldSurfaceType>::IntegrateStressVector(
                     predictive_stress_vector, r_strain_vector, uniaxial_stress,
                     ulcf_threshold, plastic_denominator, f_flux, g_flux,
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, plastic_strain, values_ULCF,
-                    characteristic_length);
+                    characteristic_length, fatigue_reduction_factor);
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -619,26 +616,32 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         values_HCF.SetStrainVector(r_strain_vector);
         values_ULCF.SetStrainVector(r_strain_vector);
 
+        double high_cycle_fatigue_predictive_uniaxial_stress, ultra_low_cycle_fatigue_predictive_uniaxial_stress;
         Vector high_cycle_fatigue_stress_vector, ultra_low_cycle_fatigue_stress_vector;
 
-        this->FinalizeMaterialResponseHCFModel(high_cycle_fatigue_stress_vector, values_HCF);
-        this->FinalizeMaterialResponseULCFModel(ultra_low_cycle_fatigue_stress_vector, values_ULCF);
+        this->FinalizeMaterialResponseHCFModel(high_cycle_fatigue_predictive_uniaxial_stress, high_cycle_fatigue_stress_vector, values_HCF);
+        this->FinalizeMaterialResponseULCFModel(ultra_low_cycle_fatigue_predictive_uniaxial_stress, ultra_low_cycle_fatigue_stress_vector, values_ULCF);
+
+        //Is this the correct way to compute it?? f(S) = kd * (C0 * E) + kp (C0 * (E-Ep)) tendría que ser directamente C0 * E?
+        double predictive_uniaxial_stress;
+        predictive_uniaxial_stress = mHCFVolumetricParticipation * high_cycle_fatigue_predictive_uniaxial_stress
+                                     + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_predictive_uniaxial_stress;
+
         Vector r_integrated_stress_vector;
         r_integrated_stress_vector = mHCFVolumetricParticipation * high_cycle_fatigue_stress_vector
                                      + (1.0 - mHCFVolumetricParticipation) * ultra_low_cycle_fatigue_stress_vector;
 
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(r_integrated_stress_vector, r_strain_vector, uniaxial_stress, rValues);
-
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(r_integrated_stress_vector);
-        uniaxial_stress *= sign_factor;
+        predictive_uniaxial_stress *= sign_factor;
         double max_stress = mMaxStress;
         double min_stress = mMinStress;
         bool max_indicator = mMaxDetected;
         bool min_indicator = mMinDetected;
 
         HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
-            uniaxial_stress,
+            predictive_uniaxial_stress,
             max_stress,
             min_stress,
             mPreviousStresses,
@@ -651,9 +654,11 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         mMinDetected = min_indicator;
         Vector previous_stresses = ZeroVector(2);
         const Vector& r_aux_stresses = mPreviousStresses;
-        previous_stresses[1] = uniaxial_stress;
+        previous_stresses[1] = predictive_uniaxial_stress;
         previous_stresses[0] = r_aux_stresses[1];
         mPreviousStresses = previous_stresses;
+        KRATOS_WATCH(r_integrated_stress_vector)
+        KRATOS_WATCH(predictive_uniaxial_stress)
     }
 }
 
@@ -662,6 +667,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 
 template <class TConstLawIntegratorType>
 void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponseHCFModel(
+        double& rHighCycleFatiguePredictiveUniaxialStress,
         Vector& rHighCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_HCF
 )
@@ -693,13 +699,14 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
     // Initialize Plastic Parameters
     double uniaxial_stress;
     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, values_HCF);
+    rHighCycleFatiguePredictiveUniaxialStress = uniaxial_stress;
 
     double fatigue_reduction_factor = mFatigueReductionFactor;
     uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
 
     const double F = uniaxial_stress - hcf_threshold;
 
-    if (F >= 0.0) { // Plastic case
+    if (F >= threshold_tolerance) { // Plastic case
         const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(values_HCF.GetElementGeometry());
         // This routine updates the PredictiveStress to verify the yield surf
         TConstLawIntegratorType::IntegrateStressVector(
@@ -721,6 +728,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 
 template <class TConstLawIntegratorType>
 void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialResponseULCFModel(
+        double& rUltraLowCycleFatiguePredictiveUniaxialStress,
         Vector& rUltraLowCycleFatigueStressVector,
         ConstitutiveLaw::Parameters& values_ULCF
 )
@@ -766,28 +774,27 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
     array_1d<double, VoigtSize> f_flux = ZeroVector(VoigtSize); // DF/DS
     array_1d<double, VoigtSize> g_flux = ZeroVector(VoigtSize); // DG/DS
     array_1d<double, VoigtSize> plastic_strain_increment = ZeroVector(VoigtSize);
+    double fatigue_reduction_factor = mFatigueReductionFactor;
 
-    const double F = GenericConstitutiveLawIntegratorPlasticity<TConstLawIntegratorType::YieldSurfaceType>::CalculatePlasticParameters(
+    const double F = GenericConstitutiveLawIntegratorUltraLowCycleFatigue<TConstLawIntegratorType::YieldSurfaceType>::CalculatePlasticParameters(
         predictive_stress_vector, r_strain_vector, uniaxial_stress,
         ulcf_threshold, plastic_denominator, f_flux, g_flux,
         plastic_dissipation, plastic_strain_increment,
         r_constitutive_matrix, values_ULCF, characteristic_length,
-        plastic_strain);
-
-    double fatigue_reduction_factor = mFatigueReductionFactor;
-    uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
+        plastic_strain, fatigue_reduction_factor);
+    rUltraLowCycleFatiguePredictiveUniaxialStress = uniaxial_stress;
 
     const double yield_criteria = uniaxial_stress - ulcf_threshold;
 
     if (yield_criteria > std::abs(1.0e-4 * ulcf_threshold)) { // Plastic case
         // While loop backward euler
         /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-        GenericConstitutiveLawIntegratorPlasticity<TConstLawIntegratorType::YieldSurfaceType>::IntegrateStressVector(
+        GenericConstitutiveLawIntegratorUltraLowCycleFatigue<TConstLawIntegratorType::YieldSurfaceType>::IntegrateStressVector(
             predictive_stress_vector, r_strain_vector, uniaxial_stress,
             ulcf_threshold, plastic_denominator, f_flux, g_flux,
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, plastic_strain, values_ULCF,
-            characteristic_length);
+            characteristic_length, fatigue_reduction_factor);
         BaseType::CalculateElasticMatrix( r_constitutive_matrix, values_ULCF);
     }
 

@@ -287,8 +287,12 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
             mDamage = damage;
             mThreshold = uniaxial_stress;
 
+            TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
         } else {
             predictive_stress_vector *= (1.0 - mDamage);
+            TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
+            this->SetValue(UNIAXIAL_STRESS, uniaxial_stress, rValues.GetProcessInfo());
         }
     }
 }
@@ -302,6 +306,8 @@ bool GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(const Varia
     if (rThisVariable == DAMAGE) {
         return true;
     } else if (rThisVariable == THRESHOLD) {
+        return true;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
@@ -345,6 +351,8 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(
         mDamage = rValue;
     } else if (rThisVariable == THRESHOLD) {
         mThreshold = rValue;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        mUniaxialStress = rValue;
     } else {
         return BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -363,6 +371,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::SetValue(
     if (rThisVariable == INTERNAL_VARIABLES) {
         mDamage = rValue[0];
         mThreshold = rValue[1];
+        mUniaxialStress = rValue[2];
     }
 }
 
@@ -379,6 +388,8 @@ double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
         rValue = mDamage;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        rValue = mUniaxialStress;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
@@ -399,6 +410,7 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
         rValue.resize(3);
         rValue[0] = mDamage;
         rValue[1] = mThreshold;
+        rValue[2] = mUniaxialStress;
     }
     return rValue;
 }
@@ -425,32 +437,7 @@ double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateVal
     double& rValue
     )
 {
-    if (rThisVariable == UNIAXIAL_STRESS) {
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
-
-        // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
-
-        // Calculate the stress vector
-        CalculateMaterialResponseCauchy(rParameterValues);
-        const Vector& r_stress_vector = rParameterValues.GetStressVector();
-        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
-
-        BoundedArrayType aux_stress_vector = r_stress_vector;
-        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress( aux_stress_vector, r_strain_vector, rValue, rParameterValues);
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    } else {
-        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    }
-    return rValue;
+    return this->GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
