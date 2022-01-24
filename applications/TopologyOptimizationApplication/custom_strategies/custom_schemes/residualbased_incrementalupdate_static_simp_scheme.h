@@ -142,7 +142,7 @@ public:
         double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
         //Calculate the factor that needs to be multiplied on the RHS and LHS
-        double factor    = (1/E_current)*E_new;
+        double factor    = E_new/E_current;
 
         // Factorize LHS and RHS according SIMP approach
         // Note that when this function is called, all the contributions from the force conditions are missing.

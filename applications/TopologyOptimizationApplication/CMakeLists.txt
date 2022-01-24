@@ -50,12 +50,6 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosTopologyOptimizationCore)
-    cotire(KratosTopologyOptimizationApplication)
-endif(USE_COTIRE MATCHES ON)
-
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/TopologyOptimizationApplication.py KratosMultiphysics/TopologyOptimizationApplication/__init__.py )
 

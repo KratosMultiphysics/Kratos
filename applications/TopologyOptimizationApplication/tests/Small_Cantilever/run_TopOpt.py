@@ -8,12 +8,25 @@ from importlib import import_module
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 from KratosMultiphysics.TopologyOptimizationApplication import topology_optimizer_factory
 from KratosMultiphysics import process_factory
+from KratosMultiphysics.KratosUnittest import TestCase
 
 
 parameter_file = open("ProjectParameters.json",'r')
 ProjectParameters = km.Parameters(parameter_file.read())
 optimization_file = open("Optimization_Parameters.json",'r')
 OptimizationParameters = km.Parameters(optimization_file.read())
+
+#Optimization results to compare for the unittest
+results = km.Parameters(""" 
+                    {
+
+                    "compliance"                            : 0.0,
+                    "number_of_iterations"                  : 0,
+                    "volume_fraction"                       : 0.0
+                    
+                    } 
+                    """)
+
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 current_model = km.Model()
 dimension = 2
@@ -97,6 +110,10 @@ def FinalizeKSMProcess():
     gid_output_process.ExecuteFinalize()
     
 def Analyzer(controls, response, opt_itr):
+    
+    # Save the current number of iterations for comparison reasons of the unittest
+    results["number_of_iterations"].SetInt(opt_itr)
+    
     # Create object to analyze structure response functions if required
     response_analyzer = kto.StructureResponseFunctionUtilities(model_part)
     linear_solver = km.python_linear_solver_factory.ConstructSolver(ProjectParameters["solver_settings"]["linear_solver_settings"])
@@ -108,10 +125,19 @@ def Analyzer(controls, response, opt_itr):
         solve_structure(opt_itr)
         # Calculate objective function value based on u and save into container
         response["strain_energy"]["func"] = response_analyzer.ComputeStrainEnergy()
+
+        #Save the compliance of the given iteration as results for the unittest
+        results["compliance"].SetDouble(response["strain_energy"]["func"])
+
     # Compute constraint function value
     if(controls["volume_fraction"]["calc_func"]):
         target_volume_fraction = OptimizationParameters["optimization_parameters"]["initial_volume_fraction"].GetDouble()
-        response["volume_fraction"]["func"] = response_analyzer.ComputeVolumeFraction() - target_volume_fraction
+        Volume_fraction = response_analyzer.ComputeVolumeFraction()
+        response["volume_fraction"]["func"] = Volume_fraction - target_volume_fraction
+
+        #Save the volume fraction of the given iteration as results for the unittest
+        results["volume_fraction"].SetDouble(Volume_fraction)
+
     # Compute sensitivities of objective function
     if(controls["strain_energy"]["calc_grad"]):        
         sensitivity_solver.ComputeStrainEnergySensitivities()
@@ -122,4 +148,10 @@ def Analyzer(controls, response, opt_itr):
 # optimization
 optimizer = kto.topology_optimizer_factory.ConstructOptimizer(model_part, OptimizationParameters["optimization_parameters"], Analyzer)
 optimizer.optimize()
+
+# Testing the results of the optimization 
+TestCase().assertEqual(results["number_of_iterations"].GetInt(), 4)
+TestCase().assertAlmostEqual(results["compliance"].GetDouble(), 36934.405, 3)
+TestCase().assertAlmostEqual(results["volume_fraction"].GetDouble(), 0.49997, 5)
+
 FinalizeKSMProcess()

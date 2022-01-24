@@ -160,11 +160,18 @@ public:
             myfile << "    outer loop\n";
 
             Element::GeometryType& rNodes = cond_i->GetGeometry();
-            for(unsigned int i = 0; i<rNodes.size(); i++)
-                myfile << "      vertex "<< rNodes[i].X() <<" " << rNodes[i].Y() << " " << rNodes[i].Z() <<"\n";
+            if (rNodes.size()==3)
+            {
+                for(unsigned int i = 0; i<rNodes.size(); i++)
+                    myfile << "      vertex "<< rNodes[i].X() <<" " << rNodes[i].Y() << " " << rNodes[i].Z() <<"\n";
 
-            myfile << "    end loop\n";
-            myfile << "  end facet\n";
+                myfile << "    end loop\n";
+                myfile << "  end facet\n";
+            }
+            else 
+            {
+                KRATOS_ERROR << "The number of nodes is: "<< rNodes.size() << ". This is not feasible for STL files!"<< std::endl;
+            }
 
         }
         myfile << "endsolid Layer0\n";

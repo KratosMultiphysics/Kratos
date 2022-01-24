@@ -82,17 +82,17 @@ class SIMPMethod:
         self.objectives = config["objectives"].items()
         self.constraints = config["constraints"].items()
 
-        print("\n::[Initializing Topology Optimization Application]::")
-        print("  The following objectives are defined:")
+        km.Logger.Print("\n::[Initializing Topology Optimization Application]::")
+        km.Logger.Print("  The following objectives are defined:")
         for func_id, obj_settings in config["objectives"].items():
             obj_settings["grad"].GetString()
-            print("   ",func_id,"-> 'grad' : ",obj_settings["grad"].GetString(),"\n")
+            km.Logger.Print("   ",func_id,"-> 'grad' : ",obj_settings["grad"].GetString(),"\n")
 
 
-        print("  The following constraints are defined:")
+        km.Logger.Print("  The following constraints are defined:")
         for func_id, const_settings in config["constraints"].items():
             const_settings["grad"].GetString()
-            print("   ",func_id,"-> 'type' : ",const_settings["type"].GetString(),", 'grad' : ",const_settings["grad"].GetString(),"\n")        
+            km.Logger.Print("   ",func_id,"-> 'type' : ",const_settings["type"].GetString(),", 'grad' : ",const_settings["grad"].GetString(),"\n")        
 
         # Create controller object
         self.controller = Controller( config )
@@ -128,9 +128,9 @@ class SIMPMethod:
     # --------------------------------------------------------------------------
     def optimize(self):
 
-        print("\n> ==============================================================================================================")
-        print("> Starting optimization using the following algorithm: ",self.config["optimization_algorithm"].GetString())
-        print("> ==============================================================================================================")
+        km.Logger.Print("\n> ==============================================================================================================")
+        km.Logger.Print("> Starting optimization using the following algorithm: ",self.config["optimization_algorithm"].GetString())
+        km.Logger.Print("> ==============================================================================================================")
 
         # Start timer and assign to object such that total time of opt may be measured at each step
         self.opt_start_time = time.time()
@@ -155,9 +155,9 @@ class SIMPMethod:
         # Stop timer
         opt_end_time = time.time()
 
-        print("\n> ==============================================================================================================")
-        print("> Finished optimization in ",round(opt_end_time - self.opt_start_time,1)," s!")
-        print("> ==============================================================================================================")
+        km.Logger.Print("\n> ==============================================================================================================")
+        km.Logger.Print("> Finished optimization in ",round(opt_end_time - self.opt_start_time,1)," s!")
+        km.Logger.Print("> ==============================================================================================================")
 
 # ==============================================================================
 #           Topology Optimization with OC
@@ -184,32 +184,32 @@ class SIMPMethod:
         Obj_Function_absolute_change  = None
 
         # Print the Topology Optimization Settings that will be used in the program
-        print("\n::[Topology Optimization Settings]::")
-        print("  E_min:          ", self.config["E_min"].GetDouble())
-        print("  Filter radius:  ", self.config["filter_radius"].GetDouble())
-        print("  Penalty factor: ", self.config["penalty"].GetInt())
-        print("  Rel. Tolerance: ", self.config["relative_tolerance"].GetDouble())
-        print("  Volume Fraction:", self.config["initial_volume_fraction"].GetDouble())
-        print("  Max. number of iterations:", self.config["max_opt_iterations"].GetInt())
+        km.Logger.Print("\n::[Topology Optimization Settings]::")
+        km.Logger.Print("  E_min:          ", self.config["E_min"].GetDouble())
+        km.Logger.Print("  Filter radius:  ", self.config["filter_radius"].GetDouble())
+        km.Logger.Print("  Penalty factor: ", self.config["penalty"].GetInt())
+        km.Logger.Print("  Rel. Tolerance: ", self.config["relative_tolerance"].GetDouble())
+        km.Logger.Print("  Volume Fraction:", self.config["initial_volume_fraction"].GetDouble())
+        km.Logger.Print("  Max. number of iterations:", self.config["max_opt_iterations"].GetInt())
 
         if (self.config["restart_write_frequency"].GetInt() < self.config["max_opt_iterations"].GetInt()):
             if (self.config["restart_write_frequency"].GetInt() == 1):
-                print("  Make a restart file every iteration")
+                km.Logger.Print("  Make a restart file every iteration")
             elif (self.config["restart_write_frequency"].GetInt() > 1):
-                print("  Make a restart file every", self.config["restart_write_frequency"].GetInt(), "iterations")
+                km.Logger.Print("  Make a restart file every", self.config["restart_write_frequency"].GetInt(), "iterations")
             else:
-                print("  No restart file will be done during the simulation")
+                km.Logger.Print("  No restart file will be done during the simulation")
         else:
-            print("  No restart file will be done during the simulation")
+            km.Logger.Print("  No restart file will be done during the simulation")
          
 
         # Start optimization loop
         for opt_itr in range(1,self.config["max_opt_iterations"].GetInt()+1):
 
             # Some output
-            print("\n> ==============================================================================================")
-            print("> Starting optimization iteration ",opt_itr)
-            print("> ==============================================================================================\n")
+            km.Logger.Print("\n> ==============================================================================================")
+            km.Logger.Print("> Starting optimization iteration ",opt_itr)
+            km.Logger.Print("> ==============================================================================================\n")
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
@@ -232,12 +232,12 @@ class SIMPMethod:
             self.analyzer(self.controller.get_controls(), response, opt_itr)
             
             # Filter sensitivities
-            print("\n[TopOpt]:   ::[Filter Sensitivities]::")
+            km.Logger.Print("\n[TopOpt]:   ::[Filter Sensitivities]::")
             self.filter_utils.ApplyFilterSensitivity(self.config["filter_type"].GetString() , self.config["filter_kernel"].GetString() )
 
 
             # Update design variables ( densities )  --> new X by:
-            print("\n[TopOpt]    ::[Update Densities with OC]::")
+            km.Logger.Print("\n[TopOpt]    ::[Update Densities with OC]::")
             self.design_update_utils.UpdateDensitiesUsingOCMethod( self.config["optimization_algorithm"].GetString(),
                                                                    self.config["initial_volume_fraction"].GetDouble(),
                                                                    self.config["grey_scale_filter"].GetInt(),
@@ -247,7 +247,7 @@ class SIMPMethod:
 
 
             if (self.config["density_filter"].GetString() == "density"):
-                print("\n[TopOpt]   ::[Filter Densities]::") 
+                km.Logger.Print("\n[TopOpt]   ::[Filter Densities]::") 
                 self.filter_utils.ApplyFilterDensity(self.config["density_filter"].GetString() , self.config["filter_kernel"].GetString() )
 
 
@@ -255,22 +255,22 @@ class SIMPMethod:
 
             
             # Print of results
-            print("\n[TopOpt]:   ::[RESULTS]::")
+            km.Logger.Print("\n[TopOpt]:   ::[RESULTS]::")
             Obj_Function = response[only_F_id]["func"]
             C_Function = response[only_C_id]["func"]
 
-            print("  Obj. function value           = ", math.ceil(Obj_Function*1000000)/1000000 )
-            print("  Const. function value         = ", math.ceil(C_Function*1000000)/1000000 )
+            km.Logger.Print("  Obj. function value           = ", "{:.3f}".format(Obj_Function))
+            km.Logger.Print("  Const. function value         = ", "{:.5f}".format(C_Function))
 
             if opt_itr == 1:
                 Obj_Function_initial = Obj_Function
 
             if opt_itr > 1:
                 Obj_Function_relative_change = (Obj_Function - Obj_Function_old) / Obj_Function_initial
-                print("  Relative Obj. Function change =", math.ceil((Obj_Function_relative_change*100)*10000)/10000, "%" )
+                km.Logger.Print("  Relative Obj. Function change =", "{:.4f}".format(Obj_Function_relative_change), "%" )
 
                 Obj_Function_absolute_change = (Obj_Function - Obj_Function_initial) / Obj_Function_initial
-                print("  Absolute Obj. Function change =", math.ceil((Obj_Function_absolute_change*100)*10000)/10000, "%" )
+                km.Logger.Print("  Absolute Obj. Function change =", "{:.4f}".format(Obj_Function_absolute_change), "%" )
 
             Obj_Function_old = Obj_Function
 
@@ -279,7 +279,7 @@ class SIMPMethod:
 
             # Continuation Strategy
             if(self.config["continuation_strategy"].GetInt() == 1):
-                print("  Continuation Strategy for current iteration was ACTIVE")
+                km.Logger.Print("  Continuation Strategy for current iteration was ACTIVE")
                 if opt_itr < 20:
                     for element_i in self.opt_model_part.Elements:
                         element_i.SetValue(kto.PENAL, 1)
@@ -287,14 +287,14 @@ class SIMPMethod:
                     for element_i in self.opt_model_part.Elements:
                         element_i.SetValue(kto.PENAL, min(pmax,1.02*element_i.GetValue(kto.PENAL)))
             else:
-                print("  Continuation Strategy for current iteration was UNACTIVE")
+                km.Logger.Print("  Continuation Strategy for current iteration was UNACTIVE")
 
             # Write restart file every selected number of iterations
             restart_filename = self.config["restart_output_file"].GetString().replace(".mdpa","_"+str(opt_itr)+".mdpa")
             if (self.config["restart_write_frequency"].GetInt() > 0):
                 if (opt_itr % self.config["restart_write_frequency"].GetInt() == False):
-                    print("\n::[Restart File]::")
-                    print("  Saving file at iteration", opt_itr)
+                    km.Logger.Print("\n::[Restart File]::")
+                    km.Logger.Print("  Saving file at iteration", opt_itr)
                     self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
 
             # Check convergence
@@ -302,18 +302,18 @@ class SIMPMethod:
                 # Check if maximum iterations were reached
                 if(opt_itr==self.config["max_opt_iterations"].GetInt()):
                     end_time = time.time()
-                    print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-                    print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-                    print("\n  Maximal iterations of optimization problem reached!")
+                    km.Logger.Print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+                    km.Logger.Print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
+                    km.Logger.Print("\n  Maximal iterations of optimization problem reached!")
                     self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
                     break
 
                 # Check for relative tolerance
                 if(abs(Obj_Function_relative_change)<self.config["relative_tolerance"].GetDouble()):
                     end_time = time.time()
-                    print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-                    print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
-                    print("\n  Optimization problem converged within a relative objective tolerance of",self.config["relative_tolerance"].GetDouble())
+                    km.Logger.Print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+                    km.Logger.Print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
+                    km.Logger.Print("\n  Optimization problem converged within a relative objective tolerance of",self.config["relative_tolerance"].GetDouble())
                     self.io_utils.SaveOptimizationResults(self.config["restart_input_file"].GetString(), self.opt_model_part, restart_filename)
 
                     break
@@ -326,8 +326,8 @@ class SIMPMethod:
 
             # Take time needed for current optimization step
             end_time = time.time()
-            print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
-            print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
+            km.Logger.Print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
+            km.Logger.Print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
 
 # ==============================================================================
 
@@ -342,9 +342,9 @@ class Controller:
         # Create and initialize controller
         self.controls = {}
         for func_id, empty in config["objectives"].items():
-            print(" Print the controller input   ",func_id,"\n")
+            km.Logger.Print(" Print the controller input   ",func_id,"\n")
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}
-            print(" Print the controller output  ",self.controls[func_id],"\n")
+            km.Logger.Print(" Print the controller output  ",self.controls[func_id],"\n")
 
         for func_id, empty in config["constraints"].items():
             self.controls[func_id] = {"calc_func": 0, "calc_grad": 0}

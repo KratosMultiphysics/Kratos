@@ -134,7 +134,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
 
-    if (rValues.size() != integration_points.size()) /// Hier eventuell .size() einbauen
+    if (rValues.size() != integration_points.size())
         rValues.resize(integration_points.size(), false);
 
     if (rVariable == VON_MISES_STRESS) {

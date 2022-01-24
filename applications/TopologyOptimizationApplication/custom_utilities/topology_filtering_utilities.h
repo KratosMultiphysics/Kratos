@@ -313,7 +313,7 @@ public:
             clock_t tree_time = clock();
             KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
 
-            // Compute filtered sensitivities
+            // Compute filtered densities
             Vector x_phys_filtered;
             x_phys_filtered.resize(mrModelPart.NumberOfElements());
             int i = 0;
@@ -360,16 +360,16 @@ public:
                     Hxdx_sum += Hxdx;
                 }
 
-                // Calculate filtered sensitivities and assign to the elements
+                // Calculate filtered densities and assign to the elements
                 
-                // Heavyside PRojection
+                // Heavyside Projection
                 double x_try = 0;
                 x_try = Hxdx_sum / (H_sum);
                 double beta = std::min(beta_max,beta_0*pow(2,((Opt_iter-1)/tau)));
                 x_phys_filtered[i++]= ((std::tanh(beta*nu)+std::tanh(beta*(x_try-nu)))/(std::tanh(beta*nu)+std::tanh(beta*(1-nu))));
             }
 
-            // Overwrite sensitivities with filtered sensitivities
+            // Overwrite sensitivities with filtered densities
             i = 0;
             for(ModelPart::ElementsContainerType::iterator elem_i = mrModelPart.ElementsBegin();
                     elem_i!=mrModelPart.ElementsEnd(); elem_i++)
