@@ -141,7 +141,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
         
             [self.data_in, self.data_out] = self.Preprocessing()
         
-        self.__CreateListOfProcesses()
+            self.__CreateListOfProcesses()
 
         if self.problem_type == "predict_with_modelpart":
             self.solver.LoadProcessesList(self._GetListOfProcesses())

@@ -20,3 +20,9 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def SolveSolutionStep(self):
         with self.thread_manager:
             self._analysis_stage._GetNeuralNetworkSolver().SolveSolutionStep()
+    
+    def AdvanceInTime(self, current_time):
+        with self.thread_manager:
+            new_time = self._analysis_stage._GetNeuralNetworkSolver().AdvanceInTime(current_time)
+        self._analysis_stage.time = new_time # only needed to print the time correctly
+        return new_time

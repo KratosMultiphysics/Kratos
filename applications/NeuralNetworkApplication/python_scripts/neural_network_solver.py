@@ -34,7 +34,6 @@ class NeuralNetworkSolver(PythonSolver):
         self.model_import_settings["input_type"].SetString("mdpa")
         self.model_import_settings.AddEmptyValue("input_filename")
         self.model_import_settings["input_filename"].SetString(self.model_geometry_file)
-
         self.lookback = project_parameters ["lookback"].GetInt()
         self.time_buffer = project_parameters["time_buffer"].GetInt()
         self.timestep = project_parameters["timestep"].GetDouble()
@@ -44,6 +43,10 @@ class NeuralNetworkSolver(PythonSolver):
             self.record = project_parameters["record"].GetBool()
         except RuntimeError:
             self.record = False
+        try:
+            self.external_model = project_parameters["external_model"].GetBool()
+        except RuntimeError:
+            self.external_model = False
         try:
             self.only_input = project_parameters["only_input"].GetBool()
         except RuntimeError:
@@ -315,7 +318,7 @@ class NeuralNetworkSolver(PythonSolver):
         output_value_list = np.squeeze(self.output_data_structure.ExportAsArray())
 
         # TODO: Right now, it only works with one variable that has the same shape as the output.
-        if self.time >= self.time_buffer:
+        if self.time >= self.time_buffer: # TODO: Check for consistency with timesteps nad time
             output_value_index = 0
             for model_part, variable, source in self.dict_output:
             # Process related variables (e.g. TIME, STEP)
@@ -349,13 +352,21 @@ class NeuralNetworkSolver(PythonSolver):
         if self.feaures_as_timestpes:
             data_structure_in.SetFeaturesAsTimesteps()
 
-        for process in self._GetListOfProcesses():
-            try:
-                output = process.Predict(self.neural_network_model, data_structure_in)
-                if not output is None:
-                    data_out.UpdateData(output)
-            except AttributeError:
-                pass
+        if self.external_model:
+        # NOTE: This is needed due to unexpected bug with the predict process.
+        # In normal conditions, it is not necessary, but it must be used if there are 
+        # processes that parse from a function in string form.
+            output = self.neural_network_model.predict(data_structure_in.ExportAsArray())
+            if not output is None:
+                        data_out.UpdateData(output)
+        else:
+            for process in self._GetListOfProcesses():
+                try:
+                    output = process.Predict(self.neural_network_model, data_structure_in)
+                    if not output is None:
+                        data_out.UpdateData(output)
+                except AttributeError:
+                    pass
         if hasattr(data_structure_in, 'lookback_data'):
             data_structure_in.CheckLookbackAndUpdate(np.squeeze(data_out.ExportAsArray()))
         for process in self._GetListOfProcesses():
