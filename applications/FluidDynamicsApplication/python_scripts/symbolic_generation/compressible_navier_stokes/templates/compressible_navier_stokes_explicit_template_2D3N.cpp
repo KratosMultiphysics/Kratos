@@ -28,7 +28,7 @@
 namespace Kratos {
 
 template<>
-GeometryData::IntegrationMethod CompressibleNavierStokesExplicit<2,4>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod CompressibleNavierStokesExplicit<2,3>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
