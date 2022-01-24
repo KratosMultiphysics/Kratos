@@ -443,6 +443,8 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     /**
      * @brief Calculate the midpoint velocity divergence

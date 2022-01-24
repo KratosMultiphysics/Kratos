@@ -28,6 +28,12 @@
 
 namespace Kratos {
 
+template<>
+GeometryData::IntegrationMethod CompressibleNavierStokesExplicit<2,4>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
+
 template <>
 void CompressibleNavierStokesExplicit<2,4>::EquationIdVector(
     EquationIdVectorType &rResult,
@@ -87,7 +93,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVeloc
     // Get geometry data
     const auto& r_geom = GetGeometry();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -131,7 +137,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
     // Get geometry data
     const auto& r_geom = GetGeometry();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -192,7 +198,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
@@ -237,7 +243,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
@@ -278,7 +284,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
@@ -320,7 +326,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
     constexpr double stab_c3 = 1.0;
 
     const auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     Vector N;
     Matrix DN_DX_iso;
@@ -352,6 +358,9 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
         }
     }
 
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
+    rRightHandSideBoundedVector *= data.volume / NumNodes;
+
     KRATOS_CATCH("")
 }
 
@@ -361,23 +370,39 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    constexpr double dof_weight = 1.0 / DofSize;
 
-    rMassMatrix = ZeroMatrix(DofSize, DofSize);
+    const auto& r_geometry = GetGeometry();
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
-    for(IndexType i=0; i<NumNodes; ++i)
+    Vector N;
+    Matrix Jinv;
+
+    c_matrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
+    for(std::size_t i=0; i<gauss_points.size(); ++i)
     {
-        for(IndexType j=i; j<NumNodes; ++j)
-        {
-            const IndexType dof = i + j * BlockSize;
+        r_geometry.ShapeFunctionsValues(N, gauss_points[i].Coordinates());
+        r_geometry.InverseOfJacobian(Jinv, i, GetIntegrationMethod());
 
-            rMassMatrix(i, dof) += dof_weight;
-            rMassMatrix(dof, i) += dof_weight;
-        }
+        noalias(M) += prod(outer_prod(N, N), Jinv);
     }
 
-    // Here we assume that all the Gauss pt. have the same weight so we multiply by the volume
-    rMassMatrix *= GetGeometry().Area();
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
+    M *= r_geometry.Area() / static_cast<double>(gauss_points.size());
+
+    // Distributing 4x4 matrix to 16x16 matrix
+    rMassMatrix = ZeroMatrix(DofSize, DofSize);
+    for(std::size_t i_dof=0; i_dof < BlockSize; ++i_dof)
+    {
+        for(std::size_t i_node=0; i_node < NumNodes; ++i_node)
+        {
+            const std::size_t I = i_dof*BlockSize + i_node;
+            for(std::size_t j_node=0; j_node < NumNodes; ++j_node)
+            {
+                const std::size_t J = i_dof*BlockSize + j_node;
+                rMassMatrix(I, J) = M(i_node, j_node);
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
