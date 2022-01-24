@@ -46,7 +46,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -85,7 +86,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 2, {{2, 3}}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -154,8 +156,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
+        options.AddBool("calculate_elemental_edge_distances_extrapolated", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -225,8 +228,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 3, {3, 4, 5}, p_properties);
         skin_part.CreateNewElement("Element3D3N", 4, {4, 5, 6}, p_properties);
 
-        // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -331,7 +334,8 @@ namespace Testing {
         Properties::Pointer p_properties_1(new Properties(1));
         skin_part.CreateNewElement("Element2D2N", 1, {{1, 2}}, p_properties_1);
 
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES.AsFalse();
+        Parameters options;
+        options.AddBool("use_positive_epsilon_for_zero_values", false);
         // Compute the discontinuous distance function
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(fluid_part, skin_part, options);
         disc_dist_proc.Execute();
@@ -671,7 +675,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 2, {2, 3, 4}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -764,7 +769,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 2, {4,5,6}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -809,7 +815,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 2, {2,3,4}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -849,7 +856,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 2, {3,2,4}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -903,7 +911,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 10, {5,10,9}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -990,7 +999,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 33393, {2049,2021,2091}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -1053,7 +1063,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 770, {299,333,285}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -1301,8 +1312,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
+        options.AddBool("calculate_elemental_edge_distances_extrapolated", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -1399,8 +1411,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element3D3N", 2, {{3,2,4}}, p_properties_1);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
+        options.AddBool("calculate_elemental_edge_distances_extrapolated", true);
         CalculateDiscontinuousDistanceToSkinProcess<3> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -1517,8 +1530,9 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
+        options.AddBool("calculate_elemental_edge_distances_extrapolated", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -1599,7 +1613,8 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -1660,9 +1675,10 @@ namespace Testing {
         skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
 
         // Compute the discontinuous distance function (including edge distances)
-        Flags options = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::USE_POSITIVE_EPSILON_FOR_ZERO_VALUES;
+        Parameters options;
+        options.AddBool("calculate_elemental_edge_distances", true);
+        options.AddBool("calculate_elemental_edge_distances_extrapolated", true);
+        options.AddBool("use_positive_epsilon_for_zero_values", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, options);
         disc_dist_proc.Execute();
 
@@ -1763,7 +1779,8 @@ namespace Testing {
         KRATOS_CHECK_VECTOR_NEAR(r_elem_dist_elem_3, expected_values_elem_3, 1.0e-5);
 
         // Only CALCULATE_ELEMENTAL_EDGE_DISTANCES is given
-        Flags options_1 = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES;
+        Parameters options_1;
+        options_1.AddBool("calculate_elemental_edge_distances", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc_1(volume_part, skin_part, options_1);
         disc_dist_proc_1.Execute();
 
@@ -1785,8 +1802,9 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(n_cut_edges, 1);
 
         //Both flags are given: CALCULATE_ELEMENTAL_EDGE_DISTANCES and CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
-        Flags options_2 = CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES
-            | CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+        Parameters options_2;
+        options_2.AddBool("calculate_elemental_edge_distances", true);
+        options_2.AddBool("calculate_elemental_edge_distances_extrapolated", true);
         CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc_2(volume_part, skin_part, options_2);
         disc_dist_proc_2.Execute();
 

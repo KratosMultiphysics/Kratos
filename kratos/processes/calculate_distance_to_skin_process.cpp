@@ -47,14 +47,12 @@ namespace Kratos
 		ModelPart& rVolumePart,
 		ModelPart& rSkinPart,
 		Parameters& rParameters)
-		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
-		mParameters(rParameters)
-
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
 	{
-		mParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
-		mRayCastingRelativeTolerance = mParameters["ray_casting_relative_tolerance"].GetDouble();
-        CalculateDiscontinuousDistanceToSkinProcess<TDim>::mpElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(mParameters["elemental_distances_variable"].GetString());;
-        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(mParameters["distance_variables"].GetString());;
+		rParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
+		mRayCastingRelativeTolerance = rParameters["ray_casting_relative_tolerance"].GetDouble();
+        CalculateDiscontinuousDistanceToSkinProcess<TDim>::mpElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(rParameters["elemental_distances_variable"].GetString());;
+        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(rParameters["distance_variables"].GetString());;
 	}
 
 	template<std::size_t TDim>
