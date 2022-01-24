@@ -32,6 +32,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         #self.list_of_inlets = Parameters["list_of_inlets"]
 
 
+    def _ElementsAreNotSimplex(self):
+        "Checks whether the first element is non-simplex"
+        if self.main_model_part.NumberOfElements() == 0:
+            return True
+        
+        geometry = self.main_model_part.Elements.__iter__().__next__().GetGeometry()
+        is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
+        return not is_simplex
+
 
     def Execute(self):
         if self.main_model_part.Name == self.volume_model_part_name:
@@ -63,13 +72,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         fluid_computational_model_part.AddConditions(list(list_of_ids))
 
         #verify the orientation of the skin (only implemented for tris and tets)
-        geometry = self.main_model_part.GetElement(1).GetGeometry()
-        is_simplex = geometry.LocalSpaceDimension() + 1 == geometry.PointsNumber()
-        if not is_simplex:
+        if self._ElementsAreNotSimplex():
             msg = "Geoemetry is not simplex. Orientation check is only available"
-            msg += "for simplex geometries and hence it will be skipped"
+            msg += " for simplex geometries and hence it will be skipped."
             KratosMultiphysics.Logger.PrintWarning(type(self).__name__, msg)
-
             return
 
         tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
