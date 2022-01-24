@@ -227,13 +227,12 @@ public:
 
             //estimate GRADIENT(n+1)
             Vector N(TDim + 1);
-            Vector N_valid(TDim + 1);
             const int max_results = 10000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
             const int n_nodes = mpDistanceModelPart->NumberOfNodes();
 
-            #pragma omp parallel for firstprivate(results,N,N_valid)
+            #pragma omp parallel for firstprivate(results,N)
             for (int i = 0; i < n_nodes; i++)
             {
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -245,7 +244,11 @@ public:
                 const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(*mpConvectVar);
                 array_1d<double,3> position = it_particle->Coordinates() - dt*vel;
 
-                bool is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
+                //KRATOS_INFO("HERE") << "000000" << std::endl;
+
+                bool is_found = mSearchStructure.FindPointOnMesh(position, N, pelement, result_begin, max_results);
+
+                //KRATOS_INFO("HERE") << "111111" << std::endl;
 
                 if (is_found == true)
                 {
@@ -431,7 +434,9 @@ protected:
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
 
-    typename BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure = nullptr;
+    //BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure = nullptr;
+    BinBasedFastPointLocator<TDim> mSearchStructure;
+
 
     ///@}
     ///@name Protected Operators
@@ -446,6 +451,7 @@ protected:
         Parameters ThisParameters)
         : mrBaseModelPart(rModelPart)
         , mrModel(rModelPart.GetModel())
+        , mSearchStructure(mrBaseModelPart)
     {
         // Validate the common settings as well as the element formulation specific ones
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -466,11 +472,14 @@ protected:
             false);
         }
 
-        if (mElementRequiresLevelSetGradient){
+        mSearchStructure.UpdateSearchDatabase();
+
+        /* if (mElementRequiresLevelSetGradient){
             mpSearchStructure = Kratos::make_unique< BinBasedFastPointLocator<TDim> >(
                 mrBaseModelPart
             );
-        }
+            KRATOS_INFO("HERE") << "444444" << std::endl;
+        } */
     }
 
     /**
