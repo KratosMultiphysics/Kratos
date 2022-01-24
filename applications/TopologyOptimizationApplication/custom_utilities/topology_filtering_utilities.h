@@ -213,7 +213,7 @@ public:
                 Geometry< Node<3> >& geom = elem_i->GetGeometry();
                 array_1d<double,3> disp = ZeroVector(3);
                 for(unsigned int i=0; i<geom.size(); i++)
-                    noalias(center_coord) += (geom[i].Coordinates() - geom[i].FastGetSolutionStepValue(DISPLACEMENT));
+                    noalias(center_coord) += (geom[i].GetInitialPosition());
                 center_coord /= static_cast<double>(geom.size());
 
                 ElementPositionItem ElemPositionItem(center_coord,*elem_i.base());
@@ -324,7 +324,7 @@ public:
                 Geometry< Node<3> >& geom = elem_i->GetGeometry();
                 array_1d<double,3> disp = ZeroVector(3);
                 for(unsigned int i=0; i<geom.size(); i++)
-                    noalias(center_coord) += (geom[i].Coordinates() - geom[i].FastGetSolutionStepValue(DISPLACEMENT));
+                    noalias(center_coord) += (geom[i].GetInitialPosition());
                 center_coord /= static_cast<double>(geom.size());
 
                 ElementPositionItem ElemPositionItem(center_coord,*elem_i.base());
