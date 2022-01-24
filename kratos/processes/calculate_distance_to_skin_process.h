@@ -212,7 +212,6 @@ private:
     ///@{
 
     double mRayCastingRelativeTolerance = 1.0e-8;
-    Parameters mParameters;
 
     ///@}
     ///@name Private Operators
