@@ -225,43 +225,45 @@ public:
             }
             );
 
-            //estimate GRADIENT(n+1)
-            Vector N(TDim + 1);
-            const int max_results = 10000;
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+            if (mElementRequiresLevelSetGradient){
+                //estimate GRADIENT(n+1)
+                Vector N(TDim + 1);
+                const int max_results = 10000;
+                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-            const int n_nodes = mpDistanceModelPart->NumberOfNodes();
+                const int n_nodes = mpDistanceModelPart->NumberOfNodes();
 
-            #pragma omp parallel for firstprivate(results,N)
-            for (int i = 0; i < n_nodes; i++)
-            {
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                ModelPart::NodesContainerType::iterator it_particle = mpDistanceModelPart->NodesBegin() + i;
-
-                Element::Pointer pelement;
-
-                const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(*mpConvectVar);
-                array_1d<double,3> position = it_particle->Coordinates() - dt*vel;
-
-                //KRATOS_INFO("HERE") << "000000" << std::endl;
-
-                bool is_found = mSearchStructure.FindPointOnMesh(position, N, pelement, result_begin, max_results);
-
-                //KRATOS_INFO("HERE") << "111111" << std::endl;
-
-                if (is_found == true)
+                #pragma omp parallel for firstprivate(results,N)
+                for (int i = 0; i < n_nodes; i++)
                 {
-                    Geometry< Node < 3 > >& geom = pelement->GetGeometry();
-                    Vector grad_phi = N[0] * (geom[0].GetValue(*mpLevelSetGradientVar));
-                    for (unsigned int k = 1; k < geom.size(); k++) {
-                        grad_phi = grad_phi + N[k] * (geom[k].GetValue(*mpLevelSetGradientVar));
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+                    ModelPart::NodesContainerType::iterator it_particle = mpDistanceModelPart->NodesBegin() + i;
+
+                    Element::Pointer pelement;
+
+                    const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(*mpConvectVar);
+                    array_1d<double,3> position = it_particle->Coordinates() - dt*vel;
+
+                    //KRATOS_INFO("HERE") << "000000" << std::endl;
+
+                    bool is_found = mSearchStructure.FindPointOnMesh(position, N, pelement, result_begin, max_results);
+
+                    //KRATOS_INFO("HERE") << "111111" << std::endl;
+
+                    if (is_found == true)
+                    {
+                        Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+                        Vector grad_phi = N[0] * (geom[0].GetValue(*mpLevelSetGradientVar));
+                        for (unsigned int k = 1; k < geom.size(); k++) {
+                            grad_phi = grad_phi + N[k] * (geom[k].GetValue(*mpLevelSetGradientVar));
+                        }
+
+                        it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = grad_phi;
+
+                    } else {
+                        it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = it_particle->GetValue(*mpLevelSetGradientVar);
                     }
-
-                    it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = grad_phi;
-
-                } else {
-                    it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = it_particle->GetValue(*mpLevelSetGradientVar);
                 }
             }
 
