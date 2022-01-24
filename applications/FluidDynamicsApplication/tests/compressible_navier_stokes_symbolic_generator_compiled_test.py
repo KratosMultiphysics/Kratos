@@ -33,7 +33,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             or use a pre-existing source file.
         -recompile: Instructs the test whether to call the compiler
             or use a pre-existing binary file.
-        - cleanup: Instructs the test whether to remove generated code and 
+        - cleanup: Instructs the test whether to remove generated code and
             compiled binary
         - compiler: Choice of compiler. Must accept GCC-like commands (e.g -00 -g)
         - geometry: Choice of geometry. Format is xDyN, with x,y integers
@@ -95,26 +95,17 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
     def _get_compiler_in_CI(self):
         """
-        Gets the compiler in continuous integration runs"
+        Gets the compiler in continuous integration runs
         """
-        if os.system("${{ matrix.compiler }}") != 0:
+        if "CXX" not in os.environ:
             return None
 
-        compiler = subprocess.check_output("${{ matrix.compiler }}", encoding="utf-8")
+        compiler = os.environ["CXX"]
 
         if len(compiler) == 0:
             return None
 
-        compiler_commands = {
-            "gcc": "g++",
-            "clang": "clang++"
-        }
-
-        if compiler in compiler_commands:
-            return compiler_commands[compiler]
-
         return compiler
-
 
     @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
     def test_Quadrilateral(self):
