@@ -45,6 +45,12 @@ void AMGCLScalarSolve(
     bool use_gpgpu
     )
 {
+    const Epetra_Comm& r_epetra_comm = rA.Comm();
+    // const Epetra_MpiComm epetra_mpi_comm(r_epetra_comm);
+    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm);
+
+    MPI_Comm the_comm = r_epetra_mpi_comm.Comm();
+
 #ifdef AMGCL_GPGPU
     if (use_gpgpu && vexcl_context()) {
         auto &ctx = vexcl_context();
@@ -61,7 +67,7 @@ void AMGCLScalarSolve(
         Backend::params bprm;
         bprm.q = ctx;
 
-        Solver solve(MPI_COMM_WORLD, amgcl::adapter::map(rA), amgclParams, bprm);
+        Solver solve(the_comm, amgcl::adapter::map(rA), amgclParams, bprm);
 
         std::size_t n = rA.NumMyRows();
 
@@ -83,7 +89,7 @@ void AMGCLScalarSolve(
                 >
             Solver;
 
-        Solver solve(MPI_COMM_WORLD, amgcl::adapter::map(rA), amgclParams);
+        Solver solve(the_comm, amgcl::adapter::map(rA), amgclParams);
 
         std::size_t n = rA.NumMyRows();
 
@@ -107,6 +113,12 @@ void AMGCLBlockSolve(
     bool use_gpgpu
     )
 {
+    const Epetra_Comm& r_epetra_comm = rA.Comm();
+    // const Epetra_MpiComm epetra_mpi_comm(r_epetra_comm);
+    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm);
+
+    MPI_Comm the_comm = r_epetra_mpi_comm.Comm();
+
     if(amgclParams.get<std::string>("precond.class") != "amg")
         amgclParams.erase("precond.coarsening");
     else
@@ -136,7 +148,7 @@ void AMGCLBlockSolve(
         bprm.q = ctx;
 
         Solver solve(
-                MPI_COMM_WORLD,
+                the_comm,
                 amgcl::adapter::block_matrix<val_type>(amgcl::adapter::map(rA)),
                 amgclParams, bprm
                 );
@@ -163,7 +175,7 @@ void AMGCLBlockSolve(
             Solver;
 
         Solver solve(
-                MPI_COMM_WORLD,
+                the_comm,
                 amgcl::adapter::block_matrix<val_type>(amgcl::adapter::map(rA)),
                 amgclParams
                 );
