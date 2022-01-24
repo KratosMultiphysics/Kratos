@@ -216,7 +216,6 @@ private:
 
     ModelPart& mrSkinPart;
     ModelPart& mrVolumePart;
-    Parameters mParameters;
 
     Flags mOptions;
 
@@ -226,6 +225,9 @@ private:
     const double mZeroToleranceMultiplier = 1e3;
     bool mDetectedZeroDistanceValues = false;
     bool mAreNeighboursComputed = false;
+    bool mCalculateElementalEdgeDistances = false;
+    bool mCalculateElementalEdgeDistancesExtrapolated = false;
+    bool mUsePositiveEpsilonForZeroValues = true;
 
     ///@}
     ///@name Private Operations
