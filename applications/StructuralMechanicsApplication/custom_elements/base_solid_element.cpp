@@ -1737,7 +1737,7 @@ void BaseSolidElement::CalculateAndAddKm(
 {
     KRATOS_TRY
 
-    noalias( rLeftHandSideMatrix ) += IntegrationWeight * prod( trans( B ), Matrix(prod(D, B)));
+    MathUtils<double>::BtDBProductOperation(rLeftHandSideMatrix, IntegrationWeight*D, B, false);
 
     KRATOS_CATCH( "" )
 }

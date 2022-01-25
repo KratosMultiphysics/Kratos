@@ -1592,37 +1592,43 @@ public:
     static inline void BtDBProductOperation(
         TMatrixType1& rA,
         const TMatrixType2& rD,
-        const TMatrixType3& rB
+        const TMatrixType3& rB,
+        const bool ClearMatrix = true
         )
     {
-        // The sizes
-        const SizeType size1 = rB.size2();
-        const SizeType size2 = rB.size2();
+        const SizeType B_size2 = rB.size2();
 
 #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("BtDBProductOperation", rA.size1() != size1 || rA.size2() != size2) << "BtDBProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
+        KRATOS_WARNING_IF("BtDBProductOperation", rA.size1() != B_size2 || rA.size2() != B_size2) << "BtDBProductOperation has detected an incorrect size of your resulting matrix matrix. Please resize before compute" << std::endl;
 #else
-        if (rA.size1() != size1 || rA.size2() != size2)
-            rA.resize(size1, size2, false);
+        if (ClearMatrix) {
+            if (rA.size1() != B_size2 || rA.size2() != B_size2)
+                rA.resize(B_size2, B_size2, false);
+        }
 #endif // KRATOS_USE_AMATRIX
 
         // Direct multiplication
         // noalias(rA) = prod( trans( rB ), MatrixType(prod(rD, rB)));
 
         // Manual multiplication
-        rA.clear();
-        for(IndexType k = 0; k< rD.size1(); ++k) {
-            for(IndexType l = 0; l < rD.size2(); ++l) {
-                const double Dkl = rD(k, l);
-                for(IndexType j = 0; j < rB.size2(); ++j) {
-                    const double DklBlj = Dkl * rB(l, j);
-                    for(IndexType i = 0; i< rB.size2(); ++i) {
+        if (ClearMatrix)
+            rA.clear();
+
+        double Dkl, DklBlj;
+        IndexType k,l,j,i, D_size;
+        D_size = rD.size1();
+
+        for (k = 0; k < D_size; ++k) {
+            for (l = 0; l < D_size; ++l) {
+                Dkl = rD(k, l);
+                for (j = 0; j < B_size2; ++j) {
+                    DklBlj = Dkl * rB(l, j);
+                    for (i = 0; i < B_size2; ++i) {
                         rA(i, j) += rB(k, i) * DklBlj;
                     }
                 }
             }
         }
-    }
 
     /**
      * @brief Calculates the product operation BDB'
@@ -1637,7 +1643,8 @@ public:
     static inline void BDBtProductOperation(
         TMatrixType1& rA,
         const TMatrixType2& rD,
-        const TMatrixType3& rB
+        const TMatrixType3& rB,
+        const bool ClearMatrix = true
         )
     {
         // The sizes
