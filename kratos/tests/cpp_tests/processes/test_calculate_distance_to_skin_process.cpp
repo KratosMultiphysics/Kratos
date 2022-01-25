@@ -524,9 +524,14 @@ namespace Kratos {
             "elemental_distances_variable"                          : "EXTERNAL_FORCES_VECTOR"
         })" );
 		CalculateDistanceToSkinProcess<2>(model_part, skin_part, parameters).Execute();
-
+		// check new variable
 		KRATOS_CHECK(model_part.pGetNode(1)->SolutionStepsDataHas(TEMPERATURE));
+		// check default is not defined
+		KRATOS_CHECK(!model_part.pGetNode(1)->SolutionStepsDataHas(DISTANCE));
+		// check new variable
 		KRATOS_CHECK(model_part.pGetElement(1)->Has(EXTERNAL_FORCES_VECTOR));
+		// check default is not defined
+		KRATOS_CHECK(!model_part.pGetElement(1)->Has(ELEMENTAL_DISTANCES));
 		KRATOS_CHECK_NEAR((model_part.pGetNode(2))->FastGetSolutionStepValue(TEMPERATURE), 2.4, 1e-6);
 		KRATOS_CHECK_NEAR((model_part.pGetNode(4))->FastGetSolutionStepValue(TEMPERATURE), 3.4, 1e-6);
 		KRATOS_CHECK_NEAR((model_part.pGetNode(5))->FastGetSolutionStepValue(TEMPERATURE), -1.6, 1e-6);
