@@ -9,6 +9,7 @@ from . import input_check
 import numpy as np
 import json
 import os
+from importlib import import_module
 
 class RigidBodySolver(object):
     """
@@ -53,9 +54,12 @@ class RigidBodySolver(object):
         # Create all the processes stated in the project parameters
         if "processes" in parameters:
             self.process_list = []
-            for process_settings in parameters["processes"]:
-                process_settings = KratosMultiphysics.Parameters(json.dumps(process_settings))
-                self.process_list.append(rigid_body_process.CreateRigidBodyProcess(self, process_settings))
+            for process in parameters["processes"]:
+                python_module = process["python_module"]
+                kratos_module = process["kratos_module"]
+                process_module = import_module(kratos_module + "." + python_module)
+                process_settings = KratosMultiphysics.Parameters(json.dumps(process["Parameters"]))
+                self.process_list.append(process_module.Factory(self, process_settings))
         
         # Safe all the filled data in their respective class variables
         self._InitializeDofsVariables(dof_params)
