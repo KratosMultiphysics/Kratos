@@ -52,7 +52,7 @@ namespace Kratos
 		rParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
 		mRayCastingRelativeTolerance = rParameters["ray_casting_relative_tolerance"].GetDouble();
         CalculateDiscontinuousDistanceToSkinProcess<TDim>::mpElementalDistancesVariable = &KratosComponents<Variable<Vector>>::Get(rParameters["elemental_distances_variable"].GetString());;
-        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(rParameters["distance_variables"].GetString());;
+        mpDistanceVariable = &KratosComponents<Variable<double>>::Get(rParameters["distance_variable"].GetString());;
 	}
 
 	template<std::size_t TDim>
