@@ -46,8 +46,7 @@ void AMGCLScalarSolve(
     )
 {
     const Epetra_Comm& r_epetra_comm = rA.Comm();
-    // const Epetra_MpiComm epetra_mpi_comm(r_epetra_comm);
-    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm);
+    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm); // cannot use static_cast due to virtual inheritance
 
     MPI_Comm the_comm = r_epetra_mpi_comm.Comm();
 
@@ -114,8 +113,7 @@ void AMGCLBlockSolve(
     )
 {
     const Epetra_Comm& r_epetra_comm = rA.Comm();
-    // const Epetra_MpiComm epetra_mpi_comm(r_epetra_comm);
-    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm);
+    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm); // cannot use static_cast due to virtual inheritance
 
     MPI_Comm the_comm = r_epetra_mpi_comm.Comm();
 
