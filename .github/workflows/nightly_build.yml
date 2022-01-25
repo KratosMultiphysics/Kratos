@@ -72,6 +72,14 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          export CXX=/usr/bin/g++
+        elif [ ${{ matrix.compiler }} = clang ]; then
+          export CXX=/usr/bin/clang++
+        else
+          echo 'Unsupported compiler: ${{ matrix.compiler }}'
+          exit 1
+        fi
 
     - name: Running Python MPI tests (2 Cores)
       shell: bash
