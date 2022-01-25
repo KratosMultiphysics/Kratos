@@ -207,7 +207,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
     BoundedVector<double, Dim*NumNodes> mom_proj = ZeroVector(Dim*NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
     Matrix Jinv;
 
@@ -217,8 +217,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double cmom_proj0 =             data.gamma - 1;
 const double cmom_proj1 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
@@ -282,7 +282,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
     BoundedVector<double, NumNodes> rho_proj = ZeroVector(NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
     Matrix Jinv;
 
@@ -292,8 +292,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double crho_proj0 =             DN_DX(0,0)*data.U(0,1) + DN_DX(0,1)*data.U(0,2) + DN_DX(1,0)*data.U(1,1) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,0)*data.U(2,1) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,0)*data.U(3,1) + DN_DX(3,1)*data.U(3,2) + N(0)*data.dUdt(0,0) - N(0)*data.m_ext(0) + N(1)*data.dUdt(1,0) - N(1)*data.m_ext(1) + N(2)*data.dUdt(2,0) - N(2)*data.m_ext(2) + N(3)*data.dUdt(3,0) - N(3)*data.m_ext(3);
             rho_proj[0] += -N(0)*crho_proj0;
@@ -328,7 +328,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     BoundedVector<double, NumNodes> tot_ener_proj = ZeroVector(NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
     Matrix Jinv;
 
@@ -338,8 +338,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double ctot_ener_proj0 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
 const double ctot_ener_proj1 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
@@ -401,18 +401,25 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
     const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
+    
+    Matrix J;
     Matrix Jinv;
 
     if (data.UseOSS)
     {
         for(const auto& gauss_point: gauss_points)
         {
+            const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-            r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+
+            double detJ;
+            r_geometry.Jacobian(J, gauss_point.Coordinates());
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
 const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
@@ -684,16 +691,23 @@ const double crRightHandSideBoundedVector252 =             crRightHandSideBounde
             rRightHandSideBoundedVector[14] += -DN_DX(3,1)*crRightHandSideBoundedVector158 - N(3)*crRightHandSideBoundedVector161 + N(3)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector246 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector237 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector241 + crRightHandSideBoundedVector240 - crRightHandSideBoundedVector242) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector48*(DN_DX(3,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector248 - crRightHandSideBoundedVector249);
             rRightHandSideBoundedVector[15] += N(3)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector251 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector247 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector48*(N(3)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector239) - crRightHandSideBoundedVector85*(-DN_DX(3,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector238 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector236) - crRightHandSideBoundedVector98*(-DN_DX(3,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector249 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector248);
 
+
+            rRightHandSideBoundedVector *= w * J;
         }
     }
     else
     {
         for(const auto& gauss_point: gauss_points)
         {
+            const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-            r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+
+            double detJ;
+            r_geometry.Jacobian(J, gauss_point.Coordinates());
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
 const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
@@ -965,11 +979,10 @@ const double crRightHandSideBoundedVector252 =             crRightHandSideBounde
             rRightHandSideBoundedVector[14] += -DN_DX(3,1)*crRightHandSideBoundedVector158 - N(3)*crRightHandSideBoundedVector161 + N(3)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector246 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector237 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector241 + crRightHandSideBoundedVector240 - crRightHandSideBoundedVector242) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector48*(DN_DX(3,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector248 - crRightHandSideBoundedVector249);
             rRightHandSideBoundedVector[15] += N(3)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector251 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector247 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector48*(N(3)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector239) - crRightHandSideBoundedVector85*(-DN_DX(3,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector238 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector236) - crRightHandSideBoundedVector98*(-DN_DX(3,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector249 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector248);
 
+
+            rRightHandSideBoundedVector *= w * J;
         }
     }
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    rRightHandSideBoundedVector *= data.volume / NumNodes;
 
     KRATOS_CATCH("")
 }
@@ -980,24 +993,25 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
-
     const auto& r_geometry = GetGeometry();
     const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     Vector N;
+    Matrix J;
     Matrix Jinv;
 
     c_matrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
-    for(std::size_t i=0; i<gauss_points.size(); ++i)
+    for(const auto& gauss_point: gauss_points)
     {
-        r_geometry.ShapeFunctionsValues(N, gauss_points[i].Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, i, GetIntegrationMethod());
+        const double w = gauss_point.Weight();
+        r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
 
-        noalias(M) += prod(outer_prod(N, N), Jinv);
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+        noalias(M) += outer_prod(N, N) * detJ * w;
     }
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    M *= r_geometry.Area() / static_cast<double>(gauss_points.size());
 
     // Distributing 4x4 matrix to 16x16 matrix
     rMassMatrix = ZeroMatrix(DofSize, DofSize);

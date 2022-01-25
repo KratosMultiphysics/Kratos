@@ -193,7 +193,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
     BoundedVector<double, Dim*NumNodes> mom_proj = ZeroVector(Dim*NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
     Matrix Jinv;
 
@@ -203,8 +203,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 //substitute_mom_proj_2D
     }
@@ -238,7 +238,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
     BoundedVector<double, NumNodes> rho_proj = ZeroVector(NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
     Matrix Jinv;
 
@@ -248,8 +248,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 //substitute_rho_proj_2D
     }
@@ -279,7 +279,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     BoundedVector<double, NumNodes> tot_ener_proj = ZeroVector(NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
     Matrix Jinv;
 
@@ -289,8 +289,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     {
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 //substitute_tot_ener_proj_2D
     }
@@ -329,37 +329,50 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
     const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
+    
+    Matrix J;
     Matrix Jinv;
 
     if (data.UseOSS)
     {
         for(const auto& gauss_point: gauss_points)
         {
+            const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-            r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+
+            double detJ;
+            r_geometry.Jacobian(J, gauss_point.Coordinates());
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 //substitute_rhs_2D_OSS
+
+            rRightHandSideBoundedVector *= w * J;
         }
     }
     else
     {
         for(const auto& gauss_point: gauss_points)
         {
+            const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-            r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+
+            double detJ;
+            r_geometry.Jacobian(J, gauss_point.Coordinates());
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 //substitute_rhs_2D_ASGS
+
+            rRightHandSideBoundedVector *= w * J;
         }
     }
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    rRightHandSideBoundedVector *= data.volume / NumNodes;
 
     KRATOS_CATCH("")
 }
@@ -370,24 +383,25 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
-
     const auto& r_geometry = GetGeometry();
     const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     Vector N;
+    Matrix J;
     Matrix Jinv;
 
     c_matrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
-    for(std::size_t i=0; i<gauss_points.size(); ++i)
+    for(const auto& gauss_point: gauss_points)
     {
-        r_geometry.ShapeFunctionsValues(N, gauss_points[i].Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, i, GetIntegrationMethod());
+        const double w = gauss_point.Weight();
+        r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
 
-        noalias(M) += prod(outer_prod(N, N), Jinv);
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+        noalias(M) += outer_prod(N, N) * detJ * w;
     }
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    M *= r_geometry.Area() / static_cast<double>(gauss_points.size());
 
     // Distributing 4x4 matrix to 16x16 matrix
     rMassMatrix = ZeroMatrix(DofSize, DofSize);
