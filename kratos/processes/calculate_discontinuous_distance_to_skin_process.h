@@ -62,12 +62,6 @@ public:
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
 
-    /// Constructor with option
-    CalculateDiscontinuousDistanceToSkinProcess(
-        ModelPart& rVolumePart,
-        ModelPart& rSkinPart,
-        const Flags rOptions);
-
     /// Constructor with parameters
     CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
