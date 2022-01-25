@@ -175,22 +175,26 @@ class DepthIntegrationInputProcess(KM.Process):
 
 
     def _CreateMapper(self):
-        mapper_settings = KM.Parameters("""{
-            "mapper_type": "nearest_neighbor",
-            "echo_level" : 0,
-            "search_settings" : {
-                "search_radius" : 0.0
-            }
-        }""")
         domain_size = self.input_model_part.ProcessInfo[KM.DOMAIN_SIZE]
         if domain_size == 2:
+            mapper_settings = KM.Parameters("""{
+                "mapper_type": "nearest_neighbor",
+                "echo_level" : 0,
+                "search_settings" : {
+                    "search_radius" : 0.0
+                }
+            }""")
             min_point, max_point = KM.BoundingBox(self.interface_model_part.Nodes).GetPoints()
             search_radius = 1.05 * (max_point - min_point).norm_2()
+            mapper_settings.AddEmptyValue("search_settings")
+            mapper_settings["search_settings"]["search_radius"].SetDouble(search_radius)
         elif domain_size == 3:
-            search_radius = self.interface_model_part.Conditions.__iter__().__next__().GetGeometry().Length()
+            mapper_settings = KM.Parameters("""{
+                "mapper_type": "nearest_neighbor",
+                "echo_level" : 0
+            }""")
         else:
             raise Exception("DepthIntegrationInputProcess._CreateMapper: The domain size of the input_model_part is: ", domain_size)
-        mapper_settings["search_settings"]["search_radius"].SetDouble(search_radius)
 
         self.mapper = KM.MapperFactory.CreateMapper(
             self.input_model_part,
