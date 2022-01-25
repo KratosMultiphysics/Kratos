@@ -1,0 +1,230 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Eduard Gómez
+//
+
+#include "compilable_symbolic_test.h"
+#include <iomanip>
+#include <cstring>
+
+using namespace TestCompressibleNavierStokesSymbolic;
+
+static constexpr std::size_t nnodes = 3;
+static constexpr std::size_t dim = 2;
+static constexpr std::size_t blocksize = dim + 2;
+
+using ShapeFun = Vector<nnodes>;
+using ShapeFunGrad = Matrix<nnodes, dim>;
+using ElementData = ElementDataT<dim, nnodes>;
+
+int test_substitute_rho_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
+int test_substitute_mom_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
+int test_substitute_tot_ener_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
+int test_substitute_lhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
+int test_substitute_rhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
+int test_substitute_lhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
+int test_substitute_rhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
+
+int main(int argc, char** argv)
+{
+    int result = 0;
+
+    bool dump_values = false;
+    if(argc > 1 && strcmp(argv[1], "--dump")==0) dump_values = true;
+
+    const ElementData data;
+
+    ShapeFunGrad DN_DX;
+    ShapeFun N;
+
+    ShapeFunctions<dim, nnodes>(N, DN_DX, 0, 0);
+
+    result += test_substitute_rho_proj_2D(DN_DX, data, dump_values);
+    result += test_substitute_mom_proj_2D(DN_DX, data, dump_values);
+    result += test_substitute_tot_ener_proj_2D(DN_DX, data, dump_values);
+    result += test_substitute_lhs_2D_OSS(DN_DX, data, dump_values);
+    result += test_substitute_rhs_2D_OSS(DN_DX, data, dump_values);
+    result += test_substitute_lhs_2D_ASGS(DN_DX, data, dump_values);
+    result += test_substitute_rhs_2D_ASGS(DN_DX, data, dump_values);
+    
+    return result;
+}
+
+int test_substitute_rho_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+{
+    Vector<nnodes> rho_proj;
+
+    // ------------------------- substitute_rho_proj_2D -------------------------
+    //substitute_rho_proj_2D
+
+    Vector<nnodes> expected;
+    expected[0] = 0;
+    expected[1] = 0;
+    expected[2] = 0;
+
+    std::cout << "test_substitute_rho_proj_2D:";
+    int test = rho_proj.validate(expected);
+    if(test == 0) {
+        std::cout << " OK";
+    }
+    std::cout << std::endl;
+
+    if(dump_values) {
+        std::cout << "Value dump:\n" << std::setprecision(20) << rho_proj << std::endl;
+    }
+    
+    return test;
+}
+
+
+int test_substitute_mom_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+{
+    Vector<dim * nnodes> mom_proj;
+
+// ------------------------- substitute_mom_proj_2D -------------------------
+//substitute_mom_proj_2D
+
+    Vector<dim * nnodes> expected;
+    expected[0] = -15074.669035298386007;
+    expected[1] = -15076.405054351418585;
+    expected[2] = -15075.42578645597132;
+    expected[3] = -15076.174751211932744;
+    expected[4] = -15075.460788465843507;
+    expected[5] = -15076.164099001256545;
+    
+    std::cout << "test_substitute_mom_proj_2D:";
+    int test = mom_proj.validate(expected);
+    if(test == 0) {
+        std::cout << " OK";
+    }
+    std::cout << std::endl;
+
+    if(dump_values) {
+        std::cout << "Value dump:\n" << std::setprecision(20) << mom_proj << std::endl;
+    }
+    
+    return test;
+}
+
+int test_substitute_tot_ener_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+{
+    Vector<nnodes> tot_ener_proj;
+
+// ------------------------- substitute_tot_ener_proj_2D -------------------------
+//substitute_tot_ener_proj_2D
+    
+    Vector<nnodes> expected;
+    expected[0] = 1712.3910912142378038;
+    expected[1] = 738.00562019298854466;
+    expected[2] = 688.89753394371905415;
+
+    std::cout << "test_substitute_tot_ener_proj_2D:";
+    int test = tot_ener_proj.validate(expected);
+    if(test == 0) {
+        std::cout << " OK";
+    }
+    std::cout << std::endl;
+
+    if(dump_values) {
+        std::cout << "Value dump:\n" << std::setprecision(20) << tot_ener_proj << std::endl;
+    }
+    
+    return test;
+}
+
+int test_substitute_lhs_2D_OSS(ShapeFunGrad const&, ElementData const&, const bool)
+{
+// ------------------------- substitute_lhs_2D_OSS -------------------------
+//substitute_lhs_2D_OSS
+    return 0;
+}
+
+int test_substitute_rhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+{
+    Vector<blocksize*nnodes> rRightHandSideBoundedVector;
+    const double stab_c1 = 12;
+    const double stab_c2 = 2;
+    const double stab_c3 = 1;
+
+// ------------------------- substitute_rhs_2D_OSS -------------------------
+//substitute_rhs_2D_OSS
+
+    Vector<blocksize*nnodes> expected;
+    expected[0] = 47264.288734433073842;
+    expected[1] = -15379.402979698103081;
+    expected[2] = -15576.430423595746106;
+    expected[3] = 213563.16351141795167;
+    expected[4] = -23635.684471189790202;
+    expected[5] = -14538.279451626927766;
+    expected[6] = -15112.339370110219534;
+    expected[7] = -3990.3328559225551544;
+    expected[8] = -23628.60426324328364;
+    expected[9] = -15064.189988995642125;
+    expected[10] = -14495.58857930533668;
+    expected[11] = -7262.2965689810916956;
+
+    std::cout << "test_substitute_rhs_2D_OSS:";
+    int test = rRightHandSideBoundedVector.validate(expected);
+    if(test == 0) {
+        std::cout << " OK";
+    }
+    std::cout << std::endl;
+
+    if(dump_values) {
+        std::cout << "Value dump:\n" << std::setprecision(20) << rRightHandSideBoundedVector << std::endl;
+    }
+    
+    return test;
+}
+
+int test_substitute_lhs_2D_ASGS(ShapeFunGrad const&, ElementData const&, const bool)
+{
+// ------------------------- substitute_lhs_2D_ASGS -------------------------
+//substitute_lhs_2D_ASGS
+    return 0;
+}
+
+int test_substitute_rhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+{
+    Vector<blocksize*nnodes> rRightHandSideBoundedVector;
+    const double stab_c1 = 12;
+    const double stab_c2 = 2;
+    const double stab_c3 = 1;
+
+// ------------------------- substitute_rhs_2D_ASGS -------------------------
+//substitute_rhs_2D_ASGS
+
+    Vector<blocksize*nnodes> expected;
+    expected[0] = 47264.288734433073842;
+    expected[1] = -15379.402979698103081;
+    expected[2] = -15576.430423595746106;
+    expected[3] = 213563.16351141795167;
+    expected[4] = -23635.684471189790202;
+    expected[5] = -14538.279451626927766;
+    expected[6] = -15112.339370110219534;
+    expected[7] = -3990.3328559225551544;
+    expected[8] = -23628.60426324328364;
+    expected[9] = -15064.189988995643944;
+    expected[10] = -14495.58857930533668;
+    expected[11] = -7262.2965689810916956;
+
+    std::cout << "test_substitute_rhs_2D_ASGS:";
+    int test = rRightHandSideBoundedVector.validate(expected);
+    if(test == 0) {
+        std::cout << " OK";
+    }
+    std::cout << std::endl;
+
+    if(dump_values) {
+        std::cout << "Value dump:\n" << std::setprecision(20) << rRightHandSideBoundedVector << std::endl;
+    }
+    
+    return test;
+}
