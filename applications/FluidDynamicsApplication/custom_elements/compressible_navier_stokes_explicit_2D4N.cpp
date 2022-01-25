@@ -692,7 +692,7 @@ const double crRightHandSideBoundedVector252 =             crRightHandSideBounde
             rRightHandSideBoundedVector[15] += N(3)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector251 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector247 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector48*(N(3)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector239) - crRightHandSideBoundedVector85*(-DN_DX(3,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector238 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector236) - crRightHandSideBoundedVector98*(-DN_DX(3,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector249 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector248);
 
 
-            rRightHandSideBoundedVector *= w * J;
+            rRightHandSideBoundedVector *= w * detJ;
         }
     }
     else
@@ -980,7 +980,7 @@ const double crRightHandSideBoundedVector252 =             crRightHandSideBounde
             rRightHandSideBoundedVector[15] += N(3)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector251 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector247 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector48*(N(3)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector239) - crRightHandSideBoundedVector85*(-DN_DX(3,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector238 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector236) - crRightHandSideBoundedVector98*(-DN_DX(3,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector249 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector248);
 
 
-            rRightHandSideBoundedVector *= w * J;
+            rRightHandSideBoundedVector *= w * detJ;
         }
     }
 

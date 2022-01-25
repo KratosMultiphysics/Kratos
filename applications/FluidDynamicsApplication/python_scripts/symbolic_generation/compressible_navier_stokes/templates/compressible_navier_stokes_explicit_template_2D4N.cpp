@@ -351,7 +351,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
 
 //substitute_rhs_2D_OSS
 
-            rRightHandSideBoundedVector *= w * J;
+            rRightHandSideBoundedVector *= w * detJ;
         }
     }
     else
@@ -370,7 +370,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
 
 //substitute_rhs_2D_ASGS
 
-            rRightHandSideBoundedVector *= w * J;
+            rRightHandSideBoundedVector *= w * detJ;
         }
     }
 
