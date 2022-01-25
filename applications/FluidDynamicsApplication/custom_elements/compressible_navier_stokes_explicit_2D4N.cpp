@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Eduard Gómez, Eduard Gómez
+//  Main authors:    Eduard Gómez, Ruben Zorrilla
 //
 
 /**
