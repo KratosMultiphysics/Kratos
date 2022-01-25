@@ -222,7 +222,7 @@ namespace Kratos
 	template<std::size_t TDim>
 	void CalculateDistanceToSkinProcess<TDim>::CalculateRayDistances()
 	{
-		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mRayCastingRelativeTolerance);
+		ApplyRayCastingProcess<TDim> ray_casting_process(CalculateDiscontinuousDistanceToSkinProcess<TDim>::mFindIntersectedObjectsProcess, mRayCastingRelativeTolerance, mpDistanceVariable);
 		ray_casting_process.Execute();
 	}
 
