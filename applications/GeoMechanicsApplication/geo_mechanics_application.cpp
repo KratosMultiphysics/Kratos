@@ -224,7 +224,11 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSurfaceNormalLoadDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <NodeType >( Condition::GeometryType::PointsArrayType(9)))),
     mSurfaceNormalFluidFluxDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <NodeType >( Condition::GeometryType::PointsArrayType(6)))),
     mSurfaceNormalFluidFluxDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <NodeType >( Condition::GeometryType::PointsArrayType(8)))),
-    mSurfaceNormalFluidFluxDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <NodeType >( Condition::GeometryType::PointsArrayType(9))))
+    mSurfaceNormalFluidFluxDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <NodeType >( Condition::GeometryType::PointsArrayType(9)))),
+
+    mAxisymmetricUPwNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
+    mAxisymmetricLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
+    mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3))))
 
     {}
 
@@ -415,6 +419,10 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D8N", mSurfaceNormalFluidFluxDiffOrderCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D9N", mSurfaceNormalFluidFluxDiffOrderCondition3D9N )
 
+    KRATOS_REGISTER_CONDITION( "AxisymmetricUPwNormalFaceLoadCondition2D2N",            mAxisymmetricUPwNormalFaceLoadCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalLoadDiffOrderCondition2D3N",      mAxisymmetricLineNormalLoadDiffOrderCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N", mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N )
+
     //Register Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",           mBilinearCohesive3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",           mBilinearCohesive2DLaw)
@@ -519,6 +527,13 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE( IGNORE_UNDRAINED )
     KRATOS_REGISTER_VARIABLE( USE_HENCKY_STRAIN )
+
+    KRATOS_REGISTER_VARIABLE( MEAN_EFFECTIVE_STRESS )
+    KRATOS_REGISTER_VARIABLE( MEAN_STRESS )
+    KRATOS_REGISTER_VARIABLE( ENGINEERING_VOLUMETRIC_STRAIN )
+    KRATOS_REGISTER_VARIABLE( ENGINEERING_VON_MISES_STRAIN )
+    KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_VOLUMETRIC_STRAIN )
+    KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_VON_MISES_STRAIN )
 
     KRATOS_REGISTER_VARIABLE( SATURATED_SATURATION )
     KRATOS_REGISTER_VARIABLE( RESIDUAL_SATURATION )

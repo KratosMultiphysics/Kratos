@@ -36,7 +36,7 @@
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/adaptive_residualbased_newton_raphson_strategy.h"
 #include "solving_strategies/strategies/line_search_strategy.h"
-//#include "solving_strategies/strategies/residualbased_arc_lenght_strategy.h"
+#include "solving_strategies/strategies/arc_length_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -648,6 +648,13 @@ namespace Kratos
                 .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategyType::GetInitializePerformedFlag)
                 .def("SetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::SetUseOldStiffnessInFirstIterationFlag)
                 .def("GetUseOldStiffnessInFirstIterationFlag", &ResidualBasedNewtonRaphsonStrategyType::GetUseOldStiffnessInFirstIterationFlag)
+                ;
+
+            // ARC-LENGTH
+            typedef ArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ArcLengthStrategyStrategyType;
+            py::class_< ArcLengthStrategyStrategyType, typename ArcLengthStrategyStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >
+                (m,"ArcLengthStrategy")
+                .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
 
             py::class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

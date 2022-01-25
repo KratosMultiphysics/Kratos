@@ -517,6 +517,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
+add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )

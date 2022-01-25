@@ -25,7 +25,6 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
         for i in range(n_nodes):
             model_part.CreateNewNode(i+1,float(i),0.0,0.0)
 
-    # @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testCalculateRomBasisOutputProcess(self):
         # Create a CalculateROMBasisOutputProcess instance
         self.process_settings = KratosMultiphysics.Parameters("""{
@@ -42,7 +41,8 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
         self.__ExecuteTest(self.process_settings)
 
         # Check results
-        self.__CheckResults()
+        check_hrom_settings = False
+        self.__CheckResults(check_hrom_settings)
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
@@ -86,7 +86,7 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
 
             rom_basis_process.ExecuteFinalize()
 
-    def __CheckResults(self):
+    def __CheckResults(self, check_hrom_settings):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Load ROM basis output file
             output_filename = "{}.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
@@ -105,6 +105,12 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
                 self.assertEqual(node_output, node_reference)
                 for dof_basis_output, dof_basis_reference in zip(output_data["nodal_modes"][node_output], reference_data["nodal_modes"][node_reference]):
                     self.assertVectorAlmostEqual(dof_basis_output, dof_basis_reference)
+
+            if check_hrom_settings:
+                self.assertEqual(output_data["hrom_settings"], reference_data["hrom_settings"])
+                self.assertEqual(output_data["train_hrom"], reference_data["train_hrom"])
+                self.assertEqual(output_data["run_hrom"], reference_data["run_hrom"])
+                self.assertEqual(output_data["elements_and_weights"], reference_data["elements_and_weights"])
 
 ##########################################################################################
 
