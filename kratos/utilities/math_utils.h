@@ -1618,12 +1618,12 @@ public:
         IndexType k,l,j,i, D_size;
         D_size = rD.size1();
 
-        for (k = 0; k < rD.size1(); ++k) {
-            for (l = 0; l < rD.size2(); ++l) {
+        for (k = 0; k < D_size; ++k) {
+            for (l = 0; l < D_size; ++l) {
                 Dkl = rD(k, l);
-                for (j = 0; j < rB.size2(); ++j) {
+                for (j = 0; j < B_size2; ++j) {
                     DklBlj = Dkl * rB(l, j);
-                    for (i = 0; i < rB.size2(); ++i) {
+                    for (i = 0; i < B_size2; ++i) {
                         rA(i, j) += rB(k, i) * DklBlj;
                     }
                 }
