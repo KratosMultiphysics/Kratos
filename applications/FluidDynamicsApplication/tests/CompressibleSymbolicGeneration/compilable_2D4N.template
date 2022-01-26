@@ -14,8 +14,6 @@
 #include <iomanip>
 #include <cstring>
 
-using namespace TestCompressibleNavierStokesSymbolic;
-
 static constexpr std::size_t nnodes = 4;
 static constexpr std::size_t dim = 2;
 static constexpr std::size_t blocksize = dim + 2;
