@@ -14,6 +14,9 @@ from . import surface_normal_shape_change
 from . import face_angle
 from . import airfoil_2d_responses
 from . import constant_response
+from . import am_boundary_slope_angle
+from . import am_boundary_roughness_angle
+from . import thickness_response
 
 def CreateResponseFunction(response_id, response_settings, model):
     response_type = response_settings["response_type"].GetString()
@@ -26,6 +29,12 @@ def CreateResponseFunction(response_id, response_settings, model):
         return surface_normal_shape_change.SurfaceNormalShapeChange(response_id, response_settings, model)
     elif response_type == "face_angle":
         return face_angle.FaceAngleResponseFunction(response_id, response_settings, model)
+    elif response_type == "AM_boundary_slope_angle":
+        return am_boundary_slope_angle.AMBoundarySlopeAngleResponseFunction(response_id, response_settings, model)  
+    elif response_type == "AM_boundary_roughness_angle":
+        return am_boundary_roughness_angle.AMBoundaryRoughnessAngleResponseFunction(response_id, response_settings, model)   
+    elif response_type == "thickness":
+        return thickness_response.ThicknessResponseFunction(response_id, response_settings, model)                           
     elif response_type == "airfoil_angle_of_attack":
         return airfoil_2d_responses.AngleOfAttackResponseFunction(response_id, response_settings, model)
     elif response_type == "airfoil_chord_length":

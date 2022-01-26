@@ -282,7 +282,7 @@ void HelmholtzElement::CalculateBulkMassMatrix(
 
     Matrix J0(dimension, dimension);
 
-    IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
+    IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
     const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 
@@ -335,13 +335,14 @@ void HelmholtzElement::CalculateBulkStiffnessMatrix(
     rStiffnessMatrix = ZeroMatrix( mat_size, mat_size );
 
     //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_4);
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geom.ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_4);
+    IntegrationMethod integration_method = r_geom.GetDefaultIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geom.ShapeFunctionsLocalGradients(integration_method);
 
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_nodes,dimension);
     Matrix InvJ0(dimension,dimension);
-    r_geom.Jacobian(J0,GeometryData::IntegrationMethod::GI_GAUSS_4);
+    r_geom.Jacobian(J0,integration_method);
     double DetJ0;
 
     MatrixType A_dirc = ZeroMatrix(number_of_nodes,number_of_nodes);

@@ -35,6 +35,9 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/am_boundary_slope_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/am_boundary_roughness_angle_response_function_utility.h"
+#include "custom_utilities/response_functions/thickness_response_function_utility.h"
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -249,6 +252,26 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateGradient", &FaceAngleResponseFunctionUtility::CalculateGradient)
         ;
 
+    py::class_<AMBoundarySlopeAngleResponseFunctionUtility >(m, "AMBoundarySlopeAngleResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &AMBoundarySlopeAngleResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &AMBoundarySlopeAngleResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &AMBoundarySlopeAngleResponseFunctionUtility::CalculateGradient)
+        ;
+
+    py::class_<AMBoundaryRoughnessAngleResponseFunctionUtility >(m, "AMBoundaryRoughnessAngleResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &AMBoundaryRoughnessAngleResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &AMBoundaryRoughnessAngleResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &AMBoundaryRoughnessAngleResponseFunctionUtility::CalculateGradient)
+        ;   
+
+    py::class_<ThicknessResponseFunctionUtility >(m, "ThicknessResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &ThicknessResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &ThicknessResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &ThicknessResponseFunctionUtility::CalculateGradient)
+        ;          
     // ========================================================================
     // Additional operations
     // ========================================================================

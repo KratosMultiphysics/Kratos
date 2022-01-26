@@ -158,6 +158,13 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION("HelmholtzCondition3D6N", mHelmholtzCondition3D6N)
         KRATOS_REGISTER_CONDITION("HelmholtzCondition3D8N", mHelmholtzCondition3D8N)
         KRATOS_REGISTER_CONDITION("HelmholtzCondition3D9N", mHelmholtzCondition3D9N)
+
+        // For min-max angles constraints in additive manufacturing 
+        KRATOS_REGISTER_VARIABLE(NODAL_MIN_ANGLE);
+        KRATOS_REGISTER_VARIABLE(NODAL_MAX_ANGLE);   
+
+        // For thickness response 
+        KRATOS_REGISTER_VARIABLE(NODAL_THICKNESS);      
       
  	}
 

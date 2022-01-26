@@ -200,7 +200,9 @@ class AlgorithmGradientProjectionImplicitVM(OptimizationAlgorithm):
                 node.Y += node_shape_update[1]
                 node.Y0 += node_shape_update[1]
                 node.Z += node_shape_update[2]
-                node.Z0 += node_shape_update[2]         
+                node.Z0 += node_shape_update[2]  
+        
+        self.model_part_controller.ComputeUnitSurfaceNormals()       
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):

@@ -156,6 +156,10 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.model_part_controller.ComputeUnitSurfaceNormals()
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
+        if self.objectives[0]["deintegrate_area"].GetBool():
+            self.model_part_controller.ComputeUnitSurfaceNormals()
+            self.model_part_controller.AreaDeintegrateNodalVariable(KSO.DF1DX)             
+
         self.model_part_controller.DampNodalVariableIfSpecified(KSO.DF1DX)
 
     # --------------------------------------------------------------------------
