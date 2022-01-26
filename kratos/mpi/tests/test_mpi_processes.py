@@ -192,13 +192,13 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         skin_model_part.CreateNewNode(2,  0.4, 0.0, 0.0)
         skin_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
 
-        flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES | \
-            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.USE_POSITIVE_EPSILON_FOR_ZERO_VALUES
+        params = KratosMultiphysics.Parameters()
+        params.AddBool("calculate_elemental_edge_distances", True)
 
         KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
             main_model_part,
             skin_model_part,
-            flags).Execute()
+            params).Execute()
 
         n_intersected, n_incised = _GetNumberIncisedAndIntersectedElements(main_model_part, 3)
 
@@ -231,13 +231,13 @@ class TestMPIProcesses(KratosUnittest.TestCase):
         input_filename = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_mpi_distance")
         ReadModelPart(input_filename, main_model_part)
 
-        flags = KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES | \
-            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED | \
-            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.USE_POSITIVE_EPSILON_FOR_ZERO_VALUES
+        params = KratosMultiphysics.Parameters()
+        params.AddBool("calculate_elemental_edge_distances", True)
+        params.AddBool("calculate_elemental_edge_distances_extrapolated", True)
         KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
             main_model_part,
             skin_model_part,
-            flags).Execute()
+            params).Execute()
 
         n_intersected, n_incised = _GetNumberIncisedAndIntersectedElements(main_model_part, 3)
 
