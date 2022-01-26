@@ -185,7 +185,10 @@ class LineGraphOutputProcess(KM.OutputProcess):
 
 
     def _GetHeader(self):
-        header = "# "
+        start = list(self.positions[0])
+        end = list(self.positions[-1])
+        time = self.model_part.ProcessInfo[KM.TIME]
+        header = "# Results for '{}s' over line {}-{} at time {}\n# ".format(self.entity_type, start, end, time)
         coordinates = ["X", "Y", "Z"]
         for c in coordinates:
             header += c + "\t\t"
