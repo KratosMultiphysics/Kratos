@@ -12,17 +12,40 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.TestCase):
     def setUp(self):
-        self.remove_me = []
+        self.files_to_remove = []
 
     def tearDown(self):
-        for file_name in self.remove_me:
+        for file_name in self.files_to_remove:
             try:
                 os.remove(file_name)
             except FileNotFoundError:
                 pass
-        self.remove_me = []
+        self.files_to_remove = []
 
-    def _generate_compile_run(self, **kwargs):
+    def _GetGeneratorSettings(geometry):
+        """
+        Returns the Kratos Parameters for the symbolic generator
+        """
+        geometry_name = {
+            "2D3N": "triangle",
+            "2D4N": "quadrilateral",
+            "3D4N": "hexahedron"
+        }[geometry]
+
+        parameters = KratosMultiphysics.Parameters("""
+        {
+            "geometry": "PLEASE SPECIFY A GEOMETRY",
+            "template_filename" : "PLEASE SPECIFY A TEMPLATE FILE",
+            "output_filename"   : "PLEASE SPECIFY AN OUTPUT FILE"
+        }""")
+
+        parameters["geometry"].SetString(geometry_name)
+        parameters["template_filename"].SetString("compilable_{}.template".format(geometry))
+        parameters["output_filename"].SetString("symbolic_test_{}.cpp".format(geometry))
+
+        return parameters
+
+    def _GenerateCompileAndRun(self, **kwargs):
         """
         Runs the test.
 
@@ -31,8 +54,9 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         - regenerate: Instructs the test whether to call the symbolic generator
             or use a pre-existing source file.
-        -recompile: Instructs the test whether to call the compiler
-            or use a pre-existing binary file.
+        - recompile: Instructs the test whether to call the compiler
+            or use a pre-existing binary file. If regenerate is enabled,
+            recompile will be overriden to True.
         - cleanup: Instructs the test whether to remove generated code and
             compiled binary
         - compiler: Choice of compiler. Must accept GCC-like commands (e.g -00 -g)
@@ -46,40 +70,28 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         geometry = "2D3N" if "geometry" not in kwargs else kwargs["geometry"]
         dump_values = False if "dump_values" not in kwargs else kwargs["dump_values"]
 
-        # Generation
-        geometry_name = {
-            "2D3N": "triangle",
-            "2D4N": "quadrilateral",
-            "3D4N": "hexahedron"
-        }[geometry]
+        recompile = recompile or regenerate
 
-        parameters = KratosMultiphysics.Parameters("""
-        {
-            "geometry": "__geometry_name__",
-            "template_filename" : "compilable___xDyN__.template",
-            "output_filename"   : "symbolic_test___xDyN__.cpp"
-        }""")
-
-        parameters["geometry"].SetString(geometry_name)
-        parameters["template_filename"].SetString("compilable_{}.template".format(geometry))
-        parameters["output_filename"].SetString("symbolic_test_{}.cpp".format(geometry))
-
+        # Adding files to be removed
         if cleanup:
-            self.remove_me.append(os.path.abspath(parameters["output_filename"].GetString()))
-            self.remove_me.append(os.path.abspath("test.out"))
+            self.files_to_remove.append(os.path.abspath(parameters["output_filename"].GetString()))
+            self.files_to_remove.append(os.path.abspath("test.out"))
 
-        if regenerate:
-            print("\n--------------------Generating--------------------------")
-            generator = CompressibleNavierStokesSymbolicGenerator(parameters)
-            generator.Generate()
-            generator.Write()
-
-        # Compilation
-        if recompile or regenerate:
+        # Checking Compiler exists
+        if recompile:
             print("\n----------------Checking compiler exists----------------")
             errcode = os.system("{} --version".format(compiler))
             self.assertEqual(errcode, 0, "Compiler {} not available".format(compiler))
 
+        # Generation
+        if regenerate:
+            print("\n--------------------Generating--------------------------")
+            generator = CompressibleNavierStokesSymbolicGenerator(self._GetGeneratorSettings(geometry))
+            generator.Generate()
+            generator.Write()
+
+        # Compilation
+        if recompile:
             outfile = parameters["output_filename"].GetString()
 
             print("\n---------------------Compiling---------------------------")
@@ -93,9 +105,9 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         return 0
 
-    def _get_compiler_in_CI(self):
+    def _GetCompilerFromEnvironment(self):
         """
-        Gets the compiler in continuous integration runs
+        Gets the compiler from environment variables (Useful in continuous integration runs).
         """
         if "CXX" not in os.environ:
             return None
@@ -113,17 +125,17 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "regenerate": True,
             "recompile": True,
             "cleanup": True,
+            "dump_values": False
             "compiler": "g++",
             "geometry": "2D4N",
-            "dump_values": False
         }
 
-        ci_compiler = self._get_compiler_in_CI()
+        ci_compiler = self._GetCompilerFromEnvironment()
         if ci_compiler is not None:
             args["compiler"] = ci_compiler
 
         with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
-            self._generate_compile_run(**args)
+            self._GenerateCompileAndRun(**args)
 
     @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
     def test_Triangle(self):
@@ -131,17 +143,17 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "regenerate": True,
             "recompile": True,
             "cleanup": True,
+            "dump_values": False
             "compiler": "g++",
             "geometry": "2D3N",
-            "dump_values": False
         }
 
-        ci_compiler = self._get_compiler_in_CI()
+        ci_compiler = self._GetCompilerFromEnvironment()
         if ci_compiler is not None:
             args["compiler"] = ci_compiler
 
         with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
-            self._generate_compile_run(**args)
+            self._GenerateCompileAndRun(**args)
 
 
 if __name__ == '__main__':
