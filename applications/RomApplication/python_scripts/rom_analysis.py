@@ -53,10 +53,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             list_of_processes = super()._GetListOfProcesses()
 
             # Check if there is any instance of ROM basis output
-            if self.rom_basis_process_list_check and (self.train_hrom or self.run_hrom):
+            if self.rom_basis_process_list_check:
                 for process in list_of_processes:
                     if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in HROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
+                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from processes list."
                         KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
                         list_of_processes.remove(process)
                 self.rom_basis_process_list_check = False
@@ -68,10 +68,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             list_of_output_processes = super()._GetListOfOutputProcesses()
 
             # Check if there is any instance of ROM basis output
-            if self.rom_basis_output_process_check and (self.train_hrom or self.run_hrom):
+            if self.rom_basis_output_process_check:
                 for process in list_of_output_processes:
                     if isinstance(process, KratosROM.calculate_rom_basis_output_process.CalculateRomBasisOutputProcess):
-                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in HROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
+                        warn_msg = "\'CalculateRomBasisOutputProcess\' instance found in ROM stage. Basis must be already stored in \'RomParameters.json\'. Removing instance from output processes list."
                         KratosMultiphysics.Logger.PrintWarning("RomAnalysis", warn_msg)
                         list_of_output_processes.remove(process)
                 self.rom_basis_output_process_check = False
