@@ -155,8 +155,8 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
         PATTERN "*.hpp" EXCLUDE
       )
 
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/CompressibleSymbolicGeneration/compilable_symbolic_test.h 
-        DESTINATION applications/${CURRENT_DIR_NAME}/tests/CompressibleSymbolicGeneration)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/tests/compressible_symbolic_generation/compilable_symbolic_test.h 
+        DESTINATION applications/${CURRENT_DIR_NAME}/tests/compressible_symbolic_generation)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets

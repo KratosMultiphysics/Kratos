@@ -134,7 +134,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         if ci_compiler is not None:
             args["compiler"] = ci_compiler
 
-        with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
+        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
             self._GenerateCompileAndRun(**args)
 
     @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
@@ -152,7 +152,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         if ci_compiler is not None:
             args["compiler"] = ci_compiler
 
-        with KratosUnitTest.WorkFolderScope("CompressibleSymbolicGeneration", __file__):
+        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
             self._GenerateCompileAndRun(**args)
 
 
