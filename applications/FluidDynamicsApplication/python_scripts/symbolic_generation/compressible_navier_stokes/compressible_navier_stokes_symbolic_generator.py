@@ -2,6 +2,8 @@ import KratosMultiphysics
 import sympy
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
+import concurrent.futures as Futures
+
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_source_term
@@ -168,7 +170,30 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         return (rv, subscales)
 
-    def _ComputeOSSProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn):
+    def _ComputeOSSProjections(self, acc, bdf, dUdt, f, forcing_terms, H, mg, res, rg, U, Ug, Un, Unn):
+        residuals = [None for _ in self.geometry.SymbolicIntegrationPoints()]
+        ngauss = len(residuals)
+
+        with Futures.ThreadPoolExecutor(max_workers=ngauss) as executor:
+            
+            for i_gauss in self.geometry.SymbolicIntegrationPoints():
+                residuals[i_gauss] = executor.submit(
+                    self._ComputeOSSProjectionsAtGaussPoint, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, res, rg, U, Ug, Un, Unn)
+
+            projections = {
+                "rho"      : defs.ZeroVector(self.geometry.nnodes),
+                "momentum" : defs.ZeroVector(self.geometry.nnodes*self.geometry.ndims),
+                "energy"   : defs.ZeroVector(self.geometry.nnodes)
+            }
+
+            for i_gauss in self.geometry.SymbolicIntegrationPoints():
+                self._AccumulateOSSProjections(projections, residuals[i_gauss].result(), i_gauss)
+        
+        return projections
+
+    def _ComputeOSSProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, res, rg, U, Ug, Un, Unn):
+        self._print(1, "   - Gauss point: " + str(i_gauss))
+
         # Get Gauss point geometry data
         N = self.geometry.N_gauss(i_gauss)
 
@@ -201,7 +226,11 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosSympy.SubstituteScalarValue(res_gauss, rg, r_gauss)
         KratosSympy.SubstituteScalarValue(res_gauss, mg, mass_gauss)
 
-        # Add the projection contributions
+        return res_gauss
+
+    def _AccumulateOSSProjections(self, projections, res_gauss, i_gauss):
+        N = self.geometry.N_gauss(i_gauss)
+
         for i_node in range(self.geometry.nnodes):
             # Note that the weights will be added later on in the cpp
             projections["rho"][i_node] += N[i_node] * res_gauss[0]
@@ -216,6 +245,19 @@ class CompressibleNavierStokesSymbolicGenerator:
         self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, "mom_proj")
         self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, "tot_ener_proj")
 
+    def _ComputeResidual(self, acc, bdf, dUdt, f, forcing_terms, H, mg, params, Q, res_proj, ResProj, res, rg, rv, sc_nodes, sc_params, subscales, subscales_type, Tau, U, Ug, Un, Unn, V, w):
+        rv_gauss = [None for _ in self.geometry.SymbolicIntegrationPoints()]
+        ngauss = len(rv_gauss)
+
+        with Futures.ThreadPoolExecutor(max_workers=ngauss) as executor:
+            for i_gauss in self.geometry.SymbolicIntegrationPoints():
+                rv_gauss[i_gauss] = executor.submit(self._ComputeResidualAtGaussPoint, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, res, rg, rv, sc_nodes, sc_params, subscales, subscales_type, Tau, U, Ug, Un, Unn, V, w)
+        
+            for rv_g in rv_gauss:
+                rv += rv_g.result()
+            
+        return rv
+
     def _SubstituteSubscales(self, res, res_proj, rv, subscales, subscales_type, Tau):
         rv_gauss = rv.copy()
         if subscales_type == "ASGS":
@@ -227,8 +269,11 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         KratosSympy.SubstituteMatrixValue(rv_gauss, subscales, subs)
         return rv_gauss
-
-    def _ComputeResidualAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w):
+    
+    def _ComputeResidualAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, res, rg, rv, sc_nodes, sc_params, subscales, subscales_type, Tau, U, Ug, Un, Unn, V, w):
+        # Substitute the subscales model
+        rv_gauss = self._SubstituteSubscales(res, res_proj, rv, subscales, subscales_type, Tau)
+        
         self._print(1, "    Gauss point: " + str(i_gauss))
 
         # Get Gauss point geometry data
@@ -289,7 +334,6 @@ class CompressibleNavierStokesSymbolicGenerator:
         if subscales_type == "OSS":
             KratosSympy.SubstituteMatrixValue(rv_gauss, res_proj, res_proj_gauss)
 
-        # Accumulate in the total value
         return rv_gauss
 
     def _ComputeLHSandRHS(self, rv_tot, U, w):
@@ -446,16 +490,8 @@ class CompressibleNavierStokesSymbolicGenerator:
         # OSS Residual projections calculation
         # Calculate the residuals projection
         self._print(1, " - Calculate the projections of the residuals")
-        projections = {
-            "rho"      : defs.ZeroVector(n_nodes),
-            "momentum" : defs.ZeroVector(n_nodes*dim),
-            "energy"   : defs.ZeroVector(n_nodes)
-        }
-
-        for i_gauss in self.geometry.SymbolicIntegrationPoints():
-            self._print(1, "   - Gauss point: " + str(i_gauss))
-            self._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
-
+        projections = self._ComputeOSSProjections(acc, bdf, dUdt, f, forcing_terms, H, mg, res, rg, U, Ug, Un, Unn)
+        
         # Output the projections
         self._OutputProjections(*projections.values())
 
@@ -463,14 +499,10 @@ class CompressibleNavierStokesSymbolicGenerator:
         for subscales_type in self.subscales_types:
             # Substitution of the discretized values at the gauss points
             # Loop and accumulate the residual in each Gauss point
-            rv_tot = defs.ZeroMatrix(1, 1)
 
             self._print(1, " - Subscales type: " + subscales_type)
             self._print(1, " - Substitution of the discretized values at the gauss points")
-            for i_gauss in self.geometry.SymbolicIntegrationPoints():
-                # Substitute the subscales model
-                rv_gauss = self._SubstituteSubscales(res, res_proj, rv, subscales, subscales_type, Tau)
-                rv_tot += self._ComputeResidualAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w)
+            rv_tot = self._ComputeResidual(acc, bdf, dUdt, f, forcing_terms, H, mg, params, Q, res_proj, ResProj, res, rg, rv, sc_nodes, sc_params, subscales, subscales_type, Tau, U, Ug, Un, Unn, V, w)
 
             (lhs, rhs) = self._ComputeLHSandRHS(rv_tot, U, w)
             self._OutputLHSandRHS(lhs, rhs, subscales_type)
