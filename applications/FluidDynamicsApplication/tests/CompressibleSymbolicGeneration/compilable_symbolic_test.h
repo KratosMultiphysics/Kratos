@@ -17,11 +17,10 @@
 #include <iostream>
 
 /**
- * This namespace contains classes and function mimicking the necessary
+ * This file contains classes and function mimicking the necessary
  * behaviour of Kratos in order to run the generated code without having
  * to modify it.
  */
-namespace TestCompressibleNavierStokesSymbolic {
 
 /** Matrix-like class with only:
  * - storage manipulation access
@@ -307,6 +306,4 @@ inline ElementDataT<2, 3>::ElementDataT()
     this->gamma = 1.4;
     this->c_v = 722.14;
     this->h = 2.0;
-}
-
 }
