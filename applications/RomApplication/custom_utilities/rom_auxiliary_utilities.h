@@ -95,6 +95,10 @@ public:
 
     ///@}
 
+    static void AppendConditionParentsToHRomWeights(
+        const ModelPart& rModelPart,
+        std::map<std::string, std::map<IndexType, double>>& rHromWeights);
+
     private:
 
     ///@name Private Static Operations

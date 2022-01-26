@@ -262,4 +262,19 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     }
 }
 
+void AppendConditionParentsToHRomWeights(
+    const ModelPart& rModelPart,
+    std::map<std::string, std::map<IndexType, double>>& rHromWeights)
+{
+    auto& r_elem_weights = rHromWeights["Elements"];
+    const auto& r_cond_weights = rHromWeights["Conditions"];
+
+    for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+        const auto& r_cond = rModelPart.GetCondition(it->first);
+        const auto& r_neigh = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
+        KRATOS_ERROR_IF(r_neigh.size() == 0) << "Condition "<< r_cond.Id() <<" has no parent element assigned. Check that \'NEIGHBOUR_ELEMENTS\' have been already computed." << std::endl;
+        r_elem_weights.insert(std::pair<IndexType, double>(r_neigh[0].Id(), 0.0));
+    }
+}
+
 } // namespace Kratos

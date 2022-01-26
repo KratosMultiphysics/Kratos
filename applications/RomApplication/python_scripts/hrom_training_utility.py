@@ -151,6 +151,13 @@ class HRomTrainingUtility(object):
                 else:
                     hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
 
+        #TODO: Make this optional
+        # If required, add the HROM conditions parent elements
+        # Note that we add these with zero weight so their future assembly will have no effect
+        KratosROM.RomAuxiliaryUtilities.AppendConditionParentsToHRomWeights(
+            self.solver.GetComputingModelPart(),
+            hrom_weights)
+
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data
         with open('RomParameters.json','r') as f:
