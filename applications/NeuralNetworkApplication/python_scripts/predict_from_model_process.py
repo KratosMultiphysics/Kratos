@@ -6,16 +6,16 @@ import matplotlib.pyplot as plt
 import keras.models
 
 
-def Factory(settings):
+def Factory(settings, Model = None):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a parameters object, encapsulating a json string")
-    return PredictFromModelProcess(settings["parameters"])
+    return PredictFromModelProcess(Model,settings["parameters"])
 
 class PredictFromModelProcess(NeuralNetworkProcess):
 
-    def __init__(self,parameters):
+    def __init__(self,Model,parameters):
 
-        super().__init__()
+        KM.Process.__init__(self)
 
         default_settings = KM.Parameters("""{
             "model"               : "",

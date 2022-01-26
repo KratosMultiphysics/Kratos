@@ -34,7 +34,6 @@ class NeuralNetworkSolver(PythonSolver):
         self.model_import_settings["input_type"].SetString("mdpa")
         self.model_import_settings.AddEmptyValue("input_filename")
         self.model_import_settings["input_filename"].SetString(self.model_geometry_file)
-
         self.lookback = project_parameters ["lookback"].GetInt()
         self.time_buffer = project_parameters["time_buffer"].GetInt()
         self.timestep = project_parameters["timestep"].GetDouble()
@@ -44,6 +43,10 @@ class NeuralNetworkSolver(PythonSolver):
             self.record = project_parameters["record"].GetBool()
         except RuntimeError:
             self.record = False
+        try:
+            self.external_model = project_parameters["external_model"].GetBool()
+        except RuntimeError:
+            self.external_model = False
         try:
             self.only_input = project_parameters["only_input"].GetBool()
         except RuntimeError:
@@ -166,8 +169,9 @@ class NeuralNetworkSolver(PythonSolver):
 
 
     def InitializeSolutionStep(self):
-
+        current_time = self.input_model_parts[0].ProcessInfo[KratosMultiphysics.TIME]
         input_value_list=[]
+        # TODO: Modify to use vector variables instead of the components (unzip Kratos.Array)
 
         for model_part, variable, source in self.dict_input:
             model_input_value_list = []
@@ -182,6 +186,15 @@ class NeuralNetworkSolver(PythonSolver):
             elif source == "solution_step":
                 for node in model_part.Nodes:
                     model_input_value_list.append(node.GetSolutionStepValue(variable,0))
+            elif source == "previous_solution_step":
+                # TODO: modify to enable the use of the surrogate model only in a set interval
+                # and the physics-based one in the rest. Other parts of the code are also affected.
+                if current_time > 0.0:
+                    for node in model_part.Nodes:
+                        model_input_value_list.append(node.GetSolutionStepValue(variable,1))
+                else:
+                    for node in model_part.Nodes:
+                        model_input_value_list.append(node.GetSolutionStepValue(variable,0))
             # Condition values
             elif source == "condition":
                 for condition in model_part.GetConditions():
@@ -235,23 +248,25 @@ class NeuralNetworkSolver(PythonSolver):
 
         # Initialize output from interface in first iteration
         if self.output_data_structure.data is None:
+            output_value_list = []
             for model_part, variable, source in self.dict_output:
-                output_value_list = []
+                output_model_value_list = []
                 # Process related variables (e.g. TIME, STEP)
                 if source == 'process':
-                    output_value_list.append(model_part.ProcessInfo[variable])
+                    output_model_value_list.append(model_part.ProcessInfo[variable])
                 # Node properties (e.g. position)
                 elif source == 'node':
                     for node in model_part.Nodes:
-                        output_value_list.append(getattr(node,variable.Name()))
+                        output_model_value_list.append(getattr(node,variable.Name()))
                 # Node step values (e.g. variables like displacement)
                 elif source == "solution_step":
                     for node in model_part.Nodes:
-                        output_value_list.append(node.GetSolutionStepValue(variable,0))
+                        output_model_value_list.append(node.GetSolutionStepValue(variable,0))
                 # Condition values
                 elif source == "condition":
                     for condition in model_part.GetConditions():
-                        output_value_list.append(condition.GetValue(variable))
+                        output_model_value_list.append(condition.GetValue(variable))
+                output_value_list.extend(output_model_value_list)
             # Reorder if indicated
             if self.output_order == 'sources_first':
                 try:
@@ -303,7 +318,7 @@ class NeuralNetworkSolver(PythonSolver):
         output_value_list = np.squeeze(self.output_data_structure.ExportAsArray())
 
         # TODO: Right now, it only works with one variable that has the same shape as the output.
-        if self.time >= self.time_buffer:
+        if self.time >= self.time_buffer: # TODO: Check for consistency with timesteps nad time
             output_value_index = 0
             for model_part, variable, source in self.dict_output:
             # Process related variables (e.g. TIME, STEP)
@@ -332,20 +347,26 @@ class NeuralNetworkSolver(PythonSolver):
         
         self._PrintInfo("Predicting with the Neural Network...")
 
-        # print(self.model)
-
         if self.timesteps_as_features:
             data_structure_in.SetTimestepsAsFeatures()
         if self.feaures_as_timestpes:
             data_structure_in.SetFeaturesAsTimesteps()
 
-        for process in self._GetListOfProcesses():
-            try:
-                output = process.Predict(self.neural_network_model, data_structure_in)
-                if not output is None:
-                    data_out.UpdateData(output)
-            except AttributeError:
-                pass
+        if self.external_model:
+        # NOTE: This is needed due to unexpected bug with the predict process.
+        # In normal conditions, it is not necessary, but it must be used if there are 
+        # processes that parse from a function in string form.
+            output = self.neural_network_model.predict(data_structure_in.ExportAsArray())
+            if not output is None:
+                        data_out.UpdateData(output)
+        else:
+            for process in self._GetListOfProcesses():
+                try:
+                    output = process.Predict(self.neural_network_model, data_structure_in)
+                    if not output is None:
+                        data_out.UpdateData(output)
+                except AttributeError:
+                    pass
         if hasattr(data_structure_in, 'lookback_data'):
             data_structure_in.CheckLookbackAndUpdate(np.squeeze(data_out.ExportAsArray()))
         for process in self._GetListOfProcesses():
