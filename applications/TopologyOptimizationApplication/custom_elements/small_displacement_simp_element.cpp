@@ -247,7 +247,8 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 
     } else if (rVariable == DVDX) {
 		// Calculation of the volume sensitivities DVDX
-        this->SetValue(DVDX, 1.0);
+        double element_size = this->GetValue(ELEMENT_SIZE);
+        this->SetValue(DVDX, element_size*1);
 	}
 
     KRATOS_CATCH( "" )

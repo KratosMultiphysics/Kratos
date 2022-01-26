@@ -150,8 +150,8 @@ optimizer = kto.topology_optimizer_factory.ConstructOptimizer(model_part, Optimi
 optimizer.optimize()
 
 # Testing the results of the optimization 
-TestCase().assertEqual(results["number_of_iterations"].GetInt(), 4)
-TestCase().assertAlmostEqual(results["compliance"].GetDouble(), 36934.405, 3)
-TestCase().assertAlmostEqual(results["volume_fraction"].GetDouble(), 0.49997, 5)
+TestCase().assertEqual(results["number_of_iterations"].GetInt(), 13)
+TestCase().assertAlmostEqual(results["compliance"].GetDouble(), 278.493, 3)
+TestCase().assertAlmostEqual(results["volume_fraction"].GetDouble(), 0.50010, 5)
 
 FinalizeKSMProcess()

@@ -135,18 +135,25 @@ public:
 
         int number_elements = 0;
         double Global_Volume_Fraction = 0.0;
+        double elemental_volume = 0.0;
+        double design_variable = 0.0;
+        double Total_volume = 0.0;
 
 
         // Loop over all elements to obtain their X_PHYS and know how many elements the model has
         for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
         {
-            Global_Volume_Fraction += element_i->GetValue(X_PHYS);
+
+            elemental_volume = element_i->GetValue(ELEMENT_SIZE);
+            design_variable = element_i->GetValue(X_PHYS);
+            Global_Volume_Fraction += (elemental_volume*design_variable);
+            Total_volume += elemental_volume;
             number_elements++;
         }
 
         // Calculate and return the Global Volume Fraction by knowing how many elements the model has
-        Global_Volume_Fraction = Global_Volume_Fraction/number_elements;
+        Global_Volume_Fraction = Global_Volume_Fraction/Total_volume;
         KRATOS_INFO("[TopOpt]") <<"  Global Volume Fraction: " << Global_Volume_Fraction << std::endl;
         clock_t end = clock();
         KRATOS_INFO("[TopOpt]") <<"  Volume fraction calculated                [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;

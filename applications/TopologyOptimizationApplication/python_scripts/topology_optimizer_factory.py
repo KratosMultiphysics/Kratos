@@ -100,6 +100,8 @@ class SIMPMethod:
         # Model parameters
         self.opt_model_part = opt_model_part
 
+        vol_tot = 0.0
+
         # Initialize element variables
         for element_i in opt_model_part.Elements:
             element_i.SetValue(kto.YOUNGS_MODULUS_MIN, config["E_min"].GetDouble())
@@ -108,7 +110,13 @@ class SIMPMethod:
             element_i.SetValue(kto.X_PHYS_OLD, config["initial_volume_fraction"].GetDouble())
             element_i.SetValue(kto.YOUNGS_MODULUS_0, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
             element_i.SetValue(km.YOUNG_MODULUS, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
+            elemental_volume = element_i.GetGeometry().DomainSize()
+            element_i.SetValue(kto.ELEMENT_SIZE, elemental_volume)
+            vol_tot += elemental_volume
 
+        for element_i in opt_model_part.Elements:
+            element_i.SetValue(kto.STRUCTURE_VOLUME, elemental_volume)
+            
         # Only happens if continuation strategy is activated (Initialization of penalty factor)
         if(self.config["continuation_strategy"] == 1):
             for element_i in self.opt_model_part.Elements:
