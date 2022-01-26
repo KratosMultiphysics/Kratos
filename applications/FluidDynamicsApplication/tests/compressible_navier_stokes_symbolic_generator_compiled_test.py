@@ -71,6 +71,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         dump_values = False if "dump_values" not in kwargs else kwargs["dump_values"]
 
         recompile = recompile or regenerate
+        parameters = self._GetGeneratorSettings(geometry)
 
         # Adding files to be removed
         if cleanup:
@@ -86,7 +87,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         # Generation
         if regenerate:
             print("\n--------------------Generating--------------------------")
-            generator = CompressibleNavierStokesSymbolicGenerator(self._GetGeneratorSettings(geometry))
+            generator = CompressibleNavierStokesSymbolicGenerator(parameters)
             generator.Generate()
             generator.Write()
 
