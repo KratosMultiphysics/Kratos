@@ -22,7 +22,8 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
                 pass
         self.files_to_remove = []
 
-    def _GetGeneratorSettings(geometry):
+    @classmethod
+    def _GetGeneratorSettings(cls, geometry):
         """
         Returns the Kratos Parameters for the symbolic generator
         """
