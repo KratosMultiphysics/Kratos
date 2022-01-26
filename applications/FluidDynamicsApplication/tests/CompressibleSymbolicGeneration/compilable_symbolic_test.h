@@ -17,7 +17,7 @@
 #include <iostream>
 
 /**
- * This file contains classes and function mimicking the necessary
+ * This file contains classes and functions mimicking the necessary
  * behaviour of Kratos in order to run the generated code without having
  * to modify it.
  */
@@ -31,22 +31,87 @@ template<std::size_t TRows, std::size_t TCols>
 class Matrix
 {
 public:
-    using data_t = double;
-    using index_t = std::size_t;
+    static_assert(TRows != 0, "Number of rows must be greater than 0");
+    static_assert(TCols != 0, "Number of colums must be greater than 0");
 
-    Matrix(data_t fill = 0)
+    ///@name Type Definitions
+    ///@{
+    
+    using DataType = double;
+    using IndexType = std::size_t;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Matrix(const DataType FillValue = 0)
     {
-        this->fill(fill);
+        this->Fill(FillValue);
     };
 
-    Matrix& fill(data_t fill)
+    /// Destructor.
+    ~Matrix() = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void Fill(const DataType Value)
     {
-        for(auto & row: m_data)
+        for(auto& row: mData)
         {
-            std::fill(row.begin(), row.end(), fill);
-        }  
-        return *this;
+            std::fill(row.begin(), row.end(), Value);
+        }
     }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    // Single index accessing
+
+    constexpr DataType operator[](const IndexType Index) const
+    {
+        return mData[Index / TCols][Index % TCols];
+    }
+
+    constexpr DataType& operator[](const IndexType Index)
+    {
+        return mData[Index / TCols][Index % TCols];
+    }
+
+    constexpr DataType operator()(const IndexType Index) const
+    {
+        return (*this)[Index];
+    }
+
+    constexpr DataType& operator()(const IndexType Index)
+    {
+        return (*this)[Index];
+    }
+
+    // Multiple index accessing
+
+    constexpr DataType operator()(const IndexType Row, const IndexType Col) const
+    {
+        return mData[Row][Col];
+    }
+
+    constexpr DataType& operator()(const IndexType Row, const IndexType Col)
+    {
+        return mData[Row][Col];
+    }
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
 
     /**
      * Performs three cheks on a matrix:
@@ -55,44 +120,108 @@ public:
      * - Ensures almost-equality with a reference matrix
      *
      * @param[in]  reference  The reference matrix to compare to
-     * @param[in]  rel_error  The maximum allowable relative error
+     * @param[in]  rel_tolerance  The maximum allowable relative error
      * 
      * @return An error code. It is 0 if no errors, 1 if there are
      * The errors are also be printed to std::err
      */
-    template<index_t R, index_t C>
-    int validate(Matrix<R,C> const& reference, const double rel_error = 1e-6) const
+    int Validate(const Matrix& reference, const double rel_tolerance = 1e-6) const
     {
-        static_assert(R==TRows, "Diferent number of rows!");
-        static_assert(C==TCols, "Diferent number of cols!");
+        if(!ValuesAreReal()) return 1;
+        if(!AlmostEqual(reference, rel_tolerance)) return 1;
 
-        int result = 0;
-        for(index_t i=0; i < R*C; ++i)
+        return 0;
+    }
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    friend std::ostream& operator<<(std::ostream& os, const Matrix& m)
+    {
+        for(const auto& r_row: m.mData)
+        {
+            os << "[  " << r_row[0];
+            for(IndexType i=1; i<TCols; ++i)
+            {
+                os << ", " << r_row[i];
+            }
+            os << "    ]\n";
+        }
+        os << "\n";
+
+        return os;
+    }
+
+    ///@}
+
+private:
+    ///@name Private static member variables
+    ///@{
+
+
+    ///@}
+    ///@name Private member Variables
+    ///@{
+
+    std::array<std::array<DataType, TCols>, TRows> mData;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    /** Validates that all entries are real valued (i.e. neither inf nor nan)
+     */
+    bool ValuesAreReal() const
+    {
+        bool result = true;
+        for(IndexType i=0; i < TRows*TCols; ++i)
         {
             if(std::isnan((*this)[i]))
             {
                 std::cerr << "\nEntry #" << i << " is NaN";
-                result = 1;
+                result = false;
             }
             else if(std::isinf((*this)[i]))
             {
                 std::cerr << "\nEntry #" << i << " is is infinite";
-                result = 1;   
+                result = false;   
             }
         }
 
-        for(index_t i=0; i < R*C; ++i)
+        return result;
+    }
+
+    /** Returns whether the matrix is almost equal to the reference, 
+     * within relative tolerance.
+     */
+    bool AlmostEqual(const Matrix& reference, const DataType rel_tolerance) const
+    {
+        bool result = true;
+
+        for(IndexType i=0; i < TRows*TCols; ++i)
         {
-            const data_t value = (*this)[i];
-            const data_t ref = reference[i];
+            const DataType value = (*this)[i];
+            const DataType ref = reference[i];
 
             if(value==0 && ref==0) continue;
 
-            const data_t diff = value - ref;
-            const data_t max = std::max(std::abs(value), std::abs(ref));
+            const DataType diff = value - ref;
+            const DataType max = std::max(std::abs(value), std::abs(ref));
 
-            const data_t delta = rel_error * max;
-            const int precision = 1 - log10(rel_error);
+            const DataType delta = rel_tolerance * max;
+            const int precision = 1 - std::log10(rel_tolerance);
     
             if(std::abs(diff) > delta)
             {
@@ -103,75 +232,64 @@ public:
                           << std::setprecision(2) << delta
                           << ").\tDiff = " << diff
                           << "\tRel diff = " << diff/max;
-                result = 1;
+                result = false;
             }
         }
 
         return result;
     }
 
-    constexpr data_t const& operator[](const index_t i) const
-    {
-        return (*this)(i);
-    }
 
-    data_t & operator[](const index_t i)
-    {
-        return (*this)(i);
-    }
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
 
-    constexpr data_t const& operator()(const index_t i, const index_t j) const
-    {
-        return m_data[i][j];
-    }
 
-    constexpr data_t const& operator()(const index_t i) const
-    {
-        return m_data[i / TCols][i % TCols];
-    }
+    ///@}
 
-    data_t & operator()(const index_t i, const index_t j)
-    {
-        return m_data[i][j];
-    }
-
-    data_t & operator()(const index_t i)
-    {
-        return m_data[i / TCols][i % TCols];
-    }
-
-    friend std::ostream& operator<<(std::ostream& os, Matrix const& m)
-    {
-        for(auto const& row: m.m_data)
-        {
-            os << "[  " << row[0];
-            for(index_t i=1; i<TCols; ++i)
-            {
-                os << ", " << row[i];
-            }
-            os << "    ]\n";
-        }
-        os << "\n";
-
-        return os;
-    }
-
-private:
-    std::array<std::array<data_t, TCols>, TRows> m_data;
 };
 
+///@}
+///@name Type Definitions
+///@{
 
 template<std::size_t TRows>
 using Vector = Matrix<TRows, 1>;
 
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 /**
- * @brief Shape functions in isoparametric shapes
+ * @brief Shape functions in isoparametric space
  */
 template<std::size_t TDim, std::size_t TNodes>
-void ShapeFunctions(Vector<TNodes> & N, Matrix<TNodes, TDim> & DN_DX, double x, double y);
+void ShapeFunctions(Vector<TNodes>& N, Matrix<TNodes, TDim>& DN_DX, double x, double y);
 
+/**
+ * Triangle shape functions
+ */
 template<>
-inline void ShapeFunctions(Vector<4> & N, Matrix<4, 2> & DN_DX, double x, double y)
+inline void ShapeFunctions(Vector<3>& N, Matrix<3, 2>& DN_DX, double x, double y)
+{
+    N[0] = -(x+y)/2;
+    N[1] = (1+x)/2;;
+    N[2] = (1+y)/2;
+
+    DN_DX(0,0) = -0.5;      DN_DX(0,1) = -0.5;
+    DN_DX(1,0) =  0.5;      DN_DX(1,1) =  0;
+    DN_DX(2,0) =  0;        DN_DX(2,1) =  0.5;
+}
+
+/**
+ * Quadrilateral shape functions
+ */
+template<>
+inline void ShapeFunctions(Vector<4>& N, Matrix<4, 2>& DN_DX, double x, double y)
 {
     N[0] = (1-x)*(1-y)/4;
     N[1] = (1+x)*(1-y)/4;
@@ -184,18 +302,6 @@ inline void ShapeFunctions(Vector<4> & N, Matrix<4, 2> & DN_DX, double x, double
     DN_DX(3,0) = -(1+y)/4;      DN_DX(3,1) =  (1-x)/4;
 }
 
-template<>
-inline void ShapeFunctions(Vector<3> & N, Matrix<3, 2> & DN_DX, double x, double y)
-{
-    N[0] = -(x+y)/2;
-    N[1] = (1+x)/2;;
-    N[2] = (1+y)/2;
-
-    DN_DX(0,0) = -0.5;      DN_DX(0,1) = -0.5;
-    DN_DX(1,0) =  0.5;      DN_DX(1,1) =  0;
-    DN_DX(2,0) =  0;        DN_DX(2,1) =  0.5;
-}
-
 /**
  * Struct containing data mimicking
  * CompressibleNavierStokesExplicit::ElementDataStruct.
@@ -203,11 +309,13 @@ inline void ShapeFunctions(Vector<3> & N, Matrix<3, 2> & DN_DX, double x, double
  * By default filled with Rankine-Hugoniot jump condition.
  * Difusive magnitudes are made-up but within the correct order of magnitude.
  */
-template<unsigned int Tdim, unsigned int Tnodes, unsigned int Tblocksize = Tdim+2>
+template<std::size_t Tdim, std::size_t Tnodes>
 struct ElementDataT
 {
-    Matrix<Tblocksize, Tnodes> U;
-    Matrix<Tblocksize, Tnodes> dUdt;
+    static constexpr std::size_t BlockSize = Tdim + 2;
+
+    Matrix<BlockSize, Tnodes> U;
+    Matrix<BlockSize, Tnodes> dUdt;
     
     Vector<Tnodes> m_ext;
     Vector<Tnodes> r_ext;
@@ -219,7 +327,7 @@ struct ElementDataT
     Vector<Tnodes> mu_sc_nodes;
     double alpha, beta, lambda, mu;
 
-    Matrix<Tnodes, Tblocksize> ResProj;
+    Matrix<Tnodes, BlockSize> ResProj;
 
     double h;
     double gamma, c_v;
@@ -254,10 +362,10 @@ inline ElementDataT<2, 4>::ElementDataT()
     this->U(2, 3) = et_1;
     this->U(3, 3) = et_0;
 
-    this->alpha_sc_nodes.fill(1.5e-4);
-    this->beta_sc_nodes.fill(2.8e-5);
-    this->lamb_sc_nodes.fill(1.3e-7);
-    this->mu_sc_nodes.fill(2.3e-6);
+    this->alpha_sc_nodes.Fill(1.5e-4);
+    this->beta_sc_nodes.Fill(2.8e-5);
+    this->lamb_sc_nodes.Fill(1.3e-7);
+    this->mu_sc_nodes.Fill(2.3e-6);
 
     this->alpha = 0;
     this->beta = 1.13e-4;
@@ -293,10 +401,10 @@ inline ElementDataT<2, 3>::ElementDataT()
     this->U(1, 3) = et_1;
     this->U(2, 3) = et_1;
 
-    this->alpha_sc_nodes.fill(1.5e-4);
-    this->beta_sc_nodes.fill(2.8e-5);
-    this->lamb_sc_nodes.fill(1.3e-7);
-    this->mu_sc_nodes.fill(2.3e-6);
+    this->alpha_sc_nodes.Fill(1.5e-4);
+    this->beta_sc_nodes.Fill(2.8e-5);
+    this->lamb_sc_nodes.Fill(1.3e-7);
+    this->mu_sc_nodes.Fill(2.3e-6);
 
     this->alpha = 0;
     this->beta = 1.13e-4;

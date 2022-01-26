@@ -72,7 +72,7 @@ int test_substitute_rho_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     expected[3] = 0;
 
     std::cout << "test_substitute_rho_proj_2D:";
-    int test = rho_proj.validate(expected);
+    int test = rho_proj.Validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
@@ -104,7 +104,7 @@ int test_substitute_mom_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     expected[7] = -3.6812754241620587954e-12;
     
     std::cout << "test_substitute_mom_proj_2D:";
-    int test = mom_proj.validate(expected);
+    int test = mom_proj.Validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
@@ -131,7 +131,7 @@ int test_substitute_tot_ener_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_D
     expected[3] = -106173.70845862576971;
 
     std::cout << "test_substitute_tot_ener_proj_2D:";
-    int test = tot_ener_proj.validate(expected);
+    int test = tot_ener_proj.Validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
@@ -180,7 +180,7 @@ int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, Ele
     expected[15] = -365056.09982268471504;
 
     std::cout << "test_substitute_rhs_2D_OSS:";
-    int test = rRightHandSideBoundedVector.validate(expected);
+    int test = rRightHandSideBoundedVector.Validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
@@ -229,7 +229,7 @@ int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     expected[15] = -365056.09982268471504;
 
     std::cout << "test_substitute_rhs_2D_ASGS:";
-    int test = rRightHandSideBoundedVector.validate(expected);
+    int test = rRightHandSideBoundedVector.Validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
