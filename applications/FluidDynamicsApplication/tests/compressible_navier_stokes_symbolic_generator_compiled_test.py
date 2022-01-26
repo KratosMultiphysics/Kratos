@@ -125,9 +125,9 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "regenerate": True,
             "recompile": True,
             "cleanup": True,
-            "dump_values": False
+            "dump_values": False,
             "compiler": "g++",
-            "geometry": "2D4N",
+            "geometry": "2D4N"
         }
 
         ci_compiler = self._GetCompilerFromEnvironment()
@@ -143,9 +143,9 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "regenerate": True,
             "recompile": True,
             "cleanup": True,
-            "dump_values": False
+            "dump_values": False,
             "compiler": "g++",
-            "geometry": "2D3N",
+            "geometry": "2D3N"
         }
 
         ci_compiler = self._GetCompilerFromEnvironment()
