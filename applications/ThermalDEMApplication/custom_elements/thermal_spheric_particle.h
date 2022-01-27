@@ -127,7 +127,7 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalSphericParticle : public Spheri
     double AdjustedContactRadiusMorris        (const ProcessInfo& r_process_info);
 
     // Auxiliary computations
-    void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance) override;
+    void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
     double ComputePrandtlNumber         (const ProcessInfo& r_process_info);
     double ComputeReynoldNumber         (const ProcessInfo& r_process_info);
     double ComputeFluidRelativeVelocity (const ProcessInfo& r_process_info);

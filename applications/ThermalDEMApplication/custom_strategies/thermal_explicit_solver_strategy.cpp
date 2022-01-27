@@ -80,8 +80,10 @@ namespace Kratos {
     int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
     IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
-      mListOfSphericParticles[i]->ComputeAddedSearchDistance(r_model_part.GetProcessInfo(), added_search_distance);
-      mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
+      ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(mListOfSphericParticles[i]);
+
+      particle->ComputeAddedSearchDistance(r_model_part.GetProcessInfo(), added_search_distance);
+      particle->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
     });
 
     KRATOS_CATCH("")
