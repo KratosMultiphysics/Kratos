@@ -31,21 +31,18 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
 
   py::class_<GraphUtilities, GraphUtilities::Pointer>(m, "GraphUtilities")
     .def(py::init<>())
-    .def("ExecuteInitialize", &GraphUtilities::ExecuteInitialize)
+    .def("ExecuteInitialize",           &GraphUtilities::ExecuteInitialize)
     .def("ExecuteFinalizeSolutionStep", &GraphUtilities::ExecuteFinalizeSolutionStep)
-    .def("ExecuteFinalize", &GraphUtilities::ExecuteFinalize)
-    ;
+    .def("ExecuteFinalize",             &GraphUtilities::ExecuteFinalize);
 
   py::class_<SetThermalDataUtilities, SetThermalDataUtilities::Pointer>(m, "SetThermalDataUtilities")
     .def(py::init<>())
-    .def("ExecuteInitialize", &SetThermalDataUtilities::ExecuteInitialize)
-    ;
+    .def("ExecuteInitialize", &SetThermalDataUtilities::ExecuteInitialize);
 
   py::class_<TesselationUtilities, TesselationUtilities::Pointer>(m, "TesselationUtilities")
     .def(py::init<>())
-    .def("ExecuteInitialize", &TesselationUtilities::ExecuteInitialize)
-    .def("ExecuteInitializeSolutionStep", &TesselationUtilities::ExecuteInitializeSolutionStep)
-    ;
+    .def("ExecuteInitialize",             &TesselationUtilities::ExecuteInitialize)
+    .def("ExecuteInitializeSolutionStep", &TesselationUtilities::ExecuteInitializeSolutionStep);
 }
 
 } // namespace Python

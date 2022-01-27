@@ -58,20 +58,20 @@ namespace Kratos {
 
   protected:
     // Protected methods
-    void Triangulation         (ModelPart& rModelPart);
-    void Tetrahedralization    (ModelPart& rModelPart);
-    void UpdateVoronoi2D       (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
-    void UpdateVoronoi3D       (ModelPart& rModelPart, struct tetgenio& rOut);
-    void UpdatePorosity2D      (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
-    void UpdatePorosity3D      (ModelPart& rModelPart, struct tetgenio& rOut);
-    void ComputeAlphaRadius2D  (ModelPart& rModelPart, struct triangulateio& rOut);
-    void ComputeAlphaRadius3D  (ModelPart& rModelPart, struct tetgenio& rOut);
-    bool AlphaShape2D          (std::vector<double>& coords);
-    bool AlphaShape3D          (std::vector<double>& coords);
-    void AddParticleArea       (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area,   const int id);
-    void AddParticleVolume     (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id);
-    void ClearTriangle         (struct triangulateio& rTr);
-    void FreeTriangle          (struct triangulateio& rTr);
+    void Triangulation        (ModelPart& rModelPart);
+    void Tetrahedralization   (ModelPart& rModelPart);
+    void UpdateVoronoi2D      (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
+    void UpdateVoronoi3D      (ModelPart& rModelPart, struct tetgenio& rOut);
+    void UpdatePorosity2D     (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
+    void UpdatePorosity3D     (ModelPart& rModelPart, struct tetgenio& rOut);
+    void ComputeAlphaRadius2D (ModelPart& rModelPart, struct triangulateio& rOut);
+    void ComputeAlphaRadius3D (ModelPart& rModelPart, struct tetgenio& rOut);
+    bool AlphaShape2D         (std::vector<double>& coords);
+    bool AlphaShape3D         (std::vector<double>& coords);
+    void AddParticleArea      (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area,   const int id);
+    void AddParticleVolume    (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id);
+    void ClearTriangle        (struct triangulateio& rTr);
+    void FreeTriangle         (struct triangulateio& rTr);
 
     // Protected attributes
     bool        mUpdateVoronoi;
