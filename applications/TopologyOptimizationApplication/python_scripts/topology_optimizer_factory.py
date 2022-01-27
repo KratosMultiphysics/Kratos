@@ -100,8 +100,6 @@ class SIMPMethod:
         # Model parameters
         self.opt_model_part = opt_model_part
 
-        vol_tot = 0.0
-
         # Initialize element variables
         for element_i in opt_model_part.Elements:
             element_i.SetValue(kto.YOUNGS_MODULUS_MIN, config["E_min"].GetDouble())
