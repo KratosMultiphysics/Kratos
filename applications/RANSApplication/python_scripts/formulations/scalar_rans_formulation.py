@@ -178,7 +178,8 @@ class ScalarRansFormulation(RansFormulation):
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
             self.ExecuteBeforeCouplingSolveStep()
-            self.scheme.InitializeDofUpdater()
+            if hasattr(self.scheme,"InitializeDofUpdater"):
+                self.scheme.InitializeDofUpdater()
             self.solver.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")
