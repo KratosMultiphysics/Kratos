@@ -11,51 +11,18 @@
 //
 
 #include "compilable_symbolic_test.h"
-#include <iomanip>
 #include <cstring>
 
-static constexpr std::size_t nnodes = 3;
-static constexpr std::size_t dim = 2;
-static constexpr std::size_t blocksize = dim + 2;
+constexpr std::size_t nnodes = 3;
+constexpr std::size_t dim = 2;
+constexpr std::size_t blocksize = dim + 2;
 
 using ShapeFun = Vector<nnodes>;
 using ShapeFunGrad = Matrix<nnodes, dim>;
 using ElementData = ElementDataT<dim, nnodes>;
 
-int test_substitute_rho_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
-int test_substitute_mom_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
-int test_substitute_tot_ener_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
-int test_substitute_lhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
-int test_substitute_rhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
-int test_substitute_lhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
-int test_substitute_rhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values);
 
-int main(int argc, char** argv)
-{
-    int result = 0;
-
-    bool dump_values = false;
-    if(argc > 1 && strcmp(argv[1], "--dump")==0) dump_values = true;
-
-    const ElementData data;
-
-    ShapeFunGrad DN_DX;
-    ShapeFun N;
-
-    ShapeFunctions<dim, nnodes>(N, DN_DX, 0, 0);
-
-    result += test_substitute_rho_proj_2D(DN_DX, data, dump_values);
-    result += test_substitute_mom_proj_2D(DN_DX, data, dump_values);
-    result += test_substitute_tot_ener_proj_2D(DN_DX, data, dump_values);
-    result += test_substitute_lhs_2D_OSS(DN_DX, data, dump_values);
-    result += test_substitute_rhs_2D_OSS(DN_DX, data, dump_values);
-    result += test_substitute_lhs_2D_ASGS(DN_DX, data, dump_values);
-    result += test_substitute_rhs_2D_ASGS(DN_DX, data, dump_values);
-    
-    return result;
-}
-
-int test_substitute_rho_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+TestResult test_substitute_rho_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
 {
     Vector<nnodes> rho_proj;
 
@@ -67,22 +34,11 @@ int test_substitute_rho_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& da
     expected[1] = 0;
     expected[2] = 0;
 
-    std::cout << "test_substitute_rho_proj_2D:";
-    int test = rho_proj.Validate(expected);
-    if(test == 0) {
-        std::cout << " OK";
-    }
-    std::cout << std::endl;
-
-    if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << rho_proj << std::endl;
-    }
-    
-    return test;
+    return CheckSubstitutionResult("rho_proj_2D", rho_proj, expected, print_results);
 }
 
 
-int test_substitute_mom_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+TestResult test_substitute_mom_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
 {
     Vector<dim * nnodes> mom_proj;
 
@@ -97,21 +53,10 @@ int test_substitute_mom_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& da
     expected[4] = -15075.460788465843507;
     expected[5] = -15076.164099001256545;
     
-    std::cout << "test_substitute_mom_proj_2D:";
-    int test = mom_proj.Validate(expected);
-    if(test == 0) {
-        std::cout << " OK";
-    }
-    std::cout << std::endl;
-
-    if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << mom_proj << std::endl;
-    }
-    
-    return test;
+    return CheckSubstitutionResult("mom_proj_2D", mom_proj, expected, print_results);
 }
 
-int test_substitute_tot_ener_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+TestResult test_substitute_tot_ener_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
 {
     Vector<nnodes> tot_ener_proj;
 
@@ -123,28 +68,18 @@ int test_substitute_tot_ener_proj_2D(ShapeFunGrad const& DN_DX, ElementData cons
     expected[1] = 738.00562019298854466;
     expected[2] = 688.89753394371905415;
 
-    std::cout << "test_substitute_tot_ener_proj_2D:";
-    int test = tot_ener_proj.Validate(expected);
-    if(test == 0) {
-        std::cout << " OK";
-    }
-    std::cout << std::endl;
-
-    if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << tot_ener_proj << std::endl;
-    }
-    
-    return test;
+    return CheckSubstitutionResult("tot_ener_proj_2D", tot_ener_proj, expected, print_results);
 }
 
-int test_substitute_lhs_2D_OSS(ShapeFunGrad const&, ElementData const&, const bool)
+TestResult test_substitute_lhs_2D_OSS(ShapeFunGrad const&, ElementData const&, const bool)
 {
 // ------------------------- substitute_lhs_2D_OSS -------------------------
 //substitute_lhs_2D_OSS
-    return 0;
+
+    return TestResult::SUCCESS;
 }
 
-int test_substitute_rhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+TestResult test_substitute_rhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
 {
     Vector<blocksize*nnodes> rRightHandSideBoundedVector;
     const double stab_c1 = 12;
@@ -168,28 +103,18 @@ int test_substitute_rhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& dat
     expected[10] = -14495.58857930533668;
     expected[11] = -7262.2965689810916956;
 
-    std::cout << "test_substitute_rhs_2D_OSS:";
-    int test = rRightHandSideBoundedVector.Validate(expected);
-    if(test == 0) {
-        std::cout << " OK";
-    }
-    std::cout << std::endl;
-
-    if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << rRightHandSideBoundedVector << std::endl;
-    }
-    
-    return test;
+    return CheckSubstitutionResult("rhs_2D_OSS", rRightHandSideBoundedVector, expected, print_results);
 }
 
-int test_substitute_lhs_2D_ASGS(ShapeFunGrad const&, ElementData const&, const bool)
+TestResult test_substitute_lhs_2D_ASGS(ShapeFunGrad const&, ElementData const&, const bool)
 {
 // ------------------------- substitute_lhs_2D_ASGS -------------------------
 //substitute_lhs_2D_ASGS
-    return 0;
+
+    return TestResult::SUCCESS;
 }
 
-int test_substitute_rhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
+TestResult test_substitute_rhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
 {
     Vector<blocksize*nnodes> rRightHandSideBoundedVector;
     const double stab_c1 = 12;
@@ -213,16 +138,29 @@ int test_substitute_rhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& da
     expected[10] = -14495.58857930533668;
     expected[11] = -7262.2965689810916956;
 
-    std::cout << "test_substitute_rhs_2D_ASGS:";
-    int test = rRightHandSideBoundedVector.Validate(expected);
-    if(test == 0) {
-        std::cout << " OK";
-    }
-    std::cout << std::endl;
+    return CheckSubstitutionResult("rhs_2D_ASGS", rRightHandSideBoundedVector, expected, print_results);
+}
 
-    if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << rRightHandSideBoundedVector << std::endl;
-    }
+
+int main(int argc, char** argv)
+{
+    const bool print_results = (argc > 1 && strcmp(argv[1], "--print-results")==0);
+
+    const ElementData data;
+
+    ShapeFunGrad DN_DX;
+    ShapeFun N;
+
+    ShapeFunctions(N, DN_DX, 0, 0);
+
+    TestResult result = TestResult::SUCCESS;
+    result += test_substitute_rho_proj_2D(DN_DX, data, print_results);
+    result += test_substitute_mom_proj_2D(DN_DX, data, print_results);
+    result += test_substitute_tot_ener_proj_2D(DN_DX, data, print_results);
+    result += test_substitute_lhs_2D_OSS(DN_DX, data, print_results);
+    result += test_substitute_rhs_2D_OSS(DN_DX, data, print_results);
+    result += test_substitute_lhs_2D_ASGS(DN_DX, data, print_results);
+    result += test_substitute_rhs_2D_ASGS(DN_DX, data, print_results);
     
-    return test;
+    return static_cast<int>(result);
 }

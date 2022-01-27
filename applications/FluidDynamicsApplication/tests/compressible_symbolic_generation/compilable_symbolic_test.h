@@ -9,18 +9,57 @@
 //
 //  Main authors:    Eduard Gómez
 //
+//
+// This file contains classes and functions with two roles:
+// - Testing utilities
+// - Mimicking the behaviour of Kratos in order to run the generated
+//   code without having to modify it.
 
-#include <array>
-#include <iomanip>
-#include <cmath>
-#include <ostream>
 #include <iostream>
+#include <iomanip>
+#include <array>
+#include <cmath>
+
+
+enum class TestResult { SUCCESS, FAILURE };
+
+constexpr TestResult operator+=(TestResult & lhs, const TestResult& rhs)
+{
+    return (lhs == TestResult::SUCCESS && rhs == TestResult::SUCCESS)
+        ? TestResult::SUCCESS 
+        : TestResult::FAILURE;
+}
 
 /**
- * This file contains classes and functions mimicking the necessary
- * behaviour of Kratos in order to run the generated code without having
- * to modify it.
+ * Boilerplate to check that the obtained result is equal to the reference,
+ * with some information prints to stdout.
  */
+template<typename T>
+inline TestResult CheckSubstitutionResult(
+    const std::string test_name,
+    const T& result,
+    const T& expected,
+    const bool print_results)
+{
+    std::cout << "Testing result of //substitute_"<< test_name << ":";
+
+    TestResult test_result = result.Validate(expected);
+
+    if(test_result == TestResult::SUCCESS)
+    {
+        std::cout << " OK";
+    }
+
+    std::cout << std::endl;
+
+    if(print_results)
+    {
+        std::cout << "Results:\n" << std::setprecision(20) << result << std::endl;
+    }
+
+    return test_result;
+}
+
 
 /** Matrix-like class with only:
  * - storage manipulation access
@@ -81,7 +120,7 @@ public:
         return mData[Index / TCols][Index % TCols];
     }
 
-    constexpr DataType& operator[](const IndexType Index)
+    DataType& operator[](const IndexType Index)
     {
         return mData[Index / TCols][Index % TCols];
     }
@@ -91,7 +130,7 @@ public:
         return (*this)[Index];
     }
 
-    constexpr DataType& operator()(const IndexType Index)
+    DataType& operator()(const IndexType Index)
     {
         return (*this)[Index];
     }
@@ -103,7 +142,7 @@ public:
         return mData[Row][Col];
     }
 
-    constexpr DataType& operator()(const IndexType Row, const IndexType Col)
+    DataType& operator()(const IndexType Row, const IndexType Col)
     {
         return mData[Row][Col];
     }
@@ -125,12 +164,12 @@ public:
      * @return An error code. It is 0 if no errors, 1 if there are
      * The errors are also be printed to std::err
      */
-    int Validate(const Matrix& reference, const double rel_tolerance = 1e-6) const
+    TestResult Validate(const Matrix& reference, const double rel_tolerance = 1e-6) const
     {
-        if(!ValuesAreReal()) return 1;
-        if(!AlmostEqual(reference, rel_tolerance)) return 1;
+        if(!ValuesAreReal()) return TestResult::FAILURE;
+        if(!AlmostEqual(reference, rel_tolerance)) return TestResult::FAILURE;
 
-        return 0;
+        return TestResult::SUCCESS;
     }
 
 
@@ -181,12 +220,13 @@ private:
     ///@name Private Inquiry
     ///@{
 
-    /** Validates that all entries are real valued (i.e. neither inf nor nan)
+    /** 
+     * Validates that all entries are real valued (i.e. neither inf nor nan)
      */
     bool ValuesAreReal() const
     {
         bool result = true;
-        for(IndexType i=0; i < TRows*TCols; ++i)
+        for(IndexType i = 0; i < TRows*TCols; ++i)
         {
             if(std::isnan((*this)[i]))
             {
@@ -203,7 +243,8 @@ private:
         return result;
     }
 
-    /** Returns whether the matrix is almost equal to the reference, 
+    /** 
+     * Returns whether the matrix is almost equal to the reference, 
      * within relative tolerance.
      */
     bool AlmostEqual(const Matrix& reference, const DataType rel_tolerance) const

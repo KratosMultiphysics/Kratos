@@ -62,14 +62,14 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             compiled binary
         - compiler: Choice of compiler. Must accept GCC-like commands (e.g -00 -g)
         - geometry: Choice of geometry. Format is xDyN, with x,y integers
-        - dump_values: Whether to print all the results or not
+        - print_results: Whether to print all the results even if they are correct
         """
         regenerate = True if "regenerate" not in kwargs else kwargs["regenerate"]
-        recompile = True if "recompile" not in kwargs else kwargs["recompile"]
-        cleanup = True if "cleanup" not in kwargs else kwargs["cleanup"]
-        compiler = "g++" if "compiler" not in kwargs else kwargs["compiler"]
-        geometry = "2D3N" if "geometry" not in kwargs else kwargs["geometry"]
-        dump_values = False if "dump_values" not in kwargs else kwargs["dump_values"]
+        recompile  = True if "recompile" not in kwargs else kwargs["recompile"]
+        cleanup    = True if "cleanup" not in kwargs else kwargs["cleanup"]
+        compiler   = "g++" if "compiler" not in kwargs else kwargs["compiler"]
+        geometry   = "2D3N" if "geometry" not in kwargs else kwargs["geometry"]
+        print_results = False if "print_results" not in kwargs else kwargs["print_results"]
 
         recompile = recompile or regenerate
         parameters = self._GetGeneratorSettings(geometry)
@@ -102,7 +102,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         # Testing
         print("\n----------------------Testing----------------------------")
-        errcode = os.system("./test.out" + (" --dump" if dump_values else ""))
+        errcode = os.system("./test.out" + (" --print-results" if print_results else ""))
         self.assertEqual(errcode, 0, "Tests returned error code {}\n".format(errcode))
 
         return 0
@@ -127,7 +127,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "regenerate": True,
             "recompile": True,
             "cleanup": True,
-            "dump_values": False,
+            "print_results": False,
             "compiler": "g++",
             "geometry": "2D4N"
         }
@@ -145,7 +145,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "regenerate": True,
             "recompile": True,
             "cleanup": True,
-            "dump_values": False,
+            "print_results": False,
             "compiler": "g++",
             "geometry": "2D3N"
         }
