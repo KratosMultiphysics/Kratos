@@ -1918,8 +1918,6 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     mGlobalDamping = r_process_info[GLOBAL_DAMPING];
 }
 
-void SphericParticle::ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) {}
-
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
     Properties& properties_of_this_contact = GetProperties().GetSubProperties(neighbour->GetProperties().Id());
     return properties_of_this_contact[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->CloneUnique();

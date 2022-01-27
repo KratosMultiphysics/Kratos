@@ -161,7 +161,6 @@ virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const
 virtual void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& r_process_info) override;
 virtual void CalculateMaxBallToBallIndentation(double& rCurrentMaxIndentation, const ProcessInfo& r_process_info);
 virtual void CalculateMaxBallToFaceIndentation(double& rCurrentMaxIndentation);
-virtual void ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance);
 
 virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
 virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);

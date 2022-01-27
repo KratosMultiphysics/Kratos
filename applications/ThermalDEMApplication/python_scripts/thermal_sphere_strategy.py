@@ -28,7 +28,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
     def GetProjectParameters(self, DEM_parameters):
         # Get thermal settings and assign default values
-        default_settings = Parameters("""
+        default_thermal_settings = Parameters("""
         {
             "thermal_solve_frequency"        : 1,
             "voronoi_tesselation_frequency"  : 1000,
@@ -73,7 +73,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.thermal_settings = Parameters("""{}""")
         
-        self.thermal_settings.ValidateAndAssignDefaults(default_settings)
+        self.thermal_settings.ValidateAndAssignDefaults(default_thermal_settings)
         
         # General options
         self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
@@ -261,18 +261,44 @@ class ExplicitStrategy(BaseExplicitStrategy):
         else:
             self.write_graph = False
 
-    def AddAdditionalVariables(self, model_part, DEM_parameters):
-        # Add general additional variables (currently empty)
-        BaseExplicitStrategy.AddAdditionalVariables(self, model_part, DEM_parameters)
+    def CreateCPlusPlusStrategy(self):
+        # Set options of base class
+        BaseExplicitStrategy.SetVariablesAndOptions()
 
-        # Add thermal variables
-        model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        # Set thermal options
+        self.SetThermalVariablesAndOptions()
 
-    def SetAdditionalVariablesAndOptions(self):
-        # Set general additional variables (currently empty)
-        BaseExplicitStrategy.SetAdditionalVariablesAndOptions(self)
+        # Create cpp strategy object
+        translational_integration_scheme = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+        if (translational_integration_scheme == 'Velocity_Verlet'):
+            raise Exception('ThermalDEM', '"Thermal strategy for translational integration scheme \'' + translational_integration_scheme + '\' is not implemented.')
+        else:
+            self.cplusplus_strategy = ThermalExplicitSolverStrategy(self.settings,
+                                                                    self.max_delta_time,
+                                                                    self.n_step_search,
+                                                                    self.safety_factor,
+                                                                    self.delta_option,
+                                                                    self.creator_destructor,
+                                                                    self.dem_fem_search,
+                                                                    self.search_strategy,
+                                                                    self.solver_settings)
+    
+    def AddVariables(self):
+        # Add variables of base class
+        BaseExplicitStrategy.AddVariables(self)
 
+        # Add thermal variables to all model parts
+        self.spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.cluster_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.inlet_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.fem_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+
+        self.spheres_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.cluster_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.inlet_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.fem_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+
+    def SetThermalVariablesAndOptions(self):
         # General options
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
