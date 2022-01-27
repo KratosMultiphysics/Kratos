@@ -10,17 +10,59 @@
 //  Main authors:    Eduard Gómez
 //
 
-#include "compilable_symbolic_test.h"
+// System includes
 #include <cstring>
+
+// External includes
+
+// Project includes
+#include "compilable_symbolic_test.h"
+
+///@name Globals
+///@{
+
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name  Enum's
+///@{
+
+
+///@}
+///@name  Functions
+///@{
+
+
+///@}
+///@name Classes
+///@{
 
 class QuadrilateralTestSuite
 {
 public:
+
+    ///@name Type Definitions
+    ///@{
+
     static constexpr std::size_t NumNodes = 4;
     static constexpr std::size_t Dim = 2;
     static constexpr std::size_t BlockSize = Dim + 2;
 
-    QuadrilateralTestSuite(bool print_results)
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+     * Default constructor
+     * 
+     * Data container filled with Rankine-Hugoniot jump condition.
+     * Difusive magnitudes are made-up but within the correct order of magnitude.
+     */
+    QuadrilateralTestSuite(bool print_results = false)
         : mPrintResults(print_results)
     {
         const double xi = -sqrt(3)/3;
@@ -66,6 +108,15 @@ public:
         this->data.h = 2.0;
     }
 
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
     int RunTests() const
     {
         auto result = TestResult::SUCCESS;
@@ -81,11 +132,46 @@ public:
         return static_cast<int>(result);
     }
 
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+
 private:
+
+    ///@name Private static member variables
+    ///@{
+
+
+    ///@}
+    ///@name Private member Variables
+    ///@{
+
     ElementData<Dim, NumNodes> data;
     Matrix<NumNodes, Dim> DN_DX;
     Vector<NumNodes> N;
     bool mPrintResults;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     TestResult test_substitute_rho_proj_2D() const
     {
@@ -217,8 +303,36 @@ private:
 
         return CheckSubstitutionResult("rhs_2D_ASGS", rRightHandSideBoundedVector, expected, mPrintResults);
     }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Private LifeCycle
+    ///@{
+
+
+    ///@}
 };
 
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
 
 int main(int argc, char** argv)
 {

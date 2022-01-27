@@ -15,14 +15,38 @@
 // - Mimicking the behaviour of Kratos in order to run the generated
 //   code without having to modify it.
 
+// System includes
 #include <iostream>
 #include <iomanip>
 #include <array>
 #include <cmath>
 
+// External includes
+
+// Project includes
+
+///@name Globals
+///@{
+
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name  Enum's
+///@{
 
 enum class TestResult { SUCCESS, FAILURE };
 
+///@}
+///@name  Functions
+///@{
+
+/**
+ * Syntactic sugar to accumulate test results
+ */
 constexpr TestResult operator+=(TestResult & lhs, const TestResult& rhs)
 {
     return (lhs == TestResult::SUCCESS && rhs == TestResult::SUCCESS)
@@ -59,6 +83,10 @@ inline TestResult CheckSubstitutionResult(
 
     return test_result;
 }
+
+///@}
+///@name Classes
+///@{
 
 
 /** Matrix-like class with only:
