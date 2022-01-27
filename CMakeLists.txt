@@ -375,7 +375,7 @@ message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
 if(Boost_VERSION_STRING VERSION_LESS 1.70)
-  message(STATUS "WARNING: Kratos requires at least boost version 1.70 to enable bost related performance improvements")
+  message(STATUS "WARNING: Kratos requires at least boost version 1.70 to enable boost related performance improvements")
 else()
   add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 endif ()
