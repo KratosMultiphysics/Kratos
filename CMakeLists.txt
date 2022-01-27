@@ -374,6 +374,10 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
+if(Boost_VERSION_STRING VERSION_LESS 1.62)
+  message(FATAL_ERROR "Kratos requires at least boost version 1.62!")
+endif ()
+
 ##*****************************
 # Finding cuda if needed
 if(${USE_CUDA} MATCHES ON)
