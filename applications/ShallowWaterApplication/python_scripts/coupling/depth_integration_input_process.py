@@ -101,6 +101,9 @@ class DepthIntegrationInputProcess(KM.Process):
         file = Path(file_settings["file_name"].GetString())
         directory = file.parent
         file_names = [str(f) for f in directory.glob("*.h5")]
+        if len(file_names) == 0:
+            msg = "DepthIntegrationInputProcess: The specified path is empty or odes not exist: '{}'"
+            raise Exception(msg.format(directory))
 
         # Find the common parts (prefix and suffix) of the found names and the file pattern
         # The different part is the time, we need to store all the available times
@@ -194,7 +197,7 @@ class DepthIntegrationInputProcess(KM.Process):
                 "echo_level" : 0
             }""")
         else:
-            raise Exception("DepthIntegrationInputProcess._CreateMapper: The domain size of the input_model_part is: ", domain_size)
+            raise Exception("DepthIntegrationInputProcess._CreateMapper: The domain size of the input_model_part is: {}".format(domain_size))
 
         self.mapper = KM.MapperFactory.CreateMapper(
             self.input_model_part,
