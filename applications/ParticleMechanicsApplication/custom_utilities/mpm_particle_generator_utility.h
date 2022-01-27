@@ -84,6 +84,10 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointCondition(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
+
+    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart);
+
+    
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions

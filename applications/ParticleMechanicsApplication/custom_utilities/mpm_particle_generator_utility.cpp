@@ -334,7 +334,7 @@ namespace MPMParticleGeneratorUtility
                                     condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition";
                             }    
                             else if (boundary_condition_type ==2)
-                                condition_type_name = "MPMParticlePointCondition";
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition";
                             else 
                                 KRATOS_ERROR << "The boundary condition type is not yet implemented. Available options are Penalty=1 and Lagrange=2" << std::endl;
                             
@@ -455,13 +455,6 @@ namespace MPMParticleGeneratorUtility
                                 {
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
                                 }
-                                else if (boundary_condition_type == 2)
-                                {
-                                    // Create new submodelpart for LagrangeCondition which is created in the search 
-                                    auto& sub_model_part_lagrange_condition =    rMPMModelPart.GetSubModelPart(submodelpart_name).HasSubModelPart("lagrange_condition")
-                                        ? rMPMModelPart.GetSubModelPart(submodelpart_name).GetSubModelPart("lagrange_condition")
-                                        : rMPMModelPart.GetSubModelPart(submodelpart_name).CreateSubModelPart("lagrange_condition");
-                                }
                                     
 
                                 if (is_slip)
@@ -492,6 +485,27 @@ namespace MPMParticleGeneratorUtility
 
 
     
+    }
+
+    void GenerateLagrangeNodes(ModelPart& rBackgroundGridModelPart)
+    {
+        for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i)
+        {
+            auto element_itr = (rBackgroundGridModelPart.ElementsBegin() + i);
+            auto coord = element_itr->GetGeometry().Center();
+            auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, coord[0], coord[1], coord[2]);
+            
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
+            p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
+
+            p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+            p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+            p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+            element_itr->GetGeometry().SetValue(MPC_LAGRANGE_NODE, p_new_node);
+
+        }
     }
 
 /***********************************************************************************/

@@ -27,13 +27,7 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
         coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface")
         model_part_name = self.project_parameters["coupling_settings"]["interface_model_part_name"].GetString() # TODO this should be specified in "solver_wrapper_settings" in teh cosim-json
         model_part = self.model.GetModelPart(model_part_name)
-
-        mpm_model_part = model_part.GetRootModelPart()
-        model_part_lagrange_condition = mpm_model_part.GetSubModelPart("lagrange_condition")
-
-        imposed_displacement = [0.0,0.0,0.0]
-        for lagrange_cond in model_part_lagrange_condition.Conditions: 
-            lagrange_cond.SetValuesOnIntegrationPoints(KPM.MPC_IMPOSED_DISPLACEMENT, [imposed_displacement], model_part.ProcessInfo)
+        
 
         ## Transfer information from coupling_mp to mp
         for coupling_node in coupling_model_part.Nodes:
@@ -45,12 +39,7 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             incremental_displacement = total_displacement - old_displacement
             model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_IMPOSED_DISPLACEMENT, [incremental_displacement], model_part.ProcessInfo)
 
-            lagrange_cond_id = model_part.GetCondition(coupling_id).CalculateOnIntegrationPoints(KPM.MPC_CORRESPONDING_CONDITION_ID, model_part.ProcessInfo)[0]
-            imposed_displacement = model_part_lagrange_condition.GetCondition(lagrange_cond_id).CalculateOnIntegrationPoints(KPM.MPC_IMPOSED_DISPLACEMENT, model_part.ProcessInfo)[0]
-            imposed_displacement += incremental_displacement
             
-            model_part_lagrange_condition.GetCondition(lagrange_cond_id).SetValuesOnIntegrationPoints(KPM.MPC_IMPOSED_DISPLACEMENT, [imposed_displacement], model_part.ProcessInfo)
-
             ## ADD VELOCITY
             current_velocity = coupling_node.GetSolutionStepValue(KM.VELOCITY,0)
             model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_VELOCITY, [current_velocity], model_part.ProcessInfo)
@@ -62,17 +51,8 @@ class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
             if norm_normal > 1.e-10:
                 model_part.GetCondition(coupling_id).SetValuesOnIntegrationPoints(KPM.MPC_NORMAL, [normal], model_part.ProcessInfo)
 
-        for lagrange_cond in model_part_lagrange_condition.Conditions: 
-            mpc_counter = lagrange_cond.CalculateOnIntegrationPoints(KPM.MPC_COUNTER, model_part.ProcessInfo)[0]
-            imposed_displacement = lagrange_cond.CalculateOnIntegrationPoints(KPM.MPC_IMPOSED_DISPLACEMENT, model_part.ProcessInfo)[0]
-
-            imposed_displacement[0] = imposed_displacement[0]/mpc_counter
-            imposed_displacement[1] = imposed_displacement[1]/mpc_counter
-            imposed_displacement[2] = imposed_displacement[2]/mpc_counter
-
-            lagrange_cond.SetValuesOnIntegrationPoints(KPM.MPC_IMPOSED_DISPLACEMENT, [imposed_displacement], model_part.ProcessInfo)
-            
-
+        
+        
         super().SolveSolutionStep()
 
         ### Get contact force from mp to coupling_mp

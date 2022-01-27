@@ -76,8 +76,26 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
 
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+    
+    // Prepare variables
+    GeneralVariables Variables;
 
+    // Calculating shape function
+    MPMShapeFunctionPointValues(Variables.N);
+
+    // Get NODAL_AREA from MPC_Area
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * this->GetIntegrationWeight();
+            r_geometry[i].UnSetLock();
+        }
+        else break;
+    }
+
+    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
     array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
     for ( unsigned int j = 0; j < dimension; j++ )
@@ -88,12 +106,10 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
-        GeneralVariables Variables;
+        
+        pBoundaryParticle->Set(SLIP);
+        pBoundaryParticle->FastGetSolutionStepValue(NORMAL) = m_unit_normal;
 
-        // Calculating shape function
-        MPMShapeFunctionPointValues(Variables.N);
-        array_1d<double, 3 > & r_normal = pBoundaryParticle->FastGetSolutionStepValue(NORMAL);
-        r_normal = m_unit_normal;
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -124,37 +140,41 @@ void MPMParticleLagrangeDirichletCondition::InitializeNonLinearIteration(const P
         r_geometry[i].UnSetLock();
     }
 
-      
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+
+    array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+
+    for ( unsigned int j = 0; j < dimension; j++ )
+    {
+        r_lagrange_multiplier[0] *= 0.0;
+    }
+
 }
 
 void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector& rResult ) const
 {
     KRATOS_TRY
 
-    MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues(rResult);
+    MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
 
-    // Additional check to eliminate loss of point load quantity
-    const GeometryType& r_geometry = GetGeometry();
+    // Additional check to modify zero shape function values
+    // Lagrange Condition is more sensitive for small cut then Penalty condition
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    
-    // double denominator = 1.0;
-    int counter = 0;
+
+    double denominator = 1.0;
+    const double small_cut_instability_tolerance = 0.1;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
-            // denominator -= rResult[i];
-            // rResult[i] = 0;
-            counter +=1;
+        if (rResult[i] < small_cut_instability_tolerance){
+            denominator += (small_cut_instability_tolerance - rResult[i]);
+            rResult[i] = small_cut_instability_tolerance;
         }
     }
 
-    // avoid singular matrices if BC is in an empty background element
-    // at least 2 nodes have to be connected to a node with mass to ensure that BC is not imposed twice in the same node
-    if (counter > 1)
-        rResult *=0;
-    // else
-    //     rResult = rResult/denominator;
-        
+    rResult = rResult / denominator;
+
+    
 
     
 
@@ -234,6 +254,20 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
     }
     
+    int counter = 0;
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            counter +=1;
+        }
+    }
+
+    // avoid singular matrices if BC is in an empty background element
+    // at least 1 node has to be connected to the body
+    
+    if (counter >= (number_of_nodes-1))
+        apply_constraints = false;
+    
 
     if (apply_constraints)
     {
@@ -268,7 +302,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
                 for (unsigned int j = 0; j < dimension; j++)
                 {
-                    gap_function[index+j] = r_displacement[j] ;
+                    gap_function[index+j] = r_displacement[j] - m_imposed_displacement[j] ;
                 }
 
 
@@ -277,7 +311,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
             //first rows of RHS
             gap_function = ZeroVector(matrix_size);
-            auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+            auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
             const array_1d<double, 3>& r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
             for (unsigned int j = 0; j < dimension; j++){
@@ -286,10 +320,10 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
             
             right_hand_side += prod(lagrange_matrix, gap_function);
 
-            //add imposed displacement
-            for (unsigned int j = 0; j < dimension; j++){
-                right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
-            }
+            // //add imposed displacement
+            // for (unsigned int j = 0; j < dimension; j++){
+            //     right_hand_side[dimension * number_of_nodes+j] -= m_imposed_displacement[j];
+            // }
 
             right_hand_side *= this->GetIntegrationWeight();
             noalias(rRightHandSideVector) = -right_hand_side;
@@ -297,11 +331,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
         }
 
     }
-    else{
-
-        KRATOS_WATCH("NO CONDITIONS APPLIED")
-        
-    }
+    
 
     KRATOS_CATCH( "" )
 }
@@ -317,7 +347,7 @@ void MPMParticleLagrangeDirichletCondition::FinalizeNonLinearIteration(const Pro
 
     GeneralVariables Variables;
     array_1d<double, 3 > mpc_force = ZeroVector(3);
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
     mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 
@@ -346,30 +376,8 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
 {
     KRATOS_TRY
     MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
-    array_1d<double, 3 > mpc_force = ZeroVector(3);
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
 
-    mpc_force = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-
-    // Apply in the normal contact direction and allow releasing motion
-    if (Is(CONTACT))
-    {
-        // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
-
-        // This check is done to avoid sticking forces
-        if (normal_force > 0.0)
-            mpc_force = -1.0 * normal_force * m_unit_normal;
-        else
-            mpc_force = ZeroVector(3);
-    }
-    // Apply a sticking contact
-    else{
-        mpc_force *= -1.0;
-    } 
-
-    // Set Contact Force
-    m_contact_force = mpc_force;
+    this->CalculateContactForce(rCurrentProcessInfo);
 
     // Additional treatment for slip conditions
     if (Is(SLIP))
@@ -389,6 +397,50 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     }
 
     KRATOS_CATCH( "" )
+}
+
+void MPMParticleLagrangeDirichletCondition::CalculateContactForce( const ProcessInfo& rCurrentProcessInfo )
+{
+    
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    GeneralVariables Variables;
+    Variables.N = row(GetGeometry().ShapeFunctionsValues(), 0);
+
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
+        {
+            auto r_geometry = GetGeometry();
+            
+            const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+            const double nodal_area  = r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
+
+            if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+            {
+                mpc_force += Variables.N[i] * nodal_force * this->GetIntegrationWeight() / nodal_area;
+            }
+        }
+    }
+
+    // Apply in the normal contact direction and allow releasing motion
+    if (Is(CONTACT))
+    {
+        // Apply only in the normal direction
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
+
+        // This check is done to avoid sticking forces
+        if (normal_force > 0.0)
+            mpc_force = 1.0 * normal_force * m_unit_normal;
+        else
+            mpc_force = ZeroVector(3);
+    }
+    
+    m_contact_force = mpc_force;
+
 }
 
 void MPMParticleLagrangeDirichletCondition::EquationIdVector(
@@ -417,7 +469,7 @@ void MPMParticleLagrangeDirichletCondition::EquationIdVector(
     }
 
     unsigned int index = number_of_nodes * dimension;
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
     rResult[index    ] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_X).EquationId();
     rResult[index + 1] = pBoundaryParticle->GetDof(VECTOR_LAGRANGE_MULTIPLIER_Y).EquationId();
@@ -449,7 +501,7 @@ void MPMParticleLagrangeDirichletCondition::GetDofList(
             rElementalDofList.push_back( r_geometry[i].pGetDof(DISPLACEMENT_Z));
 
     }
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
 
     rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_X));
     rElementalDofList.push_back(pBoundaryParticle->pGetDof(VECTOR_LAGRANGE_MULTIPLIER_Y));
@@ -488,7 +540,7 @@ void MPMParticleLagrangeDirichletCondition::GetValuesVector(
             rValues[index + k] = r_displacement[k];
         }
     }
-    auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
+    auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
     const array_1d<double, 3 > & r_lagrange_multiplier = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER, Step);
     const unsigned int lagrange_index = number_of_nodes * dimension;
     for(unsigned int k = 0; k < dimension; ++k)
@@ -598,6 +650,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateOnIntegrationPoints(const V
         rValues[0] = m_unit_normal;
     }
     else if (rVariable == MPC_CONTACT_FORCE) {
+        this->CalculateContactForce(rCurrentProcessInfo);
         rValues[0] = m_contact_force;
     }
     else {

@@ -242,6 +242,7 @@ protected:
     /// Calculate Shape Function Values as a vector
     virtual void MPMShapeFunctionPointValues(Vector& rResult) const override;
 
+    virtual void CalculateContactForce( const ProcessInfo& rCurrentProcessInfo );
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
