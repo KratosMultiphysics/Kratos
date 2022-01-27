@@ -374,8 +374,10 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
-if(Boost_VERSION_STRING VERSION_LESS 1.62)
-  message(FATAL_ERROR "Kratos requires at least boost version 1.62!")
+if(Boost_VERSION_STRING VERSION_LESS 1.70)
+  message(STATUS "WARNING: Kratos requires at least boost version 1.70 to enable bost related performance improvements")
+else()
+  add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 endif ()
 
 ##*****************************
@@ -404,7 +406,7 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tetgen library
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     set(TETGEN_ZIP_FILE "tetgen")
-    
+
     if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Use TetGen from local source
         set(TETGEN_EXT_PATH ${CMAKE_CURRENT_BINARY_DIR}/external_libraries/tetgen)
@@ -416,7 +418,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
             find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
             message("Copying tetgen dir to ${TETGEN_EXT_PATH}")
         endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
-        
+
         # Prepare tetgen
         add_definitions(-DTETLIBRARY)
         add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
@@ -521,7 +523,6 @@ include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
-add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
