@@ -13,154 +13,201 @@
 #include "compilable_symbolic_test.h"
 #include <cstring>
 
-constexpr std::size_t nnodes = 3;
-constexpr std::size_t dim = 2;
-constexpr std::size_t blocksize = dim + 2;
-
-using ShapeFun = Vector<nnodes>;
-using ShapeFunGrad = Matrix<nnodes, dim>;
-using ElementData = ElementDataT<dim, nnodes>;
-
-
-TestResult test_substitute_rho_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
+class TriangleTestSuite
 {
-    Vector<nnodes> rho_proj;
+public:
+    static constexpr std::size_t NumNodes = 3;
+    static constexpr std::size_t Dim = 2;
+    static constexpr std::size_t BlockSize = Dim + 2;
 
-    // ------------------------- substitute_rho_proj_2D -------------------------
-    //substitute_rho_proj_2D
+    TriangleTestSuite(bool print_results)
+        : mPrintResults(print_results)
+    {
+        ShapeFunctions(this->N, this->DN_DX, 0, 0);
 
-    Vector<nnodes> expected;
-    expected[0] = 0;
-    expected[1] = 0;
-    expected[2] = 0;
+        /// Filling data
+        constexpr double rho_0 = 1.16927;
+        constexpr double rho_1 = 1.46426;
 
-    return CheckSubstitutionResult("rho_proj_2D", rho_proj, expected, print_results);
-}
+        constexpr double mom = 467.707;
+
+        constexpr double et_0 = 346854;
+        constexpr double et_1 = 422234;
+
+        this->data.U(0, 0) = rho_0;
+        this->data.U(1, 0) = rho_1;
+        this->data.U(2, 0) = rho_1;
+
+        this->data.U(0, 1) = mom;
+        this->data.U(1, 1) = mom;
+        this->data.U(2, 1) = mom;
+
+        this->data.U(0, 3) = et_0;
+        this->data.U(1, 3) = et_1;
+        this->data.U(2, 3) = et_1;
+
+        this->data.alpha_sc_nodes.Fill(1.5e-4);
+        this->data.beta_sc_nodes.Fill(2.8e-5);
+        this->data.lamb_sc_nodes.Fill(1.3e-7);
+        this->data.mu_sc_nodes.Fill(2.3e-6);
+
+        this->data.alpha = 0;
+        this->data.beta = 1.13e-4;
+        this->data.lambda = 6.84e-6;
+        this->data.mu = 1.26e-4;
+
+        this->data.gamma = 1.4;
+        this->data.c_v = 722.14;
+        this->data.h = 2.0;
+    }
+
+    int RunTests() const
+    {
+        auto result = TestResult::SUCCESS;
+
+        result += test_substitute_rho_proj_2D();
+        result += test_substitute_mom_proj_2D();
+        result += test_substitute_tot_ener_proj_2D();
+        result += test_substitute_lhs_2D_OSS();
+        result += test_substitute_rhs_2D_OSS();
+        result += test_substitute_lhs_2D_ASGS();
+        result += test_substitute_rhs_2D_ASGS();
+
+        return static_cast<int>(result);
+    }
+
+private:
+    ElementData<Dim, NumNodes> data;
+    Matrix<NumNodes, Dim> DN_DX;
+    Vector<NumNodes> N;
+    bool mPrintResults;
+
+    TestResult test_substitute_rho_proj_2D() const
+    {
+        Vector<NumNodes> rho_proj;
+
+        // ------------------------- substitute_rho_proj_2D -------------------------
+        //substitute_rho_proj_2D
+
+        Vector<NumNodes> expected;
+        expected[0] = 0;
+        expected[1] = 0;
+        expected[2] = 0;
+
+        return CheckSubstitutionResult("rho_proj_2D", rho_proj, expected, mPrintResults);
+    }
 
 
-TestResult test_substitute_mom_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
-{
-    Vector<dim * nnodes> mom_proj;
+    TestResult test_substitute_mom_proj_2D() const
+    {
+        Vector<Dim * NumNodes> mom_proj;
 
-// ------------------------- substitute_mom_proj_2D -------------------------
-//substitute_mom_proj_2D
+    // ------------------------- substitute_mom_proj_2D -------------------------
+    //substitute_mom_proj_2D
 
-    Vector<dim * nnodes> expected;
-    expected[0] = -15074.669035298386007;
-    expected[1] = -15076.405054351418585;
-    expected[2] = -15075.42578645597132;
-    expected[3] = -15076.174751211932744;
-    expected[4] = -15075.460788465843507;
-    expected[5] = -15076.164099001256545;
-    
-    return CheckSubstitutionResult("mom_proj_2D", mom_proj, expected, print_results);
-}
+        Vector<Dim * NumNodes> expected;
+        expected[0] = -15074.669035298386007;
+        expected[1] = -15076.405054351418585;
+        expected[2] = -15075.42578645597132;
+        expected[3] = -15076.174751211932744;
+        expected[4] = -15075.460788465843507;
+        expected[5] = -15076.164099001256545;
+        
+        return CheckSubstitutionResult("mom_proj_2D", mom_proj, expected, mPrintResults);
+    }
 
-TestResult test_substitute_tot_ener_proj_2D(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
-{
-    Vector<nnodes> tot_ener_proj;
+    TestResult test_substitute_tot_ener_proj_2D() const
+    {
+        Vector<NumNodes> tot_ener_proj;
 
-// ------------------------- substitute_tot_ener_proj_2D -------------------------
-//substitute_tot_ener_proj_2D
-    
-    Vector<nnodes> expected;
-    expected[0] = 1712.3910912142378038;
-    expected[1] = 738.00562019298854466;
-    expected[2] = 688.89753394371905415;
+    // ------------------------- substitute_tot_ener_proj_2D -------------------------
+    //substitute_tot_ener_proj_2D
+        
+        Vector<NumNodes> expected;
+        expected[0] = 1712.3910912142378038;
+        expected[1] = 738.00562019298854466;
+        expected[2] = 688.89753394371905415;
 
-    return CheckSubstitutionResult("tot_ener_proj_2D", tot_ener_proj, expected, print_results);
-}
+        return CheckSubstitutionResult("tot_ener_proj_2D", tot_ener_proj, expected, mPrintResults);
+    }
 
-TestResult test_substitute_lhs_2D_OSS(ShapeFunGrad const&, ElementData const&, const bool)
-{
-// ------------------------- substitute_lhs_2D_OSS -------------------------
-//substitute_lhs_2D_OSS
+    TestResult test_substitute_lhs_2D_OSS() const
+    {
+    // ------------------------- substitute_lhs_2D_OSS -------------------------
+    //substitute_lhs_2D_OSS
 
-    return TestResult::SUCCESS;
-}
+        return TestResult::SUCCESS;
+    }
 
-TestResult test_substitute_rhs_2D_OSS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
-{
-    Vector<blocksize*nnodes> rRightHandSideBoundedVector;
-    const double stab_c1 = 12;
-    const double stab_c2 = 2;
-    const double stab_c3 = 1;
+    TestResult test_substitute_rhs_2D_OSS() const
+    {
+        Vector<BlockSize*NumNodes> rRightHandSideBoundedVector;
 
-// ------------------------- substitute_rhs_2D_OSS -------------------------
-//substitute_rhs_2D_OSS
+        const double stab_c1 = 12;
+        const double stab_c2 = 2;
+        const double stab_c3 = 1;
 
-    Vector<blocksize*nnodes> expected;
-    expected[0] = 47264.288734433073842;
-    expected[1] = -15379.402979698103081;
-    expected[2] = -15576.430423595746106;
-    expected[3] = 213563.16351141795167;
-    expected[4] = -23635.684471189790202;
-    expected[5] = -14538.279451626927766;
-    expected[6] = -15112.339370110219534;
-    expected[7] = -3990.3328559225551544;
-    expected[8] = -23628.60426324328364;
-    expected[9] = -15064.189988995642125;
-    expected[10] = -14495.58857930533668;
-    expected[11] = -7262.2965689810916956;
+    // ------------------------- substitute_rhs_2D_OSS -------------------------
+    //substitute_rhs_2D_OSS
 
-    return CheckSubstitutionResult("rhs_2D_OSS", rRightHandSideBoundedVector, expected, print_results);
-}
+        Vector<BlockSize*NumNodes> expected;
+        expected[0] = 47264.288734433073842;
+        expected[1] = -15379.402979698103081;
+        expected[2] = -15576.430423595746106;
+        expected[3] = 213563.16351141795167;
+        expected[4] = -23635.684471189790202;
+        expected[5] = -14538.279451626927766;
+        expected[6] = -15112.339370110219534;
+        expected[7] = -3990.3328559225551544;
+        expected[8] = -23628.60426324328364;
+        expected[9] = -15064.189988995642125;
+        expected[10] = -14495.58857930533668;
+        expected[11] = -7262.2965689810916956;
 
-TestResult test_substitute_lhs_2D_ASGS(ShapeFunGrad const&, ElementData const&, const bool)
-{
-// ------------------------- substitute_lhs_2D_ASGS -------------------------
-//substitute_lhs_2D_ASGS
+        return CheckSubstitutionResult("rhs_2D_OSS", rRightHandSideBoundedVector, expected, mPrintResults);
+    }
 
-    return TestResult::SUCCESS;
-}
+    TestResult test_substitute_lhs_2D_ASGS() const
+    {
+    // ------------------------- substitute_lhs_2D_ASGS -------------------------
+    //substitute_lhs_2D_ASGS
 
-TestResult test_substitute_rhs_2D_ASGS(ShapeFunGrad const& DN_DX, ElementData const& data, const bool print_results)
-{
-    Vector<blocksize*nnodes> rRightHandSideBoundedVector;
-    const double stab_c1 = 12;
-    const double stab_c2 = 2;
-    const double stab_c3 = 1;
+        return TestResult::SUCCESS;
+    }
 
-// ------------------------- substitute_rhs_2D_ASGS -------------------------
-//substitute_rhs_2D_ASGS
+    TestResult test_substitute_rhs_2D_ASGS() const
+    {
+        Vector<BlockSize*NumNodes> rRightHandSideBoundedVector;
 
-    Vector<blocksize*nnodes> expected;
-    expected[0] = 47264.288734433073842;
-    expected[1] = -15379.402979698103081;
-    expected[2] = -15576.430423595746106;
-    expected[3] = 213563.16351141795167;
-    expected[4] = -23635.684471189790202;
-    expected[5] = -14538.279451626927766;
-    expected[6] = -15112.339370110219534;
-    expected[7] = -3990.3328559225551544;
-    expected[8] = -23628.60426324328364;
-    expected[9] = -15064.189988995643944;
-    expected[10] = -14495.58857930533668;
-    expected[11] = -7262.2965689810916956;
+        const double stab_c1 = 12;
+        const double stab_c2 = 2;
+        const double stab_c3 = 1;
 
-    return CheckSubstitutionResult("rhs_2D_ASGS", rRightHandSideBoundedVector, expected, print_results);
-}
+    // ------------------------- substitute_rhs_2D_ASGS -------------------------
+    //substitute_rhs_2D_ASGS
+
+        Vector<BlockSize*NumNodes> expected;
+        expected[0] = 47264.288734433073842;
+        expected[1] = -15379.402979698103081;
+        expected[2] = -15576.430423595746106;
+        expected[3] = 213563.16351141795167;
+        expected[4] = -23635.684471189790202;
+        expected[5] = -14538.279451626927766;
+        expected[6] = -15112.339370110219534;
+        expected[7] = -3990.3328559225551544;
+        expected[8] = -23628.60426324328364;
+        expected[9] = -15064.189988995643944;
+        expected[10] = -14495.58857930533668;
+        expected[11] = -7262.2965689810916956;
+
+        return CheckSubstitutionResult("rhs_2D_ASGS", rRightHandSideBoundedVector, expected, mPrintResults);
+    }
+};
 
 
 int main(int argc, char** argv)
 {
-    const bool print_results = (argc > 1 && strcmp(argv[1], "--print-results")==0);
+    const bool print_results = argc > 1 && strcmp(argv[1], "--print-results")==0;
 
-    const ElementData data;
-
-    ShapeFunGrad DN_DX;
-    ShapeFun N;
-
-    ShapeFunctions(N, DN_DX, 0, 0);
-
-    TestResult result = TestResult::SUCCESS;
-    result += test_substitute_rho_proj_2D(DN_DX, data, print_results);
-    result += test_substitute_mom_proj_2D(DN_DX, data, print_results);
-    result += test_substitute_tot_ener_proj_2D(DN_DX, data, print_results);
-    result += test_substitute_lhs_2D_OSS(DN_DX, data, print_results);
-    result += test_substitute_rhs_2D_OSS(DN_DX, data, print_results);
-    result += test_substitute_lhs_2D_ASGS(DN_DX, data, print_results);
-    result += test_substitute_rhs_2D_ASGS(DN_DX, data, print_results);
-    
-    return static_cast<int>(result);
+    return TriangleTestSuite(print_results).RunTests();
 }

@@ -347,11 +347,9 @@ inline void ShapeFunctions(Vector<4>& N, Matrix<4, 2>& DN_DX, double x, double y
  * Struct containing data mimicking
  * CompressibleNavierStokesExplicit::ElementDataStruct.
  * 
- * By default filled with Rankine-Hugoniot jump condition.
- * Difusive magnitudes are made-up but within the correct order of magnitude.
  */
 template<std::size_t Tdim, std::size_t Tnodes>
-struct ElementDataT
+struct ElementData
 {
     static constexpr std::size_t BlockSize = Tdim + 2;
 
@@ -372,87 +370,4 @@ struct ElementDataT
 
     double h;
     double gamma, c_v;
-
-    ElementDataT();
 };
-
-/// Quad
-template<>
-inline ElementDataT<2, 4>::ElementDataT()
-{
-    constexpr double rho_0 = 1.16927;
-    constexpr double rho_1 = 1.46426;
-
-    constexpr double mom = 467.707;
-
-    constexpr double et_0 = 346854;
-    constexpr double et_1 = 422234;
-
-    this->U(0, 0) = rho_0;
-    this->U(1, 0) = rho_1;
-    this->U(2, 0) = rho_1;
-    this->U(3, 0) = rho_0;
-
-    this->U(0, 1) = mom;
-    this->U(1, 1) = mom;
-    this->U(2, 1) = mom;
-    this->U(3, 1) = mom;
-
-    this->U(0, 3) = et_0;
-    this->U(1, 3) = et_1;
-    this->U(2, 3) = et_1;
-    this->U(3, 3) = et_0;
-
-    this->alpha_sc_nodes.Fill(1.5e-4);
-    this->beta_sc_nodes.Fill(2.8e-5);
-    this->lamb_sc_nodes.Fill(1.3e-7);
-    this->mu_sc_nodes.Fill(2.3e-6);
-
-    this->alpha = 0;
-    this->beta = 1.13e-4;
-    this->lambda = 6.84e-6;
-    this->mu = 1.26e-4;
-
-    this->gamma = 1.4;
-    this->c_v = 722.14;
-    this->h = 2.0;
-}
-
-/// Triangle
-template<>
-inline ElementDataT<2, 3>::ElementDataT()
-{
-    constexpr double rho_0 = 1.16927;
-    constexpr double rho_1 = 1.46426;
-
-    constexpr double mom = 467.707;
-
-    constexpr double et_0 = 346854;
-    constexpr double et_1 = 422234;
-
-    this->U(0, 0) = rho_0;
-    this->U(1, 0) = rho_1;
-    this->U(2, 0) = rho_1;
-
-    this->U(0, 1) = mom;
-    this->U(1, 1) = mom;
-    this->U(2, 1) = mom;
-
-    this->U(0, 3) = et_0;
-    this->U(1, 3) = et_1;
-    this->U(2, 3) = et_1;
-
-    this->alpha_sc_nodes.Fill(1.5e-4);
-    this->beta_sc_nodes.Fill(2.8e-5);
-    this->lamb_sc_nodes.Fill(1.3e-7);
-    this->mu_sc_nodes.Fill(2.3e-6);
-
-    this->alpha = 0;
-    this->beta = 1.13e-4;
-    this->lambda = 6.84e-6;
-    this->mu = 1.26e-4;
-
-    this->gamma = 1.4;
-    this->c_v = 722.14;
-    this->h = 2.0;
-}
