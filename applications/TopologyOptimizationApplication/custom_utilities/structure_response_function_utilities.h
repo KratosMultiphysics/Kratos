@@ -145,7 +145,7 @@ public:
                 element_i++ )
         {
 
-            elemental_volume = element_i->GetValue(ELEMENT_SIZE);
+            elemental_volume = element_i->GetValue(INITIAL_ELEMENT_SIZE);
             design_variable = element_i->GetValue(X_PHYS);
             Global_Volume_Fraction += (elemental_volume*design_variable);
             Total_volume += elemental_volume;

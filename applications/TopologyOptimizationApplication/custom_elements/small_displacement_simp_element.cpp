@@ -247,7 +247,7 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 
     } else if (rVariable == DVDX) {
 		// Calculation of the volume sensitivities DVDX
-        double element_size = this->GetValue(ELEMENT_SIZE);
+        double element_size = this->GetValue(INITIAL_ELEMENT_SIZE);
         this->SetValue(DVDX, element_size*1);
 	}
 
