@@ -174,7 +174,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         residuals = [None for _ in self.geometry.SymbolicIntegrationPoints()]
         ngauss = len(residuals)
 
-        with Futures.ThreadPoolExecutor(max_workers=ngauss) as executor:
+        with Futures.ProcessPoolExecutor() as executor:
             
             for i_gauss in self.geometry.SymbolicIntegrationPoints():
                 residuals[i_gauss] = executor.submit(
@@ -249,7 +249,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         rv_gauss = [None for _ in self.geometry.SymbolicIntegrationPoints()]
         ngauss = len(rv_gauss)
 
-        with Futures.ThreadPoolExecutor(max_workers=ngauss) as executor:
+        with Futures.ProcessPoolExecutor() as executor:
             for i_gauss in self.geometry.SymbolicIntegrationPoints():
                 rv_gauss[i_gauss] = executor.submit(self._ComputeResidualAtGaussPoint, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, res, rg, rv, sc_nodes, sc_params, subscales, subscales_type, Tau, U, Ug, Un, Unn, V, w)
         
