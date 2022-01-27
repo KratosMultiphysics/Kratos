@@ -30,6 +30,7 @@
 
 namespace Kratos
 {
+  //=====================================================================================================================================================================================
   // Constructor/Destructor methods
 
   ThermalSphericParticle::ThermalSphericParticle():SphericParticle() {}

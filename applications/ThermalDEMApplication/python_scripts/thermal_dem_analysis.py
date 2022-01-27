@@ -1,5 +1,8 @@
-from importlib import import_module
+from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.ThermalDEMApplication import *
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
+from importlib import import_module
 
 class ThermalDEMAnalysis(DEMAnalysisStage):
 
@@ -20,3 +23,9 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
                                                     self.dem_fem_search,
                                                     self.DEM_parameters,
                                                     self.procedures)
+
+if __name__ == "__main__":
+    model = KratosMultiphysics.Model()
+    with open("ProjectParametersDEM.json",'r') as parameter_file:
+        parameters = KratosMultiphysics.Parameters(parameter_file.read())
+    ThermalDEMAnalysis(model, parameters).Run()
