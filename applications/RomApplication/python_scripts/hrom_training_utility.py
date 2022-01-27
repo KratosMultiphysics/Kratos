@@ -88,6 +88,7 @@ class HRomTrainingUtility(object):
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
         # Create the HROM visualization model part
+        #TODO: Make this optional
         if self.hrom_visualization_model_part:
             hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
             hrom_visualization_model_part = hrom_main_model_part.CreateSubModelPart(hrom_visualization_model_part_name)
@@ -154,9 +155,11 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        KratosROM.RomAuxiliaryUtilities.AppendConditionParentsToHRomWeights(
-            self.solver.GetComputingModelPart(),
-            hrom_weights)
+        include_condition_parents = False
+        if include_condition_parents:
+            KratosROM.RomAuxiliaryUtilities.AppendConditionParentsToHRomWeights(
+                self.solver.GetComputingModelPart(),
+                hrom_weights)
 
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data

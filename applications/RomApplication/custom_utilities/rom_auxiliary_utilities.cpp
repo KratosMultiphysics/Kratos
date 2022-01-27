@@ -22,6 +22,7 @@
 #include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "rom_application_variables.h"
 #include "rom_auxiliary_utilities.h"
 
 namespace Kratos
@@ -262,7 +263,7 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     }
 }
 
-void AppendConditionParentsToHRomWeights(
+void RomAuxiliaryUtilities::AppendConditionParentsToHRomWeights(
     const ModelPart& rModelPart,
     std::map<std::string, std::map<IndexType, double>>& rHromWeights)
 {
@@ -275,6 +276,37 @@ void AppendConditionParentsToHRomWeights(
         KRATOS_ERROR_IF(r_neigh.size() == 0) << "Condition "<< r_cond.Id() <<" has no parent element assigned. Check that \'NEIGHBOUR_ELEMENTS\' have been already computed." << std::endl;
         r_elem_weights.insert(std::pair<IndexType, double>(r_neigh[0].Id(), 0.0));
     }
+}
+
+void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
+    const std::vector<std::string> &rRomVariableNames,
+    ModelPart &rModelPart)
+{
+    // Create an array with pointers to the ROM variables from the provided names
+    // Note that these are assumed to be provided in the same order used to create the basis
+    IndexType i_var = 0;
+    const SizeType n_rom_vars = rRomVariableNames.size();
+    std::vector<const Variable<double>*> rom_var_list(n_rom_vars);
+    for (const auto& r_var_name : rRomVariableNames) {
+        rom_var_list[i_var++] = &(KratosComponents<Variable<double>>::Get(r_var_name));
+    }
+
+    // Project the ROM solution increment onto the nodal basis and append it to the current value
+    // Note that the ROM solution increment is retrieved from the root model part
+    const auto& r_rom_sol_incr = rModelPart.GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+    block_for_each(rModelPart.Nodes(), [&rom_var_list, &r_rom_sol_incr](NodeType& rNode){
+        const auto& r_rom_basis = rNode.GetValue(ROM_BASIS);
+        IndexType i_var = 0;
+        for (const auto& p_var : rom_var_list) {
+            if (!rNode.IsFixed(*p_var)) {
+                // It is important to update the values from the old one in buffer position 1
+                // Otherwise the update of the nodes shared by this model part and the HROM one
+                // would be accumulated to that one performed in the ROM B&S (see ProjectToFineBasis)
+                const double& r_old_val = rNode.FastGetSolutionStepValue(*p_var,1);
+                rNode.FastGetSolutionStepValue(*p_var) = r_old_val + inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
+            }
+        }
+    });
 }
 
 } // namespace Kratos

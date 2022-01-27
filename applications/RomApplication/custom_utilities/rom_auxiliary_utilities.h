@@ -93,11 +93,30 @@ public:
         const ModelPart& rOriginModelPart,
         ModelPart& rHRomVisualizationModelPart);
 
-    ///@}
-
+    /**
+     * @brief Add the HROM condition parents to the HROM weights
+     * This function loops the HROM conditions in the HROM weights and searches for their parents
+     * in the provided model part. Once these are found, they are added to the HROM elements with null weight.
+     * Note that this functions requires the NEIGHBOUR_ELEMENTS to be already computed.
+     * @param rModelPart Complete model part (all elements and conditions)
+     * @param rHromWeights Map containing the original HROM conditions and elements weights
+     */
     static void AppendConditionParentsToHRomWeights(
         const ModelPart& rModelPart,
         std::map<std::string, std::map<IndexType, double>>& rHromWeights);
+
+    /**
+     * @brief Project the ROM solution increment onto the nodal basis
+     * For a given model part this function takes the ROM_SOLUTION_INCREMENT, which is assumed to be
+     * stored in the root model part, and projects it with the nodal ROM_BASIS to calculate the solution increment
+     * @param rRomVariableNames Vector containing the names of the ROM variables
+     * @param rModelPart Model part onto which the projection is to be performed
+     */
+    static void ProjectRomSolutionIncrementToNodes(
+        const std::vector<std::string> &rRomVariableNames,
+        ModelPart &rModelPart);
+
+    ///@}
 
     private:
 

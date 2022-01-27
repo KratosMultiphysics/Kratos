@@ -16,6 +16,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 
 // Project includes
@@ -45,14 +46,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
     ;
 
+    typedef std::map<std::string, std::map<IndexType, double>> HRomWeightsMapType;
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
         .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
         .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
-        .def_static("AppendConditionParentsToHRomWeights", [](const ModelPart& rModelPart, pybind11::dict& rHromWeights){
-            auto aux_weights = rHromWeights.cast<std::map<std::string, std::map<IndexType, double>>>();
-            RomAuxiliaryUtilities::AppendConditionParentsToHRomWeights(rModelPart, aux_weights);
-            rHromWeights = pybind11::cast(aux_weights);})
-        // .def_static("AppendConditionParentsToHRomWeights", &RomAuxiliaryUtilities::AppendConditionParentsToHRomWeights)
+        .def_static("AppendConditionParentsToHRomWeights", &RomAuxiliaryUtilities::AppendConditionParentsToHRomWeights)
+        .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         ;
 }
 

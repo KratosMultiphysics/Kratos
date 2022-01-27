@@ -124,6 +124,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             if self.train_hrom:
                 self.__hrom_training_utility.AppendCurrentStepResiduals()
 
+            #TODO: Make this optional (maybe a process)
+            # Project the ROM solution onto the visualization modelparts
+            if self.run_hrom:
+                model_part_name = self._GetSolver().settings["model_part_name"].GetString()
+                visualization_model_part = self.model.GetModelPart("{}.{}Visualization".format(model_part_name, model_part_name))
+                KratosROM.RomAuxiliaryUtilities.ProjectRomSolutionIncrementToNodes(
+                    self.rom_parameters["rom_settings"]["nodal_unknowns"].GetStringArray(),
+                    visualization_model_part)
+
             # This calls the physics FinalizeSolutionStep (e.g. BCs)
             super().FinalizeSolutionStep()
 
