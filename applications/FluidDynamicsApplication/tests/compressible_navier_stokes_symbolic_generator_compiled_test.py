@@ -46,6 +46,13 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         return parameters
 
+    def _ReadTestStdErr(self):
+        try:
+            with open("test_stderr.log", "r") as f:
+                return f.read()
+        except Exception as exc:
+            return "Failed to parse stderr:\n" + str(exc)
+
     def _GenerateCompileAndRun(self, **kwargs):
         """
         Runs the test.
@@ -78,12 +85,13 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         if cleanup:
             self.files_to_remove.append(os.path.abspath(parameters["output_filename"].GetString()))
             self.files_to_remove.append(os.path.abspath("test.out"))
+            self.files_to_remove.append(os.path.abspath("test_stderr.log"))
 
         # Checking Compiler exists
         if recompile:
             print("\n----------------Checking compiler exists----------------")
-            errcode = os.system("{} --version".format(compiler))
-            self.assertEqual(errcode, 0, "Compiler {} not available".format(compiler))
+            errcode = os.system("{} --version 2> test_stderr.log".format(compiler))
+            self.assertEqual(errcode, 0, "Compiler {} not available.\nStderr:".format(compiler, self._ReadTestStdErr()))
 
         # Generation
         if regenerate:
@@ -97,13 +105,19 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             outfile = parameters["output_filename"].GetString()
 
             print("\n---------------------Compiling---------------------------")
-            errcode = os.system("{} {} -o test.out -g -O0 -Wall -Wextra -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined".format(compiler, outfile))
-            self.assertEqual(errcode, 0, "Compiler returned error code {}\n".format(errcode))
+            flags = "-g -O0 -Wall -Wextra -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined"
+            errcode = os.system("{} {} -o test.out {} 2> test_stderr.log".format(compiler, outfile, flags))
+            self.assertEqual(errcode, 0, "Compiler returned error code {}\nStderr:\n{}".format(errcode, self._ReadTestStdErr()))
 
         # Testing
         print("\n----------------------Testing----------------------------")
-        errcode = os.system("./test.out" + (" --print-results" if print_results else ""))
-        self.assertEqual(errcode, 0, "Tests returned error code {}\n".format(errcode))
+        command = "./test.out"
+        if print_results:
+            comand = comand + " --print-results"
+        command = command + " 2> test_stderr.log" # stderr redirected in order to print it later
+
+        errcode = os.system(command)
+        self.assertEqual(errcode, 0, "Tests returned error code {}.\nStderr:\n{}\n".format(errcode, self._ReadTestStdErr()))
 
         return 0
 

@@ -20,6 +20,7 @@
 #include <iomanip>
 #include <array>
 #include <cmath>
+#include <sstream>
 
 // External includes
 
@@ -49,39 +50,9 @@ enum class TestResult { SUCCESS, FAILURE };
  */
 constexpr TestResult operator+=(TestResult & lhs, const TestResult& rhs)
 {
-    return (lhs == TestResult::SUCCESS && rhs == TestResult::SUCCESS)
+    return lhs = (lhs == TestResult::SUCCESS && rhs == TestResult::SUCCESS)
         ? TestResult::SUCCESS 
         : TestResult::FAILURE;
-}
-
-/**
- * Boilerplate to check that the obtained result is equal to the reference,
- * with some information prints to stdout.
- */
-template<typename T>
-inline TestResult CheckSubstitutionResult(
-    const std::string test_name,
-    const T& result,
-    const T& expected,
-    const bool print_results)
-{
-    std::cout << "Testing result of //substitute_"<< test_name << ":";
-
-    TestResult test_result = result.Validate(expected);
-
-    if(test_result == TestResult::SUCCESS)
-    {
-        std::cout << " OK";
-    }
-
-    std::cout << std::endl;
-
-    if(print_results)
-    {
-        std::cout << "Results:\n" << std::setprecision(20) << result << std::endl;
-    }
-
-    return test_result;
 }
 
 ///@}
@@ -180,24 +151,71 @@ public:
     ///@name Inquiry
     ///@{
 
-    /**
-     * Performs three cheks on a matrix:
-     * - Ensures that no entries are NaN
-     * - Ensures that no entries are inf
-     * - Ensures almost-equality with a reference matrix
-     *
-     * @param[in]  reference  The reference matrix to compare to
-     * @param[in]  rel_tolerance  The maximum allowable relative error
-     * 
-     * @return An error code. It is 0 if no errors, 1 if there are
-     * The errors are also be printed to std::err
+    /** 
+     * Validates that all entries are real valued (i.e. neither inf nor nan)
      */
-    TestResult Validate(const Matrix& reference, const double rel_tolerance = 1e-6) const
+    bool ValuesAreReal(std::ostream& error_stream = std::cerr) const
     {
-        if(!ValuesAreReal()) return TestResult::FAILURE;
-        if(!AlmostEqual(reference, rel_tolerance)) return TestResult::FAILURE;
+        bool result = true;
+        for(IndexType i = 0; i < TRows*TCols; ++i)
+        {
+            if(std::isnan((*this)[i]))
+            {
+                error_stream << "\nEntry #" << i << " is NaN";
+                result = false;
+            }
+            else if(std::isinf((*this)[i]))
+            {
+                error_stream << "\nEntry #" << i << " is is infinite";
+                result = false;   
+            }
+        }
+        return result;
+    }
 
-        return TestResult::SUCCESS;
+    /** 
+     * Returns whether the matrix is almost equal to the reference, 
+     * within relative tolerance.
+     */
+    bool AlmostEqual(
+        const Matrix& reference,
+        const DataType rel_tolerance,
+        std::ostream& error_stream = std::cerr) const
+    {
+        bool result = true;
+
+        for(IndexType i=0; i < TRows*TCols; ++i)
+        {
+            const DataType value = (*this)[i];
+            const DataType ref = reference[i];
+
+            if(value==0 && ref==0) continue;
+
+            const DataType diff = value - ref;
+            const DataType max = std::max(std::abs(value), std::abs(ref));
+
+            const DataType delta = rel_tolerance * max;
+            const int precision = 1 - std::log10(rel_tolerance);
+    
+            if(std::abs(diff) > delta)
+            {
+                error_stream << std::setprecision(precision)
+                             << "Mismatch in entry #"
+                             << std::setw(3) << i 
+                             <<":" 
+                             << std::setw(10) << (*this)[i] 
+                             << " != " 
+                             << std::setw(10) << reference[i]
+                             << " | "
+                             << "Diff = " 
+                             << std::setw(10) << diff
+                             << " | "
+                             << "Rel diff = " << diff/max << '\n';
+                result = false;
+            }
+        }
+
+        return result;
     }
 
 
@@ -247,66 +265,6 @@ private:
     ///@}
     ///@name Private Inquiry
     ///@{
-
-    /** 
-     * Validates that all entries are real valued (i.e. neither inf nor nan)
-     */
-    bool ValuesAreReal() const
-    {
-        bool result = true;
-        for(IndexType i = 0; i < TRows*TCols; ++i)
-        {
-            if(std::isnan((*this)[i]))
-            {
-                std::cerr << "\nEntry #" << i << " is NaN";
-                result = false;
-            }
-            else if(std::isinf((*this)[i]))
-            {
-                std::cerr << "\nEntry #" << i << " is is infinite";
-                result = false;   
-            }
-        }
-
-        return result;
-    }
-
-    /** 
-     * Returns whether the matrix is almost equal to the reference, 
-     * within relative tolerance.
-     */
-    bool AlmostEqual(const Matrix& reference, const DataType rel_tolerance) const
-    {
-        bool result = true;
-
-        for(IndexType i=0; i < TRows*TCols; ++i)
-        {
-            const DataType value = (*this)[i];
-            const DataType ref = reference[i];
-
-            if(value==0 && ref==0) continue;
-
-            const DataType diff = value - ref;
-            const DataType max = std::max(std::abs(value), std::abs(ref));
-
-            const DataType delta = rel_tolerance * max;
-            const int precision = 1 - std::log10(rel_tolerance);
-    
-            if(std::abs(diff) > delta)
-            {
-                std::cerr << std::setprecision(precision)
-                          << "\nMismatch in entry #" << i <<":\t" 
-                          << (*this)[i] << " != " << reference[i] 
-                          << "\t(delta = " 
-                          << std::setprecision(2) << delta
-                          << ").\tDiff = " << diff
-                          << "\tRel diff = " << diff/max;
-                result = false;
-            }
-        }
-
-        return result;
-    }
 
 
     ///@}
@@ -399,3 +357,97 @@ struct ElementData
     double h;
     double gamma, c_v;
 };
+
+/*********************************************************
+ *                                                       *
+ *                  Testing utilities                    *
+ *                                                       *
+ *********************************************************/
+
+/**
+ * Template to be used by CheckSubstitutionResult.
+ *
+ * Specializations must perform two tasks:
+ *  - Ensures the state of `result` is valid
+ *  - Ensures the state of `result` is within tolerance of `reference`
+ *  - Any errors must be reported to error_stream
+ */
+template<typename T, typename U>
+TestResult Validate(
+    const T& result,
+    const U& reference,
+    const double rel_tolerance,
+    std::ostream& error_stream = std::cerr);
+
+/**
+ * Specialization for matrices:
+ * 
+ * Performs three cheks on a matrix:
+ * - Ensures that no entries are NaN
+ * - Ensures that no entries are inf
+ * - Ensures almost-equality with a reference matrix
+ *
+ * @param  result         The matrix to test
+ * @param  reference      The reference matrix to compare to
+ * @param  rel_tolerance  The maximum allowable relative error
+ * @param  error_stream   The stream to print the errors into
+ * 
+ * @return The result of the test
+ */
+template<std::size_t TRows, std::size_t TCols>
+inline TestResult Validate(
+    const Matrix<TRows, TCols>& result,
+    const Matrix<TRows, TCols>& reference,
+    const double rel_tolerance,
+    std::ostream& error_stream = std::cerr)
+{
+    if(!result.ValuesAreReal(error_stream))
+    {
+        return TestResult::FAILURE;
+    }
+
+    if(!result.AlmostEqual(reference, rel_tolerance, error_stream))
+    {
+        return TestResult::FAILURE;
+    }
+
+    return TestResult::SUCCESS;
+}
+
+/**
+ * Boilerplate to check that the obtained result is equal to the reference,
+ * with some information prints to stdout and error reports to stderr.
+ *
+ * A specialization Validate<T,U> must exist for the check to be performed
+ */
+template<typename T, typename U>
+inline TestResult CheckSubstitutionResult(
+    const std::string test_name,
+    const T& result,
+    const U& expected,
+    const bool print_results)
+{
+    std::cout << "Testing result of //substitute_"<< test_name << ":";
+
+    std::stringstream error_stream;
+
+    const TestResult test_result = Validate(result, expected, 1e-6, error_stream);
+
+    switch(test_result)
+    {
+        case TestResult::SUCCESS:
+            std::cout << " Passed" << std::endl;
+            break;
+        case TestResult::FAILURE:
+            std::cout << " Failed" << std::endl;
+            std::cerr << "Errors in result of //substitute_"<< test_name << ":\n";
+            std::cerr << error_stream.str() << std::endl;
+    }
+
+    if(print_results)
+    {
+        std::cout << "Results:\n" << std::setprecision(20) << result << std::endl;
+    }
+
+    return test_result;
+}
