@@ -2,13 +2,13 @@ from   KratosMultiphysics import *
 from   KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
 
-BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
+BaseStrategy = SolverStrategy.ExplicitStrategy
 
-class ExplicitStrategy(BaseExplicitStrategy):
+class ExplicitStrategy(BaseStrategy):
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
         # Initialize base class
-        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
+        BaseStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
         # Get and validate input parameters
         self.GetProjectParameters(DEM_parameters)
@@ -263,7 +263,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
     def CreateCPlusPlusStrategy(self):
         # Set options of base class
-        BaseExplicitStrategy.SetVariablesAndOptions()
+        BaseStrategy.SetVariablesAndOptions()
 
         # Set thermal options
         self.SetThermalVariablesAndOptions()
@@ -285,7 +285,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
     
     def AddVariables(self):
         # Add variables of base class
-        BaseExplicitStrategy.AddVariables(self)
+        BaseStrategy.AddVariables(self)
 
         # Add thermal variables to all model parts
         self.spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
@@ -348,7 +348,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
     def Initialize(self):
         # Base class initializer
-        BaseExplicitStrategy.Initialize(self)
+        BaseStrategy.Initialize(self)
 
         # Initialize utilities
         self.thermal_data_utils.ExecuteInitialize(self.spheres_model_part,self.fem_model_part)
@@ -366,11 +366,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
     def Predict(self):
         if (self.compute_motion_option):
-            BaseExplicitStrategy.Predict(self)
+            BaseStrategy.Predict(self)
     
     def InitializeSolutionStep(self):
         if (self.compute_motion_option):
-            BaseExplicitStrategy.InitializeSolutionStep(self)
+            BaseStrategy.InitializeSolutionStep(self)
         else:
             (self.cplusplus_strategy).InitializeSolutionStep()
 
@@ -406,14 +406,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
         return True
 
     def FinalizeSolutionStep(self):
-        BaseExplicitStrategy.FinalizeSolutionStep(self)
+        BaseStrategy.FinalizeSolutionStep(self)
 
         # Write output graphs
         if (self.write_graph):
             self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
 
     def Finalize(self):
-        BaseExplicitStrategy.Finalize(self)
+        BaseStrategy.Finalize(self)
 
         # Close graph files
         if (self.write_graph):
