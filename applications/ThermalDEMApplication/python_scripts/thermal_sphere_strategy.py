@@ -8,7 +8,7 @@ class ExplicitStrategy(BaseStrategy):
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
         # Initialize base class
-        BaseStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
+        BaseStrategy.__init__(all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
         # Get and validate input parameters
         self.GetProjectParameters(DEM_parameters)
@@ -285,7 +285,7 @@ class ExplicitStrategy(BaseStrategy):
     
     def AddVariables(self):
         # Add variables of base class
-        BaseStrategy.AddVariables(self)
+        BaseStrategy.AddVariables()
 
         # Add thermal variables to all model parts
         self.spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
@@ -348,7 +348,7 @@ class ExplicitStrategy(BaseStrategy):
 
     def Initialize(self):
         # Base class initializer
-        BaseStrategy.Initialize(self)
+        BaseStrategy.Initialize()
 
         # Initialize utilities
         self.thermal_data_utils.ExecuteInitialize(self.spheres_model_part,self.fem_model_part)
@@ -366,11 +366,11 @@ class ExplicitStrategy(BaseStrategy):
 
     def Predict(self):
         if (self.compute_motion_option):
-            BaseStrategy.Predict(self)
+            BaseStrategy.Predict()
     
     def InitializeSolutionStep(self):
         if (self.compute_motion_option):
-            BaseStrategy.InitializeSolutionStep(self)
+            BaseStrategy.InitializeSolutionStep()
         else:
             (self.cplusplus_strategy).InitializeSolutionStep()
 
@@ -406,14 +406,14 @@ class ExplicitStrategy(BaseStrategy):
         return True
 
     def FinalizeSolutionStep(self):
-        BaseStrategy.FinalizeSolutionStep(self)
+        BaseStrategy.FinalizeSolutionStep()
 
         # Write output graphs
         if (self.write_graph):
             self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
 
     def Finalize(self):
-        BaseStrategy.Finalize(self)
+        BaseStrategy.Finalize()
 
         # Close graph files
         if (self.write_graph):
