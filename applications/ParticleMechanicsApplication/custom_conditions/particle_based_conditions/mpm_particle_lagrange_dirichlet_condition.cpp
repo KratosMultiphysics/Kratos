@@ -106,9 +106,10 @@ void MPMParticleLagrangeDirichletCondition::InitializeSolutionStep( const Proces
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
-        
+        pBoundaryParticle->SetLock();
         pBoundaryParticle->Set(SLIP);
         pBoundaryParticle->FastGetSolutionStepValue(NORMAL) = m_unit_normal;
+        pBoundaryParticle->UnSetLock();
 
 
         // Here MPC contribution of normal vector are added
@@ -378,11 +379,18 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
     MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
 
     this->CalculateContactForce(rCurrentProcessInfo);
-
+    
     // Additional treatment for slip conditions
     if (Is(SLIP))
     {
         GeometryType& r_geometry = GetGeometry();
+        
+        auto pBoundaryParticle = r_geometry.GetGeometryParent(0).GetValue(MPC_LAGRANGE_NODE);
+        pBoundaryParticle->SetLock();
+        pBoundaryParticle->Reset(SLIP);
+        pBoundaryParticle->FastGetSolutionStepValue(NORMAL).clear();
+        pBoundaryParticle->UnSetLock();
+
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
         // Here MPC normal vector and IS_STRUCTURE are reset
