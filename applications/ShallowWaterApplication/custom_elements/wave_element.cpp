@@ -378,9 +378,16 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
 template<std::size_t TNumNodes>
 double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData)
 {
-    const double height = rData.height;
-    const double epsilon = rData.relative_dry_height * rData.length;
-    return PhaseFunction::InverseHeight(height, epsilon);
+    const double threshold = rData.relative_dry_height * rData.length;
+    return PhaseFunction::InverseHeight(rData.height, threshold);
+}
+
+
+template<std::size_t TNumNodes>
+double WaveElement<TNumNodes>::WetFraction(const ElementData& rData)
+{
+    const double threshold = rData.relative_dry_height * rData.length;
+    return PhaseFunction::WetFraction(rData.height, threshold);
 }
 
 

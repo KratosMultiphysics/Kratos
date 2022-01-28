@@ -339,6 +339,8 @@ protected:
 
     static double InverseHeight(const ElementData& rData);
 
+    static double WetFraction(const ElementData& rData);
+
     virtual void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,

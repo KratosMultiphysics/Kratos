@@ -74,7 +74,7 @@ void BoussinesqElement<TNumNodes>::UpdateGaussPointData(ElementData& rData, cons
     const double g = rData.gravity;
     const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, rN);
 
-    rData.depth = H;
+    rData.depth = std::max(0.0, H);
     rData.height = H + eta;
     rData.velocity = v;
 
@@ -125,8 +125,7 @@ double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& r
 {
     const double lambda = std::sqrt(rData.gravity * std::abs(rData.height)) + norm_2(rData.velocity);
     const double epsilon = 1e-6;
-    const double threshold = rData.relative_dry_height * rData.length;
-    const double w = PhaseFunction::WetFraction(rData.height, threshold);
+    const double w = WaveElementType::WetFraction(rData);
     return w * rData.length * rData.stab_factor / (lambda + epsilon);
 }
 
@@ -309,7 +308,7 @@ void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInf
         AddAuxiliaryLaplacian(laplacian, data, N, DN_DX, weight);
     }
 
-    // Calculate the lapacian vector
+    // Calculate the laplacian vector
     const LocalVectorType& vel_vector = this->GetUnknownVector(data);
     LocalVectorType vel_laplacian_vector = prod(laplacian, vel_vector);
 
@@ -351,6 +350,13 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
         this->AddFrictionTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
         this->AddArtificialViscosityTerms(lhs, rData, DN_DX, weight);
+
+        const double w = WaveElementType::WetFraction(rData);
+        for (std::size_t i = 0; i < TNumNodes; ++i)
+        {
+            rRHS[i    ] *= w;
+            rRHS[i + 1] *= w;
+        }
     }
     noalias(rRHS) -= prod(lhs, this->GetUnknownVector(rData));
 }
