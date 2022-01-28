@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 import unittest
 
 import KratosMultiphysics
@@ -46,7 +45,8 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         return parameters
 
-    def _ReadTestStdErr(self):
+    @classmethod
+    def _ReadTestStdErr(cls):
         try:
             with open("test_stderr.log", "r") as f:
                 return f.read()
@@ -91,7 +91,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         if recompile:
             print("\n----------------Checking compiler exists----------------")
             errcode = os.system("{} --version 2> test_stderr.log".format(compiler))
-            self.assertEqual(errcode, 0, "Compiler {} not available.\nStderr:".format(compiler, self._ReadTestStdErr()))
+            self.assertEqual(errcode, 0, "Compiler {} not available.\nStderr:\n{}".format(compiler, self._ReadTestStdErr()))
 
         # Generation
         if regenerate:
@@ -113,7 +113,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         print("\n----------------------Testing----------------------------")
         command = "./test.out"
         if print_results:
-            comand = comand + " --print-results"
+            command = command + " --print-results"
         command = command + " 2> test_stderr.log" # stderr redirected in order to print it later
 
         errcode = os.system(command)
