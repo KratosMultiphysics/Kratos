@@ -31,6 +31,7 @@ namespace Kratos
 namespace
 {
     std::map<GeometryData::KratosGeometryType, std::string> AuxiliaryGeometryToConditionMap {
+        {GeometryData::KratosGeometryType::Kratos_Line2D2, "LineCondition2D2N"},
         {GeometryData::KratosGeometryType::Kratos_Triangle3D3, "SurfaceCondition3D3N"},
         {GeometryData::KratosGeometryType::Kratos_Triangle3D6, "SurfaceCondition3D6N"},
         {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, "SurfaceCondition3D4N"},
@@ -263,19 +264,28 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     }
 }
 
-void RomAuxiliaryUtilities::AppendConditionParentsToHRomWeights(
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     const ModelPart& rModelPart,
     std::map<std::string, std::map<IndexType, double>>& rHromWeights)
 {
+    std::vector<IndexType> parent_ids;
     auto& r_elem_weights = rHromWeights["Elements"];
-    const auto& r_cond_weights = rHromWeights["Conditions"];
+    auto& r_cond_weights = rHromWeights["Conditions"];
 
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
-        const auto& r_cond = rModelPart.GetCondition(it->first);
+        // Get the condition parent
+        const auto& r_cond = rModelPart.GetCondition(it->first + 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
         const auto& r_neigh = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
         KRATOS_ERROR_IF(r_neigh.size() == 0) << "Condition "<< r_cond.Id() <<" has no parent element assigned. Check that \'NEIGHBOUR_ELEMENTS\' have been already computed." << std::endl;
-        r_elem_weights.insert(std::pair<IndexType, double>(r_neigh[0].Id(), 0.0));
+
+        // Add the parent to the HROM weights
+        // Note that we check if the condition parent has been already added by the HROM element selection strategy
+        if (r_elem_weights.find(r_neigh[0].Id() - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            parent_ids.push_back(r_neigh[0].Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        }
     }
+
+    return parent_ids;
 }
 
 void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(

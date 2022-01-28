@@ -74,6 +74,7 @@ class HRomTrainingUtility(object):
         model_part_name = self.solver.settings["model_part_name"].GetString()
         model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
         computing_model_part = self.solver.GetComputingModelPart()
+        # computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part
@@ -155,11 +156,16 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = False
+        include_condition_parents = True
         if include_condition_parents:
-            KratosROM.RomAuxiliaryUtilities.AppendConditionParentsToHRomWeights(
+            # Get the HROM condition parents from the current HROM weights
+            missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
                 self.solver.GetComputingModelPart(),
                 hrom_weights)
+
+            # Add the missing parents to the elements dict with a null weight
+            for parent_id in missing_condition_parents:
+                hrom_weights["Elements"][parent_id] = 0.0
 
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data

@@ -94,14 +94,15 @@ public:
         ModelPart& rHRomVisualizationModelPart);
 
     /**
-     * @brief Add the HROM condition parents to the HROM weights
-     * This function loops the HROM conditions in the HROM weights and searches for their parents
-     * in the provided model part. Once these are found, they are added to the HROM elements with null weight.
+     * @brief Return the missing HROM condition parents element ids
+     * This function loops the HROM conditions in the HROM weights and searches for their parents in the
+     * provided model part. Once these are found, it is checked that they are not already added and returned.
      * Note that this functions requires the NEIGHBOUR_ELEMENTS to be already computed.
      * @param rModelPart Complete model part (all elements and conditions)
      * @param rHromWeights Map containing the original HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the ids of the missing parent elements
      */
-    static void AppendConditionParentsToHRomWeights(
+    static std::vector<IndexType> GetHRomConditionParentsIds(
         const ModelPart& rModelPart,
         std::map<std::string, std::map<IndexType, double>>& rHromWeights);
 
