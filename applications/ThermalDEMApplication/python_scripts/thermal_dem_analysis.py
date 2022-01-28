@@ -1,8 +1,9 @@
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.ThermalDEMApplication import *
-from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
-from importlib import import_module
+from   KratosMultiphysics import *
+from   KratosMultiphysics.DEMApplication import *
+from   KratosMultiphysics.ThermalDEMApplication import *
+from   KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
+from   KratosMultiphysics.ThermalDEMApplication.thermal_dem_io import ThermalDEMIo
+from   importlib import import_module
 
 class ThermalDEMAnalysis(DEMAnalysisStage):
 
@@ -23,6 +24,12 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
                                                     self.dem_fem_search,
                                                     self.DEM_parameters,
                                                     self.procedures)
+
+    def SetGraphicalOutput(self):
+        self.demio = ThermalDEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
+        if self.DEM_parameters["post_vtk_option"].GetBool():
+            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
+            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
 if __name__ == "__main__":
     model = KratosMultiphysics.Model()
