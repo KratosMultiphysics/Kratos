@@ -4,6 +4,8 @@ import sys
 
 sys.path.append(os.path.join('..','..','..'))
 
+sys.path.append(r"D:\software_development\Kratos\bin\Debug")
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
@@ -14,7 +16,7 @@ from geomechanics_analysis import GeoMechanicsAnalysis
 
 from importlib import import_module
 
-class PipingAnalysisBase(GeoMechanicsAnalysis):
+class PipingAnalysis(GeoMechanicsAnalysis):
     '''Main script for geomechanics simulations.'''
 
     def __init__(self, model, project_parameters):
@@ -31,7 +33,7 @@ class PipingAnalysisBase(GeoMechanicsAnalysis):
     def __reduce_time_step(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ",
                                             self.reduction_factor)
-        self.delta_time *= self.reduction_factor
+        self.new_delta_time *= self.reduction_factor
 
         # converged = False
         # Reset displacements to the initial
@@ -44,16 +46,19 @@ class PipingAnalysisBase(GeoMechanicsAnalysis):
     def __increase_time_step(self):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling with factor: ", self.increase_factor)
         # converged = True
-        self.delta_time *= self.increase_factor
+        self.new_delta_time *= self.increase_factor
         t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-        new_time = t + self.delta_time
+        new_time = t + self.new_delta_time
         if (new_time > self.end_time):
             new_time = self.end_time
-            self.delta_time = new_time - t
+            self.new_delta_time = new_time - t
 
     def run_flow_calculation(self):
         converged = False
         number_cycle = 0
+
+        # note that delta time at each new time step is equal to the initial delta time
+        self.new_delta_time = self.delta_time
 
         while (not converged and number_cycle < self.number_cycles):
             # set solver time
@@ -61,9 +66,9 @@ class PipingAnalysisBase(GeoMechanicsAnalysis):
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "cycle: ", number_cycle)
             t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
             new_time = t - self._GetSolver().GetComputingModelPart().ProcessInfo[
-                KratosMultiphysics.DELTA_TIME] + self.delta_time
+                KratosMultiphysics.DELTA_TIME] + self.new_delta_time
             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = new_time
-            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.delta_time
+            self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.new_delta_time
 
             # run solver
             self.InitializeSolutionStep()
@@ -82,21 +87,26 @@ class PipingAnalysisBase(GeoMechanicsAnalysis):
             raise Exception('The maximum number of cycles is reached without convergence!')
 
         self.FinalizeSolutionStep()
-        self.OutputSolutionStep()
 
     def update_pipe_heights(self):
-        pass
+
+        # todo update pipe heights and check if the pipe heights converged
+        piping_converged = True
+
+        return piping_converged
 
     def initialise_grow_step(self):
         pass
 
     def finalise_grow_step(self):
-        # check if pipe should grow
-
+        # todo check if pipe should grow
+        grow = False
         # save new pipe heights if pipe should grow
 
         # reset pipe heights if no piping converge is found
         self.run_flow_calculation()
+
+        return grow
 
 
     def RunSolutionLoop(self):
@@ -135,17 +145,26 @@ class PipingAnalysisBase(GeoMechanicsAnalysis):
                         self.run_flow_calculation()
 
                         # update all pipe heights and check for piping convergence and check if
-                        self.update_pipe_heights()
+                        piping_converged = self.update_pipe_heights()
+                        piping_iter += 1
 
-                    self.finalise_grow_step()
+                    grow_pipe = self.finalise_grow_step()
 
+            else:
+                self.run_flow_calculation()
 
+            self.OutputSolutionStep()
 
 
 
 
 if __name__ == '__main__':
     from sys import argv
+    import os
+
+    # change the current directory
+    # to specified directory
+    os.chdir(r"D:\software_development\Kratos\applications\GeoMechanicsApplication\tests\SteadyStatePipeElementWithEmbankment\SteadyStatePipeElementWithEmbankment.gid")
 
     if len(argv) > 2:
         err_msg =  'Too many input arguments!\n'
@@ -165,5 +184,5 @@ if __name__ == '__main__':
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
-    simulation = PipingAnalysisBase(model,parameters)
+    simulation = PipingAnalysis(model,parameters)
     simulation.Run()
