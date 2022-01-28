@@ -14,9 +14,9 @@ def Create(*args):
 class CreatePointLoadModelPart(CoSimulationCouplingOperation):
     """This operation creates a submodelpart containing PointLoad Conidtions for transferring loads
     """
-    def __init__(self, settings, solver_wrappers, process_info):
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         IssueDeprecationWarning('CreatePointLoadModelPart', 'please use CreatePointBasedEntitiesProcess" instead')
-        super().__init__(settings, process_info)
+        super().__init__(settings, process_info, data_communicator)
         self.model = solver_wrappers[self.settings["solver"].GetString()].model
 
     def Initialize(self):

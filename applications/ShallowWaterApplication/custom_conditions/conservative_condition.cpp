@@ -90,8 +90,7 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     rData.b2[2] = 0;
 
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
 }
 
 template class ConservativeCondition<2>;

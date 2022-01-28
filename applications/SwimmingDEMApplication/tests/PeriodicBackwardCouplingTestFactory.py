@@ -77,7 +77,7 @@ class PeriodicBackwardCouplingTestFactory(KratosUnittest.TestCase):
             if debug_mode:
                 import matplotlib.pyplot as plt
                 parameter_value, parameter_name = self.GetGentleParameterValueAndName(self.parameters_gentle)
-                plt.plot(times, n_iterations_harsh, label='harsh (' + parameter_name + '=' + str(0.0) + ')')
+                plt.plot(times, n_iterations_harsh, label='harsh (' + parameter_name + '=' + str(round(parameter_value, 2)) + ')')
                 plt.plot(times, n_iterations_gentle, label='gentle (' +parameter_name + '=' + str(round(parameter_value, 2)) + ')')
                 plt.xlabel('time (s)')
                 plt.ylabel('nonlinear iterations')

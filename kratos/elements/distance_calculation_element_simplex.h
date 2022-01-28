@@ -397,6 +397,36 @@ public:
     ///@name Input and output
     ///@{
 
+    const Parameters GetSpecifications() const override
+    {
+        const Parameters specifications = Parameters(R"({
+            "time_integration"           : ["static"],
+            "framework"                  : "eulerian",
+            "symmetric_lhs"              : true,
+            "positive_definite_lhs"      : true,
+            "output"                     : {
+                "gauss_point"            : [],
+                "nodal_historical"       : ["DISTANCE"],
+                "nodal_non_historical"   : [],
+                "entity"                 : []
+            },
+            "required_variables"         : ["DISTANCE"],
+            "required_dofs"              : ["DISTANCE"],
+            "flags_used"                 : ["BOUNDARY"],
+            "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
+            "element_integrates_in_time" : false,
+            "compatible_constitutive_laws": {
+                "type"        : [],
+                "dimension"   : [],
+                "strain_size" : []
+            },
+            "required_polynomial_degree_of_geometry" : 1,
+            "documentation"   :
+                "This element is intended to be used in combination with the VariationalDistanceCalculationProcess. It implements a two-step resolution of an Eikonal equation in order to obtain a distance field with unit gradient norm."
+        })");
+        return specifications;
+    }
+
     /// Turn back information as a string.
     std::string Info() const override
     {
