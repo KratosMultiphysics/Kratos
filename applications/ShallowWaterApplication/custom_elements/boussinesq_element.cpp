@@ -131,6 +131,35 @@ double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& r
 
 
 template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::CalculateArtificialViscosity(
+    BoundedMatrix<double,3,3>& rViscosity,
+    BoundedMatrix<double,2,2>& rDiffusion,
+    const ElementData& rData,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+    auto residual = CalculateMassResidual(rData, rDN_DX);
+    array_1d<double,2> gradient = prod(rData.nodal_f, rDN_DX);
+
+    const double min_slope = 0.1;
+    const double max_slope = 1.0;
+
+    const double residual_norm = std::abs(residual);
+    const double gradient_norm = std::min(std::max(norm_2(gradient), min_slope), max_slope);
+
+    const double artificial_diffusion = 0.5 * 0.1 * rData.length * residual_norm / gradient_norm;
+    rViscosity = artificial_diffusion * IdentityMatrix(2,2);
+}
+
+
+template<std::size_t TNumNodes>
+double BoussinesqElement<TNumNodes>::CalculateMassResidual(
+    const ElementData& rData,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const
+{
+}
+
+
+template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     LocalVectorType& rVector,
     const ElementData& rData,

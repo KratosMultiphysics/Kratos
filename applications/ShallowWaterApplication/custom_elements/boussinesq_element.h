@@ -221,6 +221,16 @@ protected:
 
     double StabilizationParameter(const ElementData& rData) const override;
 
+    void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
+
+    double CalculateMassResidual(
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const;
+
     void AddDispersiveTerms(
         LocalVectorType& rVector,
         const ElementData& rData,
