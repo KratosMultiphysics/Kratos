@@ -1106,21 +1106,27 @@ CrBeamElement3D2N::CalculateElementForces() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
-    double initial_unit_elongation = 0.00;
-    if (Has(BEAM_INITIAL_UNIT_ELONGATION)) {
-        initial_unit_elongation = GetValue(BEAM_INITIAL_UNIT_ELONGATION);
+    BoundedVector<double, msLocalSize> initial_strain_vector = ZeroVector(3);
+    double initial_unit_elongation = 0.0;
+    double initial_unit_rotation_2 = 0.0;
+    double initial_unit_rotation_3 = 0.0;
+
+    if (Has(BEAM_INITIAL_STRAIN_VECTOR)) {
+        initial_strain_vector = GetValue(BEAM_INITIAL_STRAIN_VECTOR);
+        initial_unit_elongation = initial_strain_vector[0];
+        initial_unit_rotation_2 = initial_strain_vector[1];
+        initial_unit_rotation_3 = initial_strain_vector[2];
     }
 
     Vector phi_s = CalculateSymmetricDeformationMode();
     Vector phi_a = CalculateAntiSymmetricDeformationMode();
 
+    deformation_modes_total_v[0] = phi_s[0];
+    deformation_modes_total_v[1] = phi_s[1] - initial_unit_rotation_2 * L;
+    deformation_modes_total_v[2] = phi_s[2] - initial_unit_rotation_3 * L;
     deformation_modes_total_v[3] = l - L - initial_unit_elongation * L;
-    for (int i = 0; i < 3; ++i) {
-        deformation_modes_total_v[i] = phi_s[i];
-    }
-    for (int i = 0; i < 2; ++i) {
-        deformation_modes_total_v[i + 4] = phi_a[i + 1];
-    }
+    deformation_modes_total_v[4] = phi_a[1];
+    deformation_modes_total_v[5] = phi_a[2];
 
     // calculate element forces
     BoundedVector<double, msLocalSize> element_forces_t =
