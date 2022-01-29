@@ -1,5 +1,6 @@
 from   KratosMultiphysics import *
 from   KratosMultiphysics.DEMApplication import *
+from   KratosMultiphysics.ThermalDEMApplication import *
 import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
 
 BaseStrategy = SolverStrategy.ExplicitStrategy
