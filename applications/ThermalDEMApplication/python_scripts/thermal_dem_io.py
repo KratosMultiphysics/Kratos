@@ -22,4 +22,4 @@ BaseIO = DEM_procedures.DEMIo
 class ThermalDEMIo(BaseIO):
 
     def __init__(self, model, DEM_parameters, post_path, all_model_parts):
-        BaseIO.__init__(model, DEM_parameters, post_path, all_model_parts)
+        BaseIO.__init__(self, model, DEM_parameters, post_path, all_model_parts)
