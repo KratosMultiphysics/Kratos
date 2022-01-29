@@ -47,8 +47,9 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
 
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
 
     def _CreateScheme(self):
         return SW.ResidualBasedAdamsMoultonScheme()
