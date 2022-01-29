@@ -57,7 +57,8 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""{
             "relative_dry_height"        : 0.1,
-            "stabilization_factor"       : 0.01
+            "stabilization_factor"       : 0.01,
+            "shock_stabilization_factor" : 0.0
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings

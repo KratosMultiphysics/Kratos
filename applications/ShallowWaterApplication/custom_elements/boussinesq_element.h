@@ -227,7 +227,9 @@ protected:
         const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
 
-    double CalculateMassResidual(
+    void AlgebraicResidual(
+        array_1d<double,3>& momentum_residual,
+        double& mass_residual,
         const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const;
 

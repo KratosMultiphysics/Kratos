@@ -137,25 +137,55 @@ void BoussinesqElement<TNumNodes>::CalculateArtificialViscosity(
     const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
-    auto residual = CalculateMassResidual(rData, rDN_DX);
-    array_1d<double,2> gradient = prod(rData.nodal_f, rDN_DX);
+    array_1d<double,3> momentum_residual;
+    double mass_residual;
+    AlgebraicResidual(momentum_residual, mass_residual, rData, rDN_DX);
+    const array_1d<double,2> gradient = prod(rData.nodal_f, rDN_DX);
 
     const double min_slope = 0.1;
     const double max_slope = 1.0;
 
-    const double residual_norm = std::abs(residual);
+    const double residual_norm = std::abs(mass_residual);
     const double gradient_norm = std::min(std::max(norm_2(gradient), min_slope), max_slope);
 
-    const double artificial_diffusion = 0.5 * 0.1 * rData.length * residual_norm / gradient_norm;
-    rViscosity = artificial_diffusion * IdentityMatrix(2,2);
+    const double artificial_diffusion = 0.5 * rData.shock_stab_factor * rData.length * residual_norm / gradient_norm;
+    rDiffusion = artificial_diffusion * IdentityMatrix(2,2);
 }
 
 
 template<std::size_t TNumNodes>
-double BoussinesqElement<TNumNodes>::CalculateMassResidual(
+void BoussinesqElement<TNumNodes>::AlgebraicResidual(
+    array_1d<double,3>& momentum_residual,
+    double& mass_residual,
     const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const
 {
+    /// The residuals are computed from the balance equations:
+    /// df/dt + (H+f)(du/dx) + u(df/dx) + d/dx(C1*H^3*(d2u/dx2) + C2*H^2*(d2Hu/dx2)) = 0
+    /// du/dt + g(df/dx) + u(du/dx) + (C2*H^2*(d2a/dx2) + C4*H*(d2a/dx2)) = 0
+
+    // constants
+    const double beta = -0.531;
+    const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
+    const double C3 = beta + 0.5;
+    const double H = rData.depth;
+    const double H3 = std::pow(H, 3);
+    const double H2 = std::pow(H, 2);
+
+    // residual terms
+    double acceleration = 0;
+    for (const auto& r_node : this->GetGeometry()) {
+        acceleration += r_node.FastGetSolutionStepValue(VERTICAL_VELOCITY);
+    }
+    acceleration /= static_cast<double>(TNumNodes);
+    const array_1d<double,2> gradient = prod(rData.nodal_f, rDN_DX);
+    const double divergence = WaveElementType::VectorProduct(rData.nodal_v, rDN_DX);
+    const double wave = rData.height * divergence;
+    const double convection = rData.velocity[0] * gradient[0] + rData.velocity[1] * gradient[1];
+    double dispersion = C1 * H3 * WaveElementType::VectorProduct(rData.nodal_v_lap, rDN_DX);
+    dispersion       += C3 * H2 * WaveElementType::VectorProduct(rData.nodal_q_lap, rDN_DX);
+    momentum_residual = ZeroVector(3);
+    mass_residual = acceleration + wave + convection + dispersion;
 }
 
 
