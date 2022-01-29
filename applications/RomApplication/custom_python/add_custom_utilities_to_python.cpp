@@ -16,6 +16,7 @@
 
 // External includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 
 // Project includes
@@ -45,9 +46,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
     ;
 
+    typedef std::map<std::string, std::map<IndexType, double>> HRomWeightsMapType;
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
         .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
         .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
+        .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
+        .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         ;
 }
 

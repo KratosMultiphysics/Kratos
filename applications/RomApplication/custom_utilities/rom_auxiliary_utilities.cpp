@@ -22,6 +22,7 @@
 #include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "rom_application_variables.h"
 #include "rom_auxiliary_utilities.h"
 
 namespace Kratos
@@ -30,6 +31,7 @@ namespace Kratos
 namespace
 {
     std::map<GeometryData::KratosGeometryType, std::string> AuxiliaryGeometryToConditionMap {
+        {GeometryData::KratosGeometryType::Kratos_Line2D2, "LineCondition2D2N"},
         {GeometryData::KratosGeometryType::Kratos_Triangle3D3, "SurfaceCondition3D3N"},
         {GeometryData::KratosGeometryType::Kratos_Triangle3D6, "SurfaceCondition3D6N"},
         {GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, "SurfaceCondition3D4N"},
@@ -260,6 +262,61 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
         const std::string condition_name = AuxiliaryGeometryToConditionMap[(*it_p_geom)->GetGeometryType()];
         rHRomVisualizationModelPart.CreateNewCondition(condition_name, ++max_cond_id, *it_p_geom, p_prop);
     }
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
+    const ModelPart& rModelPart,
+    std::map<std::string, std::map<IndexType, double>>& rHromWeights)
+{
+    std::vector<IndexType> parent_ids;
+    auto& r_elem_weights = rHromWeights["Elements"];
+    auto& r_cond_weights = rHromWeights["Conditions"];
+
+    for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
+        // Get the condition parent
+        const auto& r_cond = rModelPart.GetCondition(it->first + 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        const auto& r_neigh = r_cond.GetValue(NEIGHBOUR_ELEMENTS);
+        KRATOS_ERROR_IF(r_neigh.size() == 0) << "Condition "<< r_cond.Id() <<" has no parent element assigned. Check that \'NEIGHBOUR_ELEMENTS\' have been already computed." << std::endl;
+
+        // Add the parent to the HROM weights
+        // Note that we check if the condition parent has been already added by the HROM element selection strategy
+        if (r_elem_weights.find(r_neigh[0].Id() - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            parent_ids.push_back(r_neigh[0].Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+        }
+    }
+
+    return parent_ids;
+}
+
+void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
+    const std::vector<std::string> &rRomVariableNames,
+    ModelPart &rModelPart)
+{
+    // Create an array with pointers to the ROM variables from the provided names
+    // Note that these are assumed to be provided in the same order used to create the basis
+    IndexType i_var = 0;
+    const SizeType n_rom_vars = rRomVariableNames.size();
+    std::vector<const Variable<double>*> rom_var_list(n_rom_vars);
+    for (const auto& r_var_name : rRomVariableNames) {
+        rom_var_list[i_var++] = &(KratosComponents<Variable<double>>::Get(r_var_name));
+    }
+
+    // Project the ROM solution increment onto the nodal basis and append it to the current value
+    // Note that the ROM solution increment is retrieved from the root model part
+    const auto& r_rom_sol_incr = rModelPart.GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
+    block_for_each(rModelPart.Nodes(), [&rom_var_list, &r_rom_sol_incr](NodeType& rNode){
+        const auto& r_rom_basis = rNode.GetValue(ROM_BASIS);
+        IndexType i_var = 0;
+        for (const auto& p_var : rom_var_list) {
+            if (!rNode.IsFixed(*p_var)) {
+                // It is important to update the values from the old one in buffer position 1
+                // Otherwise the update of the nodes shared by this model part and the HROM one
+                // would be accumulated to that one performed in the ROM B&S (see ProjectToFineBasis)
+                const double& r_old_val = rNode.FastGetSolutionStepValue(*p_var,1);
+                rNode.FastGetSolutionStepValue(*p_var) = r_old_val + inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
+            }
+        }
+    });
 }
 
 } // namespace Kratos
