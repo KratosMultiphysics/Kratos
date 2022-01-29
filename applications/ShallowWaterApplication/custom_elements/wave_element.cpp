@@ -376,6 +376,21 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
 
 
 template<std::size_t TNumNodes>
+const double WaveElement<TNumNodes>::VectorProduct(
+    const array_1d<array_1d<double,3>,TNumNodes>& rV,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+    double result = 0;
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result += rV[i][0] * rDN_DX(i,0);
+        result += rV[i][1] * rDN_DX(i,1);
+    }
+    return result;
+}
+
+
+template<std::size_t TNumNodes>
 double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData)
 {
     const double threshold = rData.relative_dry_height * rData.length;

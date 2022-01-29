@@ -337,6 +337,10 @@ protected:
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
+    static const double VectorProduct(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
     static double InverseHeight(const ElementData& rData);
 
     static double WetFraction(const ElementData& rData);
