@@ -221,7 +221,7 @@ MaterialsDEM.json
 =================================================================
 DEM.mdpa
 
-Begin Elements ThermalSphericParticle3D
+Begin Elements ThermalSphericParticle
 
 Begin SubModelPart PART_NAME // Group GROUP_NAME // Subtree DEMParts
 	Begin SubModelPartData

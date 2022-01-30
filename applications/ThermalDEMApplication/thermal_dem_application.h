@@ -68,7 +68,7 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) KratosThermalDEMApplication : public K
   private:
 	  
     // Elements
-    const ThermalSphericParticle mThermalSphericParticle3D;
+    const ThermalSphericParticle mThermalSphericParticle;
 
     // Assignment operator
     KratosThermalDEMApplication& operator=(KratosThermalDEMApplication const& rOther);

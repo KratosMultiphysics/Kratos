@@ -24,7 +24,7 @@ namespace Kratos
 {
 
 KratosThermalDEMApplication::KratosThermalDEMApplication():KratosApplication("ThermalDEMApplication"),
-  mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3>> (Element::GeometryType::PointsArrayType(1))))
+  mThermalSphericParticle(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3>> (Element::GeometryType::PointsArrayType(1))))
 {}
 
 void KratosThermalDEMApplication::Register()
@@ -71,6 +71,6 @@ void KratosThermalDEMApplication::Register()
   KRATOS_REGISTER_VARIABLE(FLUID_VELOCITY)
 
   // Register elements
-  KRATOS_REGISTER_ELEMENT("ThermalSphericParticle3D", mThermalSphericParticle3D)
+  KRATOS_REGISTER_ELEMENT("ThermalSphericParticle", mThermalSphericParticle)
 }
 } // namespace Kratos
