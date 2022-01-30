@@ -2,6 +2,7 @@ from   KratosMultiphysics import *
 from   KratosMultiphysics.DEMApplication import *
 from   KratosMultiphysics.ThermalDEMApplication import *
 import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
+import KratosMultiphysics.ThermalDEMApplication.default_input_settings as DefaultSettings
 
 # Set base class
 BaseStrategy = SolverStrategy.ExplicitStrategy
@@ -38,52 +39,14 @@ class ExplicitStrategy(BaseStrategy):
 
     def GetProjectParameters(self, DEM_parameters):
         # Get thermal settings and assign default values
-        default_thermal_settings = Parameters("""
-        {
-            "thermal_solve_frequency"        : 1,
-            "voronoi_tesselation_frequency"  : 1000,
-	        "porosity_update_frequency"      : 1000,
-            "compute_motion"                 : true,
-            "compute_direct_conduction"      : true,
-            "compute_indirect_conduction"    : false,
-            "compute_convection"             : false,
-            "compute_radiation"              : false,
-            "compute_friction_heat"          : false,
-            "compute_adjusted_contact"       : false,
-            "direct_conduction_model"        : "batchelor_obrien",
-            "indirect_conduction_model"      : "surrounding_layer",
-            "nusselt_correlation"            : "sphere_hanz_marshall",
-            "radiation_model"                : "continuum_zhou",
-            "adjusted_contact_model"         : "zhou",
-            "voronoi_method"                 : "tesselation",
-	        "porosity_method"                : "average_alpha_shape",
-            "min_conduction_distance"        : 0.0000000275,
-            "max_conduction_distance"        : 1.0,
-            "fluid_layer_thickness"          : 0.4,
-            "isothermal_core_radius"         : 0.5,
-            "max_radiation_distance"         : 2.0,
-            "friction_heat_conversion_ratio" : 1.0,
-            "global_porosity"                : 0.0,
-            "alpha_shape_parameter"          : 1.2,
-            "integral_tolerance"             : 0.000001,
-            "global_fluid_properties"        : {
-                "fluid_density"              : 1.0,
-                "fluid_viscosity"            : 1.0,
-                "fluid_thermal_conductivity" : 1.0,
-                "fluid_heat_capacity"        : 1.0,
-                "fluid_temperature"          : 0.0,
-                "fluid_velocity_X"           : 0.0,
-                "fluid_velocity_Y"           : 0.0,
-                "fluid_velocity_Z"           : 0.0
-            }
-        }""")
+        default_settings = DefaultSettings.GetDefaultInputSettings()
 
         if "thermal_settings" in self.DEM_parameters.keys():
             self.thermal_settings = DEM_parameters["thermal_settings"]
         else:
             self.thermal_settings = Parameters("""{}""")
         
-        self.thermal_settings.ValidateAndAssignDefaults(default_thermal_settings)
+        self.thermal_settings.ValidateAndAssignDefaults(default_settings)
         
         # General options
         self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
