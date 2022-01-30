@@ -225,12 +225,16 @@ protected:
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
 
     void AlgebraicResidual(
-        array_1d<double,3>& momentum_residual,
-        double& mass_residual,
+        array_1d<double,3>& rMomentumResidual,
+        double& rMassResidual,
+        BoundedMatrix<double,2,2>& rVelocityGradient,
+        array_1d<double,2>& rFreeSurfaceGradient,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const;
 
     void AddDispersiveTerms(
