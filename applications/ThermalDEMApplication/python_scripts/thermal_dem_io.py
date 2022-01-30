@@ -19,7 +19,28 @@ else:
 # Set base class
 BaseIO = DEM_procedures.DEMIo
 
+# Auxiliary functions
+def GetBoolParameterIfItExists(parameters, key):
+    if key in parameters.keys():
+        return parameters[key].GetBool()
+    else:
+        return False
+
+# IO class
 class ThermalDEMIo(BaseIO):
 
     def __init__(self, model, DEM_parameters, post_path, all_model_parts):
+        # Set standard pos options
         BaseIO.__init__(self, model, DEM_parameters, post_path, all_model_parts)
+
+        # Set thermal pos options
+        self.PostTemperature = GetBoolParameterIfItExists(self.DEM_parameters, "PostTemperature")
+        self.PostHeatFlux    = GetBoolParameterIfItExists(self.DEM_parameters, "PostHeatFlux")
+
+    def Initialize(self, DEM_parameters):
+        # Add standard pos variables
+        BaseIO.Initialize(self, DEM_parameters)
+
+        # Add thermal pos variables
+        self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.global_variables)
+        self.PushPrintVar(self.PostHeatFlux,    HEATFLUX,    self.global_variables)

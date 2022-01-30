@@ -3,8 +3,17 @@ from   KratosMultiphysics.DEMApplication import *
 from   KratosMultiphysics.ThermalDEMApplication import *
 import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
 
+# Set base class
 BaseStrategy = SolverStrategy.ExplicitStrategy
 
+# Auxiliary functions
+def GetBoolParameterIfItExists(parameters, key):
+    if key in parameters.keys():
+        return parameters[key].GetBool()
+    else:
+        return False
+
+# Strategy class
 class ExplicitStrategy(BaseStrategy):
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
@@ -85,12 +94,12 @@ class ExplicitStrategy(BaseStrategy):
         self.porosity_update_frequency     = self.thermal_settings["porosity_update_frequency"].GetInt()
 
         # Active heat transfer mechanisms
-        self.compute_direct_conduction_option   = self.thermal_settings["compute_direct_conduction"].GetBool()
-        self.compute_indirect_conduction_option = self.thermal_settings["compute_indirect_conduction"].GetBool()
-        self.compute_convection_option          = self.thermal_settings["compute_convection"].GetBool()
-        self.compute_radiation_option           = self.thermal_settings["compute_radiation"].GetBool()
-        self.compute_friction_heat_option       = self.thermal_settings["compute_friction_heat"].GetBool()
-        self.compute_adjusted_contact_option    = self.thermal_settings["compute_adjusted_contact"].GetBool()
+        self.compute_direct_conduction_option   = GetBoolParameterIfItExists(self.thermal_settings, "compute_direct_conduction")
+        self.compute_indirect_conduction_option = GetBoolParameterIfItExists(self.thermal_settings, "compute_indirect_conduction")
+        self.compute_convection_option          = GetBoolParameterIfItExists(self.thermal_settings, "compute_convection")
+        self.compute_radiation_option           = GetBoolParameterIfItExists(self.thermal_settings, "compute_radiation")
+        self.compute_friction_heat_option       = GetBoolParameterIfItExists(self.thermal_settings, "compute_friction_heat")
+        self.compute_adjusted_contact_option    = GetBoolParameterIfItExists(self.thermal_settings, "compute_adjusted_contact")
 
         # Models for heat transfer
         self.direct_conduction_model   = self.thermal_settings["direct_conduction_model"].GetString()
@@ -125,30 +134,12 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
         # Graph writing
-        if "PostGraphParticleTempMin" in self.DEM_parameters.keys():
-            self.PostGraphParticleTempMin = DEM_parameters["PostGraphParticleTempMin"]
-        else:
-            self.PostGraphParticleTempMin = False
-        if "PostGraphParticleTempMax" in self.DEM_parameters.keys():
-            self.PostGraphParticleTempMax = DEM_parameters["PostGraphParticleTempMax"]
-        else:
-            self.PostGraphParticleTempMax = False
-        if "PostGraphParticleTempAvg" in self.DEM_parameters.keys():
-            self.PostGraphParticleTempAvg = DEM_parameters["PostGraphParticleTempAvg"]
-        else:
-            self.PostGraphParticleTempAvg = False
-        if "PostGraphParticleTempDev" in self.DEM_parameters.keys():
-            self.PostGraphParticleTempDev = DEM_parameters["PostGraphParticleTempDev"]
-        else:
-            self.PostGraphParticleTempDev = False
-        if "PostGraphModelTempAvg" in self.DEM_parameters.keys():
-            self.PostGraphModelTempAvg = DEM_parameters["PostGraphModelTempAvg"]
-        else:
-            self.PostGraphModelTempAvg = False
-        if "PostGraphFluxContributions" in self.DEM_parameters.keys():
-            self.PostGraphFluxContributions = DEM_parameters["PostGraphFluxContributions"]
-        else:
-            self.PostGraphFluxContributions = False
+        self.PostGraphParticleTempMin   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
+        self.PostGraphParticleTempMax   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
+        self.PostGraphParticleTempAvg   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
+        self.PostGraphParticleTempDev   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
+        self.PostGraphModelTempAvg      = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
+        self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphFluxContributions")
 
     def CheckProjectParameters(self):
         # Models for heat transfer
@@ -263,7 +254,7 @@ class ExplicitStrategy(BaseStrategy):
             self.write_graph = False
 
     def CreateCPlusPlusStrategy(self):
-        # Set options of base class
+        # Set standard options
         BaseStrategy.SetVariablesAndOptions(self)
 
         # Set thermal options
@@ -285,7 +276,7 @@ class ExplicitStrategy(BaseStrategy):
                                                                     self.solver_settings)
     
     def AddVariables(self):
-        # Add variables of base class
+        # Add standard variables
         BaseStrategy.AddVariables(self)
 
         # Add thermal variables to all model parts
