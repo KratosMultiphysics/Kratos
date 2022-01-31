@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,7 @@ THE SOFTWARE.
 #include <amgcl/detail/sort_row.hpp>
 #include <amgcl/detail/spgemm.hpp>
 #include <amgcl/backend/detail/matrix_ops.hpp>
+#include <amgcl/adapter/block_matrix.hpp>
 
 namespace amgcl {
 namespace backend {
@@ -86,6 +87,7 @@ struct crs {
         nrows(nrows), ncols(ncols), nnz(0),
         ptr(0), col(0), val(0), own_data(true)
     {
+        AMGCL_TIC("CSR copy");
         precondition(static_cast<ptrdiff_t>(nrows + 1) == std::distance(
                     std::begin(ptr_range), std::end(ptr_range)),
                 "ptr_range has wrong size in crs constructor");
@@ -113,6 +115,7 @@ struct crs {
                 val[j] = val_range[j];
             }
         }
+        AMGCL_TOC("CSR copy");
     }
 
     template <class Matrix>
@@ -120,6 +123,7 @@ struct crs {
         nrows(backend::rows(A)), ncols(backend::cols(A)),
         nnz(0), ptr(0), col(0), val(0), own_data(true)
     {
+        AMGCL_TIC("CSR copy");
         ptr = new ptr_type[nrows + 1];
         ptr[0] = 0;
 
@@ -144,6 +148,7 @@ struct crs {
                 ++row_head;
             }
         }
+        AMGCL_TOC("CSR copy");
     }
 
     crs(const crs &other) :
@@ -991,6 +996,21 @@ struct builtin {
     }
 };
 
+// Hybrid backend uses scalar matrices to build the hierarchy,
+// but stores the computed matrices in the block format.
+template <typename ScalarType, typename BlockType>
+struct builtin_hybrid : public builtin<ScalarType> {
+    typedef builtin<ScalarType> Base;
+    typedef crs<BlockType, typename Base::index_type> matrix;
+    struct provides_row_iterator : std::false_type {};
+
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr<typename Base::matrix> As, const typename Base::params&)
+    {
+        return std::make_shared<matrix>(amgcl::adapter::block_matrix<BlockType>(*As));
+    }
+};
+
 template <class T>
 struct is_builtin_vector : std::false_type {};
 
@@ -1005,6 +1025,15 @@ struct is_builtin_vector< numa_vector<V> > : std::true_type {};
 //---------------------------------------------------------------------------
 template <typename T1, typename T2>
 struct backends_compatible< builtin<T1>, builtin<T2> > : std::true_type {};
+
+template <typename T1, typename B1, typename T2, typename B2>
+struct backends_compatible< builtin_hybrid<T1, B1>, builtin_hybrid<T2, B2> > : std::true_type {};
+
+template <typename T1, typename T2, typename B2>
+struct backends_compatible< builtin<T1>, builtin_hybrid<T2, B2> > : std::true_type {};
+
+template <typename T1, typename B1, typename T2>
+struct backends_compatible< builtin_hybrid<T1, B1>, builtin<T2> > : std::true_type {};
 
 template < typename V, typename C, typename P >
 struct rows_impl< crs<V, C, P> > {
@@ -1143,8 +1172,11 @@ struct inner_product_impl<
 
         if (nt < 64) {
             sum = _sum_stat;
+            for(int i = 0; i < nt; ++i) {
+                sum[i] = math::zero<return_type>();
+            }
         } else {
-            _sum_dyna.resize(nt);
+            _sum_dyna.resize(nt, math::zero<return_type>());
             sum = _sum_dyna.data();
         }
 
@@ -1271,25 +1303,20 @@ struct vmul_impl<
     static void apply(Alpha a, const Vec1 &x, const Vec2 &y, Beta b, Vec3 &z)
     {
         typedef typename value_type<Vec1>::type     M_type;
-        typedef typename math::rhs_of<M_type>::type x_type;
-
-        typedef typename math::replace_scalar<x_type, typename math::scalar_of<typename value_type<Vec2>::type>::type>::type y_type;
-        typedef typename math::replace_scalar<x_type, typename math::scalar_of<typename value_type<Vec3>::type>::type>::type z_type;
+        auto Y = backend::reinterpret_as_rhs<M_type>(y);
+        auto Z = backend::reinterpret_as_rhs<M_type>(z);
 
         const size_t n = x.size();
-
-        y_type const * yptr = reinterpret_cast<y_type const *>(&y[0]);
-        z_type       * zptr = reinterpret_cast<z_type       *>(&z[0]);
 
         if (!math::is_zero(b)) {
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-                zptr[i] = a * x[i] * yptr[i] + b * zptr[i];
+                Z[i] = a * x[i] * Y[i] + b * Z[i];
             }
         } else {
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
-                zptr[i] = a * x[i] * yptr[i];
+                Z[i] = a * x[i] * Y[i];
             }
         }
     }
@@ -1314,19 +1341,24 @@ struct copy_impl<
     }
 };
 
-template <class T, class Vector>
-struct reinterpret_impl<
-    T, Vector, typename std::enable_if<is_builtin_vector<Vector>::value>::type
+template <class MatrixValue, class Vector, bool IsConst>
+struct reinterpret_as_rhs_impl<
+    MatrixValue, Vector, IsConst,
+    typename std::enable_if<is_builtin_vector<Vector>::value>::type
     >
 {
-    typedef amgcl::iterator_range<T*> return_type;
+    typedef typename backend::value_type<Vector>::type src_type;
+    typedef typename math::scalar_of<src_type>::type scalar_type;
+    typedef typename math::rhs_of<MatrixValue>::type rhs_type;
+    typedef typename math::replace_scalar<rhs_type, scalar_type>::type dst_type;
+    typedef typename std::conditional<IsConst, const dst_type*, dst_type*>::type ptr_type;
+    typedef iterator_range<ptr_type> return_type;
 
-    static return_type get(const Vector &x) {
-        typedef typename backend::value_type<Vector>::type V;
-        const size_t n = x.size() * sizeof(V) / sizeof(T);
-
-        auto ptr = reinterpret_cast<T*>(const_cast<V*>(&x[0]));
-        return amgcl::make_iterator_range(ptr, ptr + n);
+    template <class V>
+    static return_type get(V &&x) {
+        auto ptr = reinterpret_cast<ptr_type>(&x[0]);
+        const size_t n = x.size() * sizeof(src_type) / sizeof(dst_type);
+        return make_iterator_range(ptr, ptr + n);
     }
 };
 

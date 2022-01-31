@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ THE SOFTWARE.
  */
 
 #include <amgcl/backend/interface.hpp>
+#include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
@@ -408,6 +409,7 @@ class ilu_solve< backend::builtin<value_type> > {
                         // each task corresponds to a level, so we need
                         // to synchronize across threads at this point:
 #pragma omp barrier
+                        ;
                     }
                 }
             }
@@ -447,7 +449,16 @@ class ilu_solve< backend::builtin<value_type> > {
             lower->solve(x);
             upper->solve(x);
         }
+};
 
+template <class ScalarType, class BlockType>
+class ilu_solve< backend::builtin_hybrid<ScalarType, BlockType> >
+    : public ilu_solve< backend::builtin<ScalarType> >
+{
+    typedef ilu_solve< backend::builtin<ScalarType> > Base;
+
+    public:
+        using Base::Base;
 };
 
 } // namespace detail

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -37,13 +37,16 @@ THE SOFTWARE.
 #include <boost/range/iterator_range.hpp>
 
 #include <amgcl/solver/skyline_lu.hpp>
+#include <amgcl/adapter/block_matrix.hpp>
+#include <amgcl/util.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/value_type/static_matrix.hpp>
+
 #include <vexcl/vector.hpp>
 #include <vexcl/gather.hpp>
 #include <vexcl/sparse/matrix.hpp>
 #include <vexcl/sparse/distributed.hpp>
 
-#include <amgcl/util.hpp>
-#include <amgcl/backend/builtin.hpp>
 
 namespace amgcl {
 
@@ -251,11 +254,53 @@ struct vexcl {
     }
 };
 
+// Hybrid backend uses scalar matrices to build the hierarchy,
+// but stores the computed matrices in the block format.
+template <typename ScalarType, typename BlockType, class DirectSolver = solver::vexcl_skyline_lu<ScalarType> >
+struct vexcl_hybrid : public vexcl<ScalarType, DirectSolver> {
+    typedef vexcl<ScalarType, DirectSolver> Base;
+    typedef vex::sparse::distributed<
+                vex::sparse::matrix<
+                    BlockType,
+                    typename Base::index_type,
+                    typename Base::index_type
+                    >
+                > matrix;
+
+    static std::shared_ptr<matrix>
+    copy_matrix(std::shared_ptr< typename builtin<ScalarType>::matrix > As, const typename Base::params &prm)
+    {
+        precondition(!prm.context().empty(), "Empty VexCL context!");
+
+        typename builtin<BlockType>::matrix A(amgcl::adapter::block_matrix<BlockType>(*As));
+
+        const size_t n   = rows(A);
+        const size_t m   = cols(A);
+        const size_t nnz = A.ptr[n];
+
+        return std::make_shared<matrix>(prm.context(), n, m,
+                boost::make_iterator_range(A.ptr, A.ptr + n+1),
+                boost::make_iterator_range(A.col, A.col + nnz),
+                boost::make_iterator_range(A.val, A.val + nnz),
+                prm.fast_matrix_setup
+                );
+    }
+};
+
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
 template <typename T1, typename T2>
 struct backends_compatible< vexcl<T1>, vexcl<T2> > : std::true_type {};
+
+template <typename T1, typename B1, typename T2, typename B2>
+struct backends_compatible< vexcl_hybrid<T1, B1>, vexcl_hybrid<T2, B2> > : std::true_type {};
+
+template <typename T1, typename T2, typename B2>
+struct backends_compatible< vexcl<T1>, vexcl_hybrid<T2, B2> > : std::true_type {};
+
+template <typename T1, typename B1, typename T2>
+struct backends_compatible< vexcl_hybrid<T1, B1>, vexcl<T2> > : std::true_type {};
 
 template < typename V, typename C, typename P >
 struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {
@@ -302,7 +347,13 @@ struct residual_impl<
     vex::sparse::distributed<vex::sparse::matrix<Va,C,P>>,
     vex::vector<Vf>,
     vex::vector<Vx>,
-    vex::vector<Vr>
+    vex::vector<Vr>,
+    typename std::enable_if<
+        !is_static_matrix<Va>::value &&
+        !is_static_matrix<Vf>::value &&
+        !is_static_matrix<Vx>::value &&
+        !is_static_matrix<Vr>::value
+        >::type
     >
 {
     typedef vex::sparse::distributed<vex::sparse::matrix<Va,C,P>> matrix;
@@ -413,13 +464,16 @@ struct vmul_impl<
     }
 };
 
-template <class T, class V>
-struct reinterpret_impl<T, vex::vector<V>>
+template <class MatrixValue, class V, bool IsConst>
+struct reinterpret_as_rhs_impl<MatrixValue, vex::vector<V>, IsConst>
 {
-    typedef vex::vector<typename std::decay<T>::type> return_type;
+    typedef typename math::scalar_of<V>::type scalar_type;
+    typedef typename math::rhs_of<MatrixValue>::type rhs_type;
+    typedef typename math::replace_scalar<rhs_type, scalar_type>::type dst_type;
+    typedef vex::vector<dst_type> return_type;
 
     static return_type get(const vex::vector<V> &x) {
-        return x.template reinterpret<typename std::decay<T>::type>();
+        return x.template reinterpret<dst_type>();
     }
 };
 
