@@ -58,10 +58,6 @@ class KRATOS_API(DEM_APPLICATION) DEMFEMUtilities {
     /// Print object's data
     virtual void PrintData(std::ostream& rOStream) const;
 
-    protected:
-
-        std::vector<unsigned int> mElementPartition;
-
     private:
 
         array_1d<double, 3> mInitialCenterOfMassAndMass;

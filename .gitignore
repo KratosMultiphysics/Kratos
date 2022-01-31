@@ -1,7 +1,7 @@
 ### ATTENTION ###
 # This is the GLOBAL gitignore, please do NOT change this file,
 # unless it should be available for everyone
-# Please change the LOCAL gitignore (.git/info/exclude) to cutomize
+# Please change the LOCAL gitignore (.git/info/exclude) to customize
 # exluding files/folders from being recognized by git
 
 # Recovery files
@@ -16,6 +16,7 @@
 ~scripts/standard_configure.sh
 ~scripts/standard_configure_MINGW.bat
 ~scripts/standard_configure.bat
+scripts/*.out
 scripts/*.sh
 scripts/*.bat
 build/*
@@ -59,6 +60,10 @@ bin/*
 *.vtk
 *.vtu
 
+# HDF5 files
+*.h5
+*.hdf5
+
 # Output of tests of meshing application (MMG)
 *.sol
 *.mesh
@@ -70,3 +75,7 @@ bin/*
 
 # Most used editor files
 *.vscode
+/compile_commands.json
+
+# External downloaded libs (TPL downloaded libs, etc...)
+external_libraries/tetgen/*

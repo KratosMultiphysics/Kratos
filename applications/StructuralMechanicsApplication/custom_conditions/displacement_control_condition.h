@@ -18,7 +18,6 @@
 
 // Project includes
 #include "includes/condition.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -240,6 +239,8 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    const Parameters GetSpecifications() const override;
 
     /// Turn back information as a string.
     std::string Info() const override

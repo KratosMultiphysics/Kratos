@@ -43,6 +43,32 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
+	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
+		ModelPart& rVolumePart,
+		ModelPart& rSkinPart,
+		Parameters& rParameters)
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart)
+	{
+		rParameters.RecursivelyValidateAndAssignDefaults(GetDefaultParameters());
+		mRayCastingRelativeTolerance = rParameters["ray_casting_relative_tolerance"].GetDouble();
+	}
+
+	template<std::size_t TDim>
+	const Parameters CalculateDistanceToSkinProcess<TDim>::GetDefaultParameters() const
+	{
+		Parameters default_parameters = Parameters(R"(
+		{
+			"ray_casting_relative_tolerance"        : 1.0e-8
+		})" );
+
+		// Getting base class default parameters
+		const Parameters base_default_parameters = CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetDefaultParameters();
+		default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+
+		return default_parameters;
+	}
+
+	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::~CalculateDistanceToSkinProcess()
 	{
 	}
@@ -64,11 +90,7 @@ namespace Kratos
 		const double char_length = this->CalculateCharacteristicLength();
 
 		// Initialize the nodal distance values to a maximum positive value
-		#pragma omp parallel for firstprivate(char_length)
-		for (int i_node = 0; i_node < static_cast<int>(ModelPart1.NumberOfNodes()); ++i_node) {
-			auto it_node = ModelPart1.NodesBegin() + i_node;
-			it_node->GetSolutionStepValue(DISTANCE) = char_length;
-		}
+		VariableUtils().SetVariable(DISTANCE, char_length, ModelPart1.Nodes());
 	}
 
 	template<std::size_t TDim>

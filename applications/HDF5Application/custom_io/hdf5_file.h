@@ -107,6 +107,8 @@ public:
 
     std::vector<std::string> GetGroupNames(const std::string& rGroupPath) const;
 
+    std::vector<std::string> GetDataSetNames(const std::string& rGroupPath) const;
+
     void AddPath(const std::string& rPath);
 
     template<class TScalar>
@@ -126,7 +128,7 @@ public:
     /**
      *  Performs collective write in MPI. The data is written blockwise according to
      *  processor rank.
-     * 
+     *
      * @param[out] rInfo Information about the written data set.
      */
     virtual void WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
@@ -136,14 +138,14 @@ public:
     virtual void WriteDataSet(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
 
     virtual void WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo);
-    
+
     virtual void WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo);
 
     /// Independently write data set to the HDF5 file.
     /**
-     * Performs independent write in MPI. Must be called collectively. Throws 
+     * Performs independent write in MPI. Must be called collectively. Throws
      * if more than one process has non-empty data.
-     * 
+     *
      * @param[out] rInfo Information about the written data set.
      */
     virtual void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
@@ -215,7 +217,7 @@ public:
                              Matrix<int>& rData,
                              unsigned StartIndex,
                              unsigned BlockSize);
-   
+
     virtual void ReadDataSet(const std::string& rPath,
                              Matrix<double>& rData,
                              unsigned StartIndex,
@@ -244,7 +246,7 @@ public:
                                        Matrix<int>& rData,
                                        unsigned StartIndex,
                                        unsigned BlockSize);
- 
+
     virtual void ReadDataSetIndependent(const std::string& rPath,
                                        Matrix<double>& rData,
                                        unsigned StartIndex,

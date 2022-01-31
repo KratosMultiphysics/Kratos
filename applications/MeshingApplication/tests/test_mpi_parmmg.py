@@ -37,6 +37,12 @@ class TestMPIParMmg(KratosUnittest.TestCase):
             distance = math.sqrt(node.X**2+node.Y**2+node.Z**2) - 1.0/2.0
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,distance)
 
+        # Setting some flags on submodelparts entities arbitrarily
+        for cond in main_model_part.GetSubModelPart("SurfaceLoad3D_Load_on_surfaces_Auto3").Conditions:
+            cond.Set(KratosMultiphysics.STRUCTURE)
+        for elem in main_model_part.GetSubModelPart("Parts_Solid_Solid_Auto1").Elements:
+            elem.Set(KratosMultiphysics.VISITED)
+
         ##COMPUTE DISTANCE GRADIENT AND NODAL_H
         local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(main_model_part,
         KratosMultiphysics.DISTANCE,
@@ -73,10 +79,11 @@ class TestMPIParMmg(KratosUnittest.TestCase):
             "save_external_files"              : true,
             "save_colors_files"                : true,
             "initialize_entities"              : false,
-            "preserve_flags"                   : false,
+            "preserve_flags"                   : true,
             "echo_level"                       : 0,
             "advanced_parameters" : {
-                "number_of_iterations"         : 4
+                "number_of_iterations"        : 4,
+                "no_surf_mesh"                : true
             }
         }
         """)
@@ -96,6 +103,19 @@ class TestMPIParMmg(KratosUnittest.TestCase):
         with open(result_dict_file_name, 'r') as f:
             reference_hierarchy = json.load(f)
         self.CheckModelPartHierarchie(main_model_part, reference_hierarchy[str(communicator.Size())])
+
+        # Check flags are correctly set on the corresponding submodelparts only
+        for cond in main_model_part.Conditions:
+            if cond in main_model_part.GetSubModelPart("SurfaceLoad3D_Load_on_surfaces_Auto3").Conditions:
+                self.assertTrue(cond.Is(KratosMultiphysics.STRUCTURE))
+            else:
+                self.assertTrue(cond.IsNot(KratosMultiphysics.STRUCTURE))
+
+        for elem in main_model_part.Elements:
+            if elem in main_model_part.GetSubModelPart("Parts_Solid_Solid_Auto1").Elements:
+                self.assertTrue(elem.Is(KratosMultiphysics.VISITED))
+            else:
+                self.assertTrue(elem.IsNot(KratosMultiphysics.VISITED))
 
         for file_name in os.listdir(GetFilePath("")):
             if file_name.endswith(".json") or file_name.endswith(".mdpa") or file_name.endswith(".mesh") or  file_name.endswith(".sol"):

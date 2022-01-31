@@ -9,7 +9,7 @@ namespace Kratos
 template< unsigned int TDim >
 DynamicVMS<TDim>::DynamicVMS(IndexType NewId, const NodesArrayType &ThisNodes):
     Element(NewId,ThisNodes),
-    mIntegrationMethod(GeometryData::GI_GAUSS_1)
+    mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
     mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
@@ -22,7 +22,7 @@ DynamicVMS<TDim>::DynamicVMS(IndexType NewId, const NodesArrayType &ThisNodes):
 template< unsigned int TDim >
 DynamicVMS<TDim>::DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry):
     Element(NewId,pGeometry),
-    mIntegrationMethod(GeometryData::GI_GAUSS_1)
+    mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
     mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
@@ -46,7 +46,7 @@ DynamicVMS<TDim>::DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, c
 template< unsigned int TDim >
 DynamicVMS<TDim>::DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
     Element(NewId,pGeometry,pProperties),
-    mIntegrationMethod(GeometryData::GI_GAUSS_1)
+    mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
     mSubscaleVel.resize(NumGauss,array_1d<double,3>(3,0.0));
@@ -170,7 +170,7 @@ void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, const Proces
 
     noalias(rMassMatrix) = ZeroMatrix(LocalSize,LocalSize);
 
-    if (this->mIntegrationMethod == GeometryData::GI_GAUSS_1)
+    if (this->mIntegrationMethod == GeometryData::IntegrationMethod::GI_GAUSS_1)
         this->LumpedMassMatrix(rMassMatrix);
     else
         this->ConsistentMassMatrix(rMassMatrix);
@@ -243,7 +243,7 @@ void DynamicVMS<TDim>::CalculateMassMatrix(MatrixType &rMassMatrix, const Proces
 
 
 template<>
-void DynamicVMS<2>::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
+void DynamicVMS<2>::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -264,7 +264,7 @@ void DynamicVMS<2>::EquationIdVector(EquationIdVectorType &rResult, const Proces
 
 
 template<>
-void DynamicVMS<3>::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
+void DynamicVMS<3>::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -286,7 +286,7 @@ void DynamicVMS<3>::EquationIdVector(EquationIdVectorType &rResult, const Proces
 
 
 template<>
-void DynamicVMS<2>::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
+void DynamicVMS<2>::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -307,7 +307,7 @@ void DynamicVMS<2>::GetDofList(DofsVectorType &rElementalDofList, const ProcessI
 
 
 template<>
-void DynamicVMS<3>::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
+void DynamicVMS<3>::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -329,7 +329,7 @@ void DynamicVMS<3>::GetDofList(DofsVectorType &rElementalDofList, const ProcessI
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const 
+void DynamicVMS<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -352,7 +352,7 @@ void DynamicVMS<TDim>::GetFirstDerivativesVector(Vector &rValues, int Step) cons
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetSecondDerivativesVector(Vector &rValues, int Step) const 
+void DynamicVMS<TDim>::GetSecondDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
@@ -437,7 +437,7 @@ void DynamicVMS<TDim>::Calculate(const Variable<array_1d<double,3> > &rVariable,
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const Matrix& NContainer = rGeom.ShapeFunctionsValues(this->mIntegrationMethod);
@@ -490,7 +490,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVari
 }
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable, std::vector<array_1d<double, 3 > > &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable, std::vector<array_1d<double, 3 > > &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mIntegrationMethod);
@@ -511,7 +511,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<doubl
 
 
 template< unsigned int TDim >
-void DynamicVMS<TDim>::SetValuesOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
+void DynamicVMS<TDim>::SetValuesOnIntegrationPoints(const Variable<double> &rVariable, const std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
     unsigned int NumGauss = this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod);
 
@@ -568,7 +568,7 @@ void DynamicVMS<TDim>::PrintData(std::ostream &rOStream) const
     rOStream << "DynamicVMS" << TDim << "D #" << Id();
     rOStream << "Geometry:" << std::endl;
     this->GetGeometry().PrintData(rOStream);
-    rOStream << "Integration method: " << this->mIntegrationMethod << std::endl;
+    rOStream << "Integration method: " << static_cast<int>(this->mIntegrationMethod) << std::endl;
 }
 
 // protected DynamicVMS methods ***********************************************
@@ -578,13 +578,13 @@ void DynamicVMS<TDim>::CalculateGeometryData()
 {
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::GI_GAUSS_1 );
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 );
 
     // Temporary container for inverse of J
     Matrix InvJ;
 
     GeometryType::JacobiansType J;
-    rGeom.Jacobian( J, GeometryData::GI_GAUSS_1 );
+    rGeom.Jacobian( J, GeometryData::IntegrationMethod::GI_GAUSS_1 );
 
     // calculate inverse of the jacobian and its determinant
     MathUtils<double>::InvertMatrix( J[0], InvJ, mDetJ );
@@ -1453,7 +1453,7 @@ const double DynamicVMS<TDim>::mSubscaleRHSTol = 1e-32;
 template< unsigned int TDim >
 DynamicVMS<TDim>::DynamicVMS():
     Element(),
-    mIntegrationMethod(GeometryData::GI_GAUSS_1)
+    mIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1)
 {}
 
 template< unsigned int TDim >

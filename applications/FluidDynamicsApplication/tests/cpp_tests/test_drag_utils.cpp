@@ -82,10 +82,10 @@ namespace Kratos {
             Element::Pointer p_elem_1, p_elem_2;
             if (is_embedded){
                 rModelPart.GetProcessInfo().SetValue(SLIP_LENGTH, 1.0e-2);
-                p_elem_1 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
-                p_elem_2 = rModelPart.CreateNewElement("EmbeddedSymbolicNavierStokesDiscontinuous2D3N", 2, elem_nodes, p_elem_prop);
+                p_elem_1 = rModelPart.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_2 = rModelPart.CreateNewElement("EmbeddedWeaklyCompressibleNavierStokesDiscontinuous2D3N", 2, elem_nodes, p_elem_prop);
             } else {
-                p_elem_1 = rModelPart.CreateNewElement("SymbolicNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
+                p_elem_1 = rModelPart.CreateNewElement("WeaklyCompressibleNavierStokes2D3N", 1, elem_nodes, p_elem_prop);
             }
             rModelPart.CreateNewCondition("NavierStokesWallCondition2D2N", 1, cond_nodes, p_elem_prop);
 
@@ -141,7 +141,9 @@ namespace Kratos {
                 elem_dist(0) = 1.0;
                 elem_dist(1) = 1.0;
                 elem_dist(2) = -1.0;
+                const array_1d<double,3> elem_edge_dist(3,-1.0);
                 p_elem_2->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+                p_elem_2->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
             }
 
         }

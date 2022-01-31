@@ -206,15 +206,15 @@ namespace Kratos
         // Transfer data over
         GeometryData::IntegrationMethod ThisDefaultMethod = pQuadraturePointGeometry->GetDefaultIntegrationMethod();
         IntegrationPointsContainerType ips_container;
-        ips_container[ThisDefaultMethod] = ips_active;
+        ips_container[static_cast<int>(ThisDefaultMethod)] = ips_active;
         ShapeFunctionsValuesContainerType shape_function_container;
-        shape_function_container[ThisDefaultMethod] = N_matrix;
+        shape_function_container[static_cast<int>(ThisDefaultMethod)] = N_matrix;
         ShapeFunctionsLocalGradientsContainerType shape_function_derivatives_container;
-        shape_function_derivatives_container[ThisDefaultMethod] = DN_De_vector;
+        shape_function_derivatives_container[static_cast<int>(ThisDefaultMethod)] = DN_De_vector;
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(ThisDefaultMethod,
             ips_container, shape_function_container, shape_function_derivatives_container);
 
-        for (size_t i = 0; i < nodes_list_active.size(); ++i) nodes_list_active[i].Set(ACTIVE);
+        for (auto& node_it : nodes_list_active) node_it.Set(ACTIVE);
         if (pQuadraturePointGeometry->IntegrationPointsNumber() == 1) {
             pQuadraturePointGeometry = CreateCustomQuadraturePoint(working_dim, pQuadraturePointGeometry->LocalSpaceDimension(),
                 data_container, nodes_list_active, &rParentGeom);
@@ -296,11 +296,21 @@ namespace Kratos
     {
         KRATOS_TRY
 
-            array_1d<double, 3> dummy_local_coords;
+        // Check all points are in MPM grid geom bounding box
+        Node<3> low, high;
+        rReferenceGeom.BoundingBox(low, high);
+        const SizeType geom_dim = rReferenceGeom.Dimension();
         for (size_t i = 0; i < rPoints.size(); ++i) {
-            if (!MPMSearchElementUtility::CheckIsInside(rReferenceGeom, dummy_local_coords, rPoints[i], Tolerance, false)) {
-                return false;
+            for (size_t dim = 0; dim < geom_dim; ++dim)
+            {
+                if (rPoints[i][dim] < low[dim] || rPoints[i][dim] > high[dim]) return false;
             }
+        }
+
+        // Now do proper calculation to check if we are inside
+        array_1d<double, 3> dummy_local_coords;
+        for (size_t i = 0; i < rPoints.size(); ++i) {
+            if (!rReferenceGeom.IsInside(rPoints[i],dummy_local_coords,Tolerance)) return false;
         }
         return true;
 
@@ -313,7 +323,7 @@ namespace Kratos
 
             NodeType point_low, point_high;
         for (size_t i = 0; i < rIntersectedGeometries.size(); ++i) {
-            if (rIntersectedGeometries[i]->GetGeometryType() != GeometryData::Kratos_Hexahedra3D8) {
+            if (rIntersectedGeometries[i]->GetGeometryType() != GeometryData::KratosGeometryType::Kratos_Hexahedra3D8) {
                 #pragma omp single
                 KRATOS_ERROR << "MPMSearchElementUtility::Check3DBackGroundMeshIsCubicAxisAligned - "
                     << "3D PQMPM CAN ONLY BE USED FOR AXIS-ALIGNED RECTANGULAR-PRISM BACKGROUND GRIDS" << std::endl;
@@ -621,7 +631,7 @@ namespace Kratos
                 }
             }
             if (nonzero_entries != 1) {
-                KRATOS_INFO("MPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!"
+                KRATOS_INFO("PQMPMSearchElementUtility::Check - ") << "There must be only one nonzero entry per shape function column!"
                     << "\nrN = " << rN;
                 KRATOS_ERROR << "ERROR";
             }

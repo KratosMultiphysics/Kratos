@@ -736,10 +736,10 @@ void DerivativeRecovery<TDim>::CalculateVelocityLaplacianRate(ModelPart& r_model
 {
     double delta_t_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
     DenseVector<unsigned int> nodes_partition;
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_model_part.Nodes().size(), nodes_partition);
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
         NodesArrayType& pNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
         NodeIteratorType node_begin = pNodes.ptr_begin() + nodes_partition[k];
         NodeIteratorType node_end   = pNodes.ptr_begin() + nodes_partition[k + 1];

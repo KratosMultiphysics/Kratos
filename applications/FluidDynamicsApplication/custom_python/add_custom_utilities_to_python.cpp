@@ -27,10 +27,11 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "custom_utilities/fluid_post_process_utilities.h"
+#include "custom_utilities/fluid_auxiliary_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/estimate_dt_utilities.h"
+#include "custom_utilities/fluid_characteristic_numbers_utilities.h"
 #include "custom_utilities/fractional_step_settings_periodic.h"
 #include "custom_utilities/fractional_step_settings.h"
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
@@ -71,7 +72,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetDtMax",&EstimateDtUtility::SetDtMin)
         .def("SetDtMax",&EstimateDtUtility::SetDtMax)
         .def("EstimateDt",&EstimateDtUtility::EstimateDt)
-        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &EstimateDtUtility::CalculateLocalCFL )
+        ;
+
+    // Fluid characteristic numbers utilities
+    py::class_<FluidCharacteristicNumbersUtilities>(m,"FluidCharacteristicNumbersUtilities")
+        .def_static("CalculateLocalCFL",(void (*)(ModelPart&)) &FluidCharacteristicNumbersUtilities::CalculateLocalCFL)
         ;
 
     // Periodic boundary conditions utilities
@@ -163,10 +168,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
         ;
 
-    // Post process utilities
-    py::class_< FluidPostProcessUtilities > (m,"FluidPostProcessUtilities")
-        .def(py::init<>())
-        .def("CalculateFlow", &FluidPostProcessUtilities::CalculateFlow)
+    // Auxiliary utilities
+    py::class_<FluidAuxiliaryUtilities>(m, "FluidAuxiliaryUtilities")
+        .def_static("CalculateFlowRate", &FluidAuxiliaryUtilities::CalculateFlowRate)
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart);})
+        .def_static("CalculateFlowRatePositiveSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart);})
+        .def_static("CalculateFlowRateNegativeSkin", [](const ModelPart& rModelPart, const Flags& rSkinFlag){return FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(rModelPart, rSkinFlag);})
+        .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
+        .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
+        .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
         ;
 
 }

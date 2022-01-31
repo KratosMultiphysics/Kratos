@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics
+﻿import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -38,7 +36,7 @@ class TestModel(KratosUnittest.TestCase):
             current_model["abc"]
 
         #check that a meaningful error is thrown
-        with self.assertRaisesRegex(RuntimeError, "The ModelPart named : \"aaa\" was not found as SubModelPart of : \"Inlets\". The total input string was \"Main.Inlets.aaa\""):
+        with self.assertRaisesRegex(RuntimeError, "There is no sub model part with name \"aaa\" in model part \"Main.Inlets\"\nThe the following sub model parts are available:"):
             current_model["Main.Inlets.aaa"]
 
         #here i create a model part in the lowest level and i check that the other model parts have it

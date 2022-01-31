@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 
 # Importing the Kratos Library
@@ -32,6 +32,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -41,8 +42,17 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.NumberOfNodes(), 6)
         self.assertEqual(model_part.NumberOfProperties(), 1)
+        self.assertEqual(model_part.NumberOfGeometries(), 9)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
+
+        self.assertEqual(model_part[KratosMultiphysics.AMBIENT_TEMPERATURE], 250.0)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_X], 2.1)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Y], 3.2)
+        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Z], 4.3)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_X], 3.8)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Y], 4.9)
+        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Z], 0.0)
 
         self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
         self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
@@ -72,26 +82,30 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.0)
         self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X),0.0)
 
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.0)
-        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.000973)
-        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y),0.000974)
+        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.000973)
+        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.000974)
 
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
-        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z),0.0)
+        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
+        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
 
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.0)
-        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.0)
-        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
-        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.VISCOSITY),0.01)
+        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
+        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
+        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.0)
+        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.0)
+        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
+        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
+
+        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X), 1.1)
+        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y), 2.2)
+        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z), 3.3)
 
         self.assertTrue(model_part.HasSubModelPart("Inlets"))
 
@@ -100,6 +114,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(inlets_model_part.NumberOfTables(), 1)
         self.assertEqual(inlets_model_part.NumberOfProperties(), 0)
         self.assertEqual(inlets_model_part.NumberOfNodes(), 3)
+        self.assertEqual(inlets_model_part.NumberOfGeometries(), 0)
         self.assertEqual(inlets_model_part.NumberOfElements(), 1)
         self.assertEqual(inlets_model_part.NumberOfConditions(), 3)
         self.assertEqual(inlets_model_part.NumberOfSubModelParts(), 2)
@@ -111,6 +126,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(inlet1_model_part.NumberOfTables(), 0)
         self.assertEqual(inlet1_model_part.NumberOfProperties(), 0)
         self.assertEqual(inlet1_model_part.NumberOfNodes(), 2)
+        self.assertEqual(inlet1_model_part.NumberOfGeometries(), 0)
         self.assertEqual(inlet1_model_part.NumberOfElements(), 0)
         self.assertEqual(inlet1_model_part.NumberOfConditions(), 2)
         self.assertEqual(inlet1_model_part.NumberOfSubModelParts(), 0)
@@ -120,6 +136,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(inlet2_model_part.NumberOfTables(), 0)
         self.assertEqual(inlet2_model_part.NumberOfProperties(), 0)
         self.assertEqual(inlet2_model_part.NumberOfNodes(), 0)
+        self.assertEqual(inlet2_model_part.NumberOfGeometries(), 0)
         self.assertEqual(inlet2_model_part.NumberOfElements(), 0)
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 2)
         self.assertEqual(inlet2_model_part.NumberOfSubModelParts(), 0)
@@ -131,6 +148,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfTables(), 0)
         self.assertEqual(outlet_model_part.NumberOfProperties(), 1)
         self.assertEqual(outlet_model_part.NumberOfNodes(), 0)
+        self.assertEqual(outlet_model_part.NumberOfGeometries(), 0)
         self.assertEqual(outlet_model_part.NumberOfElements(), 0)
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
@@ -174,6 +192,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfTables(), 0)
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.NumberOfNodes(), 6)
+        self.assertEqual(model_part.NumberOfGeometries(), 9)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
 
@@ -241,22 +260,22 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,2], 0)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    def test_model_part_io_write_model_part_mesh_only(self):
+    def test_model_part_io_write_model_part(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write"))
         model_part_io.ReadModelPart(model_part)
 
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
         model_part_io.WriteModelPart(model_part)
 
         import filecmp
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
-        self.assertEqual(value, True)
+        self.assertTrue(value)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    def test_model_part_io_write_model_part(self):
+    def test_model_part_io_write_model_part_mesh_only(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -268,7 +287,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         import filecmp
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write_mesh_only.mdpa"), GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
-        self.assertEqual(value, True)
+        self.assertTrue(value)
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):
@@ -285,12 +304,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
         except:
             raise Exception("a segmentation fault is issued!!")
             self.fail("a segmentation fault is issued!!")
-
-    #def test_model_part_io_properties_block(self):
-    #    model_part= current_model.CreateModelPart("Main")
-    #    model_part_io = ModelPartIO("test_model_part_io")
-    #    model_part_io.ReadProperties(model_part.Properties)
-
 
 class TestModelPartIOMPI(KratosUnittest.TestCase):
     def test_model_part_io_read_entity_data(self):

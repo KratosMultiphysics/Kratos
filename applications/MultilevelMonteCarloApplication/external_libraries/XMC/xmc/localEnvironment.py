@@ -40,9 +40,13 @@ Direction = "direction"  # parameter type
 StdIOStream = "stream"  # parameter stream
 Prefix = "prefix"  # parameter prefix
 Depth = "depth"  # collection recursive depth
+# For MPI
+block_count = "block_count"
+block_length = "block_length"
+stride = "stride"
 
 
-class ExaquteTask(object):
+class task(object):
     def __init__(self, *args, **kwargs):
         pass
 
@@ -87,6 +91,14 @@ class implement(object):
 
 
 class constraint(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, f):
+        return f
+
+
+class mpi(object):
     def __init__(self, *args, **kwargs):
         pass
 

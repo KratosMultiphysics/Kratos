@@ -58,7 +58,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelInitialize, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = ParallelUtilities::GetNumThreads();
 
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
@@ -80,7 +80,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelInitializeSmallBlock, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = ParallelUtilities::GetNumThreads();
 
 			std::size_t block_size_in_bytes = 5; // the aligned block size is 8
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
@@ -99,7 +99,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkAllocateDeallocate, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 		  std::size_t chunk_size_in_bytes =  header_size + 1024;
@@ -124,7 +124,7 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocate, KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 		  	std::size_t chunk_size_in_bytes =  header_size + 1024;
@@ -165,12 +165,12 @@ namespace Kratos {
 
 		KRATOS_TEST_CASE_IN_SUITE(ChunkParallelAllocateDeallocate, EXCLUDED_KratosCoreFastSuite)
 		{
-			int max_threads = OpenMPUtils::GetNumThreads();
+			int max_threads = ParallelUtilities::GetNumThreads();
 			std::size_t block_size_in_bytes = 5;
 			std::size_t header_size = 2 * max_threads * sizeof(Chunk::SizeType);
 		  	std::size_t chunk_size_in_bytes =  header_size + 1024;
 
-		  	// KRATOS_ERROR << max_threads << " -- " << OpenMPUtils::GetNumThreads() << std::endl;
+		  	// KRATOS_ERROR << max_threads << " -- " << ParallelUtilities::GetNumThreads() << std::endl;
 
 			auto repeat_number = 100;
 			std::stringstream buffer;

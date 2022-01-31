@@ -66,8 +66,8 @@ class FluidElementTest(UnitTest.TestCase):
         self.runCavity()
 
     def testSymbolic(self):
-        self.element = "symbolic"
-        self.reference_file = "reference10_symbolic"
+        self.element = "weakly_compressible"
+        self.reference_file = "reference10_weakly_compressible"
         self.is_time_integrated = True
         self.runCavity()
 

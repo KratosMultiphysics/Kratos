@@ -256,19 +256,6 @@ public:
         ) override;
 
      /**
-      * @brief This function provides a more general interface to the element.
-      * it is designed so that rRHSvariables are passed TO the element
-      * thus telling what is the desired output
-      * @param rRightHandSideVectors container for the desired RHS output
-      * @param rRHSVariables parameter describing the expected RHSs
-      */
-     void CalculateRightHandSide(
-        std::vector< VectorType >& rRightHandSideVectors,
-        const std::vector< Variable< VectorType > >& rRHSVariables,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-     /**
       * @brief This is called during the assembling process in order
       * to calculate the elemental leTransverseGradientFt hand side vector only
       * @param rLeftHandSideMatrix the elemental leTransverseGradientFt hand side vector
@@ -435,7 +422,7 @@ public:
      */
     void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -447,7 +434,7 @@ public:
      */
     void SetValuesOnIntegrationPoints(
         const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
+        const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -459,7 +446,7 @@ public:
      */
     void SetValuesOnIntegrationPoints(
         const Variable<Matrix>& rVariable,
-        std::vector<Matrix>& rValues,
+        const std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -471,7 +458,7 @@ public:
     */
     void SetValuesOnIntegrationPoints(
         const Variable<ConstitutiveLaw::Pointer>& rVariable,
-        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const std::vector<ConstitutiveLaw::Pointer>& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 

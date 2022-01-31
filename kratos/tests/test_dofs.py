@@ -1,10 +1,8 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
 class TestDofs(KratosUnittest.TestCase):
-    
+
     def test_model_part_sub_model_parts(self):
         current_model = KratosMultiphysics.Model()
 
@@ -31,8 +29,8 @@ class TestDofs(KratosUnittest.TestCase):
         dx.EquationId = 5
         dy.EquationId = 6
         dz.EquationId = 7
-        
-        self.assertEqual(p.GetVariable(), KratosMultiphysics.PRESSURE) 
+
+        self.assertEqual(p.GetVariable(), KratosMultiphysics.PRESSURE)
         self.assertEqual(dx.GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
         self.assertEqual(dx.GetReaction(), KratosMultiphysics.REACTION_X)
         self.assertEqual(dx.EquationId, 5)

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@ Bi-orthogonality Properties. ACM Transactions on Mathematical Software, Vol.
 
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 #include <tuple>
 #include <random>
@@ -101,10 +102,8 @@ class idrs {
             /// Residual replacement.
             /**
              * Determines the residual replacement strategy.
-             *    If |r| > 1E3 |b| TOL/EPS) (EPS is the machine precision)
-             *    the recursively computed residual is replaced by the true residual
-             *    once |r| < |b| (to reduce the effect of large intermediate residuals
-             *    on the final accuracy).
+             * If true, the recursively computed residual is replaced by the
+             * true residual.
              * Default: No residual replacement.
              */
             bool replacement;
@@ -118,10 +117,18 @@ class idrs {
             /// Target absolute residual error.
             scalar_type abstol;
 
+            /// Ignore the trivial solution x=0 when rhs is zero.
+            //** Useful for searching for the null-space vectors of the system */
+            bool ns_search;
+
+            /// Verbose output (show iterations and error)
+            bool verbose;
+
             params()
                 : s(4), omega(0.7), smoothing(false),
                   replacement(false), maxiter(100), tol(1e-8),
-                  abstol(std::numeric_limits<scalar_type>::min())
+                  abstol(std::numeric_limits<scalar_type>::min()),
+                  ns_search(false), verbose(false)
             { }
 
 #ifndef AMGCL_NO_BOOST
@@ -132,9 +139,12 @@ class idrs {
                   AMGCL_PARAMS_IMPORT_VALUE(p, replacement),
                   AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, abstol),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, ns_search),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, verbose)
             {
-                check_params(p, {"s", "omega", "smoothing", "replacement", "maxiter", "tol", "abstol"});
+                check_params(p, {"s", "omega", "smoothing", "replacement",
+                        "maxiter", "tol", "abstol", "ns_search", "verbose"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -145,6 +155,8 @@ class idrs {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, maxiter);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, ns_search);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, verbose);
             }
 #endif
         } prm;
@@ -248,10 +260,16 @@ class idrs {
             static const scalar_type one = math::identity<scalar_type>();
             static const scalar_type zero = math::zero<scalar_type>();
 
+            ios_saver ss(std::cout);
+
             scalar_type norm_rhs = norm(rhs);
             if (norm_rhs < amgcl::detail::eps<scalar_type>(1)) {
-                backend::clear(x);
-                return std::make_tuple(0, norm_rhs);
+                if (prm.ns_search) {
+                    norm_rhs = math::identity<scalar_type>();
+                } else {
+                    backend::clear(x);
+                    return std::make_tuple(0, norm_rhs);
+                }
             }
 
             scalar_type eps = std::max(prm.tol * norm_rhs, prm.abstol);
@@ -281,13 +299,8 @@ class idrs {
                     M(i, j) = (i == j);
             }
 
-            scalar_type eps_replace = norm_rhs / (
-                    // Number close to machine precision:
-                    1e3 * std::numeric_limits<scalar_type>::epsilon());
-
             // Main iteration loop, build G-spaces:
             size_t iter = 0;
-            bool trueres = false;
             while(iter < prm.maxiter && res_norm > eps) {
                 // New righ-hand size for small system:
                 for(unsigned i = 0; i < prm.s; ++i)
@@ -339,9 +352,6 @@ class idrs {
 
                     res_norm = norm(*r);
 
-                    if (prm.replacement && res_norm > eps_replace)
-                        trueres = true;
-
                     // Smoothing
                     if (prm.smoothing) {
                         backend::axpbypcz(one, *r_s, -one, *r, zero, *t);
@@ -351,6 +361,8 @@ class idrs {
                         res_norm = norm(*r_s);
                     }
 
+                    if (prm.verbose && iter % 5 == 0)
+                        std::cout << iter << "\t" << std::scientific << res_norm / norm_rhs << std::endl;
                     if (res_norm <= eps || ++iter >= prm.maxiter) break;
 
                     // New f = P'*r (first k  components are zero)
@@ -373,15 +385,10 @@ class idrs {
                 backend::axpby(-om, *t, one, *r);
                 backend::axpby( om, *v, one,  x);
 
-                res_norm = norm(*r);
-                if (prm.replacement && res_norm > eps_replace)
-                    trueres = true;
-
-                // Residual replacement?
-                if (trueres && res_norm < norm_rhs) {
-                    trueres = 0;
+                if (prm.replacement) {
                     backend::residual(rhs, A, x, *r);
                 }
+                res_norm = norm(*r);
 
                 // Smoothing.
                 if (prm.smoothing) {

@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType FrictionalViscoplastic3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType FrictionalViscoplastic3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType FrictionalViscoplastic3DLaw::GetStrainSize() const { return 6; }
 
     void FrictionalViscoplastic3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -69,9 +69,8 @@ namespace Kratos
 
         const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
         const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
-        const GeometryType &r_geometry = rValues.GetElementGeometry();
 
-        const double theta_momentum = r_geometry[0].GetValue(THETA_MOMENTUM);
+        const double theta_momentum = this->GetThetaMomentumForPressureIntegration();
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
 
         if (mean_pressure > 0.0) // cutoff for tractions
@@ -119,14 +118,8 @@ namespace Kratos
     //*****************************************************************************
 
     int FrictionalViscoplastic3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                           const ProcessInfo &rCurrentProcessInfo)
+                                           const ProcessInfo &rCurrentProcessInfo) const
     {
-
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-        KRATOS_CHECK_VARIABLE_KEY(INTERNAL_FRICTION_ANGLE);
-        KRATOS_CHECK_VARIABLE_KEY(COHESION);
-        KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
-        KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
 
         if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)
         {

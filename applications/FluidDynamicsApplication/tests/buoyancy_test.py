@@ -8,49 +8,49 @@ have_convection_diffusion = KratosUtilities.CheckIfApplicationsAvailable("Convec
 if have_convection_diffusion:
     from KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis import ConvectionDiffusionAnalysis
 
-class BuoyancyTestConvectionDiffusionAnalysis(ConvectionDiffusionAnalysis):
-    def ModifyAfterSolverInitialize(self):
-        super().ModifyAfterSolverInitialize()
+    class BuoyancyTestConvectionDiffusionAnalysis(ConvectionDiffusionAnalysis):
+        def ModifyAfterSolverInitialize(self):
+            super().ModifyAfterSolverInitialize()
 
-        xmin = 0.0
-        xmax = 1.0
-        ymin = 0.0
-        ymax = 1.0
+            xmin = 0.0
+            xmax = 1.0
+            ymin = 0.0
+            ymax = 1.0
 
-        ## For Ra~1e6
-        g = 9.81     # accelertion of gravity m/s2
-        T1 = 293.15  # Cold (reference) temperature K
-        T2 = 303.15  # Hot temperature K
-        rho = 1.2039 # (reference) density kg/m3
-        c = 1004.84  # Specific heat J/kg K
-        k = ( (rho*c)**2*g*(T2-T1)*(xmax-xmin)**3 / (1e6*T1*0.71) )**0.5 # Given Ra=1e6 & Pr=0.71
-        mu = 0.71*k/c # For Prandlt = 0.71
-        nu = mu/rho
+            ## For Ra~1e6
+            g = 9.81     # accelertion of gravity m/s2
+            T1 = 293.15  # Cold (reference) temperature K
+            T2 = 303.15  # Hot temperature K
+            rho = 1.2039 # (reference) density kg/m3
+            c = 1004.84  # Specific heat J/kg K
+            k = ( (rho*c)**2*g*(T2-T1)*(xmax-xmin)**3 / (1e6*T1*0.71) )**0.5 # Given Ra=1e6 & Pr=0.71
+            mu = 0.71*k/c # For Prandlt = 0.71
+            nu = mu/rho
 
-        ## Set initial and boundary conditions
-        model_part = self._GetSolver().GetComputingModelPart()
-        model_part.ProcessInfo.SetValue(AMBIENT_TEMPERATURE,T1)
-        for node in model_part.Nodes:
-            node.SetSolutionStepValue(DENSITY, rho)
-            node.SetSolutionStepValue(VISCOSITY, nu)
-            node.SetSolutionStepValue(CONDUCTIVITY, k)
-            node.SetSolutionStepValue(SPECIFIC_HEAT, c)
+            ## Set initial and boundary conditions
+            model_part = self._GetSolver().GetComputingModelPart()
+            model_part.ProcessInfo.SetValue(AMBIENT_TEMPERATURE,T1)
+            for node in model_part.Nodes:
+                node.SetSolutionStepValue(DENSITY, rho)
+                node.SetSolutionStepValue(VISCOSITY, nu)
+                node.SetSolutionStepValue(CONDUCTIVITY, k)
+                node.SetSolutionStepValue(SPECIFIC_HEAT, c)
 
-            if node.X == xmin or node.X == xmax or node.Y == ymin or node.Y == ymax:
-                node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Y)
-                if node.X == xmin and node.Y == ymin:
-                    node.Fix(PRESSURE)
+                if node.X == xmin or node.X == xmax or node.Y == ymin or node.Y == ymax:
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    if node.X == xmin and node.Y == ymin:
+                        node.Fix(PRESSURE)
 
-            if node.X == xmin:
-                node.Fix(TEMPERATURE)
-                node.SetSolutionStepValue(TEMPERATURE, T2)
-            elif node.X == xmax:
-                node.Fix(TEMPERATURE)
-                node.SetSolutionStepValue(TEMPERATURE, T1)
-            else:
-                T = T2 + (T1-T2)*(node.X-xmin)/(xmax-xmin)
-                node.SetSolutionStepValue(TEMPERATURE, T)
+                if node.X == xmin:
+                    node.Fix(TEMPERATURE)
+                    node.SetSolutionStepValue(TEMPERATURE, T2)
+                elif node.X == xmax:
+                    node.Fix(TEMPERATURE)
+                    node.SetSolutionStepValue(TEMPERATURE, T1)
+                else:
+                    T = T2 + (T1-T2)*(node.X-xmin)/(xmax-xmin)
+                    node.SetSolutionStepValue(TEMPERATURE, T)
 
 @UnitTest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 class BuoyancyTest(UnitTest.TestCase):
@@ -75,7 +75,7 @@ class BuoyancyTest(UnitTest.TestCase):
         self.convection_diffusion_solver = "eulerian"
         self.reference_file = "reference80_eulerian"
         self.thermal_expansion_coefficient = None # If set, it will be used instead of 1./AmbientTemperature
-        
+
         #TODO: MODIFY THIS IN THE JSON SETTINGS
         self.nsteps = 200
         self.input_file = "cavity80"

@@ -113,7 +113,7 @@ namespace Kratos
         */
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             MatrixType left_hand_side_matrix = Matrix(0, 0);
 
@@ -129,7 +129,7 @@ namespace Kratos
         */
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             VectorType right_hand_side_vector = Vector(0);
 
@@ -148,7 +148,7 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo, true, true);
@@ -185,7 +185,7 @@ namespace Kratos
         void CalculateAll(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
+            const ProcessInfo& rCurrentProcessInfo,
             const bool CalculateStiffnessMatrixFlag,
             const bool CalculateResidualVectorFlag
         );

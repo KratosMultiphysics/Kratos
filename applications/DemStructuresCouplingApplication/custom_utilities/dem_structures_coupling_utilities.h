@@ -52,10 +52,10 @@ virtual ~DemStructuresCouplingUtilities(){}
 
 void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_destination_model_part, Properties::Pointer props) {
 
-    std::string error = CheckProvidedProperties(props);
+    // std::string error = CheckProvidedProperties(props);
     const int dimension = r_source_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
-    if (error != "all_ok") KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing " << error << " . Exiting." << std::endl;
+    // if (error != "all_ok") KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing " << error << " . Exiting." << std::endl;
 
     r_destination_model_part.Conditions().Sort();
     int id = 1;
@@ -85,7 +85,7 @@ void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_de
 }
 
 std::string CheckProvidedProperties(Properties::Pointer props) {
-    std::vector<const Variable<double>* > list_of_variables_double_to_check = {&STATIC_FRICTION, &DYNAMIC_FRICTION, &WALL_COHESION, &SEVERITY_OF_WEAR, &IMPACT_WEAR_SEVERITY, &BRINELL_HARDNESS, &YOUNG_MODULUS, &POISSON_RATIO};
+    std::vector<const Variable<double>* > list_of_variables_double_to_check = {&STATIC_FRICTION, &DYNAMIC_FRICTION, &FRICTION_DECAY, &WALL_COHESION, &SEVERITY_OF_WEAR, &IMPACT_WEAR_SEVERITY, &BRINELL_HARDNESS, &YOUNG_MODULUS, &POISSON_RATIO};
     std::vector<const Variable<bool>* > list_of_variables_bool_to_check = {&COMPUTE_WEAR};
     for (int i=0; i<(int)list_of_variables_double_to_check.size(); i++) {
         if(!props->Has(*list_of_variables_double_to_check[i])) return list_of_variables_double_to_check[i]->Name();

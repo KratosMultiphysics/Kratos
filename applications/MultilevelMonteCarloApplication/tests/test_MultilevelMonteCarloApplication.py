@@ -1,4 +1,4 @@
-# import Kratos
+# Import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -6,7 +6,7 @@ import KratosMultiphysics.MeshingApplication as MeshingApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
+# Import test classes to create the suits
 from test_multilevel_montecarlo import KratosMultilevelMonteCarloGeneralTests
 from test_tools import TestTools
 from test_xmcAlgorithm import TestXMCAlgorithm
@@ -14,6 +14,8 @@ from momentEstimatorTests import TestMomentEstimator
 from momentEstimatorTests import TestCombinedMomentEstimator
 from momentEstimatorTests import TestMultiMomentEstimator
 from momentEstimatorTests import TestMultiCombinedMomentEstimator
+from test_randomGenerator import TestNumPyGenerator
+from solverWrapperTest import SolverWrapperTest, VanDerPolTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -44,7 +46,16 @@ def AssembleTestSuites():
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_updateD0'))
     smallSuite.addTest(TestMultiCombinedMomentEstimator('test_estimationD0'))
     smallSuite.addTest(TestXMCAlgorithm('test_mc_Kratos'))
-    
+    smallSuite.addTest(TestNumPyGenerator('test_init'))
+    smallSuite.addTest(TestNumPyGenerator('test_realisation'))
+    smallSuite.addTest(TestNumPyGenerator('test_realisation_fromJSON'))
+    smallSuite.addTest(SolverWrapperTest('test_init'))
+    smallSuite.addTest(SolverWrapperTest('test_solve'))
+    smallSuite.addTest(VanDerPolTest('test_init'))
+    smallSuite.addTest(VanDerPolTest('test_solve'))
+    smallSuite.addTest(VanDerPolTest('test_harmonic_trajectory'))
+    smallSuite.addTest(VanDerPolTest('test_reference_solution'))
+
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

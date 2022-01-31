@@ -43,7 +43,7 @@ def FiniteDifferenceNormalShapeSensitivityTest(UnitTestObject, model_part, check
 
     # calculate nodal normal shape sensitivities
     KratosMultiphysics.NormalCalculationUtils().CalculateNormalShapeDerivativesOnSimplex(model_part.Conditions, domain_size)
-    KratosMultiphysics.SensitivityBuilder.AssignConditionDerivativesToNodes(
+    KratosMultiphysics.SensitivityUtilities.AssignConditionDerivativesToNodes(
         model_part,
         domain_size,
         KratosMultiphysics.NORMAL_SHAPE_DERIVATIVE,

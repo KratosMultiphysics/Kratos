@@ -271,10 +271,7 @@ public:
      * @brief Check if Rotational Dof existant
      * @return Trues if exists, false otherwise
      */
-    virtual bool HasRotDof() const
-    {
-        return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
-    }
+    virtual bool HasRotDof() const;
 
     /**
      * @brief This method computes the DoF block size
@@ -307,6 +304,13 @@ public:
     ///@name Input and output
     ///@{
 
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @details This can be used to enhance solvers and analysis
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+    
     /// Turn back information as a string.
     std::string Info() const override
     {

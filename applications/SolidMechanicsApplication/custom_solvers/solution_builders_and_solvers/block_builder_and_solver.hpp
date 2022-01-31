@@ -206,7 +206,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
     Element::EquationIdVectorType EquationId;
 
     // assemble all elements
-    double start_build = OpenMPUtils::GetCurrentTime();
+    // double start_build = OpenMPUtils::GetCurrentTime();
 
 #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
     {
@@ -269,13 +269,13 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       }
     }
 
-    double stop_build = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("parallel_build_time") << stop_build - start_build << std::endl;
+    // double stop_build = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0)
+    //   KRATOS_INFO("parallel_build_time") << stop_build - start_build << std::endl;
 
-    if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0){
-      KRATOS_INFO("parallel_build") << "finished" << std::endl;
-    }
+    // if (this->mEchoLevel > 2 && rModelPart.GetCommunicator().MyPID() == 0){
+    //   KRATOS_INFO("parallel_build") << "finished" << std::endl;
+    // }
 
     KRATOS_CATCH("")
 
@@ -325,12 +325,12 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
   {
     KRATOS_TRY
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
     Build(pScheme, rModelPart, rA, rb);
-    double end_time = OpenMPUtils::GetCurrentTime();
+    // double end_time = OpenMPUtils::GetCurrentTime();
 
-    if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_build_time") << end_time - begin_time << std::endl;
+    // if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+    //   KRATOS_INFO("system_build_time") << end_time - begin_time << std::endl;
 
     ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
@@ -341,13 +341,13 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
       KRATOS_INFO("RHS before solve") << "Vector = " << rb << std::endl;
     }
 
-    begin_time = OpenMPUtils::GetCurrentTime();
+    // begin_time = OpenMPUtils::GetCurrentTime();
     SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
-    end_time = OpenMPUtils::GetCurrentTime();
+    // end_time = OpenMPUtils::GetCurrentTime();
 
 
-    if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
-      KRATOS_INFO("system_solve_time") << end_time - begin_time << std::endl;
+    // if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
+    //   KRATOS_INFO("system_solve_time") << end_time - begin_time << std::endl;
 
     if (this->mEchoLevel == 3)
     {
@@ -483,7 +483,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-    unsigned int nthreads = OpenMPUtils::GetNumThreads();
+    unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
 #ifdef USE_GOOGLE_HASH
     typedef google::dense_hash_set < Node<3>::DofType::Pointer, dof_iterator_hash>  set_type;
@@ -918,7 +918,7 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
                                         ProcessInfo& rCurrentProcessInfo)
   {
     //filling with zero the matrix (creating the structure)
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     const std::size_t equation_size = this->mEquationSystemSize;
 
@@ -1019,9 +1019,9 @@ class BlockBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, TDe
 
     rA.set_filled(indices.size()+1, nnz);
 
-    double end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel >= 2)
-      KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    // double end_time = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel >= 2)
+    //   KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
   }
 

@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -20,8 +20,10 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
 #include "includes/kratos_parameters.h"
+#include "utilities/entities_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -233,13 +235,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Initialize(r_current_process_info);
-        }
+        EntitiesUtilities::InitializeEntities<Element>(rModelPart);
 
         SetElementsAreInitialized();
 
@@ -257,13 +253,7 @@ public:
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Initialize(r_current_process_info);
-        }
+        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
         SetConditionsAreInitialized();
 
@@ -288,37 +278,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Initializes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Initializes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Initializes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeSolutionStep(r_current_process_info);
-        }
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -338,37 +299,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeSolutionStep(r_current_process_info);
-        }
+        // Finalizes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -444,6 +376,10 @@ public:
         )
     {
         KRATOS_TRY
+
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+
         KRATOS_CATCH("")
     }
 
@@ -453,7 +389,7 @@ public:
      * @param rCurrentElement The element to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -468,7 +404,7 @@ public:
      * @param rCurrentCondition The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -493,37 +429,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes non-linear iteration for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes non-linear iteration  for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes non-linear iteration for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeNonLinearIteration(r_current_process_info);
-        }
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -631,33 +538,6 @@ public:
     virtual int Check(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Checks for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfElements()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            const auto& r_elem = *it_elem;
-            r_elem.Check(r_current_process_info);
-        }
-
-        // Checks for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfConditions()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            const auto& r_cond = *it_cond;
-            r_cond.Check(r_current_process_info);
-        }
-
-        // Checks for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfMasterSlaveConstraints()); i++) {
-            auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
-            const auto& r_constraint = *it_constraint;
-            r_constraint.Check(r_current_process_info);
-        }
-
         return 0;
         KRATOS_CATCH("");
     }
@@ -687,29 +567,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->CalculateSystemContributions(
-            Element::Pointer(&rElement),
-            LHS_Contribution,
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+        rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -728,29 +586,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->Condition_CalculateSystemContributions(
-            Condition::Pointer(&rCondition),
-            LHS_Contribution,
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+        rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -767,27 +603,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->Calculate_RHS_Contribution(
-            Element::Pointer(&rElement),
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentElement->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+        rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -804,27 +620,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->Condition_Calculate_RHS_Contribution(
-            Condition::Pointer(&rCondition),
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+        rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -841,27 +637,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->Calculate_LHS_Contribution(
-            Element::Pointer(&rElement),
-            LHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentElement->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+        rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -878,27 +654,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        this->Condition_Calculate_LHS_Contribution(
-            Condition::Pointer(&rCondition),
-            LHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-        // rCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+        rCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -915,17 +671,6 @@ public:
     {
         rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void EquationId(
-        Element::Pointer pCurrentElement,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        (pCurrentElement)->EquationIdVector(EquationId, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-    }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
@@ -940,17 +685,6 @@ public:
         )
     {
         rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_EquationId(
-        Condition::Pointer pCurrentCondition,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        (pCurrentCondition)->EquationIdVector(EquationId, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -967,17 +701,6 @@ public:
     {
         rElement.GetDofList(rDofList, rCurrentProcessInfo);
     }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void GetElementalDofList(
-        Element::Pointer pCurrentElement,
-        Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
-    }
 
     /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
@@ -992,17 +715,6 @@ public:
         )
     {
         rCondition.GetDofList(rDofList, rCurrentProcessInfo);
-    }
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void GetConditionDofList(
-        Condition::Pointer pCurrentCondition,
-        Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
-        pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
-        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
     }
 
     /**
@@ -1154,5 +866,3 @@ private:
 } // namespace Kratos.
 
 #endif /* KRATOS_SCHEME  defined */
-
-
