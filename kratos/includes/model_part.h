@@ -415,7 +415,7 @@ public:
     void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
     /** Returns if the Node corresponding to it's identifier exists */
-    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0)
+    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasNode(NodeId);
     }
@@ -1090,7 +1090,7 @@ public:
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns if the Element corresponding to it's identifier exists */
-    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0)
+    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasElement(ElementId);
     }
@@ -1282,7 +1282,7 @@ public:
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns if the Condition corresponding to it's identifier exists */
-    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasCondition(ConditionId);
     }

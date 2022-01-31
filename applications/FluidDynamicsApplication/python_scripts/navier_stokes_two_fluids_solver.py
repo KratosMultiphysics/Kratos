@@ -263,7 +263,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
-            self.__PerformLevelSetConvection()
+            self._PerformLevelSetConvection()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -297,7 +297,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
                 volume_error = (water_volume_after_transport - system_volume) / system_volume
-                self.initial_system_volume=water_volume_after_transport
+                self.initial_system_volume=system_volume
             else:
                 volume_error=0
 
@@ -328,7 +328,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
 
-    def __PerformLevelSetConvection(self):
+    def _PerformLevelSetConvection(self):
         # Solve the levelset convection problem
         self._GetLevelSetConvectionProcess().Execute()
 
