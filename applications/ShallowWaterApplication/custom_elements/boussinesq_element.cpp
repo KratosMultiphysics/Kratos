@@ -409,11 +409,21 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
         this->AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
         this->AddArtificialViscosityTerms(lhs, rData, N, DN_DX, weight);
 
+        // Deactivating the dry domain
         const double w = WaveElementType::WetFraction(rData);
+        lhs *= w;
+        rRHS *= w;
+
+        // Controlling the drainage mechanism
+        const double factor = 2.0 * norm_2(rData.velocity);
+        BoundedMatrix<double,3,3> S = ZeroMatrix(3,3);
+        S(0,0) = factor;
+        S(1,1) = factor;
         for (std::size_t i = 0; i < TNumNodes; ++i)
         {
-            rRHS[i    ] *= w;
-            rRHS[i + 1] *= w;
+            /// Lumped mass matrix
+            const double n_ij = 1.0 / static_cast<double>(TNumNodes);
+            MathUtils<double>::AddMatrix(lhs, weight*(1.0-w)*n_ij*S, 3*i, 3*i);
         }
     }
     noalias(rRHS) -= prod(lhs, this->GetUnknownVector(rData));
