@@ -34,6 +34,7 @@ export KRATOS_APPLICATIONS=
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication
+add_app ${KRATOS_APP_DIR}/HDF5Application
 
 # Clean
 clear

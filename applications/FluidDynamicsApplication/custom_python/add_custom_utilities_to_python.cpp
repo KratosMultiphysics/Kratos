@@ -184,8 +184,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // Radial Node Search Utility 
     py::class_<NodeSearchUtility>(m, "NodeSearchUtility")
         .def(py::init<ModelPart::NodesContainerType&>())
-        .def("AssignMPCsForStaticNodes", &NodeSearchUtility::AssignMPCsForStaticNodes)
-        .def("AssignMPCsForRotatingNodes", &NodeSearchUtility::AssignMPCsForRotatingNodes)
+        .def("AssignRotationToNodes", &NodeSearchUtility::AssignRotationToNodes)
+        .def("AssignMPCsToNodes", &NodeSearchUtility::AssignMPCsToNodes)
         ;    
 
 }
