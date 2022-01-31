@@ -229,9 +229,7 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
 
     void AlgebraicResidual(
-        array_1d<double,3>& rMomentumResidual,
         double& rMassResidual,
-        BoundedMatrix<double,2,2>& rVelocityGradient,
         array_1d<double,2>& rFreeSurfaceGradient,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
