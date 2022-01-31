@@ -196,7 +196,7 @@ class idrs {
                 std::vector<rhs_type> p(n);
 
 #ifdef MPI_VERSION
-                amgcl::mpi::communicator(MPI_COMM_WORLD).rank;
+                int pid = amgcl::mpi::communicator(MPI_COMM_WORLD).rank;
 #else
                 int pid = 0;
 #endif

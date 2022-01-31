@@ -27,7 +27,7 @@ namespace TrilinosSolverUtilities {
 
 void SetTeuchosParameters(const Parameters rSettings, Teuchos::ParameterList& rParameterlist);
 
-MPI_Comm GetMPICommFromEpetraComm(const Epetra_Comm&);
+MPI_Comm GetMPICommFromEpetraComm(const Epetra_Comm& rEpetraComm);
 
 }  // namespace TrilinosSolverUtilities.
 }  // namespace Kratos.
