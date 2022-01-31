@@ -22,6 +22,7 @@
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
 #include "trilinos_space.h"
+#include "custom_utilities/trilinos_solver_utilities.h"
 
 namespace Kratos
 {
@@ -45,10 +46,7 @@ void AMGCLScalarSolve(
     bool use_gpgpu
     )
 {
-    const Epetra_Comm& r_epetra_comm = rA.Comm();
-    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm); // cannot use static_cast due to virtual inheritance
-
-    MPI_Comm the_comm = r_epetra_mpi_comm.Comm();
+    MPI_Comm the_comm = TrilinosSolverUtilities::GetMPICommFromEpetraComm(rA.Comm());
 
 #ifdef AMGCL_GPGPU
     if (use_gpgpu && vexcl_context()) {
@@ -112,10 +110,7 @@ void AMGCLBlockSolve(
     bool use_gpgpu
     )
 {
-    const Epetra_Comm& r_epetra_comm = rA.Comm();
-    const Epetra_MpiComm& r_epetra_mpi_comm = dynamic_cast<const Epetra_MpiComm&>(r_epetra_comm); // cannot use static_cast due to virtual inheritance
-
-    MPI_Comm the_comm = r_epetra_mpi_comm.Comm();
+    MPI_Comm the_comm = TrilinosSolverUtilities::GetMPICommFromEpetraComm(rA.Comm());
 
     if(amgclParams.get<std::string>("precond.class") != "amg")
         amgclParams.erase("precond.coarsening");
