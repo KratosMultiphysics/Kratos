@@ -229,6 +229,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                                 }
                             }
                         }
+                        double vol_elem=0.0;
                         for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos)
                         {
                             for (unsigned int i = 0; i < NumNodes; ++i)
@@ -238,7 +239,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                                     for (unsigned int dim = 0; dim < NumNodes - 1; ++dim)
                                     {
                                         lhs_correc_term(i * (NumNodes) + dim, j * (NumNodes) + dim) +=
-                                            shape_functions_pos(i, g_pos) * shape_functions_neg(g_pos, j) * gp_weights_pos
+                                            shape_functions_pos(i, g_pos) * shape_functions_neg(g_pos, j) * gp_weights_pos;
+                                        vol_elem += gp_weights_pos;
+
                                     }
                                 }
                             }
@@ -254,6 +257,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                                     {
                                     lhs_correc_term(i*(NumNodes) + dim, j*(NumNodes) + dim) +=
                                         shape_functions_neg(i,g_neg)*shape_functions_negj,g_neg)*gp_weights_neg;
+                                    vol_elem += gp_weights_neg;
                                     }
                                 }
                             }
@@ -261,15 +265,24 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
                         epsilon_int *= (negative_density - positive_density);
 
-                        lhs_correc_term = epsilon_int / VOLUME * lhs_correc_term;
+                        lhs_correc_term = epsilon_int / vol_elem * lhs_correc_term;
 
                         rhs_mass_correction = (negative_density - positive_density) * rhs_mass_correction;
 
                         lhs_acc_correction = (negative_density - positive_density) * lhs_acc_correction;
                         noalias(rLeftHandSideMatrix) += lhs_acc_correction;
                         noalias(rRightHandSideVector) += rhs_mass_correction;
-
+                        Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
+                        for (unsigned int i = 0; i < NumNodes; ++i)
+                        {
+                            for (unsigned int dimi = 0; dimi < Dim; ++dimi)
+                            {
+                                tempU[i * (Dim + 1) + dimi] = data.Velocity(i, dimi);
+                            }
+                        }
+                        noalias(rRightHandSideVector) -= prod(lhs_acc_correction, tempU);
                     }
+
                      if (rCurrentProcessInfo[MOMENTUM_CORRECTION])
                     {
                         BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize, LocalSize);
