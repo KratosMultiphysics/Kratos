@@ -205,7 +205,7 @@ public:
                 if(max_gp_weight_factor>max_elem_weight)
                     max_elem_weight = max_gp_weight_factor;
             }
-            double surface_filter_size = 2.0 * std::sqrt(max_elem_weight);        
+            double surface_filter_size = 1.1 * std::sqrt(max_elem_weight);        
             p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,surface_filter_size);
             KRATOS_INFO("ShapeOpt") << " surface filter size is adjusted to " << surface_filter_size << std::endl;
         }        

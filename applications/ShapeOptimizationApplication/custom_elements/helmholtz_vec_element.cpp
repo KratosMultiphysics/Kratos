@@ -196,13 +196,14 @@ void HelmholtzVecElement::Calculate(const Variable<double>& rVariable, double& r
 
         // Stiffening of elements using Jacobian determinants and exponent between
         // 0.0 and 2.0
-        const double factor =
-            100;               // Factor influences how far the HELMHOLTZ_VARS spreads
+        const double r_helmholtz = this->pGetProperties()->GetValue(HELMHOLTZ_RADIUS);
+        const double factor = 1.0;            
+                                // Factor influences how far the HELMHOLTZ_VARS spreads
                                 // into the fluid mesh
         const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                                 // elements; 0 = no stiffening
         const double quotient = factor / detJ0[PointNumber];
-        const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);  
+        const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi) * r_helmholtz * r_helmholtz;  
 
         avg_weighting_factor += r_integration_points[PointNumber].Weight() * weighting_factor;
 
@@ -406,7 +407,9 @@ void HelmholtzVecElement::CalculateBulkStiffnessMatrix(
 
         const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS];
         MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(dimension, i_point);
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
+        // const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
+
+        const double IntToReferenceWeight = integration_points[i_point].Weight();
 
         noalias(rStiffnessMatrix) += prod(trans(B), IntToReferenceWeight * Matrix(prod(constitutive_matrix, B)));
         
@@ -445,13 +448,14 @@ HelmholtzVecElement::SetAndModifyConstitutiveLaw(
 
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
-  const double factor =
-      100;               // Factor influences how far the HELMHOLTZ_VARS spreads
+  const double r_helmholtz = this->pGetProperties()->GetValue(HELMHOLTZ_RADIUS);
+  const double factor = 1.0;               
+                         // Factor influences how far the HELMHOLTZ_VARS spreads
                          // into the fluid mesh
   const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
   const double quotient = factor / detJ0[PointNumber];
-  const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);
+  const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi) * r_helmholtz * r_helmholtz;
   const double poisson_coefficient = this->pGetProperties()->Has(HELMHOLTZ_POISSON_RATIO)
     ? this->pGetProperties()->GetValue(HELMHOLTZ_POISSON_RATIO) : 0.3;
 
