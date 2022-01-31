@@ -68,6 +68,8 @@
 #include "processes/from_json_check_result_process.h"
 #include "processes/set_initial_state_process.h"
 #include "processes/split_internal_interfaces_process.h"
+#include "processes/parallel_distance_calculation_process.h"
+
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -303,6 +305,18 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
+    ;
+
+    py::class_<ParallelDistanceCalculationProcess<2>, ParallelDistanceCalculationProcess<2>::Pointer, Process>(m,"ParallelDistanceCalculationProcess2D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<2>::FindMaximumEdgeSize)
+    ;
+
+    py::class_<ParallelDistanceCalculationProcess<3>, ParallelDistanceCalculationProcess<3>::Pointer, Process>(m,"ParallelDistanceCalculationProcess3D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<3>::FindMaximumEdgeSize)
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
