@@ -238,6 +238,7 @@ void KratosFluidDynamicsApplication::Register() {
 
     // Two-phase flow momentum correction
     KRATOS_REGISTER_VARIABLE( MOMENTUM_CORRECTION )
+    KRATOS_REGISTER_VARIABLE( MOMENTUM_MASS_CORRECTION )
     KRATOS_REGISTER_VARIABLE( DISTANCE_CORRECTION )
 
     // Register Elements

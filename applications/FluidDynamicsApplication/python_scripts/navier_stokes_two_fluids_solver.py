@@ -143,7 +143,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.momentum_correction = False
         if self.settings["formulation"].Has("momentum_correction"):
             self.momentum_correction = self.settings["formulation"]["momentum_correction"].GetBool()
-        self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_CORRECTION, self.momentum_correction)
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_CORRECTION, self.momentum_correction)        self.momentu_mass_correction=False
+
+        if self.settings["formulation"].Has("momentum_mass_correction"):
+            self.momentum_mass_correction = self.settings["formulation"]["momentum_mass_correction"].GetBool()
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_MASS_CORRECTION, self.momentum_mass_correction)
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
@@ -240,7 +244,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def InitializeSolutionStep(self):
 
-        if self.momentum_correction:
+        if self.momentum_correction or self.momentu_mass_correction:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.DISTANCE_CORRECTION, 0.0, self.main_model_part.Nodes)
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated

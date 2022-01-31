@@ -63,7 +63,324 @@ Element::Pointer TwoFluidNavierStokesAlphaMethod<TElementData>::Create(
     return Kratos::make_intrusive<TwoFluidNavierStokesAlphaMethod>(NewId, pGeom, pProperties);
 }
 
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
+    MatrixType &rLeftHandSideMatrix,
+    VectorType &rRightHandSideVector,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Resize and intialize output
+    if (rLeftHandSideMatrix.size1() != LocalSize)
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
 
+    if (rRightHandSideVector.size() != LocalSize)
+        rRightHandSideVector.resize(LocalSize, false);
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+
+    if (TElementData::ElementManagesTimeIntegration)
+    {
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+
+        if (data.IsCut())
+        {
+            GeometryType::Pointer p_geom = this->pGetGeometry();
+            Matrix shape_functions_pos, shape_functions_neg;
+            Matrix shape_functions_enr_pos, shape_functions_enr_neg;
+            GeometryType::ShapeFunctionsGradientsType shape_derivatives_pos, shape_derivatives_neg;
+            GeometryType::ShapeFunctionsGradientsType shape_derivatives_enr_pos, shape_derivatives_enr_neg;
+
+            ModifiedShapeFunctions::Pointer p_modified_sh_func = pGetModifiedShapeFunctionsUtility(p_geom, data.Distance);
+
+            ComputeSplitting(
+                data,
+                shape_functions_pos,
+                shape_functions_neg,
+                shape_functions_enr_pos,
+                shape_functions_enr_neg,
+                shape_derivatives_pos,
+                shape_derivatives_neg,
+                shape_derivatives_enr_pos,
+                shape_derivatives_enr_neg,
+                p_modified_sh_func);
+
+            if (data.NumberOfDivisions == 1)
+            {
+                // Cases exist when the element is not subdivided due to the characteristics of the provided distance
+                // In this cases the element is treated as AIR or FLUID depending on the side
+                Vector gauss_weights;
+                Matrix shape_functions;
+                ShapeFunctionDerivativesArrayType shape_derivatives;
+                this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+                const unsigned int number_of_gauss_points = gauss_weights.size();
+                array_1d<double, NumNodes> Ncenter;
+                for (unsigned int i = 0; i < NumNodes; ++i)
+                {
+                    Ncenter[i] = 1.0 / NumNodes;
+                }
+                for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+                {
+                    UpdateIntegrationPointData(
+                        data,
+                        g,
+                        gauss_weights[g],
+                        row(shape_functions, g),
+                        shape_derivatives[g]);
+                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
+                }
+            }
+            else
+            {
+                MatrixType Vtot = ZeroMatrix(NumNodes * (Dim + 1), NumNodes);
+                MatrixType Htot = ZeroMatrix(NumNodes, NumNodes * (Dim + 1));
+                MatrixType Kee_tot = ZeroMatrix(NumNodes, NumNodes);
+                VectorType rhs_ee_tot = ZeroVector(NumNodes);
+
+                for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos)
+                {
+                    UpdateIntegrationPointData(
+                        data,
+                        g_pos,
+                        data.w_gauss_pos_side[g_pos],
+                        row(shape_functions_pos, g_pos),
+                        shape_derivatives_pos[g_pos],
+                        row(shape_functions_enr_pos, g_pos),
+                        shape_derivatives_enr_pos[g_pos]);
+
+                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
+                    this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                }
+
+                for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); ++g_neg)
+                {
+                    UpdateIntegrationPointData(
+                        data,
+                        g_neg,
+                        data.w_gauss_neg_side[g_neg],
+                        row(shape_functions_neg, g_neg),
+                        shape_derivatives_neg[g_neg],
+                        row(shape_functions_enr_neg, g_neg),
+                        shape_derivatives_enr_neg[g_neg]);
+                    this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
+                    this->ComputeGaussPointEnrichmentContributions(data, Vtot, Htot, Kee_tot, rhs_ee_tot);
+                }
+
+                Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
+                GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
+                Vector int_gauss_pts_weights;
+                std::vector<array_1d<double, 3>> int_normals_neg;
+
+                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]  || rCurrentPRocessInfo[MOMENTUM_MASS_CORRECTION])
+                {
+                    ComputeSplitInterface(
+                        data,
+                        int_shape_function,
+                        int_shape_function_enr_pos,
+                        int_shape_function_enr_neg,
+                        int_shape_derivatives,
+                        int_gauss_pts_weights,
+                        int_normals_neg,
+                        p_modified_sh_func);
+                }
+                if rCurrentPRocessInfo
+                    [MOMENTUM_MASS_CORRECTION]
+                    {
+                        BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize, LocalSize);
+
+                        double positive_density = 0.0;
+                        double negative_density = 0.0;
+
+                        const auto &r_geom = this->GetGeometry();
+
+                        for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp)
+                        {
+                            double u_ns = 0.0;
+                            for (unsigned int i = 0; i < NumNodes; ++i)
+                            {
+                                u_ns += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStep(VELOCITY);
+                                u_prime = int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStep(DISTANCE,1);
+                                if (data.Distance[i] > 0.0)
+                                {
+                                    positive_density = data.NodalDensity[i];
+                                }
+                                else
+                                {
+                                    negative_density = data.NodalDensity[i];
+                                }
+                            }
+
+                            u_prime /= data.DeltaTime;
+                            u_int = u_prime - inner_prd(u_ns, int_normals_neg);
+                            epsilon_int += u_prime * int_gauss_pts_weights(intgp);
+
+                            for (unsigned int i = 0; i < NumNodes; ++i)
+
+                            {
+                                rhs_mass_correction((i + 1) * (NumNodes)-1) += int_shape_function(intgp, i) * u_int * int_gauss_pts_weights(intgp);
+                                for (unsigned int j = 0; j < NumNodes; ++j)
+                                {
+                                    for (unsigned int dim = 0; dim < NumNodes - 1; ++dim)
+                                    {
+                                        lhs_acc_correction(i * (NumNodes) + dim, j * (NumNodes) + dim) +=
+                                            int_shape_function(intgp, i) * int_shape_function(intgp, j) * u_int * int_gauss_pts_weights(intgp);
+                                    }
+                                }
+                            }
+                        }
+                        for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos)
+                        {
+                            for (unsigned int i = 0; i < NumNodes; ++i)
+                            {
+                                for (unsigned int j = 0; j < NumNodes; ++j)
+                                {
+                                    for (unsigned int dim = 0; dim < NumNodes - 1; ++dim)
+                                    {
+                                        lhs_correc_term(i * (NumNodes) + dim, j * (NumNodes) + dim) +=
+                                            shape_functions_pos(i, g_pos) * shape_functions_neg(g_pos, j) * gp_weights_pos
+                                    }
+                                }
+                            }
+                        }
+
+                        for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); ++g_neg)
+                        {
+                            for (unsigned int i = 0; i < NumNodes; ++i)
+                            {
+                                for (unsigned int j = 0; j < NumNodes; ++j)
+                                {
+                                    for (unsigned int dim = 0; dim < NumNodes - 1; ++dim)
+                                    {
+                                    lhs_correc_term(i*(NumNodes) + dim, j*(NumNodes) + dim) +=
+                                        shape_functions_neg(i,g_neg)*shape_functions_negj,g_neg)*gp_weights_neg;
+                                    }
+                                }
+                            }
+                        }
+
+                        epsilon_int *= (negative_density - positive_density);
+
+                        lhs_correc_term = epsilon_int / VOLUME * lhs_correc_term;
+
+                        rhs_mass_correction = (negative_density - positive_density) * rhs_mass_correction;
+
+                        lhs_acc_correction = (negative_density - positive_density) * lhs_acc_correction;
+                        noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+                        noalias(rRightHandSideVector) += rhs_mass_correction;
+
+                    }
+                     if (rCurrentProcessInfo[MOMENTUM_CORRECTION])
+                    {
+                        BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize, LocalSize);
+
+                        double positive_density = 0.0;
+                        double negative_density = 0.0;
+
+                        const auto &r_geom = this->GetGeometry();
+
+                        for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp)
+                        {
+                            double u_dot_n = 0.0;
+                            for (unsigned int i = 0; i < NumNodes; ++i)
+                            {
+                                u_dot_n += int_shape_function(intgp, i) * r_geom[i].GetValue(DISTANCE_CORRECTION);
+
+                                if (data.Distance[i] > 0.0)
+                                {
+                                    positive_density = data.NodalDensity[i];
+                                }
+                                else
+                                {
+                                    negative_density = data.NodalDensity[i];
+                                }
+                            }
+
+                            u_dot_n /= data.DeltaTime;
+
+                            for (unsigned int i = 0; i < NumNodes; ++i)
+                            {
+                                for (unsigned int j = 0; j < NumNodes; ++j)
+                                {
+                                    for (unsigned int dim = 0; dim < NumNodes - 1; ++dim)
+                                    {
+                                        lhs_acc_correction(i * (NumNodes) + dim, j * (NumNodes) + dim) +=
+                                            int_shape_function(intgp, i) * int_shape_function(intgp, j) * u_dot_n * int_gauss_pts_weights(intgp);
+                                    }
+                                }
+                            }
+                        }
+
+                        lhs_acc_correction = (negative_density - positive_density) * lhs_acc_correction;
+                        noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+
+                        Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
+                        for (unsigned int i = 0; i < NumNodes; ++i)
+                        {
+                            for (unsigned int dimi = 0; dimi < Dim; ++dimi)
+                            {
+                                tempU[i * (Dim + 1) + dimi] = data.Velocity(i, dimi);
+                            }
+                        }
+                        noalias(rRightHandSideVector) -= prod(lhs_acc_correction, tempU);
+                }
+
+                if (rCurrentProcessInfo[SURFACE_TENSION])
+                {
+
+                    AddSurfaceTensionContribution(
+                        data,
+                        int_shape_function,
+                        int_shape_function_enr_pos,
+                        int_shape_function_enr_neg,
+                        int_shape_derivatives,
+                        int_gauss_pts_weights,
+                        int_normals_neg,
+                        rLeftHandSideMatrix,
+                        rRightHandSideVector,
+                        Htot,
+                        Vtot,
+                        Kee_tot,
+                        rhs_ee_tot);
+                }
+                else
+                {
+                    // Without pressure gradient stabilization, volume ratio is checked during condensation
+                    // Also, without surface tension, zero pressure difference is penalized
+                    CondenseEnrichmentWithContinuity(data, rLeftHandSideMatrix, rRightHandSideVector, Htot, Vtot, Kee_tot, rhs_ee_tot);
+                }
+            }
+        }
+        else
+        {
+            //Get Shape function data
+            Vector gauss_weights;
+            Matrix shape_functions;
+            ShapeFunctionDerivativesArrayType shape_derivatives;
+            this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+            const unsigned int number_of_gauss_points = gauss_weights.size();
+            // Iterate over integration points to evaluate local contribution
+            for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+            {
+                UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+                this->AddTimeIntegratedSystem(data, rLeftHandSideMatrix, rRightHandSideVector);
+            }
+        }
+    }
+    else
+    {
+        KRATOS_ERROR << "TwoFluidNavierStokes is supposed to manage time integration." << std::endl;
+    }
+}
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::CalculateRightHandSide(
+    VectorType &rRightHandSideVector,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    MatrixType tmp;
+    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
