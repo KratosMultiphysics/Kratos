@@ -49,9 +49,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyLaserProcess);
 
     typedef Table<double, double> TableType;
-    array_1d<int, 3> mPositionLaserTableId;
-    double mradius;
-    double mpower;
+
 
     /// Constructor
     ApplyLaserProcess(
@@ -79,7 +77,8 @@ public:
 //		 "face_heat_flux": 0.0
   //          }  )" );
 
-
+        mRadius = rParameters["laser_profile"]["radius"].GetDouble();
+        mPower = rParameters["laser_profile"]["power"].GetDouble();
 
         // Now validate agains defaults -- this also ensures no type mismatch
         //rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -114,105 +113,58 @@ public:
     }
 
     /// this function will be executed at every time step BEFORE performing the solve phase
-	void laserapplication(double mradius, double mpower, double mx, double my, double mz)  {
-	KRATOS_TRY;
-	double radius= mradius;
-        double face_heat_flux =mpower;
-        
-	double x= mx;
-	double y= my;
-        double z= mz;
-        const int TDim=3;
+	void ApplyLaser(double x, double y, double z)  {
+        KRATOS_TRY;
 
-	//defintions for spatial search
-	typedef Node < 3 > PointType;
+        //defintions for spatial search
+        typedef Node < 3 > PointType;
         typedef Node < 3 > ::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer> PointVector;
-        typedef std::vector<PointType::Pointer>::iterator PointIterator;
-        typedef std::vector<double> DistanceVector;
-        typedef std::vector<double>::iterator DistanceIterator;
 
         //creating an auxiliary list for the new nodes
         PointVector list_of_nodes;
 
-        //  *************
-        // Bucket types
-        typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-
-        typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
-
-
-        //starting calculating time of construction of the kdtree
-        boost::timer kdtree_construction;
-
-        for (ModelPart::NodesContainerType::iterator node_it = mrModelPart.NodesBegin();
-	     node_it != mrModelPart.NodesEnd(); ++node_it)
-	  {
+        for (ModelPart::NodesContainerType::iterator node_it = mrModelPart.NodesBegin(); node_it != mrModelPart.NodesEnd(); ++node_it) {
             PointTypePointer pnode = *(node_it.base());
+            node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=0.0;
+            if(node_it->FastGetSolutionStepValue(IS_FREE_SURFACE)) {
+                list_of_nodes.push_back(pnode);
+            }
+        }
 
-            //putting the nodes of the destination_model part in an auxiliary list
-            list_of_nodes.push_back(pnode);
-
-	    (node_it)->FastGetSolutionStepValue(FACE_HEAT_FLUX)=0.0;
-
-	  }
-
-        std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
-
-        //create a spatial database with the list of new nodes
-        unsigned int bucket_size = 20;
-        tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
-        //work arrays
         Node < 3 > work_point(0, 0.0, 0.0, 0.0);
-        unsigned int MaximumNumberOfResults = 10000;
-        PointVector Results(MaximumNumberOfResults);
-        DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
 
-        double sigma = 0.0;
-        if (TDim == 2)
-	  sigma = 10.0 / (7.0 * 3.1415926);
-        else
-	  sigma = 1.0 / 3.1415926;
+        array_1d<double, 3> direction;
+        direction[0] = 0.0;
+        direction[1] = 0.0;
+        direction[2] = -1.0;
+        array_1d<double, 3> unitary_dir = direction * (1.0 / MathUtils<double>::Norm3(direction));
 
-        work_point.X() = x;
-	work_point.Y() = y;
-	work_point.Z() = z;
+        for (size_t k = 0; k < list_of_nodes.size(); k++) {
+            const array_1d<double, 3>& coords = list_of_nodes[k]->Coordinates();
+            array_1d<double, 3> distance_vector;
+            distance_vector[0] = coords[0]-x;
+            distance_vector[1] = coords[1]-y;
+            distance_vector[2] = coords[2]-z;
+            const double distance = MathUtils<double>::Norm3(distance_vector); // TODO: squared norm is better here
+            const double distance_projected_to_dir = distance_vector[0]*unitary_dir[0] + distance_vector[1]*unitary_dir[1] + distance_vector[2]*unitary_dir[2];
 
-        //find all of the new nodes within the radius
-        int number_of_points_in_radius;
+            const double distance_to_laser_axis = std::sqrt(distance*distance - distance_projected_to_dir*distance_projected_to_dir);
 
-        //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
-        number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(), SquaredResultsDistances.begin(), MaximumNumberOfResults);
+            if(distance_to_laser_axis < mRadius) {
+                double& aux= list_of_nodes[k]->FastGetSolutionStepValue(FACE_HEAT_FLUX);
+                aux =  mPower / (Globals::Pi * mRadius * mRadius);
+            }
+        }
 
-        if (number_of_points_in_radius > 0)
-	{
-
-		double maximunweight = SPHCubicKernel(sigma, 0.0, radius);
-		for (int k = 0; k < number_of_points_in_radius; k++)
-		{
-			double distance = sqrt(*(SquaredResultsDistances.begin() + k));
-
-			double weight = SPHCubicKernel(sigma, distance, radius);
-
-			PointIterator it_found = Results.begin() + k;
-
-			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE)==1) //MATERIAL_VARIABLE
-			  {
-
-			    double& aux= (*it_found)->FastGetSolutionStepValue(FACE_HEAT_FLUX);
-                            aux =  face_heat_flux * weight / maximunweight;
-			}
-		}
-	  }
-	KRATOS_CATCH("");
+        KRATOS_CATCH("");
 	}
+
     void ExecuteInitializeSolutionStep() override {
         KRATOS_TRY;
 
 
         KRATOS_CATCH("")
-
     }
 
 
@@ -255,30 +207,14 @@ private:
     //mLaserProfile.clear();
     //mDirection.clear();
     std::vector<TableType::Pointer> mPositionLaserTable;
-
-    double mRadious;
+    array_1d<int, 3> mPositionLaserTableId;
+    double mPower;
+    double mRadius;
     /// Assignment operator.
     ApplyLaserProcess& operator=(ApplyLaserProcess const& rOther);
 
     /// Copy constructor.
     //ApplyLaserProcess(ApplyLaserProcess const& rOther);
-
-
-	inline double SPHCubicKernel(const double sigma, const double r, const double hmax)
-      {
-        const int TDim=3;
-        double h_half = 0.5 * hmax;
-        const double s = r / h_half;
-        const double coeff = sigma / pow(h_half, static_cast<int>(TDim));
-
-        if (s <= 1.0)
-	  return coeff * (1.0 - 1.5 * s * s + 0.75 * s * s * s);
-        else if (s <= 2.0)
-	  return 0.25 * coeff * pow(2.0 - s, 3);
-        else
-            return 0.0;
-      }
-
 
 
 }; // Class ApplyLaserProcess

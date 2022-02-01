@@ -38,7 +38,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<ApplyLaserProcess, ApplyLaserProcess::Pointer, Process>
     (m, "ApplyLaserProcess")
     .def(py::init < ModelPart&, Parameters>())
-    .def("laserapplication", &ApplyLaserProcess::laserapplication);
+    .def("ApplyLaser", &ApplyLaserProcess::ApplyLaser);
 
 
 }
