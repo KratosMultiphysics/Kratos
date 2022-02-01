@@ -111,6 +111,7 @@ class VisualizationMeshProcess(KM.Process):
 
     def _DuplicateModelPart(self):
         KM.MergeVariableListsUtility().Merge(self.computing_model_part, self.topographic_model_part)
+        self.topographic_model_part.ProcessInfo = self.computing_model_part.ProcessInfo
         element_num_nodes = len(self.computing_model_part.Elements.__iter__().__next__().GetNodes())
         condition_num_nodes = len(self.computing_model_part.Conditions.__iter__().__next__().GetNodes())
         reference_element = "Element2D{}N".format(element_num_nodes)

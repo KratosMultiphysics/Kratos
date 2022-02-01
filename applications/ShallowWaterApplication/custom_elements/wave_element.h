@@ -300,8 +300,10 @@ protected:
         array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
         array_1d<double,TNumNodes> nodal_z;
+        array_1d<double,TNumNodes> nodal_w;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_a;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q_lap;
 
@@ -337,12 +339,19 @@ protected:
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
+    static const double VectorProduct(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
     static double InverseHeight(const ElementData& rData);
+
+    static double WetFraction(const ElementData& rData);
 
     virtual void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 
     virtual void CalculateArtificialDamping(
@@ -368,6 +377,7 @@ protected:
     void AddArtificialViscosityTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
