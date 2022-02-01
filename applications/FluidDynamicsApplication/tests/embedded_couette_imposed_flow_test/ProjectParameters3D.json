@@ -1,30 +1,10 @@
 {
     "problem_data"                     : {
         "problem_name"    : "couette_imposed_3d",
-        "model_part_name" : "MainModelPart",
         "parallel_type"   : "OpenMP",
-        "start_step"      : 0.0,
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
         "end_time"        : 199.0
-    },
-    "output_configuration"             : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_interval"     : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
     },
     "restart_options"                  : {
         "SaveRestart"      : "False",
@@ -41,7 +21,7 @@
             "input_filename" : "couette_imposed_3D"
         },
         "material_import_settings": {
-            "materials_filename": "EmbeddedCouetteImposedTestMaterials.json"
+            "materials_filename": "FluidMaterials3D.json"
         },
         "distance_modification_settings": {
             "check_at_each_time_step": false,
@@ -65,9 +45,7 @@
             "time_step"           : 100.0
         },
         "formulation": {
-            "element_type": "embedded_navier_stokes",
-            "is_slip": false,
-            "dynamic_tau": 1.0
+            "element_type": "TO_BE_DEFINED_IN_THE_TEST_FILE"
         }
     },
     "processes": {
@@ -118,6 +96,10 @@
                 "modulus"         : 0.0,
                 "direction"       : [0.0,-1.0,0.0]
             }
-        }]
+        }],
+        "json_check_process_list" : []
+    },
+    "output_processes" : {
+        "gid_output" : []
     }
 }
