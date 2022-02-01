@@ -41,17 +41,21 @@ class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
             element.SetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES, elem_edge_dist)
 
         # Set up the initial velocity condition
+        # Note that we also initialize the buffer to avoid artificial inertial residual
+        buffer_size = computing_model_part.GetBufferSize()
         if self.slip_interface:
             init_v = KratosMultiphysics.Vector([1.0,0.0,0.0])
             for node in computing_model_part.Nodes:
                 if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
+                    for step in range(buffer_size):
+                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, step, init_v)
         else:
             for node in computing_model_part.Nodes:
                 dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 if dist > 0.0:
                     init_v = KratosMultiphysics.Vector([dist,0.0,0.0])
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, init_v)
+                    for step in range(buffer_size):
+                        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, step, init_v)
 
     def ApplyBoundaryConditions(self):
         super().ApplyBoundaryConditions()
