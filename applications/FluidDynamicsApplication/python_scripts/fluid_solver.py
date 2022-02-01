@@ -95,8 +95,8 @@ class FluidSolver(PythonSolver):
             self._ReplaceElementsAndConditions()
             ## Executes the check and prepare model process
             self._ExecuteCheckAndPrepare()
-            ## Set buffer size
-            self.main_model_part.SetBufferSize(self.min_buffer_size)
+            ## Set and fill buffer
+            self._SetAndFillBuffer()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
@@ -123,27 +123,21 @@ class FluidSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self._GetSolutionStrategy().InitializeSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
-        if self._TimeBufferIsInitialized():
-            self._GetSolutionStrategy().Predict()
+        self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            is_converged = self._GetSolutionStrategy().SolveSolutionStep()
-            if not is_converged:
-                msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
-                msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
-                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, msg)
-            return is_converged
-        else:
-            return True
+        is_converged = self._GetSolutionStrategy().SolveSolutionStep()
+        if not is_converged:
+            msg  = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, msg)
+        return is_converged
 
     def FinalizeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            self._GetSolutionStrategy().FinalizeSolutionStep()
+        self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def Check(self):
         self._GetSolutionStrategy().Check()
@@ -157,11 +151,6 @@ class FluidSolver(PythonSolver):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     ## FluidSolver specific methods.
-
-    def _TimeBufferIsInitialized(self):
-        # We always have one extra old step (step 0, read from input)
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
-
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
         elem_num_nodes = self._GetElementNumNodes()
@@ -223,6 +212,27 @@ class FluidSolver(PythonSolver):
 
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
+    def _SetAndFillBuffer(self):
+        # Set the buffer size for the nodal solution steps data.
+        # Existing nodal solution step data may be lost.
+        required_buffer_size = self.GetMinimumBufferSize()
+        current_buffer_size = self.main_model_part.GetBufferSize()
+        buffer_size = max(current_buffer_size, required_buffer_size)
+        self.main_model_part.SetBufferSize(buffer_size)
+
+        # Cycle the buffer. This sets all historical nodal solution step data to
+        # the current value and initializes the time stepping in the process info.
+        step = -buffer_size
+        delta_time = self._ComputeInitialDeltaTime()
+        init_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        time = init_time - delta_time * buffer_size
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        for _ in range(buffer_size):
+            step += 1
+            time += delta_time
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+            self.main_model_part.CloneTimeStep(time)
+
     def _ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -232,6 +242,16 @@ class FluidSolver(PythonSolver):
             delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
         return delta_time
+
+    def _ComputeInitialDeltaTime(self):
+        # Automatic time step computation according to user defined CFL number
+        if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
+            initial_delta_time = self.settings["time_stepping"]["minimum_delta_time"].GetDouble()
+        # User-defined delta time
+        else:
+            initial_delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+
+        return initial_delta_time
 
     def _SetPhysicalProperties(self):
         # Check if the fluid properties are provided using a .json file
