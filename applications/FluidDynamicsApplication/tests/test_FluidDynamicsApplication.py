@@ -40,7 +40,6 @@ from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
 from initialize_with_compressible_potential_flow_process_test import InitializeWithCompressiblePotentialSolutionProcessTest
 from compressible_navier_stokes_symbolic_generator_test import CompressibleNavierStokesSymbolicGeneratorTest
-from compressible_navier_stokes_symbolic_generator_compiled_test import CompressibleNavierStokesSymbolicGeneratorCompilationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -119,8 +118,8 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
-    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorCompilationTest('test_Quadrilateral'))
-    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorCompilationTest('test_Triangle'))
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTriangle'))
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorQuad'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
