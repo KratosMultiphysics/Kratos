@@ -35,7 +35,7 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
         super().InitializeSolutionStep()
         
         # Update time to print in all model parts (if it has not already been updated in super class)
-        if not self.DEM_parameters["ContactMeshOption"].GetBool():
+        if not self.DEM_parameters["ContactMeshOption"].GetBool() and self._GetSolver().write_graph:
             self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
 
 if __name__ == "__main__":
