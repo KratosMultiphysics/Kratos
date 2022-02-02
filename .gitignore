@@ -16,6 +16,7 @@
 ~scripts/standard_configure.sh
 ~scripts/standard_configure_MINGW.bat
 ~scripts/standard_configure.bat
+scripts/*.out
 scripts/*.sh
 scripts/*.bat
 build/*
