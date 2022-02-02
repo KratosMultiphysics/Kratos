@@ -99,12 +99,16 @@ public:
      * provided model part. Once these are found, it is checked that they are not already added and returned.
      * Note that this functions requires the NEIGHBOUR_ELEMENTS to be already computed.
      * @param rModelPart Complete model part (all elements and conditions)
-     * @param rHromWeights Map containing the original HROM conditions and elements weights
+     * @param rHRomWeights Map containing the original HROM conditions and elements weights
      * @return std::vector<IndexType> List containing the ids of the missing parent elements
      */
     static std::vector<IndexType> GetHRomConditionParentsIds(
         const ModelPart& rModelPart,
-        std::map<std::string, std::map<IndexType, double>>& rHromWeights);
+        const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    static std::vector<IndexType> GetHRomMinimumConditionsIds(
+        const ModelPart& rModelPart,
+        const std::map<IndexType, double>& rHRomConditionWeights);
 
     /**
      * @brief Project the ROM solution increment onto the nodal basis
@@ -130,6 +134,11 @@ public:
         const std::vector<Condition::Pointer>& rConditionsVector,
         const ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart);
+
+    static void RecursiveHRomMinimumConditionIds(
+        const ModelPart& rModelPart,
+        const std::map<IndexType, double>& rHRomConditionWeights,
+        std::vector<IndexType>& rMinimumConditionsIds);
 
     ///@}
 

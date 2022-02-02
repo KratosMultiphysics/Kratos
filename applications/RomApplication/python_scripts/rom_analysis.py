@@ -86,7 +86,8 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             super().ModifyAfterSolverInitialize()
 
             # Get the model part where the ROM is to be applied
-            computing_model_part = self._GetSolver().GetComputingModelPart()
+            computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
+            # computing_model_part = self._GetSolver().GetComputingModelPart()
 
             # Set ROM basis
             nodal_modes = self.rom_parameters["nodal_modes"]

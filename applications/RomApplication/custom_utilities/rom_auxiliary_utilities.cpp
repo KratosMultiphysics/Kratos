@@ -175,6 +175,13 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     const ModelPart& rOriginModelPart,
     ModelPart& rHRomVisualizationModelPart)
 {
+    // Create a set with the nodes already present in the HROM model part
+    // These are those ones that will not be added to the visualization model part to avoid updating them twice
+    std::vector<IndexType> pure_hrom_nodes;
+    for (const auto& r_node : rHRomVisualizationModelPart.GetRootModelPart().Nodes()) {
+        pure_hrom_nodes.push_back(r_node.Id());
+    }
+
     // Create a map for the potential skin entities
     // Key is a sorted vector with the face ids
     // Value is a tuple with a bool indicating if the entity is repeated (first) with a pointer to the origin face entity to be cloned (second)
@@ -250,7 +257,14 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     }
 
     // Add entities to the HROM visualization model part
+    // Note that the pure HROM nodes are not added to the visualization model part
+    // Instead we only add those auxiliary ones with visualization only purpose
     std::sort(skin_nodes_ids.begin(), skin_nodes_ids.end());
+    for (const IndexType Id : pure_hrom_nodes) {
+        std::remove(skin_nodes_ids.begin(), skin_nodes_ids.end(), Id);
+    }
+    auto aux_end = std::unique(skin_nodes_ids.begin(), skin_nodes_ids.end());
+    skin_nodes_ids.resize(std::distance(skin_nodes_ids.begin(), aux_end));
     rHRomVisualizationModelPart.AddNodes(skin_nodes_ids);
 
     // Create fake conditions for the HROM visualization
@@ -266,11 +280,11 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     const ModelPart& rModelPart,
-    std::map<std::string, std::map<IndexType, double>>& rHromWeights)
+    const std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
 {
     std::vector<IndexType> parent_ids;
-    auto& r_elem_weights = rHromWeights["Elements"];
-    auto& r_cond_weights = rHromWeights["Conditions"];
+    const auto& r_elem_weights = rHRomWeights.at("Elements");
+    const auto& r_cond_weights = rHRomWeights.at("Conditions");
 
     for (auto it = r_cond_weights.begin(); it != r_cond_weights.end(); ++it) {
         // Get the condition parent
@@ -286,6 +300,79 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     }
 
     return parent_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
+    const ModelPart& rModelPart,
+    const std::map<IndexType, double>& rHRomConditionWeights)
+{
+    // Auxiliary vector containing the ids of the "minimum" conditions
+    std::vector<IndexType> cond_ids;
+
+    // Check that there are conditions in this model part
+    // Note that conditions are recursively added so if there are no conditions there is no need to check submodelparts
+    if (rModelPart.NumberOfConditions()) {
+        // Check if the HROM condition weights already have one of the conditions of this model part
+        bool has_minimum_condition = false;
+        for (auto it = rHRomConditionWeights.begin(); it != rHRomConditionWeights.end(); ++it) {
+            const IndexType cond_id = it->first + 1; //FIXME: FIX THE +1 !!!!!!!
+            if (rModelPart.HasCondition(cond_id)) {
+                has_minimum_condition = true;
+                break;
+            }
+        }
+
+        // If minimum condition is missing, add the first condition as minimum one
+        if (!has_minimum_condition) {
+            cond_ids.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE + 1 !!!!! -> WE SHOULD WRITE REAL IDS!!!!
+        }
+
+        KRATOS_WATCH(rModelPart.Name())
+
+        // Recursively check the submodelparts
+        for (const auto& r_sub_mp : rModelPart.SubModelParts()) {
+            RecursiveHRomMinimumConditionIds(r_sub_mp, rHRomConditionWeights, cond_ids);
+        }
+    }
+
+    // Remove repeated conditions
+    std::sort(cond_ids.begin(), cond_ids.end());
+    cond_ids.erase(std::unique(cond_ids.begin(), cond_ids.end()), cond_ids.end());
+
+    return cond_ids;
+}
+
+void RomAuxiliaryUtilities::RecursiveHRomMinimumConditionIds(
+    const ModelPart& rModelPart,
+    const std::map<IndexType, double>& rHRomConditionWeights,
+    std::vector<IndexType>& rMinimumConditionsIds)
+{
+    KRATOS_WATCH(rModelPart.Name())
+    // Check that there are conditions in this model part
+    // Note that conditions are recursively added so if there are no conditions there is no need to check submodelparts
+    if (rModelPart.NumberOfConditions()) {
+        // Check if the HROM condition weights already have one of the conditions of this model part
+        bool has_minimum_condition = false;
+        for (auto it = rHRomConditionWeights.begin(); it != rHRomConditionWeights.end(); ++it) {
+            const IndexType cond_id = it->first + 1; //FIXME: FIX THE + 1
+            if (rModelPart.HasCondition(cond_id)) {
+                has_minimum_condition = true;
+                break;
+            }
+        }
+
+        // If minimum condition is missing, add the first condition as minimum one
+        if (!has_minimum_condition) {
+            rMinimumConditionsIds.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE - 1
+        }
+
+        // Recursively check the current modelpart submodelparts
+        for (const auto& r_sub_mp : rModelPart.SubModelParts()) {
+            if (r_sub_mp.NumberOfConditions()) {
+                RecursiveHRomMinimumConditionIds(r_sub_mp, rHRomConditionWeights, rMinimumConditionsIds);
+            }
+        }
+    }
 }
 
 void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
@@ -308,13 +395,14 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
         const auto& r_rom_basis = rNode.GetValue(ROM_BASIS);
         IndexType i_var = 0;
         for (const auto& p_var : rom_var_list) {
+            // It is important to update the values from the old one in buffer position 1
+            // Otherwise the update of the nodes shared by this model part and the HROM one
+            // would be accumulated to that one performed in the ROM B&S (see ProjectToFineBasis)
+            //FIXME: WE WOULD BE UPDATING THE VALUES TWICE....
             if (!rNode.IsFixed(*p_var)) {
-                // It is important to update the values from the old one in buffer position 1
-                // Otherwise the update of the nodes shared by this model part and the HROM one
-                // would be accumulated to that one performed in the ROM B&S (see ProjectToFineBasis)
-                const double& r_old_val = rNode.FastGetSolutionStepValue(*p_var,1);
-                rNode.FastGetSolutionStepValue(*p_var) = r_old_val + inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
+                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
             }
+
         }
     });
 }
