@@ -10,6 +10,12 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
     def __init__(self, model, parameters):
         super().__init__(model, parameters)
 
+    def SetFinalTime(self):
+        self.demio = ThermalDEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
+        if self.DEM_parameters["post_vtk_option"].GetBool():
+            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
+            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
+    
     def _CreateSolver(self):
         def SetSolverStrategy():
             strategy_file_name = self.DEM_parameters["solver_settings"]["strategy"].GetString()
@@ -24,12 +30,6 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
                                                     self.dem_fem_search,
                                                     self.DEM_parameters,
                                                     self.procedures)
-
-    def SetGraphicalOutput(self):
-        self.demio = ThermalDEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
-        if self.DEM_parameters["post_vtk_option"].GetBool():
-            import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
-            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
