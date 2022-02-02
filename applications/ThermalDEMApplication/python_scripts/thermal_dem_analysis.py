@@ -11,6 +11,7 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
         super().__init__(model, parameters)
 
     def SetFinalTime(self):
+    def SetGraphicalOutput(self):
         self.demio = ThermalDEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
             import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
