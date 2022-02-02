@@ -1006,20 +1006,25 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
 
         double Temperature;
         this->EvaluateInPoint(Temperature, TEMPERATURE, rShapeFunc);
-
+        //Temperature=900.0;
         double Activation_energy;
         this->EvaluateInPoint(Activation_energy, ACTIVATION_ENERGY, rShapeFunc);
 
         double Arrhenius_coefficient;
         this->EvaluateInPoint(Arrhenius_coefficient, ARRHENIUS_COEFFICIENT, rShapeFunc);
-
+	//KRATOS_WATCH(Arrhenius_coefficient)
+	//KRATOS_WATCH(Activation_energy)
+	//KRATOS_WATCH(Temperature)
 	double R=8.31; //universal gas constant
 	//constexpr double E_over_R_polymer = 21877.25;
 	//constexpr double C_polymer = 1.93e12;
-
-	double aux_var_polymer= Arrhenius_coefficient * exp(-Activation_energy/(R*Temperature));
-
-
+	double E_over_R_polymer = Activation_energy / R;
+	//double FFFF = E_over_R_polymer/Temperature;
+	//KRATOS_WATCH(FFFF)
+	//KRATOS_WATCH(E_over_R_polymer)
+	double aux_var_polymer= Arrhenius_coefficient * std::exp(- E_over_R_polymer/Temperature) ;
+        //double aux_var_polymer= 1.0 * std::exp(- 1.0) ; 
+	//KRATOS_WATCH(aux_var_polymer)
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
         {
             for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns

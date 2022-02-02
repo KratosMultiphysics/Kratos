@@ -85,7 +85,7 @@ namespace Kratos
 
             //node_it->FastGetSolutionStepValue(ARRHENIUS_VALUE)=aux_var_polymer;
 
-            node_it->FastGetSolutionStepValue(HEAT_FLUX) = (-1.0) * density * heat_of_vaporization * aux_var_polymer;
+            node_it->FastGetSolutionStepValue(HEAT_FLUX) = 0.0 * (-1.0) * density * heat_of_vaporization * aux_var_polymer;
             
             //KRATOS_WATCH(node_it->FastGetSolutionStepValue(HEAT_FLUX))
 

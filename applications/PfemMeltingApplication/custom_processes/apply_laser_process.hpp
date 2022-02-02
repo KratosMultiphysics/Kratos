@@ -79,6 +79,10 @@ public:
 
         mRadius = rParameters["laser_profile"]["radius"].GetDouble();
         mPower = rParameters["laser_profile"]["power"].GetDouble();
+        mDirectionx = rParameters["direction"][0].GetDouble();
+        mDirectiony = rParameters["direction"][1].GetDouble();
+        mDirectionz = rParameters["direction"][2].GetDouble();
+
 
         // Now validate agains defaults -- this also ensures no type mismatch
         //rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -135,28 +139,44 @@ public:
         Node < 3 > work_point(0, 0.0, 0.0, 0.0);
 
         array_1d<double, 3> direction;
-        direction[0] = 0.0;
-        direction[1] = 0.0;
-        direction[2] = -1.0;
+        /*direction[0] = 0.0;
+        direction[1] = 1.0;
+        direction[2] = 0.0;*/
+
+        direction[0] = mDirectionx;
+        direction[1] = mDirectiony;
+        direction[2] = mDirectionz;
+
+	//KRATOS_WATCH(direction)
         array_1d<double, 3> unitary_dir = direction * (1.0 / MathUtils<double>::Norm3(direction));
 
+        //KRATOS_WATCH(unitary_dir)
         for (size_t k = 0; k < list_of_nodes.size(); k++) {
             const array_1d<double, 3>& coords = list_of_nodes[k]->Coordinates();
             array_1d<double, 3> distance_vector;
             distance_vector[0] = coords[0]-x;
             distance_vector[1] = coords[1]-y;
             distance_vector[2] = coords[2]-z;
+            //KRATOS_WATCH(distance_vector)
+            
             const double distance = MathUtils<double>::Norm3(distance_vector); // TODO: squared norm is better here
-            const double distance_projected_to_dir = distance_vector[0]*unitary_dir[0] + distance_vector[1]*unitary_dir[1] + distance_vector[2]*unitary_dir[2];
 
+            //KRATOS_WATCH(distance)  
+            const double distance_projected_to_dir = distance_vector[0]*unitary_dir[0] + distance_vector[1]*unitary_dir[1] + distance_vector[2]*unitary_dir[2];
+            //KRATOS_WATCH(distance_projected_to_dir)   
             const double distance_to_laser_axis = std::sqrt(distance*distance - distance_projected_to_dir*distance_projected_to_dir);
 
+            //KRATOS_WATCH(distance_to_laser_axis) 
+            //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", ""); 
+            //KRATOS_WATCH(mRadius)
             if(distance_to_laser_axis < mRadius) {
                 double& aux= list_of_nodes[k]->FastGetSolutionStepValue(FACE_HEAT_FLUX);
                 aux =  mPower / (Globals::Pi * mRadius * mRadius);
+
+		//KRATOS_WATCH(aux)
             }
         }
-
+        //KRATOS_THROW_ERROR(std::logic_error, "method not implemented", ""); 
         KRATOS_CATCH("");
 	}
 
@@ -210,6 +230,10 @@ private:
     array_1d<int, 3> mPositionLaserTableId;
     double mPower;
     double mRadius;
+    double mDirectionx;
+    double mDirectiony;
+    double mDirectionz;
+
     /// Assignment operator.
     ApplyLaserProcess& operator=(ApplyLaserProcess const& rOther);
 
