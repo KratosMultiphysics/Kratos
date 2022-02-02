@@ -190,27 +190,36 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Calculate shock capturing values
-    BoundedVector<double, Dim*NumNodes> mom_proj = ZeroVector(Dim*NumNodes);
+    constexpr std::size_t vector_size = Dim*NumNodes;
+    BoundedVector<double, vector_size> mom_proj = ZeroVector(vector_size);
 
     Vector N;
     Matrix DN_De;
     Matrix DN_DX;
+
+    Matrix J;
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
     const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
+        const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
+
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
-//substitute_mom_proj_2D
-    }
+        BoundedVector<double, vector_size> mom_proj_gauss(DofSize);
 
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    mom_proj *= data.volume / NumNodes;
+//substitute_mom_proj_2D
+
+        mom_proj += w * detJ * mom_proj_gauss;
+    }
 
     // Assembly the projection contributions
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
@@ -240,22 +249,30 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
     Vector N;
     Matrix DN_De;
     Matrix DN_DX;
+
+    Matrix J;
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
     const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
+        const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
+
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
-//substitute_rho_proj_2D
-    }
+        BoundedVector<double, DofSize> rho_proj_gauss(DofSize);
 
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    rho_proj *= data.volume / NumNodes;
+//substitute_rho_proj_2D
+
+        rho_proj += w * detJ * rho_proj_gauss;
+    }
 
     // Assembly the projection contributions
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
@@ -281,22 +298,30 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     Vector N;
     Matrix DN_De;
     Matrix DN_DX;
+
+    Matrix J;
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
     const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
+        const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
+
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
         r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
         GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
-//substitute_tot_ener_proj_2D
-    }
+        BoundedVector<double, DofSize> tot_ener_proj_gauss(DofSize);
 
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    tot_ener_proj *= data.volume / NumNodes;
+//substitute_tot_ener_proj_2D
+
+        tot_ener_proj += w * detJ * tot_ener_proj_gauss;
+    }
 
     // Assembly the projection contributions
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
@@ -331,7 +356,7 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
     Vector N;
     Matrix DN_De;
     Matrix DN_DX;
-    
+
     Matrix J;
     Matrix Jinv;
 
@@ -349,15 +374,18 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
             r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
             GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
+            BoundedVector<double, DofSize> rhs_gauss(DofSize);
+
 //substitute_rhs_2D_OSS
 
-            rRightHandSideBoundedVector *= w * detJ;
+            rRightHandSideBoundedVector += w * detJ * rhs_gauss;
         }
     }
     else
     {
         for(const auto& gauss_point: gauss_points)
         {
+
             const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
 
@@ -368,9 +396,11 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
             r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
             GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
+            BoundedVector<double, DofSize> rhs_gauss(DofSize);
+
 //substitute_rhs_2D_ASGS
 
-            rRightHandSideBoundedVector *= w * detJ;
+            rRightHandSideBoundedVector += w * detJ * rhs_gauss;
         }
     }
 

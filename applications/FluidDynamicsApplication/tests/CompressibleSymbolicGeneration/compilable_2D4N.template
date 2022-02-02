@@ -56,13 +56,13 @@ int main(int argc, char** argv)
     result += test_substitute_rhs_2D_OSS(N, DN_DX, data, dump_values);
     result += test_substitute_lhs_2D_ASGS(N, DN_DX, data, dump_values);
     result += test_substitute_rhs_2D_ASGS(N, DN_DX, data, dump_values);
-    
+
     return result;
 }
 
 int test_substitute_rho_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
 {
-    Vector<nnodes> rho_proj;
+    Vector<nnodes> rho_proj_gauss;
 
     // ------------------------- substitute_rho_proj_2D -------------------------
     //substitute_rho_proj_2D
@@ -74,23 +74,23 @@ int test_substitute_rho_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     expected[3] = 0;
 
     std::cout << "test_substitute_rho_proj_2D:";
-    int test = rho_proj.validate(expected);
+    int test = rho_proj_gauss.validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
     std::cout << std::endl;
 
     if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << rho_proj << std::endl;
+        std::cout << "Value dump:\n" << std::setprecision(20) << rho_proj_gauss << std::endl;
     }
-    
+
     return test;
 }
 
 
 int test_substitute_mom_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
 {
-    Vector<dim * nnodes> mom_proj;
+    Vector<dim * nnodes> mom_proj_gauss;
 
 // ------------------------- substitute_mom_proj_2D -------------------------
 //substitute_mom_proj_2D
@@ -104,28 +104,28 @@ int test_substitute_mom_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     expected[5] = -9.8639477702076238232e-13;
     expected[6] = 1206.9897682842961331;
     expected[7] = -3.6812754241620587954e-12;
-    
+
     std::cout << "test_substitute_mom_proj_2D:";
-    int test = mom_proj.validate(expected);
+    int test = mom_proj_gauss.validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
     std::cout << std::endl;
 
     if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << mom_proj << std::endl;
+        std::cout << "Value dump:\n" << std::setprecision(20) << mom_proj_gauss << std::endl;
     }
-    
+
     return test;
 }
 
 int test_substitute_tot_ener_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
 {
-    Vector<nnodes> tot_ener_proj;
+    Vector<nnodes> tot_ener_proj_gauss;
 
 // ------------------------- substitute_tot_ener_proj_2D -------------------------
 //substitute_tot_ener_proj_2D
-    
+
     Vector<nnodes> expected;
     expected[0] = -28449.159438906241121;
     expected[1] = -7622.9292969991793143;
@@ -133,16 +133,16 @@ int test_substitute_tot_ener_proj_2D(ShapeFun const& N, ShapeFunGrad const& DN_D
     expected[3] = -106173.70845862576971;
 
     std::cout << "test_substitute_tot_ener_proj_2D:";
-    int test = tot_ener_proj.validate(expected);
+    int test = tot_ener_proj_gauss.validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
     std::cout << std::endl;
 
     if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << tot_ener_proj << std::endl;
+        std::cout << "Value dump:\n" << std::setprecision(20) << tot_ener_proj_gauss << std::endl;
     }
-    
+
     return test;
 }
 
@@ -155,7 +155,7 @@ int test_substitute_lhs_2D_OSS(ShapeFun const&, ShapeFunGrad const&, ElementData
 
 int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
 {
-    Vector<blocksize*nnodes> rRightHandSideBoundedVector;
+    Vector<blocksize*nnodes> rhs_gauss;
     const double stab_c1 = 12;
     const double stab_c2 = 2;
     const double stab_c3 = 1;
@@ -182,16 +182,16 @@ int test_substitute_rhs_2D_OSS(ShapeFun const& N, ShapeFunGrad const& DN_DX, Ele
     expected[15] = -365056.09982268471504;
 
     std::cout << "test_substitute_rhs_2D_OSS:";
-    int test = rRightHandSideBoundedVector.validate(expected);
+    int test = rhs_gauss.validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
     std::cout << std::endl;
 
     if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << rRightHandSideBoundedVector << std::endl;
+        std::cout << "Value dump:\n" << std::setprecision(20) << rhs_gauss << std::endl;
     }
-    
+
     return test;
 }
 
@@ -204,7 +204,7 @@ int test_substitute_lhs_2D_ASGS(ShapeFun const&, ShapeFunGrad const&, ElementDat
 
 int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, ElementData const& data, const bool dump_values)
 {
-    Vector<blocksize*nnodes> rRightHandSideBoundedVector;
+    Vector<blocksize*nnodes> rhs_gauss;
     const double stab_c1 = 12;
     const double stab_c2 = 2;
     const double stab_c3 = 1;
@@ -231,15 +231,15 @@ int test_substitute_rhs_2D_ASGS(ShapeFun const& N, ShapeFunGrad const& DN_DX, El
     expected[15] = -365056.09982268471504;
 
     std::cout << "test_substitute_rhs_2D_ASGS:";
-    int test = rRightHandSideBoundedVector.validate(expected);
+    int test = rhs_gauss.validate(expected);
     if(test == 0) {
         std::cout << " OK";
     }
     std::cout << std::endl;
 
     if(dump_values) {
-        std::cout << "Value dump:\n" << std::setprecision(20) << rRightHandSideBoundedVector << std::endl;
+        std::cout << "Value dump:\n" << std::setprecision(20) << rhs_gauss << std::endl;
     }
-    
+
     return test;
 }
