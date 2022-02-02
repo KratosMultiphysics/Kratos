@@ -31,6 +31,13 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
             import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
             self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
 
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+        
+        # Update time to print in all model parts (if it has not already been updated in super class)
+        if not self.DEM_parameters["ContactMeshOption"].GetBool():
+            self.UpdateIsTimeToPrintInModelParts(self.IsTimeToPrintPostProcess())
+
 if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     with open("ProjectParametersDEM.json",'r') as parameter_file:
