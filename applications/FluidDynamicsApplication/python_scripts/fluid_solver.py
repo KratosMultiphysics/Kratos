@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics import auxiliary_solver_utilities
 from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
@@ -213,25 +214,9 @@ class FluidSolver(PythonSolver):
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
     def _SetAndFillBuffer(self):
-        # Set the buffer size for the nodal solution steps data.
-        # Existing nodal solution step data may be lost.
+        init_dt = self._ComputeInitialDeltaTime()
         required_buffer_size = self.GetMinimumBufferSize()
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        buffer_size = max(current_buffer_size, required_buffer_size)
-        self.main_model_part.SetBufferSize(buffer_size)
-
-        # Cycle the buffer. This sets all historical nodal solution step data to
-        # the current value and initializes the time stepping in the process info.
-        step = -buffer_size
-        delta_time = self._ComputeInitialDeltaTime()
-        init_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        time = init_time - delta_time * buffer_size
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for _ in range(buffer_size):
-            step += 1
-            time += delta_time
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            self.main_model_part.CloneTimeStep(time)
+        auxiliary_solver_utilities.SetAndFillBuffer(self.main_model_part, required_buffer_size, init_dt)
 
     def _ComputeDeltaTime(self):
         # Automatic time step computation according to user defined CFL number
