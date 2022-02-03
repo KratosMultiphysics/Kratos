@@ -89,7 +89,7 @@ void MoveShallowMeshUtility::MapResults()
 {
     mLagrangianSearchStructure.UpdateSearchDatabase();
 
-    std::size_t num_nodes;
+    std::size_t num_nodes = 0;
     if (mrLagrangianModelPart.NumberOfNodes() != 0)
         num_nodes = mrLagrangianModelPart.ElementsBegin()->GetGeometry().size();
 
