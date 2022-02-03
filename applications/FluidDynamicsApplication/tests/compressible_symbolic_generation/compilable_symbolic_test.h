@@ -51,7 +51,7 @@ enum class TestResult { SUCCESS, FAILURE };
 constexpr TestResult operator+=(TestResult & lhs, const TestResult& rhs)
 {
     return lhs = (lhs == TestResult::SUCCESS && rhs == TestResult::SUCCESS)
-        ? TestResult::SUCCESS 
+        ? TestResult::SUCCESS
         : TestResult::FAILURE;
 }
 
@@ -74,7 +74,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
+
     using DataType = double;
     using IndexType = std::size_t;
 
@@ -151,7 +151,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    /** 
+    /**
      * Validates that all entries are real valued (i.e. neither inf nor nan)
      */
     bool ValuesAreReal(std::ostream& error_stream = std::cerr) const
@@ -167,14 +167,14 @@ public:
             else if(std::isinf((*this)[i]))
             {
                 error_stream << "\nEntry #" << i << " is is infinite";
-                result = false;   
+                result = false;
             }
         }
         return result;
     }
 
-    /** 
-     * Returns whether the matrix is almost equal to the reference, 
+    /**
+     * Returns whether the matrix is almost equal to the reference,
      * within relative tolerance.
      */
     bool AlmostEqual(
@@ -196,18 +196,18 @@ public:
 
             const DataType delta = rel_tolerance * max;
             const int precision = 1 - std::log10(rel_tolerance);
-    
+
             if(std::abs(diff) > delta)
             {
                 error_stream << std::setprecision(precision)
                              << "Mismatch in entry #"
-                             << std::setw(3) << i 
-                             <<":" 
-                             << std::setw(10) << (*this)[i] 
-                             << " != " 
+                             << std::setw(3) << i
+                             <<":"
+                             << std::setw(10) << (*this)[i]
+                             << " != "
                              << std::setw(10) << reference[i]
                              << " | "
-                             << "Diff = " 
+                             << "Diff = "
                              << std::setw(10) << diff
                              << " | "
                              << "Rel diff = " << diff/max << '\n';
@@ -332,7 +332,7 @@ inline void ShapeFunctions(Vector<4>& N, Matrix<4, 2>& DN_DX, double x, double y
 /**
  * Struct containing data mimicking
  * CompressibleNavierStokesExplicit::ElementDataStruct.
- * 
+ *
  */
 template<std::size_t Tdim, std::size_t Tnodes>
 struct ElementData
@@ -341,7 +341,7 @@ struct ElementData
 
     Matrix<BlockSize, Tnodes> U;
     Matrix<BlockSize, Tnodes> dUdt;
-    
+
     Vector<Tnodes> m_ext;
     Vector<Tnodes> r_ext;
     Matrix<Tnodes, Tdim> f_ext;
@@ -381,7 +381,7 @@ TestResult Validate(
 
 /**
  * Specialization for matrices:
- * 
+ *
  * Performs three cheks on a matrix:
  * - Ensures that no entries are NaN
  * - Ensures that no entries are inf
@@ -391,7 +391,7 @@ TestResult Validate(
  * @param  reference      The reference matrix to compare to
  * @param  rel_tolerance  The maximum allowable relative error
  * @param  error_stream   The stream to print the errors into
- * 
+ *
  * @return The result of the test
  */
 template<std::size_t TRows, std::size_t TCols>
