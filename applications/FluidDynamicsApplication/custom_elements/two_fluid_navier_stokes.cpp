@@ -229,7 +229,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                                 for (unsigned int dim = 0; dim < Dim; ++dim)
                                 {
 
-                                    lhs_acc_correction(i * (BlockSize) + Dim, j * (BlockSize) + dim) +=
+                                    lhs_acc_correction(i * (BlockSize) + dim, j * (BlockSize) + dim) +=
                                                                       int_shape_function(intgp, i) * int_shape_function(intgp, j) * u_inter * int_gauss_pts_weights(intgp);
                                 }
                             }
