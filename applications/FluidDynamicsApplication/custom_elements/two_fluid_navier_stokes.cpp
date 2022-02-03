@@ -196,13 +196,14 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp)
                     {
                         double u_prime = 0.0;
+                        double u_inter = 0.0;
                         array_1d<double, 3> u_ns=ZeroVector(3);
                         for (unsigned int i = 0; i < NumNodes; ++i)
                         {
                             // KRATOS_WATCH(r_geom[i].FastGetSolutionStepValue(VELOCITY))
                             noalias(u_ns) += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStepValue(VELOCITY,1);
                             // KRATOS_WATCH(u_ns)
-                            u_prime += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStepValue(DISTANCE, 1);
+                            u_inter += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStepValue(DISTANCE, 1);
                             // KRATOS_WATCH(u_prime)
                             if (data.Distance[i] > 0.0)
                             {
@@ -214,23 +215,21 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                             }
                         }
 
-                        u_prime /= data.DeltaTime;
+                        u_inter /= data.DeltaTime;
                         const array_1d<double, 3> &r_n = int_normals_neg[intgp];
-                        double u_inter = u_prime;
-                        u_inter -= inner_prod(u_ns, r_n);
+                        double u_prime = u_inter - inner_prod( r_n, u_ns );
+                        //u_inter -= inner_prod(u_ns, r_n);
                         epsilon_int += u_prime * int_gauss_pts_weights(intgp);
 
-                        for (unsigned int i = 0; i < BlockSize; ++i)
-
+                        for (unsigned int i = 0; i < NumNodes; ++i)
                         {
-                            rhs_mass_correction(i*BlockSize+Dim) += int_shape_function(intgp, i) * u_inter * int_gauss_pts_weights(intgp);
-                            for (unsigned int j = 0; j < BlockSize; ++j)
+                            rhs_mass_correction(i * NumNodes + Dim) += int_shape_function(intgp, i) * u_prime * int_gauss_pts_weights(intgp);
+                            for (unsigned int j = 0; j < NumNodes; ++j)
                             {
                                 for (unsigned int dim = 0; dim < Dim; ++dim)
                                 {
-
-                                    lhs_acc_correction(i * (BlockSize) + dim, j * (BlockSize) + dim) +=
-                                                                      int_shape_function(intgp, i) * int_shape_function(intgp, j) * u_inter * int_gauss_pts_weights(intgp);
+                                    lhs_acc_correction(i * NumNodes + dim, j * NumNodes + dim) += //I am not sure if it should be -= or +=, let's check it
+                                                                      int_shape_function(intgp, i) * int_shape_function(intgp, j) * u_prime * int_gauss_pts_weights(intgp);
                                 }
                             }
                         }
@@ -273,7 +272,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     const double element_volume = positive_volume + negative_volume;
                     epsilon_int *= (negative_density - positive_density);
 
-                    lhs_correc_term *= epsilon_int;
+                    lhs_correc_term *= (negative_density - positive_density)*epsilon_int;
                     lhs_correc_term /= element_volume;
                     rhs_mass_correction *= (negative_density - positive_density);
                     lhs_acc_correction *= (negative_density - positive_density);
