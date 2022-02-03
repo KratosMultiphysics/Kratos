@@ -358,6 +358,7 @@ public:
         int static_block_size = mUseBlockMatricesIfPossible ? mBlockSize : 1;
         if(mUseAMGPreconditioning && mProvideCoordinates && (mBlockSize == 2 || mBlockSize == 3)) {
             std::vector<double> B(TSparseSpaceType::Size1(rA)*6);
+ 
             int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
                     boost::make_iterator_range(
                         &mCoordinates[0][0],
