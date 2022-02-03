@@ -39,7 +39,7 @@ class ExplicitStrategy(BaseStrategy):
             self.graph_utils = GraphUtilities()
 
     def GetProjectParameters(self, DEM_parameters):
-        # Get thermal settings and assign default values
+        # Get thermal settings and assign default values (in case it was not previously done)
         default_settings = DefaultSettings.GetDefaultInputSettings()
 
         if "thermal_settings" in self.DEM_parameters.keys():
