@@ -48,7 +48,7 @@ class ModelPart;
  *    trans(a) = a_i
  */
 template<std::size_t TDim>
-class DerivativesRecoveryUtility
+class KRATOS_API(SHALLOW_WATER_APPLICATION) DerivativesRecoveryUtility
 {
 public:
     ///@name Type Definitions
