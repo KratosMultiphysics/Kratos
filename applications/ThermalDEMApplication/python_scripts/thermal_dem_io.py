@@ -1,3 +1,4 @@
+# Imports
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
