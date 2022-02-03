@@ -35,7 +35,7 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
             "process_list" : [{
                 "python_module"  : "line_graph_output_process",
                 "kratos_module"  : "KratosMultiphysics.ShallowWaterApplication.postprocess",
-                "process_name"   : "PointOutputProcess",
+                "process_name"   : "LineGraphOutputProcess",
                 "Parameters"            : {
                     "model_part_name"      : "Main",
                     "start_point"          : [0.55, 0.2, 0.0],
@@ -44,7 +44,7 @@ class TestLineGraphOutputProcess(KratosUnittest.TestCase):
                     "entity_type"          : "element",
                     "search_configuration" : "current",
                     "output_file_settings" : {
-                        "file_name"   : "<model_part>",
+                        "file_name"   : "Main",
                         "output_path" : ""
                     },
                     "output_control_settings" : {
