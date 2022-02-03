@@ -93,6 +93,8 @@ template <
 struct viennacl {
     typedef typename backend::value_type<Matrix>::type value_type;
     typedef ptrdiff_t                                  index_type;
+    typedef ptrdiff_t                                  col_type;
+    typedef ptrdiff_t                                  ptr_type;
     typedef Matrix                                     matrix;
     typedef ::viennacl::vector<value_type>             vector;
     typedef ::viennacl::vector<value_type>             matrix_diagonal;

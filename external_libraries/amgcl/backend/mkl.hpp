@@ -96,6 +96,8 @@ class mkl_vec {
 struct mkl {
     typedef double value_type;
     typedef int    index_type;
+    typedef int    col_type;
+    typedef int    ptr_type;
 
     typedef mkl_crs matrix;
     typedef mkl_vec vector;

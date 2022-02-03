@@ -48,6 +48,8 @@ namespace relaxation {
 template <class Backend>
 struct iluk {
     typedef typename Backend::value_type      value_type;
+    typedef typename Backend::col_type        col_type;
+    typedef typename Backend::ptr_type        ptr_type;
     typedef typename Backend::matrix          matrix;
     typedef typename Backend::matrix_diagonal matrix_diagonal;
     typedef typename Backend::vector          vector;
@@ -91,7 +93,7 @@ struct iluk {
     iluk( const Matrix &A, const params &prm, const typename Backend::params &bprm)
       : prm(prm)
     {
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
 
         const size_t n = backend::rows(A);
 

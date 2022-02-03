@@ -213,6 +213,8 @@ template <typename real>
 struct HPX {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
 
     struct provides_row_iterator : std::false_type {};
 

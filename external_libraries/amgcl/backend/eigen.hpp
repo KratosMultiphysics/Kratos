@@ -50,6 +50,8 @@ template <typename real>
 struct eigen {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
 
     typedef
         Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, index_type>

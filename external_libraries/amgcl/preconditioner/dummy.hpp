@@ -46,7 +46,9 @@ class dummy {
         typedef typename Backend::matrix  matrix;
         typedef typename Backend::vector  vector;
         typedef typename Backend::value_type value_type;
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename Backend::col_type col_type;
+        typedef typename Backend::ptr_type ptr_type;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
 
         typedef amgcl::detail::empty_params params;
         typedef typename Backend::params backend_params;

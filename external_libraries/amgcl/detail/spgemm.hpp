@@ -62,6 +62,7 @@ template <class AMatrix, class BMatrix, class CMatrix>
 void spgemm_saad(const AMatrix &A, const BMatrix &B, CMatrix &C, bool sort = true)
 {
     typedef typename backend::value_type<CMatrix>::type Val;
+    typedef typename backend::col_type<CMatrix>::type Col;
     typedef ptrdiff_t Idx;
 
     C.set_size(A.nrows, B.ncols);
@@ -73,12 +74,12 @@ void spgemm_saad(const AMatrix &A, const BMatrix &B, CMatrix &C, bool sort = tru
 
 #pragma omp for
         for(Idx ia = 0; ia < static_cast<Idx>(A.nrows); ++ia) {
-            Idx C_cols = 0;
+            Col C_cols = 0;
             for(Idx ja = A.ptr[ia], ea = A.ptr[ia+1]; ja < ea; ++ja) {
-                Idx ca = A.col[ja];
+                Col ca = A.col[ja];
 
                 for(Idx jb = B.ptr[ca], eb = B.ptr[ca+1]; jb < eb; ++jb) {
-                    Idx cb = B.col[jb];
+                    Col cb = B.col[jb];
                     if (marker[cb] != ia) {
                         marker[cb]  = ia;
                         ++C_cols;
@@ -101,11 +102,11 @@ void spgemm_saad(const AMatrix &A, const BMatrix &B, CMatrix &C, bool sort = tru
             Idx row_end = row_beg;
 
             for(Idx ja = A.ptr[ia], ea = A.ptr[ia+1]; ja < ea; ++ja) {
-                Idx ca = A.col[ja];
+                Col ca = A.col[ja];
                 Val va = A.val[ja];
 
                 for(Idx jb = B.ptr[ca], eb = B.ptr[ca+1]; jb < eb; ++jb) {
-                    Idx cb = B.col[jb];
+                    Col cb = B.col[jb];
                     Val vb = B.val[jb];
 
                     if (marker[cb] < row_beg) {
@@ -210,14 +211,14 @@ Idx* merge_rows(
     return col3;
 }
 
-template <class Idx>
-Idx prod_row_width(
-        const Idx *acol, const Idx *acol_end,
-        const Idx *bptr, const Idx *bcol,
-        Idx *tmp_col1, Idx *tmp_col2, Idx *tmp_col3
+template <class Col, class Ptr>
+Ptr prod_row_width(
+        const Col *acol, const Col *acol_end,
+        const Ptr *bptr, const Col *bcol,
+        Col *tmp_col1, Col *tmp_col2, Col *tmp_col3
         )
 {
-    const Idx nrows = acol_end - acol;
+    const Col nrows = acol_end - acol;
 
     /* No rows to merge, nothing to do */
     if (nrows == 0) return 0;
@@ -244,9 +245,9 @@ Idx prod_row_width(
      * Merging by pairs allows to work with short rows as often as possible.
      */
     // Merge first two.
-    Idx a1 = *acol++;
-    Idx a2 = *acol++;
-    Idx c_col1 = merge_rows<true>(
+    Col a1 = *acol++;
+    Col a2 = *acol++;
+    Col c_col1 = merge_rows<true>(
             bcol + bptr[a1], bcol + bptr[a1+1],
             bcol + bptr[a2], bcol + bptr[a2+1],
             tmp_col1
@@ -257,7 +258,7 @@ Idx prod_row_width(
         a1 = *acol++;
         a2 = *acol++;
 
-        Idx c_col2 = merge_rows<true>(
+        Col c_col2 = merge_rows<true>(
                 bcol + bptr[a1], bcol + bptr[a1+1],
                 bcol + bptr[a2], bcol + bptr[a2+1],
                 tmp_col2
@@ -289,28 +290,28 @@ Idx prod_row_width(
             ) - tmp_col2;
 }
 
-template <class Idx, class Val>
+template <class Col, class Ptr, class Val>
 void prod_row(
-        const Idx *acol, const Idx *acol_end, const Val *aval,
-        const Idx *bptr, const Idx *bcol, const Val *bval,
-        Idx *out_col, Val *out_val,
-        Idx *tm2_col, Val *tm2_val,
-        Idx *tm3_col, Val *tm3_val
+        const Col *acol, const Col *acol_end, const Val *aval,
+        const Ptr *bptr, const Col *bcol, const Val *bval,
+        Col *out_col, Val *out_val,
+        Col *tm2_col, Val *tm2_val,
+        Col *tm3_col, Val *tm3_val
         )
 {
-    const Idx nrows = acol_end - acol;
+    const Col nrows = acol_end - acol;
 
     /* No rows to merge, nothing to do */
     if (nrows == 0) return;
 
     /* Single row, just copy it to output */
     if (nrows == 1) {
-        Idx ac = *acol;
+        Col ac = *acol;
         Val av = *aval;
 
         const Val *bv = bval + bptr[ac];
-        const Idx *bc = bcol + bptr[ac];
-        const Idx *be = bcol + bptr[ac+1];
+        const Col *bc = bcol + bptr[ac];
+        const Col *be = bcol + bptr[ac+1];
 
         while(bc != be) {
             *out_col++ = *bc++;
@@ -322,8 +323,8 @@ void prod_row(
 
     /* Two rows, merge them */
     if (nrows == 2) {
-        Idx ac1 = acol[0];
-        Idx ac2 = acol[1];
+        Col ac1 = acol[0];
+        Col ac2 = acol[1];
 
         Val av1 = aval[0];
         Val av2 = aval[1];
@@ -344,16 +345,16 @@ void prod_row(
      * Merging by pairs allows to work with short rows as often as possible.
      */
     // Merge first two.
-    Idx ac1 = *acol++;
-    Idx ac2 = *acol++;
+    Col ac1 = *acol++;
+    Col ac2 = *acol++;
 
     Val av1 = *aval++;
     Val av2 = *aval++;
 
-    Idx *tm1_col = out_col;
+    Col *tm1_col = out_col;
     Val *tm1_val = out_val;
 
-    Idx c_col1 = merge_rows(
+    Col c_col1 = merge_rows(
             av1, bcol + bptr[ac1], bcol + bptr[ac1+1], bval + bptr[ac1],
             av2, bcol + bptr[ac2], bcol + bptr[ac2+1], bval + bptr[ac2],
             tm1_col, tm1_val
@@ -367,7 +368,7 @@ void prod_row(
         av1 = *aval++;
         av2 = *aval++;
 
-        Idx c_col2 = merge_rows(
+        Col c_col2 = merge_rows(
                 av1, bcol + bptr[ac1], bcol + bptr[ac1+1], bval + bptr[ac1],
                 av2, bcol + bptr[ac2], bcol + bptr[ac2+1], bval + bptr[ac2],
                 tm2_col, tm2_val
@@ -409,6 +410,7 @@ void prod_row(
 template <class AMatrix, class BMatrix, class CMatrix>
 void spgemm_rmerge(const AMatrix &A, const BMatrix &B, CMatrix &C) {
     typedef typename backend::value_type<CMatrix>::type Val;
+    typedef typename backend::col_type<CMatrix>::type Col;
     typedef ptrdiff_t Idx;
 
     Idx max_row_width = 0;
@@ -439,7 +441,7 @@ void spgemm_rmerge(const AMatrix &A, const BMatrix &B, CMatrix &C) {
     const int nthreads = 1;
 #endif
 
-    std::vector< std::vector<Idx> > tmp_col(nthreads);
+    std::vector< std::vector<Col> > tmp_col(nthreads);
     std::vector< std::vector<Val> > tmp_val(nthreads);
 
     for(int i = 0; i < nthreads; ++i) {
@@ -459,7 +461,7 @@ void spgemm_rmerge(const AMatrix &A, const BMatrix &B, CMatrix &C) {
         const int tid = 0;
 #endif
 
-        Idx *t_col = &tmp_col[tid][0];
+        Col *t_col = &tmp_col[tid][0];
 
 #pragma omp for
         for(Idx i = 0; i < static_cast<Idx>(A.nrows); ++i) {
@@ -483,7 +485,7 @@ void spgemm_rmerge(const AMatrix &A, const BMatrix &B, CMatrix &C) {
         const int tid = 0;
 #endif
 
-        Idx *t_col = tmp_col[tid].data();
+        Col *t_col = tmp_col[tid].data();
         Val *t_val = tmp_val[tid].data();
 
 #pragma omp for

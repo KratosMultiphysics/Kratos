@@ -70,13 +70,15 @@ class amg {
         typedef Backend backend_type;
 
         typedef typename Backend::value_type value_type;
+        typedef typename Backend::col_type   col_type;
+        typedef typename Backend::ptr_type   ptr_type;
         typedef typename Backend::matrix     matrix;
         typedef typename Backend::vector     vector;
 
-        typedef Coarsening<Backend>          coarsening_type;
-        typedef Relax<Backend>               relax_type;
+        typedef Coarsening<Backend>            coarsening_type;
+        typedef Relax<Backend>                 relax_type;
 
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
 
         typedef typename math::scalar_of<value_type>::type scalar_type;
 

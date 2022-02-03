@@ -48,7 +48,6 @@ THE SOFTWARE.
 #include <amgcl/detail/sort_row.hpp>
 #include <amgcl/detail/spgemm.hpp>
 #include <amgcl/backend/detail/matrix_ops.hpp>
-#include <amgcl/adapter/block_matrix.hpp>
 
 namespace amgcl {
 namespace backend {
@@ -110,7 +109,7 @@ struct crs {
 #pragma omp parallel for
         for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(nrows); ++i) {
             ptr[i+1] = ptr_range[i+1];
-            for(ptr_type j = ptr_range[i]; j < ptr_range[i+1]; ++j) {
+            for(auto j = ptr_range[i]; j < ptr_range[i+1]; ++j) {
                 col[j] = col_range[j];
                 val[j] = val_range[j];
             }
@@ -366,7 +365,7 @@ std::shared_ptr< crs<V,C,P> > transpose(const crs<V, C, P> &A)
             P head = T->ptr[A.col[j]]++;
 
             T->col[head] = static_cast<C>(i);
-            T->val[head] = A.val[j];
+            T->val[head] = math::adjoint(A.val[j]);
         }
     }
 
@@ -499,9 +498,11 @@ void scale(crs<Val, Col, Ptr> &A, T s) {
 }
 
 // Reduce matrix to a pointwise one
-template <class value_type>
-std::shared_ptr< crs<typename math::scalar_of<value_type>::type> >
-pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
+template <class value_type, class col_type, class ptr_type>
+std::shared_ptr<
+    crs< typename math::scalar_of<value_type>::type, col_type, ptr_type >
+    >
+pointwise_matrix(const crs<value_type, col_type, ptr_type> &A, unsigned block_size) {
     typedef value_type V;
     typedef typename math::scalar_of<V>::type S;
 
@@ -514,30 +515,30 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
     precondition(np * block_size == n,
             "Matrix size should be divisible by block_size");
 
-    auto ap = std::make_shared< crs<S> >();
-    crs<S> &Ap = *ap;
+    auto ap = std::make_shared< crs<S, col_type, ptr_type> >();
+    auto &Ap = *ap;
 
     Ap.set_size(np, mp, true);
 
 #pragma omp parallel
     {
-        std::vector<ptrdiff_t> j(block_size);
-        std::vector<ptrdiff_t> e(block_size);
+        std::vector<ptr_type> j(block_size);
+        std::vector<ptr_type> e(block_size);
 
         // Count number of nonzeros in block matrix.
 #pragma omp for
         for(ptrdiff_t ip = 0; ip < np; ++ip) {
             ptrdiff_t ia = ip * block_size;
-            ptrdiff_t cur_col = 0;
+            col_type cur_col = 0;
             bool done = true;
 
             for(unsigned k = 0; k < block_size; ++k) {
-                ptrdiff_t beg = j[k] = A.ptr[ia + k];
-                ptrdiff_t end = e[k] = A.ptr[ia + k + 1];
+                ptr_type beg = j[k] = A.ptr[ia + k];
+                ptr_type end = e[k] = A.ptr[ia + k + 1];
 
                 if (beg == end) continue;
 
-                ptrdiff_t c = A.col[beg];
+                col_type c = A.col[beg];
 
                 if (done) {
                     done = false;
@@ -552,13 +553,13 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                 ++Ap.ptr[ip + 1];
 
                 done = true;
-                ptrdiff_t col_end = (cur_col + 1) * block_size;
+                col_type col_end = (cur_col + 1) * block_size;
                 for(unsigned k = 0; k < block_size; ++k) {
-                    ptrdiff_t beg = j[k];
-                    ptrdiff_t end = e[k];
+                    ptr_type beg = j[k];
+                    ptr_type end = e[k];
 
                     while(beg < end) {
-                        ptrdiff_t c = A.col[beg++];
+                        col_type c = A.col[beg++];
 
                         if (c >= col_end) {
                             if (done) {
@@ -582,23 +583,23 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
 
 #pragma omp parallel
     {
-        std::vector<ptrdiff_t> j(block_size);
-        std::vector<ptrdiff_t> e(block_size);
+        std::vector<ptr_type> j(block_size);
+        std::vector<ptr_type> e(block_size);
 
 #pragma omp for
         for(ptrdiff_t ip = 0; ip < np; ++ip) {
             ptrdiff_t ia = ip * block_size;
-            ptrdiff_t cur_col = 0;
-            ptrdiff_t head = Ap.ptr[ip];
+            col_type cur_col = 0;
+            ptr_type head = Ap.ptr[ip];
             bool done = true;
 
             for(unsigned k = 0; k < block_size; ++k) {
-                ptrdiff_t beg = j[k] = A.ptr[ia + k];
-                ptrdiff_t end = e[k] = A.ptr[ia + k + 1];
+                ptr_type beg = j[k] = A.ptr[ia + k];
+                ptr_type end = e[k] = A.ptr[ia + k + 1];
 
                 if (beg == end) continue;
 
-                ptrdiff_t c = A.col[beg];
+                col_type c = A.col[beg];
 
                 if (done) {
                     done = false;
@@ -617,13 +618,13 @@ pointwise_matrix(const crs<value_type> &A, unsigned block_size) {
                 bool first = true;
                 S cur_val = math::zero<S>();
 
-                ptrdiff_t col_end = (cur_col + 1) * block_size;
+                col_type col_end = (cur_col + 1) * block_size;
                 for(unsigned k = 0; k < block_size; ++k) {
-                    ptrdiff_t beg = j[k];
-                    ptrdiff_t end = e[k];
+                    ptr_type beg = j[k];
+                    ptr_type end = e[k];
 
                     while(beg < end) {
-                        ptrdiff_t c = A.col[beg];
+                        col_type c = A.col[beg];
                         S v = math::norm(A.val[beg]);
                         ++beg;
 
@@ -914,19 +915,21 @@ spectral_radius(const Matrix &A, int power_iters = 0) {
  * moving the constructed hierarchy to the builtin backend, since the backend
  * is used internally during setup.
  */
-template <typename ValueType>
+template <typename ValueType, typename ColumnType = ptrdiff_t, typename PointerType = ColumnType>
 struct builtin {
     typedef ValueType      value_type;
-    typedef ptrdiff_t      index_type;
+    typedef ColumnType     index_type;
+    typedef ColumnType     col_type;
+    typedef PointerType    ptr_type;
 
     typedef typename math::rhs_of<value_type>::type rhs_type;
 
     struct provides_row_iterator : std::true_type {};
 
-    typedef crs<value_type, index_type>    matrix;
-    typedef numa_vector<rhs_type>          vector;
-    typedef numa_vector<value_type>        matrix_diagonal;
-    typedef solver::skyline_lu<value_type> direct_solver;
+    typedef crs<value_type, col_type, ptr_type>  matrix;
+    typedef numa_vector<rhs_type>                vector;
+    typedef numa_vector<value_type>              matrix_diagonal;
+    typedef solver::skyline_lu<value_type>       direct_solver;
 
     /// The backend has no parameters.
     typedef amgcl::detail::empty_params params;
@@ -996,21 +999,6 @@ struct builtin {
     }
 };
 
-// Hybrid backend uses scalar matrices to build the hierarchy,
-// but stores the computed matrices in the block format.
-template <typename ScalarType, typename BlockType>
-struct builtin_hybrid : public builtin<ScalarType> {
-    typedef builtin<ScalarType> Base;
-    typedef crs<BlockType, typename Base::index_type> matrix;
-    struct provides_row_iterator : std::false_type {};
-
-    static std::shared_ptr<matrix>
-    copy_matrix(std::shared_ptr<typename Base::matrix> As, const typename Base::params&)
-    {
-        return std::make_shared<matrix>(amgcl::adapter::block_matrix<BlockType>(*As));
-    }
-};
-
 template <class T>
 struct is_builtin_vector : std::false_type {};
 
@@ -1025,15 +1013,6 @@ struct is_builtin_vector< numa_vector<V> > : std::true_type {};
 //---------------------------------------------------------------------------
 template <typename T1, typename T2>
 struct backends_compatible< builtin<T1>, builtin<T2> > : std::true_type {};
-
-template <typename T1, typename B1, typename T2, typename B2>
-struct backends_compatible< builtin_hybrid<T1, B1>, builtin_hybrid<T2, B2> > : std::true_type {};
-
-template <typename T1, typename T2, typename B2>
-struct backends_compatible< builtin<T1>, builtin_hybrid<T2, B2> > : std::true_type {};
-
-template <typename T1, typename B1, typename T2>
-struct backends_compatible< builtin_hybrid<T1, B1>, builtin<T2> > : std::true_type {};
 
 template < typename V, typename C, typename P >
 struct rows_impl< crs<V, C, P> > {

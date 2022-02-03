@@ -34,6 +34,8 @@ THE SOFTWARE.
 
 #include <amgcl/util.hpp>
 #include <amgcl/backend/detail/matrix_ops.hpp>
+#include <amgcl/backend/builtin.hpp>
+#include <amgcl/value_type/interface.hpp>
 
 namespace amgcl {
 namespace adapter {
@@ -167,10 +169,70 @@ block_matrix_adapter<Matrix, BlockType> block_matrix(const Matrix &A) {
     return block_matrix_adapter<Matrix, BlockType>(A);
 }
 
+template <class Matrix>
+std::shared_ptr<
+    backend::crs<
+        typename math::scalar_of<
+            typename backend::value_type<Matrix>::type
+            >::type,
+        typename backend::col_type<Matrix>::type,
+        typename backend::ptr_type<Matrix>::type
+        >
+    >
+unblock_matrix(const Matrix &B) {
+    typedef typename backend::value_type<Matrix>::type Block;
+    typedef typename math::scalar_of<Block>::type Scalar;
+    typedef typename backend::col_type<Matrix>::type Col;
+    typedef typename backend::ptr_type<Matrix>::type Ptr;
+
+    const int brows = math::static_rows<Block>::value;
+    const int bcols = math::static_cols<Block>::value;
+
+    auto A = std::make_shared<backend::crs<Scalar, Col, Ptr>>();
+
+    A->set_size(backend::rows(B) * brows, backend::cols(B) * bcols);
+    A->ptr[0] = 0;
+
+    const auto nb = backend::rows(B);
+
+#pragma omp for
+    for (ptrdiff_t ib = 0; ib < nb; ++ib) {
+        auto w = backend::row_nonzeros(B, ib);
+        for (ptrdiff_t i = 0, ia = ib * brows; i < brows; ++i, ++ia) {
+            A->ptr[ia + 1] = w * bcols;
+        }
+    }
+
+    A->scan_row_sizes();
+    A->set_nonzeros();
+
+#pragma omp for
+    for (ptrdiff_t ib = 0; ib < nb; ++ib) {
+        for(auto b = backend::row_begin(B, ib); b; ++b) {
+            auto c = b.col();
+            auto v = b.value();
+
+            for (ptrdiff_t i = 0, ia = ib * brows; i < brows; ++i, ++ia) {
+                auto row_head = A->ptr[ia];
+                for(int j = 0; j < bcols; ++j) {
+                    A->col[row_head] = c * bcols + j;
+                    A->val[row_head] = v(i,j);
+                    ++row_head;
+                }
+                A->ptr[ia] = row_head;
+            }
+        }
+    }
+
+    std::rotate(A->ptr, A->ptr + A->nrows, A->ptr + A->nrows + 1);
+    A->ptr[0] = 0;
+
+    return A;
+}
+
 } // namespace adapter
 
 namespace backend {
-
 namespace detail {
 
 template <class Matrix, class BlockType>

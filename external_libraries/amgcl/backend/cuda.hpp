@@ -387,6 +387,8 @@ struct cuda {
                 );
 
     typedef real value_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
     typedef cuda_matrix<real>       matrix;
     typedef thrust::device_vector<real> vector;
     typedef thrust::device_vector<real> matrix_diagonal;

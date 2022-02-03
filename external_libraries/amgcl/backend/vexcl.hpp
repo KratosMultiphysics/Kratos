@@ -131,13 +131,15 @@ struct vexcl_params {
  * expects the right hand side and the solution vectors to be instances of the
  * ``vex::vector<real>`` type.
  */
-template <typename real, class DirectSolver = solver::vexcl_skyline_lu<real> >
+template <typename real, typename ColumnType = ptrdiff_t, typename PointerType = ColumnType, class DirectSolver = solver::vexcl_skyline_lu<real> >
 struct vexcl {
-    typedef real      value_type;
-    typedef ptrdiff_t index_type;
+    typedef real        value_type;
+    typedef ptrdiff_t   index_type;
+    typedef ColumnType  col_type;
+    typedef PointerType ptr_type;
 
     typedef vex::sparse::distributed<
-                vex::sparse::matrix<value_type, index_type, index_type>
+                vex::sparse::matrix<value_type, col_type, ptr_type>
                 > matrix;
     typedef typename math::rhs_of<value_type>::type rhs_type;
     typedef vex::vector<rhs_type>                          vector;
@@ -152,11 +154,11 @@ struct vexcl {
 
     // Copy matrix from builtin backend.
     static std::shared_ptr<matrix>
-    copy_matrix(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    copy_matrix(std::shared_ptr< typename builtin<real, col_type, ptr_type>::matrix > A, const params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
 
-        const typename builtin<real>::matrix &a = *A;
+        const typename builtin<real, col_type, ptr_type>::matrix &a = *A;
 
         const size_t n   = rows(*A);
         const size_t m   = cols(*A);
@@ -248,7 +250,7 @@ struct vexcl {
 
     // Create direct solver for coarse level
     static std::shared_ptr<direct_solver>
-    create_solver(std::shared_ptr< typename builtin<real>::matrix > A, const params &prm)
+    create_solver(std::shared_ptr< typename builtin<real, ColumnType, PointerType>::matrix > A, const params &prm)
     {
         return std::make_shared<direct_solver>(A, prm);
     }
@@ -256,23 +258,23 @@ struct vexcl {
 
 // Hybrid backend uses scalar matrices to build the hierarchy,
 // but stores the computed matrices in the block format.
-template <typename ScalarType, typename BlockType, class DirectSolver = solver::vexcl_skyline_lu<ScalarType> >
-struct vexcl_hybrid : public vexcl<ScalarType, DirectSolver> {
+template <typename ScalarType, typename BlockType, typename ColumnType = ptrdiff_t, typename PointerType = ColumnType, class DirectSolver = solver::vexcl_skyline_lu<ScalarType> >
+struct vexcl_hybrid : public vexcl<ScalarType, ColumnType, PointerType, DirectSolver> {
     typedef vexcl<ScalarType, DirectSolver> Base;
     typedef vex::sparse::distributed<
                 vex::sparse::matrix<
                     BlockType,
-                    typename Base::index_type,
-                    typename Base::index_type
+                    typename Base::col_type,
+                    typename Base::ptr_type
                     >
                 > matrix;
 
     static std::shared_ptr<matrix>
-    copy_matrix(std::shared_ptr< typename builtin<ScalarType>::matrix > As, const typename Base::params &prm)
+    copy_matrix(std::shared_ptr< typename builtin<ScalarType, ColumnType, PointerType>::matrix > As, const typename Base::params &prm)
     {
         precondition(!prm.context().empty(), "Empty VexCL context!");
 
-        typename builtin<BlockType>::matrix A(amgcl::adapter::block_matrix<BlockType>(*As));
+        typename builtin<BlockType, ColumnType, PointerType>::matrix A(amgcl::adapter::block_matrix<BlockType>(*As));
 
         const size_t n   = rows(A);
         const size_t m   = cols(A);
@@ -290,17 +292,17 @@ struct vexcl_hybrid : public vexcl<ScalarType, DirectSolver> {
 //---------------------------------------------------------------------------
 // Backend interface implementation
 //---------------------------------------------------------------------------
-template <typename T1, typename T2>
-struct backends_compatible< vexcl<T1>, vexcl<T2> > : std::true_type {};
+template <typename T1, typename T2, typename C, typename P>
+struct backends_compatible< vexcl<T1, C, P>, vexcl<T2, C, P> > : std::true_type {};
 
-template <typename T1, typename B1, typename T2, typename B2>
-struct backends_compatible< vexcl_hybrid<T1, B1>, vexcl_hybrid<T2, B2> > : std::true_type {};
+template <typename T1, typename B1, typename T2, typename B2, typename C, typename P>
+struct backends_compatible< vexcl_hybrid<T1, B1, C, P>, vexcl_hybrid<T2, B2, C, P> > : std::true_type {};
 
-template <typename T1, typename T2, typename B2>
-struct backends_compatible< vexcl<T1>, vexcl_hybrid<T2, B2> > : std::true_type {};
+template <typename T1, typename T2, typename B2, typename C, typename P>
+struct backends_compatible< vexcl<T1, C, P>, vexcl_hybrid<T2, B2, C, P> > : std::true_type {};
 
-template <typename T1, typename B1, typename T2>
-struct backends_compatible< vexcl_hybrid<T1, B1>, vexcl<T2> > : std::true_type {};
+template <typename T1, typename B1, typename T2, typename C, typename P>
+struct backends_compatible< vexcl_hybrid<T1, B1, C, P>, vexcl<T2, C, P> > : std::true_type {};
 
 template < typename V, typename C, typename P >
 struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {

@@ -53,6 +53,8 @@ template <class real>
 struct blaze {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
 
     struct provides_row_iterator : std::true_type {};
 

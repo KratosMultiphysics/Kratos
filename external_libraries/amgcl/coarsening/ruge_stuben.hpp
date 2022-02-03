@@ -105,6 +105,8 @@ struct ruge_stuben {
     std::tuple< std::shared_ptr<Matrix>, std::shared_ptr<Matrix> >
     transfer_operators(const Matrix &A) const {
         typedef typename backend::value_type<Matrix>::type Val;
+        typedef typename backend::col_type<Matrix>::type   Col;
+        typedef typename backend::ptr_type<Matrix>::type   Ptr;
         typedef typename math::scalar_of<Val>::type        Scalar;
 
         const size_t n = rows(A);
@@ -114,7 +116,7 @@ struct ruge_stuben {
         static const Val zero = math::zero<Val>();
 
         std::vector<char> cf(n, 'U');
-        backend::crs<char, ptrdiff_t, ptrdiff_t> S;
+        backend::crs<char, Col, Ptr> S;
 
         AMGCL_TIC("C/F split");
         connect(A, prm.eps_strong, S, cf);

@@ -69,6 +69,29 @@ zero_copy(size_t n, const Ptr *ptr, const Col *col, const Val *val) {
     return zero_copy(n, n, ptr, col, val);
 }
 
+template <typename Ptr, typename Col, typename Val>
+std::shared_ptr< backend::crs<Val, Col, Ptr> >
+zero_copy_direct(size_t nrows, size_t ncols, const Ptr *ptr, const Col *col, const Val *val) {
+    auto A = std::make_shared< backend::crs<Val, Col, Ptr> >();
+    A->nrows = nrows;
+    A->ncols = ncols;
+    A->nnz   = nrows ? ptr[nrows] : 0;
+
+    A->ptr = const_cast<Ptr*>(ptr);
+    A->col = const_cast<Col*>(col);
+    A->val = const_cast<Val*>(val);
+
+    A->own_data = false;
+
+    return A;
+}
+
+template <typename Ptr, typename Col, typename Val>
+std::shared_ptr< backend::crs<Val, Col, Ptr> >
+zero_copy_direct(size_t n, const Ptr *ptr, const Col *col, const Val *val) {
+    return zero_copy_direct(n, n, ptr, col, val);
+}
+
 } // namespace adapter
 } // namespace amgcl
 

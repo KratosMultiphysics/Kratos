@@ -90,6 +90,8 @@ struct smoothed_aggr_emin {
         >
     transfer_operators(const Matrix &A) {
         typedef typename backend::value_type<Matrix>::type Val;
+        typedef typename backend::col_type<Matrix>::type   Col;
+        typedef typename backend::ptr_type<Matrix>::type   Ptr;
         typedef ptrdiff_t Idx;
 
         AMGCL_TIC("aggregates");
@@ -103,7 +105,7 @@ struct smoothed_aggr_emin {
                 );
 
         // Filter the system matrix
-        backend::crs<Val> Af;
+        backend::crs<Val, Col, Ptr> Af;
         Af.set_size(rows(A), cols(A));
         Af.ptr[0] = 0;
 

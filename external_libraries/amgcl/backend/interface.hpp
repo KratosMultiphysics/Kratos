@@ -79,6 +79,18 @@ struct value_type {
     typedef typename T::value_type type;
 };
 
+/// Metafunction that returns column type of a matrix.
+template <class T, class Enable = void>
+struct col_type {
+    typedef typename T::col_type type;
+};
+
+/// Metafunction that returns pointer type of a matrix.
+template <class T, class Enable = void>
+struct ptr_type {
+    typedef typename T::ptr_type type;
+};
+
 /// Implementation for function returning the number of rows in a matrix.
 /** \note Used in rows() */
 template <class Matrix, class Enable = void>

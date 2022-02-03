@@ -145,6 +145,8 @@ template <typename real>
 struct block_crs {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
 
     typedef bcrs<real, index_type, index_type> matrix;
     typedef typename builtin<real>::vector     vector;
