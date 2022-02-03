@@ -3,6 +3,7 @@ from   KratosMultiphysics import *
 from   KratosMultiphysics.DEMApplication import *
 from   KratosMultiphysics.ThermalDEMApplication import *
 import KratosMultiphysics.DEMApplication.sphere_strategy as SolverStrategy
+import KratosMultiphysics.ThermalDEMApplication.default_input_settings as DefaultSettings
 
 # Set base class
 BaseStrategy = SolverStrategy.ExplicitStrategy
@@ -38,8 +39,15 @@ class ExplicitStrategy(BaseStrategy):
             self.graph_utils = GraphUtilities()
 
     def GetProjectParameters(self, DEM_parameters):
-        # Get thermal settings
-        self.thermal_settings = DEM_parameters["thermal_settings"]
+        # Get thermal settings and assign default values
+        default_settings = DefaultSettings.GetDefaultInputSettings()
+
+        if "thermal_settings" in self.DEM_parameters.keys():
+            self.thermal_settings = DEM_parameters["thermal_settings"]
+        else:
+            self.thermal_settings = Parameters("""{}""")
+        
+        self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
         # General options
         self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
