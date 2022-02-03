@@ -20,7 +20,6 @@
 #include "conservative_condition.h"
 #include "includes/checks.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -91,8 +90,7 @@ void ConservativeCondition<TNumNodes>::CalculateGaussPointData(
     rData.b2[2] = 0;
 
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
 }
 
 template class ConservativeCondition<2>;

@@ -40,19 +40,19 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             switch ( integration_order )
             {
             case 1:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 2:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 3:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
                 break;
             case 4:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_4;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 5:
-                mThisIntegrationMethod = GeometryData::GI_GAUSS_5;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             default:
                 KRATOS_WARNING("BaseSolidElement") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
@@ -1927,7 +1927,7 @@ const Parameters BaseSolidElement::GetSpecifications() const
             "entity"                 : []
         },
         "required_variables"         : ["DISPLACEMENT"],
-        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "required_dofs"              : [],
         "flags_used"                 : [],
         "compatible_geometries"      : ["Triangle2D3", "Triangle2D6", "Quadrilateral2D4", "Quadrilateral2D8", "Quadrilateral2D9","Tetrahedra3D4", "Prism3D6", "Prism3D15", "Hexahedra3D8", "Hexahedra3D20", "Hexahedra3D27", "Tetrahedra3D10"],
         "element_integrates_in_time" : true,
@@ -1939,6 +1939,16 @@ const Parameters BaseSolidElement::GetSpecifications() const
         "required_polynomial_degree_of_geometry" : -1,
         "documentation"   : "This is a pure displacement element"
     })");
+
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    if (dimension == 2) {
+        std::vector<std::string> dofs_2d({"DISPLACEMENT_X","DISPLACEMENT_Y"});
+        specifications["required_dofs"].SetStringArray(dofs_2d);
+    } else {
+        std::vector<std::string> dofs_3d({"DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"});
+        specifications["required_dofs"].SetStringArray(dofs_3d);
+    }
+
     return specifications;
 }
 

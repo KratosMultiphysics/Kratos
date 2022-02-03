@@ -22,7 +22,6 @@
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
-#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -54,6 +53,7 @@ int WaveCondition<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) cons
     KRATOS_CATCH("")
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -73,6 +73,7 @@ void WaveCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, c
 
     KRATOS_CATCH("")
 }
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
@@ -94,6 +95,7 @@ void WaveCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, con
     KRATOS_CATCH("")
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
@@ -109,6 +111,7 @@ void WaveCondition<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(this->GetUnknownComponent(2), Step);
     }
 }
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
@@ -126,11 +129,48 @@ void WaveCondition<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int St
     }
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_ERROR << "WaveCondition::GetSecondDerivativesVector This method is not supported by the formulation" << std::endl;
 }
+
+
+template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::Calculate(
+    const Variable<array_1d<double,3>>& rVariable,
+    array_1d<double,3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE)
+    {
+        rOutput = ZeroVector();
+        const double gravity = rCurrentProcessInfo[GRAVITY_Z];
+        const double density = this->GetProperties()[DENSITY];
+        const auto& r_geometry = this->GetGeometry();
+
+        // The nodal data
+        array_1d<double,TNumNodes> nodal_h;
+        for (std::size_t i = 0; i < TNumNodes; ++i) {
+            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
+        }
+
+        // The geometry data
+        Vector weights;
+        Matrix N_container;
+        CalculateGeometryData(r_geometry, weights, N_container);
+
+        // Integration over the geometry
+        for (std::size_t g = 0; g < weights.size(); ++g) {
+            const array_1d<double,3> normal = r_geometry.UnitNormal(g);
+            const array_1d<double,TNumNodes> N = row(N_container, g);
+            const double h = inner_prod(nodal_h, N);
+            rOutput += 0.5 * density * gravity * h * h * weights[g] * normal;
+        }
+    }
+}
+
 
 template<std::size_t TNumNodes>
 const Variable<double>& WaveCondition<TNumNodes>::GetUnknownComponent(int Index) const
@@ -142,6 +182,7 @@ const Variable<double>& WaveCondition<TNumNodes>::GetUnknownComponent(int Index)
         default: KRATOS_ERROR << "WaveCondition::GetUnknownComponent index out of bounds." << std::endl;
     }
 }
+
 
 template<std::size_t TNumNodes>
 typename WaveCondition<TNumNodes>::LocalVectorType WaveCondition<TNumNodes>::GetUnknownVector(ConditionData& rData)
@@ -156,18 +197,21 @@ typename WaveCondition<TNumNodes>::LocalVectorType WaveCondition<TNumNodes>::Get
     return unknown;
 }
 
+
 template<std::size_t TNumNodes>
-void WaveCondition<TNumNodes>::CalculateGeometryData(Vector &rGaussWeights, Matrix &rNContainer) const
+void WaveCondition<TNumNodes>::CalculateGeometryData(
+    const GeometryType& rGeometry,
+    Vector &rGaussWeights,
+    Matrix &rNContainer)
 {
     Vector det_j_vector;
-    const auto& r_geom = this->GetGeometry();
-    const auto integration_method = r_geom.GetDefaultIntegrationMethod();
+    const auto integration_method = rGeometry.GetDefaultIntegrationMethod();
 
-    rNContainer = r_geom.ShapeFunctionsValues(integration_method);
+    rNContainer = rGeometry.ShapeFunctionsValues(integration_method);
 
-    const unsigned int number_of_gauss_points = r_geom.IntegrationPointsNumber(integration_method);
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
-    r_geom.DeterminantOfJacobian(det_j_vector, integration_method);
+    const unsigned int number_of_gauss_points = rGeometry.IntegrationPointsNumber(integration_method);
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeometry.IntegrationPoints(integration_method);
+    rGeometry.DeterminantOfJacobian(det_j_vector, integration_method);
 
     if (rGaussWeights.size() != number_of_gauss_points)
         rGaussWeights.resize(number_of_gauss_points, false);
@@ -175,6 +219,21 @@ void WaveCondition<TNumNodes>::CalculateGeometryData(Vector &rGaussWeights, Matr
     for (unsigned int g = 0; g < number_of_gauss_points; ++g)
         rGaussWeights[g] = det_j_vector[g] * integration_points[g].Weight();
 }
+
+
+template<std::size_t TNumNodes>
+const array_1d<double,3> WaveCondition<TNumNodes>::VectorProduct(
+    const array_1d<array_1d<double,3>,TNumNodes>& rV,
+    const array_1d<double,TNumNodes>& rN)
+{
+    array_1d<double,3> result = ZeroVector(3);
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result += rV[i] * rN[i];
+    }
+    return result;
+}
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::InitializeData(
@@ -191,12 +250,14 @@ void WaveCondition<TNumNodes>::InitializeData(
 
     for (IndexType i = 0; i < TNumNodes; i++)
     {
+        rData.nodal_f[i] = r_geom[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
         rData.nodal_h[i] = r_geom[i].FastGetSolutionStepValue(HEIGHT);
         rData.nodal_z[i] = r_geom[i].FastGetSolutionStepValue(TOPOGRAPHY);
         rData.nodal_v[i] = r_geom[i].FastGetSolutionStepValue(VELOCITY);
         rData.nodal_q[i] = r_geom[i].FastGetSolutionStepValue(MOMENTUM);
     }
 }
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::CalculateGaussPointData(
@@ -225,22 +286,9 @@ void WaveCondition<TNumNodes>::CalculateGaussPointData(
     rData.b2[1] = rData.gravity;
 
     auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = this->GetGeometry().Normal(integration_point);
-    rData.normal /= norm_2(rData.normal);
+    rData.normal = this->GetGeometry().UnitNormal(integration_point);
 }
 
-template<std::size_t TNumNodes>
-const array_1d<double,3> WaveCondition<TNumNodes>::VectorProduct(
-    const array_1d<array_1d<double,3>,TNumNodes>& rV,
-    const array_1d<double,TNumNodes>& rN) const
-{
-    array_1d<double,3> result = ZeroVector(3);
-    for (std::size_t i = 0; i < TNumNodes; ++i)
-    {
-        result += rV[i] * rN[i];
-    }
-    return result;
-}
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::AddWaveTerms(
@@ -275,6 +323,7 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
     }
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::AddFluxTerms(
     LocalVectorType& rVector,
@@ -284,6 +333,7 @@ void WaveCondition<TNumNodes>::AddFluxTerms(
 {
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::AddMassTerms(
     LocalMatrixType& rMatrix,
@@ -292,6 +342,7 @@ void WaveCondition<TNumNodes>::AddMassTerms(
     const double Weight)
 {
 }
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -303,6 +354,7 @@ void WaveCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSide
 
     CalculateLocalSystem(lhs, rRightHandSideVector, rCurrentProcessInfo);
 }
+
 
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
@@ -321,7 +373,7 @@ void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMat
 
     Vector weights;
     Matrix N_container;
-    CalculateGeometryData(weights, N_container);
+    CalculateGeometryData(this->GetGeometry(), weights, N_container);
     const IndexType num_gauss_points = weights.size();
 
     for (IndexType g = 0; g < num_gauss_points; ++g)
@@ -338,6 +390,7 @@ void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMat
     noalias(rRightHandSideVector) = rhs;
 }
 
+
 template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -351,7 +404,7 @@ void WaveCondition<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, cons
 
     Vector weights;
     Matrix N_container;
-    CalculateGeometryData(weights, N_container);
+    CalculateGeometryData(this->GetGeometry(), weights, N_container);
     const IndexType num_gauss_points = weights.size();
 
     for (IndexType g = 0; g < num_gauss_points; ++g)
@@ -365,5 +418,6 @@ void WaveCondition<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, cons
 }
 
 template class WaveCondition<2>;
+template class WaveCondition<3>;
 
 } // namespace Kratos

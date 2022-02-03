@@ -234,7 +234,7 @@ namespace Kratos
             case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
                 return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
             default:
-                KRATOS_ERROR << "Implement the skin generation for the intersection geometry type: " << rOriginGeometryType;
+                KRATOS_ERROR << "Implement the skin generation for the intersection geometry type: " << static_cast<int>(rOriginGeometryType);
         }
     }
 
@@ -383,13 +383,13 @@ namespace Kratos
                 int_sh_func,
                 int_grads,
                 w_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
         } else if (rInterfaceSide == "negative") {
             rpModifiedShapeFunctions->ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
                 int_sh_func,
                 int_grads,
                 w_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
         } else {
             KRATOS_ERROR << "Interface side must be either 'positive' or 'negative'. Got " << rInterfaceSide;
         }

@@ -7,6 +7,11 @@ on:
 
   workflow_dispatch:
 
+# for cancelling redundant runs
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
 
 jobs:
   ubuntu:
@@ -26,10 +31,6 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
     - uses: actions/checkout@v2
 
     - name: Build
@@ -139,6 +140,7 @@ jobs:
       shell: cmd
       run: |
         pip install numpy
+        pip install sympy
         pip install h5py
 
     - name: Build
@@ -154,7 +156,6 @@ jobs:
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
 
-
   centos:
     runs-on: ubuntu-latest
     env:
@@ -165,10 +166,6 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
     - uses: actions/checkout@v2
 
     - name: Build
@@ -200,10 +197,6 @@ jobs:
         CCACHE_MAXSIZE: 500M
 
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
     - uses: actions/checkout@v2
 
     - name: Cache Build
@@ -328,6 +321,12 @@ jobs:
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
 
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+        pip install sympy
+
     - name: Build
       shell: cmd
       run: |
@@ -384,10 +383,6 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
     - uses: actions/checkout@v2
 
     - name: Build

@@ -192,6 +192,11 @@ class CouplingInterfaceData(BaseCouplingInterfaceData):
                 else:
                     self.GetModelPart()[self.variable] = new_data
 
+        if self.location == "node_historical":
+            self.GetModelPart().GetCommunicator().SynchronizeVariable(self.variable)
+        elif self.location in "node_non_historical":
+            self.GetModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(self.variable)
+
     def __GetDataFromContainer(self, container, fct_ptr, *args):
         if self.is_scalar_variable:
             return [fct_ptr(entity, self.variable, *args) for entity in container]
