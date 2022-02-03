@@ -1041,21 +1041,27 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateRightHandSide(
-    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) const
+    VectorType& rRightHandSideVector, 
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
-    Vector internal_forces = CalculateGlobalNodalForces();
+    
+    // Add internal forces
+    const Vector internal_forces = CalculateGlobalNodalForces();
     rRightHandSideVector = ZeroVector(msElementSize);
     noalias(rRightHandSideVector) -= internal_forces;
-    // add bodyforces
+    
+    // Add bodyforces
     noalias(rRightHandSideVector) += CalculateBodyForces();
+    
     KRATOS_CATCH("")
 }
 
-
-
 void CrBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, 
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
 
     KRATOS_TRY;
@@ -1064,7 +1070,9 @@ void CrBeamElement3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElement3D2N::ConstCalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) const
+    MatrixType& rLeftHandSideMatrix, 
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
 
     KRATOS_TRY;
@@ -1075,7 +1083,6 @@ void CrBeamElement3D2N::ConstCalculateLeftHandSide(
     noalias(rLeftHandSideMatrix) += CreateElementStiffnessMatrix_Geometry();
 
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
-
 
     BoundedMatrix<double, msElementSize, msElementSize> aux_matrix =
         prod(total_rotation_matrix, rLeftHandSideMatrix);
