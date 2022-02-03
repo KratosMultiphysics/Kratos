@@ -415,10 +415,9 @@ BoundedMatrix<double, CrBeamElement3D2N::msElementSize,
 CrBeamElement3D2N::msElementSize>
 CrBeamElement3D2N::CreateElementStiffnessMatrix_Geometry() const
 {
-
     KRATOS_TRY;
 
-    Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+    const Vector nodal_forces_local_qe = CalculateLocalNodalForces();
 
     const double N = nodal_forces_local_qe[6];
     const double Mt   = nodal_forces_local_qe[9];
@@ -1094,7 +1093,7 @@ void CrBeamElement3D2N::ConstCalculateLeftHandSide(
 
 Vector CrBeamElement3D2N::CalculateGlobalNodalForces() const
 {
-    Vector nodal_forces_local_qe = CalculateLocalNodalForces();
+    const Vector nodal_forces_local_qe = CalculateLocalNodalForces();
 
     BoundedMatrix<double, msElementSize, msElementSize> total_rotation_matrix = GetTransformationMatrixGlobal();
 
@@ -1114,8 +1113,8 @@ CrBeamElement3D2N::CalculateElementForces() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
-    Vector phi_s = CalculateSymmetricDeformationMode();
-    Vector phi_a = CalculateAntiSymmetricDeformationMode();
+    const Vector phi_s = CalculateSymmetricDeformationMode();
+    const Vector phi_a = CalculateAntiSymmetricDeformationMode();
 
     deformation_modes_total_v[3] = l - L;
     for (int i = 0; i < 3; ++i) {
@@ -1140,7 +1139,6 @@ CrBeamElement3D2N::CalculateElementForces() const
 
 double CrBeamElement3D2N::CalculatePsi(const double I, const double A_eff) const
 {
-
     KRATOS_TRY;
     const double E = GetProperties()[YOUNG_MODULUS];
     const double L = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
@@ -1165,8 +1163,9 @@ CrBeamElement3D2N::GetCurrentNodalPosition() const
 {
     BoundedVector<double, msLocalSize> current_nodal_position =
         ZeroVector(msLocalSize);
+    int index = 0;
     for (unsigned int i = 0; i < msNumberOfNodes; ++i) {
-        int index = i * msDimension;
+        index = i * msDimension;
         current_nodal_position[index] =
             GetGeometry()[i].X0() +
             GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X, 0);
@@ -1189,7 +1188,7 @@ void CrBeamElement3D2N::Calculate(const Variable<Matrix>& rVariable,
             rOutput.resize(msDimension, msDimension, false);
         }
 
-        Matrix  transformation_matrix = GetTransformationMatrixGlobal();
+        const Matrix transformation_matrix = GetTransformationMatrixGlobal();
 
         Vector base_1 = ZeroVector(3);
         Vector base_2 = ZeroVector(3);
