@@ -327,7 +327,7 @@ double WaveElement<TNumNodes>::ShapeFunctionProduct(
 
 
 template<std::size_t TNumNodes>
-const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
+array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
     const array_1d<array_1d<double,3>,TNumNodes>& rV,
     const array_1d<double,TNumNodes>& rN)
 {
@@ -341,7 +341,7 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
 
 
 template<std::size_t TNumNodes>
-const double WaveElement<TNumNodes>::VectorProduct(
+double WaveElement<TNumNodes>::VectorProduct(
     const array_1d<array_1d<double,3>,TNumNodes>& rV,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
