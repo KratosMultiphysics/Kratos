@@ -685,7 +685,7 @@ void WaveElement<TNumNodes>::Calculate(
 {
     if (rVariable == FORCE)
     {
-        rOutput = ZeroVector();
+        rOutput = ZeroVector(3);
         const array_1d<double,3>& gravity = -rCurrentProcessInfo[GRAVITY];
         const double density = this->GetProperties()[DENSITY];
         const auto& r_geometry = this->GetGeometry();
