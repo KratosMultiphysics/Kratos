@@ -50,10 +50,10 @@ class DerivativesRecoveryProcess(KM.Process):
             self.derivative_variable = KM.KratosGlobals.GetVariable(settings["derivative_variable"].GetString())
             self.buffer_step = settings["buffer_step"].GetInt()
 
-            def execute_differenctiation():
+            def execute_differentiation():
                 getattr(recovery_tool, self.operation)(self.primitive_variable, self.derivative_variable, self.buffer_step)
             self.function = getattr(recovery_tool, self.operation)
-            setattr(self, settings["process_step"].GetString(), execute_differenctiation)
+            setattr(self, settings["process_step"].GetString(), execute_differentiation)
 
         def Check(self):
             if self.operation == "RecoverGradient":
