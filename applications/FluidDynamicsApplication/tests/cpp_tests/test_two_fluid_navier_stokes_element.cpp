@@ -57,7 +57,7 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(VELOCITY);
             modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
-            
+
 
             // Process info creation
             double delta_time = 0.1;
@@ -349,7 +349,7 @@ namespace Kratos {
             const auto& r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-            
+
             reference_RHS[0] = -202.5894191;
             reference_RHS[1] = 2.719387838;
             reference_RHS[2]= -148.7936481;
@@ -1875,7 +1875,7 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(VELOCITY);
             modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
-            
+
 
             // Process info creation
             double delta_time = 0.1;

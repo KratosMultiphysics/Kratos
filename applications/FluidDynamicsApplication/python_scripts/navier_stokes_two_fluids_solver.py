@@ -70,7 +70,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "dynamic_tau": 1.0,
                 "surface_tension": false,
                 "mass_source":false,
-                "momentum_correction":false
+                "momentum_correction":false,
+                "momentum_mass_correction":false
             },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
@@ -143,17 +144,26 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.momentum_correction = False
         if self.settings["formulation"].Has("momentum_correction"):
             self.momentum_correction = self.settings["formulation"]["momentum_correction"].GetBool()
-        self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_CORRECTION, self.momentum_correction)        self.momentu_mass_correction=False
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_CORRECTION, self.momentum_correction)
+        self.momentu_mass_correction=False
 
+        self.momentum_mass_correction = False
         if self.settings["formulation"].Has("momentum_mass_correction"):
-            self.momentum_mass_correction = self.settings["formulation"]["momentum_mass_correction"].GetBool()
+            self.momentum_mass_correction= self.settings["formulation"]["momentum_mass_correction"].GetBool()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.MOMENTUM_MASS_CORRECTION, self.momentum_mass_correction)
+        # print(self.momentum_mass_correction)
+
+        self.mass_source = False
+        if self.settings["formulation"].Has("mass_source"):
+            self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
+            self.main_model_part.ProcessInfo.SetValue(KratosCFD.MASS_SOURCE_CORRECTION, self.mass_source)
 
         self._reinitialization_type = self.settings["distance_reinitialization"].GetString()
 
         self._distance_smoothing = self.settings["distance_smoothing"].GetBool()
         smoothing_coefficient = self.settings["distance_smoothing_coefficient"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, smoothing_coefficient)
+
 
         self._apply_acceleration_limitation = self.settings["acceleration_limitation"].GetBool()
 
@@ -235,10 +245,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
         self._GetLevelSetConvectionProcess()
-
-        self.mass_source = False
-        if self.settings["formulation"].Has("mass_source"):
-            self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 

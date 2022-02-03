@@ -164,7 +164,13 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 Vector int_gauss_pts_weights;
                 std::vector< array_1d<double,3> > int_normals_neg;
 
-                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                // Base momentum correction and momentum/mass correction are incompatible
+                KRATOS_ERROR_IF(rCurrentProcessInfo[MOMENTUM_CORRECTION] && rCurrentProcessInfo[MOMENTUM_MASS_CORRECTION]) << "Base momentum correction and momentum/mass correction are incompatible." << std::endl;
+                KRATOS_ERROR_IF(rCurrentProcessInfo[MOMENTUM_CORRECTION] && rCurrentProcessInfo[MASS_SOURCE_CORRECTION]) << "Base momentum correction and momentum/mass correction are incompatible." << std::endl;
+                KRATOS_ERROR_IF(rCurrentProcessInfo[MOMENTUM_MASS_CORRECTION] && rCurrentProcessInfo[MASS_SOURCE_CORRECTION]) << "Base momentum correction and momentum/mass correction are incompatible." << std::endl;
+
+                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION] || rCurrentProcessInfo[MOMENTUM_MASS_CORRECTION])
+                {
                     ComputeSplitInterface(
                         data,
                         int_shape_function,
@@ -174,6 +180,115 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         int_gauss_pts_weights,
                         int_normals_neg,
                         p_modified_sh_func);
+                }
+                if (rCurrentProcessInfo
+                        [MOMENTUM_MASS_CORRECTION])
+                {
+
+                    BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize, LocalSize);
+                    BoundedMatrix<double, LocalSize, LocalSize> lhs_correc_term = ZeroMatrix(LocalSize, LocalSize);
+                    BoundedVector<double, LocalSize> rhs_mass_correction = ZeroVector(LocalSize);
+                    double positive_density = 0.0;
+                    double negative_density = 0.0;
+
+                    const auto &r_geom = this->GetGeometry();
+                    double epsilon_int = 0.0;
+                    for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp)
+                    {
+                        double u_prime = 0.0;
+                        array_1d<double, 3> u_ns=ZeroVector(3);
+                        for (unsigned int i = 0; i < NumNodes; ++i)
+                        {
+                            // KRATOS_WATCH(r_geom[i].FastGetSolutionStepValue(VELOCITY))
+                            noalias(u_ns) += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStepValue(VELOCITY,1);
+                            // KRATOS_WATCH(u_ns)
+                            u_prime += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStepValue(DISTANCE, 1);
+                            // KRATOS_WATCH(u_prime)
+                            if (data.Distance[i] > 0.0)
+                            {
+                                positive_density = data.NodalDensity[i];
+                            }
+                            else
+                            {
+                                negative_density = data.NodalDensity[i];
+                            }
+                        }
+
+                        u_prime /= data.DeltaTime;
+                        const array_1d<double, 3> &r_n = int_normals_neg[intgp];
+                        double u_inter = u_prime;
+                        u_inter -= inner_prod(u_ns, r_n);
+                        epsilon_int += u_prime * int_gauss_pts_weights(intgp);
+
+                        for (unsigned int i = 0; i < BlockSize; ++i)
+
+                        {
+                            rhs_mass_correction(i*BlockSize+Dim) += int_shape_function(intgp, i) * u_inter * int_gauss_pts_weights(intgp);
+                            for (unsigned int j = 0; j < BlockSize; ++j)
+                            {
+                                for (unsigned int dim = 0; dim < Dim; ++dim)
+                                {
+
+                                    lhs_acc_correction(i * (BlockSize) + Dim, j * (BlockSize) + dim) +=
+                                                                      int_shape_function(intgp, i) * int_shape_function(intgp, j) * u_inter * int_gauss_pts_weights(intgp);
+                                }
+                            }
+                        }
+                    }
+
+                    double positive_volume = 0.0;
+                    double negative_volume = 0.0;
+
+                    for (unsigned int g_pos = 0; g_pos < data.w_gauss_pos_side.size(); ++g_pos)
+                    {
+                        for (unsigned int i = 0; i < NumNodes; ++i)
+                        {
+                            for (unsigned int j = 0; j < NumNodes; ++j)
+                            {
+                                for (unsigned int dim = 0; dim < NumNodes - 1; ++dim)
+                                {
+                                    lhs_correc_term(i * (NumNodes) + dim, j * (NumNodes) + dim) +=
+                                        shape_functions_pos(g_pos,i) * shape_functions_pos(g_pos,j) * data.w_gauss_pos_side[g_pos];
+                                    positive_volume += data.w_gauss_pos_side[g_pos];
+                                }
+                            }
+                        }
+                    }
+
+                    for (unsigned int g_neg = 0; g_neg < data.w_gauss_neg_side.size(); ++g_neg)
+                    {
+                        for (unsigned int i = 0; i < NumNodes; ++i)
+                        {
+                            for (unsigned int j = 0; j < NumNodes; ++j)
+                            {
+                                for (unsigned int dim = 0; dim < NumNodes - 1; ++dim)
+                                {
+                                    lhs_correc_term(i * (NumNodes) + Dim, j * (NumNodes) + dim) +=
+                                        shape_functions_neg(g_neg,i) * shape_functions_neg(g_neg, j) * data.w_gauss_neg_side[g_neg];
+                                    negative_volume += data.w_gauss_neg_side[g_neg];
+                                }
+                            }
+                        }
+                    }
+                    const double element_volume = positive_volume + negative_volume;
+                    epsilon_int *= (negative_density - positive_density);
+
+                    lhs_correc_term *= epsilon_int;
+                    lhs_correc_term /= element_volume;
+                    rhs_mass_correction *= (negative_density - positive_density);
+                    lhs_acc_correction *= (negative_density - positive_density);
+                    // lhs_acc_correction += lhs_correc_term;
+                    noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+                    // noalias(rRightHandSideVector) += rhs_mass_correction;
+                    Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
+                    for (unsigned int i = 0; i < NumNodes; ++i)
+                    {
+                        for (unsigned int dimi = 0; dimi < Dim; ++dimi)
+                        {
+                            tempU[i * (Dim + 1) + dimi] = data.Velocity(i, dimi);
+                        }
+                    }
+                    noalias(rRightHandSideVector) -= prod(lhs_acc_correction, tempU);
                 }
 
                 if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){
