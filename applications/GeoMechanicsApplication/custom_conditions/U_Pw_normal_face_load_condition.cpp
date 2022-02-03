@@ -36,8 +36,8 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
 {
     //Previous definitions
     const GeometryType& rGeom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = rGeom.IntegrationPoints( mThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = rGeom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
@@ -52,7 +52,6 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
     this->InitializeConditionVariables(Variables, rGeom);
     array_1d<double,TDim> TractionVector;
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
-    double IntegrationCoefficient;
     array_1d<double,TNumNodes*TDim> UVector;
 
     //Loop over integration points
@@ -64,7 +63,8 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
         ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu,NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient, integration_points[GPoint].Weight());
+        const double IntegrationCoefficient = 
+            this->CalculateIntegrationCoefficient(GPoint, IntegrationPoints);
 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
@@ -190,11 +190,11 @@ void UPwNormalFaceLoadCondition<3,4>::
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
-    CalculateIntegrationCoefficient( double& rIntegrationCoefficient,
-                                     const double& Weight )
+double UPwNormalFaceLoadCondition<TDim,TNumNodes>::
+    CalculateIntegrationCoefficient( const IndexType PointNumber,
+                                     const GeometryType::IntegrationPointsArrayType& IntegrationPoints ) const
 {
-    rIntegrationCoefficient = Weight;
+    return IntegrationPoints[PointNumber].Weight();
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

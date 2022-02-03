@@ -35,6 +35,16 @@ namespace Testing {
 
 typedef ModelPart::NodeType NodeType;
 
+void AddVariables(ModelPart& rModelPart)
+{
+    rModelPart.AddNodalSolutionStepVariable(DISTANCE);
+    rModelPart.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
+    rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+    rModelPart.AddNodalSolutionStepVariable(VELOCITY_LAPLACIAN);
+    rModelPart.AddNodalSolutionStepVariable(FIRST_DERIVATIVE_WEIGHTS);
+    rModelPart.AddNodalSolutionStepVariable(SECOND_DERIVATIVE_WEIGHTS);
+}
+
 void Generate2DMesh(
     Model& rModel,
     const int NumberOfDivisions)
@@ -55,10 +65,7 @@ void Generate2DMesh(
     mesher_parameters["number_of_divisions"].SetInt(NumberOfDivisions);
 
     ModelPart& r_model_part = rModel.CreateModelPart("model_part");
-    r_model_part.AddNodalSolutionStepVariable(DISTANCE);
-    r_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-    r_model_part.AddNodalSolutionStepVariable(FIRST_DERIVATIVE_WEIGHTS);
-    r_model_part.AddNodalSolutionStepVariable(SECOND_DERIVATIVE_WEIGHTS);
+    AddVariables(r_model_part);
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 }
 
@@ -86,11 +93,28 @@ void Generate3DMesh(
     mesher_parameters["number_of_divisions"].SetInt(NumberOfDivisions);
 
     ModelPart& r_model_part = rModel.CreateModelPart("model_part");
-    r_model_part.AddNodalSolutionStepVariable(DISTANCE);
-    r_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
-    r_model_part.AddNodalSolutionStepVariable(FIRST_DERIVATIVE_WEIGHTS);
-    r_model_part.AddNodalSolutionStepVariable(SECOND_DERIVATIVE_WEIGHTS);
+    AddVariables(r_model_part);
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+}
+
+void PrintDebugMesh(ModelPart& rModelPart)
+{
+    GidIO<> io("output_mesh",
+        GiD_PostMode::GiD_PostAscii,
+        MultiFileFlag::SingleFile,
+        WriteDeformedMeshFlag::WriteUndeformed,
+        WriteConditionsFlag::WriteElementsOnly
+    );
+    io.InitializeMesh(0.0);
+    io.WriteMesh(rModelPart.GetMesh());
+    io.FinalizeMesh();
+
+    io.InitializeResults(0.0, rModelPart.GetMesh());
+    io.WriteNodalResults(DISTANCE, rModelPart.Nodes(), 0.0, 0);
+    io.WriteNodalResults(VELOCITY, rModelPart.Nodes(), 0.0, 0);
+    io.WriteNodalResults(DISTANCE_GRADIENT, rModelPart.Nodes(), 0.0, 0);
+    io.WriteNodalResults(VELOCITY_LAPLACIAN, rModelPart.Nodes(), 0.0, 0);
+    io.FinalizeResults();
 }
 
 template<std::size_t TDim>
@@ -108,25 +132,11 @@ void GradientRecoveryTest(
     });
 
     FindGlobalNodalNeighboursProcess(r_model_part).Execute();
-    DerivativesRecoveryUtility<TDim>::CheckRequiredNeighborsPatch(r_model_part);
     DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(r_model_part);
     DerivativesRecoveryUtility<TDim>::RecoverGradient(r_model_part, DISTANCE, DISTANCE_GRADIENT);
 
     if (print_debug_mesh) {
-        GidIO<> io("output_mesh",
-            GiD_PostMode::GiD_PostAscii,
-            MultiFileFlag::SingleFile,
-            WriteDeformedMeshFlag::WriteUndeformed,
-            WriteConditionsFlag::WriteElementsOnly
-        );
-        io.InitializeMesh(0.0);
-        io.WriteMesh(r_model_part.GetMesh());
-        io.FinalizeMesh();
-
-        io.InitializeResults(0.0, r_model_part.GetMesh());
-        io.WriteNodalResults(DISTANCE, r_model_part.Nodes(), 0.0, 0);
-        io.WriteNodalResults(DISTANCE_GRADIENT, r_model_part.Nodes(), 0.0, 0);
-        io.FinalizeResults();
+        PrintDebugMesh(r_model_part);
     }
 
     block_for_each(r_model_part.Nodes(), [&](NodeType& rNode){
@@ -136,7 +146,36 @@ void GradientRecoveryTest(
     });
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DParabolaX, ShallowWaterApplicationFastSuite)
+template<std::size_t TDim>
+void LaplacianRecoveryTest(
+    Model& rModel,
+    const std::function<array_1d<double,3>(array_1d<double,3>)>& rPrimitiveFunction,
+    const std::function<array_1d<double,3>(array_1d<double,3>)>& rDerivativeFunction,
+    const double Tolerance)
+{
+    const bool print_debug_mesh = false;
+
+    ModelPart& r_model_part = rModel.GetModelPart("model_part");
+    block_for_each(r_model_part.Nodes(), [&](NodeType& rNode){
+        rNode.FastGetSolutionStepValue(VELOCITY) = rPrimitiveFunction(rNode);
+    });
+
+    FindGlobalNodalNeighboursProcess(r_model_part).Execute();
+    DerivativesRecoveryUtility<TDim>::CalculatePolynomialWeights(r_model_part);
+    DerivativesRecoveryUtility<TDim>::RecoverLaplacian(r_model_part, VELOCITY, VELOCITY_LAPLACIAN);
+
+    if (print_debug_mesh) {
+        PrintDebugMesh(r_model_part);
+    }
+
+    block_for_each(r_model_part.Nodes(), [&](NodeType& rNode){
+        array_1d<double,3> computed_laplacian = rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN);
+        array_1d<double,3> exact_laplacian = rDerivativeFunction(rNode);
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(computed_laplacian, exact_laplacian, Tolerance)
+    });
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DGradientX, ShallowWaterApplicationFastSuite)
 {
     Model model;
     const int number_of_divisions = 4;
@@ -150,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DParabolaX, ShallowWaterApp
     GradientRecoveryTest<2>(model, f, df, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DParabolaXY, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DGradientXY, ShallowWaterApplicationFastSuite)
 {
     Model model;
     const int number_of_divisions = 4;
@@ -164,8 +203,9 @@ KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DParabolaXY, ShallowWaterAp
     GradientRecoveryTest<2>(model, f, df, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DHyperbolicFunction, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DGradientHyperbolicFunction, ShallowWaterApplicationFastSuite)
 {
+    // Note, the derivatives recovery cannot pass this test analytically, since it uses a polynomial approximation.
     Model model;
     const int number_of_divisions = 20;
     auto f = [] (array_1d<double,3> x) {
@@ -183,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DHyperbolicFunction, Shallo
     GradientRecoveryTest<2>(model, f, df, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility3DParabolaZ, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility3DGradientZ, ShallowWaterApplicationFastSuite)
 {
     Model model;
     const int number_of_divisions = 4;
@@ -195,6 +235,57 @@ KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility3DParabolaZ, ShallowWaterApp
     const double tolerance = 1e-12;
     Generate3DMesh(model, number_of_divisions);
     GradientRecoveryTest<3>(model, f, df, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DLaplacian, ShallowWaterApplicationFastSuite)
+{
+    Model model;
+    const int number_of_divisions = 4;
+    auto f = [] (array_1d<double,3> x) {
+        array_1d<double,3> primitive ({0.1*std::pow(x[0]-6.0, 2), 0.2*std::pow(x[1]-5.0, 2), 0.0});
+        return primitive;
+    };
+    auto df = [] (array_1d<double,3> x) {
+        array_1d<double,3> derivative({0.2, 0.4, 0.0});
+        return derivative;
+    };
+    const double tolerance = 1e-12;
+    Generate2DMesh(model, number_of_divisions);
+    LaplacianRecoveryTest<2>(model, f, df, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility2DLaplacianXY, ShallowWaterApplicationFastSuite)
+{
+    Model model;
+    const int number_of_divisions = 4;
+    auto f = [] (array_1d<double,3> x) {
+        array_1d<double,3> primitive ({0.1*x[0]*x[1], 0.0, 0.0});
+        return primitive;
+    };
+    auto df = [] (array_1d<double,3> x) {
+        array_1d<double,3> derivative({0.0, 0.1, 0.0});
+        return derivative;
+    };
+    const double tolerance = 1e-12;
+    Generate2DMesh(model, number_of_divisions);
+    LaplacianRecoveryTest<2>(model, f, df, tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DerivativesRecoveryUtility3DLaplacian, ShallowWaterApplicationFastSuite)
+{
+    Model model;
+    const int number_of_divisions = 4;
+    auto f = [] (array_1d<double,3> x) {
+        array_1d<double,3> primitive ({0.1*x[0]*x[2], 0.0, std::pow(x[2],2)});
+        return primitive;
+    };
+    auto df = [] (array_1d<double,3> x) {
+        array_1d<double,3> derivative({0.0, 0.0, 2.1});
+        return derivative;
+    };
+    const double tolerance = 1e-12;
+    Generate3DMesh(model, number_of_divisions);
+    LaplacianRecoveryTest<3>(model, f, df, tolerance);
 }
 
 } // namespace Testing

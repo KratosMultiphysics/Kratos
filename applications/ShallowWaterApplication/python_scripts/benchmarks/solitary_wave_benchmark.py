@@ -18,38 +18,32 @@ class SolitaryWaveBenchmark(BaseBenchmarkProcess):
         # Costruction of the wave settings
         benchmark_settings = self.settings["benchmark_settings"]
         self.boundary_model_part = self.model.GetModelPart(benchmark_settings["boundary_model_part_name"].GetString())
-        process_info = self.boundary_model_part.ProcessInfo
-        self.use_depth_from_model_part = benchmark_settings["use_depth_from_model_part"].GetBool()
-        if self.use_depth_from_model_part:
-            self.wave = SolitaryWaveFactory(self.boundary_model_part, benchmark_settings, process_info)
-        else:
-            depth = benchmark_settings["depth"].GetDouble()
-            self.wave = SolitaryWaveFactory(depth, benchmark_settings, process_info)
-        self.x_shift = benchmark_settings["x_shift"].GetDouble()
-        self.t_shift = benchmark_settings["t_shift"].GetDouble()
+        self.wave = SolitaryWaveFactory(self.boundary_model_part, benchmark_settings["wave_specifications"])
+        self.x_shift = benchmark_settings["wave_specifications"]["x_shift"].GetDouble()
+        self.t_shift = benchmark_settings["wave_specifications"]["t_shift"].GetDouble()
+        self.get_depth_from_model_part = benchmark_settings["wave_specifications"]["get_depth_from_model_part"].GetBool()
 
-        # Here the base class set the topography and initial conditions
+        # Here the base class sets the topography and initial conditions
         super().ExecuteInitialize()
 
 
     @classmethod
     def _GetBenchmarkDefaultSettings(cls):
-        return KM.Parameters("""
-            {
-                "boundary_model_part_name"  : "",
+        return KM.Parameters("""{
+            "boundary_model_part_name"  : "",
+            "wave_specifications"       : {
                 "wave_theory"               : "boussinesq",
-                "use_depth_from_model_part" : true,
-                "depth"                     : 1.0,
                 "amplitude"                 : 1.0,
+                "depth"                     : 1.0,
+                "get_depth_from_model_part" : false,
                 "x_shift"                   : 0.0,
                 "t_shift"                   : 0.0
             }
-            """
-            )
+        }""")
 
 
     def _Topography(self, coordinates):
-        if self.use_depth_from_model_part:
+        if self.get_depth_from_model_part:
             return 0
         else:
             return -self.wave.depth
@@ -68,6 +62,12 @@ class SolitaryWaveBenchmark(BaseBenchmarkProcess):
         x = coordinates.X
         u_x = self.wave.u(x - self.x_shift, time - self.t_shift)
         return [u_x, 0.0, 0.0]
+
+
+    def ExecuteBeforeSolutionLoop(self):
+        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
+        SW.ShallowWaterUtilities().SetMinimumValue(self.model_part, SW.HEIGHT, 0.0)
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
 
 
     def ExecuteInitializeSolutionStep(self):

@@ -36,7 +36,10 @@ const Parameters DepthIntegrationProcess::GetDefaultParameters() const
         "volume_model_part_name"    : "",
         "interface_model_part_name" : "",
         "direction_of_integration"  : [0.0, 0.0, 1.0],
-        "store_historical_database" : false
+        "store_historical_database" : false,
+        "velocity_depth_integration": true,
+        "velocity_relative_depth"   : -0.531,
+        "mean_water_level"          : 0.0
     })");
     return default_parameters;
 }
@@ -57,6 +60,9 @@ DepthIntegrationProcess::DepthIntegrationProcess(
     } else {
         mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
     }
+    mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
+    mVelocityRelativeDepth = ThisParameters["velocity_relative_depth"].GetDouble();
+    mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
 }
 
 void DepthIntegrationProcess::Execute()
@@ -146,20 +152,37 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
             array_1d<double,3> obj_velocity = ZeroVector(3);
             double obj_min_elevation = 1e6;
             double obj_max_elevation = -1e6;
-            int obj_num_nodes = object.GetGeometry().size();
-            for (auto& node : object.GetGeometry()) {
-                velocity += node.FastGetSolutionStepValue(VELOCITY);
-                obj_min_elevation = std::min(obj_min_elevation, inner_prod(mDirection, node));
-                obj_max_elevation = std::max(obj_max_elevation, inner_prod(mDirection, node));
+            for (auto& r_node : object.GetGeometry()) {
+                obj_velocity += r_node.FastGetSolutionStepValue(VELOCITY);
+                obj_min_elevation = std::min(obj_min_elevation, inner_prod(mDirection, r_node));
+                obj_max_elevation = std::max(obj_max_elevation, inner_prod(mDirection, r_node));
             }
             velocity += obj_velocity;
             min_elevation = std::min(min_elevation, obj_min_elevation);
             max_elevation = std::max(max_elevation, obj_max_elevation);
-            num_nodes += obj_num_nodes;
+            num_nodes += object.GetGeometry().size();
         }
         velocity /= num_nodes;
         height = max_elevation - min_elevation;
         momentum = height*velocity;
+
+        // If we are interested in the velocity at a certain depth, then we replace the mean value by the specific value
+        if (!mVelocityDepthIntegration) {
+            const double reference_depth = mMeanWaterLevel - min_elevation;
+            const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
+            const double target_distance = target_depth - inner_prod(mDirection, rNode);
+            array_1d<double,3> target_point = rNode + mDirection * target_distance;
+            Point local_coordinates;
+            velocity = ZeroVector(3);
+            for (auto& object : rObjects) {
+                if (object.GetGeometry().IsInside(target_point, local_coordinates)) {
+                    for (auto& r_node : object.GetGeometry()) {
+                        velocity += r_node.FastGetSolutionStepValue(VELOCITY);
+                    }
+                    velocity /= object.GetGeometry().size();
+                }
+            }
+        }
     }
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);

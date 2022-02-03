@@ -122,10 +122,9 @@ def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
             process.ExecuteBeforeOutputStep()
 
         for process in list_of_processes:
-            for base in process.__class__.__bases__:
-                if base.__name__ == 'OutputProcess':
-                    if process.IsOutputStep():
-                        process.PrintOutput()
+            if issubclass(type(process), KratosMultiphysics.OutputProcess):
+                if process.IsOutputStep():
+                    process.PrintOutput()
 
         for process in list_of_processes:
             process.ExecuteAfterOutputStep()

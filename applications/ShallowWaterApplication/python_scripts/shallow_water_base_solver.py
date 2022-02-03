@@ -205,7 +205,7 @@ class ShallowWaterBaseSolver(PythonSolver):
                 flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse()
             KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), throw_errors, flags).Execute()
         else:
-            KM.Logger.PrintWarning(self.__class__.__name__(), "Orientation check not performed for quadrilateral or higher order geometries.")
+            KM.Logger.PrintWarning(self.__class__.__name__, "Orientation check not performed for quadrilateral or higher order geometries.")
 
     def __get_geometry_num_nodes(self, container):
         if len(container) != 0:

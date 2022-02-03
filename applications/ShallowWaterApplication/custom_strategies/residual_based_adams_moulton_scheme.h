@@ -24,6 +24,7 @@
 #include "processes/calculate_nodal_area_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "custom_utilities/derivatives_recovery_utility.h"
+#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -143,25 +144,7 @@ public:
         BaseType::Initialize(rModelPart);
         CalculateNodalAreaProcess<true>(rModelPart).Execute();
         FindGlobalNodalNeighboursProcess(rModelPart).Execute();
-        DerivativesRecoveryUtility<2>::CheckRequiredNeighborsPatch(rModelPart);
         DerivativesRecoveryUtility<2>::CalculatePolynomialWeights(rModelPart);
-    }
-
-    /**
-     * @brief Calculate the global projection of the auxiliary fields.
-     * @details This function is empty because the intermediate laplacian is kept constant during iterations.
-     * @param rModelPart The model part of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-    ) override
-    {
     }
 
     /**
@@ -191,14 +174,14 @@ public:
 
         // Setting to zero the laplacian and the prediction
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR) = ZeroVector(3);
+            rNode.FastGetSolutionStepValue(RHS) = ZeroVector(3);
         });
 
         // Recover the laplacian
-        DerivativesRecoveryUtility<2>::RecoverLaplacian(
-            rModelPart,
-            VELOCITY,
-            VELOCITY_LAPLACIAN);
+        ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, VELOCITY, VELOCITY_LAPLACIAN);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, MOMENTUM, VELOCITY_H_LAPLACIAN);
+        ApplyLaplacianBoundaryConditions(rModelPart);
 
         // Calculate the prediction
         block_for_each(rModelPart.Elements(), [&](Element& rElement){
@@ -209,9 +192,8 @@ public:
         block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
             array_1d<double,3>& velocity = rNode.FastGetSolutionStepValue(VELOCITY);
             double& free_surface = rNode.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-            const array_1d<double,3>& prediction = rNode.FastGetSolutionStepValue(RESIDUAL_VECTOR);
-            const double nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-            const double inv_mass = 1.0 / nodal_area;
+            const array_1d<double,3>& prediction = rNode.FastGetSolutionStepValue(RHS);
+            const double inv_mass = 1.0 / rNode.FastGetSolutionStepValue(NODAL_AREA);
             if (rNode.IsFixed(VELOCITY_X) == false) {
                 velocity[0] += delta_time * inv_mass * prediction[0];
             }
@@ -224,6 +206,26 @@ public:
         });
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.Predict");
+    }
+
+    /**
+     * @brief Calculate the global projection of the auxiliary fields.
+     * @param rModelPart The model part of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+    ) override
+    {
+        ShallowWaterUtilities().ComputeLinearizedMomentum(rModelPart);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, VELOCITY, VELOCITY_LAPLACIAN);
+        DerivativesRecoveryUtility<2>::RecoverLaplacian(rModelPart, MOMENTUM, VELOCITY_H_LAPLACIAN);
+        ApplyLaplacianBoundaryConditions(rModelPart);
     }
 
     /**
@@ -664,6 +666,20 @@ private:
         AddDynamicsToRHS(rObject, rRHSContribution, mM[this_thread], rCurrentProcessInfo);
 
         KRATOS_CATCH("ResidualBasedAdamsMoultonScheme.TCalculateRHSContribution");
+    }
+
+    void ApplyLaplacianBoundaryConditions(ModelPart& rModelPart)
+    {
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+            if (rNode.IsFixed(VELOCITY_X)) {
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_X) = 0.0;
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_X) = 0.0;
+            }
+            if (rNode.IsFixed(VELOCITY_Y)) {
+                rNode.FastGetSolutionStepValue(VELOCITY_LAPLACIAN_Y) = 0.0;
+                rNode.FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN_Y) = 0.0;
+            }
+        });
     }
 
     ///@}

@@ -30,7 +30,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwNormalFluxFICCondition : public UPwNormalFluxCondition<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION)
+    UPwNormalFluxFICCondition : public UPwNormalFluxCondition<TDim,TNumNodes>
 {
 
 public:
