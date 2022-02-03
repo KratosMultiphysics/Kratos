@@ -92,8 +92,6 @@ void ComputeMidpointShapeFunctions(
     Vector& rN,
     Matrix& rDN_DX)
 {
-    double detJ;
-
     Matrix DN_De;
     Matrix Jinv;
 
