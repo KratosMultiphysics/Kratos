@@ -163,8 +163,12 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->InitializeMaterialResponse(
                     Values, GetStressMeasure());
-            rValues[PointNumber] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(
-                    this_constitutive_variables.StressVector);
+            // Compute VM stress
+                if (dimension == 2 ) {
+                    rValues[PointNumber] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
+                } else {
+                    rValues[PointNumber] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
+                }
         }
 	} 
 
