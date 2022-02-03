@@ -109,14 +109,11 @@ void ComputeMidpointShapeFunctions(
     double detJ;
 
     Matrix DN_De;
-
-    Matrix J;
     Matrix Jinv;
 
     const auto center = rGeometry.Center();
     rGeometry.ShapeFunctionsValues(rN, center);
-    rGeometry.Jacobian(J, center);
-    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+    rGeometry.InverseOfJacobian(Jinv, center);
 
     rGeometry.ShapeFunctionsLocalGradients(DN_De, center);
     GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, rDN_DX);
