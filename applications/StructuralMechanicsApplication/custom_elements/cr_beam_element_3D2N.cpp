@@ -316,12 +316,13 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
 
 Vector CrBeamElement3D2N::CalculateLocalNodalForces() const
 {
-    // deformation modes
-    Vector element_forces_t = CalculateElementForces();
+    // Deformation modes
+    const Vector element_forces_t = CalculateElementForces();
+    
     // Nodal element forces local
-    Matrix transformation_matrix_s = CalculateTransformationS();
-    Vector nodal_forces_local_qe =
-        prod(transformation_matrix_s, element_forces_t);
+    const Matrix transformation_matrix_s = CalculateTransformationS();
+    const Vector nodal_forces_local_qe = prod(transformation_matrix_s, element_forces_t);
+     
     return nodal_forces_local_qe;
 }
 
