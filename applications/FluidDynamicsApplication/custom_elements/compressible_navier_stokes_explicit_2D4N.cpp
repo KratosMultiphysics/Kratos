@@ -101,14 +101,38 @@ void CompressibleNavierStokesExplicit<2,4>::GetDofList(
 }
 
 
+void ComputeMidpointShapeFunctions(
+    const Geometry<Node<3>>& rGeometry,
+    Vector& rN,
+    Matrix& rDN_DX)
+{
+    double detJ;
+
+    Matrix DN_De;
+
+    Matrix J;
+    Matrix Jinv;
+
+    const auto center = rGeometry.Center();
+    rGeometry.ShapeFunctionsValues(rN, center);
+    rGeometry.Jacobian(J, center);
+    MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+    rGeometry.ShapeFunctionsLocalGradients(DN_De, center);
+    GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, rDN_DX);
+}
+
+
 template <>
 array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVelocityRotational() const
 {
     // Get geometry data
-    const auto& r_geom = GetGeometry();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
-    const auto& r_dNdX = dNdX_container[0];
+    const auto& r_geometry = GetGeometry();
+
+    Vector N;
+    Matrix DN_DX;
+
+    ComputeMidpointShapeFunctions(r_geometry, N, DN_DX);
 
     // Calculate midpoint magnitudes
     double midpoint_rho = 0.0;
@@ -116,21 +140,23 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVeloc
     double midpoint_dmx_dy = 0.0;
     double midpoint_rho_dx = 0.0;
     double midpoint_rho_dy = 0.0;
-    array_1d<double,3> midpoint_mom = ZeroVector(3);
+    array_1d<double, 3> midpoint_mom = ZeroVector(3);
+
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-        auto& r_node = r_geom[i_node];
-        const auto node_dNdX = row(r_dNdX, i_node);
+        auto& r_node = r_geometry[i_node];
+
+        const auto node_dNdX = row(DN_DX, i_node);
+        const auto node_N = N(i_node);
+
         const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        midpoint_rho += r_rho;
-        midpoint_mom += r_mom;
+        midpoint_rho += node_N * r_rho;
+        midpoint_mom += node_N * r_mom;
         midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
         midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= static_cast<double>(NumNodes);
-    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity rotational
     // Note that the formulation is written in conservative variables. Hence we do rot(mom/rho).
@@ -143,16 +169,19 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVeloc
     return midpoint_rot_v;
 }
 
+
 template <>
 BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMidPointVelocityGradient() const
 {
     KRATOS_TRY
 
     // Get geometry data
-    const auto& r_geom = GetGeometry();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
-    const auto& r_dNdX = dNdX_container[0];
+    const auto& r_geometry = GetGeometry();
+
+    Vector N;
+    Matrix DN_DX;
+
+    ComputeMidpointShapeFunctions(r_geometry, N, DN_DX);
 
     // Calculate midpoint magnitudes
     double midpoint_rho = 0.0;
@@ -163,13 +192,17 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
     double midpoint_rho_dx = 0.0;
     double midpoint_rho_dy = 0.0;
     array_1d<double,3> midpoint_mom = ZeroVector(3);
+
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-        auto& r_node = r_geom[i_node];
-        const auto node_dNdX = row(r_dNdX, i_node);
+        auto& r_node = r_geometry[i_node];
+
+        const auto node_dNdX = row(DN_DX, i_node);
+        const auto node_N = N(i_node);
+
         const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        midpoint_rho += r_rho;
-        midpoint_mom += r_mom;
+        midpoint_rho += node_N * r_rho;
+        midpoint_mom += node_N * r_mom;
         midpoint_dmx_dx += r_mom[0] * node_dNdX[0];
         midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
         midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
@@ -177,8 +210,6 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= static_cast<double>(NumNodes);
-    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity gradient
     // Note that the formulation is written in conservative variables. Hence we do grad(mom/rho).
@@ -193,6 +224,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
 
     KRATOS_CATCH("")
 }
+
 
 template <>
 void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo)
