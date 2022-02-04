@@ -179,7 +179,8 @@ public:
         // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
         // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
         const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-        if (softening_type == 3) {
+        const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+        if (softening_type == curve_by_points) {
             const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
             const SizeType curve_points = stress_damage_curve.size() - 1;
 
@@ -211,7 +212,7 @@ public:
             rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
             rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
 
-            if (softening_type == 3) {
+            if (softening_type == curve_by_points) {
                 rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
             }
         }
@@ -246,7 +247,8 @@ public:
             // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
             // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
             const int softening_type = rMaterialParameters[SOFTENING_TYPE];
-            if (softening_type == 3) {
+            const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+            if (softening_type == curve_by_points) {
                 const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
                 const SizeType curve_points = stress_damage_curve.size() - 1;
 
