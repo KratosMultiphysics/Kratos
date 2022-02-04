@@ -26,20 +26,12 @@ class ExplicitStrategy(BaseStrategy):
         self.GetProjectParameters(DEM_parameters)
         self.CheckProjectParameters()
 
-        # Initialize member variables
+        # Set flags
         self.SetVoronoiPorosityFlags()
         self.SetGraphFlags()
 
-        self.thermal_data_utils = SetThermalDataUtilities()
-
-        if (self.compute_voronoi or self.compute_porosity):
-            if self.dimension == 2:
-                self.tesselation_utils = TesselationUtilities2D()
-            elif self.dimension == 3:
-                self.tesselation_utils = TesselationUtilities3D()
-            
-        if (self.write_graph):
-            self.graph_utils = GraphUtilities()
+        # Create utilities
+        self.CreateCPlusPlusUtilities()
 
     def GetProjectParameters(self, DEM_parameters):
         # Get thermal settings and assign default values (in case it was not previously done)
@@ -220,6 +212,18 @@ class ExplicitStrategy(BaseStrategy):
         else:
             self.write_graph = False
 
+    def CreateCPlusPlusUtilities(self):
+        self.thermal_data_utils = SetThermalDataUtilities()
+
+        if (self.compute_voronoi or self.compute_porosity):
+            if self.dimension == 2:
+                self.tesselation_utils = TesselationUtilities2D()
+            elif self.dimension == 3:
+                self.tesselation_utils = TesselationUtilities3D()
+            
+        if (self.write_graph):
+            self.graph_utils = GraphUtilities()
+    
     def CreateCPlusPlusStrategy(self):
         # Set standard options
         BaseStrategy.SetVariablesAndOptions(self)
@@ -311,6 +315,9 @@ class ExplicitStrategy(BaseStrategy):
         BaseStrategy.Initialize(self)
 
         # Initialize utilities
+        self.InitializeCPlusPlusUtilities()
+    
+    def InitializeCPlusPlusUtilities(self):
         self.thermal_data_utils.ExecuteInitialize(self.spheres_model_part,self.fem_model_part)
 
         if (self.compute_voronoi or self.compute_porosity):
@@ -323,7 +330,7 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphParticleTempDev,
                                                self.PostGraphModelTempAvg,
                                                self.PostGraphFluxContributions)
-    
+
     def InitializeSolutionStep(self):
         if (self.compute_motion_option):
             BaseStrategy.InitializeSolutionStep(self)
@@ -355,11 +362,13 @@ class ExplicitStrategy(BaseStrategy):
             BaseStrategy.Predict(self)
     
     def SolveSolutionStep(self):
+        # Solve step according to motion type
         if (self.compute_motion_option):
             (self.cplusplus_strategy).SolveSolutionStep()
         else:
             (self.cplusplus_strategy).SolveSolutionStepStatic()
         
+        # Update temperature dependent radii
         if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
             (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
         

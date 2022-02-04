@@ -4,7 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.ThermalDEMApplication import *
 
-# Import correct DEM_procedures file
+# Import correct DEM_procedures file (as it is done in DEM_analysis_stage for importing procedures)
 if IsDistributedRun():
     if "DO_NOT_PARTITION_DOMAIN" in os.environ:
         from KratosMultiphysics.mpi import *

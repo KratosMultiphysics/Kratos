@@ -20,13 +20,14 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
         super().__init__(model, parameters)
 
     def GetDefaultInputParameters(self):
+        # Get default values of mechanical parameters
         dem_parameters = super().GetDefaultInputParameters()
 
-        # Add default values of thermal settings
+        # Add default values of thermal parameters
         thermal_settings = DefaultSettings.GetDefaultInputSettings()
         dem_parameters.AddValue("thermal_settings", thermal_settings)
 
-        # Add default post options
+        # Add default values of post options
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostTemperature")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostHeatFlux")
         SetDefaultBoolParameterIfNotExists(dem_parameters, "PostGraphParticleTempMin")
@@ -53,6 +54,7 @@ class ThermalDEMAnalysis(DEMAnalysisStage):
                 imported_module = import_module("KratosMultiphysics.ThermalDEMApplication" + "." + strategy_file_name)
                 return imported_module
 
+        # Create cpp strategy for thermal solver
         return SetSolverStrategy().ExplicitStrategy(self.all_model_parts,
                                                     self.creator_destructor,
                                                     self.dem_fem_search,
