@@ -18,6 +18,8 @@ def GetBoolParameterIfItExists(parameters, key):
 # Strategy class
 class ExplicitStrategy(BaseStrategy):
 
+    ####################################### DERIVED METHODS #######################################
+    #----------------------------------------------------------------------------------------------
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
         # Initialize base class
         BaseStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
@@ -33,6 +35,102 @@ class ExplicitStrategy(BaseStrategy):
         # Create utilities
         self.CreateCPlusPlusUtilities()
 
+    #----------------------------------------------------------------------------------------------
+    def CreateCPlusPlusStrategy(self):
+        # Set standard options
+        BaseStrategy.SetVariablesAndOptions(self)
+
+        # Set thermal options
+        self.SetThermalVariablesAndOptions()
+
+        # Create cpp strategy object
+        translational_integration_scheme = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+        
+        if (translational_integration_scheme == 'Velocity_Verlet'):
+            raise Exception('ThermalDEM', '"Thermal strategy for translational integration scheme \'' + translational_integration_scheme + '\' is not implemented.')
+        else:
+            self.cplusplus_strategy = ThermalExplicitSolverStrategy(self.settings,
+                                                                    self.max_delta_time,
+                                                                    self.n_step_search,
+                                                                    self.safety_factor,
+                                                                    self.delta_option,
+                                                                    self.creator_destructor,
+                                                                    self.dem_fem_search,
+                                                                    self.search_strategy,
+                                                                    self.solver_settings)
+
+    #----------------------------------------------------------------------------------------------
+    def AddVariables(self):
+        # Add standard variables
+        BaseStrategy.AddVariables(self)
+
+        # Add thermal variables to all model parts
+        self.spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.cluster_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.inlet_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.fem_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+
+        self.spheres_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.cluster_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.inlet_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.fem_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+    
+    #----------------------------------------------------------------------------------------------
+    def Initialize(self):
+        # Base class initializer
+        BaseStrategy.Initialize(self)
+
+        # Initialize utilities
+        self.InitializeCPlusPlusUtilities()
+    
+    #----------------------------------------------------------------------------------------------
+    def InitializeSolutionStep(self):
+        if (self.compute_motion_option):
+            BaseStrategy.InitializeSolutionStep(self)
+        else:
+            (self.cplusplus_strategy).InitializeSolutionStep()
+
+        # Perform tesselation-dependent tasks (triangulation or tetrahedralization)
+        if (self.IsTimeToUpdateVoronoi() or self.IsTimeToUpdatePorosity()):
+            self.tesselation_utils.ExecuteInitializeSolutionStep(self.spheres_model_part)
+    
+    #----------------------------------------------------------------------------------------------
+    def Predict(self):
+        if (self.compute_motion_option):
+            BaseStrategy.Predict(self)
+    
+    #----------------------------------------------------------------------------------------------
+    def SolveSolutionStep(self):
+        # Solve step according to motion type
+        if (self.compute_motion_option):
+            (self.cplusplus_strategy).SolveSolutionStep()
+        else:
+            (self.cplusplus_strategy).SolveSolutionStepStatic()
+        
+        # Update temperature dependent radii
+        if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
+            (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
+        
+        return True
+    
+    #----------------------------------------------------------------------------------------------
+    def FinalizeSolutionStep(self):
+        BaseStrategy.FinalizeSolutionStep(self)
+
+        # Write output graphs
+        if (self.write_graph):
+            self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
+
+    #----------------------------------------------------------------------------------------------
+    def Finalize(self):
+        BaseStrategy.Finalize(self)
+
+        # Close graph files
+        if (self.write_graph):
+            self.graph_utils.ExecuteFinalize()
+
+    ####################################### PARTICULAR METHODS #######################################
+    #----------------------------------------------------------------------------------------------
     def GetProjectParameters(self, DEM_parameters):
         # Get thermal settings and assign default values (in case it was not previously done)
         default_settings = DefaultSettings.GetDefaultInputSettings()
@@ -100,6 +198,7 @@ class ExplicitStrategy(BaseStrategy):
         self.PostGraphModelTempAvg      = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
         self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphFluxContributions")
 
+    #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
         # Models for heat transfer
         if (self.direct_conduction_model != "batchelor_obrien" and
@@ -171,7 +270,8 @@ class ExplicitStrategy(BaseStrategy):
             self.fluid_thermal_conductivity <= 0 or
             self.fluid_heat_capacity        <= 0):
             raise Exception('ThermalDEM', '"global_fluid_properties" must contain positive values for material properties.')
-        
+
+    #----------------------------------------------------------------------------------------------
     def SetVoronoiPorosityFlags(self):
         # Flag for computing voronoi diagram in a given frequency
         if (self.compute_indirect_conduction_option         and
@@ -201,6 +301,7 @@ class ExplicitStrategy(BaseStrategy):
         else:
               self.compute_porosity = False
     
+    #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
         if (self.PostGraphParticleTempMin  or
             self.PostGraphParticleTempMax  or
@@ -212,6 +313,7 @@ class ExplicitStrategy(BaseStrategy):
         else:
             self.write_graph = False
 
+    #----------------------------------------------------------------------------------------------
     def CreateCPlusPlusUtilities(self):
         self.thermal_data_utils = SetThermalDataUtilities()
 
@@ -224,44 +326,7 @@ class ExplicitStrategy(BaseStrategy):
         if (self.write_graph):
             self.graph_utils = GraphUtilities()
     
-    def CreateCPlusPlusStrategy(self):
-        # Set standard options
-        BaseStrategy.SetVariablesAndOptions(self)
-
-        # Set thermal options
-        self.SetThermalVariablesAndOptions()
-
-        # Create cpp strategy object
-        translational_integration_scheme = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
-        
-        if (translational_integration_scheme == 'Velocity_Verlet'):
-            raise Exception('ThermalDEM', '"Thermal strategy for translational integration scheme \'' + translational_integration_scheme + '\' is not implemented.')
-        else:
-            self.cplusplus_strategy = ThermalExplicitSolverStrategy(self.settings,
-                                                                    self.max_delta_time,
-                                                                    self.n_step_search,
-                                                                    self.safety_factor,
-                                                                    self.delta_option,
-                                                                    self.creator_destructor,
-                                                                    self.dem_fem_search,
-                                                                    self.search_strategy,
-                                                                    self.solver_settings)
-    
-    def AddVariables(self):
-        # Add standard variables
-        BaseStrategy.AddVariables(self)
-
-        # Add thermal variables to all model parts
-        self.spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        self.cluster_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        self.inlet_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        self.fem_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-
-        self.spheres_model_part.AddNodalSolutionStepVariable(HEATFLUX)
-        self.cluster_model_part.AddNodalSolutionStepVariable(HEATFLUX)
-        self.inlet_model_part.AddNodalSolutionStepVariable(HEATFLUX)
-        self.fem_model_part.AddNodalSolutionStepVariable(HEATFLUX)
-
+    #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
@@ -310,13 +375,7 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE,          self.fluid_temperature)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
 
-    def Initialize(self):
-        # Base class initializer
-        BaseStrategy.Initialize(self)
-
-        # Initialize utilities
-        self.InitializeCPlusPlusUtilities()
-    
+    #----------------------------------------------------------------------------------------------
     def InitializeCPlusPlusUtilities(self):
         self.thermal_data_utils.ExecuteInitialize(self.spheres_model_part,self.fem_model_part)
 
@@ -331,16 +390,7 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphModelTempAvg,
                                                self.PostGraphFluxContributions)
 
-    def InitializeSolutionStep(self):
-        if (self.compute_motion_option):
-            BaseStrategy.InitializeSolutionStep(self)
-        else:
-            (self.cplusplus_strategy).InitializeSolutionStep()
-
-        # Perform tesselation-dependent tasks (triangulation or tetrahedralization)
-        if (self.IsTimeToUpdateVoronoi() or self.IsTimeToUpdatePorosity()):
-            self.tesselation_utils.ExecuteInitializeSolutionStep(self.spheres_model_part)
-    
+    #----------------------------------------------------------------------------------------------
     def IsTimeToUpdateVoronoi(self):
         if (self.compute_voronoi):
             step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
@@ -348,7 +398,8 @@ class ExplicitStrategy(BaseStrategy):
             return step == 1 or (freq != 0 and step%freq == 0)
         else:
             return False
-    
+
+    #----------------------------------------------------------------------------------------------
     def IsTimeToUpdatePorosity(self):
         if (self.compute_porosity):
             step = self.spheres_model_part.ProcessInfo[TIME_STEPS]
@@ -356,34 +407,3 @@ class ExplicitStrategy(BaseStrategy):
             return step == 1 or (freq != 0 and step%freq == 0)
         else:
             return False
-    
-    def Predict(self):
-        if (self.compute_motion_option):
-            BaseStrategy.Predict(self)
-    
-    def SolveSolutionStep(self):
-        # Solve step according to motion type
-        if (self.compute_motion_option):
-            (self.cplusplus_strategy).SolveSolutionStep()
-        else:
-            (self.cplusplus_strategy).SolveSolutionStepStatic()
-        
-        # Update temperature dependent radii
-        if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
-            (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
-        
-        return True
-
-    def FinalizeSolutionStep(self):
-        BaseStrategy.FinalizeSolutionStep(self)
-
-        # Write output graphs
-        if (self.write_graph):
-            self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
-
-    def Finalize(self):
-        BaseStrategy.Finalize(self)
-
-        # Close graph files
-        if (self.write_graph):
-            self.graph_utils.ExecuteFinalize()
