@@ -135,7 +135,7 @@ def AssembleTestSuites():
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
-    validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTetra')) # Takes too long
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorCompilationTest('test_Tetrahedron'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
