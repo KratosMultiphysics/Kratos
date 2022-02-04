@@ -187,6 +187,26 @@ def get_local_stress_vector(simulation):
         KratosGeo.LOCAL_STRESS_VECTOR, model_part.ProcessInfo) for element in elements]
     return local_stress_vector
 
+def get_hydraylic_head_with_intergration_points(simulation):
+    """
+    Gets hydraylic head on all nodal points from Kratos simulation
+    :param simulation:
+    :return: force
+    """
+    model_part = simulation._list_of_output_processes[0].model_part
+    elements = model_part.Elements
+
+    x = []
+    y = []
+    head = []
+    for element in elements:
+        values = element.CalculateOnIntegrationPoints(KratosGeo.HYDRAULIC_HEAD, model_part.ProcessInfo)
+        points = element.GetIntegrationPoints()
+        for counter, head_value in enumerate(values):
+            x.append(points[counter][0])
+            y.append(points[counter][1])
+            head.append(head_value)
+    return x, y , head
 
 def get_force(simulation):
     """
