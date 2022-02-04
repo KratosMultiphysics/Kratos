@@ -229,6 +229,7 @@ class ExplicitStrategy(BaseStrategy):
 
         # Create cpp strategy object
         translational_integration_scheme = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+        
         if (translational_integration_scheme == 'Velocity_Verlet'):
             raise Exception('ThermalDEM', '"Thermal strategy for translational integration scheme \'' + translational_integration_scheme + '\' is not implemented.')
         else:
