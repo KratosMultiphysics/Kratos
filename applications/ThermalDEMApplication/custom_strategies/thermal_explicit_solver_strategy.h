@@ -50,8 +50,8 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalExplicitSolverStrategy : public
     virtual ~ThermalExplicitSolverStrategy();
 
     // Public derived methods
-    void SetSearchRadiiOnAllParticles        (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0);
-    void SetSearchRadiiWithFemOnAllParticles (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0);
+    void SetSearchRadiiOnAllParticles        (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
+    void SetSearchRadiiWithFemOnAllParticles (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
 
     // Public particular methods
     double SolveSolutionStepStatic();
