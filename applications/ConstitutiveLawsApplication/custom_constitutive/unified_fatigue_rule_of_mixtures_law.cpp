@@ -173,27 +173,27 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress);
     }
-    // if (adnvance_strategy_applied) {
-    //     const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
-    //     double alphat;
-    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
-    //         max_stress,
-    //         reversion_factor,
-    //         rValues.GetMaterialProperties(),
-    //         B0,
-    //         s_th,
-    //         alphat,
-    //         cycles_to_failure);
-    //     HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
-    //                                                                                     max_stress,
-    //                                                                                     local_number_of_cycles,
-    //                                                                                     global_number_of_cycles,
-    //                                                                                     B0,
-    //                                                                                     s_th,
-    //                                                                                     alphat,
-    //                                                                                     fatigue_reduction_factor,
-    //                                                                                     wohler_stress);
-    // }
+    if (adnvance_strategy_applied) {
+        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+        double alphat;
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
+            max_stress,
+            reversion_factor,
+            rValues.GetMaterialProperties(),
+            B0,
+            s_th,
+            alphat,
+            cycles_to_failure);
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
+                                                                                        max_stress,
+                                                                                        local_number_of_cycles,
+                                                                                        global_number_of_cycles,
+                                                                                        B0,
+                                                                                        s_th,
+                                                                                        alphat,
+                                                                                        fatigue_reduction_factor,
+                                                                                        wohler_stress);
+    }
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
     mReversionFactorRelativeError = reversion_factor_relative_error;
@@ -657,8 +657,8 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         previous_stresses[1] = predictive_uniaxial_stress;
         previous_stresses[0] = r_aux_stresses[1];
         mPreviousStresses = previous_stresses;
-        KRATOS_WATCH(r_integrated_stress_vector)
-        KRATOS_WATCH(predictive_uniaxial_stress)
+        // KRATOS_WATCH(r_integrated_stress_vector)
+        // KRATOS_WATCH(predictive_uniaxial_stress)
     }
 }
 
