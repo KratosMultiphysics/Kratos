@@ -25,6 +25,7 @@ The Mapping Application contains the core developments in mapping data between n
 - Different mapping technologies (see [here](#available-mappers)):
   - Nearest Neighbor
   - Nearest Element
+  - Barycentric
 - Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
 
 ### Dependencies
@@ -247,6 +248,18 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
 
 **Supported mesh topologies**: Any mesh topology available in Kratos, which includes the most common linear and quadratic geometries, see [here](../../kratos/geometries).
 
+#### Barycentric
+
+The _BarycentricMapper_ uses the closest nodes to reconstructs a geometry. This geometry is used in the same way as the _NearestElementMapper_ for interpolating the values of the nodes using the shape functions.
+
+This mapper can be used when no geometries are available and interpolative properties of the mapper are required. E.g. for particle methods when only nodes or point-based entities are available. Overall it can be seen as combining the advantages of the _NearestNeighborMapper_ (which only requires points as input) with the advantages of the _NearestElementMapper_ (which has interpolative properties). The disadvantage is that the reconstruction of the geometry can cause problems in complex situations, hence it should only be used if the _NearestElementMapper_ cannot be used.
+
+Furthermore, the geometry type for the reconstruction/interpolation has to be chosen with the `interpolation_type` setting. The following types are available: `line`, `triangle` and `tetrahedra`
+
+Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogenous interface discretizations it can come to oscillations in the mapped quantities.
+
+**Supported mesh topologies**: This mapper only works with nodes and hence supports any mesh topology
+
 ### When to use which Mapper?
 
 - **Matching Interface**\
@@ -257,6 +270,9 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
 
 - **Interfaces with non matching discretizations**\
   The _NearestElementMapper_ is recommended because it results in smoother mapping results due to the interpolation using the shape functions.
+
+- **Interfaces with non matching discretizations when no geometries are available for interpolation**\
+  The _NearestElementMapper_ cannot be used as it requires geometries for the ionterpolation. Here the _BarycentricMapper_ is recommended because it reconstructs geometries from the surrounding nodes and then uses it to interpolate.
 
 ### Using the Mapper for ModelParts that are not part of all ranks
 

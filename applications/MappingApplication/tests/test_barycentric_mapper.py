@@ -7,7 +7,8 @@ class BasicTestsLine(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "line",
             "interface_submodel_part_origin": "line_tri",
             "interface_submodel_part_destination": "line_quad",
             "echo_level" : 0
@@ -18,7 +19,8 @@ class BasicTestsLineInitialConfig(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "line",
             "interface_submodel_part_origin": "line_tri",
             "interface_submodel_part_destination": "line_quad",
             "use_initial_configuration" : true,
@@ -38,7 +40,8 @@ class BasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "line",
             "interface_submodel_part_origin": "line_quad",
             "interface_submodel_part_destination": "line_tri",
             "echo_level" : 0
@@ -49,9 +52,13 @@ class BasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "triangle",
             "interface_submodel_part_origin": "surface_tri",
             "interface_submodel_part_destination": "surface_quad",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -60,9 +67,13 @@ class BasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "triangle",
             "interface_submodel_part_origin": "surface_quad",
             "interface_submodel_part_destination": "surface_tri",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params, switch_sides=True)
@@ -71,9 +82,11 @@ class BasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "volume_tri",
-            "interface_submodel_part_destination": "volume_quad",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "tetrahedra",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -82,9 +95,11 @@ class BasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
-            "interface_submodel_part_origin": "volume_quad",
-            "interface_submodel_part_destination": "volume_tri",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "tetrahedra",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params, switch_sides=True)
@@ -93,7 +108,11 @@ class BladeMapping(blade_mapping_test.BladeMappingTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -103,7 +122,11 @@ class BladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialMode
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -113,7 +136,11 @@ class BladeMappingAllRanksExceptLast(blade_mapping_test.BladeMappingTestsAllRank
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -123,7 +150,11 @@ class BladeMappingAllRanksExceptFirst(blade_mapping_test.BladeMappingTestsAllRan
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
@@ -133,7 +164,11 @@ class BladeMappingUnevenRanks(blade_mapping_test.BladeMappingTestsUnevenRanks):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
-            "mapper_type": "nearest_element",
+            "mapper_type": "barycentric",
+            "interpolation_type" : "triangle",
+            "search_settings" : {
+                "max_num_search_iterations" : 8
+            },
             "echo_level" : 0
         }""")
         super().setUpMapper(mapper_params)
