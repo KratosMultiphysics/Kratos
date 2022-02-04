@@ -121,9 +121,11 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
         return 0
 
-    def _GetCompilerFromEnvironment(self):
+    @classmethod
+    def _GetCompilerFromEnvironment(cls):
         """
-        Gets the compiler from environment variables (Useful in continuous integration runs).
+        Gets the compiler from environment variables.
+        Useful in continuous integration runs.
         """
         if "CXX" not in os.environ:
             return None
