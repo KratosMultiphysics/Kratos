@@ -47,7 +47,8 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/thermal_explicit_solver_strategy.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/graph_utilities.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/set_thermal_data_utilities.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities_3d.cpp
 )
 
 ## Define python interface sources

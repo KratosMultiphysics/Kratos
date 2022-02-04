@@ -33,7 +33,10 @@ class ExplicitStrategy(BaseStrategy):
         self.thermal_data_utils = SetThermalDataUtilities()
 
         if (self.compute_voronoi or self.compute_porosity):
-            self.tesselation_utils = TesselationUtilities()
+            if self.dimension == 2:
+                self.tesselation_utils = TesselationUtilities2D()
+            elif self.dimension == 3:
+                self.tesselation_utils = TesselationUtilities3D()
             
         if (self.write_graph):
             self.graph_utils = GraphUtilities()

@@ -18,7 +18,8 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/graph_utilities.h"
 #include "custom_utilities/set_thermal_data_utilities.h"
-#include "custom_utilities/tesselation_utilities.h"
+#include "custom_utilities/tesselation_utilities_2d.h"
+#include "custom_utilities/tesselation_utilities_3d.h"
 
 namespace Kratos
 {
@@ -39,10 +40,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     .def(py::init<>())
     .def("ExecuteInitialize", &SetThermalDataUtilities::ExecuteInitialize);
 
-  py::class_<TesselationUtilities, TesselationUtilities::Pointer>(m, "TesselationUtilities")
+  py::class_<TesselationUtilities2D, TesselationUtilities2D::Pointer>(m, "TesselationUtilities2D")
     .def(py::init<>())
-    .def("ExecuteInitialize",             &TesselationUtilities::ExecuteInitialize)
-    .def("ExecuteInitializeSolutionStep", &TesselationUtilities::ExecuteInitializeSolutionStep);
+    .def("ExecuteInitialize",             &TesselationUtilities2D::ExecuteInitialize)
+    .def("ExecuteInitializeSolutionStep", &TesselationUtilities2D::ExecuteInitializeSolutionStep);
+
+  py::class_<TesselationUtilities3D, TesselationUtilities3D::Pointer>(m, "TesselationUtilities3D")
+    .def(py::init<>())
+    .def("ExecuteInitialize", &TesselationUtilities3D::ExecuteInitialize)
+    .def("ExecuteInitializeSolutionStep", &TesselationUtilities3D::ExecuteInitializeSolutionStep);
 }
 
 } // namespace Python
