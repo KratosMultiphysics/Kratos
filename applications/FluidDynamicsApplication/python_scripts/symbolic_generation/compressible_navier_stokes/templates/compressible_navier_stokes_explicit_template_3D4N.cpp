@@ -27,6 +27,10 @@
 
 namespace Kratos {
 
+/**
+ * Returns the integration method for computation of midpoint magnitudes.
+ * Computation of RHS integration method is chosen in the symbolic generator.
+ */
 template<>
 GeometryData::IntegrationMethod CompressibleNavierStokesExplicit<3,4>::GetIntegrationMethod() const
 {
