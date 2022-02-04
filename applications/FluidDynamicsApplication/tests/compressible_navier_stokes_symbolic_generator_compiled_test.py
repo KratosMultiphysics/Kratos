@@ -29,7 +29,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         geometry_name = {
             "2D3N": "triangle",
             "2D4N": "quadrilateral",
-            "3D4N": "hexahedron"
+            "3D4N": "tetrahedron"
         }[geometry]
 
         parameters = KratosMultiphysics.Parameters("""
@@ -164,6 +164,24 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             "print_results": False,
             "compiler": "g++",
             "geometry": "2D3N"
+        }
+
+        ci_compiler = self._GetCompilerFromEnvironment()
+        if ci_compiler is not None:
+            args["compiler"] = ci_compiler
+
+        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
+            self._GenerateCompileAndRun(**args)
+
+    @unittest.skipIf("linux" not in sys.platform, "This test is only available on linux")
+    def test_Tetrahedron(self):
+        args = {
+            "regenerate": True,
+            "recompile": True,
+            "cleanup": True,
+            "print_results": False,
+            "compiler": "g++",
+            "geometry": "3D4N"
         }
 
         ci_compiler = self._GetCompilerFromEnvironment()

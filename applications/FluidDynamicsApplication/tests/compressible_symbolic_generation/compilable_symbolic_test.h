@@ -295,16 +295,16 @@ using Vector = Matrix<TRows, 1>;
  * @brief Shape functions in isoparametric space
  */
 template<std::size_t TDim, std::size_t TNodes>
-void ShapeFunctions(Vector<TNodes>& N, Matrix<TNodes, TDim>& DN_DX, double x, double y);
+void ShapeFunctions(Vector<TNodes>& N, Matrix<TNodes, TDim>& DN_DX, double x, double y = 0, double z = 0);
 
 /**
  * Triangle shape functions
  */
 template<>
-inline void ShapeFunctions(Vector<3>& N, Matrix<3, 2>& DN_DX, double x, double y)
+inline void ShapeFunctions(Vector<3>& N, Matrix<3, 2>& DN_DX, double x, double y, double)
 {
     N[0] = -(x+y)/2;
-    N[1] = (1+x)/2;;
+    N[1] = (1+x)/2;
     N[2] = (1+y)/2;
 
     DN_DX(0,0) = -0.5;      DN_DX(0,1) = -0.5;
@@ -316,7 +316,7 @@ inline void ShapeFunctions(Vector<3>& N, Matrix<3, 2>& DN_DX, double x, double y
  * Quadrilateral shape functions
  */
 template<>
-inline void ShapeFunctions(Vector<4>& N, Matrix<4, 2>& DN_DX, double x, double y)
+inline void ShapeFunctions(Vector<4>& N, Matrix<4, 2>& DN_DX, double x, double y, double)
 {
     N[0] = (1-x)*(1-y)/4;
     N[1] = (1+x)*(1-y)/4;
@@ -327,6 +327,23 @@ inline void ShapeFunctions(Vector<4>& N, Matrix<4, 2>& DN_DX, double x, double y
     DN_DX(1,0) =  (1-y)/4;      DN_DX(1,1) = -(1+x)/4;
     DN_DX(2,0) =  (1+y)/4;      DN_DX(2,1) =  (1+x)/4;
     DN_DX(3,0) = -(1+y)/4;      DN_DX(3,1) =  (1-x)/4;
+}
+
+/**
+ * Tetrahedron shape functions
+ */
+template<>
+inline void ShapeFunctions(Vector<4>& N, Matrix<4, 3>& DN_DX, double x, double y, double z)
+{
+    N[0] = -(1+x+y+z)/3;
+    N[1] = (1+x)/2;
+    N[2] = (1+y)/2;
+    N[3] = (1+z)/2;
+
+    DN_DX(0,0) = -1/3.0;    DN_DX(0,1) = -1/3.0;    DN_DX(0,2) = -1/3.0;
+    DN_DX(1,0) =  0.5;      DN_DX(1,1) =  0;        DN_DX(1,2) = 0;
+    DN_DX(2,0) =  0;        DN_DX(2,1) =  0.5;      DN_DX(2,2) = 0;
+    DN_DX(3,0) =  0;        DN_DX(3,1) =  0;        DN_DX(3,2) = 0.5;
 }
 
 /**
