@@ -323,10 +323,6 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphParticleTempDev,
                                                self.PostGraphModelTempAvg,
                                                self.PostGraphFluxContributions)
-
-    def Predict(self):
-        if (self.compute_motion_option):
-            BaseStrategy.Predict(self)
     
     def InitializeSolutionStep(self):
         if (self.compute_motion_option):
@@ -353,6 +349,10 @@ class ExplicitStrategy(BaseStrategy):
             return step == 1 or (freq != 0 and step%freq == 0)
         else:
             return False
+    
+    def Predict(self):
+        if (self.compute_motion_option):
+            BaseStrategy.Predict(self)
     
     def SolveSolutionStep(self):
         if (self.compute_motion_option):
