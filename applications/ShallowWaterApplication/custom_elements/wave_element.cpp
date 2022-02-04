@@ -57,6 +57,7 @@ int WaveElement<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_CATCH("")
 }
 
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -76,6 +77,7 @@ void WaveElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, con
 
     KRATOS_CATCH("")
 }
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
@@ -97,6 +99,7 @@ void WaveElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const
     KRATOS_CATCH("")
 }
 
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
 {
@@ -112,6 +115,7 @@ void WaveElement<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(this->GetUnknownComponent(2), Step);
     }
 }
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step) const
@@ -135,17 +139,58 @@ void WaveElement<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Ste
     KRATOS_ERROR << "WaveElement::GetSecondDerivativesVector. This method is not supported by the formulation" << std::endl;
 }
 
+
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+void WaveElement<TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
 {
-    for (IndexType PointNumber = 0; PointNumber < 1; PointNumber++)
-        rValues[PointNumber] = double(this->GetValue(rVariable));
+    for (std::size_t point_number = 0; point_number < 1; ++point_number)
+        rValues[point_number] = double(this->GetValue(rVariable));
 }
+
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::Calculate(
+    const Variable<array_1d<double,3>>& rVariable,
+    array_1d<double,3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE)
+    {
+        rOutput = ZeroVector();
+        const array_1d<double,3>& gravity = -rCurrentProcessInfo[GRAVITY];
+        const double density = this->GetProperties()[DENSITY];
+        const auto& r_geometry = this->GetGeometry();
+
+        // The nodal data
+        array_1d<double,TNumNodes> nodal_h;
+        for (std::size_t i = 0; i < TNumNodes; ++i) {
+            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
+        }
+
+        // The geometry data
+        Vector weights;
+        Matrix N_container;
+        ShapeFunctionsGradientsType DN_DX_container;
+        CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
+
+        // Integration over the geometry
+        for (std::size_t g = 0; g < weights.size(); ++g) {
+            const array_1d<double,TNumNodes> N = row(N_container, g);
+            const double h = inner_prod(nodal_h, N);
+            rOutput += density * gravity * h * weights[g];
+        }
+    }
+}
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
 }
+
 
 template<std::size_t TNumNodes>
 const Variable<double>& WaveElement<TNumNodes>::GetUnknownComponent(int Index) const
@@ -157,6 +202,7 @@ const Variable<double>& WaveElement<TNumNodes>::GetUnknownComponent(int Index) c
         default: KRATOS_ERROR << "WaveElement::GetUnknownComponent. Index out of bounds." << std::endl;
     }
 }
+
 
 template<std::size_t TNumNodes>
 typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
@@ -171,18 +217,6 @@ typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnkn
     return unknown;
 }
 
-template<std::size_t TNumNodes>
-typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetAccelerationsVector(const ElementData& rData) const
-{
-    std::size_t index = 0;
-    array_1d<double,mLocalSize> accelerations;
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        accelerations[index++] = rData.nodal_a[i][0];
-        accelerations[index++] = rData.nodal_a[i][1];
-        accelerations[index++] = rData.nodal_w[i];
-    }
-    return accelerations;
-}
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
@@ -192,31 +226,29 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
-    rData.amplitude = rCurrentProcessInfo[AMPLITUDE];
-    rData.wavelength = rCurrentProcessInfo[WAVELENGTH];
+    auto& r_geometry = this->GetGeometry();
+    rData.length = r_geometry.Length();
     rData.p_bottom_friction = FrictionLawsFactory().CreateBottomFrictionLaw(
-        this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+        r_geometry, this->GetProperties(), rCurrentProcessInfo);
 }
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step)
 {
-    rData.length = rGeometry.Length();
-
     for (IndexType i = 0; i < TNumNodes; i++)
     {
         rData.nodal_f[i] = rGeometry[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, Step);
         rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
-        rData.nodal_w[i] = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
         rData.nodal_q[i] = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, Step);
-        rData.nodal_a[i] = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
     }
 }
 
+
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateGaussPointData(
+void WaveElement<TNumNodes>::UpdateGaussPointData(
     ElementData& rData,
     const array_1d<double,TNumNodes>& rN)
 {
@@ -253,14 +285,137 @@ void WaveElement<TNumNodes>::CalculateGaussPointData(
     rData.b2[1] = rData.gravity;
 }
 
+
+template<>
+void WaveElement<3>::CalculateGeometryData(
+    const GeometryType& rGeometry,
+    Vector &rGaussWeights,
+    Matrix &rNContainer,
+    ShapeFunctionsGradientsType &rDN_DXContainer)
+{
+    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
+    array_1d<double,3> N;            // Position of the gauss point
+    double area;
+    GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
+
+    if (rGaussWeights.size() != 1) {
+        rGaussWeights.resize(1, false);
+    }
+    rGaussWeights[0] = area;
+
+    if (rNContainer.size1() != 1 && rNContainer.size2() != 3) {
+        rNContainer.resize(1, 3, false);
+    }
+    for (std::size_t i = 0; i < 3; ++i) {
+        rNContainer(0, i) = N[i];
+    }
+
+    if (rDN_DXContainer.size() != 1) {
+        rDN_DXContainer.resize(1, false);
+    }
+    rDN_DXContainer[0] = DN_DX;
+}
+
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateGeometryData(
+    const GeometryType& rGeometry,
+    Vector &rGaussWeights,
+    Matrix &rNContainer,
+    ShapeFunctionsGradientsType &rDN_DXContainer)
+{
+    Vector det_j_vector;
+    // const auto& r_geom = this->GetGeometry();
+    const auto integration_method = rGeometry.GetDefaultIntegrationMethod();
+    rNContainer = rGeometry.ShapeFunctionsValues(integration_method);
+    rGeometry.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method);
+
+    const unsigned int number_of_gauss_points = rGeometry.IntegrationPointsNumber(integration_method);
+    const GeometryType::IntegrationPointsArrayType& integration_points = rGeometry.IntegrationPoints(integration_method);
+
+    if (rGaussWeights.size() != number_of_gauss_points)
+        rGaussWeights.resize(number_of_gauss_points, false);
+
+    for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        rGaussWeights[g] = det_j_vector[g] * integration_points[g].Weight();
+}
+
+
+template<>
+double WaveElement<3>::ShapeFunctionProduct(
+    const array_1d<double,3>& rN,
+    const std::size_t I,
+    const std::size_t J)
+{
+    return (I == J) ? 1.0/6.0 : 1.0/12.0;
+}
+
+
+template<std::size_t TNumNodes>
+double WaveElement<TNumNodes>::ShapeFunctionProduct(
+    const array_1d<double,TNumNodes>& rN,
+    const std::size_t I,
+    const std::size_t J)
+{
+    return rN[I] * rN[J];
+}
+
+
+template<std::size_t TNumNodes>
+const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
+    const array_1d<array_1d<double,3>,TNumNodes>& rV,
+    const array_1d<double,TNumNodes>& rN)
+{
+    array_1d<double,3> result = ZeroVector(3);
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result += rV[i] * rN[i];
+    }
+    return result;
+}
+
+
+template<std::size_t TNumNodes>
+const double WaveElement<TNumNodes>::VectorProduct(
+    const array_1d<array_1d<double,3>,TNumNodes>& rV,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+    double result = 0;
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result += rV[i][0] * rDN_DX(i,0);
+        result += rV[i][1] * rDN_DX(i,1);
+    }
+    return result;
+}
+
+
+template<std::size_t TNumNodes>
+double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData)
+{
+    const double threshold = rData.relative_dry_height * rData.length;
+    return PhaseFunction::InverseHeight(rData.height, threshold);
+}
+
+
+template<std::size_t TNumNodes>
+double WaveElement<TNumNodes>::WetFraction(const ElementData& rData)
+{
+    const double threshold = rData.relative_dry_height * rData.length;
+    return PhaseFunction::WetFraction(rData.height, threshold);
+}
+
+
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateArtificialViscosity(
     BoundedMatrix<double,3,3>& rViscosity,
     BoundedMatrix<double,2,2>& rDiffusion,
     const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
 }
+
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateArtificialDamping(
@@ -269,27 +424,6 @@ void WaveElement<TNumNodes>::CalculateArtificialDamping(
 {
 }
 
-template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::CalculateGeometryData(
-    Vector &rGaussWeights,
-    Matrix &rNContainer,
-    ShapeFunctionsGradientsType &rDN_DXContainer) const
-{
-    Vector det_j_vector;
-    const auto& r_geom = this->GetGeometry();
-    const auto integration_method = r_geom.GetDefaultIntegrationMethod();
-    rNContainer = r_geom.ShapeFunctionsValues(integration_method);
-    r_geom.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method);
-
-    const unsigned int number_of_gauss_points = r_geom.IntegrationPointsNumber(integration_method);
-    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
-
-    if (rGaussWeights.size() != number_of_gauss_points)
-        rGaussWeights.resize(number_of_gauss_points, false);
-
-    for (unsigned int g = 0; g < number_of_gauss_points; ++g)
-        rGaussWeights[g] = det_j_vector[g] * integration_points[g].Weight();
-}
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddWaveTerms(
@@ -411,6 +545,7 @@ template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     LocalMatrixType& rMatrix,
     const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
@@ -422,7 +557,7 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     array_1d<double,2> bih = ZeroVector(2);
     array_1d<double,2> bjh = ZeroVector(2);
 
-    this->CalculateArtificialViscosity(D, C, rData, rDN_DX);
+    this->CalculateArtificialViscosity(D, C, rData, rN, rDN_DX);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -451,39 +586,6 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     }
 }
 
-template<>
-void WaveElement<3>::AddMassTerms(
-    LocalMatrixType& rMatrix,
-    const ElementData& rData,
-    const array_1d<double,3>& rN,
-    const BoundedMatrix<double,3,2>& rDN_DX,
-    const double Weight)
-{
-    const double l = StabilizationParameter(rData);
-    BoundedMatrix<double, 3, 3> M = IdentityMatrix(3);
-
-    // Algebraic factor
-    const double one_twelfth = 1.0 / 12.0;
-    const double one_sixth = 1.0 / 6.0;
-
-    for (IndexType i = 0; i < 3; ++i)
-    {
-        for (IndexType j = 0; j < 3; ++j)
-        {
-            // Consistent mass matrix
-            const double n_ij = (i == j) ? one_sixth : one_twelfth;
-            MathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
-
-            /// Stabilization x
-            const double g1_ij = rDN_DX(i,0) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
-
-            /// Stabilization y
-            const double g2_ij = rDN_DX(i,1) * rN[j];
-            MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
-        }
-    }
-}
 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddMassTerms(
@@ -501,7 +603,7 @@ void WaveElement<TNumNodes>::AddMassTerms(
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
             // Consistent mass matrix
-            const double n_ij = rN[i] * rN[j];
+            const double n_ij = ShapeFunctionProduct(rN, i, j);//rN[i] * rN[j];
             MathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
 
             /// Stabilization x
@@ -515,69 +617,12 @@ void WaveElement<TNumNodes>::AddMassTerms(
     }
 }
 
+
 template<std::size_t TNumNodes>
 double WaveElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
 {
     const double inv_c = std::sqrt(InverseHeight(rData) / rData.gravity);
     return rData.length * rData.stab_factor * inv_c;
-}
-
-template<std::size_t TNumNodes>
-double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData) const
-{
-    const double height = rData.height;
-    const double epsilon = rData.relative_dry_height * rData.length;
-    return PhaseFunction::InverseHeight(height, epsilon);
-}
-
-template<std::size_t TNumNodes>
-const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
-    const array_1d<array_1d<double,3>,TNumNodes>& rV,
-    const array_1d<double,TNumNodes>& rN) const
-{
-    array_1d<double,3> result = ZeroVector(3);
-    for (std::size_t i = 0; i < TNumNodes; ++i)
-    {
-        result += rV[i] * rN[i];
-    }
-    return result;
-}
-
-
-template<>
-void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rLeftHandSideMatrix.size1() != mLocalSize)
-        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
-
-    if(rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
-
-    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalVectorType rhs = ZeroVector(mLocalSize);
-
-    // Struct to pass around the data
-    ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, this->GetGeometry());
-
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
-
-    CalculateGaussPointData(data, N);
-
-    AddWaveTerms(lhs, rhs, data, N, DN_DX);
-    AddFrictionTerms(lhs, rhs, data, N, DN_DX);
-    AddDispersiveTerms(rhs, data, N, DN_DX);
-    AddArtificialViscosityTerms(lhs, data, DN_DX);
-
-    // Substracting the Dirichlet term (since we use a residualbased approach)
-    noalias(rhs) -= prod(lhs, this->GetUnknownVector(data));
-
-    noalias(rLeftHandSideMatrix) = area * lhs;
-    noalias(rRightHandSideVector) = area * rhs;
 }
 
 
@@ -592,16 +637,17 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
     LocalVectorType rhs = ZeroVector(mLocalSize);
+    const auto& r_geometry = this->GetGeometry();
 
     // Struct to pass around the data
     ElementData data;
     InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, this->GetGeometry());
+    GetNodalData(data, r_geometry);
 
     Vector weights;
     Matrix N_container;
     ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(weights, N_container, DN_DX_container);
+    CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
     const IndexType num_gauss_points = weights.size();
 
     for (IndexType g = 0; g < num_gauss_points; ++g)
@@ -610,12 +656,12 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         const array_1d<double,TNumNodes> N = row(N_container, g);
         const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
 
-        CalculateGaussPointData(data, N);
+        UpdateGaussPointData(data, N);
 
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
         AddDispersiveTerms(rhs, data, N, DN_DX, weight);
-        AddArtificialViscosityTerms(lhs, data, DN_DX, weight);
+        AddArtificialViscosityTerms(lhs, data, N, DN_DX, weight);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -626,32 +672,6 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 }
 
 
-template<>
-void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rMassMatrix.size1() != mLocalSize)
-        rMassMatrix.resize(mLocalSize, mLocalSize, false);
-
-    LocalMatrixType mass_matrix = ZeroMatrix(mLocalSize, mLocalSize);
-
-    // Struct to pass around the data
-    ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, this->GetGeometry());
-
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
-
-    CalculateGaussPointData(data, N);
-
-    AddMassTerms(mass_matrix, data, N, DN_DX);
-
-    noalias(rMassMatrix) = area * mass_matrix;
-}
-
-
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -659,16 +679,17 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
         rMassMatrix.resize(mLocalSize, mLocalSize, false);
 
     LocalMatrixType mass_matrix = ZeroMatrix(mLocalSize, mLocalSize);
+    const auto& r_geometry = this->GetGeometry();
 
     // Struct to pass around the data
     ElementData data;
     InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, this->GetGeometry());
+    GetNodalData(data, r_geometry);
 
     Vector weights;
     Matrix N_container;
     ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(weights, N_container, DN_DX_container);
+    CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
     const IndexType num_gauss_points = weights.size();
 
     for (IndexType g = 0; g < num_gauss_points; ++g)
@@ -677,7 +698,7 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
         const array_1d<double,TNumNodes> N = row(N_container, g);
         const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
 
-        CalculateGaussPointData(data, N);
+        UpdateGaussPointData(data, N);
 
         AddMassTerms(mass_matrix, data, N, DN_DX, weight);
     }
@@ -689,6 +710,7 @@ template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 }
+
 
 template class WaveElement<3>;
 template class WaveElement<4>;

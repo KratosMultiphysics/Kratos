@@ -182,11 +182,25 @@ public:
 
     /**
      * @brief Access for variables on Integration points
-     * @param rVariable: the specified variable
-     * @param rValues: where to store the values for the specified variable type at each integration point
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rVariable The specified scalar variable
+     * @param rValues Where to store the values for the specified variable type at each integration point
+     * @param rCurrentProcessInfo The current process info instance
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Access for variables on Integration points
+     * @param rVariable Te specified vector variable
+     * @param rOutput Where to store the itegrated values for the specified variable
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void Calculate(
+        const Variable<array_1d<double,3>>& rVariable,
+        array_1d<double,3>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Is called in the beginning of each solution step
@@ -214,16 +228,6 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
 
     ///@}
     ///@name Input and output
@@ -261,7 +265,7 @@ public:
     ///@}
 
 protected:
-    ///@name Protected static Member Variables
+    ///@name Protected Static Variables
     ///@{
 
     static constexpr IndexType mLocalSize = 3 * TNumNodes;
@@ -284,10 +288,7 @@ protected:
         double gravity;
         double length;
 
-        double amplitude;
-        double wavelength;
         double depth;
-
         double height;
         array_1d<double,3> velocity;
 
@@ -303,6 +304,8 @@ protected:
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
         array_1d<array_1d<double,3>,TNumNodes> nodal_a;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_q_lap;
 
         FrictionLaw::Pointer p_bottom_friction;
     };
@@ -315,28 +318,45 @@ protected:
 
     virtual LocalVectorType GetUnknownVector(const ElementData& rData) const;
 
-    LocalVectorType GetAccelerationsVector(const ElementData& rData) const;
+    virtual void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
-    void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
+    virtual void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
-    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
+    virtual void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
-    virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+    static void CalculateGeometryData(
+        const GeometryType& rGeometry,
+        Vector &rGaussWeights,
+        Matrix &rNContainer,
+        ShapeFunctionsGradientsType &rDN_DX);
+
+    static double ShapeFunctionProduct(
+        const array_1d<double,TNumNodes>& rN,
+        const std::size_t I,
+        const std::size_t J);
+
+    static const array_1d<double,3> VectorProduct(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const array_1d<double,TNumNodes>& rN);
+
+    static const double VectorProduct(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    static double InverseHeight(const ElementData& rData);
+
+    static double WetFraction(const ElementData& rData);
 
     virtual void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 
     virtual void CalculateArtificialDamping(
         BoundedMatrix<double,3,3>& rFriction,
         const ElementData& rData);
-
-    void CalculateGeometryData(
-        Vector &rGaussWeights,
-        Matrix &rNContainer,
-        ShapeFunctionsGradientsType &rDN_DX) const;
 
     void AddWaveTerms(
         LocalMatrixType& rMatrix,
@@ -354,6 +374,13 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
+    void AddArtificialViscosityTerms(
+        LocalMatrixType& rMatrix,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
     virtual void AddDispersiveTerms(
         LocalVectorType& rVector,
         const ElementData& rData,
@@ -361,13 +388,7 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    void AddArtificialViscosityTerms(
-        LocalMatrixType& rMatrix,
-        const ElementData& rData,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0);
-
-    void AddMassTerms(
+    virtual void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
@@ -375,25 +396,6 @@ protected:
         const double Weight = 1.0);
 
     virtual double StabilizationParameter(const ElementData& rData) const;
-
-    double InverseHeight(const ElementData& rData) const;
-
-    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN) const;
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
 
     ///@}
 
@@ -422,25 +424,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
 
     ///@}
     ///@name Un accessible methods
