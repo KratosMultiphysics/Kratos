@@ -5,7 +5,7 @@ import KratosMultiphysics
 from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDataWithLookback, ListNeuralNetworkData, NeuralNetworkData
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
-from KratosMultiphysics.NeuralNetworkApplication.neural_network_solver import NeuralNetworkSolver, CreateSolver
+from KratosMultiphysics.NeuralNetworkApplication import python_solvers_wrapper_neural_network as neural_network_solvers
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_model import MachineLearningModel
 import numpy as np
 
@@ -45,7 +45,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
             if model is None:
                 self.kratos_model = KratosMultiphysics.Model()
                 self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
-                self.solver = self._CreateNeuralNetworkSolver(self.project_parameters["problem_data"], self.kratos_model)
+                self.solver = self._CreateNeuralNetworkSolver()
                 super().__init__(self.kratos_model, self.project_parameters)
                 KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
                 try:
@@ -55,7 +55,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
             else:
                 self.kratos_model = model
                 self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
-                self.solver = self._CreateNeuralNetworkSolver(self.project_parameters["problem_data"], self.kratos_model)
+                self.solver = self._CreateNeuralNetworkSolver()
                 super().__init__(self.kratos_model, self.project_parameters)
                 # KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.kratos_model[self.model_geometry_name])
                 try:
@@ -130,7 +130,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 self.data_in = data_input
             else:
                 self.data_in = []
-            if data_input != None:
+            if data_output != None:
                 self.data_out = data_output
             else:
                 self.data_out = []
@@ -395,8 +395,8 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
         return [data_in, data_out]
 
-    def _CreateNeuralNetworkSolver(self, project_parameters, model):
-        return CreateSolver(project_parameters, model)
+    def _CreateNeuralNetworkSolver(self):
+        return neural_network_solvers.CreateSolver(self.kratos_model, self.project_parameters["problem_data"])
 
 
     def _GetNeuralNetworkSolver(self):
