@@ -93,11 +93,11 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         # (apart from adding variables)
         self.model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
 
+        self.distance_size         = 0
         self.matrix_container = self.__MakeMatrixContainer()
         self.distance_utils   = self.__MakeDistanceUtilities()
 
         # Declare other members
-        self.distance_size         = 0
         self.fluid_solver          = None # initialized by __MakeEdgeBasedLevelSet after reading the ModelPart
         self.safety_factor         = self.max_safety_factor
         self.current_step_size     = self.initial_time_step_size
@@ -212,7 +212,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         # Initialize solver
         self.fluid_solver  = self.__MakeEdgeBasedLevelSet()
-        self.distance_size = 3.0 * self.distance_utils.FindMaximumEdgeSize(self.model_part)
+        self.distance_size = 3.0 * self.distance_utils.FindMaximumEdgeSize()
         self.fluid_solver.SetShockCapturingCoefficient(0.0)
 
         # Note:
@@ -314,19 +314,33 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             raise ValueError("Invalid domain size: {}".format(self.domain_size))
 
 
-    def __MakeDistanceUtilities(self) -> KratosMultiphysics.ParallelDistanceCalculator3D:
-        if self.domain_size == 2:
-            if self.use_parallel_distance_calculation:
-                return KratosMultiphysics.ParallelDistanceCalculator2D()
+    def __MakeDistanceUtilities(self) -> KratosMultiphysics.ParallelDistanceCalculationProcess3D:
+        if self.use_parallel_distance_calculation:
+            parallel_distance_settings = KratosMultiphysics.Parameters("""{
+                "max_levels" : 25,
+                "max_distance" : 1.0
+            }""")
+            parallel_distance_settings["max_levels"].SetInt(self.extrapolation_layers)
+            parallel_distance_settings["max_levels"].SetDouble(self.distance_size)
+
+            if self.domain_size == 2:
+                return KratosMultiphysics.ParallelDistanceCalculationProcess2D(
+                    self.model_part,
+                    parallel_distance_settings)
+
+            elif self.domain_size == 3:
+                return KratosMultiphysics.ParallelDistanceCalculationProcess3D(
+                    self.model_part,
+                    parallel_distance_settings)
             else:
-                return KratosMultiphysics.SignedDistanceCalculationUtils2D()
-        elif self.domain_size == 3:
-            if self.use_parallel_distance_calculation:
-                return KratosMultiphysics.ParallelDistanceCalculator3D()
-            else:
-                return KratosMultiphysics.SignedDistanceCalculationUtils3D()
+                raise ValueError("Invalid domain size: {}".format(self.domain_size))
         else:
-            raise ValueError("Invalid domain size: {}".format(self.domain_size))
+            if self.domain_size == 2:
+                return KratosMultiphysics.SignedDistanceCalculationUtils2D()
+            elif self.domain_size == 3:
+                return KratosMultiphysics.SignedDistanceCalculationUtils3D()
+            else:
+                raise ValueError("Invalid domain size: {}".format(self.domain_size))
 
 
     def __MakeEdgeBasedLevelSet(self) -> FreeSurface.EdgeBasedLevelSet3D:
@@ -364,12 +378,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
     def __Redistance(self) -> None:
         if self.use_parallel_distance_calculation:
-            self.distance_utils.CalculateDistances(
-                self.model_part,
-                KratosMultiphysics.DISTANCE,
-                KratosMultiphysics.NODAL_AREA,
-                self.extrapolation_layers,
-                self.distance_size)
+            self.distance_utils.Execute()
         else:
             self.distance_utils.CalculateDistances(
                 self.model_part,

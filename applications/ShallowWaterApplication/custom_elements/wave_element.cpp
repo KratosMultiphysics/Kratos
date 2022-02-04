@@ -376,11 +376,33 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
 
 
 template<std::size_t TNumNodes>
+const double WaveElement<TNumNodes>::VectorProduct(
+    const array_1d<array_1d<double,3>,TNumNodes>& rV,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+    double result = 0;
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result += rV[i][0] * rDN_DX(i,0);
+        result += rV[i][1] * rDN_DX(i,1);
+    }
+    return result;
+}
+
+
+template<std::size_t TNumNodes>
 double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData)
 {
-    const double height = rData.height;
-    const double epsilon = rData.relative_dry_height * rData.length;
-    return PhaseFunction::InverseHeight(height, epsilon);
+    const double threshold = rData.relative_dry_height * rData.length;
+    return PhaseFunction::InverseHeight(rData.height, threshold);
+}
+
+
+template<std::size_t TNumNodes>
+double WaveElement<TNumNodes>::WetFraction(const ElementData& rData)
+{
+    const double threshold = rData.relative_dry_height * rData.length;
+    return PhaseFunction::WetFraction(rData.height, threshold);
 }
 
 
@@ -389,6 +411,7 @@ void WaveElement<TNumNodes>::CalculateArtificialViscosity(
     BoundedMatrix<double,3,3>& rViscosity,
     BoundedMatrix<double,2,2>& rDiffusion,
     const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
 }
@@ -522,6 +545,7 @@ template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     LocalMatrixType& rMatrix,
     const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
@@ -533,7 +557,7 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     array_1d<double,2> bih = ZeroVector(2);
     array_1d<double,2> bjh = ZeroVector(2);
 
-    this->CalculateArtificialViscosity(D, C, rData, rDN_DX);
+    this->CalculateArtificialViscosity(D, C, rData, rN, rDN_DX);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -637,7 +661,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
         AddDispersiveTerms(rhs, data, N, DN_DX, weight);
-        AddArtificialViscosityTerms(lhs, data, DN_DX, weight);
+        AddArtificialViscosityTerms(lhs, data, N, DN_DX, weight);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
