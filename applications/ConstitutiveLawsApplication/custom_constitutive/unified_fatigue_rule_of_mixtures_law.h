@@ -554,7 +554,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     // Vector mParallelDirections = ZeroVector(6);
     // Vector mPreviousStrainVector = ZeroVector(6);
 
-    double mFatigueReductionFactor = 0.8;
+    double mFatigueReductionFactor = 1.0;
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
     double mMinStress = 0.0;
