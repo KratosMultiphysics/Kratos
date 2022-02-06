@@ -88,15 +88,6 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
-        # Create the HROM visualization model part
-        #TODO: Make this optional
-        if self.hrom_visualization_model_part:
-            hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
-            hrom_visualization_model_part = hrom_main_model_part.CreateSubModelPart(hrom_visualization_model_part_name)
-            KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
-            if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
-
         # Output the HROM model part in mdpa format
         hrom_output_name = "{}HROM".format(model_part_output_name)
         model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
@@ -104,6 +95,27 @@ class HRomTrainingUtility(object):
         KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
+
+        #TODO: Make this optional
+        #TODO: Move this out of here
+        # Create the HROM visualization model parts
+        if self.hrom_visualization_model_part:
+            # Create the HROM visualization mesh from the origin model part
+            hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
+            hrom_visualization_model_part = aux_model.CreateModelPart(hrom_visualization_model_part_name)
+            KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
+            if self.echo_level > 0:
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
+
+            print(hrom_visualization_model_part)
+
+            # Write the HROM visualization mesh
+            hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+            model_part_io.WriteModelPart(hrom_visualization_model_part)
+            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
+            if self.echo_level > 0:
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
@@ -156,42 +168,30 @@ class HRomTrainingUtility(object):
         #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
-        include_minimum_condition = True
+        include_minimum_condition = False
         if include_minimum_condition:
             # Get the HROM conditions to be added
             minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
                 hrom_weights["Conditions"])
 
-            print(minimum_conditions)
-
             # Add the selected conditions to the conditions dict with a null weight
             for cond_id in minimum_conditions:
                 hrom_weights["Conditions"][cond_id] = 0.0
 
-            print(hrom_weights["Conditions"])
-
-        print("MINIMUM CONDITIONS DONE")
-
         #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = True
+        include_condition_parents = False
         if include_condition_parents:
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
                 hrom_weights)
 
-            print(missing_condition_parents)
-
             # Add the missing parents to the elements dict with a null weight
             for parent_id in missing_condition_parents:
                 hrom_weights["Elements"][parent_id] = 0.0
-
-            print(hrom_weights["Elements"])
-
-        print("CONDITION PARENTS DONE")
 
         # Append weights to RomParameters.json
         # We first parse the current RomParameters.json to then append and edit the data

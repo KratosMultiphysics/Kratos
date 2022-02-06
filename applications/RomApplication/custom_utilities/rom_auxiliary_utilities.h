@@ -106,6 +106,15 @@ public:
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
+    /**
+     * @brief Return the a minimum condition for each HROM submodelpart
+     * This function loops the HROM mesh submodelparts and checks if there is at least a minimum condition
+     * for each submodelpart in the HROM condition weights. If there are no conditions it adds a null weight
+     * condition to the HROM weights. This might be required for the HROM submodelparts visualization or BC imposition
+     * @param rModelPart Complete model part (all elements and conditions)
+     * @param rHRomConditionWeights Map containing the original HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the ids of the missing conditions to be added to the weights
+     */
     static std::vector<IndexType> GetHRomMinimumConditionsIds(
         const ModelPart& rModelPart,
         const std::map<IndexType, double>& rHRomConditionWeights);
@@ -139,6 +148,10 @@ public:
         const ModelPart& rModelPart,
         const std::map<IndexType, double>& rHRomConditionWeights,
         std::vector<IndexType>& rMinimumConditionsIds);
+
+    static void RecursiveVisualizationSubModelPartCreation(
+        const ModelPart& rOriginSubModelPart,
+        ModelPart& rDestinationModelPart);
 
     ///@}
 

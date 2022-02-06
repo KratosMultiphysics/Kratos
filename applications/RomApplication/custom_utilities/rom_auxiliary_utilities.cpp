@@ -175,13 +175,6 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     const ModelPart& rOriginModelPart,
     ModelPart& rHRomVisualizationModelPart)
 {
-    // Create a set with the nodes already present in the HROM model part
-    // These are those ones that will not be added to the visualization model part to avoid updating them twice
-    std::vector<IndexType> pure_hrom_nodes;
-    for (const auto& r_node : rHRomVisualizationModelPart.GetRootModelPart().Nodes()) {
-        pure_hrom_nodes.push_back(r_node.Id());
-    }
-
     // Create a map for the potential skin entities
     // Key is a sorted vector with the face ids
     // Value is a tuple with a bool indicating if the entity is repeated (first) with a pointer to the origin face entity to be cloned (second)
@@ -248,7 +241,7 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
         }
     }
 
-    // Add missing nodes to the HROM main model part
+    // Add missing nodes to the visualization
     std::vector<IndexType> skin_nodes_ids;
     skin_nodes_ids.reserve(skin_nodes_set.size());
     for (auto it_p_node = skin_nodes_set.ptr_begin(); it_p_node != skin_nodes_set.ptr_end(); ++it_p_node) {
@@ -256,25 +249,65 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
         rHRomVisualizationModelPart.AddNode(*it_p_node);
     }
 
-    // Add entities to the HROM visualization model part
-    // Note that the pure HROM nodes are not added to the visualization model part
-    // Instead we only add those auxiliary ones with visualization only purpose
+    // Add entities to the visualization model part
     std::sort(skin_nodes_ids.begin(), skin_nodes_ids.end());
-    for (const IndexType Id : pure_hrom_nodes) {
-        std::remove(skin_nodes_ids.begin(), skin_nodes_ids.end(), Id);
-    }
-    auto aux_end = std::unique(skin_nodes_ids.begin(), skin_nodes_ids.end());
-    skin_nodes_ids.resize(std::distance(skin_nodes_ids.begin(), aux_end));
     rHRomVisualizationModelPart.AddNodes(skin_nodes_ids);
 
-    // Create fake conditions for the HROM visualization
-    IndexType max_cond_id = (rHRomVisualizationModelPart.GetRootModelPart().ConditionsEnd()-1)->Id();
-    const IndexType max_prop_id = (rHRomVisualizationModelPart.GetRootModelPart().PropertiesEnd()-1)->Id();
+    // Create fake conditions for the HROM skin visualization
+    IndexType max_cond_id = rHRomVisualizationModelPart.NumberOfConditions() == 0 ? 0 : (rHRomVisualizationModelPart.GetRootModelPart().ConditionsEnd()-1)->Id();
+    const IndexType max_prop_id = rHRomVisualizationModelPart.NumberOfProperties() == 0 ? : (rHRomVisualizationModelPart.GetRootModelPart().PropertiesEnd()-1)->Id();
     auto p_prop = rHRomVisualizationModelPart.CreateNewProperties(max_prop_id + 1);
     for (auto it_p_geom = skin_geom_prototypes.begin(); it_p_geom != skin_geom_prototypes.end(); ++it_p_geom) {
         // Get condition type from geometry type and create new condition
         const std::string condition_name = AuxiliaryGeometryToConditionMap[(*it_p_geom)->GetGeometryType()];
         rHRomVisualizationModelPart.CreateNewCondition(condition_name, ++max_cond_id, *it_p_geom, p_prop);
+    }
+
+    // Emulate the submodelparts structure of the origin model part
+    // This is required in order to set the BCs when projecting the HROM solution
+    for (const auto& r_sub_mp : rOriginModelPart.SubModelParts()) {
+        RecursiveVisualizationSubModelPartCreation(r_sub_mp, rHRomVisualizationModelPart);
+    }
+}
+
+void RomAuxiliaryUtilities::RecursiveVisualizationSubModelPartCreation(
+    const ModelPart& rOriginSubModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    // Create a sub model part in the visualization model part emulating the provided one
+    auto& r_vis_sub_mp = rDestinationModelPart.CreateSubModelPart(rOriginSubModelPart.Name());
+
+    // Add the current visualization entities to the corresponding model part
+    std::vector<IndexType> nodes_to_add;
+    nodes_to_add.reserve(rDestinationModelPart.NumberOfNodes());
+    for (const auto& r_node : rDestinationModelPart.Nodes()) {
+        if (rOriginSubModelPart.HasNode(r_node.Id())) {
+            nodes_to_add.push_back(r_node.Id());
+        }
+    }
+    r_vis_sub_mp.AddNodes(nodes_to_add);
+
+    std::vector<IndexType> conditions_to_add;
+    conditions_to_add.reserve(rDestinationModelPart.NumberOfConditions());
+    for (const auto& r_condition : rDestinationModelPart.Conditions()) {
+        if (rOriginSubModelPart.HasCondition(r_condition.Id())) {
+            conditions_to_add.push_back(r_condition.Id());
+        }
+    }
+    r_vis_sub_mp.AddConditions(conditions_to_add);
+
+    std::vector<IndexType> elements_to_add;
+    elements_to_add.reserve(rDestinationModelPart.NumberOfElements());
+    for (const auto& r_element : rDestinationModelPart.Elements()) {
+        if (rOriginSubModelPart.HasElement(r_element.Id())) {
+            elements_to_add.push_back(r_element.Id());
+        }
+    }
+    r_vis_sub_mp.AddElements(elements_to_add);
+
+    // Recursively check sub model parts
+    for (const auto& r_sub_mp : rOriginSubModelPart.SubModelParts()) {
+        RecursiveVisualizationSubModelPartCreation(r_sub_mp, r_vis_sub_mp);
     }
 }
 
@@ -327,8 +360,6 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
             cond_ids.push_back(rModelPart.ConditionsBegin()->Id() - 1); //FIXME: FIX THE + 1 !!!!! -> WE SHOULD WRITE REAL IDS!!!!
         }
 
-        KRATOS_WATCH(rModelPart.Name())
-
         // Recursively check the submodelparts
         for (const auto& r_sub_mp : rModelPart.SubModelParts()) {
             RecursiveHRomMinimumConditionIds(r_sub_mp, rHRomConditionWeights, cond_ids);
@@ -347,7 +378,6 @@ void RomAuxiliaryUtilities::RecursiveHRomMinimumConditionIds(
     const std::map<IndexType, double>& rHRomConditionWeights,
     std::vector<IndexType>& rMinimumConditionsIds)
 {
-    KRATOS_WATCH(rModelPart.Name())
     // Check that there are conditions in this model part
     // Note that conditions are recursively added so if there are no conditions there is no need to check submodelparts
     if (rModelPart.NumberOfConditions()) {
