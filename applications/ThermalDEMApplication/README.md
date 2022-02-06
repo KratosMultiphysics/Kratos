@@ -391,3 +391,4 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 ## Testing
 
+To test if the application is working correctly, run the test_ThermalDEMApplication.py file, located in the *tests* folder.
