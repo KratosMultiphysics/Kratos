@@ -61,7 +61,7 @@ namespace Kratos
  * GetVariableforXuse: we return the variable for this use.
  * IsDefinedVariableforXuse: tells wether that variable has been defined or not.
 */
-class ConvectionDiffusionSettings
+class KRATOS_API(KRATOS_CORE) ConvectionDiffusionSettings
 {
 public:
     ///@name Type Definitions
