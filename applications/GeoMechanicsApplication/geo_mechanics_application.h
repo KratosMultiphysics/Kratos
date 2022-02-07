@@ -66,6 +66,7 @@
 #include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
 #include "custom_elements/transient_Pw_interface_element.hpp"
 #include "custom_elements/steady_state_Pw_interface_element.hpp"
+#include "custom_elements/steady_state_Pw_piping_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -315,6 +316,10 @@ private:
     const SteadyStatePwInterfaceElement<2,4> mSteadyStatePwInterfaceElement2D4N;
     const SteadyStatePwInterfaceElement<3,6> mSteadyStatePwInterfaceElement3D6N;
     const SteadyStatePwInterfaceElement<3,8> mSteadyStatePwInterfaceElement3D8N;
+
+    const SteadyStatePwPipingElement<2,4> mSteadyStatePwPipingElement2D4N;
+    const SteadyStatePwPipingElement<3,6> mSteadyStatePwPipingElement3D6N;
+    const SteadyStatePwPipingElement<3,8> mSteadyStatePwPipingElement3D8N;
 
     // small strain elements:
     const UPwSmallStrainElement<2,3> mUPwSmallStrainElement2D3N;
