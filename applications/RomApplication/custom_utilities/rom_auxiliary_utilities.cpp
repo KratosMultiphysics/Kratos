@@ -255,7 +255,7 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
 
     // Create fake conditions for the HROM skin visualization
     IndexType max_cond_id = rHRomVisualizationModelPart.NumberOfConditions() == 0 ? 0 : (rHRomVisualizationModelPart.GetRootModelPart().ConditionsEnd()-1)->Id();
-    const IndexType max_prop_id = rHRomVisualizationModelPart.NumberOfProperties() == 0 ? : (rHRomVisualizationModelPart.GetRootModelPart().PropertiesEnd()-1)->Id();
+    const IndexType max_prop_id = rHRomVisualizationModelPart.NumberOfProperties() == 0 ? 0 : (rHRomVisualizationModelPart.GetRootModelPart().PropertiesEnd()-1)->Id();
     auto p_prop = rHRomVisualizationModelPart.CreateNewProperties(max_prop_id + 1);
     for (auto it_p_geom = skin_geom_prototypes.begin(); it_p_geom != skin_geom_prototypes.end(); ++it_p_geom) {
         // Get condition type from geometry type and create new condition
