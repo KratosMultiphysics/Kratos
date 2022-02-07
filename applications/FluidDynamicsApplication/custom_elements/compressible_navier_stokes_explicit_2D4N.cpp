@@ -248,8 +248,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
         const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double cmom_proj0 =             data.gamma - 1;
 const double cmom_proj1 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
@@ -419,8 +419,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
         const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double ctot_ener_proj0 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
 const double ctot_ener_proj1 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
@@ -530,8 +530,8 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
             const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
             r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
 const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
@@ -1110,8 +1110,8 @@ const double crhs_gauss252 =             crhs_gauss239*crhs_gauss38;
             const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
             r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
 
 const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
 const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
