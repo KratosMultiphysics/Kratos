@@ -211,6 +211,7 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalSphericParticle : public Spheri
     void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
     void               SetParticlePrescribedHeatFluxVolume  (const double heat_flux);
     void               SetParticleRadius                    (const double radius);
+    void               SetParticleMass                      (const double mass);
     void               SetParticleMomentInertia             (const double moment_inertia);
     void               SetParticleRealYoungRatio            (const double ratio);
 

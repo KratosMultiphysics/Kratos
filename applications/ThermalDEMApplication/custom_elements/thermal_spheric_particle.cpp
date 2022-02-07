@@ -321,9 +321,12 @@ namespace Kratos
     KRATOS_TRY
 
     if (!this->Is(DEMThermalFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMThermalFlags::IS_ADIABATIC)) {
+      // Number of steps passed since last thermal evaluation
+      const int num_steps = (r_process_info[TIME_STEPS] == 1) ? 1 : r_process_info[THERMAL_FREQUENCY];
+
       // Compute new temperature
       const double thermal_inertia = GetParticleMass() * GetParticleHeatCapacity();
-      const double temp_increment  = mTotalHeatFlux / thermal_inertia * r_process_info[THERMAL_FREQUENCY] * r_process_info[DELTA_TIME];
+      const double temp_increment  = (mTotalHeatFlux / thermal_inertia) * r_process_info[DELTA_TIME] * num_steps;
       const double temp_new        = GetParticleTemperature() + temp_increment;
       
       // Set new temperature
@@ -2018,6 +2021,11 @@ namespace Kratos
   void ThermalSphericParticle::SetParticleRadius(const double radius) {
     SetRadius(radius);
     GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetParticleMass(const double mass) {
+    SetMass(mass);
   }
 
   //------------------------------------------------------------------------------------------------------------

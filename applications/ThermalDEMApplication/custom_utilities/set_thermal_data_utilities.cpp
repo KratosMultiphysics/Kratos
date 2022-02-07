@@ -79,6 +79,13 @@ namespace Kratos {
             particle->Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);
           else
             particle->Set(DEMThermalFlags::IS_ADIABATIC, false);
+
+          // Set mass again:
+          // In case of temperature dependent density, mass was initialized with the density corresponding to a null temperature
+          const double temp    = particle->GetParticleTemperature();
+          const double density = particle->GetDensity();
+          const double vol     = particle->GetParticleVolume();
+          particle->SetParticleMass(density * vol);
         });
       }
     }
