@@ -27,6 +27,16 @@
 
 namespace Kratos {
 
+/**
+ * Returns the integration method for computation of midpoint magnitudes.
+ * Computation of RHS integration method is chosen in the symbolic generator.
+ */
+template<>
+GeometryData::IntegrationMethod CompressibleNavierStokesExplicit<3,4>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_1;
+}
+
 template <>
 void CompressibleNavierStokesExplicit<3,4>::EquationIdVector(
     EquationIdVectorType &rResult,
@@ -87,7 +97,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<3,4>::CalculateMidPointVeloc
     // Get geometry data
     const auto& r_geom = GetGeometry();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes
@@ -146,7 +156,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<3, 4>::CalculateMid
     // Get geometry data
     const auto& r_geom = GetGeometry();
     Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GetIntegrationMethod());
     const auto& r_dNdX = dNdX_container[0];
 
     // Calculate midpoint magnitudes

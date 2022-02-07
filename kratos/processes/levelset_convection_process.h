@@ -439,7 +439,9 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
-            p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            if (mpLevelSetGradientVar) {
+                p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            }
         }
 
         // This call returns a function pointer with the ProcessInfo filling directives

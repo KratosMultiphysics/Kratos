@@ -93,10 +93,11 @@ class FluidSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
-            ## Executes the check and prepare model process
-            self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
+
+        ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
+        self._ExecuteCheckAndPrepare()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 

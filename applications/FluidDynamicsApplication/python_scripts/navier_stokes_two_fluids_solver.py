@@ -12,6 +12,8 @@ if have_conv_diff:
 from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 from KratosMultiphysics.FluidDynamicsApplication.read_distance_from_file import DistanceImportUtility
 
+from pathlib import Path
+
 def CreateSolver(model, custom_settings):
     return NavierStokesTwoFluidsSolver(model, custom_settings)
 
@@ -259,7 +261,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
-            self.__PerformLevelSetConvection()
+            self._PerformLevelSetConvection()
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -293,7 +295,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
                 volume_error = (water_volume_after_transport - system_volume) / system_volume
-                self.initial_system_volume=water_volume_after_transport
+                self.initial_system_volume=system_volume
             else:
                 volume_error=0
 
@@ -324,7 +326,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
 
-    def __PerformLevelSetConvection(self):
+    def _PerformLevelSetConvection(self):
         # Solve the levelset convection problem
         self._GetLevelSetConvectionProcess().Execute()
 
@@ -337,25 +339,43 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Check if the fluid properties are provided using a .json file
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
+            data_comm = self.main_model_part.GetCommunicator().GetDataCommunicator()
+
+            def GetAuxMaterialsFileName(mat_file_name, prop_id):
+                p_mat_file_name = Path(mat_file_name)
+                new_stem = "{}_p{}".format(p_mat_file_name.stem, prop_id)
+                return str(p_mat_file_name.with_name(new_stem).with_suffix(p_mat_file_name.suffix))
+
             with open(materials_filename,'r') as materials_file:
                 materials = KratosMultiphysics.Parameters(materials_file.read())
 
-            # Create and read an auxiliary materials file for each one of the fields
+            if data_comm.Rank() == 0:
+                # Create and read an auxiliary materials file for each one of the fields (only on one rank)
+                for i_material in materials["properties"]:
+                    aux_materials = KratosMultiphysics.Parameters()
+                    aux_materials.AddEmptyArray("properties")
+                    aux_materials["properties"].Append(i_material)
+
+                    aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
+                    with open(aux_materials_filename,'w') as aux_materials_file:
+                        aux_materials_file.write(aux_materials.WriteJsonString())
+
+            data_comm.Barrier()
+
+            # read the files on all ranks
             for i_material in materials["properties"]:
-                aux_materials = KratosMultiphysics.Parameters()
-                aux_materials.AddEmptyArray("properties")
-                aux_materials["properties"].Append(i_material)
-                prop_id = i_material["properties_id"].GetInt()
-
-                aux_materials_filename = materials_filename + "_" + str(prop_id) + ".json"
-                with open(aux_materials_filename,'w') as aux_materials_file:
-                    aux_materials_file.write(aux_materials.WriteJsonString())
-                    aux_materials_file.close()
-
+                aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
                 KratosMultiphysics.ReadMaterialsUtility(aux_material_settings, self.model)
-                KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
+
+            data_comm.Barrier()
+
+            if data_comm.Rank() == 0:
+                # remove aux files after every rank read them
+                for i_material in materials["properties"]:
+                    aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
+                    KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 
             materials_imported = True
         else:
