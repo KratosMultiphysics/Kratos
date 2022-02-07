@@ -1,5 +1,7 @@
 import os
 import KratosMultiphysics
+import KratosMultiphysics.DEMApplication
+import KratosMultiphysics.ThermalDEMApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from   KratosMultiphysics.ThermalDEMApplication.thermal_dem_analysis import ThermalDEMAnalysis
 
