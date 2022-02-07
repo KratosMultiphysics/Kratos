@@ -43,5 +43,5 @@ class ThermalDEMIo(BaseIO):
         BaseIO.Initialize(self, DEM_parameters)
 
         # Add thermal pos variables
-        self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.global_variables)
-        self.PushPrintVar(self.PostHeatFlux,    HEATFLUX,    self.global_variables)
+        #self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.global_variables) # already added in base class
+        #self.PushPrintVar(self.PostHeatFlux,    HEATFLUX,    self.global_variables) # already added in base class
