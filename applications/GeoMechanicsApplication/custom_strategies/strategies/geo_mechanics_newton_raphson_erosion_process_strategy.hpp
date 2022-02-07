@@ -57,16 +57,20 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
 		) : GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part,
-																						pScheme,
-																						pNewLinearSolver,
-																						pNewConvergenceCriteria,
-																						pNewBuilderAndSolver,
-																						rParameters,
-																						MaxIterations,
-																						CalculateReactions,
-																						ReformDofSetAtEachStep,
-																						MoveMeshFlag)
-    {}
+																						 pScheme,
+																						 pNewLinearSolver,
+                                                                                         pNewConvergenceCriteria,
+                                                                                         pNewBuilderAndSolver,
+																						 rParameters,
+                                                                                         MaxIterations,
+                                                                                         CalculateReactions,
+                                                                                         ReformDofSetAtEachStep,
+                                                                                         MoveMeshFlag)
+    {
+
+    	mPipingIterations = rParameters["max_piping_iterations"].GetInt();
+    	
+    }
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -78,18 +82,20 @@ public:
 	{
         GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
 
-
-        // Implement Piping Loop Here
-    	KRATOS_INFO("") << " EXECUTING: 2nd Solution Step\n";
-    	GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
-        GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
-        GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
-    	
+        KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
+        // Implement Piping Loop 
+        for (int pipeIter = 0; pipeIter < mPipingIterations; pipeIter++) {
+        	GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
+            GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
+            GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+        }
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
+
+    unsigned int mPipingIterations; /// This is used to calculate the pipingLength
   
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

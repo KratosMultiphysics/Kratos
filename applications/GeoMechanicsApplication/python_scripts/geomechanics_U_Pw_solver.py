@@ -54,6 +54,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "rayleigh_m": 0.0,
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
+            "max_piping_iterations": 50,
             "convergence_criterion": "Displacement_criterion",
             "water_pressure_relative_tolerance": 1.0e-4,
             "water_pressure_absolute_tolerance": 1.0e-9,
@@ -433,6 +434,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             self.strategy_params = KratosMultiphysics.Parameters("{}")
             self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
             self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
+            self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
             solving_strategy = KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
                                                                                              self.scheme,
                                                                                              self.linear_solver,

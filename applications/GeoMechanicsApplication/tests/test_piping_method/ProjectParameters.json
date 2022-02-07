@@ -40,6 +40,7 @@
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
         "strategy_type":                      "newton_raphson_with_piping",
+		"max_piping_iterations":			  2,
         "convergence_criterion":              "water_pressure_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
