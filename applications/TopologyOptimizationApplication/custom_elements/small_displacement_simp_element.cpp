@@ -153,21 +153,27 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions = Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        for (unsigned int PointNumber = 0;
-                PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-            //compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematicVariables( this_kinematic_variables, PointNumber,  this->GetIntegrationMethod());
-            //set general variables to constitutivelaw parameters
-            this->SetElementData(this_kinematic_variables, Values, PointNumber); 
-            //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->InitializeMaterialResponse(
-                    Values, GetStressMeasure());
-            // Compute VM stress
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        Values.SetStrainVector(this_constitutive_variables.StrainVector);
+
+        const std::size_t number_of_integration_points = integration_points.size();
+
+        
+        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+                // Compute element kinematics B, F, DN_DX ...
+                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+                // Compute material reponse
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+
+                // Compute VM stress
                 if (dimension == 2 ) {
-                    rValues[PointNumber] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
+                    rValues[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 } else {
-                    rValues[PointNumber] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
+                    rValues[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
                 }
         }
 	} 
