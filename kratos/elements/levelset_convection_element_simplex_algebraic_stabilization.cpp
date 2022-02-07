@@ -184,6 +184,7 @@ namespace Kratos
                 }
                 phi_gauss += N[i]*phi[i];
                 phi_gauss_old += N[i]*phi_old[i];
+                phi_gauss_predicted += N[i]*phi_predicted[i];
             }
 
             v_dot_grad_N = prod(DN_DX, vel_gauss);
@@ -211,7 +212,7 @@ namespace Kratos
                 }
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
-                    S_vector[i] += (  (1.0 - theta)*(phi_gauss/* _old */ - phi_mean/* _old */ ) /* + theta*(phi_gauss_predicted - phi_mean_predicted) */ - inner_prod( ( (1.0 - theta)*grad_phi_mean + theta*grad_phi_mean_predicted ) /* grad_phi */, (X_gauss - X_mean) ) )*N[i];
+                    S_vector[i] += (  (1.0 - theta)*(phi_gauss/* _old */ - phi_mean/* _old */ ) + theta*(phi_gauss_predicted - phi_mean_predicted) - inner_prod( ( (1.0 - theta)*grad_phi_mean + theta*grad_phi_mean_predicted ) /* grad_phi */, (X_gauss - X_mean) ) )*N[i];
                     //ADDED TO LHS THETA * (PHI_gp - PHI_MEAN)
                     for (unsigned int j = 0; j < TNumNodes; ++j){
                         S_vector_LHS(i, j) = (aux_weight - N[j]) * N[i];
@@ -243,7 +244,7 @@ namespace Kratos
             noalias(L_matrix) = K_matrix + nu_e*S_matrix;
         }
 
-        noalias(rLeftHandSideMatrix)  = M_matrix + theta*( L_matrix + S_vector_LHS );
+        noalias(rLeftHandSideMatrix)  = M_matrix + theta*( L_matrix /* + S_vector_LHS */ );
         noalias(rRightHandSideVector) = prod( M_matrix - (1.0 - theta)*L_matrix , phi_old) - limiter*nu_e*S_vector;
 
         // Taking out the dirichlet part to finish computing the residual
