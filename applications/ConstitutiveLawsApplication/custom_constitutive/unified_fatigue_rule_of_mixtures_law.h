@@ -576,6 +576,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     double mPlasticDissipation = 0.0;
     double mDamage = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
+    double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+
 
 
     ///@}

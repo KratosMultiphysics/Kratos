@@ -112,22 +112,22 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
 
+    auto& r_material_properties = rValues.GetMaterialProperties();
+    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_HCF_cl = *(it_cl_begin);
+    const auto& r_props_ULCF_cl = *(it_cl_begin + 1);
+    ConstitutiveLaw::Parameters values_fatigue  = rValues;
+
+    //Checking which material has the fatigue properties
+    if (r_props_HCF_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
+            values_fatigue.SetMaterialProperties(r_props_HCF_cl);
+    } else if (r_props_ULCF_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
+            values_fatigue.SetMaterialProperties(r_props_ULCF_cl);
+    } else {
+            KRATOS_ERROR << "Fatigue properties not defined" << std::endl;
+    }
+
     if (max_indicator && min_indicator) {
-        auto& r_material_properties = rValues.GetMaterialProperties();
-        const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
-        const auto& r_props_HCF_cl = *(it_cl_begin);
-        const auto& r_props_ULCF_cl = *(it_cl_begin + 1);
-        ConstitutiveLaw::Parameters values_fatigue  = rValues;
-
-        //Checking which material has the fatigue properties
-        if (r_props_HCF_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
-                values_fatigue.SetMaterialProperties(r_props_HCF_cl);
-        } else if (r_props_ULCF_cl.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) {
-                values_fatigue.SetMaterialProperties(r_props_ULCF_cl);
-        } else {
-                KRATOS_ERROR << "Fatigue properties not defined" << std::endl;
-        }
-
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
@@ -179,12 +179,12 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             reversion_factor,
-            rValues.GetMaterialProperties(),
+            values_fatigue.GetMaterialProperties(),
             B0,
             s_th,
             alphat,
             cycles_to_failure);
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(values_fatigue.GetMaterialProperties(),
                                                                                         max_stress,
                                                                                         local_number_of_cycles,
                                                                                         global_number_of_cycles,
@@ -835,7 +835,9 @@ bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variabl
 template <class TConstLawIntegratorType>
 bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == WOHLER_STRESS) {
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        return true;
+    } else if (rThisVariable == WOHLER_STRESS) {
         return true;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
         return true;
@@ -847,7 +849,9 @@ bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variabl
         return true;
     } else if (rThisVariable == THRESHOLD_STRESS) {
         return true;
-    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+    } else if (rThisVariable == PREVIOUS_CYCLE) {
+        return true;
+    } else if (rThisVariable == CYCLE_PERIOD) {
         return true;
     } else if (rThisVariable == DAMAGE) {
         return true;
@@ -939,6 +943,10 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
         mMaxStress = rValue;
     } else if (rThisVariable == THRESHOLD_STRESS) {
         mFatigueLimit = rValue;
+    } else if (rThisVariable == PREVIOUS_CYCLE) {
+        mPreviousCycleTime = rValue;
+    } else if (rThisVariable == CYCLE_PERIOD) {
+        mPeriod = rValue;
     } else if (rThisVariable == PLASTIC_DISSIPATION) {
         mPlasticDissipation = rValue;
     } else if (rThisVariable == DAMAGE) {
@@ -1006,7 +1014,9 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
     double& rValue
     )
 {
-    if (rThisVariable == WOHLER_STRESS) {
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        rValue = mFatigueReductionFactor;
+    } else if (rThisVariable == WOHLER_STRESS) {
         rValue = mWohlerStress;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
         rValue = mCyclesToFailure;
@@ -1018,16 +1028,17 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
         rValue = mMaxStress;
     } else if (rThisVariable == THRESHOLD_STRESS) {
         rValue = mFatigueLimit;
-    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
-        rValue = mFatigueReductionFactor;
+    } else if (rThisVariable == PREVIOUS_CYCLE) {
+        rValue = mPreviousCycleTime;
+    } else if (rThisVariable == CYCLE_PERIOD) {
+        rValue = mPeriod;
     } else if (rThisVariable == DAMAGE) {
         rValue = mDamage;
     } else if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mPlasticDissipation;
     } else {
-        return rValue;
+        return BaseType::GetValue(rThisVariable, rValue);
     }
-
     return rValue;
 }
 
