@@ -61,7 +61,7 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
         self.assertEqual(reference_hash, obtained_hash)
 
     def testGeneratorQuad(self):
-        reference_hash = "f23fe07628e37ea74ab73d296c24b47dadf7b9dd1c38cf62f792de8843419114ea2b504ffce1e404b8b9c612b1003bafcafa5a0f8de15d00ce67d91a43021312"
+        reference_hash = "86d19a9d4b6ac20f0a0fcdabb79cecec4d312577d98d4ec4cedc3bba56c139656b56212aa40b81ee46c820980af2c5be87b087511ec7fe475acac4c0f9bf6bea"
         obtained_hash  = self._RunAndHashResult("quadrilateral")
         self.assertEqual(reference_hash, obtained_hash)
 
