@@ -54,20 +54,20 @@ namespace Kratos
 ///@{
 
 /**
- * @class MoveMeshUtility
+ * @class MoveShallowMeshUtility
  * @ingroup KratosShallowWaterApplication
  * @brief Tools for lagrangian computations
  * @details Move the computational mesh over a background mesh and map data between them
  * @author Miguel Maso Sotomayor
  */
-class KRATOS_API(SHALLOW_WATER_APPLICATION) MoveMeshUtility
+class KRATOS_API(SHALLOW_WATER_APPLICATION) MoveShallowMeshUtility
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MoveMeshUtility
-    KRATOS_CLASS_POINTER_DEFINITION(MoveMeshUtility);
+    /// Pointer definition of MoveShallowMeshUtility
+    KRATOS_CLASS_POINTER_DEFINITION(MoveShallowMeshUtility);
 
     typedef Node<3> NodeType;
 
@@ -84,7 +84,7 @@ public:
     /**
     * @brief Constructor
     */
-    MoveMeshUtility(
+    MoveShallowMeshUtility(
         ModelPart& rLagrangianModelPart,
         ModelPart& rEulerianModelPart,
         Parameters ThisParameters);
@@ -92,7 +92,7 @@ public:
     /**
     * @brief Destructor
     */
-    virtual ~MoveMeshUtility(){}
+    virtual ~MoveShallowMeshUtility(){}
 
     ///@}
     ///@name Operators
@@ -129,7 +129,7 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "MoveMeshUtility";
+        buffer << "MoveShallowMeshUtility";
         return buffer.str();
     }
 
@@ -223,14 +223,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    MoveMeshUtility& operator=(MoveMeshUtility const& rOther);
+    MoveShallowMeshUtility& operator=(MoveShallowMeshUtility const& rOther);
 
     /// Copy constructor.
-    MoveMeshUtility(MoveMeshUtility const& rOther);
+    MoveShallowMeshUtility(MoveShallowMeshUtility const& rOther);
 
     ///@}
 
-}; // Class MoveMeshUtility
+}; // Class MoveShallowMeshUtility
 
 ///@}
 
@@ -245,11 +245,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                MoveMeshUtility& rThis);
+                MoveShallowMeshUtility& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const MoveMeshUtility& rThis)
+                const MoveShallowMeshUtility& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
