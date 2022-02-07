@@ -1,6 +1,5 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import KratosUnittest
-import KratosMultiphysics.MappingApplication as KratosMapping
 default_data_comm = KM.Testing.GetDefaultDataCommunicator()
 if default_data_comm.IsDistributed():
     from KratosMultiphysics import mpi as KratosMPI
@@ -222,4 +221,3 @@ class BladeMappingTestsUnevenRanks(BladeMappingTestsLessRanksModelPart):
     def GetRanksForStructure(cls):
         num_ranks = default_data_comm.Size()
         return list(range(1, num_ranks, 2))
-

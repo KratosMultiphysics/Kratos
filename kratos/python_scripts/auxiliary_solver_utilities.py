@@ -47,3 +47,28 @@ def AddAuxiliaryDofsToDofsWithReactionsList(aux_dofs_list, aux_reaction_list, do
         else:
             err_msg = "The added reaction variable \'{}\' (\'{}\') is not the same type as the pair DOF \'{}\' (\'{}\').".format(reaction_variable_name, reaction_variable_type, dof_variable_name, dof_variable_type)
             raise Exception(err_msg)
+
+def SetAndFillBuffer(model_part, required_buffer_size, delta_time):
+    # Check input data
+    if required_buffer_size < 1:
+        raise Exception("Provided buffer size is {}. Value greater or equal to one must be provided.".format(required_buffer_size))
+    if delta_time < 0.0:
+        raise Exception("Provided delta time is {}. A value greater or equal to zero must be provided.".format(delta_time))
+
+    # Set the buffer size for the nodal solution steps data.
+    # Existing nodal solution step data may be lost.
+    current_buffer_size = model_part.GetBufferSize()
+    buffer_size = max(current_buffer_size, required_buffer_size)
+    model_part.SetBufferSize(buffer_size)
+
+    # Cycle the buffer. This sets all historical nodal solution step data to
+    # the current value and initializes the time stepping in the process info.
+    step = -buffer_size
+    init_time = model_part.ProcessInfo[KratosMultiphysics.TIME]
+    time = init_time - delta_time * buffer_size
+    model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+    for _ in range(buffer_size):
+        step += 1
+        time += delta_time
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+        model_part.CloneTimeStep(time)
