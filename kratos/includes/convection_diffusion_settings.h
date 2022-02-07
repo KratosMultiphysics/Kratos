@@ -67,23 +67,8 @@ public:
     ///@{
 
     /// Default constructor.
-    ConvectionDiffusionSettings()
-    {
-        mis_defined_DensityVar=false;
-        mis_defined_DiffusionVar=false;
-		mis_defined_UnknownVar=false;
-		mis_defined_VolumeSourceVar=false;
-		mis_defined_SurfaceSourceVar=false;
-		mis_defined_ProjectionVar=false;
-		mis_defined_ConvectionVar=false;
-		mis_defined_GradientVar = false;
-		mis_defined_MeshVelocityVar=false;
-		mis_defined_TransferCoefficientVar=false;
-		mis_defined_VelocityVar=false;
-		mis_defined_SpecificHeatVar=false;
-        mis_defined_ReactionVar=false;
-        mIsDefinedReactionGradientVar=false;
-    };
+    ConvectionDiffusionSettings() = default;
+
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
         mpDiffusionVar(rOther.mpDiffusionVar),
