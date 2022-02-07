@@ -101,13 +101,14 @@ namespace Kratos
         GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, Volume);
 
         //here we get all the variables we will need
-        array_1d<double,TNumNodes> phi, phi_old;
+        array_1d<double,TNumNodes> phi, phi_old, phi_predicted;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
         array_1d<double,3 > X_mean_tmp = ZeroVector(3);
         array_1d< array_1d<double,3 >, TNumNodes> X_node;
         double phi_mean_old = 0.0;
         double phi_mean = 0.0;
+        double phi_mean_predicted = 0.0;
 
         for (unsigned int i = 0; i < TNumNodes; ++i)
         {
@@ -115,6 +116,8 @@ namespace Kratos
 
             phi[i] = r_node.FastGetSolutionStepValue(r_unknown_var);
             phi_old[i] = r_node.FastGetSolutionStepValue(r_unknown_var,1);
+            phi_predicted[i] = r_node.FastGetSolutionStepValue(r_unknown_var,2);
+
 
             v[i] = r_node.FastGetSolutionStepValue(r_conv_var);
             vold[i] = r_node.FastGetSolutionStepValue(r_conv_var,1);
@@ -124,12 +127,15 @@ namespace Kratos
 
             phi_mean_old += r_node.FastGetSolutionStepValue(r_unknown_var,1);
             phi_mean += r_node.FastGetSolutionStepValue(r_unknown_var);
+            phi_mean_predicted += r_node.FastGetSolutionStepValue(r_unknown_var,2);
+
         }
 
         const double aux_weight = 1.0/static_cast<double>(TNumNodes);
 
         phi_mean *= aux_weight;
         phi_mean_old *= aux_weight;
+        phi_mean_predicted *= aux_weight;
 
         array_1d<double,TDim> X_mean;
         for(unsigned int k = 0; k < TDim; k++)
@@ -167,6 +173,7 @@ namespace Kratos
             X_gauss = ZeroVector(TDim);
             double phi_gauss = 0.0;
             double phi_gauss_old = 0.0;
+            double phi_gauss_predicted = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
@@ -204,8 +211,8 @@ namespace Kratos
                 }
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
-                    S_vector[i] += ( (1.0 - theta)*(phi_gauss_old - phi_mean_old) - inner_prod( (1.0 - theta)*grad_phi_mean + theta*grad_phi_mean_predicted /* grad_phi */, (X_gauss - X_mean) ) )*N[i];
-                    //ADDED TO LHS THETA * (PHI - PHI_MEAN)
+                    S_vector[i] += (  (1.0 - theta)*(phi_gauss/* _old */ - phi_mean/* _old */ ) /* + theta*(phi_gauss_predicted - phi_mean_predicted) */ - inner_prod( ( (1.0 - theta)*grad_phi_mean + theta*grad_phi_mean_predicted ) /* grad_phi */, (X_gauss - X_mean) ) )*N[i];
+                    //ADDED TO LHS THETA * (PHI_gp - PHI_MEAN)
                     for (unsigned int j = 0; j < TNumNodes; ++j){
                         S_vector_LHS(i, j) = (aux_weight - N[j]) * N[i];
                     }
