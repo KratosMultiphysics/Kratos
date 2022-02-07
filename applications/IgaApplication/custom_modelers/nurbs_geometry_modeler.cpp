@@ -177,7 +177,7 @@ namespace Kratos
             PointsRefined = PointerVector<NodeType>(0);
             WeightsRefined.clear();
 
-            NurbsSurfaceRefinementUtilities::KnotRefinementU( *p_surface_geometry, insert_knots_u,
+            NurbsSurfaceRefinementUtilities::KnotRefinementU<NurbsSurfaceGeometryType>( *p_surface_geometry, insert_knots_u,
                 PointsRefined, KnotsURefined, WeightsRefined);
 
             p_surface_geometry->SetInternals(PointsRefined,
@@ -191,7 +191,7 @@ namespace Kratos
             PointsRefined = PointerVector<NodeType>(0);
             WeightsRefined.clear();
 
-            NurbsSurfaceRefinementUtilities::KnotRefinementV( *p_surface_geometry, insert_knots_v,
+            NurbsSurfaceRefinementUtilities::KnotRefinementV<NurbsSurfaceGeometryType>( *p_surface_geometry, insert_knots_v,
                 PointsRefined, KnotsVRefined, WeightsRefined);
 
             p_surface_geometry->SetInternals(PointsRefined,

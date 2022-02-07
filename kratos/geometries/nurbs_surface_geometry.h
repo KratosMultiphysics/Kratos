@@ -646,6 +646,66 @@ public:
         }
     }
 
+    void UpdateQuadraturePointGeometries(
+        typename GeometryType::Pointer pGeometry,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPoint<3>& rIntegrationPoint)
+    {
+        // shape function container.
+        NurbsSurfaceShapeFunction shape_function_container(
+            mPolynomialDegreeU, mPolynomialDegreeV, NumberOfShapeFunctionDerivatives);
+
+        auto default_method = pGeometry->GetDefaultIntegrationMethod();
+        SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+
+        Matrix N(1, num_nonzero_cps);
+        DenseVector<Matrix> shape_function_derivatives(NumberOfShapeFunctionDerivatives - 1);
+        for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; i++) {
+            shape_function_derivatives[i].resize(num_nonzero_cps, i + 2);
+        }
+
+        if (IsRational()) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnotsU, mKnotsV, mWeights, rIntegrationPoint[0], rIntegrationPoint[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, rIntegrationPoint[0], rIntegrationPoint[1]);
+        }
+
+        /// Get List of Control Points
+        PointsArrayType nonzero_control_points(num_nonzero_cps);
+        auto cp_indices = shape_function_container.ControlPointIndices(
+            NumberOfControlPointsU(), NumberOfControlPointsV());
+        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+            nonzero_control_points(j) = pGetPoint(cp_indices[j]);
+        }
+        /// Get Shape Functions N
+        for (IndexType j = 0; j < num_nonzero_cps; j++) {
+            N(0, j) = shape_function_container(j, 0);
+        }
+
+        /// Get Shape Function Derivatives DN_De, ...
+        if (NumberOfShapeFunctionDerivatives > 0) {
+            IndexType shape_derivative_index = 1;
+            for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
+                for (IndexType k = 0; k < n + 2; k++) {
+                    for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                        shape_function_derivatives[n](j, k) = shape_function_container(j, shape_derivative_index + k);
+                    }
+                }
+                shape_derivative_index += n + 2;
+            }
+        }
+
+        GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+            default_method, rIntegrationPoint,
+            N, shape_function_derivatives);
+
+        pGeometry->SetGeometryShapeFunctionContainer(data_container);
+        pGeometry->Points() = nonzero_control_points;
+    }
+
     ///@}
     ///@name Operations
     ///@{

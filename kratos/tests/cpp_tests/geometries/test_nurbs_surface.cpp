@@ -525,7 +525,7 @@ namespace Testing {
         Vector KnotsURefined;
         Vector WeightsRefined;
 
-        NurbsSurfaceRefinementUtilities::KnotRefinementU(surface, knots_to_insert_u,
+        NurbsSurfaceRefinementUtilities::KnotRefinementU<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(surface, knots_to_insert_u,
             PointsRefined, KnotsURefined, WeightsRefined);
         surface.SetInternals(PointsRefined,
             surface.PolynomialDegreeU(), surface.PolynomialDegreeV(),
@@ -537,7 +537,7 @@ namespace Testing {
         knots_to_insert_u_2.push_back(3.0);
 
 
-        NurbsSurfaceRefinementUtilities::KnotRefinementU(surface, knots_to_insert_u_2,
+        NurbsSurfaceRefinementUtilities::KnotRefinementU<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(surface, knots_to_insert_u_2,
             PointsRefined, KnotsURefined, WeightsRefined);
         surface.SetInternals(PointsRefined,
             surface.PolynomialDegreeU(), surface.PolynomialDegreeV(),

@@ -319,7 +319,7 @@ public:
         std::vector<double>& rSpans,
         IndexType LocalDirectionIndex = 0) const override
     {
-        const double model_tolerance = 1e-2;
+        const double model_tolerance = 0.1;// 1e-2;
 
         if (this->Dimension() == 1) {
             std::vector<double> master_span_intersections_in_master_local_space;
@@ -356,13 +356,14 @@ public:
 
                     #ifdef KRATOS_DEBUG
                         mpGeometries[0]->GlobalCoordinates(global_coords_master, local_coords_master);
+
+                        KRATOS_WARNING_IF("CouplingGeometry::SpansLocalSpace", (success > 1 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) > model_tolerance))
+                            || (success == 0 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) < model_tolerance)))
+                            << "Projection of intersection spans failed. Global Coordinates on slave: "
+                            << global_coords_span_intersection_on_slave << ", and global coordinates on master: "
+                            << global_coords_master << ". Difference: " << norm_2(global_coords_span_intersection_on_slave - global_coords_master)
+                            << " larger than model tolerance: " << model_tolerance << std::endl;
                     #endif
-                    KRATOS_DEBUG_ERROR_IF((success > 1 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) > model_tolerance))
-                        || (success == 0 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) < model_tolerance)))
-                        << "Projection of intersection spans failed. Global Coordinates on slave: "
-                        << global_coords_span_intersection_on_slave << ", and global coordinates on master: "
-                        << global_coords_master << ". Difference: " << norm_2(global_coords_span_intersection_on_slave - global_coords_master)
-                        << " larger than model tolerance: " << model_tolerance << std::endl;
 
                     // If success == 0, it is considered that the projection is on one of the boundaries.
                     slave_span_intersections_in_master_local_space.push_back(local_coords_master[0]);
@@ -508,12 +509,13 @@ public:
             rIntegrationInfo);
 
         for (SizeType i = 0; i < num_integration_points; ++i) {
-            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
-                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
-                << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
-                << slave_quadrature_points(i)->Center() << ". Distance: "
-                << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
-
+            #ifdef KRATOS_DEBUG
+                KRATOS_WARNING_IF("CouplingGeometry::CreateQuadraturePointGeometries", norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
+                    << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                    << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
+                    << slave_quadrature_points(i)->Center() << ". Distance: "
+                    << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
+            #endif
             rResultGeometries(i) = Kratos::make_shared<CouplingGeometry<PointType>>(
                 master_quadrature_points(i), slave_quadrature_points(i));
         }

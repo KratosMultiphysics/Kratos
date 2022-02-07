@@ -111,6 +111,15 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
+    ///@name Check
+    ///@{
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        return 0;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 

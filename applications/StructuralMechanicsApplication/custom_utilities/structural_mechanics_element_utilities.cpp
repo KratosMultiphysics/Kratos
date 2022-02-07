@@ -52,11 +52,11 @@ int SolidElementCheck(
 
     // Verify that the constitutive law has the correct dimension
     const SizeType strain_size = r_properties.GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-    if ( dimension == 2 ) {
-        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << rElement.Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  rElement.Id() << std::endl;
-    }
+    //if ( dimension == 2 ) {
+    //    KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << rElement.Id() << std::endl;
+    //} else {
+    //    KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  rElement.Id() << std::endl;
+    //}
 
     // Check constitutive law
     if ( rConstitutiveLaws.size() > 0 ) {

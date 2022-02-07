@@ -1038,14 +1038,30 @@ namespace Kratos
         array_1d<double, 3> membrane_stress_pk2_car;
         array_1d<double, 3> bending_stress_pk2_car;
 
-        CalculatePK2Stress(IntegrationPointIndex, membrane_stress_pk2_car, bending_stress_pk2_car, rCurrentProcessInfo);
-
         // Compute Kinematics and Metric
         KinematicVariables kinematic_variables(
             GetGeometry().WorkingSpaceDimension());
         CalculateKinematics(
             IntegrationPointIndex,
             kinematic_variables);
+
+        ConstitutiveLaw::Parameters constitutive_law_parameters(
+            GetGeometry(), GetProperties(), rCurrentProcessInfo);
+
+        ConstitutiveVariables constitutive_variables_membrane(3);
+        ConstitutiveVariables constitutive_variables_curvature(3);
+        CalculateConstitutiveVariables(
+            IntegrationPointIndex,
+            kinematic_variables,
+            constitutive_variables_membrane,
+            constitutive_variables_curvature,
+            constitutive_law_parameters,
+            ConstitutiveLaw::StressMeasure_PK2);
+
+        double thickness = this->GetProperties().GetValue(THICKNESS);
+
+        membrane_stress_pk2_car = constitutive_variables_membrane.StressVector;
+        bending_stress_pk2_car = -1.0 * constitutive_variables_curvature.StressVector / pow(thickness, 2) * 12;
 
         double detF = kinematic_variables.dA / m_dA_vector[IntegrationPointIndex];
 

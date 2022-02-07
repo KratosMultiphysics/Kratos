@@ -33,7 +33,7 @@ namespace Kratos
 
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = r_geometry.WorkingSpaceDimension() * number_of_nodes;
+        const SizeType mat_size = 3 * number_of_nodes;//r_geometry.WorkingSpaceDimension() * number_of_nodes;
 
         // Integration
         const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
@@ -101,7 +101,7 @@ namespace Kratos
             rDeterminantOfJacobian.resize(nb_integration_points, false);
         }
 
-        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const SizeType working_space_dimension = 3;// rGeometry.WorkingSpaceDimension();
         const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
         const SizeType number_of_nodes = rGeometry.PointsNumber();
 

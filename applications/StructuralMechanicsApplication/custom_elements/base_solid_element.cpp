@@ -1707,9 +1707,11 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
     ) const
 {
     double detJ;
-    rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
+    GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
+    SizeType working_space_dimension = GetGeometry().WorkingSpaceDimension();
+    rJ = project(rJ, range(0, working_space_dimension), range(0, working_space_dimension));
     const Matrix& DN_De = GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[PointNumber];
-    MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
+    MathUtils<double>::InvertMatrix(rJ, rInvJ, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, rInvJ, rDN_DX);
     return detJ;
 }

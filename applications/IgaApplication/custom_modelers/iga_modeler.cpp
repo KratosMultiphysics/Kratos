@@ -289,6 +289,9 @@ namespace Kratos
             rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_id"].GetInt()));
         }
         if (rParameters.Has("brep_ids")) {
+            KRATOS_WARNING_IF("IgaModeler::GetCadGeometryList", !rParameters["brep_ids"].IsArray())
+                << "\"brep_ids\" is not of type array. Was \"brep_id\" intended instead? \n "
+                << "Provided parameters:\n " << rParameters;
             for (SizeType i = 0; i < rParameters["brep_ids"].size(); ++i) {
                 rGeometryList.push_back(rModelPart.pGetGeometry(rParameters["brep_ids"][i].GetInt()));
             }
@@ -449,7 +452,7 @@ namespace Kratos
                     rModelPart.AddNode(p_background_geometry->pGetPoint(number_of_cps - 1));
                 }
                 else {
-                    KRATOS_ERROR << "GetPointsAt: GeometrySurfaceVariationNodes and local coordinates: " << local_coordinates[0]
+                    KRATOS_ERROR << "GetPointsAt: GeometryCurveVariationNodes and local coordinates: " << local_coordinates[0]
                         << " is no available option. Only 0 and 1 are possible with this combination." << std::endl;
                 }
             }

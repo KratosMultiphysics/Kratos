@@ -40,6 +40,7 @@
 #include "custom_modelers/iga_modeler.h"
 #include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
+#include "custom_modelers/mpm_modeler.h"
 
 namespace Kratos {
 
@@ -135,6 +136,7 @@ private:
     const IgaModeler mIgaModeler;
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
+    const MpmModeler mMpmModeler;
 
     ///@}
     ///@name Private methods

@@ -37,16 +37,16 @@ namespace Kratos
  *        from outside.
  *        The parent pointer can provide the adress to the owner of this quadrature point.
  */
-template<class TPointType>
+template<class TPointType, int TWorkingSpaceDimension = 3>
 class QuadraturePointCurveOnSurfaceGeometry
-    : public QuadraturePointGeometry<TPointType, 3, 2, 1>
+    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1>
 {
 public:
 
     /// Pointer definition of QuadraturePointGeometry
     KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointCurveOnSurfaceGeometry);
 
-    typedef QuadraturePointGeometry<TPointType, 3, 2, 1> BaseType;
+    typedef QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::IndexType IndexType;
@@ -192,6 +192,9 @@ public:
         array_1d<double, 3> a_1 = column(J, 0);
         array_1d<double, 3> a_2 = column(J, 1);
 
+        if (TWorkingSpaceDimension == 2)
+        { a_1[2] = a_2[2] = 0.0; }
+
         CoordinatesArrayType normal = a_2 * mLocalTangentsU - a_1 * mLocalTangentsV;
 
         return normal;
@@ -217,8 +220,8 @@ public:
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
-        array_1d<double, 3> a_1 = column(J, 0);
-        array_1d<double, 3> a_2 = column(J, 1);
+        array_1d<double, TWorkingSpaceDimension> a_1 = column(J, 0);
+        array_1d<double, TWorkingSpaceDimension> a_2 = column(J, 1);
 
         return norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
     }

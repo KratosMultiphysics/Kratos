@@ -96,7 +96,7 @@ namespace Kratos
                         Vector KnotsURefined;
                         Vector WeightsRefined;
 
-                        NurbsSurfaceRefinementUtilities::KnotRefinementU(*(p_nurbs_surface.get()), knots_to_insert_u,
+                        NurbsSurfaceRefinementUtilities::KnotRefinementU<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(*(p_nurbs_surface.get()), knots_to_insert_u,
                             PointsRefined, KnotsURefined, WeightsRefined);
 
                         // Recreate nodes in model part to ensure correct assignment of dofs
@@ -145,7 +145,7 @@ namespace Kratos
                     Vector KnotsVRefined;
                     Vector WeightsRefined;
 
-                    NurbsSurfaceRefinementUtilities::KnotRefinementV(*(p_nurbs_surface.get()), knots_to_insert_v,
+                    NurbsSurfaceRefinementUtilities::KnotRefinementV<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(*(p_nurbs_surface.get()), knots_to_insert_v,
                         PointsRefined, KnotsVRefined, WeightsRefined);
 
                     // Recreate nodes in model part to ensure correct assignment of dofs

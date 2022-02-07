@@ -335,6 +335,14 @@ public:
     ///@name Geometrical Operations
     ///@{
 
+    /// Returns the area of this quadrature point.
+    double Area() const override
+    {
+        KRATOS_WARNING_IF("QuadraturePointGeometry::Area", TLocalSpaceDimension != 2)
+            << "Local space dimension of quadrature point: " << TLocalSpaceDimension << ". Computation of Area not valid. \n";
+        return DomainSize();
+    }
+
     /// Returns the domain size of this quadrature point.
     double DomainSize() const override
     {

@@ -108,6 +108,7 @@ public:
         KRATOS_TRY;
 
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+        KRATOS_WATCH(mrModelPart)
         KRATOS_ERROR_IF(mrModelPart.NumberOfConditions() == 0) <<
             "> Normal calculation requires surface or line conditions to be defined!" << std::endl;
         KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<

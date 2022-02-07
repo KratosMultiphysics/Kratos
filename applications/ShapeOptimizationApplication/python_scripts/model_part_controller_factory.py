@@ -42,7 +42,8 @@ class ModelPartController:
             },
             "mesh_motion" : {
                 "apply_mesh_solver" : false
-            }
+            },
+            "modelers": []
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
@@ -138,12 +139,17 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def __ImportOptimizationModelPart(self):
         input_type = self.model_settings["model_import_settings"]["input_type"].GetString()
-        if input_type != "mdpa":
-            raise RuntimeError("The model part for the optimization has to be read from the mdpa file!")
-        input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
+        #if input_type != "mdpa":
+        #    raise RuntimeError("The model part for the optimization has to be read from the mdpa file!")
+        #input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
 
-        model_part_io = KM.ModelPartIO(input_filename)
-        model_part_io.ReadModelPart(self.optimization_model_part)
+        #model_part_io = KM.ModelPartIO(input_filename)
+        #model_part_io.ReadModelPart(self.optimization_model_part)
+
+        self._CreateModelers()
+        self._ModelersSetupGeometryModel()
+        self._ModelersPrepareGeometryModel()
+        self._ModelersSetupModelPart()
 
         self.SetMinimalBufferSize(1)
 
@@ -173,5 +179,49 @@ class ModelPartController:
             else:
                 raise ValueError("Definition of damping regions required but not availabe!")
         KM.Logger.Print("")
+
+    ### Modelers
+    def _ModelersSetupGeometryModel(self):
+        # Import or generate geometry models from external input.
+        for modeler in self._GetListOfModelers():
+            modeler.SetupGeometryModel()
+
+    def _ModelersPrepareGeometryModel(self):
+        # Prepare or update the geometry model_part.
+        for modeler in self._GetListOfModelers():
+            modeler.PrepareGeometryModel()
+
+    def _ModelersSetupModelPart(self):
+        # Convert the geometry model or import analysis suitable models.
+        for modeler in self._GetListOfModelers():
+            modeler.SetupModelPart()
+
+    ### Modelers
+    def _GetListOfModelers(self):
+        """ This function returns the list of modelers
+        """
+        if not hasattr(self, '_list_of_modelers'):
+            raise Exception("The list of modelers was not yet created!")
+        return self._list_of_modelers
+
+    def _CreateModelers(self):
+        """ List of modelers in following format:
+        "modelers" : [{
+            "modeler_name" : "geometry_import":
+            "parameters" : {
+                "echo_level" : 0:
+                // settings for this modeler
+            }
+        },{ ... }]
+        """
+        self._list_of_modelers = []
+
+        if self.model_settings.Has("modelers"):
+            from KratosMultiphysics.modeler_factory import KratosModelerFactory
+            factory = KratosModelerFactory()
+
+            modelers_list = self.model_settings["modelers"]
+            self._list_of_modelers = factory.ConstructListOfModelers(self.model, modelers_list)
+
 
 # ==============================================================================

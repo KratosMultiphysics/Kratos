@@ -16,6 +16,7 @@
 
 #include "custom_processes/output_quadrature_domain_process.h"
 #include "custom_processes/nitsche_stabilization_model_part_process.h"
+#include "custom_processes/mpm_process.h"
 #include "custom_processes/map_nurbs_volume_results_to_embedded_geometry_process.h"
 #include "custom_processes/assign_integration_points_to_background_elements_process.h"
 
@@ -38,6 +39,10 @@ void AddCustomProcessesToPython(
         .def(py::init<ModelPart& >())
         ;
 
+
+    py::class_<MpmProcess, MpmProcess::Pointer, Process>(m, "MpmProcess")
+        .def(py::init<Model&, Parameters >())
+        ;
     py::class_<MapNurbsVolumeResultsToEmbeddedGeometryProcess, MapNurbsVolumeResultsToEmbeddedGeometryProcess::Pointer, Process>(m, "MapNurbsVolumeResultsToEmbeddedGeometryProcess")
         .def(py::init<Model&, Parameters >())
         .def("MapNodalValues", [](MapNurbsVolumeResultsToEmbeddedGeometryProcess& self, const Variable<array_1d<double,3>>& rVariable){
@@ -46,11 +51,7 @@ void AddCustomProcessesToPython(
 
     py::class_<AssignIntegrationPointsToBackgroundElementsProcess, AssignIntegrationPointsToBackgroundElementsProcess::Pointer, Process>(m, "AssignIntegrationPointsToBackgroundElementsProcess")
         .def(py::init<Model&, Parameters >())
-        ;
-
-
-
-}
+        ;}
 
 } // namespace Python
 } // Namespace Kratos

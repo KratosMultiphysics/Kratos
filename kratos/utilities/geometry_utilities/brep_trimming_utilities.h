@@ -153,7 +153,8 @@ namespace Kratos
                         }
                     }
                     if (bestvertex == -1) {
-                        KRATOS_THROW_ERROR(std::runtime_error, "Triangulate: No points in polygon.", std::endl);
+                        return;
+                        //KRATOS_THROW_ERROR(std::runtime_error, "Triangulate: No points in polygon.", std::endl);
                     }
 
                     dpstates(j, i).bestvertex = bestvertex;

@@ -7,11 +7,9 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Manuel Messmer
-//
 
-#if !defined(KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED )
-#define  KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED
+#if !defined(KRATOS_MPM_MODELER_H_INCLUDED )
+#define  KRATOS_MPM_MODELER_H_INCLUDED
 
 // System includes
 
@@ -26,13 +24,13 @@
 
 namespace Kratos {
 
-class KRATOS_API(IGA_APPLICATION) NurbsGeometryModeler
+class KRATOS_API(IGA_APPLICATION) MpmModeler
     : public Modeler
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModeler );
+    KRATOS_CLASS_POINTER_DEFINITION(MpmModeler);
 
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
@@ -53,11 +51,11 @@ public:
     ///@{
 
     /// Default constructor.
-    NurbsGeometryModeler()
+    MpmModeler()
         : Modeler() {}
 
     /// Constructor.
-    NurbsGeometryModeler(
+    MpmModeler(
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
         : Modeler(rModel, ModelerParameters)
@@ -66,19 +64,19 @@ public:
     }
 
     /// Destructor.
-    virtual ~NurbsGeometryModeler() = default;
+    virtual ~MpmModeler() = default;
 
     /// Creates the Modeler Pointer
     Modeler::Pointer Create(Model& rModel, const Parameters ModelParameters) const override
     {
-        return Kratos::make_shared<NurbsGeometryModeler>(rModel, ModelParameters);
+        return Kratos::make_shared<MpmModeler>(rModel, ModelParameters);
     }
 
     ///@}
     ///@name Stages
     ///@{
 
-    void SetupGeometryModel() override;
+    void SetupModelPart() override;
 
     ///@}
 
@@ -89,32 +87,7 @@ private:
     Model* mpModel;
 
     ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-     * @brief Creates a regular grid composed out of bivariant B-splines.
-     * @param PointA Lower point of bounding box.
-     * @param PointB Upper point of bounding box.
-     * @param Order  Polynomial degree in each direction u,v.
-     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v.
-     * @note The CP'S are defined as nodes and added to the rModelPart.
-     **/
-    void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV );
-
-    /**
-     * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
-     * @param PointA Lower point of bounding box.
-     * @param PointB Upper point of bounding box.
-     * @param Order  Polynomial degree in each direction u,v,w.
-     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
-     * @note The CP'S are defined as nodes and added to the rModelPart.
-     **/
-    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
-
 };
 
 } // End namesapce Kratos
-#endif // KRATOS_NURBS_GEOMETRY_MODELER_H_INCLUDED
+#endif // KRATOS_MPM_MODELER_H_INCLUDED
