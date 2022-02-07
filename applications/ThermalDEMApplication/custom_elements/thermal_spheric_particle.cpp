@@ -1084,13 +1084,15 @@ namespace Kratos
     if (this->Is(DEMThermalFlags::HAS_INDIRECT_CONDUCTION)) {
       std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL];
       if (model.compare("surrounding_layer") == 0) {
-        const double model_search_distance = GetParticleRadius() * r_process_info[FLUID_LAYER_THICKNESS];
-        added_search_distance = std::max(added_search_distance, model_search_distance);
+        const double model_search_distance  = GetParticleRadius() * r_process_info[FLUID_LAYER_THICKNESS];
+        const double current_added_distance = added_search_distance;
+        added_search_distance = std::max(current_added_distance, model_search_distance);
       }
       else if (model.compare("voronoi_a") == 0 ||
                model.compare("voronoi_b") == 0) {
-        const double model_search_distance = GetParticleRadius() * r_process_info[MAX_CONDUCTION_DISTANCE];
-        added_search_distance = std::max(added_search_distance, model_search_distance);
+        const double model_search_distance  = GetParticleRadius() * r_process_info[MAX_CONDUCTION_DISTANCE];
+        const double current_added_distance = added_search_distance;
+        added_search_distance = std::max(current_added_distance, model_search_distance);
       }
     }
 
@@ -1098,8 +1100,9 @@ namespace Kratos
       std::string model = r_process_info[RADIATION_MODEL];
       if (model.compare("continuum_zhou")   == 0 ||
           model.compare("continuum_krause") == 0) {
-        const double model_search_distance = GetParticleRadius() * (r_process_info[MAX_RADIATION_DISTANCE]);
-        added_search_distance = std::max(added_search_distance, model_search_distance);
+        const double model_search_distance  = GetParticleRadius() * (r_process_info[MAX_RADIATION_DISTANCE]);
+        const double current_added_distance = added_search_distance;
+        added_search_distance = std::max(current_added_distance, model_search_distance);
       }
     }
 
