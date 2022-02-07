@@ -11,28 +11,20 @@
 //                   Pablo Becker
 //
 
-
 #if !defined(KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED )
 #define  KRATOS_CONVECTION_DIFFUSION_SETTINGS_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "containers/variable.h"
 #include "includes/define.h"
-#include "includes/kratos_components.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
