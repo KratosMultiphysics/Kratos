@@ -36,7 +36,7 @@ void AddMPISparseMatricesToPython(pybind11::module& m)
     typedef std::size_t IndexType;
     typedef std::size_t MPIIndexType;
 
-    py::class_<DistributedNumbering<IndexType>,DistributedNumbering<IndexType>>(m,"DistributedNumbering")
+    py::class_<DistributedNumbering<IndexType>,DistributedNumbering<IndexType>::Pointer>(m,"DistributedNumbering")
         .def(py::init<const DataCommunicator&, IndexType>())
         .def(py::init<const DataCommunicator&, IndexType, MPIIndexType>())
         .def("GetComm", &DistributedNumbering<IndexType>::GetComm)
@@ -140,7 +140,9 @@ void AddMPISparseMatricesToPython(pybind11::module& m)
         .def("GetOffDiagonalLocalIds", [](DistributedCsrMatrix<double,IndexType>& self)
              {return self.GetOffDiagonalLocalIds();})
         .def("GetOffDiagonalGlobalIds", [](DistributedCsrMatrix<double,IndexType>& self)
-             {return self.GetOffDiagonalGlobalIds();})
+            {
+                return std::vector<IndexType>(self.GetOffDiagonalGlobalIds().begin(), self.GetOffDiagonalGlobalIds().end());
+            })
         .def("GetOffDiagonalBlockLocalId", &DistributedCsrMatrix<double,IndexType>::GetOffDiagonalBlockLocalId)
         .def("GetOffDiagonalBlockGlobalId", &DistributedCsrMatrix<double,IndexType>::GetOffDiaGlobalId)
         .def("__setitem__", [](DistributedCsrMatrix<double,IndexType>& self, 

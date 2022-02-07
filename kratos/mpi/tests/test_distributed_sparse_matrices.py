@@ -125,12 +125,10 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
 
         #construct two vectors
         y =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)
-        y.SetValue(0.0);
+        y.SetValue(0.0)
     
         b =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)    
-        b.SetValue(1.0);
-
-        del Agraph #not needed but i want to see what happens 
+        b.SetValue(1.0)
 
         #y += A@b
         A.SpMV(b,y) 
@@ -143,11 +141,26 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
     
         B = A.SpMM(A)
 
-        del A
-        print(B)
-        del B
+        #emulating y = A@b by low level interface
+        local_mat = A.GetDiagonalBlock()
+        local_output = KratosMultiphysics.Vector(local_mat.size1())
+        local_output.fill(0.0)
+        local_mat.SpMV(b.GetLocalData(), local_output)
+        
+        nonlocal_mat  = A.GetOffDiagonalBlock()
+        importer = KratosMultiphysics.mpi.DistributedVectorImporter(kratos_comm,A.GetOffDiagonalGlobalIds(),A.GetColNumbering())
+        nonlocal_data=importer.ImportData(b) #here is where communications happen
+        nonlocal_output = KratosMultiphysics.Vector(nonlocal_mat.size1())
+        nonlocal_output.fill(0.0)
+        nonlocal_mat.SpMV(nonlocal_data, nonlocal_output)
 
-        print("the end")
+        output = local_output + nonlocal_output
+
+        for i in range(y.GetLocalData().Size()):
+            self.assertEqual(y.GetLocalData()[i],  output[i], 1e-14 )
+
+
+
 
 
 
