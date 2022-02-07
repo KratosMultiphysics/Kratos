@@ -112,11 +112,11 @@ public:
         mpDensityVar = &rvar;
         mis_defined_DensityVar=true;
     }
-    const Variable<double>& GetDensityVariable()
+    const Variable<double>& GetDensityVariable() const
     {
         return *mpDensityVar;
     }
-    bool IsDefinedDensityVariable()
+    bool IsDefinedDensityVariable() const
     {
 		return mis_defined_DensityVar;
 	}
@@ -126,11 +126,11 @@ public:
         mpDiffusionVar = &rvar;
 		mis_defined_DiffusionVar=true;
     }
-    const Variable<double>& GetDiffusionVariable()
+    const Variable<double>& GetDiffusionVariable() const
     {
         return *mpDiffusionVar;
     }
-    bool IsDefinedDiffusionVariable()
+    bool IsDefinedDiffusionVariable() const
     {
 		return mis_defined_DiffusionVar;
 	}
@@ -140,11 +140,11 @@ public:
         mpUnknownVar = &rvar;
 		mis_defined_UnknownVar=true;
     }
-    const Variable<double>& GetUnknownVariable()
+    const Variable<double>& GetUnknownVariable() const
     {
         return *mpUnknownVar;
     }
-    bool IsDefinedUnknownVariable()
+    bool IsDefinedUnknownVariable() const
     {
 		return mis_defined_UnknownVar;
 	}
@@ -154,11 +154,11 @@ public:
         mpVolumeSourceVar = &rvar;
 		mis_defined_VolumeSourceVar=true;
     }
-    const Variable<double>& GetVolumeSourceVariable()
+    const Variable<double>& GetVolumeSourceVariable() const
     {
         return *mpVolumeSourceVar;
     }
-    bool IsDefinedVolumeSourceVariable()
+    bool IsDefinedVolumeSourceVariable() const
     {
 		return mis_defined_VolumeSourceVar;
 	}
@@ -168,11 +168,11 @@ public:
         mpSurfaceSourceVar = &rvar;
 		mis_defined_SurfaceSourceVar=true;
     }
-    const Variable<double>& GetSurfaceSourceVariable()
+    const Variable<double>& GetSurfaceSourceVariable() const
     {
         return *mpSurfaceSourceVar;
     }
-    bool IsDefinedSurfaceSourceVariable()
+    bool IsDefinedSurfaceSourceVariable() const
     {
 		return mis_defined_SurfaceSourceVar;
 	}
@@ -182,11 +182,11 @@ public:
         mpProjectionVar = &rvar;
 		mis_defined_ProjectionVar=true;
     }
-    const Variable<double>& GetProjectionVariable()
+    const Variable<double>& GetProjectionVariable() const
     {
         return *mpProjectionVar;
     }
-    bool IsDefinedProjectionVariable()
+    bool IsDefinedProjectionVariable() const
     {
 		return mis_defined_ProjectionVar;
 	}
@@ -196,11 +196,11 @@ public:
         mpConvectionVar = &rvar;
 		mis_defined_ConvectionVar=true;
     }
-    const Variable<array_1d<double,3> >& GetConvectionVariable()
+    const Variable<array_1d<double,3> >& GetConvectionVariable() const
     {
         return *mpConvectionVar;
     }
-    bool IsDefinedConvectionVariable()
+    bool IsDefinedConvectionVariable() const
     {
 		return mis_defined_ConvectionVar;
 	}
@@ -224,11 +224,11 @@ public:
         mpMeshVelocityVar = &rvar;
 		mis_defined_MeshVelocityVar=true;
     }
-    const Variable<array_1d<double,3> >& GetMeshVelocityVariable()
+    const Variable<array_1d<double,3> >& GetMeshVelocityVariable() const
     {
         return *mpMeshVelocityVar;
     }
-    bool IsDefinedMeshVelocityVariable()
+    bool IsDefinedMeshVelocityVariable() const
     {
 		return mis_defined_MeshVelocityVar;
 	}
@@ -238,11 +238,11 @@ public:
         mpTransferCoefficientVar = &rvar;
 		mis_defined_TransferCoefficientVar=true;
     }
-    const Variable<double>& GetTransferCoefficientVariable()
+    const Variable<double>& GetTransferCoefficientVariable() const
     {
         return *mpTransferCoefficientVar;
     }
-    bool IsDefinedTransferCoefficientVariable()
+    bool IsDefinedTransferCoefficientVariable() const
     {
 		return mis_defined_TransferCoefficientVar;
 	}
@@ -252,11 +252,11 @@ public:
         mpVelocityVar = &rvar;
 		mis_defined_VelocityVar=true;
     }
-    const Variable<array_1d<double,3> >& GetVelocityVariable()
+    const Variable<array_1d<double,3> >& GetVelocityVariable() const
     {
         return *mpVelocityVar;
     }
-    bool IsDefinedVelocityVariable()
+    bool IsDefinedVelocityVariable() const
     {
 		return mis_defined_VelocityVar;
 	}
@@ -266,11 +266,11 @@ public:
         mpSpecificHeatVar = &rvar;
 		mis_defined_SpecificHeatVar=true;
     }
-    const Variable<double>& GetSpecificHeatVariable()
+    const Variable<double>& GetSpecificHeatVariable() const
     {
         return *mpSpecificHeatVar;
     }
-    bool IsDefinedSpecificHeatVariable()
+    bool IsDefinedSpecificHeatVariable() const
     {
 		return mis_defined_SpecificHeatVar;
 	}
@@ -280,11 +280,11 @@ public:
         mpReactionVar = &rvar;
 		mis_defined_ReactionVar=true;
     }
-    const Variable<double>& GetReactionVariable()
+    const Variable<double>& GetReactionVariable() const
     {
         return *mpReactionVar;
     }
-    bool IsDefinedReactionVariable()
+    bool IsDefinedReactionVariable() const
     {
 		return mis_defined_ReactionVar;
 	}
@@ -294,13 +294,11 @@ public:
         mpReactionGradientVar = &rVar;
 		mIsDefinedReactionGradientVar=true;
     }
-
-    const Variable<array_1d<double,3>>& GetReactionGradientVariable()
+    const Variable<array_1d<double,3>>& GetReactionGradientVariable() const
     {
         return *mpReactionGradientVar;
     }
-
-    bool IsDefinedReactionGradientVariable()
+    bool IsDefinedReactionGradientVariable() const
     {
 		return mIsDefinedReactionGradientVar;
 	}
