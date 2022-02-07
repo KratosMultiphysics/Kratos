@@ -22,6 +22,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/geo_mechanics_ramm_arc_length_strategy.hpp"
+#include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
 //builders and solvers
 
@@ -32,7 +33,6 @@
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
-#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_erosion_process_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -62,10 +62,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
     typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
     typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwSchemeType;
-    typedef BackwardEulerQuasistaticPwErosionProcessScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwErosionProcessSchemeType;
+    
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
+    typedef GeoMechanicsNewtonRaphsonErosionProcessStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonErosionProcessStrategyType;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -93,14 +94,15 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     (m, "BackwardEulerQuasistaticPwScheme")
     .def(init< >());
 
-    class_< BackwardEulerQuasistaticPwErosionProcessSchemeType, typename BackwardEulerQuasistaticPwErosionProcessSchemeType::Pointer, BaseSchemeType >
-    (m, "BackwardEulerQuasistaticPwErosionProcessScheme")
-    .def(init< >());
-
     class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsNewtonRaphsonStrategy")
     .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
+
+    class_< GeoMechanicsNewtonRaphsonErosionProcessStrategyType, typename GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer, BaseSolvingStrategyType >
+        (m, "GeoMechanicsNewtonRaphsonErosionProcessStrategy")
+        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+            BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
     class_< GeoMechanicsRammArcLengthStrategyType, typename GeoMechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsRammArcLengthStrategy")
