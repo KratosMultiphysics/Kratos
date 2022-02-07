@@ -77,18 +77,33 @@ public:
     ///Destructor
     ~GeoMechanicsNewtonRaphsonErosionProcessStrategy() override {}
 
+	void Recalculate()
+    {
+        GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
+        GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
+        GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+    }
 
     void FinalizeSolutionStep() override
 	{
         GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
-
+    	
         KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
-        // Implement Piping Loop 
-        for (int pipeIter = 0; pipeIter < mPipingIterations; pipeIter++) {
-        	GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
-            GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
-            GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+
+        int pipeIter = 0;
+        bool Equilibrium = false;
+    	// Implement Piping Loop (non-lin picard iteration)
+        while (pipeIter < mPipingIterations && !Equilibrium)
+        {
+            // Sellmeijer Piping Method 
+            Equilibrium = true;
+
+        	Recalculate();
+        	
+            // Loop over open pipe elements
+            pipeIter += 1;
         }
+        
 	}
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
