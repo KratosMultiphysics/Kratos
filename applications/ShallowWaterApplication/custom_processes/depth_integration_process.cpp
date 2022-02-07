@@ -63,6 +63,12 @@ DepthIntegrationProcess::DepthIntegrationProcess(
     mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
     mVelocityRelativeDepth = ThisParameters["velocity_relative_depth"].GetDouble();
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
+
+    if (!mStoreHistorical) {
+        VariableUtils().SetNonHistoricalVariableToZero(MOMENTUM, mrInterfaceModelPart.Nodes());
+        VariableUtils().SetNonHistoricalVariableToZero(VELOCITY, mrInterfaceModelPart.Nodes());
+        VariableUtils().SetNonHistoricalVariableToZero(HEIGHT, mrInterfaceModelPart.Nodes());
+    }
 }
 
 void DepthIntegrationProcess::Execute()
