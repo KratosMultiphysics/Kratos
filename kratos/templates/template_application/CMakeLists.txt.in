@@ -45,12 +45,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(Kratos@{APP_NAME_CAMEL}Core)
-    cotire(Kratos@{APP_NAME_CAMEL}Application)
-endif(USE_COTIRE MATCHES ON)
-
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py KratosMultiphysics/@{APP_NAME_CAMEL}Application/__init__.py )
 
@@ -73,3 +67,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS Kratos@{APP_NAME_CAMEL}Core DESTINATION libs )
 install(TARGETS Kratos@{APP_NAME_CAMEL}Application DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};Kratos@{APP_NAME_CAMEL}Core" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};Kratos@{APP_NAME_CAMEL}Application" PARENT_SCOPE)

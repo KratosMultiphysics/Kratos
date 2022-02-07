@@ -129,7 +129,7 @@ LargeDisplacementSegregatedVPElement::~LargeDisplacementSegregatedVPElement()
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     rElementalDofList.resize(0);
 
@@ -165,10 +165,10 @@ void LargeDisplacementSegregatedVPElement::GetDofList( DofsVectorType& rElementa
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
 
-    this->SetProcessInformation(rCurrentProcessInfo);
+  //this->SetProcessInformation(rCurrentProcessInfo);
 
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -210,7 +210,7 @@ void LargeDisplacementSegregatedVPElement::EquationIdVector( EquationIdVectorTyp
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -227,7 +227,7 @@ void LargeDisplacementSegregatedVPElement::InitializeSolutionStep( ProcessInfo& 
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -239,7 +239,7 @@ void LargeDisplacementSegregatedVPElement::InitializeNonLinearIteration( Process
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -250,7 +250,7 @@ void LargeDisplacementSegregatedVPElement::FinalizeNonLinearIteration( ProcessIn
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -420,7 +420,7 @@ void LargeDisplacementSegregatedVPElement::GetSecondDerivativesVector( Vector& r
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -436,7 +436,7 @@ void LargeDisplacementSegregatedVPElement::CalculateRightHandSide( VectorType& r
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -452,7 +452,7 @@ void LargeDisplacementSegregatedVPElement::CalculateLeftHandSide( MatrixType& rL
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -566,7 +566,7 @@ void LargeDisplacementSegregatedVPElement::CalculateAndAddPressureForces(VectorT
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -600,7 +600,7 @@ void LargeDisplacementSegregatedVPElement::CalculateMassMatrix( MatrixType& rMas
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementSegregatedVPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementSegregatedVPElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -663,7 +663,7 @@ LargeDisplacementSegregatedVPElement::SizeType LargeDisplacementSegregatedVPElem
 //************************************************************************************
 //************************************************************************************
 
-int  LargeDisplacementSegregatedVPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  LargeDisplacementSegregatedVPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -675,7 +675,7 @@ int  LargeDisplacementSegregatedVPElement::Check( const ProcessInfo& rCurrentPro
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,rNode);
         //KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_VELOCITY,rNode);
         //KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE_ACCELERATION,rNode);

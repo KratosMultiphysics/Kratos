@@ -60,7 +60,7 @@ class ModelPart;
  * @details The boundary conditions are assumed to be contained in a line
  * @author Miguel Maso Sotomayor
  */
-class CalculateDistanceToBoundaryProcess : public Process
+class KRATOS_API(SHALLOW_WATER_APPLICATION) CalculateDistanceToBoundaryProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -86,7 +86,7 @@ public:
             mrModelPart(rComputingModelPart)
     {
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        mRSquaredTreshold = ThisParameters["r_squared_treshold"].GetDouble();
+        mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
         FindApproximatingGeometry(mpBoundary, rBoundaryModelPart);
     }
 
@@ -157,7 +157,7 @@ private:
 
     ModelPart& mrModelPart;
     GeometryType::Pointer mpBoundary;
-    double mRSquaredTreshold;
+    double mRSquaredThreshold;
     double mRSquared;
 
     ///@}

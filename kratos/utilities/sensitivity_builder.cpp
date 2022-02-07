@@ -31,7 +31,7 @@
 // Include base h
 #include "utilities/sensitivity_builder.h"
 
-namespace sensitivity_builder_cpp // cotire guard
+namespace sensitivity_builder_cpp // unity build guard
 {
 using namespace Kratos;
 
@@ -389,7 +389,8 @@ void SensitivityBuilder::Initialize()
 {
     KRATOS_TRY;
 
-    Clear();
+    ClearFlags();
+    ClearSensitivities();
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              mpSensitivityModelPart->Nodes());
     VariableUtils().SetNonHistoricalVariable(

@@ -54,6 +54,18 @@ namespace Kratos
 	{
 	}
 
+	template <std::size_t TDim>
+	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+		FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
+		const double RelativeTolerance,
+		const Variable<double>* pDistanceVariable)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+		  mIsSearchStructureAllocated(false),
+		  mpDistanceVariable(pDistanceVariable)
+	{
+	}
+
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::~ApplyRayCastingProcess()
 	{
@@ -65,14 +77,14 @@ namespace Kratos
 	void ApplyRayCastingProcess<TDim>::Execute()
 	{
         if(mIsSearchStructureAllocated) // we have not initialized it yet
-            mpFindIntersectedObjectsProcess->Initialize();
+            mpFindIntersectedObjectsProcess->ExecuteInitialize();
 
 		this->SetRayCastingTolerances();
 
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
 		block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
-			double &r_node_distance = rNode.FastGetSolutionStepValue(DISTANCE);
+			double &r_node_distance = rNode.FastGetSolutionStepValue(*mpDistanceVariable);
 			const double ray_distance = this->DistancePositionInSpace(rNode);
 			if (ray_distance * r_node_distance < 0.0) {
 				r_node_distance = -r_node_distance;

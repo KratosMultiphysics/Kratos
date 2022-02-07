@@ -179,7 +179,7 @@ public:
     Element::EquationIdVectorType EquationId;
 
     // assemble all elements
-    double start_build = OpenMPUtils::GetCurrentTime();
+    // double start_build = OpenMPUtils::GetCurrentTime();
 
 #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId)
     {
@@ -235,8 +235,8 @@ public:
       }
     }
 
-    const double stop_build = OpenMPUtils::GetCurrentTime();
-    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
+    // const double stop_build = OpenMPUtils::GetCurrentTime();
+    // KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
 
     //for (int i = 0; i < A_size; i++)
     //    omp_destroy_lock(&lock_array[i]);
@@ -287,8 +287,8 @@ public:
           const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
           const double timeInterval = CurrentProcessInfo[DELTA_TIME];
 
-          LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-          RHS_Contribution = ZeroVector(neighSize);
+          noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+          noalias(RHS_Contribution) = ZeroVector(neighSize);
 
           if (EquationId.size() != neighSize)
             EquationId.resize(neighSize, false);
@@ -639,16 +639,16 @@ public:
     KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "Before the solution of the system"
                                                                                            << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
-    const double start_solve = OpenMPUtils::GetCurrentTime();
-    Timer::Start("Solve");
+    // const double start_solve = OpenMPUtils::GetCurrentTime();
+    // Timer::Start("Solve");
 
     //boost::timer solve_time;
     SystemSolveWithPhysics(A, Dx, b, rModelPart);
     //std::cout << "CONTINUITY EQ: solve_time : " << solve_time.elapsed() << std::endl;
 
-    Timer::Stop("Solve");
-    const double stop_solve = OpenMPUtils::GetCurrentTime();
-    KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+    // Timer::Stop("Solve");
+    // const double stop_solve = OpenMPUtils::GetCurrentTime();
+    // KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
     KRATOS_INFO_IF("NodalResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3)) << "After the solution of the system"
                                                                                            << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -734,7 +734,7 @@ public:
 
     ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-    unsigned int nthreads = OpenMPUtils::GetNumThreads();
+    unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
     //        typedef boost::fast_pool_allocator< NodeType::DofType::Pointer > allocator_type;
     //         typedef std::unordered_set < NodeType::DofType::Pointer,

@@ -10,7 +10,7 @@ from collections import defaultdict
 from itertools import chain
 import warnings
 
-from xmc.distributedEnvironmentFramework import delete_object, get_value_from_remote
+from exaqute import delete_object, get_value_from_remote
 
 
 class MonteCarloSampler:
@@ -28,12 +28,12 @@ class MonteCarloSampler:
         self.estimatorsForAssembler = keywordArgs.get("estimatorsForAssembler")
         self.indexConstructor = dynamicImport(keywordArgs.get("indexConstructor", None))
         self.indexConstructorDictionary = keywordArgs.get("indexConstructorDictionary", None)
-        self.qoiPredictor = keywordArgs.get("qoiPredictor", None)
-        self.costPredictor = keywordArgs.get("costPredictor", None)
+        self.qoiPredictor = keywordArgs.get("qoiPredictor", None) # predictor used to extrapolate the current levelwise estimates to new levels where we don't have data yet (because we have no samples yet). If number of levels is constant, it is not required.
+        self.costPredictor = keywordArgs.get("costPredictor", None) # predictor used to extrapolate the current levelwise estimates to new levels where we don't have data yet (because we have no samples yet). If number of levels is constant, it is not required.
         self.estimatorsForPredictor = keywordArgs.get("estimatorsForPredictor", None)
         # TODO Why do we need costEstimatorsForPredictor?
         self.costEstimatorForPredictor = keywordArgs.get("costEstimatorsForPredictor", None)
-        self.isCostUpdated = keywordArgs.get("isCostUpdated", False)
+        self.isCostUpdated = keywordArgs.get("isCostUpdated", False) # false if not using predictors
         self.errorEstimators = keywordArgs.get("errorEstimators", None)
         self.assemblersForError = keywordArgs.get("assemblersForError", None)
         # asynchronous framework settings
@@ -43,6 +43,7 @@ class MonteCarloSampler:
         # TODO Define these below
         self.indexSet = None
         self.samples = None
+        self.samplesCounter = 0 # this attribute is required only by the joint use of EventDatabase class and asynchronous algorithm
 
     def hierarchy(self):
         extracted_hierarchy = []
@@ -97,16 +98,19 @@ class MonteCarloSampler:
 
         # Run the corresponding estimation methods on this
         globalEstimations = []
+        to_delete = []
         # Iterate over couples (coord,estimation)
         for c, e in zip(assemblerCoordinates, estimations):
             ge = self.assemblers[c].assembleEstimation(hierarchy, e)
             globalEstimations.append(ge)
+            if not e in to_delete:
+                to_delete.append(e)
 
         # Delete COMPSs objects
         # Flatten list of depth 2 then unpack
         delete_object(
             *chain.from_iterable(hierarchy),
-            *chain.from_iterable(chain.from_iterable(estimations)),
+            *to_delete
         )
 
         return globalEstimations
@@ -338,8 +342,10 @@ class MonteCarloSampler:
 
     def asynchronousPrepareBatches(self, newHierarchy):
         """
-        Method setting-up batches. If needed, the serialize method is called, to serialize Kratos Model and Kratos Parameters. Otherwise, serialized objects are passed to new batches, to avoid serializing multiple times.
+        Method setting-up batches.
+        If needed, the serialize method is called, to serialize Kratos Model and Kratos Parameters. Otherwise, serialized objects are passed to new batches, to avoid serializing multiple times.
         For each batch, an index constructor dictionary is built. This way, local estimators may be computed in parallel and then update global estimators.
+        If random generator is using fixed samples, i.e. EventDatabase as RandomGeneratorWrapper, _eventCounter attribute is modified accordingly to the batch we are preparing.
         """
 
         newIndices, newSamples = splitOneListIntoTwo(newHierarchy)
@@ -360,12 +366,16 @@ class MonteCarloSampler:
             self.batchesConvergenceFinished = [False for _ in range(self.numberBatches)]
         else:  # iterationCounter > 0
             self.asynchronousUpdateBatches()
-        # create monteCarloIndex instances
+
+        # create new clean monteCarloIndex instances
         for batch in range(self.numberBatches):
             if self.batchesLaunched[batch] is False:
                 index = 0
                 for i in newIndices:
+                    # set index value
                     self.indexConstructorDictionary["indexValue"] = i
+
+                    # initialize monteCarloIndex class of asynchronous batch "batch"
                     self.batchIndices[batch].append(
                         self.indexConstructor(**self.indexConstructorDictionary)
                     )
@@ -375,6 +385,20 @@ class MonteCarloSampler:
                     # build coarser level
                     if index > 0:
                         self.asynchronousSerializeBatchIndices(batch, index, solver=1)
+
+                    # update eventCounter of EventDatabase random generator, if using EventDatabase as RandomGeneratorWrapper
+                    if self.indexConstructorDictionary["samplerInputDictionary"]["randomGenerator"] == "xmc.randomGeneratorWrapper.EventDatabase":
+                        # we may have multiple monteCarloIndex objects, that is multiple levels
+                        for j in range (len(self.batchIndices[batch])):
+                            # set _eventCounter for having independent events for different levels
+                            self.batchIndices[batch][j].sampler.randomGenerator._eventCounter = self.samplesCounter
+                            # update overall samples counter
+                            self.samplesCounter += newSamples[index]
+                    else:
+                        # update overall samples counter
+                        self.samplesCounter += newSamples[index]
+
+                    # update index counter
                     index = index + 1
 
     def asynchronousSerializeBatchIndices(self, batch, index, solver):
@@ -404,29 +428,31 @@ class MonteCarloSampler:
         ].serialized_project_parameters = (
             self.indices[index].sampler.solvers[solver].serialized_project_parameters
         )
-        # custom metric refinement parameters
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].pickled_custom_metric_refinement_parameters = (
-            self.indices[index].sampler.solvers[solver].pickled_custom_metric_refinement_parameters
-        )
-        # custom remesh refinement parameters
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].pickled_custom_remesh_refinement_parameters = (
-            self.indices[index].sampler.solvers[solver].pickled_custom_remesh_refinement_parameters
-        )
         # booleans
         self.batchIndices[batch][index].sampler.solvers[
             solver
         ].is_project_parameters_pickled = True
         self.batchIndices[batch][index].sampler.solvers[solver].is_model_pickled = True
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].is_custom_settings_metric_refinement_pickled = True
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].is_custom_settings_remesh_refinement_pickled = True
+        # custom metric refinement parameters
+        if self.indices[index].sampler.solvers[solver].refinement_strategy != "reading_from_file":
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].pickled_custom_metric_refinement_parameters = (
+                self.indices[index].sampler.solvers[solver].pickled_custom_metric_refinement_parameters
+            )
+            # custom remesh refinement parameters
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].pickled_custom_remesh_refinement_parameters = (
+                self.indices[index].sampler.solvers[solver].pickled_custom_remesh_refinement_parameters
+            )
+            # booleans
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].is_custom_settings_metric_refinement_pickled = True
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].is_custom_settings_remesh_refinement_pickled = True
 
     def asynchronousUpdateBatches(self):
         """
@@ -491,8 +517,6 @@ class MonteCarloSampler:
                 self.batchIndices[batch][level].costEstimator,
                 *self.batchIndices[batch][level].qoiEstimator,
             )
-            # Update model coefficients for cost, bias, variance with new observations
-            self.updatePredictors()
 
         for level in range(len(self.indices)):
             # synchronize estimator needed for checking convergence and updating hierarchy
@@ -502,6 +526,9 @@ class MonteCarloSampler:
             self.indices[level].costEstimator = get_value_from_remote(
                 self.indices[level].costEstimator
             )
+
+        # Update model coefficients for cost, bias, variance with new observations
+        self.updatePredictors()
 
     def asynchronousUpdate(self, newHierarchy):
         """

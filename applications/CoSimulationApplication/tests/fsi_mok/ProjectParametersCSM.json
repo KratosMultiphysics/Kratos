@@ -8,10 +8,11 @@
     },
     "co_sim_settings" : {
         "INFO" : "this block is only used if Kratos is used as an external solver for CoSimulation!",
-        "connection_name" : "structure",
         "is_strong_coupling" : true,
         "io_settings" : {
-            "echo_level" : 0
+            "echo_level" : 0,
+            "my_name" : "ext_structure",
+            "connect_to" : "structure"
         },
         "communication_settings" : {
             "export_meshes" : [

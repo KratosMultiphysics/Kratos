@@ -87,15 +87,9 @@ class MultiCriterion:
         if criteriaToUpdate is None:
             criteriaToUpdate = range(len(self.criteria))
 
-        for coord in criteriaToUpdate:
-            if len(self.criteria[coord].tolerances) == 0:
-                ValueError(
-                    "stoppingCriterion.criteria[", coord, "] has no tolerance to update"
-                )
-            elif len(self.criteria[coord].tolerances) == 1:
-                self.criteria[coord].tolerance = self.criteria[coord].tolerances[0]
-            else:
-                self.criteria[coord].tolerance = self.criteria[coord].tolerances.pop(0)
+        for i in criteriaToUpdate:
+            if hasattr(self.criteria[i], "updateTolerance"):
+                self.criteria[i].updateTolerance()
 
     def flag(self, values):
         """

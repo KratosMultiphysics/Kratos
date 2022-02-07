@@ -376,6 +376,10 @@ public:
         )
     {
         KRATOS_TRY
+
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+
         KRATOS_CATCH("")
     }
 
@@ -385,7 +389,7 @@ public:
      * @param rCurrentElement The element to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Element::Pointer rCurrentElement,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -400,7 +404,7 @@ public:
      * @param rCurrentCondition The condition to compute
      * @param rCurrentProcessInfo The current process info instance
      */
-    virtual void InitializeNonLinearIteration(
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use \"InitializeNonLinIteration\" instead") virtual void InitializeNonLinearIteration(
         Condition::Pointer rCurrentCondition,
         ProcessInfo& rCurrentProcessInfo
         )
@@ -534,31 +538,6 @@ public:
     virtual int Check(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
-
-        //TODO: This is required for the exception handling. It can be removed once we move to the C++ parallelism
-#ifdef KRATOS_SMP_CXX11
-        int num_threads = ParallelUtilities::GetNumThreads();
-#else
-        int num_threads = 1;
-#endif
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Checks for all of the elements
-        BlockPartition<const ModelPart::ElementsContainerType>(rModelPart.Elements(), num_threads).for_each([&r_current_process_info](const Element& rElement){
-            rElement.Check(r_current_process_info);
-        });
-
-        // Checks for all of the conditions
-        BlockPartition<const ModelPart::ConditionsContainerType>(rModelPart.Conditions(), num_threads).for_each([&r_current_process_info](const Condition& rCondition){
-            rCondition.Check(r_current_process_info);
-        });
-
-        // Checks for all of the constraints
-        BlockPartition<const ModelPart::MasterSlaveConstraintContainerType>(rModelPart.MasterSlaveConstraints(), num_threads).for_each([&r_current_process_info](const MasterSlaveConstraint& rConstraint){
-            rConstraint.Check(r_current_process_info);
-        });
-
         return 0;
         KRATOS_CATCH("");
     }

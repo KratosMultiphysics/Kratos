@@ -21,6 +21,7 @@
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
@@ -92,7 +93,7 @@ void FluidElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessIn
         mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
 
         const GeometryType& r_geometry = this->GetGeometry();
-        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
         mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
     }
 
@@ -363,7 +364,7 @@ void FluidElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int
 template< class TElementData >
 GeometryData::IntegrationMethod FluidElement<TElementData>::GetIntegrationMethod() const
 {
-    return GeometryData::GI_GAUSS_2;
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -589,9 +590,9 @@ void FluidElement<TElementData>::UpdateIntegrationPointData(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
-
-    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
+void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const
+{
+    this->CalculateStrainRate(rData);
 
     auto& Values = rData.ConstitutiveLawValues;
 
@@ -605,6 +606,15 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
     mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::CalculateStrainRate(TElementData& rData) const
+{
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(
+        rData.StrainRate,
+        rData.Velocity,
+        rData.DN_DX);
 }
 
 template< class TElementData >
@@ -929,6 +939,8 @@ template class FluidElement< TimeIntegratedFICData<3,4> >;
 template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
 template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
+template class FluidElement<TwoFluidNavierStokesAlphaMethodData<2, 3>>;
+template class FluidElement< TwoFluidNavierStokesAlphaMethodData<3, 4> >;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
