@@ -1911,7 +1911,7 @@ private:
 
 
     /// check function
-    virtual int Check()
+    int Check()
     {
         KRATOS_TRY
 
