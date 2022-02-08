@@ -101,14 +101,12 @@ namespace Kratos
         GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, Volume);
 
         //here we get all the variables we will need
-        array_1d<double,TNumNodes> phi, phi_old, phi_predicted;
+        array_1d<double,TNumNodes> phi, phi_old;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
-        array_1d<double,3 > X_mean_tmp = ZeroVector(3);
-        array_1d< array_1d<double,3 >, TNumNodes> X_node;
-        double phi_mean_old = 0.0;
+        array_1d<double,3 > x_mean_tmp = ZeroVector(3);
+        array_1d< array_1d<double,3 >, TNumNodes> x_node;
         double phi_mean = 0.0;
-        double phi_mean_predicted = 0.0;
 
         for (unsigned int i = 0; i < TNumNodes; ++i)
         {
@@ -116,37 +114,30 @@ namespace Kratos
 
             phi[i] = r_node.FastGetSolutionStepValue(r_unknown_var);
             phi_old[i] = r_node.FastGetSolutionStepValue(r_unknown_var,1);
-            phi_predicted[i] = r_node.FastGetSolutionStepValue(r_unknown_var,2);
-
 
             v[i] = r_node.FastGetSolutionStepValue(r_conv_var);
             vold[i] = r_node.FastGetSolutionStepValue(r_conv_var,1);
 
-            X_mean_tmp += r_node.Coordinates();
-            X_node[i] = r_node.Coordinates();
+            x_mean_tmp += r_node.Coordinates();
+            x_node[i] = r_node.Coordinates();
 
-            phi_mean_old += r_node.FastGetSolutionStepValue(r_unknown_var,1);
             phi_mean += r_node.FastGetSolutionStepValue(r_unknown_var);
-            phi_mean_predicted += r_node.FastGetSolutionStepValue(r_unknown_var,2);
-
         }
 
         const double aux_weight = 1.0/static_cast<double>(TNumNodes);
 
         phi_mean *= aux_weight;
-        phi_mean_old *= aux_weight;
-        phi_mean_predicted *= aux_weight;
 
-        array_1d<double,TDim> X_mean;
+        array_1d<double,TDim> x_mean;
         for(unsigned int k = 0; k < TDim; k++)
         {
-            X_mean[k] = aux_weight*X_mean_tmp[k];
+            x_mean[k] = aux_weight*x_mean_tmp[k];
         }
 
         BoundedMatrix<double,TNumNodes, TNumNodes> K_matrix = ZeroMatrix(TNumNodes, TNumNodes); // convection
         BoundedMatrix<double,TNumNodes, TNumNodes> S_matrix = ZeroMatrix(TNumNodes, TNumNodes); // LHS stabilization
         Vector S_vector = ZeroVector(TNumNodes); // RHS stabilization
-        BoundedMatrix<double,TNumNodes, TNumNodes> S_vector_LHS = ZeroMatrix(TNumNodes, TNumNodes); // Resr of S_vector (theta method) stabilization
+        BoundedMatrix<double,TNumNodes, TNumNodes> S_vector_LHS = ZeroMatrix(TNumNodes, TNumNodes); // LHS contribution of S_vector (for theta method)
         BoundedMatrix<double,TNumNodes, TNumNodes> Mc_matrix = ZeroMatrix(TNumNodes, TNumNodes); // consistent mass matrix
         BoundedMatrix<double,TNumNodes, TNumNodes> Ml_matrix = IdentityMatrix(TNumNodes, TNumNodes); // lumped mass matrix
 
@@ -157,8 +148,9 @@ namespace Kratos
         this->GetShapeFunctionsOnGauss(Ncontainer);
 
         array_1d<double, TDim > vel_gauss;
-        array_1d<double, TDim > X_gauss;
+        array_1d<double, TDim > x_gauss;
         array_1d<double, TNumNodes > v_dot_grad_N;
+        array_1d<double, TNumNodes > dx_dot_grad_N;
 
         const double limiter = this->GetValue(LIMITER_COEFFICIENT);
 
@@ -170,21 +162,17 @@ namespace Kratos
 
             // Obtaining the velocity/coordinate at the gauss point
             vel_gauss = ZeroVector(TDim);
-            X_gauss = ZeroVector(TDim);
+            x_gauss = ZeroVector(TDim);
             double phi_gauss = 0.0;
-            double phi_gauss_old = 0.0;
-            double phi_gauss_predicted = 0.0;
 
             for (unsigned int i = 0; i < TNumNodes; ++i)
             {
                 for(unsigned int k=0; k<TDim; ++k)
                 {
-                    vel_gauss[k] += N[i]*v[i][k];
-                    X_gauss[k] += N[i]*X_node[i][k];
+                    vel_gauss[k] += N[i]*( (1.0 - theta)*vold[i][k] + theta*v[i][k] );
+                    x_gauss[k] += N[i]*x_node[i][k];
                 }
                 phi_gauss += N[i]*phi[i];
-                phi_gauss_old += N[i]*phi_old[i];
-                phi_gauss_predicted += N[i]*phi_predicted[i];
             }
 
             v_dot_grad_N = prod(DN_DX, vel_gauss);
@@ -211,13 +199,12 @@ namespace Kratos
                     grad_phi_mean_predicted[k] = aux_weight*grad_phi_mean_predicted_tmp[k];
                 }
 
-                const array_1d<double, TNumNodes> X_dot_grad_N = prod(DN_DX, X_gauss - X_mean);
+                dx_dot_grad_N = prod(DN_DX, x_gauss - x_mean);
 
                 for (unsigned int i = 0; i < TNumNodes; ++i){
-                    S_vector[i] += (  (1.0 - theta)*(phi_gauss/* _old */ - phi_mean/* _old */ ) /* + theta*(phi_gauss_predicted - phi_mean_predicted) */ - inner_prod( ( (1.0 - theta)*grad_phi_mean /* + theta*grad_phi_mean_predicted */ ) /* grad_phi */, (X_gauss - X_mean) ) )*N[i];
-                    //ADDED TO LHS THETA * (PHI_gp - PHI_MEAN)
+                    S_vector[i] += (  (1.0 - theta)*(phi_gauss - phi_mean ) - inner_prod( ( (1.0 - theta)*grad_phi_mean ), (X_gauss - X_mean) ) )*N[i];
                     for (unsigned int j = 0; j < TNumNodes; ++j){
-                        S_vector_LHS(i, j) = (aux_weight - N[j] + X_dot_grad_N[j]) * N[i];
+                        S_vector_LHS(i, j) = (aux_weight - N[j] + dx_dot_grad_N[j]) * N[i];
                     }
                 }
             }

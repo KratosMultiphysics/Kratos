@@ -38,7 +38,6 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "utilities/pointer_map_communicator.h"
-#include "utilities/binbased_fast_point_locator.h"  //Needed for estimating the updated GRADIENT
 
 namespace Kratos
 {
@@ -225,54 +224,6 @@ public:
                 it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
             }
             );
-
-            if (mElementRequiresLevelSetGradient){
-                //estimate GRADIENT(n+1)
-                Vector N(TDim + 1);
-                const int max_results = 10000;
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-
-                const int n_nodes = mpDistanceModelPart->NumberOfNodes();
-
-                #pragma omp parallel for firstprivate(results,N)
-                for (int i = 0; i < n_nodes; i++)
-                {
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                    ModelPart::NodesContainerType::iterator it_particle = mpDistanceModelPart->NodesBegin() + i;
-
-                    Element::Pointer pelement;
-
-                    const array_1d<double,3>& vel = it_particle->FastGetSolutionStepValue(*mpConvectVar);
-                    array_1d<double,3> position = it_particle->Coordinates() - dt*vel;
-
-                    //KRATOS_INFO("HERE") << "000000" << std::endl;
-
-                    bool is_found = mSearchStructure.FindPointOnMesh(position, N, pelement, result_begin, max_results);
-
-                    //KRATOS_WATCH(is_found)
-
-                    if (is_found == true)
-                    {
-                        Geometry< Node < 3 > >& geom = pelement->GetGeometry();
-                        double phii = N[0] * (geom[0].FastGetSolutionStepValue(*mpLevelSetVar));
-                        Vector grad_phi = N[0] * (geom[0].GetValue(*mpLevelSetGradientVar));
-                        for (unsigned int k = 1; k < geom.size(); k++) {
-                            grad_phi = grad_phi + N[k] * (geom[k].GetValue(*mpLevelSetGradientVar));
-                            phii = phii + N[k] * (geom[k].FastGetSolutionStepValue(*mpLevelSetVar));
-                        }
-
-                        it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = grad_phi;
-                        it_particle->FastGetSolutionStepValue(*mpLevelSetVar,2) = phii;
-
-
-                    } else {
-                        //KRATOS_INFO("Not Found") << it_particle->Id() << std::endl;
-                        it_particle->FastGetSolutionStepValue(*mpLevelSetGradientVar) = it_particle->GetValue(*mpLevelSetGradientVar);
-                        it_particle->FastGetSolutionStepValue(*mpLevelSetVar,2) = it_particle->FastGetSolutionStepValue(*mpLevelSetVar);
-                    }
-                }
-            }
 
             // Storing the levelset variable for error calculation and Evaluating the limiter
             if (mEvaluateLimiter) {
@@ -508,7 +459,9 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
-            p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            if (mpLevelSetGradientVar) {
+                p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            }
         }
 
         // This call returns a function pointer with the ProcessInfo filling directives
