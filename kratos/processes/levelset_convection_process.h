@@ -600,7 +600,7 @@ protected:
      */
     void EvaluateLimiter()
     {
-        const double epsilon = 1.0e-15;
+        const double epsilon = 1.0e-12;
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;

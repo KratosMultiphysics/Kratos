@@ -223,7 +223,7 @@ namespace Kratos
         }
 
         // Determining the necessity to add higher-order terms
-        if (limiter > 1.0e-15){
+        if (limiter > 1.0e-12){
             noalias(M_matrix)  = dt_inv*((1.0-limiter)*Ml_matrix + limiter*Mc_matrix);
             noalias(L_matrix) = K_matrix + (1.0-limiter)*nu_e*S_matrix;
         } else {
