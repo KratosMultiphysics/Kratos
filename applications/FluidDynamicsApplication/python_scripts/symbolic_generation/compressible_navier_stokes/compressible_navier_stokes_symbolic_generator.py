@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import sympy
-import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
+import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_source_term
@@ -45,7 +45,9 @@ class CompressibleNavierStokesSymbolicGenerator:
     def __init__(self, settings):
         settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.write_mode = settings["mode"].GetString()
+        self.write_language = settings["language"].GetString()
+        defs.SetFormat(self.write_language)
+
         self.is_explicit = settings["explicit"].GetBool()
         self.simplify = settings["do_simplifications"].GetBool()
         self.shock_capturing = settings["shock_capturing"].GetBool()
@@ -57,19 +59,45 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         self.template_filename = settings["template_filename"].GetString()
         self.output_filename = settings["output_filename"].GetString()
+
+        self.outstring = None
         self._GenerateFiles()
 
         self._print(2, settings)
 
+    def _FindAndRemoveIndentation(self, target_substring):
+        end = self.outstring.find(target_substring)
+        begin = end
+        leading_spaces = 0
+        while begin > 0:
+            if self.outstring[begin] == '\n':
+                break
+            if self.outstring[begin] != ' ':
+                end = begin - 1
+            begin -= 1
+
+        leading_spaces = end - begin
+
+        if leading_spaces % 4 == 0:
+            self.outstring = self.outstring[:begin+1] + self.outstring[end+1:]
+            return int(leading_spaces / 4)
+
+        raise ValueError(
+            "Inconsistent indentation in source file! Substitution {} found {} leading spaces, which is not a multiple of four.".format(
+            target_substring, leading_spaces
+        ))
+
     def _CollectAndReplace(self, target_substring, expression, name):
-        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_mode, replace_indices=False, assignment_op=" = ")
+        indentation_level  = self._FindAndRemoveIndentation(target_substring)
+
+        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_language, initial_tabs=indentation_level, replace_indices=False, assignment_op=" = ")
         self.outstring = self.outstring.replace(target_substring, out)
 
     @classmethod
     def GetDefaultParameters(cls):
         return KratosMultiphysics.Parameters("""
         {
-            "mode": "c",
+            "language": "c",
             "explicit": true,
             "do_simplifications": false,
             "geometry": "triangle",
@@ -369,7 +397,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         n_nodes = self.geometry.nnodes
         block_size = self.geometry.blocksize
 
-        params = FormulationParameters(self.geometry)
+        params = FormulationParameters(self.geometry, self.write_language)
 
         # Unknowns
         U = defs.Matrix('data.U', n_nodes, block_size, real=True)
