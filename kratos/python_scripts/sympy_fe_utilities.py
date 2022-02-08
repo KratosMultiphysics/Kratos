@@ -285,7 +285,7 @@ def _ReplaceIndices(expression, language):
     expression = re.sub(pattern, replacement, expression)
 
     # Vectors
-    pattern = r"\[(\d+)]" if language == 'python' else r"\((\d+)\)"
+    pattern = r"\[(\d+)\]" if language == 'python' else r"\((\d+)\)"
     replacement = r"_\1"
     expression = re.sub(pattern, replacement, expression)
 
