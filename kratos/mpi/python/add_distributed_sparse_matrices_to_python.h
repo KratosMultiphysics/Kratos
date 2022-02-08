@@ -7,26 +7,26 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Jordi Cotela
+//  Main author:     Riccardo Rossi
 //
 
-#ifndef KRATOS_ADD_MPI_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED_H_INCLUDED
-#define KRATOS_ADD_MPI_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED_H_INCLUDED
+#ifndef KRATOS_ADD_DISTRIBUTED_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED
+#define KRATOS_ADD_DISTRIBUTED_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED
 
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
+#include "includes/define_python.h"
 
 // Project includes
 
 namespace Kratos {
 namespace Python {
 
-void AddMPISparseMatricesToPython(pybind11::module& m);
+void AddDistributedSparseMatricesToPython(pybind11::module& m);
 
 } // namespace Python
 } // namespace Kratos
 
-#endif // KRATOS_ADD_MPI_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED
+#endif // KRATOS_ADD_DISTRIBUTED_SPARSE_MATRICES_TO_PYTHON_H_INCLUDED
 

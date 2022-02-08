@@ -23,7 +23,7 @@
 #include "add_mpi_data_communicator_to_python.h"
 #include "add_mpi_utilities_to_python.h"
 #include "add_mpi_debug_utilities_to_python.h"
-#include "add_mpi_sparse_matrix_interface_to_python.h"
+#include "add_distributed_sparse_matrices_to_python.h"
 #include "includes/parallel_environment.h"
 
 namespace Kratos {
@@ -71,7 +71,7 @@ PYBIND11_MODULE(KratosMPI, m)
     AddMPIDataCommunicatorToPython(m);
     AddMPIUtilitiesToPython(m);
     AddMPIDebugUtilitiesToPython(m);
-    AddMPISparseMatricesToPython(m);
+    AddDistributedSparseMatricesToPython(m);
 }
 
 }
