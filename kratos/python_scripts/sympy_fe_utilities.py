@@ -294,7 +294,30 @@ def _ReplaceIndices(language, expression):
 
     return expression
 
+def OutputScalar(scalar_expression, name, language, initial_tabs=3, replace_indices=True, assignment_op="="):
+    """ This function generates code to assign to a (pre-declared) scalar
 
+    Keyword arguments:
+    scalar_expression -- A scalar
+    name -- The name of the variables
+    language -- The language of output
+    initial_tabs -- The number of tabulations considered
+    replace_indices -- If the indixes must be replaced
+    assignment_op -- The assignment operation
+    """
+
+    prefix = _Indentation(initial_tabs)
+    suffix = _Suffix(language)
+
+    fmt = prefix + "{var}{eq}{expr}" + suffix
+
+    expression = _CodeGen(language, scalar_expression)
+    outstring = fmt.format(var=name, op=assignment_op, expr=expression)
+
+    if replace_indices:
+        outstring = _ReplaceIndices(language, outstring)
+
+    return outstring
 
 def OutputVector(vector_expression, name, language="python", initial_tabs=3, replace_indices=True, assignment_op="="):
     """ This function generates code to fill a (pre-declared) vector
@@ -465,3 +488,19 @@ def OutputVector_CollectingFactors(A, name, language, initial_tabs=3, max_index=
         print("Warning: max_index parameter is deprecated in OutputVector_CollectingFactors")
 
     return _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, OutputVector)
+
+
+def OutputScalar_CollectingFactors(A, name, language, initial_tabs=3, optimizations='basic', replace_indices=True, assignment_op="="):
+    """ This method collects the constants of the replacement for vectors
+
+    Keyword arguments:
+    A -- The  factors
+    name -- The name of the constant
+    language -- The language of replacement
+    initial_tabs -- The number of initial tabulations
+    optimizations -- The level of optimizations
+    replace_indices -- If the indixes must be replaced
+    assignment_op -- The assignment operation
+    """
+
+    return _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, OutputScalar)
