@@ -123,11 +123,11 @@ public:
      * @brief Project the ROM solution increment onto the nodal basis
      * For a given model part this function takes the ROM_SOLUTION_INCREMENT, which is assumed to be
      * stored in the root model part, and projects it with the nodal ROM_BASIS to calculate the solution increment
-     * @param rRomVariableNames Vector containing the names of the ROM variables
+     * @param rRomVariables Vector containing the ROM variables to be projected
      * @param rModelPart Model part onto which the projection is to be performed
      */
     static void ProjectRomSolutionIncrementToNodes(
-        const std::vector<std::string> &rRomVariableNames,
+        const std::vector<const Variable<double>*> &rRomVariables,
         ModelPart &rModelPart);
 
     ///@}
