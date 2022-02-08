@@ -1,8 +1,6 @@
 import KratosMultiphysics
 import math
 
-def fabs(x):
-    return abs(x)
 
 class _ElementData:
     "Struct containing data mimicking CompressibleNavierStokesExplicit::ElementDataStruct."

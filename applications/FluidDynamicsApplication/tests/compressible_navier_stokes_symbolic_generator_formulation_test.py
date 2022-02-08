@@ -37,7 +37,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         }""")
 
         parameters["geometry"].SetString(geometry_name)
-        parameters["template_filename"].SetString("compilable_{}.py_template".format(geometry))
+        parameters["template_filename"].SetString("test_{}.py_template".format(geometry))
         parameters["output_filename"].SetString("symbolic_test_{}.py".format(geometry))
 
         return parameters
@@ -116,7 +116,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
     def test_SymbolicTrinagle(self):
         args = {
             "regenerate": True,
-            "cleanup": False,
+            "cleanup": True,
             "print_results": False,
             "geometry": "2D3N"
         }
@@ -124,6 +124,27 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
         with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
             self._RunTest(**args)
 
+    def test_SymbolicQuadrilateral(self):
+        args = {
+            "regenerate": True,
+            "cleanup": True,
+            "print_results": False,
+            "geometry": "2D4N"
+        }
+
+        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
+            self._RunTest(**args)
+
+    def test_SymbolicTetrahedron(self):
+        args = {
+            "regenerate": True,
+            "cleanup": True,
+            "print_results": False,
+            "geometry": "3D4N"
+        }
+
+        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
+            self._RunTest(**args)
 
 if __name__ == '__main__':
     KratosUnitTest.main()
