@@ -40,10 +40,10 @@ class MultistageAnalysis(object):
         if self.settings["stages"][self.GetCurrentStageName()].Has("stage_preprocess"):
             if self.settings["stages"][self.GetCurrentStageName()]["stage_preprocess"].Has("modelers"):
                 for modeler in self.__GetModelers():
-                    #TODO: Should we do it in this way or to call the SetupGeometryModel for all the modelers, then the PrepareGeometryModel for all and so on
-                    #TODO: We (Charlie & Ruben) think that it must be done as in here. However this is against what we have currently implemented in the AnalysisStage
                     modeler.SetupGeometryModel()
+                for modeler in self.__GetModelers():
                     modeler.PrepareGeometryModel()
+                for modeler in self.__GetModelers():
                     modeler.SetupModelPart()
 
             if self.settings["stages"][self.GetCurrentStageName()]["stage_preprocess"].Has("operations"):
