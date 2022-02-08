@@ -5,9 +5,9 @@ def DefineMatrix(name, m, n):
     """ This method defines a symbolic matrix
 
     Keyword arguments:
-    name -- Name of variables.
-    m -- Number of rows.
-    n -- Number of columns.
+    - name -- Name of variables.
+    - m -- Number of rows.
+    - n -- Number of columns.
     """
     return sympy.Matrix(m, n, lambda i, j: sympy.var("{name}_{i}_{j}".format(name=name, i=i, j=j)))
 
@@ -15,9 +15,9 @@ def DefineSymmetricMatrix(name, m, n):
     """ This method defines a symbolic symmetric matrix
 
     Keyword arguments:
-    name -- Name of variables.
-    m -- Number of rows.
-    n -- Number of columns.
+    - name -- Name of variables.
+    - m -- Number of rows.
+    - n -- Number of columns.
     """
     return sympy.Matrix(m, n, lambda i, j:
         sympy.var("{name}_{i}_{j}".format(name=name, i=min(i,j), j=max(i,j))))
@@ -26,8 +26,8 @@ def DefineVector( name, m):
     """ This method defines a symbolic vector
 
     Keyword arguments:
-    name -- Name of variables.
-    m -- Number of components.
+    - name -- Name of variables.
+    - m -- Number of components.
     """
     return sympy.Matrix(m, 1, lambda i,_: sympy.var("{name}_{i}".format(name=name, i=i)))
 
@@ -37,11 +37,9 @@ def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
     the name HAS TO BE --> N and DN
 
     Keyword arguments:
-    nnodes -- Number of nodes
-    dim -- Dimension of the space
-    impose_partion_of_unity -- Impose the partition of unity
-
-    Note that partition of unity is imposed the name HAS TO BE --> N and DN
+    - nnodes -- Number of nodes
+    - dim -- Dimension of the space
+    - impose_partion_of_unity -- Impose the partition of unity
     """
     DN = DefineMatrix('DN', nnodes, dim)
     N = DefineVector('N', nnodes)
@@ -62,7 +60,7 @@ def StrainToVoigt(M):
     """ This method transform the strains matrix to Voigt notation
 
     Keyword arguments:
-    M -- The strain matrix
+    - M -- The strain matrix
     """
     if(M.shape[0] == 2):
         vm = sympy.Matrix(3, 1, lambda _: 0.0)
@@ -77,7 +75,7 @@ def MatrixB(DN):
     """ This method defines the deformation matrix B
 
     Keyword arguments:
-    DN -- The shape function derivatives
+    - DN -- The shape function derivatives
     """
     dim = DN.shape[1]
     if dim == 2:
@@ -115,8 +113,8 @@ def grad_sym_voigtform(DN, x):
     """ This method defines a symmetric gradient
 
     Keyword arguments:
-    DN -- The shape function derivatives
-    x -- The variable to compute the gradient
+    - DN -- The shape function derivatives
+    - x -- The variable to compute the gradient
     """
     [nnodes, dim] = x.shape
 
@@ -134,8 +132,8 @@ def DfjDxi(DN,f):
     """ This method defines a gradient. This returns a matrix D such that D(i,j) = D(fj)/D(xi)
 
     Keyword arguments:
-    DN -- The shape function derivatives
-    f-- The variable to compute the gradient
+    - DN -- The shape function derivatives
+    - f-- The variable to compute the gradient
     """
     return sympy.simplify(DN.transpose()*f)
 
@@ -143,8 +141,8 @@ def DfiDxj(DN,f):
     """ This method defines a gradient This returns a matrix D such that D(i,j) = D(fi)/D(xj)
 
     Keyword arguments:
-    DN -- The shape function derivatives
-    f -- The variable to compute the gradient
+    - DN -- The shape function derivatives
+    - f -- The variable to compute the gradient
     """
     return (DfjDxi(DN,f)).transpose()
 
@@ -152,8 +150,8 @@ def div(DN,x):
     """ This method defines the divergence
 
     Keyword arguments:
-    DN -- The shape function derivatives
-    x -- The variable to compute the gradient
+    - DN -- The shape function derivatives
+    - x -- The variable to compute the gradient
     """
     if(DN.shape != x.shape):
         raise Exception("shapes are not compatible")
@@ -169,9 +167,9 @@ def SubstituteMatrixValue(where_to_substitute, what_to_substitute, substituted_v
     """ This method substitutes values into a matrix
 
     Keyword arguments:
-    where_to_substitute -- Coordinates where to substitute
-    what_to_substitute -- Components to substitute
-    substituted_value -- Variable to substitute
+    - where_to_substitute -- Coordinates where to substitute
+    - what_to_substitute -- Components to substitute
+    - substituted_value -- Variable to substitute
     """
     for lll in range(where_to_substitute.shape[0]):
         for kkk in range(where_to_substitute.shape[1]):
@@ -188,9 +186,9 @@ def SubstituteScalarValue(where_to_substitute, what_to_substitute, substituted_v
     """ This method substitutes values into a scalar
 
     Keyword arguments:
-    where_to_substitute -- Coordinates where to substitute
-    what_to_substitute -- Components to substitute
-    substituted_value -- Variable to substitute
+    - where_to_substitute -- Coordinates where to substitute
+    - what_to_substitute -- Components to substitute
+    - substituted_value -- Variable to substitute
     """
     for lll in range(where_to_substitute.shape[0]):
         tmp  = where_to_substitute[lll]
@@ -202,9 +200,9 @@ def Compute_RHS(functional, testfunc, do_simplifications=False):
     """ This computes the RHS vector
 
     Keyword arguments:
-    functional -- The functional to derivate
-    testfunc -- The test functions
-    do_simplifications -- If apply simplifications
+    - functional -- The functional to derivate
+    - testfunc -- The test functions
+    - do_simplifications -- If apply simplifications
     """
     rhs = sympy.Matrix(sympy.zeros(testfunc.shape[0],1))
     for i in range(testfunc.shape[0]):
@@ -219,10 +217,10 @@ def Compute_LHS(rhs, testfunc, dofs, do_simplifications=False):
     """ This computes the LHS matrix
 
     Keyword arguments:
-    rhs -- The RHS vector
-    testfunc -- The test functions
-    dofs -- The dofs vectors
-    do_simplifications -- If apply simplifications
+    - rhs -- The RHS vector
+    - testfunc -- The test functions
+    - dofs -- The dofs vectors
+    - do_simplifications -- If apply simplifications
     """
     lhs = sympy.Matrix(sympy.zeros(testfunc.shape[0],dofs.shape[0]) )
     for i in range(lhs.shape[0]):
@@ -238,10 +236,10 @@ def Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications=False):
     """ This computes the LHS matrix and the RHS vector
 
     Keyword arguments:
-    functional -- The functional to derivate
-    testfunc -- The test functions
-    dofs -- The dofs vectors
-    do_simplifications -- If apply simplifications
+    - functional -- The functional to derivate
+    - testfunc -- The test functions
+    - dofs -- The dofs vectors
+    - do_simplifications -- If apply simplifications
     """
     rhs = Compute_RHS(functional, testfunc, do_simplifications)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications)
@@ -294,31 +292,51 @@ def _ReplaceIndices(language, expression):
 
     return expression
 
-
-def OutputVector(r, name, language="python", initial_tabs=3, max_index=None, replace_indices=True, assignment_op="="):
-    """ This method converts into text the RHS vector
+def OutputScalar(scalar_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
+    """ This function generates code to assign to a (pre-declared) scalar
 
     Keyword arguments:
-    rhs -- The RHS vector
-    name -- The name of the variables
-    language -- The language of output
-    initial_tabs -- The number of tabulations considered
-    max_index -- DEPRECATED The maximum index
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - scalar_expression -- A scalar
+    - name -- The name of the variables
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputVector")
 
-    prefix = _Indentation(initial_tabs)
+    prefix = _Indentation(indentation_level)
+    suffix = _Suffix(language)
+
+    fmt = prefix + "{var}{op}{expr}" + suffix
+
+    expression = _CodeGen(language, scalar_expression)
+    outstring = fmt.format(var=name, op=assignment_op, expr=expression)
+
+    if replace_indices:
+        outstring = _ReplaceIndices(language, outstring)
+
+    return outstring
+
+def OutputVector(vector_expression, name, language="python", indentation_level=0, replace_indices=True, assignment_op="="):
+    """ This function generates code to fill a (pre-declared) vector
+
+    Keyword arguments:
+    - rhs -- The RHS vector
+    - name -- The name of the variables
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
+    """
+    prefix = _Indentation(indentation_level)
     suffix = _Suffix(language)
     fmt = prefix \
           + ("{var}[{i}]{op}{expr}" if language=="python" else "{var}({i}){op}{expr}") \
           + suffix
 
     outstring = str("")
-    for i in range(r.shape[0]):
-        expression = _CodeGen(language, r[i,0])
+    for i in range(vector_expression.shape[0]):
+        expression = _CodeGen(language, vector_expression[i,0])
         outstring += fmt.format(var=name, i=i, op=assignment_op, expr=expression)
 
     if replace_indices:
@@ -327,32 +345,29 @@ def OutputVector(r, name, language="python", initial_tabs=3, max_index=None, rep
     return outstring
 
 
-def OutputMatrix(lhs, name, language, initial_tabs=3, max_index=None, replace_indices=True, assignment_op="="):
-    """ This method converts into text the LHS matrix
+def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
+    """ This function generates code to fill a (pre-declared) matrix
 
     Keyword arguments:
-    lhs -- The LHS matrix
-    name -- The name of the variables
-    language -- The language of output
-    initial_tabs -- The number of tabulations considered
-    max_index -- DEPRECATED The maximum index
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - matrix_expression -- The matrix
+    - name -- The name of the variables
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - replace_indices -- Set to `True` to replace `matrix[i,j]` with `matrix_i_j` (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputMatrix")
 
-    prefix = _Indentation(initial_tabs)
+    prefix = _Indentation(indentation_level)
     suffix = _Suffix(language)
 
     fmt = prefix \
-          + ("{var}[{i},{j}]{eq}{expr}" if language == "python" else "{var}({i},{j}){eq}{expr}") \
+          + ("{var}[{i},{j}]{op}{expr}" if language == "python" else "{var}({i},{j}){op}{expr}") \
           + suffix
 
     outstring = str("")
-    for i in range(lhs.shape[0]):
-        for j in range(lhs.shape[1]):
-            expression = _CodeGen(language, lhs[i,j])
+    for i in range(matrix_expression.shape[0]):
+        for j in range(matrix_expression.shape[1]):
+            expression = _CodeGen(language, matrix_expression[i,j])
             outstring += fmt.format(var=name, i=i, j=j, op=assignment_op, expr=expression)
 
     if replace_indices:
@@ -360,44 +375,42 @@ def OutputMatrix(lhs, name, language, initial_tabs=3, max_index=None, replace_in
 
     return outstring
 
-def OutputSymbolicVariable(var, language="python", initial_tabs=None, max_index=None, replace_indices=True):
-    """ This method converts into text the LHS matrix (only non-zero terms)
-    Keyword arguments:
-    var -- The variable to define symbolic
-    language -- The language of output
-    initial_tabs -- The number of tabulations considered
-    max_index -- The maximum index
-    replace_indices -- If the indixes must be replaced
-    """
-    if initial_tabs is not None:
-        print("Warning: initial_tabs parameter is deprecated in OutputSymbolicVariable")
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputSymbolicVariable")
+def OutputSymbolicVariable(expression, language="python", replace_indices=True):
+    """ This function generates code from an expression
 
-    outstring = _CodeGen(language, var) + _Suffix(language)
+    Keyword arguments:
+    - expression -- The expression to geneate code from
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - max_index -- The maximum index
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    """
+
+    outstring = _CodeGen(language, expression) + _Suffix(language)
 
     if replace_indices:
         outstring = _ReplaceIndices(language, outstring)
 
     return outstring
 
-def OutputSymbolicVariableAssignment(var, language, name, initial_tabs=3, max_index=None, replace_indices=True):
-    """ This method converts into text the LHS matrix (only non-zero terms)
+def OutputSymbolicVariableDeclaration(expression, name, language, indentation_level=0, replace_indices=True):
+    """ This function generates code to declare and assign an expression, such as:
+    ```C++
+        const double variable = expression;
+
+    ```
 
     Keyword arguments:
-    var -- The variable to define symbolic
-    language -- The language of output
-    name -- The name of the variables
-    initial_tabs -- The number of tabulations considered
-    max_index -- DEPRECATED The maximum index
-    replace_indices -- If the indixes must be replaced
+    - expression -- The variable to define symbolic
+    - language -- The language of output
+    - name -- The name of the variables
+    - indentation_level -- The number of tabulations considered
+    - max_index -- DEPRECATED The maximum index
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
     """
 
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputSymbolicVariable")
-
-    prefix = _Indentation(initial_tabs)
-    value = _CodeGen(language, var)
+    prefix = _Indentation(indentation_level)
+    value = _CodeGen(language, expression)
     expr = _VariableDeclaration(language, name, value)
     suffix = _Suffix(language)
 
@@ -408,18 +421,18 @@ def OutputSymbolicVariableAssignment(var, language, name, initial_tabs=3, max_in
 
     return outstring
 
-def _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, output_func):
-    """ This method collects the constants of the replacement for matrices, vectors, etc
+def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, output_func):
+    """ This method collects the constants of the replacement for matrices, vectors and scalars
 
     Keyword arguments:
-    A -- The  factors
-    name -- The name of the constant
-    language -- The language of replacement
-    initial_tabs -- The number of initial tabulations
-    optimizations -- The level of optimizations
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
-    output_func -- The output function. Must have the same signature as OutputMatrix and OutputVector
+    - A -- The  factors
+    - name -- The name of the constant
+    - language -- The language of replacement
+    - indentation_level -- The depth of the indentation (4 spaces per level)
+    - optimizations -- The level of optimizations
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
+    - output_func -- The output function. Must have the same signature as OutputMatrix and OutputVector
     """
 
     symbol_name = "c" + name
@@ -430,46 +443,62 @@ def _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, r
     for factor in A_factors:
         varname = str(factor[0])
         value = factor[1]
-        Acoefficient_str += OutputSymbolicVariableAssignment(value, language, varname, initial_tabs, None, replace_indices)
+        Acoefficient_str += OutputSymbolicVariableDeclaration(value, varname, language, indentation_level, replace_indices)
 
-    A_out = Acoefficient_str + output_func(A, name, language, initial_tabs, None, replace_indices, assignment_op)
+    A_out = Acoefficient_str + output_func(A, name, language, indentation_level, replace_indices, assignment_op)
     return A_out
 
 
-def OutputMatrix_CollectingFactors(A, name, language, initial_tabs=3, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
+def OutputMatrix_CollectingFactors(A, name, language, indentation_level=0, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
     """ This method collects the constants of the replacement for matrices
 
     Keyword arguments:
-    A -- The  factors
-    name -- The name of the constant
-    language -- The language of replacement
-    initial_tabs -- The number of initial tabulations
-    max_index -- DEPRECATED The max number of indexes
-    optimizations -- The level of optimizations
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - A -- The  factors
+    - name -- The name of the constant
+    - language -- The language of replacement
+    - indentation_level -- The depth of the indentation (4 spaces per level)
+    - max_index -- DEPRECATED The max number of indexes
+    - optimizations -- The level of optimizations
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
     if max_index is not None:
         print("Warning: max_index parameter is deprecated in OutputMatrix_CollectingFactors")
 
-    return _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, OutputMatrix)
+    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputMatrix)
 
 
-def OutputVector_CollectingFactors(A, name, language, initial_tabs=3, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
+def OutputVector_CollectingFactors(A, name, language, indentation_level=0, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
     """ This method collects the constants of the replacement for vectors
 
     Keyword arguments:
-    A -- The  factors
-    name -- The name of the constant
-    language -- The language of replacement
-    initial_tabs -- The number of initial tabulations
-    max_index -- DEPRECATED The max number of indexes
-    optimizations -- The level of optimizations
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - A -- The  factors
+    - name -- The name of the constant
+    - language -- The language of replacement
+    - indentation_level -- The depth of the indentation (4 spaces per level)
+    - max_index -- DEPRECATED The max number of indexes
+    - optimizations -- The level of optimizations
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
 
     if max_index is not None:
         print("Warning: max_index parameter is deprecated in OutputVector_CollectingFactors")
 
-    return _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, OutputVector)
+    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputVector)
+
+
+def OutputScalar_CollectingFactors(A, name, language, indentation_level=0, optimizations='basic', replace_indices=True, assignment_op="="):
+    """ This method collects the constants of the replacement for vectors
+
+    Keyword arguments:
+    - A -- The  factors
+    - name -- The name of the constant
+    - language -- The language of replacement
+    - indentation_level -- The depth of the indentation (4 spaces per level)
+    - optimizations -- The level of optimizations
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
+    """
+
+    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputScalar)
