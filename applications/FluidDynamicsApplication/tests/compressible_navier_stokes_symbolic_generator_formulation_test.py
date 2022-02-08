@@ -8,7 +8,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 import KratosMultiphysics.FluidDynamicsApplication
 
-class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.TestCase):
+class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.TestCase):
     def setUp(self):
         self.files_to_remove = []
 
