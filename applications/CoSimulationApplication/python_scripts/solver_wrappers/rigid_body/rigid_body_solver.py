@@ -1,5 +1,5 @@
 # Kratos imports
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 # RigidBody imports
 from . import rigid_body_process
@@ -17,18 +17,36 @@ class RigidBodySolver(object):
     Several types of load applications are available, and they can be applyed to each degree of freedom.
     """
 
-    def __init__(self, input_name):
+    def __init__(self, model, parameters):
 
-        # Allow different formats for the input parameters
-        if isinstance(input_name, dict):
-            parameters = input_name
-        elif isinstance(input_name, str):
-            if not input_name.endswith(".json"):
-                input_name += ".json"
-            with open(input_name,'r') as parameter_file:
-                parameters = json.load(parameter_file)
-        else:
-            raise Exception("The input has to be provided as a dict or a string")
+        # TODO: Centralized input check
+        #self.parameters = input_check.FullInputCheck(parameters)
+
+        self.model = model
+        self.main_model_part = self.model.CreateModelPart("Main")
+        self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = 3
+        self.rigid_body_model_part = self.main_model_part.CreateSubModelPart("RigidBody")
+        self.root_point_model_part = self.main_model_part.CreateSubModelPart("RootPoint")
+
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ROTATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_ACCELERATION)
+
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
+
+        self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
+
+
+        self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
+        self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
+
+        for node in self.rigid_body_model_part.Nodes:
+            print(node.GetSolutionStepValue(KM.DISPLACEMENT))
 
         # Degrees of freedom that can be activated from the parameters
         self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z',
@@ -37,10 +55,12 @@ class RigidBodySolver(object):
 
         # How many dofs are linear (displacement/force) and how many are angular (rotation/moment)?
         # TODO: For future implementation of a 2D version. It will only be needed to change self.available_dofs
+        # CAN BE ERASED
         self.linear_size = int(np.ceil(self.system_size/2))
         self.angular_size = int(np.floor(self.system_size/2))
 
         # Note which variable labels are linear/angular for later inpu/output use
+        # CAN BE ERASED
         self.linear_variables = ["DISPLACEMENT", "ROOT_POINT_DISPLACEMENT", "FORCE", "REACTION"]
         self.angular_variables = ["ROTATION", "ROOT_POINT_ROTATION", "MOMENT", "REACTION_MOMENT"]
 
@@ -52,13 +72,14 @@ class RigidBodySolver(object):
         dof_params, sol_params = input_check._ValidateAndAssignRigidBodySolverDefaults(parameters, self.available_dofs)
 
         # Create all the processes stated in the project parameters
-        if "processes" in parameters:
+        parameters_json = json.loads(parameters.WriteJsonString())
+        if "processes" in parameters_json:
             self.process_list = []
-            for process in parameters["processes"]:
+            for process in parameters_json["processes"]:
                 python_module = process["python_module"]
                 kratos_module = process["kratos_module"]
                 process_module = import_module(kratos_module + "." + python_module)
-                process_settings = KratosMultiphysics.Parameters(json.dumps(process["Parameters"]))
+                process_settings = KM.Parameters(json.dumps(process["Parameters"]))
                 self.process_list.append(process_module.Factory(self, process_settings))
         
         # Safe all the filled data in their respective class variables
@@ -67,6 +88,9 @@ class RigidBodySolver(object):
 
         # Prepare the parameters for the generalized-alpha method
         self._InitializeGeneralizedAlphaParameters()
+
+        # Set buffer size
+        self.main_model_part.SetBufferSize(self.buffer_size)
 
 
     def _InitializeSolutionVariables(self, sol_params):
@@ -189,7 +213,7 @@ class RigidBodySolver(object):
     def InitializeOutput(self):
 
         # Carry out this task only in the first rank (for parallel computing)
-        data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
+        data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
 
             # Create the directory where the results will be stored
@@ -233,7 +257,7 @@ class RigidBodySolver(object):
     def OutputSolutionStep(self):
 
         # Carry out this task only in the first rank (for parallel computing)
-        data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
+        data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
 
             # Only write if the output is enabled
@@ -285,6 +309,8 @@ class RigidBodySolver(object):
 
         # Update the time of the simulation
         self.time = current_time + self.delta_t
+        self.main_model_part.CloneTimeStep(self.time)
+        self.main_model_part.ProcessInfo[KM.STEP] += 1
         return self.time
 
 
@@ -382,6 +408,7 @@ class RigidBodySolver(object):
         return self_weight
 
 
+    # CAN BE ERASED
     def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
 
         # Check that the selected buffer value is OK
@@ -416,13 +443,14 @@ class RigidBodySolver(object):
                     raise Exception("Identifier is unknown!")
 
 
+    # CAN BE ERASED
     def GetSolutionStepValue(self, identifier, buffer_idx=0):
 
         # Check that the selected buffer value is OK
         input_check._CheckBufferId(buffer_idx, identifier)
 
-        # Initialize output as a KratosMultiphysics vector
-        output = KratosMultiphysics.Vector(self._ExpectedDataSize(identifier))
+        # Initialize output as a KM vector
+        output = KM.Vector(self._ExpectedDataSize(identifier))
 
         # Save all the values from the active DOFs
         for index in range(len(output)):
@@ -444,6 +472,7 @@ class RigidBodySolver(object):
         return output
 
     
+    # CAN BE ERASED
     def _ExpectedDataSize(self, identifier):
 
         if identifier in self.linear_variables:

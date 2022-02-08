@@ -11,6 +11,7 @@ def _CheckBufferId(buffer_idx, identifier):
         raise Exception(msg)
 
 def _CheckActiveDofs(parameters, available_dofs):
+    parameters = json.loads(parameters.WriteJsonString())
 
     active_dofs = []
     for dof in parameters["active_dofs"]:
@@ -33,6 +34,7 @@ def _CheckActiveDofs(parameters, available_dofs):
     return active_dofs
 
 def _CheckMandatoryInputParameters(parameters):
+    parameters = json.loads(parameters.WriteJsonString())
 
     for key in ["active_dofs", "solution_parameters"]:
         if key not in parameters:
@@ -49,6 +51,7 @@ def _CheckMandatoryInputParameters(parameters):
             raise Exception(msg)
 
 def _ValidateAndAssignRigidBodySolverDefaults(parameters, available_dofs):
+    parameters = json.loads(parameters.WriteJsonString())
 
     default_single_dof_parameters = KratosMultiphysics.Parameters('''{
         "constrained": false,
