@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -93,8 +93,6 @@ class pointwise_aggregates {
         pointwise_aggregates(const Matrix &A, const params &prm, unsigned min_aggregate)
             : count(0)
         {
-            typedef typename backend::value_type<Matrix>::type value_type;
-            typedef typename math::scalar_of<value_type>::type scalar_type;
             if (prm.block_size == 1) {
                 plain_aggregates aggr(A, prm);
 
@@ -108,7 +106,7 @@ class pointwise_aggregates {
                 id.resize( rows(A) );
 
                 auto ap = backend::pointwise_matrix(A, prm.block_size);
-                backend::crs<scalar_type> &Ap = *ap;
+                auto &Ap = *ap;
 
                 plain_aggregates pw_aggr(Ap, prm);
 
