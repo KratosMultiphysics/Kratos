@@ -156,6 +156,11 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
 
         for i in range(y.GetLocalData().Size()):
             self.assertEqual(y.GetLocalData()[i],  output[i], 1e-14 )
+
+        dotprod = y.Dot(y,0)
+        print("dotprod = ",dotprod, " on rank", my_rank)
+        if(my_rank == 0):
+            self.assertEqual(dotprod, np.dot(reference_spmv_res,reference_spmv_res), 1e-14)
   
 
 if __name__ == '__main__':
