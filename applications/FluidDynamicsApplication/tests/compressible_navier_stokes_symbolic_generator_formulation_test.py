@@ -115,7 +115,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
 
     def test_SymbolicTrinagle(self):
         args = {
-            "regenerate": False,
+            "regenerate": True,
             "cleanup": False,
             "print_results": False,
             "geometry": "2D3N"
