@@ -10,8 +10,8 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY)
-#define KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY
+#if !defined(KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY_H_INCLUDED)
+#define KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY_H_INCLUDED
 
 // System includes
 
@@ -63,4 +63,4 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalExplicitSolverStrategy : public
 }; // Class ThermalExplicitSolverStrategy
 } // namespace Kratos
 
-#endif // KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY defined
+#endif // KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY_H_INCLUDED defined

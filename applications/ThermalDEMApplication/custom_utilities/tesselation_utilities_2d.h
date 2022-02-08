@@ -10,8 +10,8 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#ifndef TESSELATION_UTILITIES_2D_H
-#define	TESSELATION_UTILITIES_2D_H
+#ifndef TESSELATION_UTILITIES_2D_H_INCLUDED
+#define	TESSELATION_UTILITIES_2D_H_INCLUDED
 
 // System includes
 
@@ -80,4 +80,4 @@ namespace Kratos {
 
 } // namespace Kratos
 
-#endif  // TESSELATION_UTILITIES_2D_H
+#endif  // TESSELATION_UTILITIES_2D_H_INCLUDED

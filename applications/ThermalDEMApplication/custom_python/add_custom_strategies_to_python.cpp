@@ -17,7 +17,7 @@
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
-#include "custom_strategies/thermal_explicit_solver_strategy.h"
+#include "custom_strategies/strategies/thermal_explicit_solver_strategy.h"
 
 namespace Kratos
 {

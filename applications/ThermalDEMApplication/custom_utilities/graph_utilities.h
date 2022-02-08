@@ -10,8 +10,8 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#ifndef GRAPH_UTILITIES_H
-#define	GRAPH_UTILITIES_H
+#ifndef GRAPH_UTILITIES_H_INCLUDED
+#define	GRAPH_UTILITIES_H_INCLUDED
 
 // System includes
 #include <iostream>
@@ -67,4 +67,4 @@ namespace Kratos {
 
 } // namespace Kratos
 
-#endif  // GRAPH_UTILITIES_H
+#endif  // GRAPH_UTILITIES_H_INCLUDED

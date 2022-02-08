@@ -10,8 +10,8 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(KRATOS_THERMAL_DEM_APPLICATION_H_INCLUDED )
-#define  KRATOS_THERMAL_DEM_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_THERMAL_DEM_APPLICATION_H_INCLUDED)
+#define KRATOS_THERMAL_DEM_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>

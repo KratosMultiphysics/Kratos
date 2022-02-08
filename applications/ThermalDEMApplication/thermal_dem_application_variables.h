@@ -10,8 +10,8 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H )
-#define  KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H
+#if !defined(KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H_INCLUDED)
+#define KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H_INCLUDED
 
 // System includes
 
@@ -80,4 +80,4 @@ class DEMThermalFlags
 };
 } // namespace Kratos
 
-#endif // KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H defined
+#endif // KRATOS_THERMAL_DEM_APPLICATION_VARIABLES_H_INCLUDED defined

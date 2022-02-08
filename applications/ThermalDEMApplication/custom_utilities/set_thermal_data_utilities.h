@@ -10,8 +10,8 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#ifndef KRATOS_SET_THERMAL_DATA_UTILITIES
-#define	KRATOS_SET_THERMAL_DATA_UTILITIES
+#ifndef SET_THERMAL_DATA_UTILITIES_H_INCLUDED
+#define	SET_THERMAL_DATA_UTILITIES_H_INCLUDED
 
 // System includes
 
@@ -47,4 +47,4 @@ namespace Kratos {
 
 } // namespace Kratos
 
-#endif // KRATOS_SET_THERMAL_DATA_UTILITIES
+#endif // SET_THERMAL_DATA_UTILITIES_H_INCLUDED
