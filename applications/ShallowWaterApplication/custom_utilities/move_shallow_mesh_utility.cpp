@@ -17,14 +17,14 @@
 
 
 // Project includes
-#include "move_mesh_utility.h"
+#include "move_shallow_mesh_utility.h"
 #include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
 {
 
-MoveMeshUtility::MoveMeshUtility(
+MoveShallowMeshUtility::MoveShallowMeshUtility(
     ModelPart& rLagrangianModelPart,
     ModelPart& rEulerianModelPart,
     Parameters ThisParameters)
@@ -42,7 +42,7 @@ MoveMeshUtility::MoveMeshUtility(
     FillVariablesList(mVectorVariablesToEulerian, ThisParameters["map_variables_to_eulerian"]);
 }
 
-const Parameters MoveMeshUtility::GetDefaultParameters() const
+const Parameters MoveShallowMeshUtility::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
         "map_variables_to_lagrangian" : ["TOPOGRAPHY","MANNING"],
@@ -52,18 +52,18 @@ const Parameters MoveMeshUtility::GetDefaultParameters() const
     return default_parameters;
 }
 
-int MoveMeshUtility::Check()
+int MoveShallowMeshUtility::Check()
 {
     KRATOS_ERROR_IF(mrEulerianModelPart.NumberOfNodes() == 0) << "Move mesh utility: The Eulerian model part is empty\n" << mrEulerianModelPart << std::endl;
     return 0;
 }
 
-void MoveMeshUtility::Initialize()
+void MoveShallowMeshUtility::Initialize()
 {
     mEulerianSearchStructure.UpdateSearchDatabase();
 }
 
-void MoveMeshUtility::MoveMesh()
+void MoveShallowMeshUtility::MoveMesh()
 {
     std::size_t num_nodes = mrEulerianModelPart.ElementsBegin()->GetGeometry().size();
     double dt = mrLagrangianModelPart.GetProcessInfo()[DELTA_TIME];
@@ -85,11 +85,11 @@ void MoveMeshUtility::MoveMesh()
     });
 }
 
-void MoveMeshUtility::MapResults()
+void MoveShallowMeshUtility::MapResults()
 {
     mLagrangianSearchStructure.UpdateSearchDatabase();
 
-    std::size_t num_nodes;
+    std::size_t num_nodes = 0;
     if (mrLagrangianModelPart.NumberOfNodes() != 0)
         num_nodes = mrLagrangianModelPart.ElementsBegin()->GetGeometry().size();
 
@@ -110,7 +110,7 @@ void MoveMeshUtility::MapResults()
     });
 }
 
-bool MoveMeshUtility::MoveNode(
+bool MoveShallowMeshUtility::MoveNode(
     NodeType& rNode,
     double Dt,
     Vector& rN,
@@ -126,7 +126,7 @@ bool MoveMeshUtility::MoveNode(
     return is_found;
 }
 
-void MoveMeshUtility::MapToLagrangian(
+void MoveShallowMeshUtility::MapToLagrangian(
     NodeType& rNode,
     const Vector& rN,
     const Element::Pointer pElement)
@@ -144,7 +144,7 @@ void MoveMeshUtility::MapToLagrangian(
     }
 }
 
-void MoveMeshUtility::MapToEulerian(
+void MoveShallowMeshUtility::MapToEulerian(
     NodeType& rNode,
     const Vector& rN,
     const Element::Pointer pElement,
@@ -177,7 +177,7 @@ void MoveMeshUtility::MapToEulerian(
 }
 
 template<class TDataType>
-void MoveMeshUtility::FillVariablesList(
+void MoveShallowMeshUtility::FillVariablesList(
     std::vector<const Variable<TDataType>*>& rVariablesList,
     const Parameters VariablesNames)
 {
@@ -193,7 +193,7 @@ void MoveMeshUtility::FillVariablesList(
 }
 
 template<class TDataType>
-void MoveMeshUtility::InterpolateVariable(
+void MoveShallowMeshUtility::InterpolateVariable(
     NodeType& rNode,
     const Vector& rN,
     const GeometryType& rGeometry,
@@ -207,10 +207,10 @@ void MoveMeshUtility::InterpolateVariable(
     }
 }
 
-template void MoveMeshUtility::FillVariablesList(std::vector<const Variable<double>*>&, Parameters);
-template void MoveMeshUtility::FillVariablesList(std::vector<const Variable<array_1d<double,3>>*>&, Parameters);
+template void MoveShallowMeshUtility::FillVariablesList(std::vector<const Variable<double>*>&, Parameters);
+template void MoveShallowMeshUtility::FillVariablesList(std::vector<const Variable<array_1d<double,3>>*>&, Parameters);
 
-template void MoveMeshUtility::InterpolateVariable(NodeType&, const Vector&, const GeometryType&, const Variable<double>&);
-template void MoveMeshUtility::InterpolateVariable(NodeType&, const Vector&, const GeometryType&, const Variable<array_1d<double,3>>&);
+template void MoveShallowMeshUtility::InterpolateVariable(NodeType&, const Vector&, const GeometryType&, const Variable<double>&);
+template void MoveShallowMeshUtility::InterpolateVariable(NodeType&, const Vector&, const GeometryType&, const Variable<array_1d<double,3>>&);
 
 }  // namespace Kratos.

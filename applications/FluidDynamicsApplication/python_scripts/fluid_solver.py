@@ -93,10 +93,11 @@ class FluidSolver(PythonSolver):
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
-            ## Executes the check and prepare model process
-            self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.min_buffer_size)
+
+        ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
+        self._ExecuteCheckAndPrepare()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
@@ -313,9 +314,10 @@ class FluidSolver(PythonSolver):
                 time_order = 2
                 self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
-                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
-                err_msg += "Available options are: \"bdf2\""
-                raise Exception(err_msg)
+                if  (self.settings["time_scheme"].GetString()!= "crank_nicolson"):
+                    err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
+                    err_msg += "Available options are: \"bdf2\" and \"crank_nicolson\""
+                    raise Exception(err_msg)
         # Cases in which a time scheme manages the time integration
         else:
             # Bossak time integration scheme
@@ -340,9 +342,10 @@ class FluidSolver(PythonSolver):
                         self.settings["pressure_relaxation"].GetDouble(),
                         domain_size)
             else:
-                err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
-                err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
-                raise Exception(err_msg)
+                if  (self.settings["time_scheme"].GetString()!= "crank_nicolson"):
+                    err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                    err_msg += "Available options are: \"bossak\", \"bdf2\" ,\"steady\" and \"crank_nicolson\""
+                    raise Exception(err_msg)
 
         return scheme
 

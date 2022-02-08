@@ -62,11 +62,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         self._print(2, settings)
 
     def _CollectAndReplace(self, target_substring, expression, name):
-        # If integrated during run-time, the assignment has to be an accumulation:
-        assignment = " = " if self.geometry.symbolic_integration else " += "
-
-        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_mode, replace_indices=False, assignment_op=assignment)
-
+        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_mode, replace_indices=False, assignment_op=" = ")
         self.outstring = self.outstring.replace(target_substring, out)
 
     @classmethod
@@ -212,9 +208,19 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _OutputProjections(self, res_rho_proj, res_mom_proj, res_tot_ener_proj):
         dim = self.geometry.ndims
-        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, "rho_proj")
-        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, "mom_proj")
-        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, "tot_ener_proj")
+
+        if self.geometry.symbolic_integration:
+            rho_name = "rho_proj"
+            mom_name = "mom_proj"
+            ene_name = "tot_ener_proj"
+        else:
+            rho_name = "rho_proj_gauss"
+            mom_name = "mom_proj_gauss"
+            ene_name = "tot_ener_proj_gauss"
+
+        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, rho_name)
+        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, mom_name)
+        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, ene_name)
 
     def _SubstituteSubscales(self, res, res_proj, rv, subscales, subscales_type, Tau):
         rv_gauss = rv.copy()
@@ -317,14 +323,21 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Reading and filling the template file
         self._print(1, "    Substituting outstring from {}".format(self.template_filename))
 
+        if self.geometry.symbolic_integration:
+            rhs_name = "rRightHandSideBoundedVector"
+            lhs_name = "rLeftHandSideBoundedVector"
+        else:
+            rhs_name = "rhs_gauss"
+            lhs_name = "lhs_gauss"
+
         target = "//substitute_rhs_{}D_{}".format(self.geometry.ndims, subscales_type)
-        self._CollectAndReplace(target, rhs, "rRightHandSideBoundedVector")
+        self._CollectAndReplace(target, rhs, rhs_name)
 
         if self.is_explicit:
             return
 
         target = "//substitute_lhs_{}D_{}".format(self.geometry.ndims, subscales_type)
-        self._CollectAndReplace(target, lhs, "rLeftHandSideBoundedVector")
+        self._CollectAndReplace(target, lhs, lhs_name)
 
     def _ReplaceWarningMessage(self):
         message = "\n".join([
