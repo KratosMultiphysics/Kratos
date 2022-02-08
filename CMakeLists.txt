@@ -76,6 +76,11 @@ EXECUTE_PROCESS(
 include(DownloadLib)
 include(ExternalProject)
 
+# C++ version to be used
+if(KRATOS_USE_CXX_17 MATCHES ON)
+  add_definitions(-DKRATOS_USE_CXX_17)
+endif(KRATOS_USE_CXX_17 MATCHES ON)
+
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
 SET( BASIC_DEBUG_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}")
