@@ -187,7 +187,6 @@ namespace Kratos
                 for (unsigned int i = 0; i < TNumNodes; ++i){
                     const auto& r_node = r_geom[i];
                     grad_phi_mean_tmp += r_node.GetValue(r_grad_var);
-                    grad_phi_mean_predicted_tmp += r_node.FastGetSolutionStepValue(r_grad_var);
                 }
 
                 array_1d<double,TDim> grad_phi_mean;
