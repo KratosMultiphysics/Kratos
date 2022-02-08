@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main author:     Jordi Cotela
+//  Main author:     Riccardo Rossi
 //
 
 // System includes
