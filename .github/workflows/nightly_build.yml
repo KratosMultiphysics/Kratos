@@ -99,7 +99,7 @@ jobs:
 
 
   windows-nightly:
-    runs-on: windows-latest
+    runs-on: windows-2019
     env:
       KRATOS_BUILD_TYPE: Custom
 
@@ -108,7 +108,7 @@ jobs:
 
     - uses: actions/setup-python@v2
       with:
-        python-version: '3.10'
+        python-version: '3.8'
 
     - name: Download boost
       run: |
