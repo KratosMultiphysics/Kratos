@@ -307,7 +307,7 @@ def OutputScalar(scalar_expression, name, language, indentation_level=0, replace
     prefix = _Indentation(indentation_level)
     suffix = _Suffix(language)
 
-    fmt = prefix + "{var}{eq}{expr}" + suffix
+    fmt = prefix + "{var}{op}{expr}" + suffix
 
     expression = _CodeGen(language, scalar_expression)
     outstring = fmt.format(var=name, op=assignment_op, expr=expression)
@@ -361,7 +361,7 @@ def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace
     suffix = _Suffix(language)
 
     fmt = prefix \
-          + ("{var}[{i},{j}]{eq}{expr}" if language == "python" else "{var}({i},{j}){eq}{expr}") \
+          + ("{var}[{i},{j}]{op}{expr}" if language == "python" else "{var}({i},{j}){op}{expr}") \
           + suffix
 
     outstring = str("")
