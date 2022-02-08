@@ -443,7 +443,7 @@ def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizatio
     for factor in A_factors:
         varname = str(factor[0])
         value = factor[1]
-        Acoefficient_str += OutputSymbolicVariableDeclaration(value, language, varname, indentation_level, None, replace_indices)
+        Acoefficient_str += OutputSymbolicVariableDeclaration(value, language, varname, indentation_level, replace_indices)
 
     A_out = Acoefficient_str + output_func(A, name, language, indentation_level, replace_indices, assignment_op)
     return A_out
