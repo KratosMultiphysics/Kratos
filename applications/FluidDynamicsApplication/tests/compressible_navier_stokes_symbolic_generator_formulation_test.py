@@ -90,9 +90,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
         - regenerate: Instructs the test whether to call the symbolic generator
             or use a pre-existing source file.
-        - cleanup: Instructs the test whether to remove generated code and
-            compiled binary
-        - compiler: Choice of compiler. Must accept GCC-like commands (e.g -00 -g)
+        - cleanup: Instructs the test whether to remove the generated code
         - geometry: Choice of geometry. Format is xDyN, with x,y integers
         - print_results: Whether to print all the results even if they are correct
         """
