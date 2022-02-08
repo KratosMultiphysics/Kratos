@@ -15,22 +15,20 @@
 // External includes
 
 // Project includes
-#include "includes/define_python.h"
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_sparse_graph.h"
 #include "containers/distributed_numbering.h"
 #include "containers/distributed_vector_importer.h"
 #include "containers/distributed_vector_exporter.h"
 #include "containers/distributed_csr_matrix.h"
-#include "add_mpi_sparse_matrix_interface_to_python.h"
+#include "add_distributed_sparse_matrices_to_python.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
 
 
 namespace Kratos {
 namespace Python {
 
-
-void AddMPISparseMatricesToPython(pybind11::module& m)
+void AddDistributedSparseMatricesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
     typedef std::size_t IndexType;
@@ -106,8 +104,8 @@ void AddMPISparseMatricesToPython(pybind11::module& m)
         .def("Add", &DistributedSystemVector<double,IndexType>::Add)
         .def("BeginAssemble", &DistributedSystemVector<double,IndexType>::BeginAssemble)
         .def("FinalizeAssemble", &DistributedSystemVector<double,IndexType>::FinalizeAssemble)
-        .def("Assemble", [](DistributedSystemVector<double,IndexType>& self, 
-                            Vector& values, 
+        .def("Assemble", [](DistributedSystemVector<double,IndexType>& self,
+                            Vector& values,
                             std::vector<IndexType>& indices){
         self.Assemble(values,indices);
         })
@@ -145,24 +143,24 @@ void AddMPISparseMatricesToPython(pybind11::module& m)
             })
         .def("GetOffDiagonalBlockLocalId", &DistributedCsrMatrix<double,IndexType>::GetOffDiagonalBlockLocalId)
         .def("GetOffDiagonalBlockGlobalId", &DistributedCsrMatrix<double,IndexType>::GetOffDiaGlobalId)
-        .def("__setitem__", [](DistributedCsrMatrix<double,IndexType>& self, 
+        .def("__setitem__", [](DistributedCsrMatrix<double,IndexType>& self,
             const IndexType i,
             const IndexType j,
             const double value){
             self.GetLocalDataByGlobalId(i,j) = value;} )
-        .def("__getitem__", [](DistributedCsrMatrix<double,IndexType>& self, 
+        .def("__getitem__", [](DistributedCsrMatrix<double,IndexType>& self,
             const IndexType i,
             const IndexType j){
             return self.GetLocalDataByGlobalId(i,j);} )
         .def("GetDiagonalIndex2DataInGlobalNumbering", &DistributedCsrMatrix<double,IndexType>::GetDiagonalIndex2DataInGlobalNumbering)
         .def("GetOffDiagonalIndex2DataInGlobalNumbering", &DistributedCsrMatrix<double,IndexType>::GetOffDiagonalIndex2DataInGlobalNumbering)
         .def("SpMV", [](DistributedCsrMatrix<double,IndexType>& rA,
-                        DistributedSystemVector<double,IndexType>& x, 
+                        DistributedSystemVector<double,IndexType>& x,
                         DistributedSystemVector<double,IndexType>& y){
             rA.SpMV(x,y);
         })
         .def("TransposeSpMV", [](DistributedCsrMatrix<double,IndexType>& rA,
-                        DistributedSystemVector<double,IndexType>& x, 
+                        DistributedSystemVector<double,IndexType>& x,
                         DistributedSystemVector<double,IndexType>& y){
             rA.TransposeSpMV(x,y);
         })
@@ -173,13 +171,13 @@ void AddMPISparseMatricesToPython(pybind11::module& m)
         .def("NormFrobenius", &DistributedCsrMatrix<double,IndexType>::NormFrobenius)
         .def("BeginAssemble", &DistributedCsrMatrix<double,IndexType>::BeginAssemble)
         .def("FinalizeAssemble", &DistributedCsrMatrix<double,IndexType>::FinalizeAssemble)
-        .def("Assemble", [](DistributedCsrMatrix<double,IndexType>& rA, 
-                            Matrix& values, 
+        .def("Assemble", [](DistributedCsrMatrix<double,IndexType>& rA,
+                            Matrix& values,
                             std::vector<IndexType>& indices){
             rA.Assemble(values,indices);
             })
-        .def("Assemble", [](DistributedCsrMatrix<double,IndexType>& rA, 
-                            Matrix& values, 
+        .def("Assemble", [](DistributedCsrMatrix<double,IndexType>& rA,
+                            Matrix& values,
                             std::vector<IndexType>& row_indices,
                             std::vector<IndexType>& col_indices){
             rA.Assemble(values,row_indices, col_indices);
@@ -188,8 +186,6 @@ void AddMPISparseMatricesToPython(pybind11::module& m)
             rA.AssembleEntry(value,I,J);
             })
         .def("__str__", PrintObject<DistributedCsrMatrix<double,IndexType>>);
-
-
 }
 
 } // namespace Python
