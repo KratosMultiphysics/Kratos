@@ -85,6 +85,20 @@ public:
         ModelPart& rSkinPart,
         const double RayCastingRelativeTolerance);
 
+    /**
+     * @brief Construct a new Calculate Distance To Skin Process object
+     * using a parameter object.
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute
+     * the distance to as conditions
+     * @param rParameters User-defined parameters to construct the
+     * class
+     */
+    CalculateDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        Parameters& rParameters);
+
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;
 
@@ -169,6 +183,11 @@ public:
      */
     virtual void CalculateRayDistances();
 
+    /**
+     * @brief Obtain the default parameters to construct the class.
+     */
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -192,7 +211,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    const double mRayCastingRelativeTolerance = 1.0e-8;
+    double mRayCastingRelativeTolerance = 1.0e-8;
+
+    const Variable<double>* mpDistanceVariable = &DISTANCE;
 
     ///@}
     ///@name Private Operators
