@@ -394,9 +394,6 @@ protected:
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
 
-    //BinBasedFastPointLocator<TDim>::Pointer mpSearchStructure = nullptr;
-    BinBasedFastPointLocator<TDim> mSearchStructure;
-
 
     ///@}
     ///@name Protected Operators
@@ -411,7 +408,6 @@ protected:
         Parameters ThisParameters)
         : mrBaseModelPart(rModelPart)
         , mrModel(rModelPart.GetModel())
-        , mSearchStructure(mrBaseModelPart)
     {
         // Validate the common settings as well as the element formulation specific ones
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -431,15 +427,6 @@ protected:
             NODAL_AREA,
             false);
         }
-
-        mSearchStructure.UpdateSearchDatabase();
-
-        /* if (mElementRequiresLevelSetGradient){
-            mpSearchStructure = Kratos::make_unique< BinBasedFastPointLocator<TDim> >(
-                mrBaseModelPart
-            );
-            KRATOS_INFO("HERE") << "444444" << std::endl;
-        } */
     }
 
     /**
@@ -614,8 +601,6 @@ protected:
     void EvaluateLimiter()
     {
         const double epsilon = 1.0e-15;
-        /* const double power_bfecc = 2.0;
-        const double power_elemental_limiter = 4.0; */
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
