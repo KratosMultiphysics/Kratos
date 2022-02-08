@@ -85,6 +85,42 @@ class PartitionedModelPartOutput:
             hdf5_file, prefix).WriteModelPart(model_part)
 
 
+class ProcessInfoOutput:
+    '''Writes a model part to a file.'''
+
+    def __init__(self, settings):
+        settings.SetDefault('prefix', '/ProcessInfo')
+        self.prefix = settings['prefix']
+        if '<time>' in self.prefix:
+            settings.SetDefault('time_format', '0.4f')
+            self.time_format = settings['time_format']
+
+    def __call__(self, model_part, hdf5_file):
+        if hasattr(self, 'time_format'):
+            prefix = Prefix(self.prefix, model_part, self.time_format)
+        else:
+            prefix = Prefix(self.prefix, model_part)
+        KratosHDF5.WriteDataValueContainer(hdf5_file, prefix, model_part.ProcessInfo)
+
+
+class ProcessInfoInput:
+    '''Reads a model part from a file.'''
+
+    def __init__(self, settings):
+        settings.SetDefault('prefix', '/ProcessInfo')
+        self.prefix = settings['prefix']
+        if '<time>' in self.prefix:
+            settings.SetDefault('time_format', '0.4f')
+            self.time_format = settings['time_format']
+
+    def __call__(self, model_part, hdf5_file):
+        if hasattr(self, 'time_format'):
+            prefix = Prefix(self.prefix, model_part, self.time_format)
+        else:
+            prefix = Prefix(self.prefix, model_part)
+        KratosHDF5.ReadDataValueContainer(hdf5_file, prefix, model_part.ProcessInfo)
+
+
 class VariableIO:
     '''Generates json settings for variable data IO.'''
 
@@ -338,6 +374,9 @@ class MoveMesh:
         KratosMultiphysics.ImplicitSolvingStrategy(model_part, True).MoveMesh()
 
 
+local_objects = locals().copy()
+
+
 def Create(settings):
     '''Return the operation specified by the setting 'operation_type'.
 
@@ -348,55 +387,17 @@ def Create(settings):
     '''
     settings.SetDefault('operation_type', 'model_part_output')
     operation_type = settings['operation_type']
-    if operation_type == 'model_part_input':
-        return ModelPartInput(settings)
-    elif operation_type == 'model_part_output':
-        return ModelPartOutput(settings)
-    elif operation_type == 'partitioned_model_part_output':
-        return PartitionedModelPartOutput(settings)
-    elif operation_type == 'element_data_value_output':
-        return ElementDataValueOutput(settings)
-    elif operation_type == 'element_flag_value_output':
-        return ElementFlagValueOutput(settings)
-    elif operation_type == 'element_data_value_input':
-        return ElementDataValueInput(settings)
-    elif operation_type == 'element_flag_value_input':
-        return ElementFlagValueInput(settings)
-    elif operation_type == 'element_integration_point_output':
-        return ElementGaussPointOutput(settings)
-    elif operation_type == 'condition_data_value_output':
-        return ConditionDataValueOutput(settings)
-    elif operation_type == 'condition_flag_value_output':
-        return ConditionFlagValueOutput(settings)
-    elif operation_type == 'condition_data_value_input':
-        return ConditionDataValueInput(settings)
-    elif operation_type == 'condition_flag_value_input':
-        return ConditionFlagValueInput(settings)
-    elif operation_type == 'condition_integration_point_output':
-        return ConditionGaussPointOutput(settings)
-    elif operation_type == 'nodal_solution_step_data_output':
-        return NodalSolutionStepDataOutput(settings)
-    elif operation_type == 'nodal_solution_step_data_input':
-        return NodalSolutionStepDataInput(settings)
-    elif operation_type == 'nodal_data_value_output':
-        return NodalDataValueOutput(settings)
-    elif operation_type == 'nodal_flag_value_output':
-        return NodalFlagValueOutput(settings)
-    elif operation_type == 'nodal_data_value_input':
-        return NodalDataValueInput(settings)
-    elif operation_type == 'nodal_flag_value_input':
-        return NodalFlagValueInput(settings)
-    elif operation_type == 'primal_bossak_output':
-        return PrimalBossakOutput(settings)
-    elif operation_type == 'primal_bossak_input':
-        return PrimalBossakInput(settings)
-    elif operation_type == 'move_mesh':
-        return MoveMesh()
-    else:
+
+    snake_to_camel = lambda string: "".join(part.title() for part in string.split('_'))
+    operation = local_objects.get(snake_to_camel(operation_type), None)
+
+    if operation == None: # the requested operation was not defined in this script
         if settings.Has('module_name'):
             module_name = settings['module_name']
             module = import_module(
                 'KratosMultiphysics.HDF5Application.core.' + module_name)
-            return module.Create(settings)
+            operation =  module.Create(settings)
         raise ValueError(
             '"operation_type" has invalid value "' + operation_type + '"')
+    else:
+        return operation(settings)
