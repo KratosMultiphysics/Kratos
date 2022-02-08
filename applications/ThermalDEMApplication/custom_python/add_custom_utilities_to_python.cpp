@@ -23,33 +23,32 @@
 
 namespace Kratos
 {
-namespace Python
-{
+  namespace Python
+  {
+    namespace py = pybind11;
 
-namespace py = pybind11;
+    void AddCustomUtilitiesToPython(pybind11::module& m) {
 
-void AddCustomUtilitiesToPython(pybind11::module& m) {
+      py::class_<GraphUtilities, GraphUtilities::Pointer>(m, "GraphUtilities")
+        .def(py::init<>())
+        .def("ExecuteInitialize",           &GraphUtilities::ExecuteInitialize)
+        .def("ExecuteFinalizeSolutionStep", &GraphUtilities::ExecuteFinalizeSolutionStep)
+        .def("ExecuteFinalize",             &GraphUtilities::ExecuteFinalize);
 
-  py::class_<GraphUtilities, GraphUtilities::Pointer>(m, "GraphUtilities")
-    .def(py::init<>())
-    .def("ExecuteInitialize",           &GraphUtilities::ExecuteInitialize)
-    .def("ExecuteFinalizeSolutionStep", &GraphUtilities::ExecuteFinalizeSolutionStep)
-    .def("ExecuteFinalize",             &GraphUtilities::ExecuteFinalize);
+      py::class_<SetThermalDataUtilities, SetThermalDataUtilities::Pointer>(m, "SetThermalDataUtilities")
+        .def(py::init<>())
+        .def("ExecuteInitialize", &SetThermalDataUtilities::ExecuteInitialize);
 
-  py::class_<SetThermalDataUtilities, SetThermalDataUtilities::Pointer>(m, "SetThermalDataUtilities")
-    .def(py::init<>())
-    .def("ExecuteInitialize", &SetThermalDataUtilities::ExecuteInitialize);
+      py::class_<TesselationUtilities2D, TesselationUtilities2D::Pointer>(m, "TesselationUtilities2D")
+        .def(py::init<>())
+        .def("ExecuteInitialize",             &TesselationUtilities2D::ExecuteInitialize)
+        .def("ExecuteInitializeSolutionStep", &TesselationUtilities2D::ExecuteInitializeSolutionStep);
 
-  py::class_<TesselationUtilities2D, TesselationUtilities2D::Pointer>(m, "TesselationUtilities2D")
-    .def(py::init<>())
-    .def("ExecuteInitialize",             &TesselationUtilities2D::ExecuteInitialize)
-    .def("ExecuteInitializeSolutionStep", &TesselationUtilities2D::ExecuteInitializeSolutionStep);
+      py::class_<TesselationUtilities3D, TesselationUtilities3D::Pointer>(m, "TesselationUtilities3D")
+        .def(py::init<>())
+        .def("ExecuteInitialize", &TesselationUtilities3D::ExecuteInitialize)
+        .def("ExecuteInitializeSolutionStep", &TesselationUtilities3D::ExecuteInitializeSolutionStep);
+    }
 
-  py::class_<TesselationUtilities3D, TesselationUtilities3D::Pointer>(m, "TesselationUtilities3D")
-    .def(py::init<>())
-    .def("ExecuteInitialize", &TesselationUtilities3D::ExecuteInitialize)
-    .def("ExecuteInitializeSolutionStep", &TesselationUtilities3D::ExecuteInitializeSolutionStep);
-}
-
-} // namespace Python
+  } // namespace Python
 } // namespace Kratos

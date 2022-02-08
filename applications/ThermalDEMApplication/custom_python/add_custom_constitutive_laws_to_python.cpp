@@ -19,12 +19,11 @@
 
 namespace Kratos
 {
-namespace Python
-{
+  namespace Python
+  {
+    namespace py = pybind11;
 
-namespace py = pybind11;
+    void AddCustomConstitutiveLawsToPython(pybind11::module& m) {}
 
-void AddCustomConstitutiveLawsToPython(pybind11::module& m) {}
-
-} // namespace Python
+  } // namespace Python
 } // namespace Kratos

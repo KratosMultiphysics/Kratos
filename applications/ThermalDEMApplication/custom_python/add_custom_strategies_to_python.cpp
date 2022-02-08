@@ -21,17 +21,16 @@
 
 namespace Kratos
 {
-namespace Python
-{
+  namespace Python
+  {
+    namespace py = pybind11;
 
-namespace py = pybind11;
+    void AddCustomStrategiesToPython(pybind11::module& m) {
 
-void AddCustomStrategiesToPython(pybind11::module& m) {
+      py::class_<ThermalExplicitSolverStrategy, ThermalExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ThermalExplicitSolverStrategy")
+        .def(py::init<ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
+        .def("SolveSolutionStepStatic", &ThermalExplicitSolverStrategy::SolveSolutionStepStatic);
+    }
 
-  py::class_<ThermalExplicitSolverStrategy, ThermalExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ThermalExplicitSolverStrategy")
-    .def(py::init<ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer, DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
-    .def("SolveSolutionStepStatic", &ThermalExplicitSolverStrategy::SolveSolutionStepStatic);
-}
-
-} // namespace Python
+  } // namespace Python
 } // namespace Kratos

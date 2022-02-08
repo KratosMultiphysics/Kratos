@@ -21,30 +21,33 @@
 // Project includes
 #include "custom_elements/thermal_spheric_particle.h"
 
-namespace Kratos {
+namespace Kratos
+{
+  class KRATOS_API(THERMAL_DEM_APPLICATION) SetThermalDataUtilities
+  {
+    public:
 
-  class KRATOS_API(THERMAL_DEM_APPLICATION) SetThermalDataUtilities {
+      // Pointer definition of SetThermalDataUtilities
+      KRATOS_CLASS_POINTER_DEFINITION(SetThermalDataUtilities);
 
-  public:
+      // Constructor / destructor methods
+      SetThermalDataUtilities();
+      ~SetThermalDataUtilities();
 
-    KRATOS_CLASS_POINTER_DEFINITION(SetThermalDataUtilities);
+      // Public methods
+      void ExecuteInitialize(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart);
 
-    // Constructor / destructor methods
-    SetThermalDataUtilities();
-    ~SetThermalDataUtilities();
+    protected:
 
-    // Public methods
-    void ExecuteInitialize(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart);
+      // Protected methods
+      void InitializeThermalDataInSubModelParts(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart);
 
-  protected:
-    // Protected methods
-    void InitializeThermalDataInSubModelParts(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart);
+    private:
+    
+      // Assignment operator
+      SetThermalDataUtilities& operator=(SetThermalDataUtilities const& rOther);
 
-  private:
-    // Assignment operator
-    SetThermalDataUtilities& operator=(SetThermalDataUtilities const& rOther);
-  };
-
+  }; // Class SetThermalDataUtilities
 } // namespace Kratos
 
 #endif // SET_THERMAL_DATA_UTILITIES_H_INCLUDED

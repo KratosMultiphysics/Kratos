@@ -22,49 +22,52 @@
 // Project includes
 #include "custom_elements/thermal_spheric_particle.h"
 
-namespace Kratos {
+namespace Kratos
+{
+  class KRATOS_API(THERMAL_DEM_APPLICATION) GraphUtilities
+  {
+    public:
 
-  class KRATOS_API(THERMAL_DEM_APPLICATION) GraphUtilities {
+      // Pointer definition of GraphUtilities
+      KRATOS_CLASS_POINTER_DEFINITION(GraphUtilities);
 
-  public:
+      // Constructor / destructor methods
+      GraphUtilities();
+      ~GraphUtilities();
 
-    KRATOS_CLASS_POINTER_DEFINITION(GraphUtilities);
+      // Public methods
+      void ExecuteInitialize(bool ParticleTempMin,
+                             bool ParticleTempMax,
+                             bool ParticleTempAvg,
+                             bool ParticleTempDev,
+                             bool ModelTempAvg,
+                             bool ParticleHeatFluxContributions);
+      void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
+      void ExecuteFinalize();
 
-    // Constructor / destructor methods
-    GraphUtilities();
-    ~GraphUtilities();
+    protected:
 
-    // Public methods
-    void ExecuteInitialize(bool ParticleTempMin,
-                           bool ParticleTempMax,
-                           bool ParticleTempAvg,
-                           bool ParticleTempDev,
-                           bool ModelTempAvg,
-                           bool ParticleHeatFluxContributions);
-    void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
-    void ExecuteFinalize();
+      // Protected attributes
+      bool mGraph_ParticleTempMin;
+      bool mGraph_ParticleTempMax;
+      bool mGraph_ParticleTempAvg;
+      bool mGraph_ParticleTempDev;
+      bool mGraph_ModelTempAvg;
+      bool mGraph_ParticleHeatFluxContributions;
 
-  protected:
-    // Protected attributes
-    bool mGraph_ParticleTempMin;
-    bool mGraph_ParticleTempMax;
-    bool mGraph_ParticleTempAvg;
-    bool mGraph_ParticleTempDev;
-    bool mGraph_ModelTempAvg;
-    bool mGraph_ParticleHeatFluxContributions;
+      std::ofstream mFile_ParticleTempMin;
+      std::ofstream mFile_ParticleTempMax;
+      std::ofstream mFile_ParticleTempAvg;
+      std::ofstream mFile_ParticleTempDev;
+      std::ofstream mFile_ModelTempAvg;
+      std::ofstream mFile_ParticleHeatFluxContributions;
 
-    std::ofstream mFile_ParticleTempMin;
-    std::ofstream mFile_ParticleTempMax;
-    std::ofstream mFile_ParticleTempAvg;
-    std::ofstream mFile_ParticleTempDev;
-    std::ofstream mFile_ModelTempAvg;
-    std::ofstream mFile_ParticleHeatFluxContributions;
+    private:
 
-  private:
-    // Assignment operator
-    GraphUtilities& operator=(GraphUtilities const& rOther);
-  };
+      // Assignment operator
+      GraphUtilities& operator=(GraphUtilities const& rOther);
 
+  }; // Class GraphUtilities
 } // namespace Kratos
 
-#endif  // GRAPH_UTILITIES_H_INCLUDED
+#endif // GRAPH_UTILITIES_H_INCLUDED

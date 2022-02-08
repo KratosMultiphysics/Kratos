@@ -35,49 +35,52 @@
 // Project includes
 #include "custom_elements/thermal_spheric_particle.h"
 
-namespace Kratos {
-
+namespace Kratos
+{
   extern "C" {
     void triangulate(char*, struct triangulateio*, struct triangulateio*, struct triangulateio*);
     void trifree(void*);
   }
 
-  class KRATOS_API(THERMAL_DEM_APPLICATION) TesselationUtilities2D {
+  class KRATOS_API(THERMAL_DEM_APPLICATION) TesselationUtilities2D
+  {
+    public:
 
-  public:
+      // Pointer definition of TesselationUtilities2D
+      KRATOS_CLASS_POINTER_DEFINITION(TesselationUtilities2D);
 
-    KRATOS_CLASS_POINTER_DEFINITION(TesselationUtilities2D);
+      // Constructor / destructor methods
+      TesselationUtilities2D();
+      ~TesselationUtilities2D();
 
-    // Constructor / destructor methods
-    TesselationUtilities2D();
-    ~TesselationUtilities2D();
+      // Public methods
+      void ExecuteInitialize             (ModelPart& rModelPart, bool update_voronoi, bool update_porosity);
+      void ExecuteInitializeSolutionStep (ModelPart& rModelPart);
 
-    // Public methods
-    void ExecuteInitialize             (ModelPart& rModelPart, bool update_voronoi, bool update_porosity);
-    void ExecuteInitializeSolutionStep (ModelPart& rModelPart);
+    protected:
 
-  protected:
-    // Protected methods
-    void Triangulation      (ModelPart& rModelPart);
-    void UpdateVoronoi      (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
-    void UpdatePorosity     (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
-    void ComputeAlphaRadius (ModelPart& rModelPart, struct triangulateio& rOut);
-    bool AlphaShape         (std::vector<double>& coords);
-    void AddParticleArea    (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area,   const int id);
-    void ClearTriangle      (struct triangulateio& rTr);
-    void FreeTriangle       (struct triangulateio& rTr);
+      // Protected methods
+      void Triangulation      (ModelPart& rModelPart);
+      void UpdateVoronoi      (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
+      void UpdatePorosity     (ModelPart& rModelPart, struct triangulateio& rOut, struct triangulateio& rVorOut);
+      void ComputeAlphaRadius (ModelPart& rModelPart, struct triangulateio& rOut);
+      bool AlphaShape         (std::vector<double>& coords);
+      void AddParticleArea    (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_area,   const int id);
+      void ClearTriangle      (struct triangulateio& rTr);
+      void FreeTriangle       (struct triangulateio& rTr);
 
-    // Protected attributes
-    bool        mUpdateVoronoi;
-    bool        mUpdatePorosiy;
-    double      mAlphaRadius;
-    std::string mSwitches;
+      // Protected attributes
+      bool        mUpdateVoronoi;
+      bool        mUpdatePorosiy;
+      double      mAlphaRadius;
+      std::string mSwitches;
 
-  private:
-    // Assignment operator
-    TesselationUtilities2D& operator=(TesselationUtilities2D const& rOther);
-  };
+    private:
 
+      // Assignment operator
+      TesselationUtilities2D& operator=(TesselationUtilities2D const& rOther);
+
+  }; // Class TesselationUtilities2D
 } // namespace Kratos
 
-#endif  // TESSELATION_UTILITIES_2D_H_INCLUDED
+#endif // TESSELATION_UTILITIES_2D_H_INCLUDED

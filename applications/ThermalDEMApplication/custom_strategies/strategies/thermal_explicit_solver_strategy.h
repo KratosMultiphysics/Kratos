@@ -23,44 +23,44 @@
 
 namespace Kratos
 {
+  class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalExplicitSolverStrategy : public ExplicitSolverStrategy
+  {
+    public:
 
-class KRATOS_API(THERMAL_DEM_APPLICATION) ThermalExplicitSolverStrategy : public ExplicitSolverStrategy
-{
-  public:
+      // Pointer definition of ThermalExplicitSolverStrategy
+      KRATOS_CLASS_POINTER_DEFINITION(ThermalExplicitSolverStrategy);
 
-    // Pointer definition of ThermalExplicitSolverStrategy
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalExplicitSolverStrategy);
+      using ExplicitSolverStrategy::mListOfSphericParticles;
 
-    using ExplicitSolverStrategy::mListOfSphericParticles;
+      // Constructor
+      ThermalExplicitSolverStrategy();
 
-    // Constructor
-    ThermalExplicitSolverStrategy();
+      ThermalExplicitSolverStrategy(ExplicitSolverSettings&            settings,
+                                    const double                       max_delta_time,
+                                    const int                          n_step_search,
+                                    const double                       safety_factor,
+                                    const int                          delta_option,
+                                    ParticleCreatorDestructor::Pointer p_creator_destructor,
+                                    DEM_FEM_Search::Pointer            p_dem_fem_search,
+                                    SpatialSearch::Pointer             pSpSearch,
+                                    Parameters                         strategy_parameters);
 
-    ThermalExplicitSolverStrategy(ExplicitSolverSettings&            settings,
-                                  const double                       max_delta_time,
-                                  const int                          n_step_search,
-                                  const double                       safety_factor,
-                                  const int                          delta_option,
-                                  ParticleCreatorDestructor::Pointer p_creator_destructor,
-                                  DEM_FEM_Search::Pointer            p_dem_fem_search,
-                                  SpatialSearch::Pointer             pSpSearch,
-                                  Parameters                         strategy_parameters);
+      // Destructor
+      virtual ~ThermalExplicitSolverStrategy();
 
-    // Destructor
-    virtual ~ThermalExplicitSolverStrategy();
+      // Public derived methods
+      void SetSearchRadiiOnAllParticles        (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
+      void SetSearchRadiiWithFemOnAllParticles (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
 
-    // Public derived methods
-    void SetSearchRadiiOnAllParticles        (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
-    void SetSearchRadiiWithFemOnAllParticles (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
+      // Public particular methods
+      double SolveSolutionStepStatic();
 
-    // Public particular methods
-    double SolveSolutionStepStatic();
+    protected:
 
-  protected:
-    // Protected particular methods
-    void SetSearchRadii(ModelPart & r_model_part, double added_search_distance, double amplification);
+      // Protected particular methods
+      void SetSearchRadii(ModelPart & r_model_part, double added_search_distance, double amplification);
 
-}; // Class ThermalExplicitSolverStrategy
+  }; // Class ThermalExplicitSolverStrategy
 } // namespace Kratos
 
 #endif // KRATOS_THERMAL_EXPLICIT_SOLVER_STRATEGY_H_INCLUDED defined

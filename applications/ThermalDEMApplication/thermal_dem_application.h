@@ -29,30 +29,30 @@
 
 namespace Kratos
 {
-class KRATOS_API(THERMAL_DEM_APPLICATION) KratosThermalDEMApplication : public KratosApplication
-{
-  public:
+  class KRATOS_API(THERMAL_DEM_APPLICATION) KratosThermalDEMApplication : public KratosApplication
+  {
+    public:
 
-    // Pointer definition of KratosThermalDEMApplication
-    KRATOS_CLASS_POINTER_DEFINITION(KratosThermalDEMApplication);
+      // Pointer definition of KratosThermalDEMApplication
+      KRATOS_CLASS_POINTER_DEFINITION(KratosThermalDEMApplication);
 
-    KratosThermalDEMApplication();
-    virtual ~KratosThermalDEMApplication() {}
-    virtual void Register() override;
+      KratosThermalDEMApplication();
+      virtual ~KratosThermalDEMApplication() {}
+      virtual void Register() override;
 
-    // Turn back information as a string
-    virtual std::string Info() const override {
+      // Turn back information as a string
+      virtual std::string Info() const override {
         return "KratosThermalDEMApplication";
-    }
+      }
 
-    // Print information about this object
-    virtual void PrintInfo(std::ostream& rOStream) const override {
+      // Print information about this object
+      virtual void PrintInfo(std::ostream& rOStream) const override {
         rOStream << Info();
         PrintData(rOStream);
-    }
+      }
 
-    // Print object data
-    virtual void PrintData(std::ostream& rOStream) const override {
+      // Print object data
+      virtual void PrintData(std::ostream& rOStream) const override {
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
@@ -61,23 +61,22 @@ class KRATOS_API(THERMAL_DEM_APPLICATION) KratosThermalDEMApplication : public K
         rOStream << std::endl;
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
-    }
+      }
 
-  protected:
+    protected:
 
-  private:
+    private:
 	  
-    // Elements
-    const ThermalSphericParticle mThermalSphericParticle;
+      // Elements
+      const ThermalSphericParticle mThermalSphericParticle;
 
-    // Assignment operator
-    KratosThermalDEMApplication& operator=(KratosThermalDEMApplication const& rOther);
+      // Assignment operator
+      KratosThermalDEMApplication& operator=(KratosThermalDEMApplication const& rOther);
 
-    // Copy constructor
-    KratosThermalDEMApplication(KratosThermalDEMApplication const& rOther);
+      // Copy constructor
+      KratosThermalDEMApplication(KratosThermalDEMApplication const& rOther);
 
 }; // Class KratosThermalDEMApplication
-
 } // namespace Kratos
 
 #endif // KRATOS_THERMAL_DEM_APPLICATION_H_INCLUDED defined

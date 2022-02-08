@@ -30,42 +30,45 @@
 // Project includes
 #include "custom_elements/thermal_spheric_particle.h"
 
-namespace Kratos {
+namespace Kratos
+{
+  class KRATOS_API(THERMAL_DEM_APPLICATION) TesselationUtilities3D
+  {
+    public:
 
-  class KRATOS_API(THERMAL_DEM_APPLICATION) TesselationUtilities3D {
+      // Pointer definition of TesselationUtilities3D
+      KRATOS_CLASS_POINTER_DEFINITION(TesselationUtilities3D);
 
-  public:
+      // Constructor / destructor methods
+      TesselationUtilities3D();
+      ~TesselationUtilities3D();
 
-    KRATOS_CLASS_POINTER_DEFINITION(TesselationUtilities3D);
+      // Public methods
+      void ExecuteInitialize             (ModelPart& rModelPart, bool update_voronoi, bool update_porosity);
+      void ExecuteInitializeSolutionStep (ModelPart& rModelPart);
 
-    // Constructor / destructor methods
-    TesselationUtilities3D();
-    ~TesselationUtilities3D();
+    protected:
 
-    // Public methods
-    void ExecuteInitialize             (ModelPart& rModelPart, bool update_voronoi, bool update_porosity);
-    void ExecuteInitializeSolutionStep (ModelPart& rModelPart);
+      // Protected methods
+      void Tetrahedralization (ModelPart& rModelPart);
+      void UpdateVoronoi      (ModelPart& rModelPart, struct tetgenio& rOut);
+      void UpdatePorosity     (ModelPart& rModelPart, struct tetgenio& rOut);
+      void ComputeAlphaRadius (ModelPart& rModelPart, struct tetgenio& rOut);
+      bool AlphaShape         (std::vector<double>& coords);
+      void AddParticleVolume  (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id);
 
-  protected:
-    // Protected methods
-    void Tetrahedralization (ModelPart& rModelPart);
-    void UpdateVoronoi      (ModelPart& rModelPart, struct tetgenio& rOut);
-    void UpdatePorosity     (ModelPart& rModelPart, struct tetgenio& rOut);
-    void ComputeAlphaRadius (ModelPart& rModelPart, struct tetgenio& rOut);
-    bool AlphaShape         (std::vector<double>& coords);
-    void AddParticleVolume  (ModelPart& rModelPart, std::vector<int>& addedParticle, double& particle_volume, const int id);
+      // Protected attributes
+      bool        mUpdateVoronoi;
+      bool        mUpdatePorosiy;
+      double      mAlphaRadius;
+      std::string mSwitches;
 
-    // Protected attributes
-    bool        mUpdateVoronoi;
-    bool        mUpdatePorosiy;
-    double      mAlphaRadius;
-    std::string mSwitches;
+    private:
 
-  private:
-    // Assignment operator
-    TesselationUtilities3D& operator=(TesselationUtilities3D const& rOther);
-  };
+      // Assignment operator
+      TesselationUtilities3D& operator=(TesselationUtilities3D const& rOther);
 
+  }; // Class TesselationUtilities3D
 } // namespace Kratos
 
-#endif  // TESSELATION_UTILITIES_3D_H_INCLUDED
+#endif // TESSELATION_UTILITIES_3D_H_INCLUDED
