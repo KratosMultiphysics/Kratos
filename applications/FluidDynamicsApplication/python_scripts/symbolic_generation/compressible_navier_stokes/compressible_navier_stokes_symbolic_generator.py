@@ -90,7 +90,7 @@ class CompressibleNavierStokesSymbolicGenerator:
     def _CollectAndReplace(self, target_substring, expression, name):
         indentation_level  = self._FindAndRemoveIndentation(target_substring)
 
-        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_language, initial_tabs=indentation_level, replace_indices=False, assignment_op=" = ")
+        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_language, indentation_level=indentation_level, replace_indices=False, assignment_op=" = ")
         self.outstring = self.outstring.replace(target_substring, out)
 
     @classmethod
