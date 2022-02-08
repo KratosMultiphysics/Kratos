@@ -16,6 +16,7 @@
 #ifdef KRATOS_USE_CXX_17
 #include <filesystem>
 namespace fs = std::filesystem;
+#endif
 
 // Project includes
 #include "includes/model_part_io.h"
