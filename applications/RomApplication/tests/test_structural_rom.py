@@ -22,7 +22,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testStructuralStaticRom2D(self):
-        self.work_folder = "structural_static_test_files"
+        self.work_folder = "structural_static_test_files/ROM/"
         parameters_filename = "ProjectParametersROM.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
@@ -30,9 +30,8 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = False
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
             # Run test case
             self.simulation.Run()
@@ -54,7 +53,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testStructuralStaticHRom2D(self):
-        self.work_folder = "structural_static_test_files"
+        self.work_folder = "structural_static_test_files/HROM/"
         parameters_filename = "ProjectParametersHROM.json"
         expected_output_filename = "ExpectedOutputHROM.npy"
 
@@ -62,9 +61,11 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up and run simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = True
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+
+            #setting hrom flag to true
+            #self.simulation.parameters
 
             # Run test case
             self.simulation.Run()
@@ -96,9 +97,8 @@ class TestStructuralRom(KratosUnittest.TestCase):
             # Set up and run simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = False
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
             # Patch the RomAnalysis class to save the selected time steps results
             def Initialize(cls):
