@@ -33,11 +33,12 @@ class EmpiricalCubatureMethod():
     Method for setting up the element selection
     input:  ResidualsBasis: numpy array containing a basis to the residuals projected
     """
-    def SetUp(self, ResidualsBasis):
+    def SetUp(self, ResidualsBasis, constrain_sum_of_weights=True):
 
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
-        self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+        if constrain_sum_of_weights:
+            self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
         self.b = self.G @ self.W
 
 
