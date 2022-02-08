@@ -96,10 +96,8 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         my_rank = kratos_comm.Rank();
 
         dofs_bounds = self.ComputeBounds(40, world_size, my_rank)
-        #auto reference_A_map = DistTestingInternals::GetReferenceMatrixAsMap(dofs_bounds);
 
         el_bounds = self.ComputeBounds(31, world_size, my_rank)
-        #const auto connectivities = DistTestingInternals::ElementConnectivities(el_bounds);
 
         local_connectivities = self.GetLocalConnectivities(el_bounds)
 
