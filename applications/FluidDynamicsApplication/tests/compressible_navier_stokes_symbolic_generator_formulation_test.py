@@ -1,4 +1,5 @@
 import re
+import os
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnitTest
@@ -108,7 +109,7 @@ class CompressibleNavierStokesSymbolicGeneratorCompilationTest(KratosUnitTest.Te
             generated_file = self._GetGeneratorSettings(geometry)["output_filename"].GetString()
 
         if cleanup:
-            self.files_to_remove.append(generated_file)
+            self.files_to_remove.append(os.path.abspath(generated_file))
 
         sub_testsuite = self._ImportSubTestSuite(generated_file)
         self._RunSubTestSuite(sub_testsuite, print_results)
