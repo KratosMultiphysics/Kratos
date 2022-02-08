@@ -158,17 +158,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
 
         for i in range(y.GetLocalData().Size()):
             self.assertEqual(y.GetLocalData()[i],  output[i], 1e-14 )
-
-
-
-
-
-
- 
-
-
-       
-              
+  
 
 if __name__ == '__main__':
     KratosUnittest.main()
