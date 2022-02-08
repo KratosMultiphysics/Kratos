@@ -24,11 +24,13 @@ class JacobiStrongCoupledSolver(CoSimulationCoupledSolver):
         self.convergence_accelerators_list = factories_helper.CreateConvergenceAccelerators(
             self.settings["convergence_accelerators"],
             self.solver_wrappers,
+            self.data_communicator,
             self.echo_level)
 
         self.convergence_criteria_list = factories_helper.CreateConvergenceCriteria(
             self.settings["convergence_criteria"],
             self.solver_wrappers,
+            self.data_communicator,
             self.echo_level)
 
         for conv_acc in self.convergence_accelerators_list:
