@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -159,7 +159,8 @@ class deflated_solver : public amgcl::detail::non_copyable {
             }
 
             std::vector<scalar_type> t(E.size());
-            detail::inverse(prm.nvec, E.data(), t.data());
+            std::vector<int> p(prm.nvec);
+            detail::inverse(prm.nvec, E.data(), t.data(), p.data());
         }
 
         /** Computes the solution for the given system matrix \p A and the
