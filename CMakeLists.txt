@@ -1,6 +1,15 @@
 project (KratosMultiphysics)
 cmake_minimum_required (VERSION 2.8.6)
-set (CMAKE_CXX_STANDARD 11)
+
+# C++ version to be used
+if(KRATOS_USE_CXX_17 MATCHES ON)
+  add_definitions(-DKRATOS_USE_CXX_17)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+else(KRATOS_USE_CXX_17 MATCHES ON)
+  set (CMAKE_CXX_STANDARD 11)
+endif(KRATOS_USE_CXX_17 MATCHES ON)
 
 # Setting some policies
 # No recursive dereferencing
@@ -75,14 +84,6 @@ EXECUTE_PROCESS(
 # Include cmake modules
 include(DownloadLib)
 include(ExternalProject)
-
-# C++ version to be used
-if(KRATOS_USE_CXX_17 MATCHES ON)
-  add_definitions(-DKRATOS_USE_CXX_17)
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-  set(CMAKE_CXX_EXTENSIONS OFF)
-endif(KRATOS_USE_CXX_17 MATCHES ON)
 
 # Define custom compiler build types
 SET( CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug FullDebug Custom)
