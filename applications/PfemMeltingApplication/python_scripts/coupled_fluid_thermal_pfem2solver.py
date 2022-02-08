@@ -313,13 +313,13 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         for i in range(self.skin_parts_list.size()):
             body_model_part_name=self.skin_parts_list[i].GetString()
-            if(body_model_part_name=="VelocityConstraints3D_floor"):
-                body_model_part_name=self.fluid_solver.main_model_part.GetSubModelPart(body_model_part_name)
-                for node in body_model_part_name.Nodes:
-                    node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0) #NODES NOT MOVE ARE CONSIDERED PART OF THE STRUCTURE
-                    node.Fix(KratosMultiphysics.VELOCITY_X)
-                    node.Fix(KratosMultiphysics.VELOCITY_Y)
-                    node.Fix(KratosMultiphysics.VELOCITY_Z)
+            #if(body_model_part_name=="VelocityConstraints3D_floor"):
+            body_model_part_name=self.fluid_solver.main_model_part.GetSubModelPart(body_model_part_name)
+            for node in body_model_part_name.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0) #NODES NOT MOVE ARE CONSIDERED PART OF THE STRUCTURE
+                node.Fix(KratosMultiphysics.VELOCITY_X)
+                node.Fix(KratosMultiphysics.VELOCITY_Y)
+                node.Fix(KratosMultiphysics.VELOCITY_Z)
 
 
 
@@ -434,9 +434,9 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         fluid_computational_model_part.Properties  = self.fluid_solver.main_model_part.Properties
 
 
-        #self.thermal_solver.main_model_part.Conditions.clear()
-        #self.thermal_solver.main_model_part.Elements.clear()
-        #self.thermal_solver.main_model_part.Nodes.clear()
+        self.thermal_solver.main_model_part.Conditions.clear()
+        self.thermal_solver.main_model_part.Elements.clear()
+        self.thermal_solver.main_model_part.Nodes.clear()
 
 
         if not self.thermal_solver.main_model_part.HasSubModelPart("thermal_computing_domain"):
@@ -621,7 +621,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
     def SolveSolutionStep(self):
 
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
-        self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
+        #self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
 
 
         for node in self.fluid_solver.main_model_part.Nodes:

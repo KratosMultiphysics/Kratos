@@ -158,7 +158,7 @@ namespace Kratos
 void RungeKutta4ElementbasedSI(ModelPart& rModelPart, unsigned int substeps)
     {
 	double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
-        dt *=0.5; 
+        //dt *=0.5; 
 	BinBasedFastPointLocator<TDim> SearchStructure(rModelPart);
 	SearchStructure.UpdateSearchDatabase();
 
@@ -273,7 +273,7 @@ if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0) {
 	       if(iparticle->FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
 		{
 
-		is_found1=false;	
+		//is_found1=false;	
 		if(is_found1==true)
 			if(is_found2==true)
 				if(is_found3==true)

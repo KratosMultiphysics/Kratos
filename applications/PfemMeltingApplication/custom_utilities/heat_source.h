@@ -70,24 +70,26 @@ namespace Kratos
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
 	  {
             node_it->FastGetSolutionStepValue(HEAT_FLUX) = 0.0; 
+
             density= node_it->FastGetSolutionStepValue(DENSITY);
-	    //KRATOS_WATCH(density)	
+
             activation_energy= node_it->FastGetSolutionStepValue(ACTIVATION_ENERGY);
+
             arrhenius_coefficient= node_it->FastGetSolutionStepValue(ARRHENIUS_COEFFICIENT);
-            //KRATOS_WATCH(arrhenius_coefficient)
-	    //KRATOS_WATCH(node_it->FastGetSolutionStepValue(HEAT_OF_VAPORIZATION))
 
             heat_of_vaporization= node_it->FastGetSolutionStepValue(HEAT_OF_VAPORIZATION);
-            //KRATOS_WATCH(heat_of_vaporization)
+
             temperature= node_it->FastGetSolutionStepValue(TEMPERATURE);
 
-            aux_var_polymer= arrhenius_coefficient * exp(-activation_energy/(R*temperature));
+	    double E_over_R_polymer = activation_energy / R;
 
-            //node_it->FastGetSolutionStepValue(ARRHENIUS_VALUE)=aux_var_polymer;
+ 	    if(temperature >800.0) temperature=800.0;
 
-            node_it->FastGetSolutionStepValue(HEAT_FLUX) = 0.0 * (-1.0) * density * heat_of_vaporization * aux_var_polymer;
+            aux_var_polymer= arrhenius_coefficient * exp(-E_over_R_polymer/temperature);
+
+
+            node_it->FastGetSolutionStepValue(HEAT_FLUX) = (-1.0) * density * heat_of_vaporization * aux_var_polymer;
             
-            //KRATOS_WATCH(node_it->FastGetSolutionStepValue(HEAT_FLUX))
 
 	  }
 	

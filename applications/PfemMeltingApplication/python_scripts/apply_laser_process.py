@@ -48,6 +48,9 @@ class ApplyLaserProcess(KratosMultiphysics.Process):
         self.new_table_x = KratosMultiphysics.PiecewiseLinearTable()
         self.new_table_y = KratosMultiphysics.PiecewiseLinearTable()
         self.new_table_z = KratosMultiphysics.PiecewiseLinearTable()
+
+        self.maximum_time= laser_path[laser_path.size()-1]["time"].GetDouble()
+        
         while(i < laser_path.size()):
             time=laser_path[0]["time"].GetDouble()
             self.new_table_x.AddRow(laser_path[i]["time"].GetDouble(), laser_path[i]["x"].GetDouble())
@@ -65,9 +68,15 @@ class ApplyLaserProcess(KratosMultiphysics.Process):
         self.ApplyLaserProcess.ExecuteInitializeSolutionStep()
         current_time = self.fluid_model_part.ProcessInfo[KratosMultiphysics.TIME]
 
-        x=self.new_table_x.GetValue(current_time)
-        y=self.new_table_y.GetValue(current_time)
-        z=self.new_table_z.GetValue(current_time)
-
+        if(current_time < self.maximum_time):
+            x=self.new_table_x.GetValue(current_time)
+            y=self.new_table_y.GetValue(current_time)
+            z=self.new_table_z.GetValue(current_time)
+        else:
+            x=laser_path[laser_path.size()-1]["x"].GetDouble()
+            y=laser_path[laser_path.size()-1]["y"].GetDouble()
+            z=laser_path[laser_path.size()-1]["z"].GetDouble()
+	
+        
         self.ApplyLaserProcess.ApplyLaser(x, y, z)
 
