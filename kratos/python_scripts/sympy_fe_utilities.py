@@ -295,21 +295,18 @@ def _ReplaceIndices(language, expression):
     return expression
 
 
-def OutputVector(r, name, language="python", initial_tabs=3, max_index=None, replace_indices=True, assignment_op="="):
-    """ This method converts into text the RHS vector
+
+def OutputVector(vector_expression, name, language="python", initial_tabs=3, replace_indices=True, assignment_op="="):
+    """ This function generates code to fill a (pre-declared) vector
 
     Keyword arguments:
     rhs -- The RHS vector
     name -- The name of the variables
     language -- The language of output
     initial_tabs -- The number of tabulations considered
-    max_index -- DEPRECATED The maximum index
     replace_indices -- If the indixes must be replaced
     assignment_op -- The assignment operation
     """
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputVector")
-
     prefix = _Indentation(initial_tabs)
     suffix = _Suffix(language)
     fmt = prefix \
@@ -317,8 +314,8 @@ def OutputVector(r, name, language="python", initial_tabs=3, max_index=None, rep
           + suffix
 
     outstring = str("")
-    for i in range(r.shape[0]):
-        expression = _CodeGen(language, r[i,0])
+    for i in range(vector_expression.shape[0]):
+        expression = _CodeGen(language, vector_expression[i,0])
         outstring += fmt.format(var=name, i=i, op=assignment_op, expr=expression)
 
     if replace_indices:
@@ -327,20 +324,17 @@ def OutputVector(r, name, language="python", initial_tabs=3, max_index=None, rep
     return outstring
 
 
-def OutputMatrix(lhs, name, language, initial_tabs=3, max_index=None, replace_indices=True, assignment_op="="):
-    """ This method converts into text the LHS matrix
+def OutputMatrix(matrix_expression, name, language, initial_tabs=3, replace_indices=True, assignment_op="="):
+    """ This function generates code to fill a (pre-declared) matrix
 
     Keyword arguments:
-    lhs -- The LHS matrix
+    matrix_expression -- The matrix
     name -- The name of the variables
     language -- The language of output
     initial_tabs -- The number of tabulations considered
-    max_index -- DEPRECATED The maximum index
     replace_indices -- If the indixes must be replaced
     assignment_op -- The assignment operation
     """
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputMatrix")
 
     prefix = _Indentation(initial_tabs)
     suffix = _Suffix(language)
@@ -350,9 +344,9 @@ def OutputMatrix(lhs, name, language, initial_tabs=3, max_index=None, replace_in
           + suffix
 
     outstring = str("")
-    for i in range(lhs.shape[0]):
-        for j in range(lhs.shape[1]):
-            expression = _CodeGen(language, lhs[i,j])
+    for i in range(matrix_expression.shape[0]):
+        for j in range(matrix_expression.shape[1]):
+            expression = _CodeGen(language, matrix_expression[i,j])
             outstring += fmt.format(var=name, i=i, j=j, op=assignment_op, expr=expression)
 
     if replace_indices:
@@ -360,32 +354,33 @@ def OutputMatrix(lhs, name, language, initial_tabs=3, max_index=None, replace_in
 
     return outstring
 
-def OutputSymbolicVariable(var, language="python", initial_tabs=None, max_index=None, replace_indices=True):
-    """ This method converts into text the LHS matrix (only non-zero terms)
+def OutputSymbolicVariable(expression, language="python", replace_indices=True):
+    """ This function generates code from an expression
+
     Keyword arguments:
-    var -- The variable to define symbolic
+    expression -- The expression to geneate code from
     language -- The language of output
     initial_tabs -- The number of tabulations considered
     max_index -- The maximum index
     replace_indices -- If the indixes must be replaced
     """
-    if initial_tabs is not None:
-        print("Warning: initial_tabs parameter is deprecated in OutputSymbolicVariable")
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputSymbolicVariable")
 
-    outstring = _CodeGen(language, var) + _Suffix(language)
+    outstring = _CodeGen(language, expression) + _Suffix(language)
 
     if replace_indices:
         outstring = _ReplaceIndices(language, outstring)
 
     return outstring
 
-def OutputSymbolicVariableAssignment(var, language, name, initial_tabs=3, max_index=None, replace_indices=True):
-    """ This method converts into text the LHS matrix (only non-zero terms)
+def OutputSymbolicVariableDeclaration(expression, language, name, initial_tabs=3, replace_indices=True):
+    """ This function generates code to declare and assign an expression, such as:
+    ```C++
+        const double variable = expression;
+
+    ```
 
     Keyword arguments:
-    var -- The variable to define symbolic
+    expression -- The variable to define symbolic
     language -- The language of output
     name -- The name of the variables
     initial_tabs -- The number of tabulations considered
@@ -393,11 +388,8 @@ def OutputSymbolicVariableAssignment(var, language, name, initial_tabs=3, max_in
     replace_indices -- If the indixes must be replaced
     """
 
-    if max_index is not None:
-        print("Warning: max_index parameter is deprecated in OutputSymbolicVariable")
-
     prefix = _Indentation(initial_tabs)
-    value = _CodeGen(language, var)
+    value = _CodeGen(language, expression)
     expr = _VariableDeclaration(language, name, value)
     suffix = _Suffix(language)
 
@@ -409,7 +401,7 @@ def OutputSymbolicVariableAssignment(var, language, name, initial_tabs=3, max_in
     return outstring
 
 def _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, output_func):
-    """ This method collects the constants of the replacement for matrices, vectors, etc
+    """ This method collects the constants of the replacement for matrices, vectors and scalars
 
     Keyword arguments:
     A -- The  factors
@@ -430,9 +422,9 @@ def _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, r
     for factor in A_factors:
         varname = str(factor[0])
         value = factor[1]
-        Acoefficient_str += OutputSymbolicVariableAssignment(value, language, varname, initial_tabs, None, replace_indices)
+        Acoefficient_str += OutputSymbolicVariableDeclaration(value, language, varname, initial_tabs, None, replace_indices)
 
-    A_out = Acoefficient_str + output_func(A, name, language, initial_tabs, None, replace_indices, assignment_op)
+    A_out = Acoefficient_str + output_func(A, name, language, initial_tabs, replace_indices, assignment_op)
     return A_out
 
 
