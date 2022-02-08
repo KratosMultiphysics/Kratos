@@ -64,6 +64,12 @@ class SolitaryWaveBenchmark(BaseBenchmarkProcess):
         return [u_x, 0.0, 0.0]
 
 
+    def ExecuteBeforeSolutionLoop(self):
+        SW.ShallowWaterUtilities().ComputeHeightFromFreeSurface(self.model_part)
+        SW.ShallowWaterUtilities().SetMinimumValue(self.model_part, SW.HEIGHT, 0.0)
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.model_part)
+
+
     def ExecuteInitializeSolutionStep(self):
         time = self.boundary_model_part.ProcessInfo[KM.TIME]
         for node in self.boundary_model_part.Nodes:

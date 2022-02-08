@@ -25,6 +25,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/math_utils.h"
 #include "mapping_application_variables.h"
 #include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
@@ -196,6 +197,22 @@ inline double ComputeDistance(const T1& rCoords1,
     return std::sqrt( std::pow(rCoords1[0] - rCoords2[0] , 2) +
                       std::pow(rCoords1[1] - rCoords2[1] , 2) +
                       std::pow(rCoords1[2] - rCoords2[2] , 2) );
+}
+
+template <class T1, class T2, class T3>
+bool PointsAreCollinear(
+    const T1& rP1,
+    const T2& rP2,
+    const T3& rP3)
+{
+    // TODO this can probably be optimized
+    const double a = MathUtils<double>::Norm3(rP1-rP2);
+    const double b = MathUtils<double>::Norm3(rP2-rP3);
+    const double c = MathUtils<double>::Norm3(rP3-rP1);
+
+    const double s = (a+b+c) / 2.0;
+
+    return (std::sqrt(s*(s-a)*(s-b)*(s-c))) < 1e-12;
 }
 
 template <typename TContainer>
