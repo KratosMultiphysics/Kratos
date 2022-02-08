@@ -476,11 +476,11 @@ public:
      * @return Radius: The radius of axisymmetry
      */
 
-    static inline double CalculateRadius(const Vector N, const GeometryType& Geom)
+    static inline double CalculateRadius(const Vector& N, const GeometryType& Geom)
     {
         double Radius = 0.0;
 
-        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++) {
+        for (unsigned int iNode = 0; iNode < Geom.size(); ++iNode) {
             // Displacement from the reference to the current configuration
             const array_1d<double, 3 >& CurrentPosition = Geom[iNode].Coordinates();
             Radius += CurrentPosition[0] * N[iNode];
@@ -489,6 +489,12 @@ public:
         return Radius;
     }
 
+    static inline double CalculateAxisymmetricCircumference(const Vector& N, const GeometryType& Geom)
+    {
+        const double Radius = CalculateRadius(N, Geom);
+        const double Circumference = 2.0 * Globals::Pi * Radius;
+        return Circumference;
+    }
 
 }; /* Class GeoElementUtilities*/
 } /* namespace Kratos.*/

@@ -20,17 +20,25 @@ namespace Kratos
 {
 
 // Default Constructor
-SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
+SurfaceLoad3DDiffOrderCondition::
+    SurfaceLoad3DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 1
-SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry) : GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
+SurfaceLoad3DDiffOrderCondition::
+    SurfaceLoad3DDiffOrderCondition(IndexType NewId,
+                                    GeometryType::Pointer pGeometry) :
+                                    GeneralUPwDiffOrderCondition(NewId, pGeometry) {}
 
 //----------------------------------------------------------------------------------------
 
 //Constructor 2
-SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
+SurfaceLoad3DDiffOrderCondition::
+    SurfaceLoad3DDiffOrderCondition(IndexType NewId,
+                                    GeometryType::Pointer pGeometry,
+                                    PropertiesType::Pointer pProperties) :
+                                    GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
 //----------------------------------------------------------------------------------------
 
@@ -39,14 +47,20 @@ SurfaceLoad3DDiffOrderCondition::~SurfaceLoad3DDiffOrderCondition() {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Condition::Pointer SurfaceLoad3DDiffOrderCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Condition::Pointer SurfaceLoad3DDiffOrderCondition::
+    Create(IndexType NewId,
+           NodesArrayType const& ThisNodes,
+           PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new SurfaceLoad3DDiffOrderCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new SurfaceLoad3DDiffOrderCondition(NewId,
+                                                                  GetGeometry().Create(ThisNodes),
+                                                                  pProperties));
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
+void SurfaceLoad3DDiffOrderCondition::
+    CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber)
 {
     KRATOS_TRY
 
@@ -56,8 +70,7 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
     rVariables.ConditionVector.resize(3,false);
     noalias(rVariables.ConditionVector) = ZeroVector(3);
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
-    {
+    for ( SizeType i = 0; i < NumUNodes; ++i ) {
         SurfaceLoad = rGeom[i].FastGetSolutionStepValue(SURFACE_LOAD);
 
         rVariables.ConditionVector[0] += rVariables.Nu[i]*SurfaceLoad[0];
@@ -69,28 +82,28 @@ void SurfaceLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVariable
 }
 
 //----------------------------------------------------------------------------------------
+double SurfaceLoad3DDiffOrderCondition::
+    CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                    const GeometryType::JacobiansType& JContainer,
+                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 
-void SurfaceLoad3DDiffOrderCondition::
-    CalculateIntegrationCoefficient(ConditionVariables& rVariables,
-                                    unsigned int PointNumber,
-                                    double weight)
 {
     KRATOS_TRY
 
     double NormalVector[3];
 
-    NormalVector[0] = rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](2,1) -
-                      rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](1,1);
+    NormalVector[0] = JContainer[PointNumber](1,0) * JContainer[PointNumber](2,1) -
+                      JContainer[PointNumber](2,0) * JContainer[PointNumber](1,1);
 
-    NormalVector[1] = rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](0,1) -
-                      rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](2,1);
+    NormalVector[1] = JContainer[PointNumber](2,0) * JContainer[PointNumber](0,1) -
+                      JContainer[PointNumber](0,0) * JContainer[PointNumber](2,1);
 
-    NormalVector[2] = rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](1,1) -
-                      rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](0,1);
+    NormalVector[2] = JContainer[PointNumber](0,0) * JContainer[PointNumber](1,1) -
+                      JContainer[PointNumber](1,0) * JContainer[PointNumber](0,1);
 
     double dA = sqrt(NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1] + NormalVector[2]*NormalVector[2]);
 
-    rVariables.IntegrationCoefficient = dA * weight;
+    return dA * IntegrationPoints[PointNumber].Weight();
 
     KRATOS_CATCH( "" )
 }
@@ -102,8 +115,7 @@ void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& 
     const SizeType NumUNodes = GetGeometry().PointsNumber();
     SizeType Index;
 
-    for ( SizeType i = 0; i < NumUNodes; i++ )
-    {
+    for ( SizeType i = 0; i < NumUNodes; ++i ) {
         Index = i * 3;
 
         rRightHandSideVector[Index]   += rVariables.Nu[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;

@@ -140,6 +140,7 @@ jobs:
       shell: cmd
       run: |
         pip install numpy
+        pip install sympy
         pip install h5py
 
     - name: Build
@@ -154,7 +155,6 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l small -c python
-
 
   centos:
     runs-on: ubuntu-latest
@@ -320,6 +320,12 @@ jobs:
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+
+    - name: Installing dependencies
+      shell: cmd
+      run: |
+        pip install numpy
+        pip install sympy
 
     - name: Build
       shell: cmd

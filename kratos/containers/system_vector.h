@@ -144,7 +144,19 @@ public:
         return mData[I];
     }
 
-    void Add(const double factor,
+    ///provides low level access to internal data
+    DenseVector<TDataType>& data()
+    {
+        return mData;
+    }
+
+    ///provides low level access to internal data
+    const DenseVector<TDataType>& data() const
+    {
+        return mData;
+    }
+
+    void Add(const TDataType factor,
              const SystemVector& rOtherVector
             )
     {
