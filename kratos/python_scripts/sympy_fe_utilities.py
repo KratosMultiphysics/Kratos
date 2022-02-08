@@ -393,7 +393,7 @@ def OutputSymbolicVariable(expression, language="python", replace_indices=True):
 
     return outstring
 
-def OutputSymbolicVariableDeclaration(expression, language, name, indentation_level=0, replace_indices=True):
+def OutputSymbolicVariableDeclaration(expression, name, language, indentation_level=0, replace_indices=True):
     """ This function generates code to declare and assign an expression, such as:
     ```C++
         const double variable = expression;
@@ -443,7 +443,7 @@ def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizatio
     for factor in A_factors:
         varname = str(factor[0])
         value = factor[1]
-        Acoefficient_str += OutputSymbolicVariableDeclaration(value, language, varname, indentation_level, replace_indices)
+        Acoefficient_str += OutputSymbolicVariableDeclaration(value, varname, language, indentation_level, replace_indices)
 
     A_out = Acoefficient_str + output_func(A, name, language, indentation_level, replace_indices, assignment_op)
     return A_out
