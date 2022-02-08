@@ -252,18 +252,21 @@ def _Indentation(indentation_level):
     "Returns the indentation string"
     return "    " * indentation_level
 
-def _VariableDeclaration(language, variable_name, variable_value):
-    "Returns the variable declaration, without indentation nor suffix"
-    return  {
-        "c"     : "const double {name} = {value}",
-        "python": "{name} = {value}"
-    }[language].format(name=variable_name, value=variable_value)
-
 def _CodeGen(language, value):
     return  {
         "c"     : sympy.ccode,
         "python": sympy.pycode
     }[language](value)
+
+def _VariableDeclaration(language, variable_name, variable_expression):
+    """"Returns the variable declaration, without indentation nor suffix
+
+    The expression must have been turned into code already
+    """
+    return  {
+        "c"     : "const double {name} = {expr}",
+        "python": "{name} = {expr}"
+    }[language].format(name=variable_name, expr=variable_expression)
 
 def _Suffix(language):
     "Returns the endline suffix"
@@ -272,7 +275,7 @@ def _Suffix(language):
         "python": "\n"
     }[language]
 
-def _ReplaceIndices(expression, language):
+def _ReplaceIndices(language, expression):
     """Replaces array access with underscored variable:
     For matrices: `variable[3,7]` becomes `variable_3_7`
     For vectors:  `variable[3]` becomes `variable_3`
@@ -319,7 +322,7 @@ def OutputVector(r, name, language="python", initial_tabs=3, max_index=None, rep
         outstring += fmt.format(var=name, i=i, op=assignment_op, expr=expression)
 
     if replace_indices:
-        outstring = _ReplaceIndices(outstring, language)
+        outstring = _ReplaceIndices(language, outstring)
 
     return outstring
 
@@ -353,11 +356,32 @@ def OutputMatrix(lhs, name, language, initial_tabs=3, max_index=None, replace_in
             outstring += fmt.format(var=name, i=i, j=j, op=assignment_op, expr=expression)
 
     if replace_indices:
-        outstring = _ReplaceIndices(outstring, language)
+        outstring = _ReplaceIndices(language, outstring)
 
     return outstring
 
-def OutputSymbolicVariable(var, language, name, initial_tabs=3, max_index=None, replace_indices=True):
+def OutputSymbolicVariable(var, language="python", initial_tabs=None, max_index=None, replace_indices=True):
+    """ This method converts into text the LHS matrix (only non-zero terms)
+    Keyword arguments:
+    var -- The variable to define symbolic
+    language -- The language of output
+    initial_tabs -- The number of tabulations considered
+    max_index -- The maximum index
+    replace_indices -- If the indixes must be replaced
+    """
+    if initial_tabs is not None:
+        print("Warning: initial_tabs parameter is deprecated in OutputSymbolicVariable")
+    if max_index is not None:
+        print("Warning: max_index parameter is deprecated in OutputSymbolicVariable")
+
+    outstring = _CodeGen(language, var) + _Suffix(language)
+
+    if replace_indices:
+        outstring = _ReplaceIndices(language, outstring)
+
+    return outstring
+
+def OutputSymbolicVariableAssignment(var, language, name, initial_tabs=3, max_index=None, replace_indices=True):
     """ This method converts into text the LHS matrix (only non-zero terms)
 
     Keyword arguments:
@@ -380,7 +404,7 @@ def OutputSymbolicVariable(var, language, name, initial_tabs=3, max_index=None, 
     outstring = prefix + expr + suffix
 
     if replace_indices:
-        _ReplaceIndices(outstring, language)
+        _ReplaceIndices(language, outstring)
 
     return outstring
 
@@ -406,7 +430,7 @@ def _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, r
     for factor in A_factors:
         varname = str(factor[0])
         value = factor[1]
-        Acoefficient_str += OutputSymbolicVariable(value, language, varname, initial_tabs, None, replace_indices)
+        Acoefficient_str += OutputSymbolicVariableAssignment(value, language, varname, initial_tabs, None, replace_indices)
 
     A_out = Acoefficient_str + output_func(A, name, language, initial_tabs, None, replace_indices, assignment_op)
     return A_out
