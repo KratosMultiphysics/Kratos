@@ -13,6 +13,9 @@
 
 // System includes
 #include <unordered_set>
+#ifdef KRATOS_USE_CXX_17
+#include <filesystem>
+namespace fs = std::filesystem;
 
 // Project includes
 #include "includes/model_part_io.h"
@@ -23,9 +26,11 @@
 #include "utilities/compare_elements_and_conditions_utility.h"
 
 // External includes
+#ifndef KRATOS_USE_CXX_17
 // this needs to be included last to avoid redefinition problems in win
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 namespace fs = ghc::filesystem;
+#endif
 
 namespace Kratos
 {
