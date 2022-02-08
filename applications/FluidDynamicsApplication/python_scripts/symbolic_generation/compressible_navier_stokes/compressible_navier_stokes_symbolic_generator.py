@@ -1,6 +1,6 @@
-import KratosMultiphysics
 import sympy
 
+import KratosMultiphysics
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
