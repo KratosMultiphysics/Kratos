@@ -64,6 +64,24 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
         expected_code = "    const double f = sqrt(pow(x, 2) + pow(y, 2));\n"
         self.assertEqual(code, expected_code)
 
+    def test_OutputScalar_CollectingFactors(self):
+        x = KratosSympy.DefineVector('x', 5)
+        y = KratosSympy.DefineVector('y', 5)
+
+        expression = (3*(x.T*(2*y + 3*x))*(y.T*y) + 6*y.T*x)[0, 0]
+        code = KratosSympy.OutputScalar_CollectingFactors(expression, "myvariable", "c", 1, replace_indices=False)
+
+        self.maxDiff = 2048
+        expected_code = "\n".join([
+            "    const double cmyvariable0 = 2*y_0;",
+            "    const double cmyvariable1 = 2*y_1;",
+            "    const double cmyvariable2 = 2*y_2;",
+            "    const double cmyvariable3 = 2*y_3;",
+            "    const double cmyvariable4 = 2*y_4;",
+            "    myvariable=3*cmyvariable0*x_0 + 3*cmyvariable1*x_1 + 3*cmyvariable2*x_2 + 3*cmyvariable3*x_3 + 3*cmyvariable4*x_4 + 3*(pow(y_0, 2) + pow(y_1, 2) + pow(y_2, 2) + pow(y_3, 2) + pow(y_4, 2))*(x_0*(cmyvariable0 + 3*x_0) + x_1*(cmyvariable1 + 3*x_1) + x_2*(cmyvariable2 + 3*x_2) + x_3*(cmyvariable3 + 3*x_3) + x_4*(cmyvariable4 + 3*x_4));",
+            ""
+        ])
+        self.assertEqual(code, expected_code)
 
 if __name__ == '__main__':
     KratosUnittest.main()
