@@ -1,6 +1,5 @@
 import KratosMultiphysics as KM
-
-import KratosMultiphysics.MappingApplication as KratosMapping
+import KratosMultiphysics.MappingApplication # registering the mappers
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 '''
@@ -27,14 +26,12 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self._create_nodes()
         self._create_elements()
 
-
     def _add_variables(self):
         self.mp_origin.AddNodalSolutionStepVariable(KM.PRESSURE)
         self.mp_origin.AddNodalSolutionStepVariable(KM.FORCE)
 
         self.mp_destination.AddNodalSolutionStepVariable(KM.TEMPERATURE)
         self.mp_destination.AddNodalSolutionStepVariable(KM.VELOCITY)
-
 
     def _create_nodes(self):
         self.mp_origin.CreateNewNode(1, -5.0,  0.0,  0.0)
@@ -45,9 +42,8 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mp_destination.CreateNewNode(1, -5.0,  0.0,  0.0)
         self.mp_destination.CreateNewNode(2, -3.0,  0.0,  0.0)
         self.mp_destination.CreateNewNode(3, -1.0,  0.0,  0.0)
-        self.mp_destination.CreateNewNode(4,  3.0,  0.0,  0.0)
+        self.mp_destination.CreateNewNode(4,  2.75,  0.0,  0.0)
         self.mp_destination.CreateNewNode(5,  6.0,  0.0,  0.0)
-
 
     def _create_elements(self):
         element_name = "Element2D2N"
@@ -63,14 +59,12 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mp_destination.CreateNewElement(element_name, 3, [3,4], props)
         self.mp_destination.CreateNewElement(element_name, 4, [4,5], props)
 
-
     def _set_values_origin(self):
         value = 0
         for node in self.mp_origin.Nodes:
             node.SetSolutionStepValue(KM.PRESSURE, value+0.2)
             node.SetSolutionStepValue(KM.FORCE, [value, value+0.1, value-0.3])
             value += 1
-
 
     def _set_values_destination(self):
         value = 0
@@ -79,20 +73,14 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KM.VELOCITY, [value, value-0.1, value+0.4])
             value += 1
 
-
     def _set_values_mp_const(self, mp, variable, value):
         for node in mp.Nodes:
             node.SetSolutionStepValue(variable, value)
 
-
-    def _create_mapper(self, mapper_name):
-        mapper_settings = KM.Parameters("""{
-            "mapper_type" : \"""" + mapper_name + """\"
-         }""")
-
+    def _create_mapper(self, mapper_settings):
         self.mapper = KM.MapperFactory.CreateMapper(self.mp_origin,
-                                                               self.mp_destination,
-                                                               mapper_settings)
+                                                    self.mp_destination,
+                                                    mapper_settings)
 
     def _check_results_scalar(self, mp, results, variable):
         if len(results) != mp.NumberOfNodes():
@@ -100,15 +88,11 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         for index, node in enumerate(mp.Nodes):
             self.assertAlmostEqual(node.GetSolutionStepValue(variable), results[index], 10)
 
-
     def _check_results_vector(self, mp, results, variable):
         if len(results) != mp.NumberOfNodes():
             raise RuntimeError("Number of results does not match number of Nodes!")
         for index, node in enumerate(mp.Nodes):
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[0], results[index][0], 10)
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[1], results[index][1], 10)
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[2], results[index][2], 10)
-
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(variable), results[index], 10)
 
     def _check_results_scalar_const(self, mp, value, variable):
         for node in mp.Nodes:
@@ -116,9 +100,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
     def _check_results_vector_const(self, mp, value, variable):
         for node in mp.Nodes:
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[0], value[0])
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[1], value[1])
-            self.assertAlmostEqual(node.GetSolutionStepValue(variable)[2], value[2])
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(variable), value)
 
     def _execute_constant_value_test(self):
         # Check mapping of a constant field and the basic functionalities
@@ -180,7 +162,6 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
         self._check_results_vector_const(self.mp_origin, mapping_value, KM.FORCE)
 
-
     def _execute_non_constant_value_test(self, results, use_transpose=False):
         # Check mapping of a non-constant field
 
@@ -219,7 +200,9 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             self.__CheckValuesSum(self.mp_origin, self.mp_destination, KM.FORCE, KM.VELOCITY, True)
 
     def test_nearest_neighbor_mapper(self):
-        mapper_name = "nearest_neighbor"
+        mapper_settings = KM.Parameters("""{
+            "mapper_type" : "nearest_neighbor"
+         }""")
 
         map_results_scalar = [0.2, 0.2, 1.2, 2.2, 2.2]
         map_results_vector     = [[0.0,0.1,-0.3], [0.0,0.1,-0.3], [1.0,1.1,0.7], [2.0,2.1,1.7], [2.0,2.1,1.7]]
@@ -237,7 +220,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         results_conservative = [map_results_scalar_conservative, map_results_vector_conservative]
         results_conservative.extend([inverse_map_results_scalar_conservative, inverse_map_results_vector_conservative])
 
-        self._create_mapper(mapper_name)
+        self._create_mapper(mapper_settings)
 
         self._execute_constant_value_test()
 
@@ -246,19 +229,20 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         # Test Mapping with transpose
         self._execute_non_constant_value_test(results_conservative, True)
 
-
     def test_nearest_element_mapper(self):
-        mapper_name = "nearest_element"
+        mapper_settings = KM.Parameters("""{
+            "mapper_type" : "nearest_element"
+         }""")
 
-        map_results_scalar = [0.2, 0.6, 1.0, 1.8, 7.6/3]
-        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.6,1.7,1.3], [7/3,7.3/3,6.1/3]]
-        inverse_map_results_scalar     = [-0.3, 1.95, 10.1/3, 3.7]
-        inverse_map_results_vector     = [[0.0,-0.1,0.4], [2.25,2.15,2.65], [11/3,10.7/3,12.2/3], [4.0,3.9,4.4]]
+        map_results_scalar = [0.2, 0.6, 1.0, 1.75, 7.6/3]
+        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.55,1.65,1.25], [7/3,7.3/3,6.1/3]]
+        inverse_map_results_scalar     = [-0.3, 1.966666666666666, 3.3923076923076905, 3.7]
+        inverse_map_results_vector     = [[0.0,-0.1,0.4], [8/3-0.4,8/3-0.5,8/3], [3.6923076923076903,3.59230769230769,4.09230769230769], [4.0,3.9,4.4]]
 
-        map_results_scalar_conservative = [0.2, 0.0, 0.9, 1.033333333333337, 14/3]
-        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.75,0.825,0.525], [11/12,0.975,0.741666666667], [13/3,4.5,23/6]]
-        inverse_map_results_scalar_conservative     = [0.46, 2.72, 4.0866666666666, 37/30]
-        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.2,3.04,3.84], [67/15,4.34,373/75], [4/3,1.3,22/15]]
+        map_results_scalar_conservative = [0.2, 0.0, 0.88, 0.9969230769230808, 4.723076923076919]
+        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.73333333333333,0.80666666666666,0.513333333333333], [0.8820512820512856,0.9394871794871832,0.7097435897435929], [4.384615384615381,4.553846153846149,3.8769230769230734]]
+        inverse_map_results_scalar_conservative     = [0.46, 2.855, 3.9516666666666684, 37/30]
+        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.35,3.185,4.01], [4.31666666666666,4.195,4.8033333333333], [4/3,1.3,22/15]]
 
         results = [map_results_scalar, map_results_vector]
         results.extend([inverse_map_results_scalar, inverse_map_results_vector])
@@ -266,13 +250,44 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         results_conservative = [map_results_scalar_conservative, map_results_vector_conservative]
         results_conservative.extend([inverse_map_results_scalar_conservative, inverse_map_results_vector_conservative])
 
-        self._create_mapper(mapper_name)
+        self._create_mapper(mapper_settings)
 
         self._execute_constant_value_test()
 
         self._execute_non_constant_value_test(results)
 
-        # # Test conservative Mapping
+        # Test Mapping with transpose
+        self._execute_non_constant_value_test(results_conservative, True)
+
+    def test_barycentric_mapper(self):
+        mapper_settings = KM.Parameters("""{
+            "mapper_type" : "barycentric",
+            "interpolation_type" : "line"
+         }""")
+
+        map_results_scalar = [0.2, 0.6, 1.0, 1.75, 7.6/3]
+        map_results_vector     = [[0.0,0.1,-0.3], [0.4,0.5,0.1], [0.8,0.9,0.5], [1.55,1.65,1.25], [7/3,7.3/3,6.1/3]]
+        inverse_map_results_scalar     = [-0.3, 1.966666666666666, 3.3923076923076905, 3.7]
+        inverse_map_results_vector     = [[0.0,-0.1,0.4], [8/3-0.4,8/3-0.5,8/3], [3.6923076923076903,3.59230769230769,4.09230769230769], [4.0,3.9,4.4]]
+
+        map_results_scalar_conservative = [0.2, 0.0, 0.88, 0.9969230769230808, 4.723076923076919]
+        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [0.73333333333333,0.80666666666666,0.513333333333333], [0.8820512820512856,0.9394871794871832,0.7097435897435929], [4.384615384615381,4.553846153846149,3.8769230769230734]]
+        inverse_map_results_scalar_conservative     = [0.46, 2.855, 3.9516666666666684, 37/30]
+        inverse_map_results_vector_conservative     = [[1.0,0.82,1.72], [3.35,3.185,4.01], [4.31666666666666,4.195,4.8033333333333], [4/3,1.3,22/15]]
+
+        results = [map_results_scalar, map_results_vector]
+        results.extend([inverse_map_results_scalar, inverse_map_results_vector])
+
+        results_conservative = [map_results_scalar_conservative, map_results_vector_conservative]
+        results_conservative.extend([inverse_map_results_scalar_conservative, inverse_map_results_vector_conservative])
+
+        self._create_mapper(mapper_settings)
+
+        self._execute_constant_value_test()
+
+        self._execute_non_constant_value_test(results)
+
+        # Test Mapping with transpose
         self._execute_non_constant_value_test(results_conservative, True)
 
     def __CheckValuesSum(self, mp1, mp2, var1, var2, value_is_historical=True):
@@ -288,9 +303,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             else:
                 val_1 = KM.VariableUtils().SumHistoricalNodeVectorVariable(var1, mp1, 0)
                 val_2 = KM.VariableUtils().SumHistoricalNodeVectorVariable(var2, mp2, 0)
-                self.assertAlmostEqual(val_1[0], val_2[0])
-                self.assertAlmostEqual(val_1[1], val_2[1])
-                self.assertAlmostEqual(val_1[2], val_2[2])
+                self.assertVectorAlmostEqual(val_1, val_2)
         else:
             if var_type == "Double":
                 val_1 = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(var1, mp1)
@@ -299,9 +312,7 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
             else:
                 val_1 = KM.VariableUtils().SumNonHistoricalNodeVectorVariable(var1, mp1)
                 val_2 = KM.VariableUtils().SumNonHistoricalNodeVectorVariable(var2, mp2)
-                self.assertAlmostEqual(val_1[0], val_2[0])
-                self.assertAlmostEqual(val_1[1], val_2[1])
-                self.assertAlmostEqual(val_1[2], val_2[2])
+                self.assertVectorAlmostEqual(val_1, val_2)
 
 
 if __name__ == '__main__':

@@ -152,41 +152,6 @@ void WaveElement<TNumNodes>::CalculateOnIntegrationPoints(
 
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::Calculate(
-    const Variable<array_1d<double,3>>& rVariable,
-    array_1d<double,3>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == FORCE)
-    {
-        rOutput = ZeroVector();
-        const array_1d<double,3>& gravity = -rCurrentProcessInfo[GRAVITY];
-        const double density = this->GetProperties()[DENSITY];
-        const auto& r_geometry = this->GetGeometry();
-
-        // The nodal data
-        array_1d<double,TNumNodes> nodal_h;
-        for (std::size_t i = 0; i < TNumNodes; ++i) {
-            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
-        }
-
-        // The geometry data
-        Vector weights;
-        Matrix N_container;
-        ShapeFunctionsGradientsType DN_DX_container;
-        CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
-
-        // Integration over the geometry
-        for (std::size_t g = 0; g < weights.size(); ++g) {
-            const array_1d<double,TNumNodes> N = row(N_container, g);
-            const double h = inner_prod(nodal_h, N);
-            rOutput += density * gravity * h * weights[g];
-        }
-    }
-}
-
-
-template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
 }
@@ -362,7 +327,7 @@ double WaveElement<TNumNodes>::ShapeFunctionProduct(
 
 
 template<std::size_t TNumNodes>
-const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
+array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
     const array_1d<array_1d<double,3>,TNumNodes>& rV,
     const array_1d<double,TNumNodes>& rN)
 {
@@ -376,7 +341,7 @@ const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
 
 
 template<std::size_t TNumNodes>
-const double WaveElement<TNumNodes>::VectorProduct(
+double WaveElement<TNumNodes>::VectorProduct(
     const array_1d<array_1d<double,3>,TNumNodes>& rV,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
@@ -709,6 +674,41 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
+}
+
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::Calculate(
+    const Variable<array_1d<double,3>>& rVariable,
+    array_1d<double,3>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE)
+    {
+        rOutput = ZeroVector(3);
+        const array_1d<double,3>& gravity = -rCurrentProcessInfo[GRAVITY];
+        const double density = this->GetProperties()[DENSITY];
+        const auto& r_geometry = this->GetGeometry();
+
+        // The nodal data
+        array_1d<double,TNumNodes> nodal_h;
+        for (std::size_t i = 0; i < TNumNodes; ++i) {
+            nodal_h[i] = r_geometry[i].FastGetSolutionStepValue(HEIGHT);
+        }
+
+        // The geometry data
+        Vector weights;
+        Matrix N_container;
+        ShapeFunctionsGradientsType DN_DX_container;
+        CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
+
+        // Integration over the geometry
+        for (std::size_t g = 0; g < weights.size(); ++g) {
+            const array_1d<double,TNumNodes> N = row(N_container, g);
+            const double h = inner_prod(nodal_h, N);
+            rOutput += density * gravity * h * weights[g];
+        }
+    }
 }
 
 
