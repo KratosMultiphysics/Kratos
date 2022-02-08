@@ -292,7 +292,7 @@ def _ReplaceIndices(language, expression):
 
     return expression
 
-def OutputScalar(scalar_expression, name, language, indentation_level=3, replace_indices=True, assignment_op="="):
+def OutputScalar(scalar_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
     """ This function generates code to assign to a (pre-declared) scalar
 
     Keyword arguments:
@@ -317,7 +317,7 @@ def OutputScalar(scalar_expression, name, language, indentation_level=3, replace
 
     return outstring
 
-def OutputVector(vector_expression, name, language="python", indentation_level=3, replace_indices=True, assignment_op="="):
+def OutputVector(vector_expression, name, language="python", indentation_level=0, replace_indices=True, assignment_op="="):
     """ This function generates code to fill a (pre-declared) vector
 
     Keyword arguments:
@@ -345,7 +345,7 @@ def OutputVector(vector_expression, name, language="python", indentation_level=3
     return outstring
 
 
-def OutputMatrix(matrix_expression, name, language, indentation_level=3, replace_indices=True, assignment_op="="):
+def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
     """ This function generates code to fill a (pre-declared) matrix
 
     Keyword arguments:
@@ -393,7 +393,7 @@ def OutputSymbolicVariable(expression, language="python", replace_indices=True):
 
     return outstring
 
-def OutputSymbolicVariableDeclaration(expression, language, name, indentation_level=3, replace_indices=True):
+def OutputSymbolicVariableDeclaration(expression, language, name, indentation_level=0, replace_indices=True):
     """ This function generates code to declare and assign an expression, such as:
     ```C++
         const double variable = expression;
@@ -449,7 +449,7 @@ def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizatio
     return A_out
 
 
-def OutputMatrix_CollectingFactors(A, name, language, indentation_level=3, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
+def OutputMatrix_CollectingFactors(A, name, language, indentation_level=0, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
     """ This method collects the constants of the replacement for matrices
 
     Keyword arguments:
@@ -468,7 +468,7 @@ def OutputMatrix_CollectingFactors(A, name, language, indentation_level=3, max_i
     return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputMatrix)
 
 
-def OutputVector_CollectingFactors(A, name, language, indentation_level=3, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
+def OutputVector_CollectingFactors(A, name, language, indentation_level=0, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
     """ This method collects the constants of the replacement for vectors
 
     Keyword arguments:
@@ -488,7 +488,7 @@ def OutputVector_CollectingFactors(A, name, language, indentation_level=3, max_i
     return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputVector)
 
 
-def OutputScalar_CollectingFactors(A, name, language, indentation_level=3, optimizations='basic', replace_indices=True, assignment_op="="):
+def OutputScalar_CollectingFactors(A, name, language, indentation_level=0, optimizations='basic', replace_indices=True, assignment_op="="):
     """ This method collects the constants of the replacement for vectors
 
     Keyword arguments:
