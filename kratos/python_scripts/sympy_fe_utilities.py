@@ -292,22 +292,22 @@ def _ReplaceIndices(language, expression):
 
     return expression
 
-def OutputScalar(scalar_expression, name, language, initial_tabs=3, replace_indices=True, assignment_op="="):
+def OutputScalar(scalar_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
     """ This function generates code to assign to a (pre-declared) scalar
 
     Keyword arguments:
-    scalar_expression -- A scalar
-    name -- The name of the variables
-    language -- The language of output
-    initial_tabs -- The number of tabulations considered
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - scalar_expression -- A scalar
+    - name -- The name of the variables
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
 
-    prefix = _Indentation(initial_tabs)
+    prefix = _Indentation(indentation_level)
     suffix = _Suffix(language)
 
-    fmt = prefix + "{var}{eq}{expr}" + suffix
+    fmt = prefix + "{var}{op}{expr}" + suffix
 
     expression = _CodeGen(language, scalar_expression)
     outstring = fmt.format(var=name, op=assignment_op, expr=expression)
@@ -317,18 +317,18 @@ def OutputScalar(scalar_expression, name, language, initial_tabs=3, replace_indi
 
     return outstring
 
-def OutputVector(vector_expression, name, language="python", initial_tabs=3, replace_indices=True, assignment_op="="):
+def OutputVector(vector_expression, name, language="python", indentation_level=0, replace_indices=True, assignment_op="="):
     """ This function generates code to fill a (pre-declared) vector
 
     Keyword arguments:
-    rhs -- The RHS vector
-    name -- The name of the variables
-    language -- The language of output
-    initial_tabs -- The number of tabulations considered
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - rhs -- The RHS vector
+    - name -- The name of the variables
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
-    prefix = _Indentation(initial_tabs)
+    prefix = _Indentation(indentation_level)
     suffix = _Suffix(language)
     fmt = prefix \
           + ("{var}[{i}]{op}{expr}" if language=="python" else "{var}({i}){op}{expr}") \
@@ -345,16 +345,16 @@ def OutputVector(vector_expression, name, language="python", initial_tabs=3, rep
     return outstring
 
 
-def OutputMatrix(matrix_expression, name, language, initial_tabs=3, replace_indices=True, assignment_op="="):
+def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
     """ This function generates code to fill a (pre-declared) matrix
 
     Keyword arguments:
-    matrix_expression -- The matrix
-    name -- The name of the variables
-    language -- The language of output
-    initial_tabs -- The number of tabulations considered
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - matrix_expression -- The matrix
+    - name -- The name of the variables
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - replace_indices -- Set to `True` to replace `matrix[i,j]` with `matrix_i_j` (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
 
     prefix = _Indentation(indentation_level)
@@ -379,11 +379,11 @@ def OutputSymbolicVariable(expression, language="python", replace_indices=True):
     """ This function generates code from an expression
 
     Keyword arguments:
-    expression -- The expression to geneate code from
-    language -- The language of output
-    initial_tabs -- The number of tabulations considered
-    max_index -- The maximum index
-    replace_indices -- If the indixes must be replaced
+    - expression -- The expression to geneate code from
+    - language -- The language of output
+    - indentation_level -- The number of tabulations considered
+    - max_index -- The maximum index
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
     """
 
     outstring = _CodeGen(language, expression) + _Suffix(language)
@@ -393,7 +393,7 @@ def OutputSymbolicVariable(expression, language="python", replace_indices=True):
 
     return outstring
 
-def OutputSymbolicVariableDeclaration(expression, language, name, initial_tabs=3, replace_indices=True):
+def OutputSymbolicVariableDeclaration(expression, name, language, indentation_level=0, replace_indices=True):
     """ This function generates code to declare and assign an expression, such as:
     ```C++
         const double variable = expression;
@@ -401,15 +401,15 @@ def OutputSymbolicVariableDeclaration(expression, language, name, initial_tabs=3
     ```
 
     Keyword arguments:
-    expression -- The variable to define symbolic
-    language -- The language of output
-    name -- The name of the variables
-    initial_tabs -- The number of tabulations considered
-    max_index -- DEPRECATED The maximum index
-    replace_indices -- If the indixes must be replaced
+    - expression -- The variable to define symbolic
+    - language -- The language of output
+    - name -- The name of the variables
+    - indentation_level -- The number of tabulations considered
+    - max_index -- DEPRECATED The maximum index
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
     """
 
-    prefix = _Indentation(initial_tabs)
+    prefix = _Indentation(indentation_level)
     value = _CodeGen(language, expression)
     expr = _VariableDeclaration(language, name, value)
     suffix = _Suffix(language)
@@ -421,7 +421,7 @@ def OutputSymbolicVariableDeclaration(expression, language, name, initial_tabs=3
 
     return outstring
 
-def _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, output_func):
+def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, output_func):
     """ This method collects the constants of the replacement for matrices, vectors and scalars
 
     Keyword arguments:
@@ -443,9 +443,9 @@ def _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, r
     for factor in A_factors:
         varname = str(factor[0])
         value = factor[1]
-        Acoefficient_str += OutputSymbolicVariableDeclaration(value, language, varname, initial_tabs, None, replace_indices)
+        Acoefficient_str += OutputSymbolicVariableDeclaration(value, varname, language, indentation_level, replace_indices)
 
-    A_out = Acoefficient_str + output_func(A, name, language, initial_tabs, replace_indices, assignment_op)
+    A_out = Acoefficient_str + output_func(A, name, language, indentation_level, replace_indices, assignment_op)
     return A_out
 
 
@@ -485,20 +485,20 @@ def OutputVector_CollectingFactors(A, name, language, indentation_level=0, max_i
     if max_index is not None:
         print("Warning: max_index parameter is deprecated in OutputVector_CollectingFactors")
 
-    return _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, OutputVector)
+    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputVector)
 
 
-def OutputScalar_CollectingFactors(A, name, language, initial_tabs=3, optimizations='basic', replace_indices=True, assignment_op="="):
+def OutputScalar_CollectingFactors(A, name, language, indentation_level=0, optimizations='basic', replace_indices=True, assignment_op="="):
     """ This method collects the constants of the replacement for vectors
 
     Keyword arguments:
-    A -- The  factors
-    name -- The name of the constant
-    language -- The language of replacement
-    initial_tabs -- The number of initial tabulations
-    optimizations -- The level of optimizations
-    replace_indices -- If the indixes must be replaced
-    assignment_op -- The assignment operation
+    - A -- The  factors
+    - name -- The name of the constant
+    - language -- The language of replacement
+    - indentation_level -- The depth of the indentation (4 spaces per level)
+    - optimizations -- The level of optimizations
+    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - assignment_op -- The assignment operation
     """
 
-    return _OutputX_CollectionFactors(A, name, language, initial_tabs, optimizations, replace_indices, assignment_op, OutputScalar)
+    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputScalar)
