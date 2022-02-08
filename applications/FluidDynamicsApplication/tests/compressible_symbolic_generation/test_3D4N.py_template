@@ -121,15 +121,15 @@ class SubTestSuite:
         self.data.c_v = 722.14
         self.data.h = 2.0
 
-    def test_substitute_rho_proj_2D(self):
+    def test_substitute_rho_proj_3D(self):
         N = self.N
         DN_DX = self.DN_DX
         data = self.data
 
         rho_proj = KratosMultiphysics.Vector(self.num_nodes)
 
-        #substitute_rho_proj_2D:
-        //substitute_rho_proj_2D
+        #substitute_rho_proj_3D:
+        //substitute_rho_proj_3D
 
         expected = KratosMultiphysics.Vector(self.num_nodes)
         expected[0] = -77.951166666666665606
@@ -140,15 +140,15 @@ class SubTestSuite:
         return (rho_proj, expected)
 
 
-    def test_substitute_mom_proj_2D(self):
+    def test_substitute_mom_proj_3D(self):
         N = self.N
         DN_DX = self.DN_DX
         data = self.data
 
         mom_proj = KratosMultiphysics.Vector(self.dim * self.num_nodes)
 
-        #substitute_mom_proj_2D:
-        //substitute_mom_proj_2D
+        #substitute_mom_proj_3D:
+        //substitute_mom_proj_3D
 
         expected = KratosMultiphysics.Vector(self.dim * self.num_nodes)
         expected[0]  = -38199.026727399781521
@@ -166,15 +166,15 @@ class SubTestSuite:
 
         return (mom_proj, expected)
 
-    def test_substitute_tot_ener_proj_2D(self):
+    def test_substitute_tot_ener_proj_3D(self):
         N = self.N
         DN_DX = self.DN_DX
         data = self.data
 
         tot_ener_proj = KratosMultiphysics.Vector(self.num_nodes)
 
-        #substitute_tot_ener_proj_2D:
-        //substitute_tot_ener_proj_2D
+        #substitute_tot_ener_proj_3D:
+        //substitute_tot_ener_proj_3D
 
         expected = KratosMultiphysics.Vector(self.num_nodes)
         expected[0] = 650.34404563661087195
@@ -185,7 +185,7 @@ class SubTestSuite:
         return (tot_ener_proj, expected)
 
 
-    def test_substitute_rhs_2D_OSS(self):
+    def test_substitute_rhs_3D_OSS(self):
         N = self.N
         DN_DX = self.DN_DX
         data = self.data
@@ -196,8 +196,8 @@ class SubTestSuite:
         stab_c2 = 2
         stab_c3 = 1
 
-        #substitute_rhs_2D_OSS:
-        //substitute_rhs_2D_OSS
+        #substitute_rhs_3D_OSS:
+        //substitute_rhs_3D_OSS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
         expected[0]  = 129586.20119766362768
@@ -223,7 +223,7 @@ class SubTestSuite:
 
         return (rRightHandSideBoundedVector, expected)
 
-    def test_substitute_rhs_2D_ASGS(self):
+    def test_substitute_rhs_3D_ASGS(self):
         N = self.N
         DN_DX = self.DN_DX
         data = self.data
@@ -234,8 +234,8 @@ class SubTestSuite:
         stab_c2 = 2
         stab_c3 = 1
 
-        #substitute_rhs_2D_ASGS:
-        //substitute_rhs_2D_ASGS
+        #substitute_rhs_3D_ASGS:
+        //substitute_rhs_3D_ASGS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
         expected[0]  = 129586.20119766362768
