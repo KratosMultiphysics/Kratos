@@ -111,7 +111,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         sub_testsuite = self._ImportSubTestSuite(generated_file)
         self._RunSubTestSuite(sub_testsuite, print_results)
 
-    def test_SymbolicTrinagle(self):
+    def test_SymbolicTriangle(self):
         args = {
             "regenerate": True,
             "cleanup": True,
