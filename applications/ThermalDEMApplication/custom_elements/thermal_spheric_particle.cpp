@@ -108,7 +108,7 @@ namespace Kratos
     const int freq = r_process_info[THERMAL_FREQUENCY];
     mIsTimeToSolve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
 
-    // Number of steps passed since last thermal evaluation
+    // Number of steps passed between thermal evaluation steps
     mNumStepsEval = (r_process_info[TIME_STEPS] == 1) ? 1 : r_process_info[THERMAL_FREQUENCY];
 
     // Save pre-step temperature
