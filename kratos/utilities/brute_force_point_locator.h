@@ -99,6 +99,21 @@ public:
                        const Globals::Configuration configuration = Globals::Configuration::Initial,
                        const double LocalCoordTol = 1e-6) const;
 
+    /**
+     * @brief This function finds an object based on a location
+     * @param rObjects the objects to search
+     * @param rObjectType type of the object => "Element"/"Condition"
+     * @param rThePoint the location to search
+     * @param rObjectId Id of the found condition. -1 if no object was found
+     * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param configuration search the Initial or Current configuration
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
+     */
+    template<typename TObjectType>
+    void FindObject(const TObjectType& rObjects, const std::string& rObjectType,
+                    const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues,
+                    const Globals::Configuration configuration, const double LocalCoordTol) const;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -128,21 +143,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This function finds an object based on a location
-     * @param rObjects the objects to search
-     * @param rObjectType type of the object => "Element"/"Condition"
-     * @param rThePoint the location to search
-     * @param rObjectId Id of the found condition. -1 if no object was found
-     * @param rShapeFunctionValues vector containing the shape-function values for the given point
-     * @param configuration search the Initial or Current configuration
-     * @param LocalCoordTol tolerance local-coordinates for IsInside
-     */
-    template<typename TObjectType>
-    void FindObject(const TObjectType& rObjects, const std::string& rObjectType,
-                    const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues,
-                    const Globals::Configuration configuration, const double LocalCoordTol) const;
 
     /**
      * @brief This function performs some checks after the search
