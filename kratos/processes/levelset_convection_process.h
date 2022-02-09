@@ -170,7 +170,6 @@ public:
 
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
-        KRATOS_WATCH(n_substep)
 
         auto& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
 
