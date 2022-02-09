@@ -16,9 +16,9 @@
 // System includes
 
 // External includes
+#include "custom_strategies/strategies/explicit_solver_strategy.h"
 
 // Project includes
-#include "custom_strategies/strategies/explicit_solver_strategy.h"
 #include "custom_elements/thermal_spheric_particle.h"
 
 namespace Kratos

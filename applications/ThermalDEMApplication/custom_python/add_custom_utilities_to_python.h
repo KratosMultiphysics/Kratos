@@ -14,13 +14,13 @@
 #define KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED
 
 // System includes
-
-// External includes
 #include <pybind11/pybind11.h>
 
-// Project includes
-#include "includes/define_python.h"
+// External includes
 #include "includes/define.h"
+#include "includes/define_python.h"
+
+// Project includes
 
 namespace Kratos
 {

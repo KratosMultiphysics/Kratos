@@ -16,11 +16,17 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <limits>
+
+// External includes
+#include "includes/define.h"
+#include "utilities/openmp_utils.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_elements/spheric_particle.h"
 
 // Project includes
-#include "includes/define.h"
 #include "thermal_dem_application_variables.h"
-#include "custom_elements/spheric_particle.h"
 
 namespace Kratos
 {

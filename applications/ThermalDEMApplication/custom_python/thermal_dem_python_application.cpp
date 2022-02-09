@@ -16,10 +16,10 @@
 #include <pybind11/pybind11.h>
 
 // External includes
+#include "includes/define.h"
+#include "includes/define_python.h"
 
 // Project includes
-#include "includes/define_python.h"
-#include "includes/define.h"
 #include "thermal_dem_application.h"
 #include "thermal_dem_application_variables.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"

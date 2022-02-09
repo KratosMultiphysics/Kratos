@@ -18,15 +18,11 @@
 */
 
 // System includes
-#include <string>
-#include <iostream>
-#include <limits>
+
+// External includes
 
 // Project includes
 #include "thermal_spheric_particle.h"
-#include "custom_utilities/GeometryFunctions.h"
-#include "custom_utilities/AuxiliaryFunctions.h"
-#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
