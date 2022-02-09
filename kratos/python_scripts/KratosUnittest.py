@@ -83,7 +83,7 @@ class TestCase(TestCase):
             def __str__(self):
                 err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(self.mismatch_idx)
                 err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
-                if self.aux_message is not None:
+                if self.aux_message:
                     err_msg += "\n{}".format(self.aux_message)
                 return err_msg
 
