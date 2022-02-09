@@ -438,7 +438,7 @@ def OutputSymbolicVariableDeclaration(expression, name, language, indentation_le
 
     return outstring
 
-def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, output_func):
+def _AuxiliaryOutputCollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, output_func):
     """
     This method collects the constants of the replacement for matrices, vectors and scalars.
 
@@ -483,7 +483,7 @@ def OutputMatrix_CollectingFactors(A, name, language, indentation_level=0, max_i
     if max_index is not None:
         print("Warning: max_index parameter is deprecated in OutputMatrix_CollectingFactors")
 
-    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputMatrix)
+    return _AuxiliaryOutputCollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputMatrix)
 
 
 def OutputVector_CollectingFactors(A, name, language, indentation_level=0, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
@@ -503,7 +503,7 @@ def OutputVector_CollectingFactors(A, name, language, indentation_level=0, max_i
     if max_index is not None:
         print("Warning: max_index parameter is deprecated in OutputVector_CollectingFactors")
 
-    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputVector)
+    return _AuxiliaryOutputCollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputVector)
 
 
 def OutputScalar_CollectingFactors(A, name, language, indentation_level=0, optimizations='basic', replace_indices=True, assignment_op="="):
@@ -519,4 +519,4 @@ def OutputScalar_CollectingFactors(A, name, language, indentation_level=0, optim
     - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
     - assignment_op -- The assignment operation
     """
-    return _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputScalar)
+    return _AuxiliaryOutputCollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, OutputScalar)
