@@ -245,7 +245,7 @@ class RestartUtility:
         return file_name_pattern
 
     def _GetSerializerFlags(self):
-        return KratosMultiphysics.Flags()
+        return KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
 
     #### Private functions ####
 
