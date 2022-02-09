@@ -7,6 +7,8 @@ def Create(*args):
     return DistributePointValuesOperation(*args)
 
 class DistributePointValuesOperation(CoSimulationCouplingOperation):
+    """This operation converts concentrated nodal values (such as nodal loads) into distributed quantities (such as tractions)
+    """
 
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         super().__init__(settings, process_info, data_communicator)
