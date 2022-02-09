@@ -71,15 +71,12 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
             try:
                 result, reference = getattr(sub_testsuite, testname)()
             except Exception as e:
-                raise RuntimeError("Error in test " + testname) from e
+                raise RuntimeError("Error in sub-test " + testname) from e
 
             if print_results:
                 print(result)
 
-            try:
-                self.assertVectorAlmostEqual(result, reference)
-            except AssertionError as e:
-                raise AssertionError("AssertionError in " + testname) from e
+            self.assertVectorAlmostEqual(result, reference, msg="Failure in sub-test " + testname)
 
     def _RunTest(self, **kwargs):
         """
