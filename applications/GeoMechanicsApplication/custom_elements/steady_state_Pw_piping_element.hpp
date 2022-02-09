@@ -94,6 +94,10 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    double CalculateEquilibriumPipeHeight(const GeometryType& Geom, const PropertiesType& Prop);
+
+    //PipingElementVariables PipingVariables;
+
 
 protected:
     struct PipingElementVariables
@@ -103,22 +107,12 @@ protected:
         double eta;
         double theta;
     };
-
-    double CalculateEquilibriumPipeHeight(PipingElementVariables& rVariables, const GeometryType geom);
-
-
+    
      void CalculateAll( MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector,
                         const ProcessInfo& CurrentProcessInfo,
                         const bool CalculateStiffnessMatrixFlag,
                         const bool CalculateResidualVectorFlag) override;
-
-    // void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-    //     InterfaceElementVariables& rVariables) override;
-
-    // void CalculateAndAddRHS(VectorType& rRightHandSideVector,
-    //     InterfaceElementVariables& rVariables,
-    //                         unsigned int GPoint) override;
     
     void InitializeElementVariables(PipingElementVariables& rVariables,
                                 const GeometryType& Geom,
@@ -127,7 +121,7 @@ protected:
 
     void CalculateLength(const GeometryType& Geom);
 
-    double CalculateWaterPressureGradient(InterfaceElementVariables& rVariables);
+    double CalculateWaterPressureGradient(const GeometryType& Geom);
 
     double Length;
     double gravity;

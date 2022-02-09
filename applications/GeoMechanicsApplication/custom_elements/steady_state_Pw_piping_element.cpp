@@ -57,9 +57,12 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
         // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::Initialize()") << std::endl;
 
         SteadyStatePwInterfaceElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    //const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     this->CalculateLength(Geom);
-    //this->gravity = norm_2(rVariables.InterfaceVariables.VolumeAcceleration);
+
+    this->Set(ACTIVE, false);
+
     KRATOS_CATCH("");
 }
 
@@ -83,7 +86,6 @@ void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
 template< >
 void SteadyStatePwPipingElement<3, 6>::CalculateLength(const GeometryType& Geom)
 {
-
     KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
 }
 template< >
@@ -132,7 +134,7 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
     // Perhaps a new parameter to get join width and not minimum joint width
     Variables.JointWidth = Prop[MINIMUM_JOINT_WIDTH];
 
-    double pipe_height =  this->CalculateEquilibriumPipeHeight(PipingVariables, Geom);
+    double eq_pipe_height =  this->CalculateEquilibriumPipeHeight(Geom, Prop);
 
     //Auxiliary variables
     array_1d<double,TDim> RelDispVector;
@@ -190,50 +192,67 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
 }
 
 template< >
-double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(InterfaceElementVariables& rVariables)
+double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const GeometryType& Geom)
 {
-    return abs(rVariables.PressureVector[1] - rVariables.PressureVector[0]) / this->Length;
+    return abs(Geom[1].FastGetSolutionStepValue(WATER_PRESSURE) - Geom[0].FastGetSolutionStepValue(WATER_PRESSURE)) / this->Length;
 }
 template< >
-double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(InterfaceElementVariables& rVariables)
+double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const GeometryType& Geom)
 {
+    KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
     return 0;
 }
 template< >
-double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(InterfaceElementVariables& rVariables)
+double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const GeometryType& rVariables)
 {
+    KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
     return 0;
 }
 
 
+/// <summary>
+/// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
+/// </summary>
+/// <param name="rVariables"></param>
+/// <param name="Geom"></param>
+/// <returns></returns>
 template< unsigned int TDim, unsigned int TNumNodes >
 double SteadyStatePwPipingElement<TDim,TNumNodes>::
-    CalculateEquilibriumPipeHeight(PipingElementVariables& rVariables, const GeometryType Geom)
+    CalculateEquilibriumPipeHeight(const GeometryType& Geom, const PropertiesType& Prop)
 {
 
     // todo add modelFactor input and calculate slope of pipe
     const double modelFactor = 1;
     const double pipeSlope = 0;
-    const double dhdx = 1;
+    const double d70 = Prop[PIPE_D_70];
+    const double eta = Prop[PIPE_ETA];
+    const double theta = Prop[PIPE_THETA];
+    const double SolidDensity = Prop[DENSITY_SOLID];
+    const double FluidDensity = Prop[DENSITY_WATER];
  
-
-    double dpdx = CalculateWaterPressureGradient(rVariables.InterfaceVariables);
+    // calculate pressure gradient over element
+    double dpdx = CalculateWaterPressureGradient(Geom);
     
+    // return infinite when dpdx is 0
     if (dpdx < DBL_EPSILON)
     { 
         return 1e10;
     }
-    //noalias(NodeVolumeAcceleration) = rGeom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
-    //const double g = norm_2(NodeVolumeAcceleration);
 
-    array_1d<double, 3> gravity_array = rVariables.InterfaceVariables.VolumeAcceleration;
+    // gravity is taken from first node
+    array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
-    //double length = geom.Length();
-    return modelFactor * M_PI / 3.0 * rVariables.d70  * (rVariables.InterfaceVariables.SolidDensity - rVariables.InterfaceVariables.FluidDensity) * gravity * rVariables.eta  * sin((rVariables.theta  + pipeSlope) * M_PI / 180.0) / cos(rVariables.theta * M_PI / 180.0) / dpdx;
+    return modelFactor * M_PI / 3.0 * d70 * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdx;
 
 }
 
-
+/// <summary>
+/// Initialises interface element variables and piping specific parameters
+/// </summary>
+/// <param name="rVariables"></param>
+/// <param name="Geom"></param>
+/// <param name="Prop"></param>
+/// <param name="CurrentProcessInfo"></param>
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyStatePwPipingElement<TDim,TNumNodes>::
     InitializeElementVariables( PipingElementVariables& rVariables,
