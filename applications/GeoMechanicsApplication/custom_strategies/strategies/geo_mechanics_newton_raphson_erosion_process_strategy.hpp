@@ -7,8 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi
+//  Main authors:    Jonathan Nuttall,
+//                   Aron Noordam
 //
 
 #if !defined(KRATOS_GEO_MECHANICS_NEWTON_RAPHSON_EROSION_PROCESS_STRATEGY)
@@ -21,10 +21,23 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
+#include "custom_elements/steady_state_Pw_piping_element.hpp"
+
+
+#include "boost/range/adaptor/filtered.hpp"
 
 namespace Kratos
 {
 
+bool isOpen(Element element) {
+    if (element.IsDefined(ACTIVE))
+    {
+        return element.Is(ACTIVE);
+    }
+    else
+        return true;
+}
+	
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicsNewtonRaphsonErosionProcessStrategy :
     public GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -76,46 +89,92 @@ public:
 
     ///Destructor
     ~GeoMechanicsNewtonRaphsonErosionProcessStrategy() override {}
-
-	void Recalculate()
-    {
-        GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
-        GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
-        GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
-    }
+	
 
     void FinalizeSolutionStep() override
 	{
-        GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+    	KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
     	
-        KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
-
-        int pipeIter = 0;
+        int PipeIter = 0;
         bool Equilibrium = false;
-    	// Implement Piping Loop (non-lin picard iteration)
-        while (pipeIter < mPipingIterations && !Equilibrium)
-        {
-            // Sellmeijer Piping Method 
-            Equilibrium = true;
 
-        	Recalculate();
-        	
+    	auto PipeElements = GetPipingElements();
+
+        // Open tip element of pipe (activate next pipe element)
+        PipeElements.at(0).Set(ACTIVE, true);
+    	
+    	// Implement Piping Loop (non-lin picard iteration)
+    	while (PipeIter < mPipingIterations && !Equilibrium)
+        {
+
+            // Update the pipe_height by the pipe increment
+    		
+    		// Sellmeijer Piping Method 
+            Equilibrium = true;
+    		
             // Loop over open pipe elements
-            pipeIter += 1;
+            auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
+            KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
+			
+    		for (auto OpenPipeElement : OpenPipeElements)
+            {
+				// For all open pipe elements:
+                //	if pipe_element_height > critical_height_element:
+                //      Equilibrium = false // Loop again
+                //      update the pipe_height by the pipe increment
+
+            	KRATOS_INFO("PipingLoop") << "Pipe Element: " << OpenPipeElement.Id() << " = " << OpenPipeElement.Is(ACTIVE) << std::endl;
+    			
+
+            }
+    			// JN TODO: For transient analysis reset state to start of solution step ???
+                Recalculate();
+                PipeIter += 1;
+                Equilibrium = false;
+                PipeElements.at(PipeIter).Set(ACTIVE, true);
+            
         }
+
+        GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
         
 	}
+
+   
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
+
+   
   
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
 
+    void Recalculate()
+    {
+        GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
+        GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
+    }
+	
+    //-----------------------------Get Piping Elements--------------------------------------
+
+    std::vector<Kratos::Element> GetPipingElements() {
+        ModelPart& CurrentModelPart = this->GetModelPart();
+        std::vector<SteadyStatePwPipingElement> PipeElements;
+        for (const Element element: CurrentModelPart.Elements())
+        {
+        	if (element.GetProperties().Has(PIPE_D_70))
+            {
+                PipeElements.push_back(element);
+            }
+        }
+
+        KRATOS_INFO("PipingLoop") << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
+        return PipeElements;
+    }
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 

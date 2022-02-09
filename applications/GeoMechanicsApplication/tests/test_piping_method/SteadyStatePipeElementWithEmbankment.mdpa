@@ -499,7 +499,7 @@ Begin Elements SteadyStatePwElement2D3N
   303  2  45 48 38
 End Elements
 
-Begin Elements SteadyStatePwInterfaceElement2D4N
+Begin Elements SteadyStatePwPipingElement2D4N
   210  3  137 145 144 138
   211  3  134 137 138 133
   212  3  124 134 133 125

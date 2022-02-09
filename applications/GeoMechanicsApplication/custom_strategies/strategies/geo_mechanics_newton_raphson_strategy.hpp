@@ -96,6 +96,7 @@ public:
                     "realised_factor": 1.0,
 					
 					"max_piping_iterations": 50,
+
                     "desired_iterations": 4,
                     "max_radius_factor": 20.0,
                     "min_radius_factor": 0.5,
