@@ -83,5 +83,15 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
         ])
         self.assertEqual(code, expected_code)
 
+    def testDefineSymmetricMatrix(self):
+        nrows = 5
+        ncols = 7
+        A = KratosSympy.DefineSymmetricMatrix("A", nrows, ncols)
+
+        square_region = min(nrows, ncols)
+        for i in range(square_region):
+            for j in range(square_region):
+                self.assertEqual(A[i,j], A[j,i])
+
 if __name__ == '__main__':
     KratosUnittest.main()
