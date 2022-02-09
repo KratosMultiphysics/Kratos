@@ -3,16 +3,20 @@ import KratosMultiphysics as KM
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
+def Create(*args):
+    return DistributePointValuesOperation(*args)
+
 class DistributePointValuesOperation(CoSimulationCouplingOperation):
 
-    def __init__(self, settings, solver_wrappers):
-        super(ComputeNormalsOperation, self).__init__(settings)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
+
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
 
-        self.redistribution_iterations = self.settings["redistribution_tolerance"].GetDouble()
-        self.redistribution_tolerance  = self.settings["redistribution_iterations"].GetInt()
+        self.redistribution_iterations = self.settings["redistribution_tolerance"].GetInt()
+        self.redistribution_tolerance  = self.settings["redistribution_iterations"].GetDouble()
 
         if self.interface_data.is_scalar_variable:
             self.intermediate_variable = KM.KratosGlobals.GetVariable(self.settings["intermediate_variable_scalar"].GetString())
@@ -22,8 +26,8 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
     def Execute(self):
         KM.VariableRedistributionUtility.DistributePointValues(
             self.interface_data.GetModelPart(),
-            self.intermediate_variable,
             self.interface_data.variable,
+            self.intermediate_variable,
             self.redistribution_tolerance,
             self.redistribution_iterations)
 
@@ -48,7 +52,7 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
                 raise Exception('Variable "{}" is missing as SolutionStepVariable in ModelPart "{}" of interface data "{}" of solver "{}"!'.format(var.Name(), self.interface_data.model_part_name, self.interface_data.name, self.interface_data.solver_name))
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"                       : "UNSPECIFIED",
             "data_name"                    : "UNSPECIFIED",
@@ -57,6 +61,6 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
             "intermediate_variable_scalar" : "NODAL_PAUX",
             "intermediate_variable_vector" : "NODAL_VAUX"
         }""")
-        this_defaults.AddMissingParameters(super(DistributePointValuesOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 

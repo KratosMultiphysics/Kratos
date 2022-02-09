@@ -1,15 +1,17 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
+def Create(*args):
+    return ConvertDistributedValuesToPoint(*args)
+
 class ConvertDistributedValuesToPoint(CoSimulationCouplingOperation):
 
-    def __init__(self, settings, solver_wrappers):
-        super(ComputeNormalsOperation, self).__init__(settings)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
+
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
@@ -22,8 +24,8 @@ class ConvertDistributedValuesToPoint(CoSimulationCouplingOperation):
     def Execute(self):
         KM.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self.interface_data.GetModelPart(),
-            self.interface_data.variable,
-            self.intermediate_variable)
+            self.intermediate_variable,
+            self.interface_data.variable)
 
     def Check(self):
         # currently the redistribution-utility only works with conditions
@@ -38,13 +40,13 @@ class ConvertDistributedValuesToPoint(CoSimulationCouplingOperation):
             raise Exception('Variable "{}" is missing as SolutionStepVariable in ModelPart "{}" of interface data "{}" of solver "{}"!'.format(var.Name(), self.interface_data.model_part_name, self.interface_data.name, self.interface_data.solver_name))
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"                       : "UNSPECIFIED",
             "data_name"                    : "UNSPECIFIED",
             "intermediate_variable_scalar" : "NODAL_PAUX",
             "intermediate_variable_vector" : "NODAL_VAUX"
         }""")
-        this_defaults.AddMissingParameters(super(DistributePointValuesOperation, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 
