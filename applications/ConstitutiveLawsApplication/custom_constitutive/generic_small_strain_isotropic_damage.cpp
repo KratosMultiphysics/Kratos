@@ -166,6 +166,9 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateTangen
         TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::Secant) {
         rValues.GetConstitutiveMatrix() *= (1.0 - mDamage);
+    }  else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbationV2) {
+        // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
     }
 }
 

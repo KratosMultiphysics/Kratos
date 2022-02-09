@@ -233,6 +233,38 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
+
+    /***********************************************************************************/
+    /***************PRUEVA SET VALUE***************/
+    /***********************************************************************************/
+    /**
+     * @brief Sets the value of a specified variable (integer)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<int>& rThisVariable,
+        const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+     void SetValue(
+        const Variable<double>& rThisVariable,
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+
+    /***********************************************************************************/
+    /***********************************************************************************/
+
     bool Has(const Variable<bool>& rThisVariable) override;
 
     /**

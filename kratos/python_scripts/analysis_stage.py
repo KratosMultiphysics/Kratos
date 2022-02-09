@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -58,7 +59,175 @@ class AnalysisStage(object):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
         """
+        # file1 = open('Results.txt', 'w')
+        # L = ["Displacement      Reaction\n"]
+        # file1.writelines(L)    
+            
+        # file1.close()
+        # while self.KeepAdvancingSolutionLoop():
+        
+        # ##################################################
+        
+        #     # print("*********************************")
+        #     # print("*********************************")
+        #     # print("*********************************")
+        #     displ = 0.0
+        #     reac  = 0.0
+             
+        #     file1 = open('Results.txt', 'a') 
+             
+        #     for node in self._GetSolver().main_model_part.GetSubModelPart("DISPLACEMENT_Displacement_Auto2").Nodes:
+        #         # print("Id-> ", node.Id)
+        #         # print("Displ-> ", node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
+        #         # print("Reaction-> ", node.GetSolutionStepValue(KratosMultiphysics.REACTION))
+        #         displ = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        #         reac += node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+               
+        #     file1.writelines("%.5f      %.2f\n" % (displ,reac))
+        #     # print("Displ-> ", displ)
+        #     # print("Reaction-> ", reac)
+            
+                         
+        #     # for elem in self._GetSolver().main_model_part.Elements:
+        #     #         print(elem.Id)
+        #     # print("*********************************")
+        #     # print("*********************************")
+        #     # print("*********************************")
+                                    
+        #     file1.close()
+                       
+        #     ##################################################
+
+        ################################################## INICIO DE LA PRUEBA .mesh
+        file1 = open('Prueba.post.msh', 'w')
+
+        file1.close()
         while self.KeepAdvancingSolutionLoop():
+            coord_x = 0.0
+            coord_y = 0.0
+            coord_z = 0.0     
+                
+            file1 = open('Prueba.post.msh', 'a') 
+            #file1.writelines("Coordinates\n")  
+        
+            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 0:
+
+                dimension =  self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+                Nnode = len (self._GetSolver().main_model_part.Nodes) 
+
+                                              
+                if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                    file1.writelines("2D\n")
+                    # falta completar con los otros tipos de elementos: Point, Line, Triangle, Quadrilateral, Tetrahedra, Hexahedra, Prism, Pyramid, Sphere, Circle
+
+                if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+                    if Nnode ==4:
+                        file1.writelines("MESH \"Kratos_Hexahedra3D8_Mesh_1\" dimension %d ElemType Tetrahedra Nnode %.0d\n" % (dimension, Nnode))
+                    if Nnode ==8:
+                        file1.writelines("MESH \"Kratos_Hexahedra3D8_Mesh_1\" dimension %d ElemType Hexahedra Nnode %.0d\n" % (dimension, Nnode))
+                
+                        #KRATOS_ERROR_IF(dimension != 2 && dimension !=3) << "Dimension has to be either 2 or 3! Current dimension: " << dimension << std::endl;
+                
+                file1.writelines("Coordinates\n")
+
+            for node in self._GetSolver().main_model_part.Nodes:
+                
+                id = node.Id
+                coord_x = node.X
+                coord_y = node.Y
+                coord_z = node.Z
+                
+                if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 0:
+                    file1.writelines("%.0f %.6f %.6f %.1f\n" % (id, coord_x, coord_y, coord_z))    
+                                             
+            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 10:
+                file1.writelines("End Coordinates\n") 
+                file1.writelines("Elements\n")
+                for elem in self._GetSolver().main_model_part.Elements:
+                    #node_1 = elem.GetGeometry()[0]
+                    elem_1_id = elem.Id
+                    node_1 = elem.GetGeometry()[0].Id
+                    node_2 = elem.GetGeometry()[1].Id
+                    node_3 = elem.GetGeometry()[2].Id
+                    node_4 = elem.GetGeometry()[3].Id
+                    node_5 = elem.GetGeometry()[4].Id
+                    node_6 = elem.GetGeometry()[5].Id
+                    node_7 = elem.GetGeometry()[6].Id
+                    node_8 = elem.GetGeometry()[7].Id
+                    color = 2
+                    
+                file1.writelines("%.0d %.0d %.0d %.0d %.0d %.0d %.0d %.0d %.0d %.0d\n" % (elem_1_id, node_1, node_2,  node_3, node_4, node_5, node_6, node_7, node_8, color))
+                file1.writelines("End Elements\n")
+                                    
+                file1.close()
+          
+        ################################################## FIN DE LA PRUEBA .mesh
+
+            ################################################## INICIO DE LA PRUEBA .res
+                file2 = open('Prueba.post.res', 'w')
+                file2.close()
+            
+                file2 = open('Prueba.post.res', 'a')
+                file2.writelines("GiD Post Results File 1.0\n")
+                if Nnode == 4:
+                    file2.writelines("GaussPoints \"hex8_element_gp\" ElemType Tetrahedra\n")
+                if Nnode == 8:
+                    file2.writelines("GaussPoints \"hex8_element_gp\" ElemType Hexahedra\n")
+                file2.writelines("Number Of Gauss Points: %d\n" % (Nnode))
+                file2.writelines("Natural Coordinates: Internal\n")
+                file2.writelines("End GaussPoints\n")
+                time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+                file2.writelines("Result \"DISPLACEMENT\" \"Kratos\" %.1f Vector OnNodes\n" % (time))
+                file2.writelines("Values\n")
+                            
+                for node in self._GetSolver().main_model_part.Nodes:
+                    id = node.Id
+                    displ_x = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+                    displ_y = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                    displ_z = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z)
+                    #file2.writelines("%d %f %f %f\n" % (id, displ_x, displ_y, displ_z))
+                    file2.writelines("%d %s %s %s\n" % (id, "{0:.4e}".format(displ_x), "{0:.4e}".format(displ_y), "{0:.4e}".format(displ_z)))
+                            
+                file2.writelines("End Values\n")
+                file2.writelines("Result \"REACTION\" \"Kratos\" %.1f Vector OnNodes\n" % (time))
+                file2.writelines("Values\n")
+
+                
+                for node in self._GetSolver().main_model_part.Nodes:
+                    id = node.Id
+                    reac_x = node.GetSolutionStepValue(KratosMultiphysics.REACTION_X)
+                    reac_y = node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y)
+                    reac_z = node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
+                    file2.writelines("%d %s %s %s \n" % (id, "{0:.4e}".format(reac_x), "{0:.4e}".format(reac_y), "{0:.4e}".format(reac_z)))
+                   
+                file2.writelines("End Values\n")
+                #file2.writelines("Result \"VON_MISES_STRESS\" \"Kratos\" %.1f Scalar OnGaussPoints \"hex8_element_gp\"\n" % (time))
+                file2.writelines("Result \"VON_MISES_STRESS//a\" \"Kratos\" %.1f Scalar OnGaussPoints \"hex8_element_gp\"\n" % (time))
+                file2.writelines("Values\n")
+
+                
+                for elem in self._GetSolver().main_model_part.Elements:
+                    elem_id=elem.Id
+                    Von_Mises = elem.CalculateOnIntegrationPoints(StructuralMechanicsApplication.VON_MISES_STRESS, self._GetSolver().GetComputingModelPart().ProcessInfo)
+                    Von_Mises_1 = Von_Mises [0]
+                    Von_Mises_2 = Von_Mises [1]
+                    Von_Mises_3 = Von_Mises [2]
+                    Von_Mises_4 = Von_Mises [3]
+                    Von_Mises_5 = Von_Mises [4]
+                    Von_Mises_6 = Von_Mises [5]
+                    Von_Mises_7 = Von_Mises [6]
+                    Von_Mises_8 = Von_Mises [7]
+                    
+                    file2.writelines("%d %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s \n" % (elem_id, "{0:.4e}".format(Von_Mises_1), "{0:.4e}".format(Von_Mises_2), "{0:.4e}".format(Von_Mises_3), "{0:.4e}".format(Von_Mises_4), "{0:.4e}".format(Von_Mises_5), "{0:.4e}".format(Von_Mises_6), "{0:.4e}".format(Von_Mises_7), "{0:.4e}".format(Von_Mises_8)))
+                                                        
+                file2.writelines("End Values\n")
+                
+                file2.close()
+
+                
+
+            ################################################## FIN DE LA PRUEBA .res
+
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
@@ -66,7 +235,8 @@ class AnalysisStage(object):
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-
+        
+    
     def Initialize(self):
         """This function initializes the AnalysisStage
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop

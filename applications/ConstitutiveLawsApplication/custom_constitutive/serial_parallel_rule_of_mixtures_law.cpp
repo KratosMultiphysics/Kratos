@@ -645,6 +645,45 @@ Matrix& SerialParallelRuleOfMixturesLaw::GetValue(
 }
 
 /***********************************************************************************/
+/***************PRUEVA SET VALUE***************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::SetValue(
+    const Variable<int>& rThisVariable,
+    const int& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // We set the value in all layers
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else {
+        rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // We set the propotional value in all layers
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)){
+        mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else {
+        rValue;
+    }
+
+}
+/***********************************************************************************/
 /***********************************************************************************/
 
 bool SerialParallelRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)

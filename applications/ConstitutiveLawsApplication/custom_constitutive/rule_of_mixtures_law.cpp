@@ -324,7 +324,7 @@ int& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             p_law->GetValue(rThisVariable, rValue);
-            break;
+        break;
         }
     }
 
@@ -347,8 +347,11 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
         double aux_value;
-        p_law->GetValue(rThisVariable, aux_value);
-        rValue += aux_value * factor;
+        //p_law->GetValue(rThisVariable, aux_value);
+        //rValue += aux_value * factor;
+        if (p_law->Has(rThisVariable)) {
+        rValue = p_law->GetValue(rThisVariable, rValue);
+        }
     }
 
     return rValue;
@@ -370,8 +373,12 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
         Vector aux_value;
-        p_law->GetValue(rThisVariable, aux_value);
-        rValue += aux_value * factor;
+        if (p_law->Has(rThisVariable)) {
+            p_law->GetValue(rThisVariable, aux_value);
+            rValue = aux_value;
+        }
+            
+        // rValue += aux_value * factor;
     }
 
     return rValue;
@@ -476,7 +483,10 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     // We set the value in all layers
 
     for (auto& p_law : mConstitutiveLaws) {
-        p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        if (p_law->Has(rThisVariable))
+        {
+            p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+        }
     }
 }
 
@@ -491,11 +501,13 @@ void ParallelRuleOfMixturesLaw<TDim>::SetValue(
     )
 {
     // We set the propotional value in all layers
-    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+    for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) 
+    {
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+        if (p_law->Has(rThisVariable)){
+            p_law->SetValue(rThisVariable, factor * rValue, rCurrentProcessInfo);
+        }
     }
 }
 
