@@ -131,6 +131,10 @@
             "input_filename" : "interpolation_tests/cubeFluid"
         },
 
+        "material_import_settings"    : {
+            "materials_filename" : "interpolation_tests/FluidMaterials.json"
+        },
+
         "formulation" : {
             "element_type" : "vms",
             "dynamic_tau" : 1.0,

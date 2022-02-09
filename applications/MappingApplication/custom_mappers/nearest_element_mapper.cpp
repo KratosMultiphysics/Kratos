@@ -156,9 +156,9 @@ void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int Ec
 
 void NearestElementLocalSystem::SetPairingStatusForPrinting()
 {
-        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
-        }
+    if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+        mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
+    }
 }
 
 }  // namespace Kratos.

@@ -253,7 +253,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       //          no common error is found.
       int Check(const Properties& rMaterialProperties,
                 const GeometryType& rElementGeometry,
-                const ProcessInfo& rCurrentProcessInfo) override;
+                const ProcessInfo& rCurrentProcessInfo) const override;
 
       /**
        * This is to be called at the very beginning of the calculation

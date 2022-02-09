@@ -24,6 +24,10 @@ class WaveSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
 
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        SW.ShallowWaterUtilities().ComputeFreeSurfaceElevation(self.main_model_part)
+
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
@@ -48,9 +52,12 @@ class WaveSolver(ShallowWaterBaseSolver):
 
     def _CreateScheme(self):
         scheme = self.settings["time_integration_scheme"].GetString()
-        order = self.settings["time_integration_order"].GetInt()
         if scheme == "bdf":
-            time_scheme = SW.VelocityHeightResidualBasedBDFScheme(order)
+            scheme_settings = KM.Parameters("""{
+                "solution_variables" : ["VELOCITY","HEIGHT"]
+            }""")
+            scheme_settings.AddValue("integration_order", self.settings["time_integration_order"])
+            time_scheme = SW.ShallowWaterResidualBasedBDFScheme(scheme_settings)
         else:
             time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
         return time_scheme

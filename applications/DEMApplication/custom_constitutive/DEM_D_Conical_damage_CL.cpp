@@ -16,14 +16,8 @@ namespace Kratos {
         return Kratos::make_unique<DEM_D_Conical_damage>();
     }
 
-    void DEM_D_Conical_damage::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Conical_damage to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-        this->Check(pProp);
-    }
-
     void DEM_D_Conical_damage::Check(Properties::Pointer pProp) const {
-        DEMDiscontinuumConstitutiveLaw::Check(pProp);
+        DEM_D_Hertz_viscous_Coulomb::Check(pProp);
         if(!pProp->Has(CONICAL_DAMAGE_CONTACT_RADIUS)) {
             KRATOS_WARNING("DEM")<<std::endl;
             KRATOS_WARNING("DEM")<<"WARNING: Variable CONICAL_DAMAGE_CONTACT_RADIUS should be present in the properties when using DEM_D_Conical_damage. 0.0 value assigned by default."<<std::endl;
