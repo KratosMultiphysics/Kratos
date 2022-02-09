@@ -38,8 +38,9 @@ public:
 
     explicit NearestNeighborInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                  const IndexType SourceLocalSystemIndex,
-                                 const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
+                                 const IndexType SourceRank,
+                                 const bool SaveApproximation)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank, SaveApproximation) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -48,12 +49,14 @@ public:
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
-                                        const IndexType SourceRank) const override
+                                        const IndexType SourceRank,
+                                        const bool SaveApproximation) const override
     {
         return Kratos::make_shared<NearestNeighborInterfaceInfo>(
             rCoordinates,
             SourceLocalSystemIndex,
-            SourceRank);
+            SourceRank,
+            SaveApproximation);
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override

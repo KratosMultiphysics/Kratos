@@ -239,7 +239,7 @@ void InterfaceCommunicator::InitializeSearchIteration(const MapperInterfaceInfoU
     for (const auto& r_local_sys : mrMapperLocalSystems) {
         if (!r_local_sys->IsDoneSearching()) { // Only the local_systems that have not received an InterfaceInfo create a new one
             const auto& r_coords = r_local_sys->Coordinates();
-            r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx, 0)); // dummy-rank of 0
+            r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx, 0, r_local_sys->ComputeApproximation())); // dummy-rank of 0
         }
         ++local_sys_idx;
     }
@@ -451,7 +451,7 @@ void InterfaceCommunicator::ConductLocalSearch()
                 BuiltinTimer proc_approx_timer;
                 // If the search did not result in a "valid" result (e.g. the projection fails)
                 // we try to compute an approximation
-                if (!r_interface_info->GetLocalSearchWasSuccessful()) {
+                if ((!r_interface_info->GetLocalSearchWasSuccessful() && r_interface_info->SaveApproximation()) || mIsLastSearchIteration) {
                     for (IndexType j=0; j<number_of_results; ++j) {
                         r_interface_info->ProcessSearchResultForApproximation(*(rTLS.mNeighborResults[j]));
                     }
@@ -506,7 +506,7 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     // this partition doesn't have a part of the interface!
 
     for (const auto& local_sys : mrMapperLocalSystems) {
-        if (!local_sys->HasInterfaceInfoThatIsNotAnApproximation()) {
+        if (!local_sys->IsDoneSearching()) {
             all_neighbors_found = 1;
             break;
         }

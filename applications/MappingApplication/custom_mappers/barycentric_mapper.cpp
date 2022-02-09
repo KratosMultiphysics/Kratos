@@ -184,8 +184,9 @@ BarycentricInterfaceInfo::BarycentricInterfaceInfo(const BarycentricInterpolatio
 BarycentricInterfaceInfo::BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                     const IndexType SourceLocalSystemIndex,
                                     const IndexType SourceRank,
+                                    const bool SaveApproximation,
                                     const BarycentricInterpolationType InterpolationType)
-    : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank),
+    : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank, SaveApproximation),
       mInterpolationType(InterpolationType),
       mClosestPoints(GetNumPointsApprox(InterpolationType)) {}
 
@@ -196,12 +197,14 @@ MapperInterfaceInfo::Pointer BarycentricInterfaceInfo::Create() const
 
 MapperInterfaceInfo::Pointer BarycentricInterfaceInfo::Create(const CoordinatesArrayType& rCoordinates,
                                     const IndexType SourceLocalSystemIndex,
-                                    const IndexType SourceRank) const
+                                    const IndexType SourceRank,
+                                    const bool SaveApproximation) const
 {
     return Kratos::make_shared<BarycentricInterfaceInfo>(
         rCoordinates,
         SourceLocalSystemIndex,
         SourceRank,
+        SaveApproximation,
         mInterpolationType);
 }
 

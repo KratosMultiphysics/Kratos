@@ -141,6 +141,8 @@ public:
 
     bool GetIsApproximation() const { return mIsApproximation; }
 
+    bool SaveApproximation() const { return mSaveApproximation; }
+
     CoordinatesArrayType& Coordinates()
     {
         return mCoordinates;
@@ -220,6 +222,8 @@ private:
     bool mIsApproximation = false;
 
     bool mLocalSearchWasSuccessful = false; // this is not being serialized since it is not needed after mpi-data-exchange!
+
+    bool mSaveApproximation = false;
 
     ///@}
     ///@name Private  Access

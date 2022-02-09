@@ -128,7 +128,7 @@ protected:
     Parameters mSearchSettings;
     double mSearchRadius = -1.0;
 
-    mIsLastSearchIteration = false;
+    bool mIsLastSearchIteration = false;
 
     int mEchoLevel = 0;
     int mMeshesAreConforming = 0;

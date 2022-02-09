@@ -370,8 +370,9 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
                     r_rank_buffer.push_back(r_coords[0]);
                     r_rank_buffer.push_back(r_coords[1]);
                     r_rank_buffer.push_back(r_coords[2]);
+                    r_rank_buffer.push_back(static_cast<double>(rp_local_sys->ComputeApproximation()));
 
-                    rSendSizes[i_rank] += 4;
+                    rSendSizes[i_rank] += 5;
                 }
             }
         }
@@ -392,9 +393,9 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
     // Loop the ranks and construct the MapperInterfaceInfos
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         const SizeType recv_buffer_size_rank = rRecvBuffer[i_rank].size();
-        KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(recv_buffer_size_rank, 4) == 0) << "Rank " << CommRank
+        KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(recv_buffer_size_rank, 5) == 0) << "Rank " << CommRank
             << " received a wrong buffer-size from rank " << i_rank+1 << "!" << std::endl;
-        const SizeType num_objs = recv_buffer_size_rank / 4; // 1 index and 3 coordinates
+        const SizeType num_objs = recv_buffer_size_rank / 5; // 1 index and 3 coordinates and ComputeApprox
 
         const auto& r_rank_buffer = rRecvBuffer[i_rank];
         auto& r_interface_infos_rank = rMapperInterfaceInfosContainer[i_rank];
@@ -423,7 +424,8 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
             coords[0] = r_rank_buffer[j*4 + 1];
             coords[1] = r_rank_buffer[j*4 + 2];
             coords[2] = r_rank_buffer[j*4 + 3];
-            r_interface_infos_rank[j] = rpRefInterfaceInfo->Create(coords, local_sys_idx, i_rank);
+            const bool compute_approximation = static_cast<bool>(r_rank_buffer[j*4 + 4]+0.1);
+            r_interface_infos_rank[j] = rpRefInterfaceInfo->Create(coords, local_sys_idx, i_rank, compute_approximation);
         }
     }
 }

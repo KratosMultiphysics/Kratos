@@ -40,8 +40,9 @@ public:
     explicit NearestElementInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                 const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank,
+                                const bool SaveApproximation,
                                          const double LocalCoordTol=0.0)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank), mLocalCoordTol(LocalCoordTol) {}
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank, SaveApproximation), mLocalCoordTol(LocalCoordTol) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -50,12 +51,14 @@ public:
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
-                                        const IndexType SourceRank) const override
+                                        const IndexType SourceRank,
+                                        const bool SaveApproximation) const override
     {
         return Kratos::make_shared<NearestElementInterfaceInfo>(
             rCoordinates,
             SourceLocalSystemIndex,
             SourceRank,
+            SaveApproximation,
             mLocalCoordTol);
     }
 

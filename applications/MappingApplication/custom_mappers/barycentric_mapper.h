@@ -42,13 +42,15 @@ public:
     explicit BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                       const IndexType SourceLocalSystemIndex,
                                       const IndexType SourceRank,
+                                      const bool SaveApproximation,
                                       const BarycentricInterpolationType InterpolationType);
 
     MapperInterfaceInfo::Pointer Create() const override;
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                         const IndexType SourceLocalSystemIndex,
-                                        const IndexType SourceRank) const override;
+                                        const IndexType SourceRank,
+                                        const bool SaveApproximation) const override;
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override;
 
