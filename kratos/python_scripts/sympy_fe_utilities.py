@@ -247,7 +247,7 @@ def Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications=False):
 
 # Output functions
 def _Indentation(indentation_level):
-    """Returns the indentation string"""
+    """Returns the indentation string."""
     return "    " * indentation_level
 
 def _CodeGen(language, value):
@@ -257,9 +257,9 @@ def _CodeGen(language, value):
     }[language](value)
 
 def _VariableDeclaration(language, variable_name, variable_expression):
-    """"Returns the variable declaration, without indentation nor suffix
+    """"Returns the variable declaration, without indentation nor suffix.
 
-    The expression must have been turned into code already
+    The expression must have been turned into code already.
     """
     return  {
         "c"     : "const double {name} = {expr}",
@@ -267,15 +267,14 @@ def _VariableDeclaration(language, variable_name, variable_expression):
     }[language].format(name=variable_name, expr=variable_expression)
 
 def _Suffix(language):
-    """Returns the endline suffix"""
+    """Returns the endline suffix."""
     return  {
         "c"     : ";\n",
         "python": "\n"
     }[language]
 
 def _ReplaceIndices(language, expression):
-    """
-    Replaces array access with underscored variable:
+    """Replaces array access with underscored variable.
 
     For matrices: `variable[3,7]` becomes `variable_3_7`
     For vectors:  `variable[3]` becomes `variable_3`
@@ -321,7 +320,7 @@ def OutputScalar(scalar_expression, name, language, indentation_level=0, replace
 
 def OutputVector(vector_expression, name, language="python", indentation_level=0, replace_indices=True, assignment_op="="):
     """
-    This function generates code to fill a (pre-declared) vector
+    This function generates code to fill a (pre-declared) vector.
 
     Keyword arguments:
     - rhs -- The RHS vector
@@ -348,7 +347,7 @@ def OutputVector(vector_expression, name, language="python", indentation_level=0
 
 def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
     """
-    This function generates code to fill a (pre-declared) matrix
+    This function generates code to fill a (pre-declared) matrix.
 
     Keyword arguments:
     - matrix_expression -- The matrix
@@ -377,7 +376,7 @@ def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace
     return outstring
 
 def OutputSymbolicVariable(expression, language="python", replace_indices=True):
-    """ This function generates code from an expression
+    """This function generates code from an expression.
 
     Keyword arguments:
     - expression -- The expression to geneate code from
@@ -424,7 +423,7 @@ def OutputSymbolicVariableDeclaration(expression, name, language, indentation_le
 
 def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizations, replace_indices, assignment_op, output_func):
     """
-    This method collects the constants of the replacement for matrices, vectors and scalars
+    This method collects the constants of the replacement for matrices, vectors and scalars.
 
     Keyword arguments:
     - A -- The  factors
@@ -452,7 +451,7 @@ def _OutputX_CollectionFactors(A, name, language, indentation_level, optimizatio
 
 def OutputMatrix_CollectingFactors(A, name, language, indentation_level=0, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
     """
-    This method collects the constants of the replacement for matrices
+    This method collects the constants of the replacement for matrices.
 
     Keyword arguments:
     - A -- The  factors
@@ -472,7 +471,7 @@ def OutputMatrix_CollectingFactors(A, name, language, indentation_level=0, max_i
 
 def OutputVector_CollectingFactors(A, name, language, indentation_level=0, max_index=None, optimizations='basic', replace_indices=True, assignment_op="="):
     """
-    This method collects the constants of the replacement for vectors
+    This method collects the constants of the replacement for vectors.
 
     Keyword arguments:
     - A -- The  factors
@@ -492,7 +491,7 @@ def OutputVector_CollectingFactors(A, name, language, indentation_level=0, max_i
 
 def OutputScalar_CollectingFactors(A, name, language, indentation_level=0, optimizations='basic', replace_indices=True, assignment_op="="):
     """
-    This method collects the constants of the replacement for vectors
+    This method collects the constants of the replacement for vectors.
 
     Keyword arguments:
     - A -- The  factors
