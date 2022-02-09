@@ -167,6 +167,14 @@ bool BruteForcePointLocator::NodeIsCloseEnough(const Node<3>& rNode,
     return (distance < DistanceThreshold);
 }
 
+template void BruteForcePointLocator::FindObject(const PointerVector<GeometricalObject>&, 
+                                                 const std::string& rObjectName,
+                                                 const Point& rThePoint,
+                                                 int& rObjectId,
+                                                 Vector& rShapeFunctionValues,
+                                                 const Globals::Configuration configuration,
+                                                 const double LocalCoordTol) const;
+
 }  // namespace Kratos.
 
 
