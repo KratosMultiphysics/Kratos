@@ -41,7 +41,7 @@ int SteadyStatePwPipingElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    int ierr = SteadyStatePwInterfaceElement::Check(rCurrentProcessInfo);
+    int ierr = SteadyStatePwInterfaceElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
     // todo check piping parameters
     return ierr;
@@ -122,18 +122,18 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
     Geom.DeterminantOfJacobian(detJContainer,mThisIntegrationMethod);
 
     //Element variables
-    PipingElementVariables PipingVariables;
+    InterfaceElementVariables Variables;
     
-    this->InitializeElementVariables(PipingVariables,
+    this->InitializeElementVariables(Variables,
                                      Geom,
                                      Prop,
                                      CurrentProcessInfo);
-    InterfaceElementVariables Variables = PipingVariables.InterfaceVariables;
+
    // this->CalculateLength(Geom);
     // VG: TODO
     // Perhaps a new parameter to get join width and not minimum joint width
     Variables.JointWidth = Prop[MINIMUM_JOINT_WIDTH];
-
+	
     double eq_pipe_height =  this->CalculateEquilibriumPipeHeight(Geom, Prop);
 
     //Auxiliary variables
@@ -245,30 +245,7 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>::
     return modelFactor * M_PI / 3.0 * d70 * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdx;
 
 }
-
-/// <summary>
-/// Initialises interface element variables and piping specific parameters
-/// </summary>
-/// <param name="rVariables"></param>
-/// <param name="Geom"></param>
-/// <param name="Prop"></param>
-/// <param name="CurrentProcessInfo"></param>
-template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyStatePwPipingElement<TDim,TNumNodes>::
-    InitializeElementVariables( PipingElementVariables& rVariables,
-                                const GeometryType& Geom,
-                                const PropertiesType& Prop,
-                                const ProcessInfo& CurrentProcessInfo )
-{
-    SteadyStatePwInterfaceElement::InitializeElementVariables(rVariables.InterfaceVariables, Geom, Prop, CurrentProcessInfo);
-
-    rVariables.d70                = Prop[PIPE_D_70];
-    rVariables.eta                = Prop[PIPE_ETA];
-    rVariables.theta              = Prop[PIPE_THETA];
-}
     
-
-
 template class SteadyStatePwPipingElement<2,4>;
 template class SteadyStatePwPipingElement<3,6>;
 template class SteadyStatePwPipingElement<3,8>;

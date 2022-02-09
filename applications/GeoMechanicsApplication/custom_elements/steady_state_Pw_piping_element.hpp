@@ -54,7 +54,6 @@ public:
     using BaseType::CalculateRetentionResponse;
 
     typedef typename BaseType::InterfaceElementVariables InterfaceElementVariables;
-    //typedef typename BaseType::PipingElementVariables PipingElementVariables;
     typedef typename BaseType::SFGradAuxVariables SFGradAuxVariables;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,28 +95,13 @@ public:
 
     double CalculateEquilibriumPipeHeight(const GeometryType& Geom, const PropertiesType& Prop);
 
-    //PipingElementVariables PipingVariables;
-
-
 protected:
-    struct PipingElementVariables
-    {
-        InterfaceElementVariables InterfaceVariables;
-        double d70;
-        double eta;
-        double theta;
-    };
     
      void CalculateAll( MatrixType& rLeftHandSideMatrix,
                         VectorType& rRightHandSideVector,
                         const ProcessInfo& CurrentProcessInfo,
                         const bool CalculateStiffnessMatrixFlag,
                         const bool CalculateResidualVectorFlag) override;
-    
-    void InitializeElementVariables(PipingElementVariables& rVariables,
-                                const GeometryType& Geom,
-                                const PropertiesType& Prop,
-                                const ProcessInfo& CurrentProcessInfo);
 
     void CalculateLength(const GeometryType& Geom);
 
