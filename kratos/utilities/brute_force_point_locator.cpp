@@ -52,7 +52,7 @@ int BruteForcePointLocator::FindElement(const Point& rThePoint,
                                         const Globals::Configuration configuration,
                                         const double LocalCoordTol) const
 {
-    int found_element_id = -1; // if no element is found this will be returned
+    int found_element_id; // if no element is found -1 will be returned
     const auto& r_elements = mrModelPart.GetCommunicator().LocalMesh().Elements();
     FindObject(r_elements, "Element",
                 rThePoint, found_element_id,
@@ -67,7 +67,7 @@ int BruteForcePointLocator::FindCondition(const Point& rThePoint,
                                           const Globals::Configuration configuration,
                                           const double LocalCoordTol) const
 {
-    int found_condition_id = -1; // if no condition is found this will be returned
+    int found_condition_id; // if no condition is found -1 will be returned
     const auto& r_conditions = mrModelPart.GetCommunicator().LocalMesh().Conditions();
     FindObject(r_conditions, "Condition",
                 rThePoint, found_condition_id,
@@ -86,6 +86,7 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
                                         const Globals::Configuration configuration,
                                         const double LocalCoordTol) const
 {
+    rObjectId = -1; // if no object is found this will be returned
     int local_object_found = 0;
     array_1d<double, 3> local_coordinates;
 
