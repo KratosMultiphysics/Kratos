@@ -90,6 +90,8 @@ public:
                             GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
@@ -102,7 +104,7 @@ protected:
         double theta;
     };
 
-    double CalculateEquilibriumPipeHeight(PipingElementVariables& rVariables);
+    double CalculateEquilibriumPipeHeight(PipingElementVariables& rVariables, const GeometryType geom);
 
 
      void CalculateAll( MatrixType& rLeftHandSideMatrix,
@@ -123,6 +125,12 @@ protected:
                                 const PropertiesType& Prop,
                                 const ProcessInfo& CurrentProcessInfo);
 
+    void CalculateLength(const GeometryType& Geom);
+
+    double CalculateWaterPressureGradient(InterfaceElementVariables& rVariables);
+
+    double Length;
+    double gravity;
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

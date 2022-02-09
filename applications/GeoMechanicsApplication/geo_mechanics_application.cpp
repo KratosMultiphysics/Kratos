@@ -90,6 +90,11 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSteadyStatePwInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mSteadyStatePwInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
 
+    mSteadyStatePwPipingElement2D4N(0, Element::GeometryType::Pointer(new QuadrilateralInterface2D4 <NodeType >(Element::GeometryType::PointsArrayType(4)))),
+    mSteadyStatePwPipingElement3D6N(0, Element::GeometryType::Pointer(new PrismInterface3D6 <NodeType >(Element::GeometryType::PointsArrayType(6)))),
+    mSteadyStatePwPipingElement3D8N(0, Element::GeometryType::Pointer(new HexahedraInterface3D8 <NodeType >(Element::GeometryType::PointsArrayType(8)))),
+
+
     // small strain elements
     mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
     mUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
@@ -279,6 +284,10 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement2D4N", mSteadyStatePwInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement3D6N", mSteadyStatePwInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement3D8N", mSteadyStatePwInterfaceElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement2D4N", mSteadyStatePwPipingElement2D4N)
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D6N", mSteadyStatePwPipingElement3D6N)
+    KRATOS_REGISTER_ELEMENT("SteadyStatePwPipingElement3D8N", mSteadyStatePwPipingElement3D8N) 
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N )
