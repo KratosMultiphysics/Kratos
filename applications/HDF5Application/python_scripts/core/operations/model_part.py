@@ -369,11 +369,14 @@ class MoveMesh:
     The primary use case is to set the mesh to the current configuration after
     reading the model part.
     '''
+    def __init__(self, *args, **kwargs):
+        pass
 
     def __call__(self, model_part, *args):
         KratosMultiphysics.ImplicitSolvingStrategy(model_part, True).MoveMesh()
 
 
+# Collect objects defined in this script
 local_objects = locals().copy()
 
 
@@ -388,6 +391,7 @@ def Create(settings):
     settings.SetDefault('operation_type', 'model_part_output')
     operation_type = settings['operation_type']
 
+    # Find operation in the local definitions
     snake_to_camel = lambda string: "".join(part.title() for part in string.split('_'))
     operation = local_objects.get(snake_to_camel(operation_type), None)
 
