@@ -278,7 +278,7 @@ def _ReplaceIndices(language, expression):
     For matrices: `variable[3,7]` becomes `variable_3_7`
     For vectors:  `variable[3]` becomes `variable_3`
 
-    Depending on the language the accessors are chosen (`[]` vs. `()`)
+    The accessor for matrices is chosen according to the language (`[]` vs. `()`)
     """
     #Matrices
     pattern = r"\[(\d+),(\d+)\]" if language == 'python' else r"\((\d+),(\d+)\)"
@@ -286,7 +286,7 @@ def _ReplaceIndices(language, expression):
     expression = re.sub(pattern, replacement, expression)
 
     # Vectors
-    pattern = r"\[(\d+)\]" if language == 'python' else r"\((\d+)\)"
+    pattern = r"\[(\d+)\]"
     replacement = r"_\1"
     expression = re.sub(pattern, replacement, expression)
 
@@ -330,9 +330,7 @@ def OutputVector(vector_expression, name, language="python", indentation_level=0
     """
     prefix = _Indentation(indentation_level)
     suffix = _Suffix(language)
-    fmt = prefix \
-          + ("{var}[{i}]{op}{expr}" if language=="python" else "{var}({i}){op}{expr}") \
-          + suffix
+    fmt = prefix + "{var}[{i}]{op}{expr}" + suffix
 
     outstring = str("")
     for i in range(vector_expression.shape[0]):
