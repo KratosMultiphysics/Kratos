@@ -18,14 +18,14 @@
 #include <iostream>
 
 // External includes
+#include "includes/kratos_application.h"
+#include "includes/define.h"
+#include "includes/variables.h"
+#include "custom_elements/spheric_particle.h"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_application.h"
-#include "includes/variables.h"
 #include "thermal_dem_application_variables.h"
 #include "custom_elements/thermal_spheric_particle.h"
-#include "custom_elements/spheric_particle.h"
 
 namespace Kratos
 {

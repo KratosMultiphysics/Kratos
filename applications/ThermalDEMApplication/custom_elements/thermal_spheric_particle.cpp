@@ -33,16 +33,32 @@ namespace Kratos
   //=====================================================================================================================================================================================
   // Constructor/Destructor methods
 
-  ThermalSphericParticle::ThermalSphericParticle():SphericParticle() {}
-  ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry):SphericParticle(NewId, pGeometry) {}
-  ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes) {}
-  ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):SphericParticle(NewId, pGeometry, pProperties) {}
+  ThermalSphericParticle::ThermalSphericParticle():SphericParticle() {
+    mpThermalIntegrationScheme = NULL;
+  }
+
+  ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry):SphericParticle(NewId, pGeometry) {
+    mpThermalIntegrationScheme = NULL;
+  }
+
+  ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes) {
+    mpThermalIntegrationScheme = NULL;
+  }
+
+  ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):SphericParticle(NewId, pGeometry, pProperties) {
+    mpThermalIntegrationScheme = NULL;
+  }
 
   Element::Pointer ThermalSphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
     return SphericParticle::Pointer(new ThermalSphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
 
-  ThermalSphericParticle::~ThermalSphericParticle() {}
+  ThermalSphericParticle::~ThermalSphericParticle() {
+    if (mpThermalIntegrationScheme != NULL) {
+      delete mpThermalIntegrationScheme;
+      mpThermalIntegrationScheme = NULL;
+    }
+  }
 
   //=====================================================================================================================================================================================
   // Initialization methods
@@ -63,6 +79,10 @@ namespace Kratos
     this->Set(DEMThermalFlags::HAS_FRICTION_HEAT,                r_process_info[FRICTION_HEAT_OPTION]);
     this->Set(DEMThermalFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
     this->Set(DEMThermalFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
+
+    // Set thermal integration scheme
+    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme = GetProperties()[DEM_THERMAL_INTEGRATION_SCHEME_POINTER];
+    SetThermalIntegrationScheme(thermal_integration_scheme);
 
     mStoreContactParam = this->Is(DEMThermalFlags::HAS_MOTION)        &&
                         (this->Is(DEMThermalFlags::HAS_FRICTION_HEAT) ||
@@ -91,6 +111,12 @@ namespace Kratos
     const int step = r_process_info[TIME_STEPS];
     const int freq = r_process_info[THERMAL_FREQUENCY];
     mIsTimeToSolve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
+
+    // Save pre-step temperature
+    mPreviousTemperature = GetParticleTemperature();
+
+    // Number of steps passed since last thermal evaluation
+    mNumStepsEval = (r_process_info[TIME_STEPS] == 1) ? 1 : r_process_info[THERMAL_FREQUENCY];
 
     // Initialize number of contact particle neighbors
     // (currently used only for cleaning contact parameters map)
@@ -123,7 +149,7 @@ namespace Kratos
   }
 
   //=====================================================================================================================================================================================
-  // Calculate right hand side (forces and heat fluxes)
+  // Computation methods
 
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) {
@@ -191,6 +217,7 @@ namespace Kratos
 
     // Sum up heat fluxes contributions
     mTotalHeatFlux = mConductionDirectHeatFlux + mConductionIndirectHeatFlux + mRadiationHeatFlux + mFrictionHeatFlux + mConvectionHeatFlux + mPrescribedHeatFlux;
+    SetParticleHeatFlux(mTotalHeatFlux);
 
     KRATOS_CATCH("")
   }
@@ -288,6 +315,18 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
+    // Time integration of motion
+    if (this->Is(DEMThermalFlags::HAS_MOTION))
+      SphericParticle::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
+
+    // Time integration of temperature
+    if (mIsTimeToSolve && !this->Is(DEMThermalFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMThermalFlags::IS_ADIABATIC)) {
+      GetThermalIntegrationScheme().UpdateTemperature(GetGeometry()[0], delta_t * mNumStepsEval, GetParticleHeatCapacity()); // TODO: Remove last argument (capacity becomes a node property accessed with GetFastProperties - same as MOMENT_OF_INERTIA)
+    }
+  }
+
   //=====================================================================================================================================================================================
   // Finalization methods
 
@@ -303,38 +342,14 @@ namespace Kratos
       CleanContactParameters(r_process_info);
 
     // Update temperature/heat flux
-    if (mIsTimeToSolve) {
-      mPreviousTemperature = GetParticleTemperature();
-      UpdateTemperature(r_process_info);
+    if (mIsTimeToSolve)
       UpdateTemperatureDependentRadius(r_process_info);
-      SetParticleHeatFlux(mTotalHeatFlux);
-    }
 
     KRATOS_CATCH("")
   }
 
   //=====================================================================================================================================================================================
   // Update methods
-
-  //------------------------------------------------------------------------------------------------------------
-  void ThermalSphericParticle::UpdateTemperature(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    if (!this->Is(DEMThermalFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMThermalFlags::IS_ADIABATIC)) {
-      // Number of steps passed since last thermal evaluation
-      const int num_steps = (r_process_info[TIME_STEPS] == 1) ? 1 : r_process_info[THERMAL_FREQUENCY];
-
-      // Compute new temperature
-      const double thermal_inertia = GetParticleMass() * GetParticleHeatCapacity();
-      const double temp_increment  = (mTotalHeatFlux / thermal_inertia) * r_process_info[DELTA_TIME] * num_steps;
-      const double temp_new        = GetParticleTemperature() + temp_increment;
-      
-      // Set new temperature
-      SetParticleTemperature(temp_new);
-    }
-
-    KRATOS_CATCH("")
-  }
 
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
@@ -1643,6 +1658,11 @@ namespace Kratos
   // Get/Set methods
 
   //------------------------------------------------------------------------------------------------------------
+  ThermalDEMIntegrationScheme& ThermalSphericParticle::GetThermalIntegrationScheme() {
+    return *mpThermalIntegrationScheme;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double ThermalSphericParticle::GetYoung() {
     if (GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
@@ -1998,6 +2018,11 @@ namespace Kratos
       null_param.local_force.assign(2, 0.0);
       return null_param;
     }
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetThermalIntegrationScheme(ThermalDEMIntegrationScheme::Pointer& scheme) {
+    mpThermalIntegrationScheme = scheme->CloneRaw();
   }
 
   //------------------------------------------------------------------------------------------------------------

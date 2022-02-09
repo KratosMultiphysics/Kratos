@@ -60,6 +60,17 @@ class ExplicitStrategy(BaseStrategy):
                                                                     self.solver_settings)
 
     #----------------------------------------------------------------------------------------------
+    def ModifyProperties(self, properties, param = 0):
+        if param:
+            return
+
+        # Set standard properties
+        BaseStrategy.ModifyProperties(self, properties, param)
+
+        # Set thermal integration scheme
+        self.SetThermalIntegrationScheme(properties)
+    
+    #----------------------------------------------------------------------------------------------
     def AddVariables(self):
         # Add standard variables
         BaseStrategy.AddVariables(self)
@@ -107,7 +118,7 @@ class ExplicitStrategy(BaseStrategy):
         else:
             (self.cplusplus_strategy).SolveSolutionStepStatic()
         
-        # Update temperature dependent radii
+        # Update temperature dependent search radii
         if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
             (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
         
@@ -144,6 +155,9 @@ class ExplicitStrategy(BaseStrategy):
 
         # General options
         self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
+
+        # Integration scheme
+        self.thermal_integration_scheme = self.thermal_settings["ThermalIntegrationScheme"].GetString()
 
         # Frequencies
         self.thermal_solve_frequency       = self.thermal_settings["thermal_solve_frequency"].GetInt()
@@ -200,6 +214,12 @@ class ExplicitStrategy(BaseStrategy):
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
+        # Integration scheme
+        if self.thermal_integration_scheme == "Forward_Euler":
+            self.thermal_integration_scheme = "ThermalForwardEulerScheme"
+        else:
+            raise Exception('ThermalDEM', 'Integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.')
+        
         # Models for heat transfer
         if (self.direct_conduction_model != "batchelor_obrien" and
             self.direct_conduction_model != "thermal_pipe"     and
@@ -326,6 +346,23 @@ class ExplicitStrategy(BaseStrategy):
         if (self.write_graph):
             self.graph_utils = GraphUtilities()
     
+    #----------------------------------------------------------------------------------------------
+    def SetThermalIntegrationScheme(self, properties):
+        integration_scheme_name = self.thermal_integration_scheme
+
+        if properties.Has(DEM_THERMAL_INTEGRATION_SCHEME_NAME):
+            if properties[DEM_THERMAL_INTEGRATION_SCHEME_NAME] == "Forward_Euler":
+                integration_scheme_name = "ThermalForwardEulerScheme"
+            else:
+                raise Exception('ThermalDEM', 'Integration scheme \'' + integration_scheme_name + '\' is not implemented.')
+        
+        try:
+            thermal_scheme = eval(integration_scheme_name)()
+        except:
+            raise Exception('The class corresponding to the thermal integration scheme named ' + integration_scheme_name + ' has not been added to python. Please, select a different name or add the required class.')
+        
+        thermal_scheme.SetThermalIntegrationSchemeInProperties(properties, True)
+
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options

@@ -3,6 +3,7 @@ import KratosMultiphysics
 def GetDefaultInputSettings():
     default_settings = KratosMultiphysics.Parameters("""
         {
+            "ThermalIntegrationScheme"       : "Forward_Euler",
             "thermal_solve_frequency"        : 1,
             "voronoi_tesselation_frequency"  : 1000,
 	        "porosity_update_frequency"      : 1000,

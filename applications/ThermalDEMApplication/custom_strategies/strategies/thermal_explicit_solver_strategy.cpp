@@ -67,7 +67,24 @@ namespace Kratos {
     KRATOS_TRY
 
     ExplicitSolverStrategy::GetForce();
+    PerformThermalTimeIntegration();
     return 0.0;
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalExplicitSolverStrategy::PerformThermalTimeIntegration(void) {
+    KRATOS_TRY
+    
+    ProcessInfo& r_process_info   = GetModelPart().GetProcessInfo();
+    const int number_of_particles = (int)mListOfSphericParticles.size();
+
+    #pragma omp parallel for
+    for (int i = 0; i < number_of_particles; i++) {
+      ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(mListOfSphericParticles[i]);
+      particle->Move(r_process_info[DELTA_TIME], false, 0.0, 0);
+    }
 
     KRATOS_CATCH("")
   }

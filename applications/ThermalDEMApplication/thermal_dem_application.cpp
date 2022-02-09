@@ -13,12 +13,12 @@
 // System includes
 
 // External includes
-
-// Project includes
-#include "thermal_dem_application.h"
 #include "includes/kratos_flags.h"
 #include "containers/flags.h"
 #include "geometries/sphere_3d_1.h"
+
+// Project includes
+#include "thermal_dem_application.h"
 
 namespace Kratos
 {
@@ -31,6 +31,8 @@ namespace Kratos
     std::cout << "Initializing KratosThermalDEMApplication... " << std::endl;
 
     // Register variables
+    KRATOS_REGISTER_VARIABLE(DEM_THERMAL_INTEGRATION_SCHEME_POINTER)
+    KRATOS_REGISTER_VARIABLE(DEM_THERMAL_INTEGRATION_SCHEME_NAME)
     KRATOS_REGISTER_VARIABLE(DIRECT_CONDUCTION_MODEL)
     KRATOS_REGISTER_VARIABLE(INDIRECT_CONDUCTION_MODEL)
     KRATOS_REGISTER_VARIABLE(CONVECTION_MODEL)

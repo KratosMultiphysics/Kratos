@@ -53,12 +53,13 @@ namespace Kratos
       void SetSearchRadiiWithFemOnAllParticles (ModelPart& r_model_part, double added_search_distance = 0.0, double amplification = 1.0) override;
 
       // Public particular methods
-      double SolveSolutionStepStatic();
+      double SolveSolutionStepStatic(void);
 
     protected:
 
       // Protected particular methods
-      void SetSearchRadii(ModelPart & r_model_part, double added_search_distance, double amplification);
+      void PerformThermalTimeIntegration (void);
+      void SetSearchRadii                (ModelPart & r_model_part, double added_search_distance, double amplification);
 
   }; // Class ThermalExplicitSolverStrategy
 } // namespace Kratos

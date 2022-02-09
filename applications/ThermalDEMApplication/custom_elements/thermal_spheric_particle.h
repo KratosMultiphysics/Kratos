@@ -80,17 +80,17 @@ namespace Kratos
       void InitializeSolutionStep        (const ProcessInfo& r_process_info) override;
       void InitializeHeatFluxComputation (const ProcessInfo& r_process_info);
 
-      // Calculate right hand side
+      // Computation methods
       void CalculateRightHandSide          (const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
       void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* neighbor, double GlobalContactForce[3], bool sliding) override;
       void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* neighbor, double GlobalContactForce[3], bool sliding) override;
+      void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
       void FinalizeSolutionStep (const ProcessInfo& r_process_info) override;
 
       // Update methods
-      void UpdateTemperature                                                (const ProcessInfo& r_process_info);
       void UpdateTemperatureDependentRadius                                 (const ProcessInfo& r_process_info);
       void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion (const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, SphericParticle* element2);
       void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons   (const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbor) override;
@@ -160,6 +160,8 @@ namespace Kratos
       double ComputeAverageConductivity          (void);
 
       // Get/Set methods
+      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme();
+
       double GetYoung   (void) override;
       double GetPoisson (void) override;
       double GetDensity (void) override;
@@ -205,6 +207,7 @@ namespace Kratos
       double             GetContactDynamicFrictionCoefficient (void);
       ContactParams      GetContactParameters                 (void);
 
+      void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -242,9 +245,13 @@ namespace Kratos
 
     protected:
 
-      // General flags
-      bool mIsTimeToSolve;      // solve thermal problem in current step
-      bool mStoreContactParam;  // store contact parameters with neighbors when solving the mechanical problem
+      // Pointers
+      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
+
+      // General
+      unsigned int mNumStepsEval;       // number of steps passed since last thermal evaluation
+      bool         mIsTimeToSolve;      // flag to solve thermal problem in current step
+      bool         mStoreContactParam;  // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Neighboring data
       ThermalSphericParticle*                   mNeighbor_p;
