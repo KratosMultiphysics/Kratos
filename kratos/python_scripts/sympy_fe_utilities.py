@@ -334,7 +334,7 @@ def OutputScalar(scalar_expression, name, language, indentation_level=0, replace
 
     return outstring
 
-def OutputVector(vector_expression, name, language="python", indentation_level=0, replace_indices=True, assignment_op="="):
+def OutputVector(vector_expression, name, language, indentation_level=0, replace_indices=True, assignment_op="="):
     """
     This function generates code to fill a (pre-declared) vector.
 
@@ -391,7 +391,7 @@ def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace
 
     return outstring
 
-def OutputSymbolicVariable(expression, language="python", replace_indices=True):
+def OutputSymbolicVariable(expression, language, replace_indices=True):
     """
     This function generates code from an expression..
 
