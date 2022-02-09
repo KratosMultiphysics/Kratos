@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
@@ -8,6 +9,7 @@ def Create(*args):
 
 class DistributePointValuesOperation(CoSimulationCouplingOperation):
     """This operation converts concentrated nodal values (such as nodal loads) into distributed quantities (such as tractions)
+    It is the inverse operation of the "ConvertDistributedValuesToPoint" operation
     """
 
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
