@@ -18,11 +18,9 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from importlib import import_module
 
 class DamAnalysis(AnalysisStage):
-    """
-    This class is the main-script of the DamApplication put in a class
-    """
-
+    """Main-script of the DamApplication put in a class."""
     def __init__(self, model, project_parameters):
+        """DamApplication analysis."""
         self.model = model
         self.project_parameters = project_parameters
         self.DefineParallelType()
