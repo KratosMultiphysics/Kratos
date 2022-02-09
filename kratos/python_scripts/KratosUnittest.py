@@ -101,7 +101,7 @@ class TestCase(TestCase):
                 err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
                 err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
                 err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
-                if self.aux_message is not None:
+                if self.aux_message:
                     err_msg += "\n{}".format(self.aux_message)
                 return err_msg
 
