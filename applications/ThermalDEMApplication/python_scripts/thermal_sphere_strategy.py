@@ -118,15 +118,15 @@ class ExplicitStrategy(BaseStrategy):
         else:
             (self.cplusplus_strategy).SolveSolutionStepStatic()
         
-        # Update temperature dependent search radii
-        if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
-            (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
-        
         return True
     
     #----------------------------------------------------------------------------------------------
     def FinalizeSolutionStep(self):
         BaseStrategy.FinalizeSolutionStep(self)
+
+        # Update search distance in case of temperature dependent radius
+        if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
+            (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
 
         # Write output graphs
         if (self.write_graph):
