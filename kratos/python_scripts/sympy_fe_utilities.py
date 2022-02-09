@@ -1,8 +1,9 @@
-import sympy
 import re
+import sympy
 
 def DefineMatrix(name, m, n):
-    """ This method defines a symbolic matrix
+    """
+    This method defines a symbolic matrix.
 
     Keyword arguments:
     - name -- Name of variables.
@@ -12,7 +13,8 @@ def DefineMatrix(name, m, n):
     return sympy.Matrix(m, n, lambda i, j: sympy.var("{name}_{i}_{j}".format(name=name, i=i, j=j)))
 
 def DefineSymmetricMatrix(name, m, n):
-    """ This method defines a symbolic symmetric matrix
+    """
+    This method defines a symbolic symmetric matrix.
 
     Keyword arguments:
     - name -- Name of variables.
@@ -23,7 +25,8 @@ def DefineSymmetricMatrix(name, m, n):
         sympy.var("{name}_{i}_{j}".format(name=name, i=min(i,j), j=max(i,j))))
 
 def DefineVector( name, m):
-    """ This method defines a symbolic vector
+    """
+    This method defines a symbolic vector.
 
     Keyword arguments:
     - name -- Name of variables.
@@ -32,7 +35,8 @@ def DefineVector( name, m):
     return sympy.Matrix(m, 1, lambda i,_: sympy.var("{name}_{i}".format(name=name, i=i)))
 
 def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
-    """ This method defines shape functions and derivatives
+    """
+    This method defines shape functions and derivatives.
     Note that partition of unity is imposed
     the name HAS TO BE --> N and DN
 
@@ -57,22 +61,24 @@ def DefineShapeFunctions(nnodes, dim, impose_partion_of_unity=False):
     return N, DN
 
 def StrainToVoigt(M):
-    """ This method transform the strains matrix to Voigt notation
+    """
+    This method transform the strains matrix to Voigt notation.
 
     Keyword arguments:
     - M -- The strain matrix
     """
-    if(M.shape[0] == 2):
+    if M.shape[0] == 2:
         vm = sympy.Matrix(3, 1, lambda _: 0.0)
         vm[0,0] = M[0,0]
         vm[1,0] = M[1,1]
         vm[2,0] = 2.0*M[0,1]
-    elif(M.shape[0] == 3):
+    elif M.shape[0] == 3:
         raise NotImplementedError()
     return vm
 
 def MatrixB(DN):
-    """ This method defines the deformation matrix B
+    """
+    This method defines the deformation matrix B.
 
     Keyword arguments:
     - DN -- The shape function derivatives
@@ -105,12 +111,13 @@ def MatrixB(DN):
             B[5, i*3] = DN[i, 2]
             B[5, i*3 + 2] = DN[i, 0]
     else:
-        print("dimension asked in Matrix B is ",dim)
+        print("dimension asked in Matrix B is ", dim)
         raise ValueError("wrong dimension")
     return B
 
 def grad_sym_voigtform(DN, x):
-    """ This method defines a symmetric gradient
+    """
+    This method defines a symmetric gradient.
 
     Keyword arguments:
     - DN -- The shape function derivatives
@@ -129,7 +136,8 @@ def grad_sym_voigtform(DN, x):
     return sympy.simplify(B*xvec)
 
 def DfjDxi(DN,f):
-    """ This method defines a gradient. This returns a matrix D such that D(i,j) = D(fj)/D(xi)
+    """
+    This method defines a gradient. This returns a matrix D such that D(i,j) = D(fj)/D(xi).
 
     Keyword arguments:
     - DN -- The shape function derivatives
@@ -138,7 +146,8 @@ def DfjDxi(DN,f):
     return sympy.simplify(DN.transpose()*f)
 
 def DfiDxj(DN,f):
-    """ This method defines a gradient This returns a matrix D such that D(i,j) = D(fi)/D(xj)
+    """
+    This method defines a gradient This returns a matrix D such that D(i,j) = D(fi)/D(xj).
 
     Keyword arguments:
     - DN -- The shape function derivatives
@@ -147,14 +156,15 @@ def DfiDxj(DN,f):
     return (DfjDxi(DN,f)).transpose()
 
 def div(DN,x):
-    """ This method defines the divergence
+    """
+    This method defines the divergence.
 
     Keyword arguments:
     - DN -- The shape function derivatives
     - x -- The variable to compute the gradient
     """
-    if(DN.shape != x.shape):
-        raise Exception("shapes are not compatible")
+    if DN.shape != x.shape:
+        raise ValueError("shapes are not compatible")
 
     div_x = 0
     for i in range(DN.shape[0]):
@@ -164,7 +174,8 @@ def div(DN,x):
     return sympy.Matrix([sympy.simplify(div_x)])
 
 def SubstituteMatrixValue(where_to_substitute, what_to_substitute, substituted_value):
-    """ This method substitutes values into a matrix
+    """
+    This method substitutes values into a matrix.
 
     Keyword arguments:
     - where_to_substitute -- Coordinates where to substitute
@@ -183,7 +194,8 @@ def SubstituteMatrixValue(where_to_substitute, what_to_substitute, substituted_v
     return where_to_substitute
 
 def SubstituteScalarValue(where_to_substitute, what_to_substitute, substituted_value):
-    """ This method substitutes values into a scalar
+    """
+    This method substitutes values into a scalar.
 
     Keyword arguments:
     - where_to_substitute -- Coordinates where to substitute
@@ -197,7 +209,8 @@ def SubstituteScalarValue(where_to_substitute, what_to_substitute, substituted_v
     return where_to_substitute
 
 def Compute_RHS(functional, testfunc, do_simplifications=False):
-    """ This computes the RHS vector
+    """
+    This computes the RHS vector.
 
     Keyword arguments:
     - functional -- The functional to derivate
@@ -214,7 +227,8 @@ def Compute_RHS(functional, testfunc, do_simplifications=False):
     return rhs
 
 def Compute_LHS(rhs, testfunc, dofs, do_simplifications=False):
-    """ This computes the LHS matrix
+    """
+    This computes the LHS matrix.
 
     Keyword arguments:
     - rhs -- The RHS vector
@@ -233,7 +247,8 @@ def Compute_LHS(rhs, testfunc, dofs, do_simplifications=False):
     return lhs
 
 def Compute_RHS_and_LHS(functional, testfunc, dofs, do_simplifications=False):
-    """ This computes the LHS matrix and the RHS vector
+    """
+    This computes the LHS matrix and the RHS vector.
 
     Keyword arguments:
     - functional -- The functional to derivate
@@ -257,7 +272,8 @@ def _CodeGen(language, value):
     }[language](value)
 
 def _VariableDeclaration(language, variable_name, variable_expression):
-    """"Returns the variable declaration, without indentation nor suffix.
+    """"
+    Returns the variable declaration, without indentation nor suffix.
 
     The expression must have been turned into code already.
     """
@@ -376,7 +392,8 @@ def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace
     return outstring
 
 def OutputSymbolicVariable(expression, language="python", replace_indices=True):
-    """This function generates code from an expression.
+    """
+    This function generates code from an expression..
 
     Keyword arguments:
     - expression -- The expression to geneate code from
