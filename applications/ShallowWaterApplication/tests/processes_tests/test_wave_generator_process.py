@@ -14,7 +14,7 @@ try:
     import scipy
     missing_scipy = False
 except ImportError:
-    missing_scipy = False
+    missing_scipy = True
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)

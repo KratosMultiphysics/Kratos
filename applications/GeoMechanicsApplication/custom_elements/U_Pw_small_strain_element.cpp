@@ -507,8 +507,59 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     if (rVariable == VON_MISES_STRESS) {
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
-            ComparisonUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateVonMises(mStressVector[GPoint]);
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] = EquivalentStress.CalculateVonMisesStress(mStressVector[GPoint]);
+        }
+    } else if (rVariable == MEAN_EFFECTIVE_STRESS ) {
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] = EquivalentStress.CalculateMeanStress(mStressVector[GPoint]);
+        }
+    } else if (rVariable == MEAN_STRESS ) {
+        std::vector<Vector> StressVector;
+        CalculateOnIntegrationPoints( TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateMeanStress(StressVector[GPoint]);
+        }
+    } else if (rVariable == ENGINEERING_VON_MISES_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateVonMisesStrain(StrainVector[GPoint]);
+        }
+    } else if (rVariable == ENGINEERING_VOLUMETRIC_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateTrace(StrainVector[GPoint]);
+        }
+    } else if (rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateVonMisesStrain(StrainVector[GPoint]);
+        }
+    } else if (rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateTrace(StrainVector[GPoint]);
         }
     } else if (rVariable == DEGREE_OF_SATURATION ||
                rVariable == EFFECTIVE_SATURATION ||
@@ -677,8 +728,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
-    CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                 std::vector<Matrix>& rOutput,
+    CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                 std::vector<Vector>& rOutput,
                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -691,13 +742,15 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     if ( rOutput.size() != NumGPoints )
         rOutput.resize(NumGPoints);
 
-    if (rVariable == CAUCHY_STRESS_TENSOR) {
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
         //Loop over integration points
-        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
-            rOutput[GPoint].resize(StressTensorSize, StressTensorSize, false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            if ( rOutput[GPoint].size() != mStressVector[GPoint].size() )
+                rOutput[GPoint].resize( mStressVector[GPoint].size(), false );
+
+            rOutput[GPoint] = mStressVector[GPoint];
         }
-    } else if (rVariable == TOTAL_STRESS_TENSOR) {
+    } else if (rVariable == TOTAL_STRESS_VECTOR) {
         //Defining necessary variables
         const PropertiesType& rProp = this->GetProperties();
 
@@ -717,9 +770,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         noalias(VoigtVector) = ZeroVector(VoigtVector.size());
 
         for (unsigned int i=0; i < StressTensorSize; ++i) VoigtVector[i] = 1.0;
-
-        if ( rOutput.size() != NumGPoints )
-            rOutput.resize(NumGPoints);
 
         const bool hasBiotCoefficient = rProp.Has(BIOT_COEFFICIENT);
 
@@ -752,10 +802,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                          * Variables.FluidPressure
                                          * VoigtVector; 
 
-            rOutput[GPoint].resize( StressTensorSize, StressTensorSize, false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(TotalStressVector);
+            if ( rOutput[GPoint].size() != TotalStressVector.size() )
+                rOutput[GPoint].resize( TotalStressVector.size(), false );
+
+            rOutput[GPoint] = TotalStressVector;
         }
-    } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
+    } else if (rVariable == ENGINEERING_STRAIN_VECTOR) {
         //Definition of variables
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
@@ -777,12 +829,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             //Compute infinitessimal strain
             this->CalculateCauchyStrain( Variables );
 
-            if ( rOutput[GPoint].size2() != TDim )
-                rOutput[GPoint].resize(TDim,TDim,false );
+            if ( rOutput[GPoint].size() != Variables.StrainVector.size() )
+                rOutput[GPoint].resize( Variables.StrainVector.size(), false );
 
-            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
+            rOutput[GPoint] = Variables.StrainVector;
         }
-    } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
         //Definition of variables
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
@@ -795,10 +847,80 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             //Compute strain
             this->CalculateStrain(Variables, GPoint);
 
-            if ( rOutput[GPoint].size2() != TDim )
-                rOutput[GPoint].resize(TDim,TDim,false );
+            if ( rOutput[GPoint].size() != Variables.StrainVector.size() )
+                rOutput[GPoint].resize( Variables.StrainVector.size(), false );
 
-            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(Variables.StrainVector);
+            rOutput[GPoint] = Variables.StrainVector;
+        }
+    } else {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
+    }
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateOnIntegrationPoints()") << std::endl;
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                 std::vector<Matrix>& rOutput,
+                                 const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateOnIntegrationPoints()") << rVariable << std::endl;
+
+    //Defining necessary variables
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != NumGPoints )
+        rOutput.resize(NumGPoints);
+
+    if (rVariable == CAUCHY_STRESS_TENSOR) {
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
+            rOutput[GPoint].resize(StressTensorSize, StressTensorSize, false );
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
+        }
+    } else if (rVariable == TOTAL_STRESS_TENSOR) {
+        std::vector<Vector> StressVector;
+
+        this->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
+
+        //loop integration points
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+            if (rOutput[GPoint].size2() != TDim)
+                rOutput[GPoint].resize(TDim, TDim, false);
+
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(StressVector[GPoint]);
+        }
+
+    } else if (rVariable == ENGINEERING_STRAIN_TENSOR) {
+        std::vector<Vector> StrainVector;
+
+        CalculateOnIntegrationPoints( ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            if ( rOutput[GPoint].size2() != TDim )
+                rOutput[GPoint].resize( TDim, TDim, false );
+
+            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
+        }
+    } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
+        std::vector<Vector> StrainVector;
+
+        CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            if ( rOutput[GPoint].size2() != TDim )
+                rOutput[GPoint].resize( TDim, TDim, false );
+
+            rOutput[GPoint] = MathUtils<double>::StrainVectorToTensor(StrainVector[GPoint]);
         }
     } else if (rVariable == PERMEABILITY_MATRIX) {
 

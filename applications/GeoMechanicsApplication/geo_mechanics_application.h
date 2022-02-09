@@ -44,6 +44,9 @@
 #include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
+#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
 
 // elements
 #include "custom_elements/transient_Pw_element.hpp"
@@ -451,6 +454,10 @@ private:
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D6N;
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D8N;
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N;
+
+    const AxisymmetricUPwNormalFaceLoadCondition<2,2>    mAxisymmetricUPwNormalFaceLoadCondition2D2N;
+    const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D3N;
+    const AxisymmetricLineNormalFluidFlux2DDiffOrderCondition mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N;
 
     // constitutive models
     const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;
