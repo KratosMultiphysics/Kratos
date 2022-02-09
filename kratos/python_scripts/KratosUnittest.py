@@ -115,7 +115,7 @@ class TestCase(TestCase):
             def __str__(self):
                 err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(self.idx_1, self.idx_2)
                 err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
-                if self.aux_message is not None:
+                if self.aux_message:
                     err_msg += "\n{}".format(self.aux_message)
                 return err_msg
 
