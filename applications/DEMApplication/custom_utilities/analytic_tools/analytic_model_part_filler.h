@@ -13,8 +13,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "../../custom_elements/analytic_spheric_particle.h"
-#include "../create_and_destroy.h"
+#include "custom_elements/analytic_spheric_particle.h"
+#include "custom_utilities/create_and_destroy.h"
 
 
 /* External includes */
@@ -27,7 +27,7 @@ namespace Kratos
 class KRATOS_API(DEM_APPLICATION) AnalyticModelPartFiller
 {
 
-public:   
+public:
 
 KRATOS_CLASS_POINTER_DEFINITION(AnalyticModelPartFiller);
 
@@ -36,8 +36,8 @@ typedef ModelPart::ElementsContainerType::iterator ElementsIteratorType;
 
 /// Default constructor
 AnalyticModelPartFiller(){}
-/// Destructor
 
+/// Destructor
 virtual ~AnalyticModelPartFiller(){}
 
 // This algorithm implements the Fisher–Yates shuffle to generate a random subset of elements of a vector class

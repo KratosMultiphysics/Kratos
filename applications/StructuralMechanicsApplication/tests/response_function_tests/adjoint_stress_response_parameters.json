@@ -20,6 +20,7 @@
         "stress_location"   : 1,
         "primal_settings"   : "rectangular_plate_parameters.json",
         "adjoint_settings"  : "auto",
+        "primal_data_transfer_with_python": true,
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_AREAS",
             "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],

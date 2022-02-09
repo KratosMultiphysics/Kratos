@@ -25,11 +25,7 @@
 #define  REAL double
 #endif   // not SINGLE
 
-
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
 #include "triangle.h"
-#endif
 
 // External includes
 #if !defined(KRATOS_TETGEN_EXTERNAL_H_INCLUDED)

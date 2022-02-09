@@ -45,9 +45,6 @@ namespace Kratos
 
   void KratosDelaunayMeshingApplication::Register()
   {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
-
     std::stringstream banner;
 
     banner << "            ___      _                                  \n"
@@ -82,6 +79,7 @@ namespace Kratos
 
     //Register Variables (variables created in delaunay_meshing_application_variables.cpp)
 
+
     //geometrical definition
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
     KRATOS_REGISTER_VARIABLE( SHRINK_FACTOR )
@@ -94,6 +92,8 @@ namespace Kratos
 
     //boundary definition
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )
+    KRATOS_REGISTER_VARIABLE( PROPERTY_ID )
+
 
     KRATOS_REGISTER_VARIABLE( MASTER_NODE )
     KRATOS_REGISTER_VARIABLE( MASTER_ELEMENT )

@@ -121,7 +121,7 @@ public:
             NewId, pGeometry, pProperties);
     }
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
 
@@ -145,7 +145,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckVariables() const;
     void CheckDofs() const;
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
     void CheckSpecificProperties() const;

@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-from KratosMultiphysics.compute_drag_process import ComputeDragProcess
+from KratosMultiphysics.FluidDynamicsApplication.compute_drag_process import ComputeDragProcess
 
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):

@@ -21,7 +21,7 @@ namespace Kratos {
 
         SteadyViscousTorqueLaw(){}
 
-        SteadyViscousTorqueLaw(Parameters& r_parameters){}
+        SteadyViscousTorqueLaw(Parameters r_parameters){}
 
         ~SteadyViscousTorqueLaw(){}
 

@@ -66,8 +66,7 @@
             "python_module" : "edge_cable_element_process",
             "process_name"  : "EdgeCableElementProcess",
             "Parameters"    : {
-                "model_part_name"           : "Structure.EdgeCablePart1",
-                "computing_model_part_name" : "Structure.computing_domain",
+                "edge_sub_model_part_name"  : "Structure.EdgeCablePart1",
                 "node_id_order"             : [1,2,3,4],
                 "element_type"              : "ring",
                 "element_id"                : 5,

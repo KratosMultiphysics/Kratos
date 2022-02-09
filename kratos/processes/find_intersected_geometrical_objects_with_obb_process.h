@@ -105,7 +105,13 @@ public:
         ModelPart& rModelPartIntersected,
         ModelPart& rModelPartIntersecting,
         const double BoundingBoxFactor = -1.0,
-        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|FindIntersectedGeometricalObjectsWithOBBProcess::NOT_DEBUG_OBB|FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM|FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB
+        const Flags Options = FindIntersectedGeometricalObjectsProcess::INTERSECTING_CONDITIONS|
+            FindIntersectedGeometricalObjectsProcess::INTERSECTING_ELEMENTS|
+            FindIntersectedGeometricalObjectsProcess::INTERSECTED_CONDITIONS|
+            FindIntersectedGeometricalObjectsProcess::INTERSECTED_ELEMENTS|
+            FindIntersectedGeometricalObjectsWithOBBProcess::DEBUG_OBB.AsFalse()|
+            FindIntersectedGeometricalObjectsWithOBBProcess::SEPARATING_AXIS_THEOREM|
+            FindIntersectedGeometricalObjectsWithOBBProcess::BUILD_OBB_FROM_BB
         );
 
     /**
@@ -123,6 +129,11 @@ public:
 
     /// Destructor.
     ~FindIntersectedGeometricalObjectsWithOBBProcess() override {}
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@name Member Variables
     ///@{
@@ -191,40 +202,40 @@ protected:
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry
      */
-    bool HasIntersection2D(
+    virtual bool HasIntersection2D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
-        ) override;
+        );
 
     /**
      * @brief This method check if there is an intersection between two geometries in 2D
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry
      */
-    bool HasDirectIntersection2D(
+    virtual bool HasDirectIntersection2D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
-        ) override;
+        );
 
     /**
      * @brief This method check if there is an intersection between two geometries in 3D
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry
      */
-    bool HasIntersection3D(
+    virtual bool HasIntersection3D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
-        ) override;
+        );
 
     /**
      * @brief This method check if there is an intersection between two geometries in 3D
      * @param rFirstGeometry The first geometry
      * @param rSecondGeometry The second geometry
      */
-    bool HasDirectIntersection3D(
+    virtual bool HasDirectIntersection3D(
         GeometryType& rFirstGeometry,
         GeometryType& rSecondGeometry
-        ) override;
+        );
 
     /**
      * @brief This creates auxiliar elements with the provided OBB (2D)
@@ -303,11 +314,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Un accessible methods

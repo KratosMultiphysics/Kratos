@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.SwimmingDEMApplication as SDEM
@@ -14,7 +13,7 @@ class SwimmingStrategy(BaseStrategy):
 
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, parameters, procedures):
         self.project_parameters = parameters
-        super(SwimmingStrategy, self).__init__(all_model_parts, creator_destructor, dem_fem_search, parameters['dem_parameters'], procedures)
+        super().__init__(all_model_parts, creator_destructor, dem_fem_search, parameters['dem_parameters'], procedures)
 
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = BaseStrategy.TranslationalIntegrationSchemeTranslator(self, name)
@@ -44,7 +43,7 @@ class SwimmingStrategy(BaseStrategy):
     def CreateCPlusPlusStrategy(self):
         self.SetVariablesAndOptions()
 
-        if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Verlet_Velocity':
+        if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             self.cplusplus_strategy = DEM.IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                                   self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                                   self.search_strategy, self.solver_settings)
@@ -61,14 +60,14 @@ class SwimmingStrategy(BaseStrategy):
 
     def GetTranslationalSchemeInstance(self, class_name):
         try:
-            translational_scheme = super(SwimmingStrategy, self).GetTranslationalSchemeInstance(class_name)
+            translational_scheme = super().GetTranslationalSchemeInstance(class_name)
         except Exception:
             translational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
         return translational_scheme
 
     def GetRotationalSchemeInstance(self, class_name):
         try:
-            rotational_scheme = super(SwimmingStrategy, self).GetRotationalSchemeInstance(class_name)
+            rotational_scheme = super().GetRotationalSchemeInstance(class_name)
         except Exception:
             rotational_scheme = SwimmingStrategy.SDEMEvaluateString(class_name)()
         return rotational_scheme
@@ -76,8 +75,7 @@ class SwimmingStrategy(BaseStrategy):
     def GetHydrodynamicLawParametersIfItExists(self, properties):
         if self.project_parameters.Has('properties'):
             for p in self.project_parameters["properties"]:
-                if p['properties_id'].GetInt() == int(properties.Id) and p.Has('hydrodynamic_law_parameters'):
-                    return p['hydrodynamic_law_parameters']
+                return p['hydrodynamic_law_parameters']
         return None
 
     @staticmethod
@@ -139,7 +137,7 @@ class SwimmingStrategy(BaseStrategy):
 
     def ModifyProperties(self, properties, param = 0):
 
-        super(SwimmingStrategy, self).ModifyProperties(properties, param)
+        super().ModifyProperties(properties, param)
 
         hydrodynamic_law_parameters = self.GetHydrodynamicLawParametersIfItExists(properties)
         if hydrodynamic_law_parameters:

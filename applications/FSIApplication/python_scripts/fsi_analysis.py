@@ -4,7 +4,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.FSIApplication import python_solvers_wrapper_fsi
 
-class FSIAnalysis(AnalysisStage):
+class FsiAnalysis(AnalysisStage):
     '''Main script for FSI simulations using the FSI family of python solvers.'''
 
     def Initialize(self):
@@ -106,6 +106,7 @@ class FSIAnalysis(AnalysisStage):
 
     def _GetOrderOfProcessesInitialization(self):
         return ["structure_constraints_process_list",
+                "structure_contact_process_list",
                 "structure_loads_process_list",
                 "fluid_gravity",
                 "fluid_initial_conditions_process_list",
@@ -165,6 +166,10 @@ class FSIAnalysis(AnalysisStage):
                 model_part,
                 self.project_parameters["structure_solver_settings"]["restart_settings"])
 
+#TODO: Remove this when the backwards compatibility period is over
+class FSIAnalysis(FsiAnalysis):
+    def __init__(self, model, project_parameters):
+        Kratos.Logger.PrintWarning("FSIAnalysis", "\'FSIAnalysis\' is deprecated. Use the \'FsiAnalysis\' one instead.")
 
 if __name__ == '__main__':
     from sys import argv

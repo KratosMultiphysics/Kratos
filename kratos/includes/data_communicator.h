@@ -293,22 +293,28 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         template<typename U> struct serialization_traits {
             constexpr static bool is_std_vector = false;
             constexpr static bool value_type_is_compound = false;
+            constexpr static bool value_type_is_bool = false;
         };
 
         template<typename U> struct serialization_traits<std::vector<U>> {
             constexpr static bool is_std_vector = true;
             constexpr static bool value_type_is_compound = std::is_compound<U>::value;
+            constexpr static bool value_type_is_bool = std::is_same<U, bool>::value;
         };
 
         constexpr static bool is_vector_of_simple_types = serialization_traits<T>::is_std_vector && !serialization_traits<T>::value_type_is_compound;
+        constexpr static bool is_vector_of_bools = serialization_traits<T>::is_std_vector && serialization_traits<T>::value_type_is_bool;
+
+        constexpr static bool is_vector_of_directly_communicable_type = is_vector_of_simple_types && !is_vector_of_bools;
 
     public:
-        constexpr static bool value = std::is_compound<T>::value && !is_vector_of_simple_types;
+        constexpr static bool value = std::is_compound<T>::value && !is_vector_of_directly_communicable_type;
     };
 
     template<bool value> struct TypeFromBool {};
 
     template<typename T> void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<true>) const {}
+    
     template<typename T>
     KRATOS_DEPRECATED_MESSAGE("Calling serialization-based communication for a simple type. Please implement direct communication support for this type.")
     void CheckSerializationForSimpleType(const T& rSerializedType, TypeFromBool<false>) const {}
@@ -339,7 +345,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
      *  @see ParallelEnvironment.
      *  @return a unique pointer to the new DataCommunicator.
      */
-    virtual DataCommunicator::UniquePointer Clone() const
+    static DataCommunicator::UniquePointer Create()
     {
         return Kratos::make_unique<DataCommunicator>();
     }
@@ -391,12 +397,26 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
+    virtual bool AndReduce(
+        const bool Value,
+        const int Root) const
+    {
+        return Value;
+    }
+
     virtual Kratos::Flags AndReduce(
         const Kratos::Flags Values,
         const Kratos::Flags Mask,
         const int Root) const
     {
         return Values;
+    }
+
+    virtual bool OrReduce(
+        const bool Value,
+        const int Root) const
+    {
+        return Value;
     }
 
     virtual Kratos::Flags OrReduce(
@@ -439,10 +459,19 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return rLocalValue;
     }
 
+    virtual bool AndReduceAll(const bool Value) const
+    {
+        return Value;
+    }
 
     virtual Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
     {
         return Values;
+    }
+
+    virtual bool OrReduceAll(const bool Value) const
+    {
+        return Value;
     }
 
     virtual Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
@@ -589,6 +618,24 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
         return false;
     }
 
+    /// Check whether this DataCommunicator involves the current rank.
+    /** In MPI, if the rank is not involved in communication, the communicator
+     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     */
+    virtual bool IsDefinedOnThisRank() const
+    {
+        return true;
+    }
+
+    /// Check whether this DataCommunicator is MPI_COMM_NULL.
+    /** In MPI, if the rank is not involved in communication, the communicator
+     *  is MPI_COMM_NULL and is not a valid argument for most MPI calls.
+     */
+    virtual bool IsNullOnThisRank() const
+    {
+        return false;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -596,6 +643,7 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     /// Convenience function to retireve the current default DataCommunicator.
     /** @return A reference to the DataCommunicator instance registered as default in ParallelEnvironment.
      */
+    KRATOS_DEPRECATED_MESSAGE("This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)")
     static DataCommunicator& GetDefault();
 
     ///@}

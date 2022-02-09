@@ -3,50 +3,14 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 
 
 def Factory(settings, Model):
-    if (type(settings) != Kratos.Parameters):
+    if (not isinstance(settings, Kratos.Parameters)):
         raise Exception(
             "expected input shall be a Parameters object, encapsulating a json string"
         )
-    if (type(Model) != Kratos.Model):
+    if (not isinstance(Model, Kratos.Model)):
         raise Exception("expected input shall be a Model object")
 
     allowed_processes_list = [
-        ["ApplyFlagProcess", KratosRANS.RansApplyFlagProcess],
-        ["FindNodalNeighboursProcess", FindNodalNeighboursProcess],
-        [
-            "FindConditionParentProcess",
-            KratosRANS.RansFindConditionParentProcess
-        ],
-        [
-            "ScalarCellCenteredAveragingProcess",
-            KratosRANS.RansScalarCellCenterAveragingProcess
-        ],
-        [
-            "VectorCellCenteredAveragingProcess",
-            KratosRANS.RansVectorCellCenterAveragingProcess
-        ],
-        [   "VectorAlignProcess",
-            KratosRANS.RansVectorAlignProcess
-        ],
-        [
-            "CalculateNormalsProcess",
-            CalculateNormalsProcess
-        ],
-        [
-            "WallDistanceCalculationProcess",
-            KratosRANS.RansWallDistanceCalculationProcess
-        ],
-        [
-            "LogarithmicYPlusCalculationProcess",
-            KratosRANS.RansLogarithmicYPlusCalculationProcess
-        ],
-        [
-            "CheckScalarBoundsProcess",
-            KratosRANS.RansCheckScalarBoundsProcess],
-        [
-            "NutKEpsilonHighReCalculationProcess",
-            KratosRANS.RansNutKEpsilonHighReCalculationProcess
-        ],
         [
             "KTurbulentIntensityInletProcess",
             KratosRANS.RansKTurbulentIntensityInletProcess
@@ -56,28 +20,60 @@ def Factory(settings, Model):
             KratosRANS.RansEpsilonTurbulentMixingLengthInletProcess
         ],
         [
-            "ClipScalarVariableProcess",
-            KratosRANS.RansClipScalarVariableProcess
+            "OmegaTurbulentMixingLengthInletProcess",
+            KratosRANS.RansOmegaTurbulentMixingLengthInletProcess
         ],
         [
             "ApplyExactNodalPeriodicConditionProcess",
             KratosRANS.RansApplyExactNodalPeriodicConditionProcess
         ],
         [
-            "NutYPlusWallFunctionProcess",
-            KratosRANS.RansNutYPlusWallFunctionProcess
+            "ApplyFlagProcess",
+            KratosRANS.RansApplyFlagToSkinProcess
         ],
         [
-            "NuTLowReCalculationProcess",
-            KratosRANS.RansNutLowReCalculationProcess
+            "ClipScalarVariableProcess",
+            KratosRANS.RansClipScalarVariableProcess
         ],
         [
             "LineOutputProcess",
             KratosRANS.RansLineOutputProcess
         ],
         [
-            "CheckVectorBoundsProcess",
-            KratosRANS.RansCheckVectorBoundsProcess
+            "WallDistanceCalculationProcess",
+            KratosRANS.RansWallDistanceCalculationProcess
+        ],
+        [
+            "NutNodalUpdateProcess",
+            KratosRANS.RansNutNodalUpdateProcess
+        ],
+        [
+            "NutKEpsilonUpdateProcess",
+            KratosRANS.RansNutKEpsilonUpdateProcess
+        ],
+        [
+            "NutKOmegaUpdateProcess",
+            KratosRANS.RansNutKOmegaUpdateProcess
+        ],
+        [
+            "NutKOmegaSSTUpdateProcess",
+            KratosRANS.RansNutKOmegaSSTUpdateProcess
+        ],
+        [
+            "NutYPlusWallFunctionUpdateProcess",
+            KratosRANS.RansNutYPlusWallFunctionUpdateProcess
+        ],
+        [
+            "WallFunctionUpdateProcess",
+            KratosRANS.RansWallFunctionUpdateProcess
+        ],
+        [
+            "ComputeReactionsProcess",
+            KratosRANS.RansComputeReactionsProcess
+        ],
+        [
+            "CheckScalarBoundsProcess",
+            RansCheckScalarBoundsProcess
         ]
     ]
 
@@ -93,7 +89,8 @@ def Factory(settings, Model):
     ]
 
     if (process_name not in process_names_list):
-        msg = "Unknown process_name=\"" + process_name + "\". \nFollowing process names are allowed:\n    "
+        msg = "Unknown process_name=\"" + process_name + \
+            "\". \nFollowing process names are allowed:\n    "
         msg += "\n    ".join(sorted(process_names_list))
         raise Exception(msg + "\n")
 
@@ -106,68 +103,37 @@ def Factory(settings, Model):
     return current_process
 
 
-class FindNodalNeighboursProcess(Kratos.Process):
-    def __init__(self, Model, settings):
-        Kratos.Process.__init__(self)
+class RansCheckScalarBoundsProcess(KratosRANS.RansFormulationProcess):
+    """
+    Checks bounds of a scalar variable for given model part
+
+    Args:
+        model (Kratos.Model): Kratos model
+        settings (Kratos.Parameters): Settings for process
+    """
+    def __init__(self, model, settings):
+        super().__init__()
 
         default_parameters = Kratos.Parameters("""
-            {
-                "model_part_name"          : "PLEASE_CHOOSE_MODEL_PART_NAME",
-                "average_neighbour_nodes"  : 10,
-                "average_neighbour_element": 10
-            }  """)
+        {
+            "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
+            "variable_name"   : "PLEASE_SPECIFY_SCALAR_VARIABLE"
+        }""")
 
         settings.ValidateAndAssignDefaults(default_parameters)
-        self.settings = settings
 
-        self.model_part = Model[settings["model_part_name"].GetString()]
-        self.process = Kratos.FindNodalNeighboursProcess(
-            self.model_part,
-            self.settings["average_neighbour_element"].GetInt(),
-            self.settings["average_neighbour_nodes"].GetInt())
-
-    def Check(self):
-        self.process.Check()
-
-    def ExecuteInitialize(self):
-        self.process.Execute()
-        Kratos.Logger.PrintInfo(
-            "FindNodalNeighboursProcess",
-            "Nodal neighbours found for nodes in " + self.model_part.Name +
-            ".")
+        self.variable = Kratos.KratosGlobals.GetVariable(settings["variable_name"].GetString())
+        self.model_part = model[settings["model_part_name"].GetString()]
 
     def Execute(self):
-        self.process.Execute()
-        Kratos.Logger.PrintInfo(
-            "FindNodalNeighboursProcess",
-            "Nodal neighbours found for nodes in " + self.model_part.Name +
-            ".")
+        min_value = KratosRANS.RansVariableUtilities.GetMinimumScalarValue(self.model_part, self.variable)
+        max_value = KratosRANS.RansVariableUtilities.GetMaximumScalarValue(self.model_part, self.variable)
 
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is bounded between [ {:.4e}, {:.4e} ] in {:s}.".format(
+            self.variable.Name(), min_value, max_value, self.model_part.Name))
 
-class CalculateNormalsProcess(Kratos.Process):
-    def __init__(self, Model, settings):
-        Kratos.Process.__init__(self)
+    def ExecuteAfterCouplingSolveStep(self):
+        self.Execute()
 
-        default_parameters = Kratos.Parameters("""
-            {
-                "model_part_name"          : "PLEASE_CHOOSE_MODEL_PART_NAME"
-            }  """)
-
-        settings.ValidateAndAssignDefaults(default_parameters)
-        self.settings = settings
-
-        self.model_part = Model[settings["model_part_name"].GetString()]
-        self.domain_size = self.model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        self.process = Kratos.NormalCalculationUtils()
-
-    def ExecuteInitialize(self):
-        self.process.CalculateOnSimplex(self.model_part, self.domain_size)
-        Kratos.Logger.PrintInfo(
-            "NormalCalculationUtils", "Nodal normals calculated for nodes in "
-            + self.model_part.Name + ".")
-
-    def Execute(self):
-        self.process.CalculateOnSimplex(self.model_part, self.domain_size)
-        Kratos.Logger.PrintInfo(
-            "NormalCalculationUtils", "Nodal normals calculated for nodes in "
-            + self.model_part.Name + ".")
+    def __str__(self):
+        return "RansCheckScalarBoundsProcess [ " + self.variable.Name() + " ]"

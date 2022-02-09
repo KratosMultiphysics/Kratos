@@ -30,6 +30,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(serial_communicator.Size(), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorInquiryChecks, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    KRATOS_CHECK_EQUAL(serial_communicator.IsDefinedOnThisRank(), true);
+    KRATOS_CHECK_EQUAL(serial_communicator.IsNullOnThisRank(), false);
+    KRATOS_CHECK_EQUAL(serial_communicator.IsDistributed(), false);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosMPICoreFastSuite)
 {
     KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("Serial"), true);
@@ -42,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosMPICoreFas
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -58,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumInt, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -74,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumDouble, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -96,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -137,7 +146,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -180,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumDoubleVector, KratosMPICoreFastSuit
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -196,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinInt, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -212,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinDouble, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -234,7 +243,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -275,7 +284,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -318,7 +327,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinDoubleVector, KratosMPICoreFastSuit
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -334,7 +343,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxInt, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -350,7 +359,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxDouble, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -372,7 +381,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -413,7 +422,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxIntVector, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMaxDoubleVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     constexpr int root = 0;
 
     const int world_rank = r_world.Rank();
@@ -813,7 +822,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumDoubleVector, KratosMPICoreFast
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
 
     const int world_size = r_world.Size();
     const int world_rank = r_world.Rank();
@@ -867,7 +876,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
 
     const int world_size = r_world.Size();
     const int world_rank = r_world.Rank();
@@ -921,7 +930,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
 
     const int world_size = r_world.Size();
     const int world_rank = r_world.Rank();
@@ -972,7 +981,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_world.Rank();
     const int send_rank = 0;
 
@@ -984,7 +993,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastInt, KratosMPICoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_world.Rank();
     const int send_rank = 0;
 
@@ -996,7 +1005,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDouble, KratosMPICoreFastSuit
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_world.Rank();
     const int send_rank = 0;
 
@@ -1009,7 +1018,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastIntVector, KratosMPICoreFastS
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorBroadcastDoubleVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_world.Rank();
     const int send_rank = 0;
 
@@ -1046,7 +1055,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterIntVector, KratosMPICoreFastSui
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {
@@ -1097,7 +1106,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScatterDoubleVector, KratosMPICoreFast
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {
@@ -1155,7 +1164,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervInt, KratosMPICoreFastSuite)
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {
@@ -1221,7 +1230,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScattervDouble, KratosMPICoreFastSuite
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {
@@ -1284,7 +1293,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherInt, KratosMPICoreFastSuite)
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {
@@ -1335,7 +1344,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGatherDouble, KratosMPICoreFastSuite)
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {
@@ -1393,7 +1402,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervInt, KratosMPICoreFastSuite)
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {
@@ -1459,7 +1468,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorGathervDouble, KratosMPICoreFastSuite)
     }
 
     // remote calls are not supported
-    const DataCommunicator& r_world = DataCommunicator::GetDefault();
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
     const int world_size = r_world.Size();
 
     if (world_size > 1) {

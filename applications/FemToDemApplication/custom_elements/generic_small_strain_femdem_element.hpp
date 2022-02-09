@@ -182,12 +182,12 @@ public:
     /**
      * this is called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * this computes the Tangent tensor via numerical derivation (perturbations)
@@ -223,8 +223,7 @@ protected:
     void CalculateKinematicVariables(
         BaseSolidElement::KinematicVariables& rThisKinematicVariables,
         const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        );
+        const GeometryType::IntegrationMethod& rIntegrationMethod) override;
 
     /**
      * @brief This method computes the deformation matrix B
@@ -244,14 +243,14 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure);
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure) override;
 
     void SetConstitutiveVariables(
         BaseSolidElement::KinematicVariables& rThisKinematicVariables,
         BaseSolidElement::ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const IndexType PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints);
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints) override;
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -261,9 +260,9 @@ protected:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const  override;
 
-    bool UseElementProvidedStrain() const;
+    bool UseElementProvidedStrain() const override;
 
         
     ///@name Static Member Variables
@@ -290,6 +289,9 @@ protected:
     ///@name Serialization
     ///@{
 }; // Class GenericSmallStrainFemDemElement
+
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericSmallStrainFemDemElement<TDim, TyieldSurf>::VoigtSize;
+template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericSmallStrainFemDemElement<TDim, TyieldSurf>::NumberOfEdges;
 
 ///@}
 ///@name Type Definitions

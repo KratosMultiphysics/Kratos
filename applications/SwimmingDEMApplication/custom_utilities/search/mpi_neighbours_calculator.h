@@ -76,86 +76,86 @@ namespace Kratos {
 
         virtual ~Mpi_Neighbours_Calculator() {
         };
-          
+
         static void Parallel_partitioning(ModelPart& r_model_part, bool extension_option, int CalculateBoundary)
         {
             KRATOS_TRY
-                      
+
             ContainerType& pLocalElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray();
 //             ContainerType& pGhostElements = r_model_part.GetCommunicator().GhostMesh().ElementsArray();
 
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-            
+
             double radius_extend = 0.0;
             if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
-            
+
             static double MaxNodeRadius = 0.0f;
-            if(MaxNodeRadius == 0.0f) //TODO
+            if(std::abs(MaxNodeRadius) < std::numeric_limits<double>::epsilon()) //TODO
                 for (IteratorType particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
                 {
                     double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS); //TODO: MA: WATCH OUT! The use of SEARCH_RADIUS_EXTENSION might have changed
                     MaxNodeRadius = NodeRaidus > MaxNodeRadius ? NodeRaidus : MaxNodeRadius;
                 }
-            
+
             static Part partitioner;
             partitioner.LloydsBasedPartitioner(r_model_part,MaxNodeRadius,CalculateBoundary);
-            
+
             KRATOS_CATCH("")
         }
-        
+
         virtual void Add_To_Modelpart(ModelPart& r_model_part, ResultIteratorType neighbour_it)
         {
             Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
-            
+
 //             ContainerType& pLocalElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray();
             ContainerType& pGhostElements = r_model_part.GetCommunicator().GhostMesh().ElementsArray();
-            
+
             int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
             int destination = -1;
-            
+
             bool IsInGhostMesh = false;
 //             bool IsInLocalMesh = false;
-          
+
             for(int i = 0; i < NumberOfRanks; i++)
                 if((*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(PARTITION_INDEX) == communicator_ranks[i])
                     destination = i;
-                            
+
             if(destination > -1)
-            {   
+            {
                 for(IteratorType element_it = pGhostElements.begin(); !IsInGhostMesh && element_it != pGhostElements.end(); ++element_it)
                     if((*element_it)->GetGeometry()[0].Id() == (*neighbour_it)->GetGeometry()[0].Id())
                         IsInGhostMesh = true;
-                                
+
 //                 for(IteratorType element_it = pLocalElements.begin(); !IsInLocalMesh && element_it != pLocalElements.end(); ++element_it)
 //                     if((*element_it)->GetGeometry()[0].Id() == (*neighbour_it)->GetGeometry()[0].Id())
 //                         IsInLocalMesh = true;
-                        
+
                 if(!IsInGhostMesh /*&& !IsInLocalMesh*/)
                 {
                     r_model_part.GetCommunicator().GhostMesh().Elements().push_back((*neighbour_it));
                     r_model_part.GetCommunicator().GhostMesh().Nodes().push_back((*neighbour_it)->GetGeometry()(0));
                 }
-                
+
                 IsInGhostMesh = false;
 //                 IsInLocalMesh = false;
-              
+
                 ContainerType& pMyGhostElements = r_model_part.GetCommunicator().GhostMesh(destination).ElementsArray();
 //                 ContainerType& pMyLocalElements = r_model_part.GetCommunicator().LocalMesh(destination).ElementsArray();
-          
+
                 for(IteratorType element_it = pMyGhostElements.begin(); !IsInGhostMesh && element_it != pMyGhostElements.end(); ++element_it)
                     if((*element_it)->GetGeometry()[0].Id() == (*neighbour_it)->GetGeometry()[0].Id())
                         IsInGhostMesh = true;
-                           
+
 //                 for(IteratorType element_it = pMyLocalElements.begin(); !IsInLocalMesh && element_it != pMyLocalElements.end(); ++element_it)
 //                     if((*element_it)->GetGeometry()[0].Id() == (*particle_pointer_it)->GetGeometry()[0].Id())
 //                         IsInLocalMesh = true;
-                
+
                 if(!IsInGhostMesh)
                 {
                     r_model_part.GetCommunicator().GhostMesh(destination).Elements().push_back((*neighbour_it));
                     r_model_part.GetCommunicator().GhostMesh(destination).Nodes().push_back((*neighbour_it)->GetGeometry()(0));
                 }
-                
+
 //                if(!IsInLocalMesh)
 //                {
 //                    r_model_part.GetCommunicator().LocalMesh(destination).Elements().push_back((*particle_pointer_it));
@@ -163,18 +163,18 @@ namespace Kratos {
 //                }
             }
         }
-                
+
         virtual void Clean_Modelpart(ModelPart& r_model_part)
         {
             Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
-            
+
             unsigned int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
-          
+
             ModelPart::ElementsContainerType ETempGhost[NumberOfRanks];
             ModelPart::ElementsContainerType ETempLocal[NumberOfRanks];
             ModelPart::NodesContainerType NTempGhost[NumberOfRanks];
             ModelPart::NodesContainerType NTempLocal[NumberOfRanks];
-                    
+
             //Clean the ghost(i) and local(i) meshes
             for(unsigned int i = 0; i < NumberOfRanks; i++)
             {
@@ -183,34 +183,34 @@ namespace Kratos {
                 NTempGhost[i].swap(r_model_part.GetCommunicator().GhostMesh(i).Nodes());
                 NTempLocal[i].swap(r_model_part.GetCommunicator().LocalMesh(i).Nodes());
             }
-            
+
             //Celan the ghost mesh
             ModelPart::ElementsContainerType ETempGhostGlobal;
             ModelPart::NodesContainerType NTempGhostGlobal;
-            
+
             ETempGhostGlobal.swap(r_model_part.GetCommunicator().GhostMesh().Elements());
             NTempGhostGlobal.swap(r_model_part.GetCommunicator().GhostMesh().Nodes());
         }
-        
+
         virtual void Sort_Modelpart(ModelPart& r_model_part)
         {
             for (unsigned int i = 0; i < r_model_part.GetCommunicator().LocalMeshes().size(); i++)
                 r_model_part.GetCommunicator().LocalMesh(i).Nodes().Unique();
-            
+
             for (unsigned int i = 0; i < r_model_part.GetCommunicator().GhostMeshes().size(); i++)
                 r_model_part.GetCommunicator().GhostMesh(i).Nodes().Unique();
         }
-        
+
         virtual ContainerType& Get_Elements(ModelPart& r_model_part)
         {
             return r_model_part.GetCommunicator().LocalMesh().ElementsArray();
         }
-        
+
         virtual void SearchNeighbours(ModelPart& r_model_part,
                                       ContainerType& pIteratorElements,
                                       int NumberOfElements,
                                       int MaximumNumberOfResults,
-                                      std::vector<std::size_t> &NumberOfResults, 
+                                      std::vector<std::size_t> &NumberOfResults,
                                       std::vector<std::vector<PointerType> > &Results,
                                       std::vector<std::vector<double> > &ResultsDistances,
                                       std::vector<double> &Radius
@@ -260,7 +260,7 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_MPI_NEIGHBOURS_CALCULATOR  defined 
+#endif // KRATOS_MPI_NEIGHBOURS_CALCULATOR  defined
 
 
 

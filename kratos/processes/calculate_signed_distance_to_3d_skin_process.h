@@ -1588,7 +1588,7 @@ public:
                     //form a triangle
                     Triangle3D3< Node<3> > triangle(pnode1, pnode2, pnode3);
 
-                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
                     Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, triangle, properties);
 
@@ -1659,7 +1659,7 @@ public:
                     Triangle3D3< Node<3> > triangle1(pnode1, pnode2, pnode3);
                     Triangle3D3< Node<3> > triangle2(pnode1, pnode3, pnode4);
 
-                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("SurfaceCondition3D");
                  
                     Properties::Pointer properties = mrNewSkinModelPart.rProperties()(0);
 

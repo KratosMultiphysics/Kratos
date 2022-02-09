@@ -226,9 +226,12 @@ class TopologyCellType:
     """
 
     _topologies = {
+        (2,1): "Polyvertex_1",
         (2,2): "Polyline_2",
         (2,3): "Triangle",
         (2,4): "Quadrilateral",
+
+        (3,1): "Polyvertex_1",
         (3,2): "Polyline_2",
         (3,3): "Triangle",
         (3,4): "Tetrahedron",
@@ -245,7 +248,10 @@ class TopologyCellType:
         try:
             self.attrib = {}
             cell_type = self._topologies[(dim, num_points)]
-            if cell_type == "Polyline_2":
+            if cell_type == "Polyvertex_1":
+                self.attrib["TopologyType"] = "Polyvertex"
+                self.attrib["NodesPerElement"] = "1"
+            elif cell_type == "Polyline_2":
                 self.attrib["TopologyType"] = "Polyline"
                 self.attrib["NodesPerElement"] = "2"
             else:
@@ -322,7 +328,10 @@ class NodalData(Attribute):
         if len(self.data.dimensions) == 1:
             return "Scalar"
         elif len(self.data.dimensions) == 2:
-            return "Vector"
+            if (self.data.dimensions[1] == 3):
+                return "Vector"
+            else:
+                return "Matrix"
         else:
             raise Exception("Invalid dimensions.")
 
@@ -345,7 +354,7 @@ class NodalData(Attribute):
         return e
 
 
-class ElementData(Attribute):
+class GeometrycalObjectData(Attribute):
     """An XDMF Attribute for element data value container data."""
 
     @property
@@ -361,7 +370,10 @@ class ElementData(Attribute):
         if len(self.data.dimensions) == 1:
             return "Scalar"
         elif len(self.data.dimensions) == 2:
-            return "Vector"
+            if (self.data.dimensions[1] == 3):
+                return "Vector"
+            else:
+                return "Matrix"
         else:
             raise Exception("Invalid dimensions.")
 
@@ -382,6 +394,17 @@ class ElementData(Attribute):
         e.set("AttributeType", self.attribute_type)
         e.append(self.data.create_xml_element())
         return e
+
+
+class ElementData(GeometrycalObjectData):
+    """An XDMF Attribute for element data value container data."""
+    def __init__(self, name, data):
+        super(ElementData, self).__init__(name, data)
+
+
+class ConditionData(GeometrycalObjectData):
+    def __init__(self, name, data):
+        super(ConditionData, self).__init__(name, data)
 
 
 class SpatialGrid(Grid):
@@ -407,7 +430,13 @@ class SpatialGrid(Grid):
     def add_attribute(self, attr):
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
-            grid.add_attribute(attr)
+            if (attr.center == "Cell"):
+                if (isinstance(attr, ConditionData) and (grid.name.startswith("RootModelPart.Conditions"))):
+                    grid.add_attribute(attr)
+                if (isinstance(attr, ElementData) and (grid.name.startswith("RootModelPart.Elements"))):
+                    grid.add_attribute(attr)
+            else:
+                grid.add_attribute(attr)
 
     def add_grid(self, grid):
         self.grids.append(grid)

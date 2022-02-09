@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,13 +35,6 @@ THE SOFTWARE.
 #include <iomanip>
 #include <list>
 #include <memory>
-
-#ifdef AMGCL_ASYNC_SETUP
-#  include <atomic>
-#  include <thread>
-#  include <mutex>
-#  include <condition_variable>
-#endif
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
@@ -77,13 +70,15 @@ class amg {
         typedef Backend backend_type;
 
         typedef typename Backend::value_type value_type;
+        typedef typename Backend::col_type   col_type;
+        typedef typename Backend::ptr_type   ptr_type;
         typedef typename Backend::matrix     matrix;
         typedef typename Backend::vector     vector;
 
-        typedef Coarsening<Backend>          coarsening_type;
-        typedef Relax<Backend>               relax_type;
+        typedef Coarsening<Backend>            coarsening_type;
+        typedef Relax<Backend>                 relax_type;
 
-        typedef typename backend::builtin<value_type>::matrix build_matrix;
+        typedef typename backend::builtin<value_type, col_type, ptr_type>::matrix build_matrix;
 
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
@@ -136,23 +131,15 @@ class amg {
             /// Number of cycles to make as part of preconditioning.
             unsigned pre_cycles;
 
-#ifdef AMGCL_ASYNC_SETUP
-            /// Asynchronous setup.
-            /** Starts cycling as soon as the first level is (partially)
-             * constructed. May be useful for GPGPU backends as a way to split
-             * the work between the host CPU and the compute device(s).
-             */
-            bool async_setup;
-#endif
+            /// Keep matrices in internal format to allow for quick rebuild of the hierarchy
+            bool allow_rebuild;
 
             params() :
                 coarse_enough( Backend::direct_solver::coarse_enough() ),
                 direct_coarse(true),
                 max_levels( std::numeric_limits<unsigned>::max() ),
-                npre(1), npost(1), ncycle(1), pre_cycles(1)
-#ifdef AMGCL_ASYNC_SETUP
-                , async_setup(false)
-#endif
+                npre(1), npost(1), ncycle(1), pre_cycles(1),
+                allow_rebuild(std::is_same<matrix, build_matrix>::value)
             {}
 
 #ifndef AMGCL_NO_BOOST
@@ -165,16 +152,12 @@ class amg {
                   AMGCL_PARAMS_IMPORT_VALUE(p, npre),
                   AMGCL_PARAMS_IMPORT_VALUE(p, npost),
                   AMGCL_PARAMS_IMPORT_VALUE(p, ncycle),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, pre_cycles)
-#ifdef AMGCL_ASYNC_SETUP
-                , AMGCL_PARAMS_IMPORT_VALUE(p, async_setup)
-#endif
+                  AMGCL_PARAMS_IMPORT_VALUE(p, pre_cycles),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, allow_rebuild)
             {
-                check_params(p, {"coarsening", "relax", "coarse_enough",  "direct_coarse", "max_levels", "npre", "npost", "ncycle",  "pre_cycles"
-#ifdef AMGCL_ASYNC_SETUP
-                        , "async_setup"
-#endif
-                        });
+                check_params(p, {"coarsening", "relax", "coarse_enough",
+                        "direct_coarse", "max_levels", "npre", "npost",
+                        "ncycle",  "pre_cycles", "allow_rebuild"});
 
                 precondition(max_levels > 0, "max_levels should be positive");
             }
@@ -193,9 +176,7 @@ class amg {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, npost);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, ncycle);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, pre_cycles);
-#ifdef AMGCL_ASYNC_SETUP
-                AMGCL_PARAMS_EXPORT_VALUE(p, path, async_setup);
-#endif
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, allow_rebuild);
             }
 #endif
         } prm;
@@ -245,12 +226,47 @@ class amg {
             do_init(A, bprm);
         }
 
-#ifdef AMGCL_ASYNC_SETUP
-        ~amg() {
-            done = true;
-            if (prm.async_setup) init_thread.join();
+        /// Rebuild the hierarchy using the new system matrix.
+        /**
+         * This requires for prm.allow_rebuild to be set. The transfer
+         * operators created during the initial setup are reused.
+         */
+        template <class Matrix>
+        void rebuild(
+                const Matrix &M,
+                const backend_params &bprm = backend_params()
+                )
+        {
+            auto A = std::make_shared<build_matrix>(M);
+            sort_rows(*A);
+            rebuild(A, bprm);
         }
-#endif
+
+        /// Rebuild the hierarchy using the new system matrix.
+        /**
+         * This requires for prm.allow_rebuild to be set. The transfer
+         * operators created during the initial setup are reused.
+         */
+        void rebuild(
+                std::shared_ptr<build_matrix> A,
+                const backend_params &bprm = backend_params()
+                )
+        {
+            precondition(prm.allow_rebuild,
+                    "allow_rebuild is not set!");
+            precondition(
+                    backend::rows(*A) == backend::rows(system_matrix()) &&
+                    backend::cols(*A) == backend::rows(*A),
+                    "Matrix dimensions differ from the original ones!"
+                    );
+
+            AMGCL_TIC("rebuild");
+            coarsening_type C(prm.coarsening);
+            for(auto &level : levels) {
+                A = level.rebuild(A, C, prm, bprm);
+            }
+            AMGCL_TOC("rebuild");
+        }
 
         /// Performs single V-cycle for the given right-hand side and solution.
         /**
@@ -306,6 +322,9 @@ class amg {
             std::shared_ptr<matrix> P;
             std::shared_ptr<matrix> R;
 
+            std::shared_ptr<build_matrix> bP;
+            std::shared_ptr<build_matrix> bR;
+
             std::shared_ptr< typename Backend::direct_solver > solve;
 
             std::shared_ptr<relax_type> relax;
@@ -327,7 +346,7 @@ class amg {
                 return b;
             }
 
-            level() {}
+            level() : m_rows(0), m_nonzeros(0) {}
 
             level(std::shared_ptr<build_matrix> A,
                     params &prm, const backend_params &bprm)
@@ -347,19 +366,26 @@ class amg {
 
             std::shared_ptr<build_matrix> step_down(
                     std::shared_ptr<build_matrix> A,
-                    coarsening_type &C, const backend_params &bprm)
+                    coarsening_type &C, const backend_params &bprm,
+                    bool allow_rebuild)
             {
                 AMGCL_TIC("transfer operators");
                 std::shared_ptr<build_matrix> P, R;
-                std::tie(P, R) = C.transfer_operators(*A);
 
-                if(backend::cols(*P) == 0) {
-                    // Zero-sized coarse level in amgcl (diagonal matrix?)
+                try {
+                    std::tie(P, R) = C.transfer_operators(*A);
+                } catch(error::empty_level) {
+                    AMGCL_TOC("transfer operators");
                     return std::shared_ptr<build_matrix>();
                 }
 
                 sort_rows(*P);
                 sort_rows(*R);
+
+                if (allow_rebuild) {
+                    bP = P;
+                    bR = R;
+                }
                 AMGCL_TOC("transfer operators");
 
                 AMGCL_TIC("move to backend");
@@ -390,6 +416,41 @@ class amg {
                     this->A = Backend::copy_matrix(A, bprm);
             }
 
+            std::shared_ptr<build_matrix> rebuild(
+                    std::shared_ptr<build_matrix> A,
+                    const coarsening_type &C,
+                    const params &prm,
+                    const backend_params &bprm
+                    )
+            {
+                if (this->A) {
+                    AMGCL_TIC("move to backend");
+                    this->A = Backend::copy_matrix(A, bprm);
+                    AMGCL_TOC("move to backend");
+                }
+
+                if(relax) {
+                    AMGCL_TIC("relaxation");
+                    relax = std::make_shared<relax_type>(*A, prm.relax, bprm);
+                    AMGCL_TOC("relaxation");
+                }
+
+                if (solve) {
+                    AMGCL_TIC("coarsest level");
+                    solve = Backend::create_solver(A, bprm);
+                    AMGCL_TOC("coarsest level");
+                }
+
+                if (bP && bR) {
+                    AMGCL_TIC("coarse operator");
+                    A = C.coarse_operator(*A, *bP, *bR);
+                    sort_rows(*A);
+                    AMGCL_TOC("coarse operator");
+                }
+
+                return A;
+            }
+
             size_t rows() const {
                 return m_rows;
             }
@@ -402,14 +463,8 @@ class amg {
         typedef typename std::list<level>::const_iterator level_iterator;
 
         std::list<level> levels;
-#ifdef AMGCL_ASYNC_SETUP
-        std::thread init_thread;
-        std::atomic<bool> done;
-        mutable std::mutex levels_mx;
-        mutable std::condition_variable ready_to_cycle;
-#endif
 
-        void init(
+        void do_init(
                 std::shared_ptr<build_matrix> A,
                 const backend_params &bprm = backend_params()
            )
@@ -424,20 +479,11 @@ class amg {
             coarsening_type C(prm.coarsening);
 
             while( backend::rows(*A) > prm.coarse_enough) {
-                {
-#ifdef AMGCL_ASYNC_SETUP
-                    if (done) break;
-                    std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                    levels.push_back( level(A, prm, bprm) );
-                }
-#ifdef AMGCL_ASYNC_SETUP
-                if (done) break;
-                ready_to_cycle.notify_all();
-#endif
+                levels.push_back( level(A, prm, bprm) );
+
                 if (levels.size() >= prm.max_levels) break;
 
-                A = levels.back().step_down(A, C, bprm);
+                A = levels.back().step_down(A, C, bprm, prm.allow_rebuild);
                 if (!A) {
                     // Zero-sized coarse level. Probably the system matrix on
                     // this level is diagonal, should be easily solvable with a
@@ -457,59 +503,19 @@ class amg {
                 if (prm.direct_coarse) {
                     level l;
                     l.create_coarse(A, bprm, levels.empty());
-
-                    {
-#ifdef AMGCL_ASYNC_SETUP
-                        std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                        levels.push_back( l );
-                    }
+                    levels.push_back(l);
                 } else {
-                    {
-#ifdef AMGCL_ASYNC_SETUP
-                        std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                        levels.push_back( level(A, prm, bprm) );
-                    }
+                    levels.push_back( level(A, prm, bprm) );
                 }
-#ifdef AMGCL_ASYNC_SETUP
-                ready_to_cycle.notify_all();
-#endif
                 AMGCL_TOC("coarsest level");
             }
         }
 
-        void do_init(
-                std::shared_ptr<build_matrix> A,
-                const backend_params &bprm = backend_params()
-                )
-        {
-#ifdef AMGCL_ASYNC_SETUP
-            done = false;
-            if (prm.async_setup) {
-                init_thread = std::thread(&amg::init, this, A, bprm);
-                {
-                    std::unique_lock<std::mutex> lock(levels_mx);
-                    while(levels.empty()) ready_to_cycle.wait(lock);
-                }
-            } else
-#endif
-            {
-                init(A, bprm);
-            }
-        }
         template <class Vec1, class Vec2>
         void cycle(level_iterator lvl, const Vec1 &rhs, Vec2 &x) const
         {
-            level_iterator nxt = lvl, end;
-
-            {
-#ifdef AMGCL_ASYNC_SETUP
-                std::lock_guard<std::mutex> lock(levels_mx);
-#endif
-                ++nxt;
-                end = levels.end();
-            }
+            level_iterator nxt = lvl, end = levels.end();
+            ++nxt;
 
             if (nxt == end) {
                 if (lvl->solve) {
@@ -555,8 +561,7 @@ template <class B, template <class> class C, template <class> class R>
 std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
 {
     typedef typename amg<B, C, R>::level level;
-    std::ios_base::fmtflags ff(os.flags());
-    auto fp = os.precision();
+    ios_saver ss(os);
 
     size_t sum_dof = 0;
     size_t sum_nnz = 0;
@@ -589,8 +594,6 @@ std::ostream& operator<<(std::ostream &os, const amg<B, C, R> &a)
             << "%)" << std::endl;
     }
 
-    os.flags(ff);
-    os.precision(fp);
     return os;
 }
 

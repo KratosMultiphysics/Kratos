@@ -21,10 +21,12 @@
 #include "custom_processes/kutta_condition_process.h"
 #include "custom_processes/move_model_part_process.h"
 #include "custom_processes/define_2d_wake_process.h"
+#include "custom_processes/define_3d_wake_process.h"
 #include "custom_processes/apply_far_field_process.h"
 #include "custom_processes/compute_embedded_lift_process.h"
 #include "custom_processes/define_embedded_wake_process.h"
-#include "custom_processes/compute_nodal_potential_flow_velocity_process.h"
+#include "custom_processes/compute_nodal_value_process.h"
+#include "custom_processes/compute_wing_section_variable_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -48,9 +50,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const double>())
         ;
 
+    py::class_<Define3DWakeProcess, Define3DWakeProcess::Pointer, Process>(
+        m, "Define3DWakeProcess")
+        .def(py::init<ModelPart&, ModelPart&, ModelPart&, Parameters>())
+        ;
+
     py::class_<ApplyFarFieldProcess, ApplyFarFieldProcess::Pointer, Process >
         (m, "ApplyFarFieldProcess")
-        .def(py::init<ModelPart&, const double, const bool>())
+        .def(py::init<ModelPart&, const double, const bool, const bool>())
         ;
 
     py::class_<ComputeEmbeddedLiftProcess<2,3>, ComputeEmbeddedLiftProcess<2,3>::Pointer, Process >
@@ -68,9 +75,25 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, ModelPart&>())
         ;
 
-    py::class_<ComputeNodalPotentialFlowVelocityProcess, ComputeNodalPotentialFlowVelocityProcess::Pointer, Process>
-        (m,"ComputeNodalPotentialFlowVelocityProcess")
-        .def(py::init<ModelPart&>())
+    py::class_<ComputeNodalValueProcess, ComputeNodalValueProcess::Pointer, Process>
+        (m,"ComputeNodalValueProcess")
+        .def(py::init<ModelPart&, const std::vector<std::string>&>())
+    ;
+
+    py::class_<ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun>,
+            ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::BodyFittedRun>::Pointer,
+            Process>
+        (m,"ComputeWingSectionVariableProcess")
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&>())
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&, const std::vector<std::string>& >())
+    ;
+
+    py::class_<ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun>,
+            ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings::EmbeddedRun>::Pointer,
+            Process>
+        (m,"ComputeEmbeddedWingSectionVariableProcess")
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&>())
+        .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&, const std::vector<std::string>& >())
     ;
 }
 

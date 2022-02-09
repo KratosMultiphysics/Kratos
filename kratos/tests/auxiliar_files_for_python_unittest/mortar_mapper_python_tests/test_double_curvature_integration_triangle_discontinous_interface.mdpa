@@ -4562,7 +4562,7 @@ Begin Nodes
 	5277	37.3977	42.2578	45.44
 End Nodes
 
-Begin Conditions	Condition3D
+Begin Conditions	SurfaceCondition3D3N
     1	0	1429	1428	1421
     2	0	935	921	932
     3	0	2	6	5

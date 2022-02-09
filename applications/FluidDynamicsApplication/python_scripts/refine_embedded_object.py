@@ -51,7 +51,7 @@ class MeshAdaptor:
                 elem.SetValue(SPLIT_ELEMENT,True)
 
         #do refinement
-        nodal_neighbour_search = FindNodalNeighboursProcess(self.model_part,20,20)
+        nodal_neighbour_search = FindNodalNeighboursProcess(self.model_part)
         nodal_neighbour_search.Execute()
 
         print("before refinement")

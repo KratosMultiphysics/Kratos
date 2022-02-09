@@ -94,7 +94,7 @@ namespace Kratos
   //*****************************COMPUTE PENALTY FACTOR*********************************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateContactFactor( ProcessInfo& rCurrentProcessInfo )
+  void ContactDomainPenalty2DCondition::CalculateContactFactor(const ProcessInfo& rCurrentProcessInfo )
   {
     //Initilialize penalty parameter
     double penalty_parameter = 1000;
@@ -145,7 +145,7 @@ namespace Kratos
   //****************************CALCULATE EXPLICIT PENALTY PARAMETERS*******************
   //************************************************************************************
 
-  void ContactDomainPenalty2DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainPenalty2DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
 
@@ -447,7 +447,7 @@ namespace Kratos
 
 
     //Stick contact contribution:
-    if(rVariables.Contact.Options.Is(NOT_SLIP))
+    if(rVariables.Contact.Options.IsNot(SLIP))
       {
 	//std::cout<<" + stick ";
 	if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))

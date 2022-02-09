@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -77,6 +77,18 @@ struct backends_compatible : std::is_same<SBackend, PBackend> {};
 template <class T, class Enable = void>
 struct value_type {
     typedef typename T::value_type type;
+};
+
+/// Metafunction that returns column type of a matrix.
+template <class T, class Enable = void>
+struct col_type {
+    typedef typename T::col_type type;
+};
+
+/// Metafunction that returns pointer type of a matrix.
+template <class T, class Enable = void>
+struct ptr_type {
+    typedef typename T::ptr_type type;
 };
 
 /// Implementation for function returning the number of rows in a matrix.
@@ -228,6 +240,12 @@ struct axpbypcz_impl {
 template <class Alpha, class Vector1, class Vector2, class Beta, class Vector3, class Enable = void>
 struct vmul_impl {
     typedef typename Vector1::VMUL_NOT_IMPLEMENTED type;
+};
+
+/// Reinterpret the vector to be compatible with the matrix value type
+template <class MatrixValue, class Vector, bool IsConst, class Enable = void>
+struct reinterpret_as_rhs_impl {
+    typedef typename MatrixValue::REINTERPRET_AS_RHS_NOT_IMPLEMENTED type;
 };
 
 /** @} */
@@ -384,6 +402,21 @@ void vmul(Alpha alpha, const Vector1 &x, const Vector2 &y, Beta beta, Vector3 &z
     AMGCL_TIC("vmul");
     vmul_impl<Alpha, Vector1, Vector2, Beta, Vector3>::apply(alpha, x, y, beta, z);
     AMGCL_TOC("vmul");
+}
+
+/// Reinterpret the vector to be compatible with the matrix value type
+template <class MatrixValue, class Vector>
+typename reinterpret_as_rhs_impl<
+    MatrixValue,
+    typename std::decay<Vector>::type,
+    std::is_const<typename std::remove_reference<Vector>::type>::value
+    >::return_type
+reinterpret_as_rhs(Vector &&x) {
+    return reinterpret_as_rhs_impl<
+        MatrixValue,
+        typename std::decay<Vector>::type,
+        std::is_const<typename std::remove_reference<Vector>::type>::value
+        >::get(std::forward<Vector>(x));
 }
 
 /// Is the relaxation supported by the backend?

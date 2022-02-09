@@ -1,0 +1,72 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 0.05,
+        "echo_level" : 0,
+        "print_colors" : false,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.feti_dynamic_coupled_solver",
+		"origin_newmark_beta" : 0.25,
+		"origin_newmark_gamma" : 0.5,
+		"destination_newmark_beta" : 0.25,
+        "destination_newmark_gamma" : 0.5,
+        "equilibrium_variable" : "VELOCITY",
+        "is_disable_coupling" : false,
+        "echo_level" : 0,
+        "coupling_operations" : {},
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+					"mapper_settings" : {
+					"mapper_type": "coupling_geometry",
+					"echo_level" : 0,
+                    "dual_mortar": false,
+                    "consistency_scaling" : true,
+                    "precompute_mapping_matrix" : true,
+					"modeler_name" : "MappingGeometriesModeler",
+					"modeler_parameters":{
+						"origin_model_part_name" : "origin",
+						"destination_model_part_name" : "destination",
+						"is_interface_sub_model_parts_specified" : true,
+						"origin_interface_sub_model_part_name" : "Structure.LineLoad2D_right_edge",
+						"destination_interface_sub_model_part_name" : "Structure.DISPLACEMENT_left_edge"
+					}
+				}
+            }
+        },
+        "coupling_sequence":
+        [
+            {
+                "name": "femA",
+                "input_data_list"  : [],
+                "output_data_list" : []
+            },
+            {
+                "name": "femB",
+                "input_data_list": [],
+                "output_data_list": []
+            }
+        ],
+        "solvers" :
+        {
+            "femB":
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fem_fem/dynamic_2d_cantilever/implicit_implicit/ProjectParametersBmixedtimestep"
+                }
+            },
+            "femA" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fem_fem/dynamic_2d_cantilever/implicit_implicit/ProjectParametersA"
+                }
+            }
+        }
+    }
+}

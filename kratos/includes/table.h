@@ -4,35 +4,30 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_TABLE_H_INCLUDED )
 #define  KRATOS_TABLE_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
 
-
 // Project includes
+#include "input_output/logger.h"
 #include "includes/define.h"
 #include "containers/variable.h"
 
-
 namespace Kratos
 {
-///@addtogroup Kratos Core
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -53,11 +48,19 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/// This class represents the value of its variable depending to other variable.
-/** Table class stores the value of its second variable respect to the value of its first variable.
-*   It also provides a double to double table with piecewise linear interpolator/extrapolator for getting intermediate values.
-*/
+    
+/** 
+ * @class Table
+ * @ingroup KratosCore
+ * @brief This class represents the value of its variable depending to other variable.
+ * @details Table class stores the value of its second variable respect to the value of its first variable.
+ * It also provides a double to double table with piecewise linear interpolator/extrapolator for getting intermediate values.
+ * @author Pooyan Dadvand
+ * @author Riccardo Rossi
+ * @tparam TArgumentType The type of argument considered
+ * @tparam TResultType The type of result obtained
+ * @tparam TResultsColumns The number of columns considered
+ */
 template<class TArgumentType, class TResultType = TArgumentType, std::size_t TResultsColumns = 1>
 class Table
 {
@@ -91,7 +94,6 @@ public:
     {
     }
 
-
     /// Assignment operator.
     Table& operator=(Table const& rOther)
     {
@@ -99,12 +101,9 @@ public:
         return *this;
     }
 
-
     ///@}
     ///@name Operators
     ///@{
-
-
 
     // This operator gives the first column result for the nearest argument found in table
     result_type const& operator()(argument_type const& X) const
@@ -152,8 +151,7 @@ public:
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -174,8 +172,7 @@ public:
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -219,15 +216,15 @@ public:
 
         else if(X <= mData[0].first)
             mData.insert(mData.begin(), RecordType(X,Y));
-		else if(X <= mData.back().first)
-			mData.push_back(RecordType(X,Y));
-		else
-			for(std::size_t i = 1 ; i < size ; i++)
-				if((X > mData[i-1].first) && (X <= mData[i].first))
-				{
-					mData.insert(mData.begin() + i, RecordType(X,Y));
-					break;
-				}
+        else if(X <= mData.back().first)
+            mData.push_back(RecordType(X,Y));
+        else
+            for(std::size_t i = 1 ; i < size ; i++)
+                if((X > mData[i-1].first) && (X <= mData[i].first))
+                {
+                    mData.insert(mData.begin() + i, RecordType(X,Y));
+                    break;
+                }
 
     }
 
@@ -258,6 +255,14 @@ public:
     void PushBack(argument_type const& X, result_row_type const& Y)
     {
         mData.push_back(RecordType(X,Y));
+    }
+    
+    /**
+     * @brief This method clears databse
+     */
+    void Clear()
+    {
+        mData.clear();
     }
 
     ///@}
@@ -518,8 +523,7 @@ public:
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
@@ -541,8 +545,7 @@ public:
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second;
@@ -563,8 +566,7 @@ public:
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
@@ -585,8 +587,7 @@ public:
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return mData.begin()->second[0];
@@ -637,15 +638,15 @@ public:
             mData.push_back(RecordType(X,Y));
         else if(X <= mData[0].first)
             mData.insert(mData.begin(), RecordType(X,Y));
-		else if(X > mData.back().first)
-			mData.push_back(RecordType(X,Y));
-		else
+        else if(X > mData.back().first)
+            mData.push_back(RecordType(X,Y));
+        else
             for(std::size_t i = 1 ; i < size ; i++)
                 if((X > mData[i-1].first) && (X <= mData[i].first))
-				{
+                {
                     mData.insert(mData.begin() + i, RecordType(X,Y));
-					break;
-				}
+                    break;
+                }
     }
 
     // assumes that the X is the greater than the last argument and put the row at the end.
@@ -656,13 +657,12 @@ public:
         mData.push_back(RecordType(X,a));
     }
 
-	 // Get the derivative for the given argument using piecewise linear
+     // Get the derivative for the given argument using piecewise linear
     result_type GetDerivative(argument_type const& X) const
     {
         std::size_t size = mData.size();
 
-        if(size == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Get value from empty table", "");
+        KRATOS_ERROR_IF(size == 0) << "Get value from empty table" << std::endl;
 
         if(size==1) // constant table. Returning the only value we have.
             return 0.0;
@@ -670,7 +670,7 @@ public:
         result_type result;
         if(X <= mData[0].first)
             //return Interpolate(X, mData[0].first, mData[0].second[0], mData[1].first, mData[1].second[0], result);
-			return 0.0;
+            return 0.0;
 
         for(std::size_t i = 1 ; i < size ; i++)
             if(X <= mData[i].first)
@@ -679,24 +679,32 @@ public:
         // If it lies outside the table values we will return 0.0.
         return 0.0;
     }
-	 result_type& InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
+     result_type& InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
     {
         const double epsilon = 1e-12;
         argument_type dx = X2 - X1;
         result_type dy = Y2 - Y1;
-		if (dx < epsilon)
-		{
-			dx=epsilon;
-			std::cout << "******************************************* " <<std::endl;
-			std::cout << "*** ATTENTION: SMALL dX WHEN COMPUTING  *** " <<std::endl;
-			std::cout << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 *** " <<std::endl;
-			std::cout << "******************************************* " <<std::endl;
-		}
+        if (dx < epsilon)
+        {
+            dx=epsilon;
+            KRATOS_WARNING("") 
+            << "*******************************************\n"
+            << "*** ATTENTION: SMALL dX WHEN COMPUTING  ***\n"
+            << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 ***\n"
+            << "*******************************************" <<std::endl;
+        }
         Result= dy/dx;
         return Result;
     }
-
-
+    
+    /**
+     * @brief This method clears databse
+     */
+    void Clear()
+    {
+        mData.clear();
+    }
+    
     ///@}
     ///@name Access
     ///@{

@@ -82,7 +82,7 @@ namespace CSharpKratosWrapper {
         Kratos::Parameters mSettingsParameters;
         ResidualBasedNewtonRaphsonStrategyType::Pointer pmStrategy;
 
-        Kratos::Parameters GetDefaultSettings();
+        Kratos::Parameters GetDefaultParameters();
     };
 }
 

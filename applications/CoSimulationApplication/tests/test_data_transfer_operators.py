@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -7,9 +5,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.CoSimulationApplication.factories import data_transfer_operator_factory
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
-
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
 
 mapping_app_available = kratos_utils.CheckIfApplicationsAvailable("MappingApplication")
 
@@ -47,6 +42,9 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
             node_o.SetSolutionStepValue(KM.PRESSURE, 0, ScalarValueFromId(node_id))
             node_o.SetSolutionStepValue(KM.DISPLACEMENT, 0, VectorValueFromId(node_id))
+            node_o.SetValue(KM.LAMBDA, ScalarValueFromId(node_id)*1.47)
+
+        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VISCOSITY, mp_d_m.Nodes)
 
         for i in range(num_nodes_non_matching-1,-1, -1):
             node_id = i+15
@@ -57,6 +55,11 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         origin_data_settings_scalar = KM.Parameters("""{
             "model_part_name" : "mp_origin",
             "variable_name"   : "PRESSURE"
+        }""")
+        origin_data_settings_scalar_non_hist = KM.Parameters("""{
+            "model_part_name" : "mp_origin",
+            "variable_name"   : "LAMBDA",
+            "location"        : "node_non_historical"
         }""")
         origin_data_settings_vector = KM.Parameters("""{
             "model_part_name" : "mp_origin",
@@ -69,16 +72,19 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         self.origin_data_scalar = CouplingInterfaceData(origin_data_settings_scalar, self.model)
+        self.origin_data_scalar_non_hist = CouplingInterfaceData(origin_data_settings_scalar_non_hist, self.model)
         self.origin_data_vector = CouplingInterfaceData(origin_data_settings_vector, self.model)
         self.origin_data_single_node = CouplingInterfaceData(origin_data_settings_single_node, self.model)
-        self.origin_data_scalar.Initialize()
-        self.origin_data_vector.Initialize()
-        self.origin_data_single_node.Initialize()
 
 
         destination_matching_data_settings_scalar = KM.Parameters("""{
             "model_part_name" : "mp_destination_matching",
             "variable_name"   : "TEMPERATURE"
+        }""")
+        destination_matching_data_settings_scalar_non_hist = KM.Parameters("""{
+            "model_part_name" : "mp_destination_matching",
+            "variable_name"   : "VISCOSITY",
+            "location"        : "node_non_historical"
         }""")
         destination_matching_data_settings_vector = KM.Parameters("""{
             "model_part_name" : "mp_destination_matching",
@@ -91,11 +97,9 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         self.destination_matching_data_scalar = CouplingInterfaceData(destination_matching_data_settings_scalar, self.model)
+        self.destination_matching_data_scalar_non_hist = CouplingInterfaceData(destination_matching_data_settings_scalar_non_hist, self.model)
         self.destination_matching_data_vector = CouplingInterfaceData(destination_matching_data_settings_vector, self.model)
         self.destination_data_single_node = CouplingInterfaceData(destination_data_settings_single_node, self.model)
-        self.destination_matching_data_scalar.Initialize()
-        self.destination_matching_data_vector.Initialize()
-        self.destination_data_single_node.Initialize()
 
 
         destination_non_matching_data_settings_scalar = KM.Parameters("""{
@@ -110,30 +114,25 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.destination_non_matching_data_scalar = CouplingInterfaceData(destination_non_matching_data_settings_scalar, self.model)
         self.destination_non_matching_data_vector = CouplingInterfaceData(destination_non_matching_data_settings_vector, self.model)
-        self.destination_non_matching_data_scalar.Initialize()
-        self.destination_non_matching_data_vector.Initialize()
-
 
     def test_copy_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
 
         self.__TestTransferMatching(data_transfer_op)
         self.__TestTransferMatchingSwapSign(data_transfer_op)
         self.__TestTransferMatchingAddValues(data_transfer_op)
-        self.__TestTransferMatchingAddValuesAdSwapSign(data_transfer_op)
+        self.__TestTransferMatchingAddValuesAndSwapSign(data_transfer_op)
 
         transfer_options_empty = KM.Parameters(""" [] """)
-        exp_error = 'The sizes of the data are not matching: {} != {}!'.format(self.origin_data_scalar.Size(), self.destination_non_matching_data_scalar.Size())
+        exp_error = 'The sizes of the data are not matching: {} != {} for interface data "{}" of solver "{}" and interface data "{}" of solver "{}"!'.format(self.origin_data_scalar.Size(), self.destination_non_matching_data_scalar.Size(), self.origin_data_scalar.name, self.origin_data_scalar.solver_name, self.destination_non_matching_data_scalar.name, self.destination_non_matching_data_scalar.solver_name)
         with self.assertRaisesRegex(Exception, exp_error):
             data_transfer_op.TransferData(self.origin_data_scalar, self.destination_non_matching_data_scalar, transfer_options_empty)
 
     def test_kratos_mapping_transfer_operator(self):
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
         if not mapping_app_available:
             self.skipTest("MappingApplication not available!")
 
@@ -143,7 +142,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         exp_error = 'No "mapper_settings" provided!'
         with self.assertRaisesRegex(Exception, exp_error):
-            data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings_missing)
+            data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings_missing, KM.Testing.GetDefaultDataCommunicator())
 
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "kratos_mapping",
@@ -152,19 +151,94 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             }
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
 
         self.__TestTransferMatching(data_transfer_op)
         self.__TestTransferMatchingSwapSign(data_transfer_op)
         self.__TestTransferMatchingAddValues(data_transfer_op)
-        self.__TestTransferMatchingAddValuesAdSwapSign(data_transfer_op)
+        self.__TestTransferMatchingAddValuesAndSwapSign(data_transfer_op)
+
+        # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
+        # Hint: requires access to private member
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
+        self.__TestTransferMatchingInverse(data_transfer_op)
+        # here we check explicitly the InverseMap fct
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
+        transfer_options_empty = KM.Parameters(""" [] """)
+        data_transfer_op.TransferData(self.origin_data_scalar, self.destination_non_matching_data_scalar, transfer_options_empty)
+        # here we check explicitly the creation of a second mapper, which is required since the interfaces are not the same this time
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 2)
+
+        data_settings_model_part = KM.Parameters("""{
+            "model_part_name" : "mp_single_node",
+            "variable_name"   : "TEMPERATURE",
+            "location"        : "model_part"
+        }""")
+
+        data_model_part = CouplingInterfaceData(data_settings_model_part, self.model)
+
+        with self.assertRaisesRegex(Exception, 'Mapping only supports nodal values!'):
+            data_transfer_op.TransferData(self.origin_data_scalar, data_model_part, transfer_options_empty)
+
+    def test_kratos_mapping_transfer_operator_non_historical(self):
+        if not mapping_app_available:
+            self.skipTest("MappingApplication not available!")
+
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "kratos_mapping",
+            "mapper_settings" : {
+                "mapper_type" : "nearest_neighbor"
+            }
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
+
+        transfer_options_empty = KM.Parameters(""" [] """)
+        # origin is non-hist
+        data_transfer_op.TransferData(self.origin_data_scalar_non_hist, self.destination_matching_data_scalar, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.origin_data_scalar_non_hist.GetData(), self.destination_matching_data_scalar.GetData())
+
+        # destination is non-hist
+        data_transfer_op.TransferData(self.origin_data_scalar, self.destination_matching_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.origin_data_scalar.GetData(), self.destination_matching_data_scalar_non_hist.GetData())
+
+        # both are non-hist
+        data_transfer_op.TransferData(self.origin_data_scalar_non_hist, self.destination_matching_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.origin_data_scalar_non_hist.GetData(), self.destination_matching_data_scalar_non_hist.GetData())
+
+        # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
+        # Hint: requires access to private member
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
+        self.destination_matching_data_scalar.SetData([i+9.47 for i in range(self.destination_matching_data_scalar.Size())]) # reset values
+        self.destination_matching_data_scalar_non_hist.SetData([i-89.14 for i in range(self.destination_matching_data_scalar_non_hist.Size())]) # reset values
+
+        # Now also check InverseMap
+        # origin is non-hist
+        data_transfer_op.TransferData(self.destination_matching_data_scalar, self.origin_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.destination_matching_data_scalar.GetData(), self.origin_data_scalar_non_hist.GetData())
+
+        # destination is non-hist
+        data_transfer_op.TransferData(self.destination_matching_data_scalar_non_hist, self.origin_data_scalar, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.destination_matching_data_scalar_non_hist.GetData(), self.origin_data_scalar.GetData())
+
+        # both are non-hist
+        data_transfer_op.TransferData(self.destination_matching_data_scalar_non_hist, self.origin_data_scalar_non_hist, transfer_options_empty)
+        self.assertVectorAlmostEqual(self.destination_matching_data_scalar_non_hist.GetData(), self.origin_data_scalar_non_hist.GetData())
+
+        # with this we make sure that only one mapper is created (and not several ones for each mapping operation!)
+        # Hint: requires access to private member
+        self.assertEqual(len(data_transfer_op._KratosMappingDataTransferOperator__mappers), 1)
+
 
     def test_copy_single_to_dist_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -178,13 +252,18 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT,1)
 
+        with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
+            data_transfer_op.TransferData(self.origin_data_scalar,
+                                          self.destination_matching_data_scalar,
+                                          transfer_options)
+
 
     def test_copy_single_to_dist_transfer_operator_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["swap_sign"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -203,7 +282,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["distribute_values"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -222,7 +301,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options_empty = KM.Parameters(""" [] """)
         transfer_options_add = KM.Parameters(""" ["add_values"] """)
 
@@ -250,7 +329,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -269,7 +348,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
         transfer_options_with_add_vals = KM.Parameters(""" ["distribute_values", "swap_sign", "add_values"] """)
 
@@ -297,7 +376,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -311,13 +390,18 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 5)
 
+        with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
+            data_transfer_op.TransferData(self.origin_data_scalar,
+                                        self.destination_matching_data_scalar,
+                                        transfer_options)
+
 
     def test_sum_dist_to_single_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["swap_sign"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -337,7 +421,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["add_values"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -359,7 +443,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["add_values", "swap_sign"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -381,7 +465,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):
@@ -394,7 +478,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):
@@ -408,6 +492,17 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, self.origin_data_scalar.GetModelPart().Nodes, KM.TEMPERATURE, KM.PRESSURE)
         data_transfer_op.TransferData(self.origin_data_vector, self.destination_matching_data_vector, transfer_options_empty)
         self.__CompareVectorNodalValues(self.destination_matching_data_vector.GetModelPart().Nodes, self.origin_data_vector.GetModelPart().Nodes, KM.FORCE, KM.DISPLACEMENT, 2)
+
+    def __TestTransferMatchingInverse(self, data_transfer_op):
+        transfer_options_empty = KM.Parameters(""" [] """)
+        data_transfer_op.TransferData(self.destination_matching_data_scalar, self.origin_data_scalar, transfer_options_empty)
+        self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes, self.origin_data_scalar.GetModelPart().Nodes, KM.TEMPERATURE, KM.PRESSURE)
+        data_transfer_op.TransferData(self.destination_matching_data_vector, self.origin_data_vector, transfer_options_empty)
+        self.__CompareVectorNodalValues(self.destination_matching_data_vector.GetModelPart().Nodes, self.origin_data_vector.GetModelPart().Nodes, KM.FORCE, KM.DISPLACEMENT, 2)
+
+        transfer_options_fail = KM.Parameters(""" ["thisWillHopefullyNeverBeImplementedOtherWiseThisTestWillFail"] """)
+        with self.assertRaisesRegex(Exception, ' not recognized for '):
+            data_transfer_op.TransferData(self.origin_data_scalar, self.destination_matching_data_scalar, transfer_options_fail)
 
     def __TestTransferMatchingSwapSign(self, data_transfer_op):
         transfer_options_swap_sign = KM.Parameters(""" ["swap_sign"] """)
@@ -426,7 +521,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         data_transfer_op.TransferData(self.origin_data_vector, self.destination_matching_data_vector, transfer_options_add_values)
         self.__CompareVectorNodalValues(self.destination_matching_data_vector.GetModelPart().Nodes, self.origin_data_vector.GetModelPart().Nodes, KM.FORCE, KM.DISPLACEMENT, 2, 2.0)
 
-    def __TestTransferMatchingAddValuesAdSwapSign(self, data_transfer_op):
+    def __TestTransferMatchingAddValuesAndSwapSign(self, data_transfer_op):
         transfer_options_empty = KM.Parameters(""" [] """)
         transfer_options_add_values = KM.Parameters(""" ["add_values"] """)
         transfer_options_add_values_swap_sign = KM.Parameters(""" ["add_values", "swap_sign"] """)

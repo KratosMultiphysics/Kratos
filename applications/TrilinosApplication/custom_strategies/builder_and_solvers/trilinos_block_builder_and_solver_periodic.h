@@ -18,14 +18,7 @@
 /* #include <omp.h> */
 
 /* External includes */
-#include "boost/timer.hpp"
-
-
-/* Project includes */
-#include "includes/define.h"
-#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
-
-//trilinos includes
+// Trilinos includes
 #include "Epetra_MpiComm.h"
 #include "Epetra_Map.h"
 #include "Epetra_Vector.h"
@@ -35,6 +28,10 @@
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 
+/* Project includes */
+#include "includes/define.h"
+#include "utilities/timer.h"
+#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 
 namespace Kratos
 {
@@ -140,11 +137,11 @@ public:
      * all processes that own periodic conditions know the nodes on both ends (either as local or ghost nodes).
      * @param rModelPart The problem's ModelPart
      */
-    virtual void SetUpSystem(ModelPart &rModelPart) override
+    void SetUpSystem(ModelPart &rModelPart) override
     {
         KRATOS_TRY;
 
-        unsigned int Rank = this->mrComm.MyPID();
+        const int Rank = this->mrComm.MyPID();
 
         // Count the Dofs on this partition (on periodic node pairs, only the dofs on the node with higher Id are counted)
         int DofCount = 0;
@@ -417,7 +414,7 @@ private:
         for (int i = 0; i < NumProcs; i++) ExtraDofs[i] = 0;
 
         Condition::DofsVectorType DofList;
-        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+        const ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
         for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
         {
             Condition::GeometryType& rGeom = itCond->GetGeometry();
@@ -430,7 +427,7 @@ private:
                 itCond->GetDofList(DofList,rProcessInfo);
                 for(typename Condition::DofsVectorType::iterator iDof = DofList.begin() ; iDof != DofList.end() ; ++iDof)
                     if ( (*iDof)->Id() == FirstNode)
-                        ExtraDofs[ (unsigned int)( (*iDof)->GetSolutionStepValue(PARTITION_INDEX) ) ]++;
+                        ExtraDofs[(*iDof)->GetSolutionStepValue(PARTITION_INDEX)]++;
 
                 rGeom[0].GetValue(mPeriodicIdVar) = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
             }

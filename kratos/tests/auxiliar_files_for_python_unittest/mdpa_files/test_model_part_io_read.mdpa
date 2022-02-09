@@ -1,6 +1,9 @@
 Begin ModelPartData
 //  VARIABLE_NAME value
 AMBIENT_TEMPERATURE 250.00
+DISPLACEMENT [3] (2.1, 3.2, 4.3)
+VELOCITY_X 3.8
+VELOCITY_Y 4.9
 End ModelPartData
 
 
@@ -12,6 +15,7 @@ End Table
 
 Begin Properties 1
 IS_RESTARTED 1
+COMPUTE_LUMPED_MASS_MATRIX False
 COMPUTE_DYNAMIC_TANGENT 0
 DENSITY 3.4E-5  //scalar
 THICKNESS 19.5
@@ -34,6 +38,21 @@ Begin Nodes
 973                   0                 7.6                   0
 974                   0                   8                   0
 End Nodes
+
+Begin Geometries Triangle2D3
+1        1        2        3
+2        2        3        972
+3        3        972      973
+1796     972      973      974
+End Geometries
+
+Begin Geometries Line2D2
+10         1          2
+1800       2          3
+1801       3          972
+1947       972        973
+1948       973        974
+End Geometries
 
 Begin Elements Element2D3N
 1 1        1        2        3
@@ -81,11 +100,16 @@ Begin NodalData VISCOSITY
 974 0 0.010000
 End NodalData
 
+Begin NodalData VELOCITY
+1 0 [3](1.1,2.2,3.3)
+End NodalData
+
 
 Begin SubModelPart Inlets
 	Begin SubModelPartData
-	IS_RESTARTED 1
-	COMPUTE_DYNAMIC_TANGENT 0
+	IS_RESTARTED True
+	COMPUTE_LUMPED_MASS_MATRIX true
+	COMPUTE_DYNAMIC_TANGENT false
 	End SubModelPartData
 
 	Begin SubModelPartTables

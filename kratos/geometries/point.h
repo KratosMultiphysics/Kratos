@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/serializer.h"
-#include "includes/kratos_components.h"
 
 namespace Kratos
 {
@@ -142,7 +141,7 @@ public:
         return *this;
     }
 
-    bool operator==(const Point &rOther)
+    bool operator==(const Point &rOther) const
     {
         return std::equal(this->begin(), this->end(), rOther.begin());
     }
@@ -224,7 +223,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const
     {
-        rOStream << "("  << this->operator[](0)
+        rOStream << " ("  << this->operator[](0)
                  << ", " << this->operator[](1)
                  << ", " << this->operator[](2)
                  << ")";

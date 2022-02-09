@@ -1,0 +1,221 @@
+{
+    "materials":[{
+        "material_name": "mat1",
+        "material_id": 1,
+        "Variables":{
+            "PARTICLE_DENSITY": 2650.0,
+            "YOUNG_MODULUS": 800e3,
+            "POISSON_RATIO": 0.25
+        }
+    },{
+        "material_name": "mat2",
+        "material_id": 2,
+        "Variables":{
+            "PARTICLE_DENSITY": 2650.0,
+            "YOUNG_MODULUS": 800e3,
+            "POISSON_RATIO": 0.25
+        }
+    },{
+        "material_name": "mat3",
+        "material_id": 3,
+        "Variables":{
+            "PARTICLE_DENSITY": 2650.0,
+            "YOUNG_MODULUS": 800e3,
+            "POISSON_RATIO": 0.25
+        }
+    },{
+        "material_name": "mat4",
+        "material_id": 4,
+        "Variables":{
+            "PARTICLE_DENSITY": 2650.0,
+            "YOUNG_MODULUS": 800e3,
+            "POISSON_RATIO": 0.25
+        }
+    },{
+        "material_name": "mat5",
+        "material_id": 5,
+        "Variables":{
+            "YOUNG_MODULUS": 1e11,
+            "POISSON_RATIO": 0.25,
+            "COMPUTE_WEAR": false
+        }
+    }],
+    "material_relations":[{
+        "material_names_list":["mat1", "mat1"],
+        "material_ids_list":[1, 1],
+        "Variables":{
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "PARTICLE_COHESION": 0.0,
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "PARTICLE_MATERIAL": 1,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM_with_damage_parallel_bond_Hertz",
+            "INTERNAL_COHESION": 13.72,
+            "INTERNAL_FRICTION_ANGLE": 24.1,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb",
+            "CONTACT_TAU_ZERO": 0e4,
+            "CONTACT_SIGMA_MIN": 13.72e6,
+            "CONTACT_INTERNAL_FRICC": 0.0,
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
+            "KDEM_STANDARD_DEVIATION_TAU_ZERO": 3.43,
+            "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
+            "SHEAR_ENERGY_COEF": 4.0,
+            "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
+            "FRACTURE_ENERGY": 0.0
+        }
+    },{
+        "material_names_list":["mat1", "mat5"],
+        "material_ids_list":[1, 5],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "WALL_COHESION": 0.0,
+            "SEVERITY_OF_WEAR": 0.001,
+            "IMPACT_WEAR_SEVERITY": 0.001,
+            "BRINELL_HARDNESS": 200.0,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+        }
+    },{
+        "material_names_list":["mat2", "mat2"],
+        "material_ids_list":[2, 2],
+        "Variables":{
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "PARTICLE_COHESION": 0.0,
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "PARTICLE_MATERIAL": 1,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM_with_damage_parallel_bond",
+            "INTERNAL_COHESION": 13.72,
+            "INTERNAL_FRICTION_ANGLE": 24.1,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb",
+            "CONTACT_TAU_ZERO": 0e4,
+            "CONTACT_SIGMA_MIN": 13.72e6,
+            "CONTACT_INTERNAL_FRICC": 0.0,
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
+            "KDEM_STANDARD_DEVIATION_TAU_ZERO": 3.43,
+            "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
+            "SHEAR_ENERGY_COEF": 4.0,
+            "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
+            "FRACTURE_ENERGY": 0.0
+        }
+    },{
+        "material_names_list":["mat2", "mat5"],
+        "material_ids_list":[2, 5],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "WALL_COHESION": 0.0,
+            "SEVERITY_OF_WEAR": 0.001,
+            "IMPACT_WEAR_SEVERITY": 0.001,
+            "BRINELL_HARDNESS": 200.0,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb"
+        }
+    },{
+        "material_names_list":["mat3", "mat3"],
+        "material_ids_list":[3, 3],
+        "Variables":{
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "PARTICLE_COHESION": 0.0,
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "PARTICLE_MATERIAL": 1,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM_with_damage",
+            "INTERNAL_COHESION": 13.72,
+            "INTERNAL_FRICTION_ANGLE": 24.1,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb",
+            "CONTACT_TAU_ZERO": 0e4,
+            "CONTACT_SIGMA_MIN": 13.72e6,
+            "CONTACT_INTERNAL_FRICC": 0.0,
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
+            "KDEM_STANDARD_DEVIATION_TAU_ZERO": 3.43,
+            "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
+            "SHEAR_ENERGY_COEF": 4.0,
+            "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
+            "FRACTURE_ENERGY": 0.0
+        }
+    },{
+        "material_names_list":["mat3", "mat5"],
+        "material_ids_list":[3, 5],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "WALL_COHESION": 0.0,
+            "SEVERITY_OF_WEAR": 0.001,
+            "IMPACT_WEAR_SEVERITY": 0.001,
+            "BRINELL_HARDNESS": 200.0,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb"
+        }
+    },{
+        "material_names_list":["mat4", "mat4"],
+        "material_ids_list":[4, 4],
+        "Variables":{
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "PARTICLE_COHESION": 0.0,
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "PARTICLE_MATERIAL": 1,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_KDEM",
+            "INTERNAL_COHESION": 13.72,
+            "INTERNAL_FRICTION_ANGLE": 24.1,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb",
+            "CONTACT_TAU_ZERO": 0e4,
+            "CONTACT_SIGMA_MIN": 13.72e6,
+            "CONTACT_INTERNAL_FRICC": 0.0,
+            "ROTATIONAL_MOMENT_COEFFICIENT": 0.01,
+            "KDEM_STANDARD_DEVIATION_TAU_ZERO": 3.43,
+            "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
+            "SHEAR_ENERGY_COEF": 4.0,
+            "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
+            "FRACTURE_ENERGY": 0.0
+        }
+    },{
+        "material_names_list":["mat4", "mat5"],
+        "material_ids_list":[4, 5],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.01,
+            "STATIC_FRICTION": 0.15,
+            "DYNAMIC_FRICTION": 0.15,
+            "FRICTION_DECAY": 500.0,
+            "ROLLING_FRICTION": 0.00,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "WALL_COHESION": 0.0,
+            "SEVERITY_OF_WEAR": 0.001,
+            "IMPACT_WEAR_SEVERITY": 0.001,
+            "BRINELL_HARDNESS": 200.0,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Linear_viscous_Coulomb"
+        }
+    }],
+    "material_assignation_table":[
+        ["SpheresPart.PartsCont_dems1", "mat1"],
+        ["SpheresPart.PartsDisCont_dems2", "mat1"],
+        ["SpheresPart.PartsCont_dems3", "mat2"],
+        ["SpheresPart.PartsDisCont_dems4", "mat2"],
+        ["SpheresPart.PartsCont_dems5", "mat3"],
+        ["SpheresPart.PartsCont_dems6", "mat4"],
+        ["RigidFacePart","mat5"]
+    ]
+}

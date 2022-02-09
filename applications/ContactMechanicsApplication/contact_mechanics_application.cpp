@@ -41,9 +41,6 @@ namespace Kratos {
   {}
 
   void KratosContactMechanicsApplication::Register() {
-      // calling base class register to register Kratos components
-      KratosApplication::Register();
-
       std::stringstream banner;
 
       banner << "             ___         _           _           \n"

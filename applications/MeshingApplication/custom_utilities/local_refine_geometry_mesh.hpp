@@ -229,7 +229,7 @@ public:
             const int& number_elem,
             const Element::Pointer father_elem,
             Element::Pointer child_elem,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
             );
 
     virtual void UpdateSubModelPartNodes(ModelPart &rModelPart);

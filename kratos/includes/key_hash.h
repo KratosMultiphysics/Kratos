@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/dof.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 
 namespace Kratos
 {
@@ -261,7 +261,7 @@ namespace Kratos
      * @note Must be tenmplated to take into account the shared, intrussive,etc... pointers
      */
     template<class TpIndexedObject>
-    struct IndexedObjecPointertHasher
+    struct IndexedObjectPointerHasher
     {
         /**
          * @brief This is the () operator

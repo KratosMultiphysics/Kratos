@@ -1,7 +1,5 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
+import os, sys, shutil, re
 import KratosMultiphysics as KM
-import os, shutil, re
 
 def IssueDeprecationWarning(label, *message):
     KM.Logger.PrintWarning('DEPRECATION-Warning; '+label, ' '.join(map(str,message)))
@@ -42,11 +40,40 @@ def GetListOfAvailableApplications():
     """
     kratos_path = GetKratosMultiphysicsPath()
 
-    apps = [
+    apps = sorted([
         f.split('.')[0] for f in os.listdir(kratos_path) if re.match(r'.*Application*', f)
-    ]
+    ])
 
     return apps
+
+def GetListOfImportedApplications(module_name="KratosMultiphysics"):
+    """Returns the list of moldules that are or were imported at
+    call time, including the main module_name module.
+    """
+    loaded_modules = [mod for mod in sys.modules.keys() if '__file__' in dir(sys.modules[mod]) and sys.modules[mod].__file__]
+    kratos_modules = [mod for mod in loaded_modules if module_name in sys.modules[mod].__file__]
+
+    kratos_apps = [mod for mod in kratos_modules if os.path.basename(sys.modules[mod].__file__) == "__init__.py"]
+
+    return kratos_apps
+
+def GetMapOfImportedApplications(module_name="KratosMultiphysics"):
+    """Returns the tree of modules that are or were imported at
+    call time, including the main "module_name" module.
+    """
+    import_map = {}
+    imported_apps = GetListOfImportedApplications(module_name)
+
+    for app in imported_apps:
+        names = app.split(".")
+
+        entry_point = import_map
+        for part in names:
+            if part not in entry_point:
+                entry_point[part] = {}
+            entry_point = entry_point[part]
+
+    return import_map
 
 def IsMPIAvailable():
     """Check if the KratosMPI module (the MPI core) is available.
@@ -55,30 +82,17 @@ def IsMPIAvailable():
 
     return "mpi" in os.listdir(kratos_path)
 
-def IsApplicationAvailable(application_name):
-    """Returns whether an application is available
-    """
-    warn_msg = '"IsApplicationAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(application_name)
-
-def AreApplicationsAvailable(list_application_names):
-    """Returns whether several applications are available
-    """
-    warn_msg = '"AreApplicationsAvailable" is deprecated, please use "CheckIfApplicationsAvailable" instead'
-    IssueDeprecationWarning('kratos_utilities', warn_msg)
-    return CheckIfApplicationsAvailable(*list_application_names)
-
 def CheckIfApplicationsAvailable(*application_names):
     """Returns whether the inquired applications are available
     """
     available_apps = GetListOfAvailableApplications()
+    return all(app_name in available_apps for app_name in application_names)
 
-    for app_name in application_names:
-        if app_name not in available_apps:
-            return False
-
-    return True
+def GetNotAvailableApplications(*application_names):
+    """Returns a list of applications that are not available out of a provided list of applications
+    """
+    available_apps = GetListOfAvailableApplications()
+    return list(filter(lambda app_name: app_name not in available_apps, application_names))
 
 def GenerateVariableListFromInput(param):
     """ Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel

@@ -153,27 +153,26 @@ void ClearImpactMemberVariables();
 void FinalizeForceComputation(BaseBufferType & data_buffer) override;
 
 void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                       const ProcessInfo& r_process_info,
-                                                       double LocalElasticContactForce[3],
-                                                       double DeltDisp[3],
-                                                       double LocalDeltDisp[3],
-                                                       double RelVel[3],
-                                                       const double indentation,
-                                                       double ViscoDampingLocalContactForce[3],
-                                                       double& cohesive_force,
-                                                       SphericParticle* p_neighbour_element,
-                                                       bool& sliding,
-                                                       double LocalCoordSystem[3][3],
-                                                       double OldLocalCoordSystem[3][3],
-                                                       array_1d<double, 3>& neighbour_elastic_contact_force) override;
+                                                    const ProcessInfo& r_process_info,
+                                                    double LocalElasticContactForce[3],
+                                                    double DeltDisp[3],
+                                                    double LocalDeltDisp[3],
+                                                    double RelVel[3],
+                                                    const double indentation,
+                                                    double ViscoDampingLocalContactForce[3],
+                                                    double& cohesive_force,
+                                                    SphericParticle* p_neighbour_element,
+                                                    bool& sliding,
+                                                    double LocalCoordSystem[3][3],
+                                                    double OldLocalCoordSystem[3][3],
+                                                    array_1d<double, 3>& neighbour_elastic_contact_force) override;
 
 void ComputeBallToRigidFaceContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                         array_1d<double, 3>& r_elastic_force,
-                                                         array_1d<double, 3>& r_contact_force,
-                                                         double& RollingResistance,
-                                                         array_1d<double, 3>& rigid_element_force,
-                                                         ProcessInfo& r_process_info,                                                        
-                                                         int search_control) override;
+                                        array_1d<double, 3>& r_elastic_force,
+                                        array_1d<double, 3>& r_contact_force,
+                                        double& RollingResistance,
+                                        array_1d<double, 3>& rigid_element_force,
+                                        const ProcessInfo& r_process_info) override;
 
 
 bool IsNewNeighbour(const int neighbour_id);

@@ -20,8 +20,10 @@
 #include "custom_elements/weak_coupling_slide.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "includes/variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 
 namespace Kratos {
@@ -54,7 +56,7 @@ WeakSlidingElement3D3N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 WeakSlidingElement3D3N::~WeakSlidingElement3D3N() {}
 
 void WeakSlidingElement3D3N::EquationIdVector(EquationIdVectorType& rResult,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rResult.size() != msLocalSize) {
@@ -71,7 +73,7 @@ void WeakSlidingElement3D3N::EquationIdVector(EquationIdVectorType& rResult,
     }
 }
 void WeakSlidingElement3D3N::GetDofList(DofsVectorType& rElementalDofList,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if (rElementalDofList.size() != msLocalSize) {
@@ -88,16 +90,10 @@ void WeakSlidingElement3D3N::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void WeakSlidingElement3D3N::Initialize()
-{
-    KRATOS_TRY
-    KRATOS_CATCH("")
-}
-
 BoundedMatrix<double, WeakSlidingElement3D3N::msLocalSize,
 WeakSlidingElement3D3N::msLocalSize>
 WeakSlidingElement3D3N::CreateElementStiffnessMatrix(
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     BoundedMatrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
         ZeroMatrix(msLocalSize, msLocalSize);
@@ -210,7 +206,7 @@ WeakSlidingElement3D3N::CreateElementStiffnessMatrix(
 }
 
 
-void WeakSlidingElement3D3N::GetValuesVector(Vector& rValues, int Step)
+void WeakSlidingElement3D3N::GetValuesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -230,7 +226,7 @@ void WeakSlidingElement3D3N::GetValuesVector(Vector& rValues, int Step)
     KRATOS_CATCH("")
 }
 
-void WeakSlidingElement3D3N::GetFirstDerivativesVector(Vector& rValues, int Step)
+void WeakSlidingElement3D3N::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -250,7 +246,7 @@ void WeakSlidingElement3D3N::GetFirstDerivativesVector(Vector& rValues, int Step
     KRATOS_CATCH("")
 }
 
-void WeakSlidingElement3D3N::GetSecondDerivativesVector(Vector& rValues, int Step)
+void WeakSlidingElement3D3N::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
 
     KRATOS_TRY
@@ -273,7 +269,7 @@ void WeakSlidingElement3D3N::GetSecondDerivativesVector(Vector& rValues, int Ste
 
 void WeakSlidingElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
@@ -282,7 +278,7 @@ void WeakSlidingElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 }
 
 void WeakSlidingElement3D3N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -329,7 +325,7 @@ void WeakSlidingElement3D3N::CalculateRightHandSide(
 }
 
 void WeakSlidingElement3D3N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -341,7 +337,7 @@ void WeakSlidingElement3D3N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatr
     KRATOS_CATCH("")
 }
 
-int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
+int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -351,15 +347,10 @@ int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     if (dimension != msDimension ||number_of_nodes != msNumberOfNodes) {
         KRATOS_ERROR << "The element works only in 3D and with 3 nodes" << std::endl;
     }
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (IndexType i = 0; i < number_of_nodes; ++i) {
-        NodeType& rnode = GetGeometry()[i];
+        const NodeType& rnode = GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, rnode);
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode);
@@ -380,7 +371,7 @@ int WeakSlidingElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 
 void WeakSlidingElement3D3N::AddExplicitContribution(
     const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {
@@ -397,8 +388,7 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
             size_t index = msDimension * i;
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j];
+                AtomicAdd(r_force_residual[j], rRHSVector[index + j]);
             }
         }
     }
@@ -409,7 +399,7 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
 void WeakSlidingElement3D3N::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
 )
 {

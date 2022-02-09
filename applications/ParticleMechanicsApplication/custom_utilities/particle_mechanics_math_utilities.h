@@ -157,9 +157,10 @@ public:
      */
 
     static inline double CalculateRadius(
-        const Vector& N,
+        const Matrix& rN,
         GeometryType& Geom,
-        const Configuration ThisConfiguration = Current
+        const Configuration ThisConfiguration = Current,
+        const IndexType IntegrationPointIndex = 0
         )
     {
         double radius = 0.0;
@@ -173,12 +174,12 @@ public:
                 const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
 
                 const array_1d<double, 3 > current_position = reference_position + delta_displacement;
-                radius += current_position[0] * N[iNode];
+                radius += current_position[0] * rN(IntegrationPointIndex, iNode);
             }
             else
             {
                 const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
-                radius += reference_position[0] * N[iNode];
+                radius += reference_position[0] * rN(IntegrationPointIndex, iNode);
             }
         }
 

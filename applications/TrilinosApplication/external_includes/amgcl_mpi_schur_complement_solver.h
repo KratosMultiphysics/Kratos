@@ -28,6 +28,7 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/linear_solver.h"
 #include "external_includes/amgcl_mpi_solver.h"
+#include "custom_utilities/trilinos_solver_utilities.h"
 
 #include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -37,7 +38,7 @@
 
 #include <amgcl/mpi/make_solver.hpp>
 #include <amgcl/mpi/schur_pressure_correction.hpp>
-#include <amgcl/solver/runtime.hpp>
+#include <amgcl/mpi/solver/runtime.hpp>
 #include <amgcl/mpi/block_preconditioner.hpp>
 #include <amgcl/relaxation/as_preconditioner.hpp>
 #include <amgcl/relaxation/runtime.hpp>
@@ -193,7 +194,9 @@ public:
         //using amgcl::prof;
         //prof.reset();
 
-        amgcl::mpi::communicator world ( MPI_COMM_WORLD );
+        MPI_Comm the_comm = TrilinosSolverUtilities::GetMPICommFromEpetraComm(rA.Comm());
+
+        amgcl::mpi::communicator world ( the_comm );
         if ( mVerbosity >=0 && world.rank == 0 ) {
             std::cout << "World size: " << world.size << std::endl;
         }
@@ -214,7 +217,7 @@ public:
                     amgcl::mpi::block_preconditioner<
                         amgcl::relaxation::as_preconditioner<Backend, amgcl::runtime::relaxation::wrapper>
                         >,
-                    amgcl::runtime::solver::wrapper
+                    amgcl::runtime::mpi::solver::wrapper<Backend>
                     >,
                 amgcl::mpi::make_solver<
                     amgcl::mpi::amg<
@@ -224,10 +227,10 @@ public:
                         amgcl::runtime::mpi::direct::solver<double>,
                         amgcl::runtime::mpi::partition::wrapper<Backend>
                         >,
-                    amgcl::runtime::solver::wrapper
+                    amgcl::runtime::mpi::solver::wrapper<Backend>
                     >
                 >,
-            amgcl::runtime::solver::wrapper
+            amgcl::runtime::mpi::solver::wrapper<Backend>
             > Solver;
 
         mprm.put("precond.pmask", static_cast<void*>(&mPressureMask[0]));

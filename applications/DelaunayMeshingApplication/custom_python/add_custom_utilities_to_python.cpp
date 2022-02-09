@@ -42,10 +42,9 @@ void SetErrorVariable(MesherUtilities::RefiningParameters& rRefiningParameters, 
   rRefiningParameters.SetErrorVariable(rVariable);
 }
 
-Variable<double> GetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters)
+const Variable<double>& GetThresholdVariable(MesherUtilities::RefiningParameters& rRefiningParameters)
 {
   return rRefiningParameters.GetThresholdVariable();
-
 }
 // remeshing methods
 

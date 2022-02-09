@@ -10,7 +10,7 @@
         "solver_type"                  : "adjoint_potential_flow",
             "model_import_settings"        : {
                 "input_type"     : "mdpa",
-                "input_filename" : "naca0012_small"
+                "input_filename" : "../naca0012_small_mdpa/naca0012_small"
             },
         "model_part_name" : "MainModelPart",
         "volume_model_part_name" : "Parts_Parts_Auto1",
@@ -24,14 +24,13 @@
                 "step_size"         : 1e-9
             },
         "sensitivity_settings" : {
-                "sensitivity_model_part_name" : "Parts_Parts_Auto1",
                 "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
                 "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
                 "build_mode": "static"
             },
         "echo_level"                   : 0,
         "linear_solver_settings"       : {
-            "solver_type"         : "ExternalSolversApplication.super_lu"
+            "solver_type"         : "LinearSolversApplication.sparse_lu"
         },
         "reference_chord": 1.0
     },

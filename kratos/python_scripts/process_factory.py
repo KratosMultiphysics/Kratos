@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -55,5 +53,7 @@ def Factory(settings, Model):
     elif(settings["process_name"].GetString() == "ApplyConstantVectorValueProcess"):
         model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
         return KM.ApplyConstantVectorValueProcess(model_part, settings["Parameters"])
+    elif(settings["process_name"].GetString() == "TimeAveragingProcess"):
+        return KM.TimeAveragingProcess(Model, settings["Parameters"])
 
     raise Exception("Process name not found ",)

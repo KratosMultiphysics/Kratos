@@ -139,8 +139,8 @@ UpdatedLagrangianUPElement::~UpdatedLagrangianUPElement()
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+void UpdatedLagrangianUPElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -158,7 +158,7 @@ void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<dou
   }
   else{
 
-    LargeDisplacementUPElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementUPElement::SetValuesOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -173,7 +173,7 @@ void UpdatedLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<dou
 //************************************************************************************
 
 
-void UpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+void UpdatedLagrangianUPElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
@@ -193,7 +193,7 @@ void UpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<dou
   }
   else{
 
-    LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 
@@ -203,11 +203,11 @@ void UpdatedLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<dou
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::Initialize()
+void UpdatedLagrangianUPElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    LargeDisplacementElement::Initialize();
+    LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
     SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     const SizeType dimension        = GetGeometry().WorkingSpaceDimension();

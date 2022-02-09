@@ -40,7 +40,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class LinearPlaneStrain
  * @ingroup StructuralMechanicsApplication
@@ -49,7 +49,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropic3D 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropic3D
     : public ConstitutiveLaw
 {
 public:
@@ -59,19 +59,23 @@ public:
 
     /// The process info type definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw         BaseType;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 6;
-    
+
+    // Adding the respective using to avoid overload conflicts
+    using BaseType::Has;
+    using BaseType::GetValue;
+
     /// Counted pointer of ElasticIsotropic3D
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3D );
 
@@ -124,7 +128,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return VoigtSize;
     };
@@ -146,7 +150,7 @@ public:
     {
         return StressMeasure_Cauchy;
     }
-    
+
     /**
      * @brief Computes the material response:
      * @details PK1 stresses and algorithmic ConstitutiveMatrix
@@ -236,6 +240,22 @@ public:
     void FinalizeMaterialResponseCauchy (ConstitutiveLaw::Parameters & rValues) override;
 
     /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
+     * @brief If the CL requires to finalize the material response, called by the element in FinalizeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return false;
+    }
+
+    /**
      * @brief It calculates the value of a specified variable (double case)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
@@ -243,11 +263,11 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<double>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
         double& rValue
         ) override;
-        
+
     /**
      * @brief It calculates the value of a specified variable (Vector case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -256,11 +276,37 @@ public:
      * @return rValue output: the value of the specified variable
      */
     Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<Vector>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
         Vector& rValue
         ) override;
-        
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (StrainVectorType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::StrainVectorType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StrainVectorType>& rThisVariable,
+    //     ConstitutiveLaw::StrainVectorType& rValue
+    //     ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (StressVectorType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::StressVectorType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StressVectorType>& rThisVariable,
+    //     ConstitutiveLaw::StressVectorType& rValue
+    //     ) override;
+
     /**
      * @brief It calculates the value of a specified variable (Matrix case)
      * @param rParameterValues the needed parameters for the CL calculation
@@ -269,10 +315,36 @@ public:
      * @return rValue output: the value of the specified variable
      */
     Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues, 
-        const Variable<Matrix>& rThisVariable, 
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (VoigtSizeMatrixType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::VoigtSizeMatrixType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<VoigtSizeMatrixType>& rThisVariable,
+    //     ConstitutiveLaw::VoigtSizeMatrixType& rValue
+    //     ) override;
+
+    // /**
+    //  * @brief It calculates the value of a specified variable (DeformationGradientMatrixType case)
+    //  * @param rParameterValues the needed parameters for the CL calculation
+    //  * @param rThisVariable the variable to be returned
+    //  * @param rValue a reference to the returned value
+    //  * @return rValue output: the value of the specified variable
+    //  */
+    // ConstitutiveLaw::DeformationGradientMatrixType& CalculateValue(
+    //     ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<DeformationGradientMatrixType>& rThisVariable,
+    //     ConstitutiveLaw::DeformationGradientMatrixType& rValue
+    //     ) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -286,7 +358,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
 protected:
 
@@ -309,7 +381,7 @@ protected:
     * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
-    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix);
+    void CheckClearElasticMatrix(VoigtSizeMatrixType& rConstitutiveMatrix);
 
     /**
     * @brief It calculates the constitutive matrix rConstitutiveMatrix
@@ -317,7 +389,7 @@ protected:
     * @param rValues Parameters of the constitutive law
     */
     virtual void CalculateElasticMatrix(
-        Matrix& rConstitutiveMatrix,
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -328,8 +400,8 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     virtual void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
         ConstitutiveLaw::Parameters& rValues
         );
 
@@ -340,7 +412,7 @@ protected:
      */
     virtual void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
         );
 
     ///@}

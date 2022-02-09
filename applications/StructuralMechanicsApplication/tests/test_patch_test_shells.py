@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -101,7 +100,6 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
                                                                   scheme,
-                                                                  linear_solver,
                                                                   builder_and_solver,
                                                                   compute_reactions,
                                                                   reform_step_dofs,
@@ -161,9 +159,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 
@@ -174,9 +172,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 
@@ -187,9 +185,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 
@@ -200,9 +198,9 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         current_model = KratosMultiphysics.Model()
         self.execute_shell_test(current_model,
-                                element_name, 
-                                displacement_results, 
-                                rotation_results, 
+                                element_name,
+                                displacement_results,
+                                rotation_results,
                                 False) # Do PostProcessing for GiD?
 
 

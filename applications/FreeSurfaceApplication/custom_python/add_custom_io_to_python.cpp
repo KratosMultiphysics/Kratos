@@ -39,37 +39,37 @@ void WriteMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
 }
 
 void BoolPrintOnGaussPoints( GidIOType& dummy, const Variable<bool>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void VectorPrintOnGaussPoints( GidIOType& dummy, const Variable<Vector>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void MatrixPrintOnGaussPoints( GidIOType& dummy, const Variable<Matrix>& rVariable,
-                               ModelPart& r_model_part, double SolutionTag )
+                               ModelPart& rModelPart, double SolutionTag )
 {
-    dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void (GidIOType::*pointer_to_double_write_nodal_results)(
     Variable<double> const& rVariable,
-    GidIOType::NodesContainerType& rNodes, double SolutionTag,
-    std::size_t SolutionStepNumber ) = &GidIOType::WriteNodalResults;
+    const GidIOType::NodesContainerType& rNodes, const double SolutionTag,
+    const std::size_t SolutionStepNumber ) = &GidIOType::WriteNodalResults;
 void (GidIOType::*pointer_to_array1d_write_nodal_results)(
     Variable<array_1d<double, 3> > const& rVariable,
-    GidIOType::NodesContainerType& rNodes, double SolutionTag,
-    std::size_t SolutionStepNumber) = &GidIOType::WriteNodalResults;
+    const GidIOType::NodesContainerType& rNodes, const double SolutionTag,
+    const std::size_t SolutionStepNumber) = &GidIOType::WriteNodalResults;
 
 
 //         void (GidIOType::*pointer_to_double_write_nodal_results)( Variable<double> const& rVariable,
@@ -133,6 +133,7 @@ void  AddCustomIOToPython(pybind11::module& pymodule)
 
 }
 }  // namespace Python.
+
 
 } // Namespace Kratos
 

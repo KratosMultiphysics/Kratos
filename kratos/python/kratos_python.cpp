@@ -23,18 +23,18 @@
 #include "add_model_part_to_python.h"
 #include "add_kernel_to_python.h"
 #include "add_deprecated_variables_to_python.h"
-#include "add_c2c_variables_to_python.h"
 #include "add_cfd_variables_to_python.h"
 #include "add_mesh_moving_variables_to_python.h"
 #include "add_mapping_variables_to_python.h"
 #include "add_dem_variables_to_python.h"
 #include "add_fsi_variables_to_python.h"
 #include "add_mat_variables_to_python.h"
-#include "add_legacy_structural_app_vars_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_matrix_to_python.h"
+#include "add_quaternion_to_python.h"
 #include "add_points_to_python.h"
 #include "add_geometries_to_python.h"
+#include "add_bounding_box_to_python.h"
 #include "add_containers_to_python.h"
 #include "add_processes_to_python.h"
 #include "add_model_to_python.h"
@@ -50,7 +50,10 @@
 #include "add_serializer_to_python.h"
 #include "add_table_to_python.h"
 #include "add_strategies_to_python.h"
-#include "add_utilities_to_python.h"
+#include "add_convergence_accelerators_to_python.h"
+#include "add_geometrical_utilities_to_python.h"
+#include "add_other_utilities_to_python.h"
+#include "add_variable_utils_to_python.h"
 #include "add_matrix_market_interface_to_python.h"
 #include "add_search_strategies_to_python.h"
 #include "add_kratos_parameters_to_python.h"
@@ -59,9 +62,13 @@
 #include "add_memory_info_to_python.h"
 #include "add_constraint_to_python.h"
 #include "add_response_functions_to_python.h"
+#include "add_communicator_to_python.h"
 #include "add_data_communicator_to_python.h"
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
+#include "add_dofs_to_python.h"
+#include "add_mapper_to_python.h"
+#include "add_sparse_matrices_to_python.h"
 
 namespace Kratos
 {
@@ -69,11 +76,11 @@ namespace Kratos
 namespace Python
 {
 
-char const* greet()
+std::string Hello()
 {
     std::stringstream header;
-    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() <<" ;-)";
-    return header.str().c_str();
+    header << "Hello, I am Kratos Multi-Physics " << GetVersionString() << " ;-)";
+    return header.str();
 }
 
 PYBIND11_MODULE(Kratos, m)
@@ -86,23 +93,20 @@ PYBIND11_MODULE(Kratos, m)
     AddKernelToPython(m);
     AddContainersToPython(m);
     AddModelPartToPython(m);
+    AddDofsToPython(m);
     AddNodeToPython(m);
     AddPropertiesToPython(m);
     AddMeshToPython(m);
+    AddQuaternionToPython(m);
 
     AddCFDVariablesToPython(m);
     AddDEMVariablesToPython(m);
     AddALEVariablesToPython(m);
-    AddC2CVariablesToPython(m);
     AddFSIVariablesToPython(m);
-    AddLegacyStructuralAppVarsToPython(m);
     AddMappingVariablesToPython(m);
     AddMATVariablesToPython(m);
     AddDeprecatedVariablesToPython(m);
     AddGlobalPointersToPython(m);
-
-//     AddQuadraturesToPython();
-//     AddIntegrationPointsToPython();
 
     AddProcessesToPython(m);
     AddIOToPython(m);
@@ -115,12 +119,16 @@ PYBIND11_MODULE(Kratos, m)
     AddFactoriesToPython(m);
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
-    AddUtilitiesToPython(m);
+    AddConvergenceAcceleratorsToPython(m);
+    AddGeometricalUtilitiesToPython(m);
+    AddOtherUtilitiesToPython(m);
+    AddVariableUtilsToPython(m);
     AddProcessInfoToPython(m);
     AddConstitutiveLawToPython(m);
     AddSerializerToPython(m);
     AddTableToPython(m);
     AddGeometriesToPython(m);
+    AddBoundingBoxToPython(m);
 
     AddMatrixMarketInterfaceToPython(m);
     AddKratosParametersToPython(m);
@@ -128,12 +136,16 @@ PYBIND11_MODULE(Kratos, m)
     AddSearchStrategiesToPython(m);
     AddTestingToPython(m);
     AddLoggerToPython(m);
+    AddMemoryInfoToPython(m);
     AddConstraintToPython(m);
     AddResponseFunctionsToPython(m);
+    AddCommunicatorToPython(m);
     AddDataCommunicatorToPython(m);
     AddParallelEnvironmentToPython(m);
+    AddMapperToPython(m);
+    AddSparseMatricesToPython(m);
 
-    m.def("Hello", greet);
+    m.def("Hello", Hello);
 }
 
 

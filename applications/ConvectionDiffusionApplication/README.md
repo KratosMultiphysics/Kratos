@@ -20,6 +20,7 @@ The application includes tests to check the proper functioning of the applicatio
     * Eulerian convection-diffusion (both 2D/3D)
     * Convection-diffusion (both 2D/3D)
     * Convection-diffusion with change of phase (2D)
+    * Explicit eulerian convection-diffusion (both 2D/3D)
        	
 - Strategies:
 	* Non-linear/linear convection-diffusion strategy

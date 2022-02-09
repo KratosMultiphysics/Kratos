@@ -45,7 +45,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # Neigbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
-        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part,AvgElemNum, AvgNodeNum)
+        nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part)
         # Find neighbours
         nodal_neighbour_search.Execute()
 

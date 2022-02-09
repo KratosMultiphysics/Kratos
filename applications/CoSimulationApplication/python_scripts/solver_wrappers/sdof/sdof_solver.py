@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.function_callback_utility import GenericCallFunction
 
@@ -137,18 +135,20 @@ class SDoFSolver(object):
     def InitializeOutput(self):
         with open(self.output_file_name, "w") as results_sdof:
             results_sdof.write("time"+ " " +
-                               "displacement" + " " +
-                               "velocity" + " " +
-                               "acceleration" + " " +
-                               "root point displacement" + " " +
-                               "root point velocity" + " " +
-                               "root point acceleration" + " " +
-                               "relative displacement" + " " +
-                               "relative velocity" + " " +
-                               "relative accleration" +"\n")
+                                "displacement" + " " +
+                                "velocity" + " " +
+                                "acceleration" + " " +
+                                "root point displacement" + " " +
+                                "root point velocity" + " " +
+                                "root point acceleration" + " " +
+                                "relative displacement" + " " +
+                                "relative velocity" + " " +
+                                "relative accleration" + " " +
+                                "reaction" + "\n")
         self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
+        reaction = self.CalculateReaction()
         if self.write_output_file:
             with open(self.output_file_name, "a") as results_sdof:
                 #outputs results
@@ -161,7 +161,9 @@ class SDoFSolver(object):
                                 str(self.dx_f[2]) + " " +
                                 str(self.dx[0] - self.dx_f[0]) + " " +
                                 str(self.dx[1] - self.dx_f[1]) + " " +
-                                str(self.dx[2] - self.dx_f[2]) + "\n")
+                                str(self.dx[2] - self.dx_f[2]) + " " +
+                                str(reaction) + "\n")
+
 
     def AdvanceInTime(self, current_time):
         # similar to the Kratos CloneTimeStep function

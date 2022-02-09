@@ -5,14 +5,10 @@ message("**** configuring KratosCableNetApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-if(NOT STRUCTURAL_MECHANICS_APPLICATION )
-    message(FATAL_ERROR
-        "StructuralMechsnicsApplication is not compiled and CableNetApplication depends on it!\n"
-        "  - Add '-DSTRUCTURAL_MECHANICS_APPLICATION=ON' to your build script")
-endif()
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## CableNet Core sources
 file(GLOB_RECURSE KRATOS_CABLE_NET_APPLICATION_CORE
@@ -34,13 +30,19 @@ file(GLOB_RECURSE KRATOS_CABLE_NET_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_
 
 add_library(KratosCableNetCore SHARED ${KRATOS_CABLE_NET_APPLICATION_CORE} ${KRATOS_CABLE_NET_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosCableNetCore PRIVATE KratosCore KratosStructuralMechanicsCore)
-set_target_properties(KratosCableNetCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CABLE_NET_APPLICATION=EXPORT,API")
+set_target_properties(KratosCableNetCore PROPERTIES COMPILE_DEFINITIONS "CABLE_NET_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosCableNetApplication MODULE THIN_LTO ${KRATOS_CABLE_NET_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosCableNetApplication PRIVATE KratosCableNetCore)
 set_target_properties(KratosCableNetApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosCableNetCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosCableNetApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -52,11 +54,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosCableNetApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# install the python files
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py")
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/CableNetApplication.py KratosMultiphysics/CableNetApplication/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
@@ -70,13 +73,10 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosCableNetCore)
-    cotire(KratosCableNetApplication)
-endif(USE_COTIRE MATCHES ON)
-
+# Install targets
 install(TARGETS KratosCableNetCore DESTINATION libs )
 install(TARGETS KratosCableNetApplication DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CableNetApplication.py" DESTINATION "KratosMultiphysics/CableNetApplication" RENAME "__init__.py")
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCableNetCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosCableNetApplication" PARENT_SCOPE)

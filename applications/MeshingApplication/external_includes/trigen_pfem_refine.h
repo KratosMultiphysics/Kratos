@@ -10,17 +10,13 @@
 #if !defined(KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED )
 #define  KRATOS_TRIGEN_PFEM_MODELER_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <stdlib.h>
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+// External includes
 #include "triangle.h"
-#endif
 
 // Project includes
 #include "includes/define.h"

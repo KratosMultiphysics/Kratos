@@ -220,7 +220,7 @@ StatisticsSampler::Pointer CreateAverageSampler(
     if (KratosComponents<Variable<double>>::Has(variable_name))
     {
         // build double variable sampler
-        Variable<double> variable = KratosComponents<Variable<double>>::Get(variable_name);
+        const Variable<double>& variable = KratosComponents<Variable<double>>::Get(variable_name);
         auto value_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(variable);
         std::string tag = variable_name;
         if (rParameters["tags"].size() > 0)
@@ -235,7 +235,7 @@ StatisticsSampler::Pointer CreateAverageSampler(
     else if (KratosComponents<Variable<array_1d<double,3>>>::Has(variable_name))
     {
         // build vector sampler
-        Variable<array_1d<double,3>> variable = KratosComponents<Variable<array_1d<double,3>>>::Get(variable_name);
+        const Variable<array_1d<double,3>>& variable = KratosComponents<Variable<array_1d<double,3>>>::Get(variable_name);
         auto value_getter = Kratos::Internals::MakeSamplerAtLocalCoordinate::ValueGetter(variable);
         std::vector<std::string> tags;
         if (rParameters["tags"].size() > 0)

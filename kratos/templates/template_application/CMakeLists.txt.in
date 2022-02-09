@@ -5,7 +5,7 @@ message("**** configuring Kratos@{APP_NAME_CAMEL}Application ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## @{APP_NAME_CAMEL} Core sources
 file(GLOB_RECURSE KRATOS_@{APP_NAME_CAPS}_APPLICATION_CORE
@@ -45,11 +45,12 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# install the python files
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py")
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py KratosMultiphysics/@{APP_NAME_CAMEL}Application/__init__.py )
+
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
@@ -63,13 +64,10 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-if(USE_COTIRE MATCHES ON)
-    cotire(Kratos@{APP_NAME_CAMEL}Core)
-    cotire(Kratos@{APP_NAME_CAMEL}Application)
-endif(USE_COTIRE MATCHES ON)
-
+# Install targets
 install(TARGETS Kratos@{APP_NAME_CAMEL}Core DESTINATION libs )
 install(TARGETS Kratos@{APP_NAME_CAMEL}Application DESTINATION libs )
 
-# Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py" DESTINATION "KratosMultiphysics/@{APP_NAME_CAMEL}Application" RENAME "__init__.py")
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};Kratos@{APP_NAME_CAMEL}Core" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};Kratos@{APP_NAME_CAMEL}Application" PARENT_SCOPE)

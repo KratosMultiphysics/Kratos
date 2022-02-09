@@ -72,7 +72,7 @@ public:
     /**
      * @brief Prints mrModelPart in VTK format together with the results
      */
-    void PrintOutput();
+    void PrintOutput(const std::string& rOutputFilename = "");
 
     ///@}
 
@@ -134,13 +134,13 @@ protected:
      * @param IsSubModelPart whether the modelpart is to be treated as a submodelpart
      * this is only relevant for the file-name
      */
-    void WriteModelPartToFile(const ModelPart& rModelPart, const bool IsSubModelPart);
+    void WriteModelPartToFile(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename);
 
     /**
      * @brief Get the output file name based on the provided settings and the MPI rank
      * @param rModelPart modelpart which is beging output
      */
-    std::string GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart);
+    std::string GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename);
 
     /**
      * @brief Initialize function for the class
@@ -190,7 +190,7 @@ protected:
      * @param rContainer the container which is beging output
      */
     template<typename TContainerType>
-    unsigned int DetermineVtkCellListSize(const TContainerType& rContainer) const;
+    std::size_t DetermineVtkCellListSize(const TContainerType& rContainer) const;
 
     /**
      * @brief Write the element/condition WriteConnectivity provided the container they are in
@@ -486,7 +486,7 @@ private:
      * @brief Print the given rModelPart as VTK file together with the requested results (Only for model parts without nodes)
      * @param rModelPart modelpart which is beging output
      */
-    void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart);
+    void WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const std::string& rOutputFilename);
 
     ///@}
 };

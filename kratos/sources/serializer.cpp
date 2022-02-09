@@ -33,6 +33,22 @@ VariableData* Serializer::GetVariableData(std::string const & VariableName)
     return KratosComponents<VariableData>::pGet(VariableName);
 }
 
+/// Sets the Serializer in a state ready to be loaded
+/// Note: If the same object is loaded twice before deleting it from memory all its pointers will be duplicated.
+void Serializer::SetLoadState() {
+    mLoadedPointers.clear();
+    SeekBegin();
+}
+
+/// Sets the pointer of the stream buffer at the begnining
+void Serializer::SeekBegin() {
+    mpBuffer->seekg(0, mpBuffer->beg);
+}
+
+/// Sets the pointer of the stream buffer at tht end 
+void Serializer::SeekEnd() {
+    mpBuffer->seekg(0, mpBuffer->end);
+}
 
 void Serializer::load(std::string const & rTag, ModelPart*& pValue)
 {

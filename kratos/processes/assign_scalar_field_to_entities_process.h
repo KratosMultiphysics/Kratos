@@ -21,11 +21,10 @@
 // External includes
 
 // Project includes
-#include "utilities/python_function_callback_utility.h"
+#include "utilities/function_parser_utility.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-
 
 namespace Kratos
 {
@@ -47,7 +46,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
 */
 template<class TEntity>
-class AssignScalarFieldToEntitiesProcess
+class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess
     : public Process
 {
 public:
@@ -68,9 +67,6 @@ public:
 
     /// The container of the entities
     typedef PointerVectorSet<TEntity, IndexedObject> EntityContainerType;
-
-    /// The defition of a component of an array
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
     /// Pointer definition of AssignScalarFieldToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToEntitiesProcess);
@@ -118,6 +114,11 @@ public:
     {
         Execute();
     }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access
@@ -167,8 +168,6 @@ protected:
     ///@{
 
     /// Copy constructor.
-    AssignScalarFieldToEntitiesProcess(AssignScalarFieldToEntitiesProcess const& rOther);
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -191,13 +190,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                           /// The modelpart where compute
+    ModelPart& mrModelPart;                     /// The modelpart where compute
 
-    PythonGenericFunctionUtility::Pointer mpFunction; /// The python function used, depends on X, Y, Z, and t
+    Kratos::unique_ptr<GenericFunctionUtility> mpFunction; /// The python function used, depends on X, Y, Z, and t (it could also depend on X0, Y0, Z0)
 
-    std::string mVariableName;                        /// The name of the vaiable to assign
+    std::string mVariableName;                  /// The name of the vaiable to assign
 
-    std::size_t mMeshId = 0;                          /// The id of the mesh (0 by deafault)
+    std::size_t mMeshId = 0;                    /// The id of the mesh (0 by deafault)
 
     ///@}
     ///@name Private Operators

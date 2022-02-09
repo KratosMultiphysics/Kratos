@@ -159,7 +159,7 @@ class DomainUtilities(object):
 
             print("::[--Domain Utilities-]:: Add boundary nodes to fluid domains ")
 
-            transfer_flags = [KratosMultiphysics.BOUNDARY,KratosMultiphysics.NOT_FLUID]
+            transfer_flags = [KratosMultiphysics.BOUNDARY, (KratosMultiphysics.FLUID).AsFalse()]
             entity_type = "Nodes"
             for fluid_part in model_part.SubModelParts:
                 if (fluid_part.IsNot(KratosMultiphysics.ACTIVE) and fluid_part.Is(KratosMultiphysics.FLUID)):

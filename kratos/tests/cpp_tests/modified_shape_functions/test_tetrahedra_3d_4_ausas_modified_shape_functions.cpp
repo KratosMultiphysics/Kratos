@@ -15,7 +15,6 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/checks.h"
-#include "includes/gid_io.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
 #include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
 
@@ -68,13 +67,13 @@ namespace Kratos
                 positive_side_sh_func,
                 positive_side_sh_func_gradients,
                 positive_side_weights,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeSideShapeFunctionsAndGradientsValues(
                 negative_side_sh_func,
                 negative_side_sh_func_gradients,
                 negative_side_weights,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Call the interface modified shape functions calculator
             Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
@@ -85,28 +84,28 @@ namespace Kratos
                 positive_interface_side_sh_func,
                 positive_interface_side_sh_func_gradients,
                 positive_interface_side_weights,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
                 negative_interface_side_sh_func,
                 negative_interface_side_sh_func_gradients,
                 negative_interface_side_weights,
-                GeometryData::GI_GAUSS_1);
-            
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
+
             // Call the external face modified shape functions calculator
             Matrix pos_ext_face_sh_func_0, neg_ext_face_sh_func_0,
                    pos_ext_face_sh_func_1, neg_ext_face_sh_func_1,
                    pos_ext_face_sh_func_2, neg_ext_face_sh_func_2,
                    pos_ext_face_sh_func_3, neg_ext_face_sh_func_3;
 
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType
                 pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
                 pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
                 pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2,
                 pos_ext_face_sh_func_gradients_3, neg_ext_face_sh_func_gradients_3;
 
-            Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-                   pos_ext_face_weights_1, neg_ext_face_weights_1, 
+            Vector pos_ext_face_weights_0, neg_ext_face_weights_0,
+                   pos_ext_face_weights_1, neg_ext_face_weights_1,
                    pos_ext_face_weights_2, neg_ext_face_weights_2,
                    pos_ext_face_weights_3, neg_ext_face_weights_3;
 
@@ -115,98 +114,98 @@ namespace Kratos
                 pos_ext_face_sh_func_gradients_0,
                 pos_ext_face_weights_0,
                 0,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_0,
                 neg_ext_face_sh_func_gradients_0,
                 neg_ext_face_weights_0,
                 0,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
                 pos_ext_face_sh_func_1,
                 pos_ext_face_sh_func_gradients_1,
                 pos_ext_face_weights_1,
                 1,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_1,
                 neg_ext_face_sh_func_gradients_1,
                 neg_ext_face_weights_1,
                 1,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
                 pos_ext_face_sh_func_2,
                 pos_ext_face_sh_func_gradients_2,
                 pos_ext_face_weights_2,
                 2,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_2,
                 neg_ext_face_sh_func_gradients_2,
                 neg_ext_face_weights_2,
                 2,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
                 pos_ext_face_sh_func_3,
                 pos_ext_face_sh_func_gradients_3,
                 pos_ext_face_weights_3,
                 3,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_3,
                 neg_ext_face_sh_func_gradients_3,
                 neg_ext_face_weights_3,
                 3,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Call the interface outwards normal unit vector calculator
-            std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+            std::vector<array_1d<double,3>> positive_side_area_normals, negative_side_area_normals;
 
             tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
                 negative_side_area_normals,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Call the exterior faces outwards normal area vector calculator
-            std::vector<Vector>
+            std::vector<array_1d<double,3>>
                 area_normals_pos_face_0, area_normals_neg_face_0,
                 area_normals_pos_face_1, area_normals_neg_face_1,
                 area_normals_pos_face_2, area_normals_neg_face_2,
                 area_normals_pos_face_3, area_normals_neg_face_3;
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_0, 0, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_0, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_0, 0, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_0, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_1, 1, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_1, 1, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_1, 1, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_1, 1, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_2, 2, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_2, 2, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_2, 2, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_2, 2, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_3, 3, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_3, 3, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_3, 3, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_3, 3, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             const double tolerance = 1e-10;
 
@@ -352,7 +351,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](3,2), 0.0, tolerance);
 
             KRATOS_CHECK_NEAR(pos_ext_face_weights_0(0), 0.216506, 10e-5);
-            
+
             KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,0),     0.0, tolerance);
             KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,1), 2.0/3.0, tolerance);
             KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,2), 1.0/3.0, tolerance);
@@ -455,13 +454,13 @@ namespace Kratos
                 positive_side_sh_func,
                 positive_side_sh_func_gradients,
                 positive_side_weights,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeSideShapeFunctionsAndGradientsValues(
                 negative_side_sh_func,
                 negative_side_sh_func_gradients,
                 negative_side_weights,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Call the interface modified shape functions calculator
             Matrix positive_interface_side_sh_func, negative_interface_side_sh_func;
@@ -472,13 +471,13 @@ namespace Kratos
                 positive_interface_side_sh_func,
                 positive_interface_side_sh_func_gradients,
                 positive_interface_side_weights,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
                 negative_interface_side_sh_func,
                 negative_interface_side_sh_func_gradients,
                 negative_interface_side_weights,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Call the external face modified shape functions calculator
             Matrix pos_ext_face_sh_func_0, neg_ext_face_sh_func_0,
@@ -486,14 +485,14 @@ namespace Kratos
                    pos_ext_face_sh_func_2, neg_ext_face_sh_func_2,
                    pos_ext_face_sh_func_3, neg_ext_face_sh_func_3;
 
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType
                 pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
                 pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
                 pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2,
                 pos_ext_face_sh_func_gradients_3, neg_ext_face_sh_func_gradients_3;
 
-            Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-                   pos_ext_face_weights_1, neg_ext_face_weights_1, 
+            Vector pos_ext_face_weights_0, neg_ext_face_weights_0,
+                   pos_ext_face_weights_1, neg_ext_face_weights_1,
                    pos_ext_face_weights_2, neg_ext_face_weights_2,
                    pos_ext_face_weights_3, neg_ext_face_weights_3;
 
@@ -502,98 +501,98 @@ namespace Kratos
                 pos_ext_face_sh_func_gradients_0,
                 pos_ext_face_weights_0,
                 0,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_0,
                 neg_ext_face_sh_func_gradients_0,
                 neg_ext_face_weights_0,
                 0,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
                 pos_ext_face_sh_func_1,
                 pos_ext_face_sh_func_gradients_1,
                 pos_ext_face_weights_1,
                 1,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_1,
                 neg_ext_face_sh_func_gradients_1,
                 neg_ext_face_weights_1,
                 1,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
                 pos_ext_face_sh_func_2,
                 pos_ext_face_sh_func_gradients_2,
                 pos_ext_face_weights_2,
                 2,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_2,
                 neg_ext_face_sh_func_gradients_2,
                 neg_ext_face_weights_2,
                 2,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
                 pos_ext_face_sh_func_3,
                 pos_ext_face_sh_func_gradients_3,
                 pos_ext_face_weights_3,
                 3,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
                 neg_ext_face_sh_func_3,
                 neg_ext_face_sh_func_gradients_3,
                 neg_ext_face_weights_3,
                 3,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Call the interface outwards normal unit vector calculator
-            std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+            std::vector<array_1d<double,3>> positive_side_area_normals, negative_side_area_normals;
 
             tetrahedra_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeSideInterfaceAreaNormals(
                 negative_side_area_normals,
-                GeometryData::GI_GAUSS_1);
+                GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             // Call the exterior faces outwards normal area vector calculator
-            std::vector<Vector>
+            std::vector<array_1d<double,3>>
                 area_normals_pos_face_0, area_normals_neg_face_0,
                 area_normals_pos_face_1, area_normals_neg_face_1,
                 area_normals_pos_face_2, area_normals_neg_face_2,
                 area_normals_pos_face_3, area_normals_neg_face_3;
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_0, 0, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_0, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_0, 0, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_0, 0, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_1, 1, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_1, 1, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_1, 1, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_1, 1, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_2, 2, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_2, 2, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_2, 2, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_2, 2, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputePositiveExteriorFaceAreaNormals(
-                area_normals_pos_face_3, 3, GeometryData::GI_GAUSS_1);
+                area_normals_pos_face_3, 3, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeExteriorFaceAreaNormals(
-                area_normals_neg_face_3, 3, GeometryData::GI_GAUSS_1);
+                area_normals_neg_face_3, 3, GeometryData::IntegrationMethod::GI_GAUSS_1);
 
             const double tolerance = 1e-10;
 
@@ -918,13 +917,13 @@ namespace Kratos
                 positive_side_sh_func,
                 positive_side_sh_func_gradients,
                 positive_side_weights,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             tetrahedra_ausas_shape_functions.ComputeNegativeSideShapeFunctionsAndGradientsValues(
                 negative_side_sh_func,
                 negative_side_sh_func_gradients,
                 negative_side_weights,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             const double tolerance = 1e-10;
 

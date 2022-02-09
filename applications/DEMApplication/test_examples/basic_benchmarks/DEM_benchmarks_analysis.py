@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -41,10 +40,9 @@ def GetInputParameters():
     elif benchmark_number in listDISclRK:
         file_name = "ProjectParametersDISclRK.json"
     elif benchmark_number in listGeneric:
-            file_name = "ProjectParametersDEMGeneric.json"
+        file_name = "ProjectParametersDEMGeneric.json"
     else:
-        Logger.PrintInfo("DEM",'Benchmark number does not exist')
-        sys.exit()
+        raise Exception("Benchmark number does not exist")
 
     with open(file_name, 'r') as parameters_file:
         parameters = Parameters(parameters_file.read())
@@ -95,7 +93,9 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
 
-        super(DEMBenchmarksAnalysisStage, self).__init__(model, DEM_parameters)
+        self.DEM_parameters["problem_name"].SetString("benchmark_" + str(benchmark_number))
+
+        super().__init__(model, DEM_parameters)
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
@@ -111,7 +111,7 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
         #self.end_time = slt.end_time
         #self.dt = slt.dt
         #self.graph_print_interval = slt.graph_print_interval
-        super(DEMBenchmarksAnalysisStage, self).Initialize()
+        super().Initialize()
 
         Logger.PrintInfo("DEM","Computing points in the curve...", 1 + self.number_of_points_in_the_graphic - self.iteration, "point(s) left to finish....",'\n')
         list_of_nodes_ids = [1]
@@ -121,7 +121,7 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
             self.tang_plotter = plot_variables.tangential_force_plotter(self.spheres_model_part, list_of_nodes_ids, self.iteration)
 
     def ReadModelParts(self):
-        super(DEMBenchmarksAnalysisStage, self).ReadModelParts()
+        super().ReadModelParts()
         benchmark.set_initial_data(self.spheres_model_part, self.rigid_face_model_part, self.iteration, self.number_of_points_in_the_graphic, coeff_of_restitution_iteration)
 
     def GetInputFilePath(self, file_name):
@@ -131,11 +131,11 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
             return 'benchmark' + str(benchmark_number) + file_name
 
     def InitializeSolutionStep(self):
-        super(DEMBenchmarksAnalysisStage, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
         benchmark.ApplyNodalRotation(self.time, self._GetSolver().dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
-        super(DEMBenchmarksAnalysisStage, self).BeforePrintingOperations(time)
+        super().BeforePrintingOperations(time)
         self.SetDt()
         benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self._GetSolver().dt)
 
@@ -147,18 +147,18 @@ class DEMBenchmarksAnalysisStage(DEMAnalysisStage):
             self.tang_plotter.close_files()
 
         self.procedures.RemoveFoldersWithResults(self.main_path, self.problem_name)
-        super(DEMBenchmarksAnalysisStage, self).Finalize()
+        super().Finalize()
 
-    def FinalizeTimeStep(self, time):
-        super(DEMBenchmarksAnalysisStage, self).FinalizeTimeStep(time)
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
         if self.nodeplotter:
             os.chdir(self.main_path)
-            self.plotter.plot_variables(time) #Related to the benchmark in Chung, Ooi
-            self.tang_plotter.plot_tangential_force(time)
+            self.plotter.plot_variables(self.time) #Related to the benchmark in Chung, Ooi
+            self.tang_plotter.plot_tangential_force(self.time)
 
     def CleanUpOperations(self):
         Logger.PrintInfo("DEM","running CleanUpOperations")
-        super(DEMBenchmarksAnalysisStage, self).CleanUpOperations()
+        super().CleanUpOperations()
 
 end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution = DBC.initialize_time_parameters(benchmark_number)
 for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution + 1):

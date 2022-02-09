@@ -35,7 +35,6 @@
 
 ///VARIABLES used:
 //Data:     MASTER_ELEMENTS(set), MASTER_NODES(set), NEIGHBOUR_ELEMENTS
-//StepData: RIGID_WALL
 //Flags:    (checked) CONTACT
 //          (set)     BOUNDARY(set)
 //          (modified)
@@ -122,7 +121,7 @@ public:
 
 		bool success = false;
 
-		double begin_time = OpenMPUtils::GetCurrentTime();
+		// double begin_time = OpenMPUtils::GetCurrentTime();
 
 		unsigned int NumberOfSubModelParts = mrModelPart.NumberOfSubModelParts();
 
@@ -143,15 +142,15 @@ public:
 				{
 					std::cout << "  ERROR: BOUNDARY CONSTRUCTION FAILED ModelPart : [" << i_mp->Name() << "] " << std::endl;
 				}
-				else
-				{
-					if (mEchoLevel >= 1)
-					{
-						double end_time = OpenMPUtils::GetCurrentTime();
-						std::cout << " [ Performed in Time = " << end_time - begin_time << " ]" << std::endl;
-					}
-					//PrintSkin(*i_mp);
-				}
+				// else
+				// {
+				// 	if (mEchoLevel >= 1)
+				// 	{
+				// 		double end_time = OpenMPUtils::GetCurrentTime();
+				// 		std::cout << " [ Performed in Time = " << end_time - begin_time << " ]" << std::endl;
+				// 	}
+				// 	//PrintSkin(*i_mp);
+				// }
 			}
 		}
 		else
@@ -167,15 +166,15 @@ public:
 			{
 				std::cout << "  ERROR: BOUNDARY CONSTRUCTION FAILED on ModelPart : [" << rModelPart.Name() << "] " << std::endl;
 			}
-			else
-			{
-				if (mEchoLevel >= 1)
-				{
-					double end_time = OpenMPUtils::GetCurrentTime();
-					std::cout << " [ Performed in Time = " << end_time - begin_time << " ]" << std::endl;
-				}
-				//PrintSkin(rModelPart);
-			}
+			// else
+			// {
+			// 	if (mEchoLevel >= 1)
+			// 	{
+			// 		double end_time = OpenMPUtils::GetCurrentTime();
+			// 		std::cout << " [ Performed in Time = " << end_time - begin_time << " ]" << std::endl;
+			// 	}
+			// 	//PrintSkin(rModelPart);
+			// }
 		}
 
 		if (NumberOfSubModelParts > 1)
@@ -537,7 +536,7 @@ protected:
 		// //if there are no conditions check main modelpart mesh conditions
 		// if( !rModelPart.Conditions().size() ){
 
-		// 	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.GetParentModelPart()->ConditionsBegin(); i_cond!= rModelPart.GetParentModelPart()->ConditionsEnd(); ++i_cond)
+		// 	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.GetParentModelPart().ConditionsBegin(); i_cond!= rModelPart.GetParentModelPart().ConditionsEnd(); ++i_cond)
 		// 	  {
 		// 	    TemporaryConditions.push_back(*(i_cond.base()));
 		// 	    i_cond->SetId(ConditionId);
@@ -602,8 +601,8 @@ protected:
 		KRATOS_TRY
 
 		//properties to be used in the generation
-		int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-		Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties - 1);
+		int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+		Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
 		ModelPart::ElementsContainerType::iterator elements_begin = rModelPart.ElementsBegin();
 		ModelPart::ElementsContainerType::iterator elements_end = rModelPart.ElementsEnd();
@@ -687,8 +686,8 @@ protected:
 		this->ClearMasterEntities(rModelPart, rTemporaryConditions);
 
 		//properties to be used in the generation
-		int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-		Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties - 1);
+		int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+		Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
 		ModelPart::ElementsContainerType::iterator elements_begin = rModelPart.ElementsBegin();
 		ModelPart::ElementsContainerType::iterator elements_end = rModelPart.ElementsEnd();

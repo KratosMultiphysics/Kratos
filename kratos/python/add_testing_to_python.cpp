@@ -15,6 +15,7 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "includes/parallel_environment.h"
 #include "testing/testing.h"
 #include "add_testing_to_python.h"
 
@@ -61,6 +62,11 @@ void  AddTestingToPython(pybind11::module& m) {
         .value("FAILED_TESTS_OUTPUTS", Testing::Tester::Verbosity::FAILED_TESTS_OUTPUTS)
         .value("TESTS_OUTPUTS", Testing::Tester::Verbosity::TESTS_OUTPUTS)
     ;
+
+    auto m_testing = m.def_submodule("Testing");
+    m_testing.def("GetDefaultDataCommunicator", []() -> DataCommunicator& {
+        return ParallelEnvironment::GetDefaultDataCommunicator();
+    }, py::return_value_policy::reference);
 }
 
 }  // namespace Python.

@@ -1,7 +1,4 @@
-
-# We import the libraies
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
+# We import the libraries
 import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 
@@ -215,6 +212,22 @@ class TestRemeshMMG2D(KratosUnittest.TestCase):
         #gid_output.PrintOutput()
         #gid_output.ExecuteFinalizeSolutionStep()
         #gid_output.ExecuteFinalize()
+
+        import KratosMultiphysics.from_json_check_result_process as from_json_check_result_process
+        json_check_parameters = KratosMultiphysics.Parameters("""
+        {
+            "check_variables"      : ["METRIC_TENSOR_2D"],
+            "input_file_name"      : "mmg_lagrangian_test/remesh_rectangle_post_metric.json",
+            "model_part_name"      : "MainModelPart",
+            "historical_value"     : false,
+            "time_frequency"       : 0.0
+        }
+        """)
+        json_check_parameters["input_file_name"].SetString(file_path + "/" + json_check_parameters["input_file_name"].GetString())
+
+        json_check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, json_check_parameters)
+        json_check.ExecuteInitialize()
+        json_check.ExecuteFinalizeSolutionStep()
 
         # We check the solution
         check_parameters = KratosMultiphysics.Parameters("""

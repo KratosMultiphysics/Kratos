@@ -91,7 +91,7 @@ template<unsigned int TDim, class TSparseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
 class LapModifiedLinearStrategy
-    : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -100,7 +100,7 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( LapModifiedLinearStrategy );
 
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -142,7 +142,7 @@ public:
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
     )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
+        : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -194,7 +194,7 @@ public:
         bool CalculateNormDxFlag = false,
         bool MoveMeshFlag = false
     )
-        : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,MoveMeshFlag)
+        : ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -465,7 +465,7 @@ public:
 
     }
 
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 

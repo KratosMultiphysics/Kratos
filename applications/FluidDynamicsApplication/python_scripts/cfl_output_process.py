@@ -1,11 +1,19 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 # other imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
-from statistics import mean, stdev
+if CheckIfApplicationsAvailable("StatisticsApplication"):
+    from KratosMultiphysics.StatisticsApplication import SpatialMethods as spatial_methods
+else:
+    msg = "CFLOutputProcess requires StatisticsApplication which is not found."
+    msg += " Please install/compile it and try again."
+    raise Exception(msg)
+
+from math import sqrt
 
 
 def Factory(settings, model):
@@ -18,24 +26,17 @@ def Factory(settings, model):
 
 class CFLOutputProcess(KratosMultiphysics.Process):
     """
-    Auxiliary base class to output total flow forces
-    over obstacles in fluid dynamics problems.
-    A derived class needs to be implemented to be able to use
-    this functionality, as calling the base class alone is not enough.
+    A class responsible for the CFL output, which is an element value in Kratos.
     """
 
     def __init__(self, model, params):
-        """
-        Auxiliary class to output total flow forces over obstacles
-        in fluid dynamics problems for a body fitted model part.
-        """
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "model_part_name"      : "",
                 "interval"             : [0.0, 1e30],
-                "cfl_threshold"        : 5.0,
+                "cfl_output_limit"     : 2.5,
                 "print_to_screen"      : false,
                 "print_format"         : ".8f",
                 "write_output_file"    : true,
@@ -44,47 +45,68 @@ class CFLOutputProcess(KratosMultiphysics.Process):
             }
             """)
 
-        self.params = params
+
         # Detect "End" as a tag and replace it by a large number
-        if(self.params.Has("interval")):
-            if(self.params["interval"][1].IsString()):
-                if(self.params["interval"][1].GetString() == "End"):
-                    self.params["interval"][1].SetDouble(1e30)
+        if(params.Has("interval")):
+            if(params["interval"][1].IsString()):
+                if(params["interval"][1].GetString() == "End"):
+                    params["interval"][1].SetDouble(1e30)
                 else:
                     raise Exception("The second value of interval can be \"End\" or a number, interval currently:" +
-                                    self.params["interval"].PrettyPrintJsonString())
+                                    params["interval"].PrettyPrintJsonString())
 
-        self.params.ValidateAndAssignDefaults(default_settings)
+        params.ValidateAndAssignDefaults(default_settings)
 
         # getting the ModelPart from the Model
-        self.model_part_name = self.params["model_part_name"].GetString()
+        self.model_part_name = params["model_part_name"].GetString()
         if self.model_part_name == "":
             raise Exception('No "model_part_name" was specified!')
         else:
             self.model_part = model[self.model_part_name]
 
-    def ExecuteInitialize(self):
+        self.interval = params["interval"].GetVector()
 
-        self.interval = KratosMultiphysics.Vector(2)
-        self.interval[0] = self.params["interval"][0].GetDouble()
-        self.interval[1] = self.params["interval"][1].GetDouble()
+        # getting output limit for summarization
+        self.cfl_output_limit = params["cfl_output_limit"].GetDouble()
 
-        # getting threshold
-        self.cfl_threshold = self.params["cfl_threshold"].GetDouble()
+        # TODO: Is it ok to do this check? If not, distribution calculation is going to be messy with if conditions for
+        #       case with cfl_output_limit <= 1.0
+        if (self.cfl_output_limit <= 1.0):
+            raise Exception("Please provide cfl_output_limit greater than 1.0")
 
-        self.format = self.params["print_format"].GetString()
-        self.output_step = self.params["output_step"].GetInt()
-        self.print_to_screen = self.params["print_to_screen"].GetBool()
-        self.write_output_file = self.params["write_output_file"].GetBool()
+        self.format = params["print_format"].GetString()
+        self.output_step = params["output_step"].GetInt()
+        self.print_to_screen = params["print_to_screen"].GetBool()
+        self.write_output_file = params["write_output_file"].GetBool()
 
         if (self.model_part.GetCommunicator().MyPID() == 0):
             if (self.write_output_file):
+
+                output_file_name = params["model_part_name"].GetString() + "_cfl.dat"
+
                 file_handler_params = KratosMultiphysics.Parameters(
-                    self.params["output_file_settings"])
+                    params["output_file_settings"])
+
+                if file_handler_params.Has("file_name"):
+                    warn_msg  = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
+                    warn_msg += '"' + file_handler_params["file_name"].GetString() + '"}\n'
+                    warn_msg += 'Using this specififed file name instead of the default "' + output_file_name + '"'
+                    KratosMultiphysics.Logger.PrintWarning("CFLOutputProcess", warn_msg)
+                else:
+                    file_handler_params.AddEmptyValue("file_name")
+                    file_handler_params["file_name"].SetString(output_file_name)
 
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
                                                                    file_handler_params, file_header).file
+
+        self.distribution_params = KratosMultiphysics.Parameters('''{
+            "number_of_value_groups" : 1,
+            "min_value"              : "min",
+            "max_value"              : "max"
+        }''')
+        self.distribution_params["min_value"].SetDouble(min(self.cfl_output_limit, 1.0))
+        self.distribution_params["max_value"].SetDouble(max(self.cfl_output_limit, 1.0))
 
     def ExecuteFinalizeSolutionStep(self):
 
@@ -92,10 +114,10 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         current_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])) and (current_step % self.output_step == 0):
-            cfl_value = self._EvaluateCFL()
+            self._EvaluateCFL()
+            output = self._CalculateWithRespectToThreshold()
 
             if (self.model_part.GetCommunicator().MyPID() == 0):
-                output = self._SummarizeCFL(cfl_value)
                 output_vals = [format(val, self.format) for val in output]
 
                 # not formatting time in order to not lead to problems with time recognition
@@ -103,7 +125,7 @@ class CFLOutputProcess(KratosMultiphysics.Process):
                 output_vals.insert(0, str(current_time))
 
                 res_labels = ["time: ", "mean: ", "std: ", "max: ", "cfl" +
-                              "{:.1f}".format(self.cfl_threshold) + ": ", "cfl1.0: "]
+                              "{:.1f}".format(self.cfl_output_limit) + ": ", "cfl1.0: "]
 
                 if (self.print_to_screen):
 
@@ -122,9 +144,9 @@ class CFLOutputProcess(KratosMultiphysics.Process):
 
     def _GetFileHeader(self):
         header = '# CFL for model part ' + self.model_part_name + \
-            '| CFL_threshold: ' + str(self.cfl_threshold) + '\n'
+            '| CFL_threshold: ' + str(self.cfl_output_limit) + '\n'
         header += '# Time Mean Std Max HowMany>' + \
-            "{:.1f}".format(self.cfl_threshold) + ' [%] HowMany>1.0 [%]\n'
+            "{:.1f}".format(self.cfl_output_limit) + ' [%] HowMany>1.0 [%]\n'
         return header
 
     def _PrintToScreen(self, result_msg):
@@ -133,48 +155,32 @@ class CFLOutputProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo(
             "CFLOutputProcess", "Current time: " + result_msg)
 
-    def _CalculateWithRespectToThreshold(self, x):
+    def _CalculateWithRespectToThreshold(self):
+        current_container = spatial_methods.NonHistorical.Elements.NormMethods
 
-        y = [val for val in x if val < self.cfl_threshold]
-        y1 = [val for val in x if val < 1.0]
+        _, _, _, group_histogram, group_percentage_distribution, group_means, group_variances = current_container.Distribution(
+            self.model_part, KratosMultiphysics.CFL_NUMBER, "value", self.distribution_params)
+
         # % of element with cfl above threshold
-        how_many = ((len(x)-len(y))/len(x))*100
+        how_many = group_percentage_distribution[-1]*100.0
         # % of element with cfl above 1
-        how_many1 = ((len(x)-len(y1))/len(x))*100
+        how_many1 = (1.0 - group_percentage_distribution[0])*100.0
 
         # quantifying the mean and std for values below the threshold
-        y_mean = mean(y)
-        y_std = stdev(y)
+        total_elements_in_threshold_range = group_histogram[0] + group_histogram[1]
+        if (total_elements_in_threshold_range > 0):
+            y_mean = (group_means[0] * group_histogram[0] + group_means[1] * group_histogram[1]) / total_elements_in_threshold_range
+
+            threshold_sum_squared = (group_variances[0] + pow(group_means[0], 2)) * group_histogram[0] + (group_variances[1] + pow(group_means[1], 2)) * group_histogram[1]
+            y_std = sqrt((threshold_sum_squared  - total_elements_in_threshold_range * pow(y_mean, 2)) / (total_elements_in_threshold_range - 1.0))
+        else:
+            y_mean = 0.0
+            y_std = 0.0
 
         # qunatifying the global max
-        x_max = max(x)
+        # TODO: @Mate, where should we put the id of the element, where max is (second bland output argument is max_id)?
+        x_max, _ = current_container.Max(self.model_part, KratosMultiphysics.CFL_NUMBER, "value")
         return [y_mean, y_std, x_max, how_many, how_many1]
 
     def _EvaluateCFL(self):
-
-        if (self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            KratosCFD.EstimateDtUtility2D.CalculateLocalCFL(self.model_part)
-        else:
-            KratosCFD.EstimateDtUtility3D.CalculateLocalCFL(self.model_part)
-
-        local_cfl = []
-        for elem in self.model_part.Elements:
-            local_cfl.append(elem.GetValue(KratosMultiphysics.CFL_NUMBER))
-
-        if (self.model_part.GetCommunicator().TotalProcesses() > 1):
-            local_cfl = self.model_part.GetCommunicator().GetDataCommunicator().GathervDoubles(local_cfl, 0)
-        else:
-            local_cfl = [local_cfl]
-
-        return local_cfl
-
-    def _SummarizeCFL(self, local_cfl):
-
-        global_cfl = []
-        for k in local_cfl:
-            global_cfl.extend(k)
-
-        cfl_mean, cfl_std, cfl_max, cfl_how_many, cfl_how_many1 = self._CalculateWithRespectToThreshold(
-            global_cfl)
-
-        return [cfl_mean, cfl_std, cfl_max, cfl_how_many, cfl_how_many1]
+        KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.model_part)

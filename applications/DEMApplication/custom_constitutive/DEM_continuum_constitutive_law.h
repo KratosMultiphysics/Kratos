@@ -4,17 +4,14 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 #include "includes/serializer.h"
 //#include "includes/properties.h"
-
-
 #include "containers/flags.h"
 
 #include "custom_utilities/GeometryFunctions.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_elements/Particle_Contact_Element.h"
-#include "containers/vector_component_adaptor.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_elements/Particle_Contact_Element.h"
 #include "containers/array_1d.h"
 
 
@@ -33,9 +30,13 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw& rReferenceContinuumConstitutiveLaw);
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere);
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
+
+        virtual void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true);
+
+        virtual void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp);
 
         virtual void Check(Properties::Pointer pProp) const;
 
@@ -56,7 +57,7 @@ namespace Kratos {
         virtual void CalculateContactArea(double radius,
                 double other_radius,
                 double& calculation_area) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateContactArea) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateContactArea) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual double CalculateContactArea(double radius,
@@ -76,14 +77,14 @@ namespace Kratos {
         }
 
         virtual void CalculateElasticConstants(double &kn_el,
-                double &kt_el,
-                double initial_dist,
-                double equiv_young,
-                double equiv_poisson,
-                double calculation_area,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) should not be called.","")
+                                               double &kt_el,
+                                               double initial_dist,
+                                               double equiv_young,
+                                               double equiv_poisson,
+                                               double calculation_area,
+                                               SphericContinuumParticle* element1,
+                                               SphericContinuumParticle* element2, double indentation) {
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
@@ -92,7 +93,7 @@ namespace Kratos {
                                                 SphericContinuumParticle* element2,
                                                 const double kn_el,
                                                 const double kt_el) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) should not be called.","")
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateViscoDampingCoeff) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
@@ -100,69 +101,67 @@ namespace Kratos {
         }
 
         virtual void CalculateForces(const ProcessInfo& r_process_info,
-                double OldLocalElasticContactForce[3],
-                double LocalElasticContactForce[3],
-                double LocalElasticExtraContactForce[3],
-                double LocalCoordSystem[3][3],
-                double LocalDeltDisp[3],
-                const double kn_el,
-                const double kt_el,
-                double& contact_sigma,
-                double& contact_tau,
-                double& failure_criterion_state,
-                double equiv_young,
-                double equiv_shear,
-                double indentation,
-                double calculation_area,
-                double& acumulated_damage,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                int time_steps,
-                bool& sliding,
-                int search_control,
-                DenseVector<int>& search_control_vector,
-                double &equiv_visco_damp_coeff_normal,
-                double &equiv_visco_damp_coeff_tangential,
-                double LocalRelVel[3],
-                double ViscoDampingLocalContactForce[3]) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateForces) should not be called.","")
+                                     double OldLocalElasticContactForce[3],
+                                     double LocalElasticContactForce[3],
+                                     double LocalElasticExtraContactForce[3],
+                                     double LocalCoordSystem[3][3],
+                                     double LocalDeltDisp[3],
+                                     const double kn_el,
+                                     const double kt_el,
+                                     double& contact_sigma,
+                                     double& contact_tau,
+                                     double& failure_criterion_state,
+                                     double equiv_young,
+                                     double equiv_shear,
+                                     double indentation,
+                                     double calculation_area,
+                                     double& acumulated_damage,
+                                     SphericContinuumParticle* element1,
+                                     SphericContinuumParticle* element2,
+                                     int i_neighbour_count,
+                                     int time_steps,
+                                     bool& sliding,
+                                     double &equiv_visco_damp_coeff_normal,
+                                     double &equiv_visco_damp_coeff_tangential,
+                                     double LocalRelVel[3],
+                                     double ViscoDampingLocalContactForce[3]) {
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateForces) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void CalculateNormalForces(double LocalElasticContactForce[3],
-                const double kn_el,
-                double equiv_young,
-                double indentation,
-                double calculation_area,
-                double& acumulated_damage,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                int time_steps,
-            const ProcessInfo& r_process_info) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateNormalForces) should not be called.","")
+                                           const double kn_el,
+                                           double equiv_young,
+                                           double indentation,
+                                           double calculation_area,
+                                           double& acumulated_damage,
+                                           SphericContinuumParticle* element1,
+                                           SphericContinuumParticle* element2,
+                                           int i_neighbour_count,
+                                           int time_steps,
+                                           const ProcessInfo& r_process_info) {
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateNormalForces) shouldn't be accessed, use derived class instead"<<std::endl;
         }
 
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
-                double LocalElasticContactForce[3],
-                double LocalElasticExtraContactForce[3],
-                double LocalCoordSystem[3][3],
-                double LocalDeltDisp[3],
-                const double kt_el,
-                const double equiv_shear,
-                double& contact_sigma,
-                double& contact_tau,
-                double indentation,
-                double calculation_area,
-                double& failure_criterion_state,
-                SphericContinuumParticle* element1,
-                SphericContinuumParticle* element2,
-                int i_neighbour_count,
-                bool& sliding,
-                int search_control,
-                                            DenseVector<int>& search_control_vector,
-                                            const ProcessInfo& r_process_info) {
-            KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) should not be called.","")
+                                               double LocalElasticContactForce[3],
+                                               double LocalElasticExtraContactForce[3],
+                                               double ViscoDampingLocalContactForce[3],
+                                               double LocalCoordSystem[3][3],
+                                               double LocalDeltDisp[3],
+                                               double LocalRelVel[3],
+                                               const double kt_el,
+                                               const double equiv_shear,
+                                               double& contact_sigma,
+                                               double& contact_tau,
+                                               double indentation,
+                                               double calculation_area,
+                                               double& failure_criterion_state,
+                                               SphericContinuumParticle* element1,
+                                               SphericContinuumParticle* element2,
+                                               int i_neighbour_count,
+                                               bool& sliding,
+                                               const ProcessInfo& r_process_info) {
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateTangentialForces) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
@@ -176,18 +175,25 @@ namespace Kratos {
                                                       double equiv_poisson,
                                                       double indentation);
 
-        virtual void AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force, double calculation_area, BoundedMatrix<double, 3, 3>* mSymmStressTensor,
-                                            SphericContinuumParticle* element1, SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation);
+        virtual void AddPoissonContribution(const double equiv_poisson,
+                                            double LocalCoordSystem[3][3],
+                                            double& normal_force,
+                                            double calculation_area,
+                                            BoundedMatrix<double, 3, 3>* mSymmStressTensor,
+                                            SphericContinuumParticle* element1,
+                                            SphericContinuumParticle* element2,
+                                            const ProcessInfo& r_process_info,
+                                            const int i_neighbor_count,
+                                            const double indentation);
 
         virtual double LocalMaxSearchDistance(const int i,
                                               SphericContinuumParticle* element1,
                                               SphericContinuumParticle* element2);
 
-        virtual double LocalPeriod(const int i,
-                                   SphericContinuumParticle* element1,
-                                   SphericContinuumParticle* element2);
-
         virtual bool CheckRequirementsOfStressTensor();
+
+    protected:
+        Properties::Pointer mpProperties;
 
     private:
 

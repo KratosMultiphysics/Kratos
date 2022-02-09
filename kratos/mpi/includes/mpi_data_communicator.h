@@ -180,7 +180,13 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@name Operations
     ///@{
 
-    DataCommunicator::UniquePointer Clone() const override;
+    /// Create a new MPIDataCommunicator using the provided MPI_Comm object.
+    /** The new MPIDataCommunicator instance is returned as a unique pointer,
+     *  since it is responsible for managing the lifetime of the underlying MPI_Comm,
+     *  and in particular calling MPI_Comm_free once it goes out of scope
+     *  (this is only required/done if Comm is not one of the predefined MPI_COMM types).
+     */
+    static MPIDataCommunicator::UniquePointer Create(MPI_Comm MPIComm);
 
     void Barrier() const override;
 
@@ -197,9 +203,17 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
 
+    bool AndReduce(
+        const bool Value,
+        const int Root) const override;
+
     Kratos::Flags AndReduce(
         const Kratos::Flags Values,
         const Kratos::Flags Mask,
+        const int Root) const override;
+
+    bool OrReduce(
+        const bool Value,
         const int Root) const override;
 
     Kratos::Flags OrReduce(
@@ -215,7 +229,11 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
 
     array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
 
+    bool AndReduceAll(const bool Value) const override;
+
     Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
+    bool OrReduceAll(const bool Value) const override;
 
     Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
 
@@ -238,6 +256,10 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     int Size() const override;
 
     bool IsDistributed() const override;
+
+    bool IsDefinedOnThisRank() const override;
+
+    bool IsNullOnThisRank() const override;
 
     ///@}
     ///@name Helper functions for error checking in MPI

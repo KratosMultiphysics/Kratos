@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -103,7 +104,13 @@ public:
         ModelPart& rPart1,
         ModelPart& rPart2,
         const double BoundingBoxFactor = -1.0,
-        const Flags Options = BaseProcessType::INTERSECTING_CONDITIONS|BaseProcessType::INTERSECTING_ELEMENTS|BaseProcessType::INTERSECTED_CONDITIONS|BaseProcessType::INTERSECTED_ELEMENTS|BaseType::NOT_DEBUG_OBB|BaseType::SEPARATING_AXIS_THEOREM|BaseType::BUILD_OBB_FROM_BB
+        const Flags Options = BaseProcessType::INTERSECTING_CONDITIONS|
+            BaseProcessType::INTERSECTING_ELEMENTS|
+            BaseProcessType::INTERSECTED_CONDITIONS|
+            BaseProcessType::INTERSECTED_ELEMENTS|
+            BaseType::DEBUG_OBB.AsFalse()|
+            BaseType::SEPARATING_AXIS_THEOREM|
+            BaseType::BUILD_OBB_FROM_BB
         );
 
     /**
@@ -121,6 +128,11 @@ public:
 
     /// Destructor.
     ~FindIntersectedGeometricalObjectsWithOBBContactSearchProcess() override {}
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override;
 
     ///@name Member Variables
     ///@{
@@ -209,11 +221,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     */
-    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Un accessible methods

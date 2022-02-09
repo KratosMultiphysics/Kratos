@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,29 +40,34 @@ THE SOFTWARE.
 
 #include <amgcl/util.hpp>
 #include <amgcl/mpi/inner_product.hpp>
+#include <amgcl/mpi/distributed_matrix.hpp>
 
 namespace amgcl {
 namespace mpi {
 
 template <
     class Precond,
-    template <class, class> class IterativeSolver
+    class IterativeSolver
     >
 class make_solver : public amgcl::detail::non_copyable {
+    static_assert(
+            backend::backends_compatible<
+                typename IterativeSolver::backend_type,
+                typename Precond::backend_type
+            >::value,
+            "Backends for preconditioner and iterative solver should be compatible"
+            );
     public:
-        typedef typename Precond::backend_type backend_type;
-        typedef typename Precond::matrix matrix;
+        typedef typename IterativeSolver::backend_type backend_type;
+        typedef amgcl::mpi::distributed_matrix<typename Precond::backend_type> matrix;
         typedef typename backend_type::value_type value_type;
         typedef typename backend_type::params backend_params;
         typedef typename backend::builtin<value_type>::matrix build_matrix;
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
-        typedef IterativeSolver<backend_type, mpi::inner_product> Solver;
-
-
         struct params {
             typename Precond::params precond; ///< Preconditioner parameters.
-            typename Solver::params  solver;  ///< Iterative solver parameters.
+            typename IterativeSolver::params  solver;  ///< Iterative solver parameters.
 
             params() {}
 
@@ -104,6 +109,19 @@ class make_solver : public amgcl::detail::non_copyable {
         {
         }
 
+        template <class Backend>
+        make_solver(
+                communicator comm, std::shared_ptr<distributed_matrix<Backend>> A,
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
+                ) :
+            prm(prm), n(A->loc_rows()),
+            P(comm, std::make_shared<matrix>(*A), prm.precond, bprm),
+            S(n, prm.solver, bprm, mpi::inner_product(comm))
+        {
+            A->move_to_backend(bprm);
+        }
+
         make_solver(
                 communicator comm, std::shared_ptr<build_matrix> A,
                 const params &prm = params(),
@@ -136,7 +154,11 @@ class make_solver : public amgcl::detail::non_copyable {
             return P;
         }
 
-        const Solver& solver() const {
+        Precond& precond() {
+            return P;
+        }
+
+        const IterativeSolver& solver() const {
             return S;
         }
 
@@ -165,7 +187,7 @@ class make_solver : public amgcl::detail::non_copyable {
         size_t n;
 
         Precond P;
-        Solver  S;
+        IterativeSolver  S;
 };
 
 } // namespace mpi

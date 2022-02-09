@@ -20,7 +20,7 @@ class TwoFluidNoRedistanceSolver(two_fluids_solver.NavierStokesTwoFluidsSolver):
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Initialize the solver current step
-            (self.solver).InitializeSolutionStep()
+            self._GetSolutionStrategy().InitializeSolutionStep()
 
 
 class DarcyChannelTest(UnitTest.TestCase):

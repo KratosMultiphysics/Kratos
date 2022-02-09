@@ -8,11 +8,11 @@
 #include <amgcl/adapter/block_matrix.hpp>
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/value_type/static_matrix.hpp>
-#include <amgcl/solver/runtime.hpp>
 
 #include <amgcl/mpi/util.hpp>
 #include <amgcl/mpi/make_solver.hpp>
 #include <amgcl/mpi/preconditioner.hpp>
+#include <amgcl/mpi/solver/runtime.hpp>
 
 #ifdef AMGCL_GPGPU
 #  include <amgcl/backend/vexcl.hpp>
@@ -22,6 +22,7 @@
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
 #include "trilinos_space.h"
+#include "custom_utilities/trilinos_solver_utilities.h"
 
 namespace Kratos
 {
@@ -45,6 +46,8 @@ void AMGCLScalarSolve(
     bool use_gpgpu
     )
 {
+    MPI_Comm the_comm = TrilinosSolverUtilities::GetMPICommFromEpetraComm(rA.Comm());
+
 #ifdef AMGCL_GPGPU
     if (use_gpgpu && vexcl_context()) {
         auto &ctx = vexcl_context();
@@ -54,14 +57,14 @@ void AMGCLScalarSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 
         Backend::params bprm;
         bprm.q = ctx;
 
-        Solver solve(MPI_COMM_WORLD, amgcl::adapter::map(rA), amgclParams, bprm);
+        Solver solve(the_comm, amgcl::adapter::map(rA), amgclParams, bprm);
 
         std::size_t n = rA.NumMyRows();
 
@@ -79,11 +82,11 @@ void AMGCLScalarSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 
-        Solver solve(MPI_COMM_WORLD, amgcl::adapter::map(rA), amgclParams);
+        Solver solve(the_comm, amgcl::adapter::map(rA), amgclParams);
 
         std::size_t n = rA.NumMyRows();
 
@@ -107,6 +110,8 @@ void AMGCLBlockSolve(
     bool use_gpgpu
     )
 {
+    MPI_Comm the_comm = TrilinosSolverUtilities::GetMPICommFromEpetraComm(rA.Comm());
+
     if(amgclParams.get<std::string>("precond.class") != "amg")
         amgclParams.erase("precond.coarsening");
     else
@@ -128,7 +133,7 @@ void AMGCLBlockSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 
@@ -136,7 +141,7 @@ void AMGCLBlockSolve(
         bprm.q = ctx;
 
         Solver solve(
-                MPI_COMM_WORLD,
+                the_comm,
                 amgcl::adapter::block_matrix<val_type>(amgcl::adapter::map(rA)),
                 amgclParams, bprm
                 );
@@ -158,12 +163,12 @@ void AMGCLBlockSolve(
         typedef
             amgcl::mpi::make_solver<
                 amgcl::runtime::mpi::preconditioner<Backend>,
-                amgcl::runtime::solver::wrapper
+                amgcl::runtime::mpi::solver::wrapper<Backend>
                 >
             Solver;
 
         Solver solve(
-                MPI_COMM_WORLD,
+                the_comm,
                 amgcl::adapter::block_matrix<val_type>(amgcl::adapter::map(rA)),
                 amgclParams
                 );

@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -25,7 +26,7 @@
 #include "includes/model_part.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/iterative_solver.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "custom_utilities/logging_settings.hpp"
@@ -78,6 +79,12 @@ public:
 
     ///@name Type Definitions
     ///@{
+
+    /// The flag that indicates if the blocks are allocated
+    KRATOS_DEFINE_LOCAL_FLAG( BLOCKS_ARE_ALLOCATED );
+
+    /// The flag that indicates if the solution is initialized
+    KRATOS_DEFINE_LOCAL_FLAG( IS_INITIALIZED );
 
     /// Pointer definition of MixedULMLinearSolver
     KRATOS_CLASS_POINTER_DEFINITION (MixedULMLinearSolver);
@@ -150,8 +157,8 @@ public:
             mpSolverDispBlock(pSolverDispBlock)
     {
         // Initializing the remaining variables
-        mBlocksAreAllocated = false;
-        mIsInitialized = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
+        mOptions.Set(IS_INITIALIZED, false);
     }
 
     /**
@@ -177,8 +184,8 @@ public:
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
         mEchoLevel = ThisParameters["echo_level"].GetInt();
-        mBlocksAreAllocated = false;
-        mIsInitialized = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
+        mOptions.Set(IS_INITIALIZED, false);
 
         KRATOS_CATCH("")
     }
@@ -188,8 +195,7 @@ public:
     MixedULMLinearSolver (const MixedULMLinearSolver& rOther)
         : BaseType(rOther),
           mpSolverDispBlock(rOther.mpSolverDispBlock),
-          mBlocksAreAllocated(rOther.mBlocksAreAllocated),
-          mIsInitialized(rOther.mIsInitialized),
+          mOptions(rOther.mOptions),
           mMasterIndices(rOther.mMasterIndices),
           mSlaveInactiveIndices(rOther.mSlaveInactiveIndices),
           mSlaveActiveIndices(rOther.mSlaveActiveIndices),
@@ -250,9 +256,9 @@ public:
         VectorType& rB
         ) override
     {
-        if (mBlocksAreAllocated == true) {
+        if (mOptions.Is(BLOCKS_ARE_ALLOCATED)) {
             mpSolverDispBlock->Initialize(mKDispModified, mDisp, mResidualDisp);
-            mIsInitialized = true;
+            mOptions.Set(IS_INITIALIZED, true);
         } else
             KRATOS_DETAIL("MixedULM Initialize") << "Linear solver intialization is deferred to the moment at which blocks are available" << std::endl;
     }
@@ -273,15 +279,15 @@ public:
         ) override
     {
         // Copy to local matrices
-        if (mBlocksAreAllocated == false) {
+        if (mOptions.IsNot(BLOCKS_ARE_ALLOCATED)) {
             FillBlockMatrices (true, rA, rX, rB);
-            mBlocksAreAllocated = true;
+            mOptions.Set(BLOCKS_ARE_ALLOCATED, true);
         } else {
             FillBlockMatrices (false, rA, rX, rB);
-            mBlocksAreAllocated = true;
+            mOptions.Set(BLOCKS_ARE_ALLOCATED, true);
         }
 
-        if(mIsInitialized == false)
+        if(mOptions.IsNot(IS_INITIALIZED))
             this->Initialize(rA,rX,rB);
 
         mpSolverDispBlock->InitializeSolutionStep(mKDispModified, mDisp, mResidualDisp);
@@ -366,7 +372,7 @@ public:
      */
     void Clear() override
     {
-        mBlocksAreAllocated = false;
+        mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
         mpSolverDispBlock->Clear();
 
         // We clear the matrixes and vectors
@@ -390,7 +396,7 @@ public:
         mLMInactive.clear(); /// The solution of the inactive LM
         mDisp.clear();       /// The solution of the displacement
 
-        mIsInitialized = false;
+        mOptions.Set(IS_INITIALIZED, false);
     }
 
     /**
@@ -420,7 +426,7 @@ public:
             TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), rB);
         }
 
-        if (mIsInitialized == false)
+        if (mOptions.IsNot(IS_INITIALIZED))
             this->Initialize (rA,rX,rB);
 
         this->InitializeSolutionStep (rA,rX,rB);
@@ -807,93 +813,88 @@ protected:
         IndexType* KLMILMI_ptr = new IndexType[lm_inactive_size + 1];
         IndexType* KLMALMA_ptr = new IndexType[lm_active_size + 1];
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(master_size + 1); i++)
+        IndexPartition<std::size_t>(master_size +1).for_each([&](std::size_t i) {
             KMLMA_ptr[i] = 0;
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(slave_active_size + 1); i++) {
+        });
+        IndexPartition<std::size_t>(slave_active_size +1).for_each([&](std::size_t i) {
             mKSAN_ptr[i] = 0;
             mKSAM_ptr[i] = 0;
             mKSASI_ptr[i] = 0;
             mKSASA_ptr[i] = 0;
             KSALMA_ptr[i] = 0;
-        }
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(lm_inactive_size + 1); i++)
+        });
+        IndexPartition<std::size_t>(lm_inactive_size +1).for_each([&](std::size_t i) {
             KLMILMI_ptr[i] = 0;
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(lm_active_size + 1); i++)
+        });
+        IndexPartition<std::size_t>(lm_active_size +1).for_each([&](std::size_t i) {
             KLMALMA_ptr[i] = 0;
+        });
 
-        #pragma omp parallel
-        {
-            // We iterate over original matrix
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
-                const IndexType row_begin = index1[i];
-                const IndexType row_end   = index1[i+1];
-                const IndexType local_row_id = mGlobalToLocalIndexing[i];
+        // We iterate over original matrix
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
+            const IndexType row_begin = index1[i];
+            const IndexType row_end   = index1[i+1];
+            const IndexType local_row_id = mGlobalToLocalIndexing[i];
 
-                IndexType KMLMA_cols = 0;
-                IndexType mKSAN_cols = 0;
-                IndexType mKSAM_cols = 0;
-                IndexType mKSASI_cols = 0;
-                IndexType mKSASA_cols = 0;
-                IndexType KSALMA_cols = 0;
-                IndexType KLMILMI_cols = 0;
-                IndexType KLMALMA_cols = 0;
+            IndexType KMLMA_cols = 0;
+            IndexType mKSAN_cols = 0;
+            IndexType mKSAM_cols = 0;
+            IndexType mKSASI_cols = 0;
+            IndexType mKSASA_cols = 0;
+            IndexType KSALMA_cols = 0;
+            IndexType KLMILMI_cols = 0;
+            IndexType KLMALMA_cols = 0;
 
-                if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
-                        if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
-                            ++KMLMA_cols;
-                        }
+            if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
+                        ++KMLMA_cols;
                     }
-                    KRATOS_DEBUG_ERROR_IF(local_row_id > master_size) << "MASTER:: Local row ID: " << local_row_id <<" is greater than the number of rows " << master_size << std::endl;
-                    KMLMA_ptr[local_row_id + 1] = KMLMA_cols;
-                } else if ( mWhichBlockType[i] == BlockType::SLAVE_ACTIVE) { //either KSAN or KSAM or KSASA or KSASA or KSALM
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
-                        if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KSAN block
-                            ++mKSAN_cols;
-                        } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KSAM block
-                            ++mKSAM_cols;
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KSASI block
-                            ++mKSASI_cols;
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KSASA block
-                            ++mKSASA_cols;
-                        } else if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) {     // KSALMA block (diagonal)
-                            ++KSALMA_cols;
-                        }
-                    }
-                    KRATOS_DEBUG_ERROR_IF(local_row_id > slave_active_size) << "SLAVE_ACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << slave_active_size << std::endl;
-                    mKSAN_ptr[local_row_id + 1]  = mKSAN_cols;
-                    mKSAM_ptr[local_row_id + 1]  = mKSAM_cols;
-                    mKSASI_ptr[local_row_id + 1] = mKSASI_cols;
-                    mKSASA_ptr[local_row_id + 1] = mKSASA_cols;
-                    KSALMA_ptr[local_row_id + 1] = KSALMA_cols;
-                } else if ( mWhichBlockType[i] == BlockType::LM_INACTIVE) { // KLMILMI
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
-                        if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
-                            ++KLMILMI_cols;
-                        }
-                    }
-                    KRATOS_DEBUG_ERROR_IF(local_row_id > lm_inactive_size) << "LM_INACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << lm_inactive_size << std::endl;
-                    KLMILMI_ptr[local_row_id + 1] = KLMILMI_cols;
-                } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { // KLMALMA
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
-                        if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
-                            ++KLMALMA_cols;
-                        }
-                    }
-                    KRATOS_DEBUG_ERROR_IF(local_row_id > lm_active_size) << "LM_ACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << lm_active_size << std::endl;
-                    KLMALMA_ptr[local_row_id + 1] = KLMALMA_cols;
                 }
+                KRATOS_DEBUG_ERROR_IF(local_row_id > master_size) << "MASTER:: Local row ID: " << local_row_id <<" is greater than the number of rows " << master_size << std::endl;
+                KMLMA_ptr[local_row_id + 1] = KMLMA_cols;
+            } else if ( mWhichBlockType[i] == BlockType::SLAVE_ACTIVE) { //either KSAN or KSAM or KSASA or KSASA or KSALM
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KSAN block
+                        ++mKSAN_cols;
+                    } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KSAM block
+                        ++mKSAM_cols;
+                    } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KSASI block
+                        ++mKSASI_cols;
+                    } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KSASA block
+                        ++mKSASA_cols;
+                    } else if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) {     // KSALMA block (diagonal)
+                        ++KSALMA_cols;
+                    }
+                }
+                KRATOS_DEBUG_ERROR_IF(local_row_id > slave_active_size) << "SLAVE_ACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << slave_active_size << std::endl;
+                mKSAN_ptr[local_row_id + 1]  = mKSAN_cols;
+                mKSAM_ptr[local_row_id + 1]  = mKSAM_cols;
+                mKSASI_ptr[local_row_id + 1] = mKSASI_cols;
+                mKSASA_ptr[local_row_id + 1] = mKSASA_cols;
+                KSALMA_ptr[local_row_id + 1] = KSALMA_cols;
+            } else if ( mWhichBlockType[i] == BlockType::LM_INACTIVE) { // KLMILMI
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
+                        ++KLMILMI_cols;
+                    }
+                }
+                KRATOS_DEBUG_ERROR_IF(local_row_id > lm_inactive_size) << "LM_INACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << lm_inactive_size << std::endl;
+                KLMILMI_ptr[local_row_id + 1] = KLMILMI_cols;
+            } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { // KLMALMA
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
+                        ++KLMALMA_cols;
+                    }
+                }
+                KRATOS_DEBUG_ERROR_IF(local_row_id > lm_active_size) << "LM_ACTIVE:: Local row ID: " << local_row_id <<" is greater than the number of rows " << lm_active_size << std::endl;
+                KLMALMA_ptr[local_row_id + 1] = KLMALMA_cols;
             }
-        }
+        });
 
         // We initialize the blocks sparse matrix
         std::partial_sum(KMLMA_ptr, KMLMA_ptr + master_size + 1, KMLMA_ptr);
@@ -936,94 +937,90 @@ protected:
         IndexType* aux_index2_KLMALMA = new IndexType[KLMALMA_nonzero_values];
         double* aux_val_KLMALMA = new double[KLMALMA_nonzero_values];
 
-        #pragma omp parallel
-        {
-            // We iterate over original matrix
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
-                const IndexType row_begin = index1[i];
-                const IndexType row_end   = index1[i+1];
-                const IndexType local_row_id = mGlobalToLocalIndexing[i];
+        // We iterate over original matrix
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
+            const IndexType row_begin = index1[i];
+            const IndexType row_end   = index1[i+1];
+            const IndexType local_row_id = mGlobalToLocalIndexing[i];
 
-                if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
-                    IndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
-                    IndexType KMLMA_row_end = KMLMA_row_beg;
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
-                        if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
-                            const double value = values[j];
-                            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                            aux_index2_KMLMA[KMLMA_row_end] = local_col_id;
-                            aux_val_KMLMA[KMLMA_row_end] = value;
-                            ++KMLMA_row_end;
-                        }
-                    }
-                } else if ( mWhichBlockType[i] == BlockType::SLAVE_ACTIVE) { //either KSAN or KSAM or KSASA or KSASA or KSALM
-                    IndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
-                    IndexType mKSAN_row_end = mKSAN_row_beg;
-                    IndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
-                    IndexType mKSAM_row_end = mKSAM_row_beg;
-                    IndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
-                    IndexType mKSASI_row_end = mKSASI_row_beg;
-                    IndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
-                    IndexType mKSASA_row_end = mKSASA_row_beg;
-                    IndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
-                    IndexType KSALMA_row_end = KSALMA_row_beg;
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
+            if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
+                IndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
+                IndexType KMLMA_row_end = KMLMA_row_beg;
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
                         const double value = values[j];
                         const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                        if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KSAN block
-                            aux_index2_mKSAN[mKSAN_row_end] = local_col_id;
-                            aux_val_mKSAN[mKSAN_row_end] = value;
-                            ++mKSAN_row_end;
-                        } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KSAM block
-                            aux_index2_mKSAM[mKSAM_row_end] = local_col_id;
-                            aux_val_mKSAM[mKSAM_row_end] = value;
-                            ++mKSAM_row_end;
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KSASI block
-                            aux_index2_mKSASI[mKSASI_row_end] = local_col_id;
-                            aux_val_mKSASI[mKSASI_row_end] = value;
-                            ++mKSASI_row_end;
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KSASA block
-                            aux_index2_mKSASA[mKSASA_row_end] = local_col_id;
-                            aux_val_mKSASA[mKSASA_row_end] = value;
-                            ++mKSASA_row_end;
-                        } else if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) {     // KSALMA block (diagonal)
-                            aux_index2_KSALMA[KSALMA_row_end] = local_col_id;
-                            aux_val_KSALMA[KSALMA_row_end] = value;
-                            ++KSALMA_row_end;
-                        }
+                        aux_index2_KMLMA[KMLMA_row_end] = local_col_id;
+                        aux_val_KMLMA[KMLMA_row_end] = value;
+                        ++KMLMA_row_end;
                     }
-                } else if ( mWhichBlockType[i] == BlockType::LM_INACTIVE) { // KLMILMI
-                    IndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
-                    IndexType KLMILMI_row_end = KLMILMI_row_beg;
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
-                        if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
-                            const double value = values[j];
-                            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                            aux_index2_KLMILMI[KLMILMI_row_end] = local_col_id;
-                            aux_val_KLMILMI[KLMILMI_row_end] = value;
-                            ++KLMILMI_row_end;
-                        }
+                }
+            } else if ( mWhichBlockType[i] == BlockType::SLAVE_ACTIVE) { //either KSAN or KSAM or KSASA or KSASA or KSALM
+                IndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
+                IndexType mKSAN_row_end = mKSAN_row_beg;
+                IndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
+                IndexType mKSAM_row_end = mKSAM_row_beg;
+                IndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
+                IndexType mKSASI_row_end = mKSASI_row_beg;
+                IndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
+                IndexType mKSASA_row_end = mKSASA_row_beg;
+                IndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
+                IndexType KSALMA_row_end = KSALMA_row_beg;
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    const double value = values[j];
+                    const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+                    if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KSAN block
+                        aux_index2_mKSAN[mKSAN_row_end] = local_col_id;
+                        aux_val_mKSAN[mKSAN_row_end] = value;
+                        ++mKSAN_row_end;
+                    } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KSAM block
+                        aux_index2_mKSAM[mKSAM_row_end] = local_col_id;
+                        aux_val_mKSAM[mKSAM_row_end] = value;
+                        ++mKSAM_row_end;
+                    } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KSASI block
+                        aux_index2_mKSASI[mKSASI_row_end] = local_col_id;
+                        aux_val_mKSASI[mKSASI_row_end] = value;
+                        ++mKSASI_row_end;
+                    } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KSASA block
+                        aux_index2_mKSASA[mKSASA_row_end] = local_col_id;
+                        aux_val_mKSASA[mKSASA_row_end] = value;
+                        ++mKSASA_row_end;
+                    } else if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) {     // KSALMA block (diagonal)
+                        aux_index2_KSALMA[KSALMA_row_end] = local_col_id;
+                        aux_val_KSALMA[KSALMA_row_end] = value;
+                        ++KSALMA_row_end;
                     }
-                } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { // KLMALMA
-                    IndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
-                    IndexType KLMALMA_row_end = KLMALMA_row_beg;
-                    for (IndexType j=row_begin; j<row_end; j++) {
-                        const IndexType col_index = index2[j];
-                        if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
-                            const double value = values[j];
-                            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                            aux_index2_KLMALMA[KLMALMA_row_end] = local_col_id;
-                            aux_val_KLMALMA[KLMALMA_row_end] = value;
-                            ++KLMALMA_row_end;
-                        }
+                }
+            } else if ( mWhichBlockType[i] == BlockType::LM_INACTIVE) { // KLMILMI
+                IndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
+                IndexType KLMILMI_row_end = KLMILMI_row_beg;
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
+                        const double value = values[j];
+                        const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+                        aux_index2_KLMILMI[KLMILMI_row_end] = local_col_id;
+                        aux_val_KLMILMI[KLMILMI_row_end] = value;
+                        ++KLMILMI_row_end;
+                    }
+                }
+            } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { // KLMALMA
+                IndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
+                IndexType KLMALMA_row_end = KLMALMA_row_beg;
+                for (IndexType j=row_begin; j<row_end; j++) {
+                    const IndexType col_index = index2[j];
+                    if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
+                        const double value = values[j];
+                        const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+                        aux_index2_KLMALMA[KLMALMA_row_end] = local_col_id;
+                        aux_val_KLMALMA[KLMALMA_row_end] = value;
+                        ++KLMALMA_row_end;
                     }
                 }
             }
-        }
+        });
 
         CreateMatrix(KMLMA, master_size, lm_active_size, KMLMA_ptr, aux_index2_KMLMA, aux_val_KMLMA);
         CreateMatrix(mKSAN, slave_active_size, other_dof_size, mKSAN_ptr, aux_index2_mKSAN, aux_val_mKSAN);
@@ -1094,21 +1091,17 @@ protected:
         IndexType* K_disp_modified_ptr_aux1 = new IndexType[nrows + 1];
         K_disp_modified_ptr_aux1[0] = 0;
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
-                if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
-                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1);
-                } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
-                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1);
-                } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
-                    ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1);
-                } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
-                    ComputeNonZeroColumnsPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1);
-                }
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
+            if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
+                ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1);
+            } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
+                ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1);
+            } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
+                ComputeNonZeroColumnsDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1);
+            } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
+                ComputeNonZeroColumnsPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1);
             }
-        }
+        });
 
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux1, K_disp_modified_ptr_aux1 + nrows + 1, K_disp_modified_ptr_aux1);
@@ -1116,89 +1109,68 @@ protected:
         IndexType* aux_index2_K_disp_modified_aux1 = new IndexType[nonzero_values_aux1];
         double* aux_val_K_disp_modified_aux1 = new double[nonzero_values_aux1];
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(rA.size1()); i++) {
-                if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
-                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
-                } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
-                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
-                } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
-                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
-                } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
-                    ComputeAuxiliarValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
-                }
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
+            if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
+                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+            } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
+                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+            } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
+                ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
+            } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
+                ComputeAuxiliarValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
             }
-        }
+        });
 
         // Create the first auxiliar matrix
         CreateMatrix(mKDispModified, nrows, ncols, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
 
         // Now we create the second matrix block to sum
         IndexType* K_disp_modified_ptr_aux2 = new IndexType[nrows + 1];
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nrows + 1); i++)
+        IndexPartition<std::size_t>(nrows + 1).for_each([&](std::size_t i) {
             K_disp_modified_ptr_aux2[i] = 0;
+        });
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(master_size); i++) {
-
-                IndexType K_disp_modified_cols_aux2 = 0;
-
-                // Get access to master_auxKSAN data
-                if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to master_auxKSAM data
-                if (master_auxKSAM.nnz() > 0) {
-                    ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to master_auxKSASI data
-                if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to master_auxKSASA data
-                if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
-                }
-
-                K_disp_modified_ptr_aux2[master_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+        IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
+            IndexType K_disp_modified_cols_aux2 = 0;
+            // Get access to master_auxKSAN data
+            if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAN, i, K_disp_modified_cols_aux2);
             }
-
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(slave_active_size); i++) {
-
-                IndexType K_disp_modified_cols_aux2 = 0;
-
-                // Get access to aslave_auxKSAN data
-                if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to aslave_auxKSAM data
-                if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to aslave_auxKSASI data
-                if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
-                }
-
-                // Get access to aslave_auxKSASA data
-                if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
-                }
-
-                K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+            // Get access to master_auxKSAM data
+            if (master_auxKSAM.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSAM, i, K_disp_modified_cols_aux2);
             }
-        }
+            // Get access to master_auxKSASI data
+            if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASI, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to master_auxKSASA data
+            if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(master_auxKSASA, i, K_disp_modified_cols_aux2);
+            }
+            K_disp_modified_ptr_aux2[master_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+        });
+
+        IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
+            IndexType K_disp_modified_cols_aux2 = 0;
+            // Get access to aslave_auxKSAN data
+            if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAN, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to aslave_auxKSAM data
+            if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSAM, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to aslave_auxKSASI data
+            if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASI, i, K_disp_modified_cols_aux2);
+            }
+            // Get access to aslave_auxKSASA data
+            if (aslave_auxKSASA.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeNonZeroBlocks(aslave_auxKSASA, i, K_disp_modified_cols_aux2);
+            }
+            K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i + 1] = K_disp_modified_cols_aux2;
+        });
 
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux2, K_disp_modified_ptr_aux2 + nrows + 1, K_disp_modified_ptr_aux2);
@@ -1206,67 +1178,54 @@ protected:
         IndexType* aux_index2_K_disp_modified_aux2 = new IndexType[nonzero_values_aux2];
         double* aux_val_K_disp_modified_aux2 = new double[nonzero_values_aux2];
 
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(master_size); i++) {
-                const IndexType row_beg = K_disp_modified_ptr_aux2[master_dof_initial_index + i];
-                IndexType row_end = row_beg;
-
-                // Get access to master_auxKSAN data
-                if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
-                }
-
-                // Get access to master_auxKSAM data
-                if (master_auxKSAM.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
-                }
-
-                // Get access to master_auxKSASI data
-                if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
-                }
-
-                // Get access to master_auxKSASA data
-                if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
-                    ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
-                }
+        IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
+            const IndexType row_beg = K_disp_modified_ptr_aux2[master_dof_initial_index + i];
+            IndexType row_end = row_beg;
+            // Get access to master_auxKSAN data
+            if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
             }
-
-            #pragma omp for
-            for (int i=0; i<static_cast<int>(slave_active_size); i++) {
-                const IndexType row_beg = K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i];
-                IndexType row_end = row_beg;
-
-                // Get access to aslave_auxKSAN data
-                if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
-                }
-
-                // Get access to aslave_auxKSAM data
-                if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
-                }
-
-                // Get access to aslave_auxKSASI data
-                if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
-                }
-
-                // Get access to aslave_auxKSASA data
-                if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
-                }
+            // Get access to master_auxKSAM data
+            if (master_auxKSAM.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
             }
-        }
+            // Get access to master_auxKSASI data
+            if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+            }
+            // Get access to master_auxKSASA data
+            if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+            }
+        });
+
+        IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
+            const IndexType row_beg = K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i];
+            IndexType row_end = row_beg;
+            // Get access to aslave_auxKSAN data
+            if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, other_dof_initial_index);
+            }
+            // Get access to aslave_auxKSAM data
+            if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, master_dof_initial_index);
+            }
+            // Get access to aslave_auxKSASI data
+            if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, slave_inactive_dof_initial_index);
+            }
+            // Get access to aslave_auxKSASA data
+            if (aslave_auxKSASA.nnz() > 0) {
+                SparseMatrixMultiplicationUtility::ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2, i, row_end, assembling_slave_dof_initial_index);
+            }
+        });
 
         // Create the second auxiliar matrix
         SparseMatrixType K_disp_modified_aux2(nrows, ncols);
         CreateMatrix(K_disp_modified_aux2, nrows, ncols, K_disp_modified_ptr_aux2, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2);
 
         // We sum the auxiliar matrices
-        SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, 1.0);
+        SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, - 1.0);
 
         // Finally we ensure that the matrix is structurally symmetric
         EnsureStructuralSymmetryMatrix(mKDispModified);
@@ -1301,8 +1260,7 @@ private:
 
     LinearSolverPointerType mpSolverDispBlock; /// The pointer to the displacement linear solver
 
-    bool mBlocksAreAllocated; /// The flag that indicates if the blocks are allocated
-    bool mIsInitialized;      /// The flag that indicates if the solution is mIsInitialized
+    Flags mOptions; /// This stores the flags
 
     IndexVectorType mMasterIndices;         /// The vector storing the indices of the master nodes in contact
     IndexVectorType mSlaveInactiveIndices;  /// The vector storing the indices of the slave nodes in contact (Inactive)
@@ -1550,63 +1508,6 @@ private:
     }
 
     /**
-     * @brief This is a method to check the block containing nonzero values
-     * @param AuxK The auxiliar block
-     * @param CurrentRow The current row computed
-     * @param KDispModifiedColsAux2 The nonzero rows array
-     */
-    inline void ComputeNonZeroBlocks(
-        const SparseMatrixType& AuxK,
-        const int CurrentRow,
-        IndexType& KDispModifiedColsAux2
-        )
-    {
-        // Get access to aux_K data
-        const IndexType* aux_K_index1 = AuxK.index1_data().begin();
-
-        const IndexType row_begin = aux_K_index1[CurrentRow];
-        const IndexType row_end   = aux_K_index1[CurrentRow + 1];
-
-        for (IndexType j=row_begin; j<row_end; j++) {
-            ++KDispModifiedColsAux2;
-        }
-    }
-
-    /**
-     * @brief This is a method to compute the contribution of the auxiliar blocks
-     * @param AuxK The auxiliar block
-     * @param AuxIndex2 The indexes of the non zero columns
-     * @param AuxVals The values of the final matrix
-     * @param CurrentRow The current row computed
-     * @param RowEnd The last column computed
-     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
-     */
-    inline void ComputeAuxiliarValuesBlocks(
-        const SparseMatrixType& AuxK,
-        IndexType* AuxIndex2,
-        double* AuxVals,
-        const int CurrentRow,
-        IndexType& RowEnd,
-        const SizeType InitialIndexColumn
-        )
-    {
-        // Get access to aux_K data
-        const double* aux_values = AuxK.value_data().begin();
-        const IndexType* aux_K_index1 = AuxK.index1_data().begin();
-        const IndexType* aux_K_index2 = AuxK.index2_data().begin();
-
-        const IndexType aux_K_row_begin = aux_K_index1[CurrentRow];
-        const IndexType aux_K_row_end   = aux_K_index1[CurrentRow + 1];
-
-        for (IndexType j=aux_K_row_begin; j<aux_K_row_end; j++) {
-            const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
-            AuxIndex2[RowEnd] = col_index;
-            AuxVals[RowEnd] = -aux_values[j];
-            ++RowEnd;
-        }
-    }
-
-    /**
      * @brief It allocates all the blocks and operators
      */
     inline void AllocateBlocks()
@@ -1687,46 +1588,46 @@ private:
         if (ResidualU.size() != total_size )
             ResidualU.resize (total_size, false);
 
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(other_dof_size); i++)
+        IndexPartition<std::size_t>(other_dof_size).for_each([&](std::size_t i) {
             ResidualU[i] = rTotalResidual[mOtherIndices[i]];
+        });
 
         // The corresponding residual for the active slave DoF's
         VectorType aux_res_active_slave(slave_active_size);
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(slave_active_size); i++)
+        IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
             aux_res_active_slave[i] = rTotalResidual[mSlaveActiveIndices[i]];
+        });
 
         if (slave_active_size > 0) {
             // We compute the complementary residual for the master dofs
             VectorType aux_complement_master_residual(master_size);
             TSparseSpaceType::Mult(mPOperator, aux_res_active_slave, aux_complement_master_residual);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(master_size); i++)
+            IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + i] = rTotalResidual[mMasterIndices[i]] - aux_complement_master_residual[i];
+            });
         } else {
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(master_size); i++)
+            IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + i] = rTotalResidual[mMasterIndices[i]];
+            });
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(slave_inactive_size); i++)
+        IndexPartition<std::size_t>(slave_inactive_size).for_each([&](std::size_t i) {
             ResidualU[other_dof_size + master_size + i] = rTotalResidual[mSlaveInactiveIndices[i]];
+        });
 
         if (slave_active_size > 0) {
             // We compute the complementary residual for the master dofs
             VectorType aux_complement_active_lm_residual(lm_active_size);
             TSparseSpaceType::Mult(mCOperator, aux_res_active_slave, aux_complement_active_lm_residual);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(lm_active_size); i++)
+            IndexPartition<std::size_t>(lm_active_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + master_size + slave_inactive_size + i] = rTotalResidual[mLMActiveIndices[i]] - aux_complement_active_lm_residual[i];
+            });
         } else {
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(lm_active_size); i++)
+            IndexPartition<std::size_t>(lm_active_size).for_each([&](std::size_t i) {
                 ResidualU[other_dof_size + master_size + slave_inactive_size + i] = rTotalResidual[mLMActiveIndices[i]];
+            });
         }
     }
 
@@ -1753,9 +1654,9 @@ private:
             if (rResidualLMA.size() != slave_active_size )
                 rResidualLMA.resize (slave_active_size, false);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(rResidualLMA.size()); i++)
+            IndexPartition<std::size_t>(rResidualLMA.size()).for_each([&](std::size_t i) {
                 rResidualLMA[i] = rTotalResidual[mSlaveActiveIndices[i]];
+            });
 
             // From the computed displacements we get the components of the displacements for each block
             VectorType disp_N(other_dof_size);
@@ -1763,21 +1664,21 @@ private:
             VectorType disp_SI(slave_inactive_size);
             VectorType disp_SA(slave_active_size);
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(other_dof_size); i++)
+            IndexPartition<std::size_t>(other_dof_size).for_each([&](std::size_t i) {
                 disp_N[i] = mDisp[i];
+            });
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(master_size); i++)
+            IndexPartition<std::size_t>(master_size).for_each([&](std::size_t i) {
                 disp_M[i] = mDisp[other_dof_size + i];
+            });
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(slave_inactive_size); i++)
+            IndexPartition<std::size_t>(slave_inactive_size).for_each([&](std::size_t i) {
                 disp_SI[i] = mDisp[other_dof_size + master_size + i];
+            });
 
-            #pragma omp parallel for
-            for (int i = 0; i<static_cast<int>(slave_active_size); i++)
+            IndexPartition<std::size_t>(slave_active_size).for_each([&](std::size_t i) {
                 disp_SA[i] = mDisp[other_dof_size + master_size + slave_inactive_size + i];
+            });
 
             VectorType aux_mult(slave_active_size);
             TSparseSpaceType::Mult(mKSAN, disp_N, aux_mult);
@@ -1810,9 +1711,9 @@ private:
         if (rResidualLMI.size() != lm_inactive_size )
             rResidualLMI.resize (lm_inactive_size, false);
 
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(lm_inactive_size); i++)
+        IndexPartition<std::size_t>(lm_inactive_size).for_each([&](std::size_t i) {
             rResidualLMI[i] = rTotalResidual[mLMInactiveIndices[i]];
+        });
     }
 
     /**
@@ -1825,21 +1726,23 @@ private:
         const VectorType& ResidualU
         )
     {
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mOtherIndices.size()); i++)
+        const SizeType other_indexes_size = mOtherIndices.size();
+        const SizeType master_indexes_size = mMasterIndices.size();
+        const SizeType slave_inactive_indexes_size = mSlaveInactiveIndices.size();
+        const SizeType slave_active_indexes_size = mSlaveActiveIndices.size();
+
+        IndexPartition<std::size_t>(other_indexes_size).for_each([&](std::size_t i) {
             rTotalResidual[mOtherIndices[i]] = ResidualU[i];
-
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mMasterIndices.size()); i++)
-            rTotalResidual[mMasterIndices[i]] = ResidualU[mOtherIndices.size() + i];
-
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mSlaveInactiveIndices.size()); i++)
-            rTotalResidual[mSlaveInactiveIndices[i]] = ResidualU[mOtherIndices.size() + mMasterIndices.size() + i];
-
-        #pragma omp parallel for
-        for (int i = 0; i<static_cast<int>(mSlaveActiveIndices.size()); i++)
-            rTotalResidual[mSlaveActiveIndices[i]] = ResidualU[mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + i];
+        });
+        IndexPartition<std::size_t>(master_indexes_size).for_each([&](std::size_t i) {
+            rTotalResidual[mMasterIndices[i]] = ResidualU[other_indexes_size + i];
+        });
+        IndexPartition<std::size_t>(slave_inactive_indexes_size).for_each([&](std::size_t i) {
+            rTotalResidual[mSlaveInactiveIndices[i]] = ResidualU[other_indexes_size + master_indexes_size + i];
+        });
+        IndexPartition<std::size_t>(slave_active_indexes_size).for_each([&](std::size_t i) {
+            rTotalResidual[mSlaveActiveIndices[i]] = ResidualU[other_indexes_size + master_indexes_size + slave_inactive_indexes_size + i];
+        });
     }
 
     /**
@@ -1852,9 +1755,9 @@ private:
         const VectorType& ResidualLMA
         )
     {
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(ResidualLMA.size()); i++)
+        IndexPartition<std::size_t>(ResidualLMA.size()).for_each([&](std::size_t i) {
             rTotalResidual[mLMActiveIndices[i]] = ResidualLMA[i];
+        });
     }
 
     /**
@@ -1867,9 +1770,9 @@ private:
         const VectorType& ResidualLMI
         )
     {
-        #pragma omp parallel for
-        for (int i = 0; i< static_cast<int>(ResidualLMI.size()); i++)
+        IndexPartition<std::size_t>(ResidualLMI.size()).for_each([&](std::size_t i) {
             rTotalResidual[mLMInactiveIndices[i]] = ResidualLMI[i];
+        });
     }
 
     /**
@@ -1969,8 +1872,7 @@ private:
 //             const std::size_t* index1 = rA.index1_data().begin();
 //             const double* values = rA.value_data().begin();
 //
-//             #pragma omp parallel for
-//             for (int i=0; i< static_cast<int>(size_A); i++) {
+//             IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
 //                 const std::size_t row_begin = index1[i];
 //                 const std::size_t row_end   = index1[i+1];
 //                 double temp = 0.0;
@@ -1978,12 +1880,11 @@ private:
 //                     temp += values[j]*values[j];
 //
 //                 diagA_vector[i] = std::sqrt(temp);
-//             }
+//             });
 //         } else { // Otherwise
-//             #pragma omp parallel for
-//             for (int i=0; i< static_cast<int>(size_A); i++) {
+//             IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
 //                 diagA_vector[i] = rA(i, i);
-//             }
+//             });
 //         }
 
         IndexType* ptr = new IndexType[size_A + 1];
@@ -1991,8 +1892,7 @@ private:
         IndexType* aux_index2 = new IndexType[size_A];
         double* aux_val = new double[size_A];
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(size_A); i++) {
+        IndexPartition<std::size_t>(size_A).for_each([&](std::size_t i) {
             ptr[i+1] = i+1;
             aux_index2[i] = i;
             const double value = rA(i, i);
@@ -2001,7 +1901,7 @@ private:
                 aux_val[i] = 1.0/value;
             else // Auxiliar value
                 aux_val[i] = 1.0;
-        }
+        });
 
         SparseMatrixMultiplicationUtility::CreateSolutionMatrix(rdiagA, size_A, size_A, ptr, aux_index2, aux_val);
 
@@ -2076,6 +1976,13 @@ private:
 ///@}
 ///@name Type Definitions
 ///@{
+
+// Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
+const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::BLOCKS_ARE_ALLOCATED(Kratos::Flags::Create(0));
+template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType, class TReordererType>
+const Kratos::Flags MixedULMLinearSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>::IS_INITIALIZED(Kratos::Flags::Create(1));
+
 ///@}
 ///@name Input and output
 ///@{

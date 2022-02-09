@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -35,7 +33,7 @@ class FixScalarVariableProcess(KratosMultiphysics.Process):
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        if not isinstance(self.variable, KratosMultiphysics.Array1DComponentVariable) and not isinstance(self.variable, KratosMultiphysics.DoubleVariable):
+        if not isinstance(self.variable, KratosMultiphysics.DoubleVariable):
             msg = "Error in FixScalarVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect. Must be a scalar or a component"
             raise Exception(msg)
 

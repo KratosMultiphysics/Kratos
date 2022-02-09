@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -49,22 +50,6 @@ ContactMasterSlaveConstraint::ContactMasterSlaveConstraint(
     const double Weight,
     const double Constant
     ) : BaseType(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant)
-{
-    KRATOS_ERROR << "ContactMasterSlaveConstraint :: Please don't use this constructor. A components variable is expected" << std::endl;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-ContactMasterSlaveConstraint::ContactMasterSlaveConstraint(
-    IndexType Id,
-    NodeType& rMasterNode,
-    const VariableComponentType& rMasterVariable,
-    NodeType& rSlaveNode,
-    const VariableComponentType& rSlaveVariable,
-    const double Weight,
-    const double Constant
-    )
 {
     KRATOS_ERROR << "ContactMasterSlaveConstraint :: Please don't use this constructor. A components variable is expected" << std::endl;
 }
@@ -117,22 +102,6 @@ MasterSlaveConstraint::Pointer ContactMasterSlaveConstraint::Create(
     const VariableType& rMasterVariable,
     NodeType& rSlaveNode,
     const VariableType& rSlaveVariable,
-    const double Weight,
-    const double Constant
-    ) const
-{
-    return Kratos::make_shared<ContactMasterSlaveConstraint>(Id, rMasterNode, rMasterVariable, rSlaveNode, rSlaveVariable, Weight, Constant);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-MasterSlaveConstraint::Pointer ContactMasterSlaveConstraint::Create(
-    IndexType Id,
-    NodeType& rMasterNode,
-    const VariableComponentType& rMasterVariable,
-    NodeType& rSlaveNode,
-    const VariableComponentType& rSlaveVariable,
     const double Weight,
     const double Constant
     ) const

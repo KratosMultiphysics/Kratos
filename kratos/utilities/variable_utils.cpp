@@ -14,6 +14,9 @@
 //
 
 /* System includes */
+#include <algorithm>
+#include <functional>
+#include <unordered_set>
 
 /* External includes */
 
@@ -23,208 +26,6 @@
 
 namespace Kratos
 {
-
-void VariableUtils::SetVectorVar(
-    const ArrayVarType& rVariable,
-    const array_1d<double, 3 >& Value,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        noalias(it_node->FastGetSolutionStepValue(rVariable)) = Value;
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SetVectorVarForFlag(
-    const ArrayVarType& rVariable,
-    const array_1d<double, 3 >& Value,
-    NodesContainerType& rNodes,
-    const Flags Flag,
-    const bool Check
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        if (it_node->Is(Flag) == Check) noalias(it_node->FastGetSolutionStepValue(rVariable)) = Value;
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SetNonHistoricalVectorVar(
-    const ArrayVarType& rVariable,
-    const array_1d<double, 3 >& Value,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->SetValue(rVariable, Value);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SaveVectorVar(
-    const ArrayVarType& OriginVariable,
-    const ArrayVarType& SavedVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->SetValue(SavedVariable, it_node->FastGetSolutionStepValue(OriginVariable));
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SaveScalarVar(
-    const DoubleVarType& OriginVariable,
-    const DoubleVarType& SavedVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->SetValue(SavedVariable,it_node->FastGetSolutionStepValue(OriginVariable));
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SaveVectorNonHistoricalVar(
-    const ArrayVarType& OriginVariable,
-    const ArrayVarType& SavedVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->SetValue(SavedVariable, it_node->GetValue(OriginVariable));
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::SaveScalarNonHistoricalVar(
-    const DoubleVarType& OriginVariable,
-    const DoubleVarType& SavedVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->SetValue(SavedVariable,it_node->GetValue(OriginVariable));
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::CopyVectorVar(
-    const ArrayVarType& OriginVariable,
-    const ArrayVarType& DestinationVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k < static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        noalias(it_node->FastGetSolutionStepValue(DestinationVariable)) = it_node->FastGetSolutionStepValue(OriginVariable);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::CopyComponentVar(
-    const ComponentVarType& OriginVariable,
-    const ComponentVarType& DestinationVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->FastGetSolutionStepValue(DestinationVariable) = it_node->FastGetSolutionStepValue(OriginVariable);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::CopyScalarVar(
-    const DoubleVarType& OriginVariable,
-    const DoubleVarType& DestinationVariable,
-    NodesContainerType& rNodes
-    )
-{
-    KRATOS_TRY
-
-    #pragma omp parallel for
-    for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-        NodesContainerType::iterator it_node = rNodes.begin() + k;
-        it_node->FastGetSolutionStepValue(DestinationVariable) = it_node->FastGetSolutionStepValue(OriginVariable);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
 
 ModelPart::NodesContainerType VariableUtils::SelectNodeList(
     const DoubleVarType& Variable,
@@ -260,56 +61,9 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
-            private_sum_value += it_node->GetValue(rVar);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
-
-    return r_comm.GetDataCommunicator().SumAll(sum_value);
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
-    const ArrayVarType& rVar,
-    const ModelPart& rModelPart,
-    const unsigned int rBuffStep
-    )
-{
-    KRATOS_TRY
-
-    array_1d<double, 3> sum_value = ZeroVector(3);
-    auto& r_comm = rModelPart.GetCommunicator();
-
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfNodes()); ++k) {
-            const auto it_node = r_comm.LocalMesh().NodesBegin() + k;
-            private_sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Nodes(),[&](NodeType& rNode){
+        return rNode.GetValue(rVar);
+    });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
@@ -327,23 +81,11 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
     KRATOS_TRY
 
     array_1d<double, 3> sum_value = ZeroVector(3);
-    const auto& r_comm = rModelPart.GetCommunicator();
+    auto& r_comm = rModelPart.GetCommunicator();
 
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfConditions()); ++k) {
-            const auto it_cond = r_comm.LocalMesh().ConditionsBegin() + k;
-            private_sum_value += it_cond->GetValue(rVar);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Conditions(),[&](ConditionType& rCond){
+        return rCond.GetValue(rVar);
+    });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
@@ -363,25 +105,116 @@ array_1d<double, 3> VariableUtils::SumElementVectorVariable(
     array_1d<double, 3> sum_value = ZeroVector(3);
     auto& r_comm = rModelPart.GetCommunicator();
 
-    #pragma omp parallel
-    {
-        array_1d<double, 3> private_sum_value = ZeroVector(3);
-
-        #pragma omp for
-        for (int k = 0; k < static_cast<int>(r_comm.LocalMesh().NumberOfElements()); ++k) {
-            const auto it_elem = r_comm.LocalMesh().ElementsBegin() + k;
-            private_sum_value += it_elem->GetValue(rVar);
-        }
-
-        for (int j = 0; j < static_cast<int>(sum_value.size()); ++j) {
-            #pragma omp atomic
-            sum_value[j] += private_sum_value[j];
-        }
-    }
+    sum_value = block_for_each<SumReduction<array_1d<double,3>>>(r_comm.LocalMesh().Elements(),[&](ElementType& rElem){
+        return rElem.GetValue(rVar);
+    });
 
     return r_comm.GetDataCommunicator().SumAll(sum_value);
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::AddDofsList(
+    const std::vector<std::string>& rDofsVarNamesList,
+    ModelPart& rModelPart)
+{
+    // Create a set with the variables to be added as DOFs
+    std::unordered_set<const Variable<double>*> dofs_vars_set;
+    const IndexType n_dofs = rDofsVarNamesList.size();
+    for (IndexType i = 0; i < n_dofs; ++i) {
+        const std::string var_name = rDofsVarNamesList[i];
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(var_name)) << "Provided variable \'" << var_name << "\' is not in KratosComponents." << std::endl;
+        const auto& r_dof_var = KratosComponents<Variable<double>>::Get(var_name);
+        const Variable<double>* p_dof_var = &r_dof_var;
+        dofs_vars_set.insert(p_dof_var);
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&r_dof_var);
+    }
+
+    // Add the DOFs to the model part nodes
+    block_for_each(rModelPart.Nodes(), [&dofs_vars_set](Node<3>& rNode){
+        for (auto p_var : dofs_vars_set) {
+            rNode.AddDof(*p_var);
+        }
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void VariableUtils::AddDofsWithReactionsList(
+    const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+    ModelPart& rModelPart)
+{
+    // Create auxiliary hasher and comparors for the variable array type
+    struct VariableNamesArrayHasher
+    {
+        std::size_t operator()(const std::array<const Variable<double>*, 2>& rDofAndReactArray) const
+        {
+            std::size_t seed = 0;
+            HashCombine(seed, rDofAndReactArray[0]);
+            HashCombine(seed, rDofAndReactArray[1]);
+            return seed;
+        }
+    };
+
+    struct VariableNamesArrayComparor
+    {
+        bool operator()(
+            const std::array<const Variable<double>*, 2>& rDofAndReactArray1,
+            const std::array<const Variable<double>*, 2>& rDofAndReactArray2) const
+        {
+            return ((rDofAndReactArray1[0] == rDofAndReactArray2[0]) && (rDofAndReactArray1[1] == rDofAndReactArray2[1]));
+        }
+    };
+
+    // Create a set with the variables to be added as DOFs and reactions
+    std::vector<std::string> aux_dof_var_names;
+    std::vector<std::string> aux_react_var_names;
+    std::array<const Variable<double>*,2> aux_dof_vars;
+    const IndexType n_dofs = rDofsAndReactionsNamesList.size();
+    std::unordered_set<std::array<const Variable<double>*, 2>, VariableNamesArrayHasher, VariableNamesArrayComparor> dofs_and_react_vars_set;
+    for (IndexType i = 0; i < n_dofs; ++i) {
+        // Get current DOF data pair
+        const auto& r_dof_data = rDofsAndReactionsNamesList[i];
+        const std::string var_name = r_dof_data[0];
+        const std::string react_name = r_dof_data[1];
+
+        // Check current pair data values
+        KRATOS_ERROR_IF(var_name == react_name) << "DOF and reaction variable name are the same." << std::endl;
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(var_name)) << "Provided variable \'" << var_name << "\' is not in KratosComponents." << std::endl;
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(react_name)) << "Provided reaction \'" << react_name << "\' is not in KratosComponents." << std::endl;
+
+        // Get variables from KratosComponents and insert in the auxiliary set
+        // Note that using a set ensures that the insertion is done once if repeated data is provided
+        const auto& r_dof_var = KratosComponents<Variable<double>>::Get(var_name);
+        const auto& r_react_var = KratosComponents<Variable<double>>::Get(react_name);
+        aux_dof_vars[0] = &r_dof_var;
+        aux_dof_vars[1] = &r_react_var;
+        auto insert_result = dofs_and_react_vars_set.insert(aux_dof_vars);
+
+        // If the pair has been inserted, check that neither the DOF nor the reaction variables have been used before in a different pair
+        if (std::get<1>(insert_result)) {
+            KRATOS_ERROR_IF(std::any_of(aux_dof_var_names.begin(), aux_dof_var_names.end(), [&var_name](std::string& r_val){return r_val == var_name;}))
+                << var_name << " has been already added as DOF. Use a different variable." << std::endl;
+            KRATOS_ERROR_IF(std::any_of(aux_react_var_names.begin(), aux_react_var_names.end(), [&react_name](std::string& r_val){return r_val == react_name;}))
+                << react_name << " has been already added as reaction to DOF. Use a different variable." << std::endl;
+            aux_dof_var_names.push_back(var_name);
+            aux_react_var_names.push_back(react_name);
+        }
+
+        // Add the current pair as a DOF and reaction to the nodal historical variables list
+        rModelPart.GetNodalSolutionStepVariablesList().AddDof(&r_dof_var, &r_react_var);
+    }
+
+    // Add the DOFs and reactions to the model part nodes
+    block_for_each(rModelPart.Nodes(), [&dofs_and_react_vars_set](Node<3>& rNode){
+        for (auto& r_dof_data : dofs_and_react_vars_set) {
+            rNode.AddDof(*(r_dof_data[0]), *(r_dof_data[1]));
+        }
+    });
 }
 
 /***********************************************************************************/
@@ -401,10 +234,6 @@ bool VariableUtils::CheckVariableKeys()
     CheckVariableKeysHelper< Variable<unsigned int> >();
     CheckVariableKeysHelper< Variable<Vector> >();
     CheckVariableKeysHelper< Variable<Matrix> >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 4> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 6> > > >();
-    CheckVariableKeysHelper< VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >();
 
     return true;
 
@@ -414,37 +243,13 @@ bool VariableUtils::CheckVariableKeys()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool VariableUtils::CheckDofs(ModelPart& rModelPart)
+void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes)
 {
-    KRATOS_TRY
-
-    for(auto& node : rModelPart.Nodes()) {
-        for (Kratos::unique_ptr<Dof<double>>& p_dof : node.GetDofs()) {
-//                 KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(dof.GetVariable())) << "Node : " << node << " does not have allocated space for the variable " << dof << std::endl;
-            KRATOS_CHECK_VARIABLE_KEY(p_dof->GetVariable());
-
-        }
-    }
-
-    return true;
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    const int num_nodes = static_cast<int>(rNodes.size());
-    const auto it_node_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = it_node_begin + i;
-        noalias(it_node->Coordinates()) = it_node->GetInitialPosition();
-    }
+    block_for_each(rNodes, [&](Node<3>& rNode){
+        noalias(rNode.Coordinates()) = rNode.GetInitialPosition();
+    });
 
     KRATOS_CATCH("");
 }
@@ -452,17 +257,13 @@ void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesCo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes) {
+void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesContainerType& rNodes)
+{
     KRATOS_TRY;
 
-    const int num_nodes = static_cast<int>(rNodes.size());
-    const auto it_node_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i=0; i<num_nodes; i++) {
-        const auto it_node  = it_node_begin + i;
-        noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
-    }
+    block_for_each(rNodes, [&](Node<3>& rNode){
+        noalias(rNode.GetInitialPosition().Coordinates()) = rNode.Coordinates();
+    });
 
     KRATOS_CATCH("");
 }
@@ -471,24 +272,124 @@ void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesCo
 /***********************************************************************************/
 
 void VariableUtils::UpdateCurrentPosition(
-    const ModelPart::NodesContainerType &rNodes,
-    const ArrayVarType &rUpdateVariable,
+    const ModelPart::NodesContainerType& rNodes,
+    const ArrayVarType& rUpdateVariable,
     const IndexType BufferPosition
     )
 {
     KRATOS_TRY;
 
-    const int num_nodes = static_cast<int>(rNodes.size());
-    const auto it_node_begin = rNodes.begin();
-
-    #pragma omp parallel for
-    for (int i_node = 0; i_node < num_nodes; ++i_node) {
-        const auto it_node  = it_node_begin + i_node;
-        const auto& r_update_coords = it_node->FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
-        noalias(it_node->Coordinates()) = (it_node->GetInitialPosition()).Coordinates() + r_update_coords;
-    }
+    block_for_each(rNodes, [&](Node<3>& rNode){
+        noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
+    });
 
     KRATOS_CATCH("");
 }
+
+template <>
+KRATOS_API(KRATOS_CORE) ModelPart::NodesContainerType& VariableUtils::GetContainer<ModelPart::NodesContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+
+template <>
+KRATOS_API(KRATOS_CORE) ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template <>
+KRATOS_API(KRATOS_CORE) ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+template <>
+KRATOS_API(KRATOS_CORE) const ModelPart::NodesContainerType& VariableUtils::GetContainer<ModelPart::NodesContainerType>(const ModelPart& rModelPart)
+{
+    return rModelPart.Nodes();
+}
+
+template <>
+KRATOS_API(KRATOS_CORE) const ModelPart::ElementsContainerType& VariableUtils::GetContainer<ModelPart::ElementsContainerType>(const ModelPart& rModelPart)
+{
+    return rModelPart.Elements();
+}
+
+template <>
+KRATOS_API(KRATOS_CORE) const ModelPart::ConditionsContainerType& VariableUtils::GetContainer<ModelPart::ConditionsContainerType>(const ModelPart& rModelPart)
+{
+    return rModelPart.Conditions();
+}
+
+template <class TDataType, class TContainerType, class TWeightDataType>
+void VariableUtils::WeightedAccumulateVariableOnNodes(
+    ModelPart& rModelPart,
+    const Variable<TDataType>& rVariable,
+    const Variable<TWeightDataType>& rWeightVariable,
+    const bool IsInverseWeightProvided)
+{
+    KRATOS_TRY
+
+    SetNonHistoricalVariableToZero(rVariable, rModelPart.Nodes());
+
+    auto& r_entities = GetContainer<TContainerType>(rModelPart);
+    const int n_entities = r_entities.size();
+
+    const std::function<double(const Node<3>&)>& r_weight_method =
+        (IsInverseWeightProvided) ?
+        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
+        static_cast<std::function<double(const Node<3>&)>>([rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
+
+#pragma omp parallel for
+    for (int i_entity = 0; i_entity < n_entities; ++i_entity)
+    {
+        auto it_entity = r_entities.begin() + i_entity;
+        auto& r_geometry = it_entity->GetGeometry();
+
+        const auto& r_value = it_entity->GetValue(rVariable);
+        for (int i_node = 0; i_node < static_cast<int>(r_geometry.PointsNumber()); ++i_node)
+        {
+            auto& r_node = r_geometry[i_node];
+
+            KRATOS_DEBUG_ERROR_IF(!r_node.Has(rWeightVariable))
+                << "Non-historical nodal " << rWeightVariable.Name() << " at "
+                << r_node << " is not initialized in " << rModelPart.Name()
+                << ". Please initialize it first.";
+
+            const double weight = r_weight_method(r_node);
+
+            r_node.SetLock();
+            r_node.GetValue(rVariable) += r_value * weight;
+            r_node.UnSetLock();
+        }
+    }
+
+    rModelPart.GetCommunicator().AssembleNonHistoricalData(rVariable);
+
+    KRATOS_CATCH("");
+}
+
+// template instantiations
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, int>(
+    ModelPart&, const Variable<double>&, const Variable<int>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, int>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<int>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, int>(
+    ModelPart&, const Variable<double>&, const Variable<int>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, int>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<int>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ConditionsContainerType, double>(
+    ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ConditionsContainerType, double>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<double, ModelPart::ElementsContainerType, double>(
+    ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
+template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
+    ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
 
 } /* namespace Kratos.*/

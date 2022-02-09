@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -14,16 +12,16 @@ import sys
 
 class CoSimulationAnalysis(AnalysisStage):
     """AnalysisStage of the CoSimulationApplication.
-    It contains all necessary modifications to make CoSimulation work both with Kratos and pyKratos
     It does NOT override the "RunSolutionLoop" method!
     """
-    def __init__(self, cosim_settings):
+    def __init__(self, cosim_settings, models=None):
         # Note: deliberately NOT calling the base-class constructor since arguments are different
 
         if not isinstance(cosim_settings, KM.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         self.cosim_settings = cosim_settings
+        self.models = models
 
         # this contains only the optional parameters, not the ones that have to be specified
         problem_data_defaults = KM.Parameters("""{
@@ -56,9 +54,10 @@ class CoSimulationAnalysis(AnalysisStage):
             # flush by default only in OpenMP, can decrease performance in MPI
             self.flush_stdout = (self.parallel_type == "OpenMP")
 
+        self._GetSolver() # this creates the solver
+
     def Initialize(self):
         self._GetSolver().Initialize()
-        self._GetSolver().InitializeCouplingInterfaceData()
         self._GetSolver().Check()
 
         if self.echo_level > 0:
@@ -90,6 +89,13 @@ class CoSimulationAnalysis(AnalysisStage):
         if self.flush_stdout:
             CoSimulationAnalysis.Flush()
 
+    def _GetSolver(self, solver_name=""):
+        solver = super()._GetSolver()
+        if solver_name == "":
+            return solver
+        else:
+            return solver._GetSolver(solver_name)
+
     @staticmethod
     def Flush():
         sys.stdout.flush()
@@ -99,7 +105,7 @@ class CoSimulationAnalysis(AnalysisStage):
         """Create the solver
         """
         problem_name = self.cosim_settings["problem_data"]["problem_name"].GetString()
-        return solver_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], problem_name)
+        return solver_wrapper_factory.CreateSolverWrapper(self.cosim_settings["solver_settings"], self.models, problem_name)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

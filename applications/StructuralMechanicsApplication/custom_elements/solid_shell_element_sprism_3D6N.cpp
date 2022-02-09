@@ -161,8 +161,8 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
 
 void SolidShellElementSprism3D6N::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -201,8 +201,8 @@ void SolidShellElementSprism3D6N::EquationIdVector(
 
 void SolidShellElementSprism3D6N::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -234,7 +234,7 @@ void SolidShellElementSprism3D6N::GetDofList(
 void SolidShellElementSprism3D6N::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -270,7 +270,7 @@ void SolidShellElementSprism3D6N::GetValuesVector(
 void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -306,7 +306,7 @@ void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
 void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -342,7 +342,7 @@ void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
 
 void SolidShellElementSprism3D6N::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -371,50 +371,9 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::CalculateRightHandSide(
-    std::vector< VectorType >& rRightHandSideVectors,
-    const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_TRY;
-
-    /* Create local system components */
-    LocalSystemComponents local_system;
-
-    /* Calculation flags */
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR);
-    local_system.CalculationFlags.Set(SolidShellElementSprism3D6N::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
-
-    MatrixType left_hand_side_matrix = Matrix();
-
-    /* Initialize sizes for the system components: */
-    if( rRHSVariables.size() != rRightHandSideVectors.size() ) {
-        rRightHandSideVectors.resize(rRHSVariables.size());
-    }
-
-    for( IndexType i = 0; i < rRightHandSideVectors.size(); ++i ) {
-        this->InitializeSystemMatrices( left_hand_side_matrix, rRightHandSideVectors[i], local_system.CalculationFlags );
-    }
-
-    /* Set general_variables to Local system components */
-    local_system.SetLeftHandSideMatrix(left_hand_side_matrix);
-    local_system.SetRightHandSideVectors(rRightHandSideVectors);
-
-    local_system.SetRightHandSideVariables(rRHSVariables);
-
-    /* Calculate elemental system */
-    CalculateElementalSystem( local_system, rCurrentProcessInfo );
-
-    KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SolidShellElementSprism3D6N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -447,7 +406,7 @@ void SolidShellElementSprism3D6N::CalculateLeftHandSide(
 void SolidShellElementSprism3D6N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -477,7 +436,7 @@ void SolidShellElementSprism3D6N::CalculateLocalSystem(
 
 void SolidShellElementSprism3D6N::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -506,11 +465,11 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
 
 void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
-    const IndexType mat_size = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes) * 3;
+    const IndexType mat_size = ( GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes) ) * 3;
 
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -526,7 +485,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     const MatrixType& rStiffnessMatrix,
     const MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -1296,157 +1255,68 @@ void SolidShellElementSprism3D6N::CalculateOnIntegrationPoints(
 /******************************** SET DOUBLE VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /******************************** SET VECTOR VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
+    const std::vector<Vector>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /******************************** SET MATRIX VALUE *********************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
+    const std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 /****************************** SET CONSTITUTIVE VALUE *****************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::SetValueOnIntegrationPoints(
+void SolidShellElementSprism3D6N::SetValuesOnIntegrationPoints(
     const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const std::vector<ConstitutiveLaw::Pointer>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-}
-
-/******************************** GET DOUBLE VALUE *********************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<double>& rVariable,
-    std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/********************************** GET VECTOR VALUE *******************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/*********************************** GET MATRIX VALUE ******************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 6>>& rVariable,
-    std::vector<array_1d<double, 6>>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/********************************** GET VECTOR VALUE *******************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/*********************************** GET MATRIX VALUE ******************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-}
-
-/******************************** GET CONSTITUTIVE VALUE ***************************/
-/***********************************************************************************/
-
-void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
-    const Variable<ConstitutiveLaw::Pointer>& rVariable,
-    std::vector<ConstitutiveLaw::Pointer>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    BaseType::GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    BaseType::SetValuesOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 //********************************* CHECK VALUES **********************************//
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
+int SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
     /* Check the neighbours have been calculated */
-    // Neighbour elements
-    const GlobalPointersVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
-    KRATOS_ERROR_IF(p_neighbour_elements.size() == 0) << "The neighbour elements are not calculated" << std::endl;
-
     // Neighbour nodes
-    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
-    KRATOS_ERROR_IF(p_neighbour_nodes.size() == 0) << "The neighbour nodes are not calculated" << std::endl;
+    KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_NODES)) << "The neighbour nodes are not calculated" << std::endl;
+    if (this->Has(NEIGHBOUR_NODES)) {
+        const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+        KRATOS_ERROR_IF(p_neighbour_nodes.size() == 0) << "The neighbour nodes calculated are empty" << std::endl;
+    }
 
     const int check = BaseType::Check(rCurrentProcessInfo);
-
-    // Verify that nodal variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(VON_MISES_STRESS)
-    KRATOS_CHECK_VARIABLE_KEY(NORM_ISOCHORIC_STRESS)
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(CAUCHY_STRESS_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(PK2_STRESS_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(GREEN_LAGRANGE_STRAIN_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(ALMANSI_STRAIN_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(HENCKY_STRAIN_TENSOR)
-    KRATOS_CHECK_VARIABLE_KEY(HENCKY_STRAIN_VECTOR)
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_MATRIX)
-    KRATOS_CHECK_VARIABLE_KEY(DEFORMATION_GRADIENT)
 
     /* Verify compatibility with the constitutive law */
     ConstitutiveLaw::Features law_features;
@@ -1471,7 +1341,7 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SolidShellElementSprism3D6N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     /* Create and initialize element variables: */
     GeneralVariables general_variables;
@@ -1531,7 +1401,7 @@ void SolidShellElementSprism3D6N::InitializeSolutionStep(ProcessInfo& rCurrentPr
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SolidShellElementSprism3D6N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -1592,7 +1462,7 @@ void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProc
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SolidShellElementSprism3D6N::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -1600,7 +1470,7 @@ void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCu
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
@@ -1678,98 +1548,101 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::Initialize()
+void SolidShellElementSprism3D6N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
-    mFinalizedStep = true; // the creation is out of the time step, it must be true
+    // Initialization should not be done again in a restart!
+    if (!rCurrentProcessInfo[IS_RESTARTED]) {
+        mFinalizedStep = true; // the creation is out of the time step, it must be true
 
-    // Getting properties
-    const Properties& r_properties = GetProperties();
+        // Getting properties
+        const Properties& r_properties = GetProperties();
 
-    // Checking integration order
-    if( r_properties.Has(INTEGRATION_ORDER) ) {
-        const SizeType integration_order = r_properties.GetValue(INTEGRATION_ORDER);
-        switch ( integration_order )
-        {
-        case 1:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
-            break;
-        case 2:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_2;
-            break;
-        case 3:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_3;
-            break;
-        case 4:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_4;
-            break;
-        case 5:
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_5;
-            break;
-        default:
-            KRATOS_WARNING("SolidShellElementSprism3D6N") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
-            mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+        // Checking integration order
+        if( r_properties.Has(INTEGRATION_ORDER) ) {
+            const SizeType integration_order = r_properties.GetValue(INTEGRATION_ORDER);
+            switch ( integration_order )
+            {
+            case 1:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
+                break;
+            case 2:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2;
+                break;
+            case 3:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3;
+                break;
+            case 4:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4;
+                break;
+            case 5:
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5;
+                break;
+            default:
+                KRATOS_WARNING("SolidShellElementSprism3D6N") << "Integration order " << integration_order << " is not available, using default integration order for the geometry" << std::endl;
+                mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
+            }
+        } else {
+            mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1;
         }
-    } else {
-        mThisIntegrationMethod = GeometryData::GI_EXTENDED_GAUSS_1;
+
+        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+
+        /* Constitutive Law initialisation */
+        if ( mConstitutiveLawVector.size() != integration_points.size() )
+            mConstitutiveLawVector.resize( integration_points.size() );
+
+        /* Implicit or explicit EAS update */
+        if( r_properties.Has(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, r_properties.GetValue(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, true);
+
+        /* Total or updated lagrangian */
+        if( r_properties.Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, r_properties.GetValue(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, true);
+
+        /* Quadratic or linear element */
+        if( r_properties.Has(CONSIDER_QUADRATIC_SPRISM_ELEMENT) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, r_properties.GetValue(CONSIDER_QUADRATIC_SPRISM_ELEMENT));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, true);
+
+        /* Explicit RHS computation */
+        if( r_properties.Has(PURE_EXPLICIT_RHS_COMPUTATION) )
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, r_properties.GetValue(PURE_EXPLICIT_RHS_COMPUTATION));
+        else
+            mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, false);
+
+        // Resizing the containers
+        mAuxContainer.resize( integration_points.size() );
+
+        if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) { // Jacobian inverses
+            // Compute jacobian inverses and set the domain initial size:
+            GeometryType::JacobiansType J0;
+            J0 = GetGeometry().Jacobian(J0, this->GetIntegrationMethod());
+
+            /* Calculating the inverse J0 */
+            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+                // Calculating and storing inverse of the jacobian and the parameters needed
+                double aux_detJ;
+                MathUtils<double>::InvertMatrix( J0[point_number], mAuxContainer[point_number], aux_detJ );
+            }
+        } else { // Historic deformation gradient
+            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+                mAuxContainer[point_number] = IdentityMatrix(3);
+            }
+        }
+
+        /* Initialize AlphaEAS */
+        this->SetValue(ALPHA_EAS, 0.0);
+
+        /* Material initialisation */
+        InitializeMaterial();
     }
-
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
-
-    /* Constitutive Law initialisation */
-    if ( mConstitutiveLawVector.size() != integration_points.size() )
-        mConstitutiveLawVector.resize( integration_points.size() );
-
-    /* Implicit or explicit EAS update */
-    if( r_properties.Has(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, r_properties.GetValue(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, true);
-
-    /* Total or updated lagrangian */
-    if( r_properties.Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, r_properties.GetValue(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, true);
-
-    /* Quadratic or linear element */
-    if( r_properties.Has(CONSIDER_QUADRATIC_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, r_properties.GetValue(CONSIDER_QUADRATIC_SPRISM_ELEMENT));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, true);
-
-    /* Explicit RHS computation */
-    if( r_properties.Has(PURE_EXPLICIT_RHS_COMPUTATION) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, r_properties.GetValue(PURE_EXPLICIT_RHS_COMPUTATION));
-    else
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, false);
-
-    // Resizing the containers
-    mAuxContainer.resize( integration_points.size() );
-
-    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) { // Jacobian inverses
-        // Compute jacobian inverses and set the domain initial size:
-        GeometryType::JacobiansType J0;
-        J0 = GetGeometry().Jacobian(J0, this->GetIntegrationMethod());
-
-        /* Calculating the inverse J0 */
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            // Calculating and storing inverse of the jacobian and the parameters needed
-            double aux_detJ;
-            MathUtils<double>::InvertMatrix( J0[point_number], mAuxContainer[point_number], aux_detJ );
-        }
-    } else { // Historic deformation gradient
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-            mAuxContainer[point_number] = IdentityMatrix(3);
-        }
-    }
-
-    /* Initialize AlphaEAS */
-    this->SetValue(ALPHA_EAS, 0.0);
-
-    /* Material initialisation */
-    InitializeMaterial();
 
     KRATOS_CATCH("");
 }
@@ -3880,7 +3753,7 @@ void SolidShellElementSprism3D6N::CalculateKinematics(
         // Jacobian Determinant for the isoparametric and numerical integration
         Matrix J0;
         GeometryUtils::JacobianOnInitialConfiguration(GetGeometry(), rIntegrationPoints[rPointNumber], J0);
-        rVariables.detJ = MathUtils<double>::DetMat(J0);
+        rVariables.detJ = MathUtils<double>::Det(J0);
     } else {
         // Cauchy stress measure
         rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
@@ -3932,19 +3805,12 @@ void SolidShellElementSprism3D6N::CbartoFbar(
 
     /* We perform a polar decomposition of the CBar and F(regular) to obtain F_bar */
 
-    /* Decompose C_bar */
-    BoundedMatrix<double, 3, 3> eigen_vector_matrix,  eigen_values_matrix;
-
     // Assemble matrix C_bar
     const Matrix C_bar = MathUtils<double>::VectorToSymmetricTensor(rVariables.C);
 
-    // Decompose matrix C_bar
-    MathUtils<double>::GaussSeidelEigenSystem(C_bar, eigen_vector_matrix, eigen_values_matrix, 1e-24, 100);
-
-    for (IndexType i = 0; i < 3; ++i)
-        eigen_values_matrix(i, i) = std::sqrt(eigen_values_matrix(i, i));
-
-    const Matrix U_bar = prod( eigen_values_matrix, trans(eigen_vector_matrix));
+    // Decompose matrix C_bar, get U_bar
+    Matrix U_bar;
+    MathUtils<double>::MatrixSquareRoot(C_bar, U_bar, 1e-24, 100);
 
     /* Decompose F */
     Matrix F = ZeroMatrix(3, 3);

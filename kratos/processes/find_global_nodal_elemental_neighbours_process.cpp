@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -30,12 +31,7 @@ namespace Kratos
 
         //first of all the neighbour nodes and elements array are initialized to the guessed size
         //and empties the old entries
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rNodes.size()); ++i)
-        {
-            auto in = rNodes.begin() + i;
-            in->SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >());
-        }
+        VariableUtils().SetNonHistoricalVariable(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >(), rNodes);
 
         //compute the complete list of local neighbours
         for(auto& relem : mr_model_part.Elements())
@@ -78,13 +74,13 @@ namespace Kratos
                 if(color >= 0)
                 {
                     //recev the global neighbours as computed on color
-                    recv_map[color] = SendRecv(non_local_map[color], color, color );
+                    recv_map[color] = mrComm.SendRecv(non_local_map[color], color, color );
 
-                    for(auto& item : recv_map[color])
+                    for(auto& r_item : recv_map[color])
                     {
-                        auto& recv_node = mr_model_part.Nodes()[item.first]; 
+                        auto& recv_node = mr_model_part.Nodes()[r_item.first]; 
                         auto& neighbours = recv_node.GetValue(NEIGHBOUR_ELEMENTS);
-                        for(auto& gp : item.second.GetContainer())
+                        for(auto& gp : r_item.second.GetContainer())
                             neighbours.push_back(gp);
                     }
                 }
@@ -95,22 +91,22 @@ namespace Kratos
             {
                 if(color >= 0)
                 {
-                    for(auto& item : recv_map[color])
+                    for(auto& r_item : recv_map[color])
                     {
-                        //item.first contains the id of the node
-                        //item.second contains the list of neighbours
-                        auto& recv_node = mr_model_part.Nodes()[item.first]; 
-                        item.second = recv_node.GetValue(NEIGHBOUR_ELEMENTS);
+                        //r_item.first contains the id of the node
+                        //r_item.second contains the list of neighbours
+                        auto& recv_node = mr_model_part.Nodes()[r_item.first]; 
+                        r_item.second = recv_node.GetValue(NEIGHBOUR_ELEMENTS);
                     }
 
                     //obtain the final list of neighbours for nodes owned on color
-                    auto final_gp_map = SendRecv(recv_map[color], color, color );
+                    auto final_gp_map = mrComm.SendRecv(recv_map[color], color, color );
 
                     //update the local database
-                    for(auto& item : final_gp_map)
+                    for(auto& r_item : final_gp_map)
                     {
-                        auto& recv_node = mr_model_part.Nodes()[item.first]; 
-                        recv_node.GetValue(NEIGHBOUR_ELEMENTS) = item.second;
+                        auto& recv_node = mr_model_part.Nodes()[r_item.first]; 
+                        recv_node.GetValue(NEIGHBOUR_ELEMENTS) = r_item.second;
                     }
                 }
             }
@@ -126,11 +122,8 @@ namespace Kratos
                 [](GlobalPointer<Element> const& gp){return gp->Id();}
         );
 
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(mr_model_part.Nodes().size()); ++i)
-        {
-            auto it = mr_model_part.NodesBegin() + i;
-            auto& neighbours = it->GetValue(NEIGHBOUR_ELEMENTS);
+        block_for_each(mr_model_part.Nodes(), [&](Node<3>& rNode){
+            auto& neighbours = rNode.GetValue(NEIGHBOUR_ELEMENTS);
             neighbours.shrink_to_fit();
             std::sort(neighbours.ptr_begin(), neighbours.ptr_end(),
                 [&id_proxy](GlobalPointer<Element> const& gp1, GlobalPointer<Element> const& gp2)
@@ -138,21 +131,14 @@ namespace Kratos
                     return id_proxy.Get(gp1) < id_proxy.Get(gp2);
                 }
             );
-        }
-    
+        });
     }
 
     void FindGlobalNodalElementalNeighboursProcess::ClearNeighbours()
     {
         NodesContainerType& rNodes = mr_model_part.Nodes();
 
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rNodes.size()); ++i)
-        {
-            auto in = rNodes.begin() + i;
-            auto& rN = in->GetValue(NEIGHBOUR_ELEMENTS);
-            rN = GlobalPointersVector< Element >();
-        }
+        VariableUtils().SetVariable(NEIGHBOUR_ELEMENTS, GlobalPointersVector< Element >(), rNodes);
     }
 
     std::unordered_map<int, std::vector<int> > FindGlobalNodalElementalNeighboursProcess::GetNeighbourIds(
@@ -172,19 +158,15 @@ namespace Kratos
                 [](GlobalPointer<Element>& gp){return gp->Id();}
         );
 
-        #pragma omp parallel for
-        for(int k=0; k<static_cast<int>(rNodes.size()); ++k)
-        {
-            auto in = rNodes.begin() + k;
-            auto& neighbours = in->GetValue(NEIGHBOUR_ELEMENTS);
+        block_for_each(rNodes, [&](Node<3>& rNode){
+            auto& neighbours = rNode.GetValue(NEIGHBOUR_ELEMENTS);
             std::vector<int> tmp(neighbours.size());
             for(unsigned int i=0; i<neighbours.size(); ++i)
             {
                 tmp[i] = result_proxy.Get(neighbours(i));
             }
-            output[in->Id()] = tmp;  
-        }
-
+            output[rNode.Id()] = tmp;
+        });
 
         return output;
     }

@@ -35,7 +35,7 @@
         },
         "pressure_dofs"                      : false,
         "linear_solver_settings"             :{
-            "solver_type"   : "ExternalSolversApplication.super_lu",
+            "solver_type"   : "LinearSolversApplication.sparse_qr",
             "scaling": false
         }
     },
@@ -63,7 +63,8 @@
                 "check_variables"  : ["MP_DISPLACEMENT"],
                 "input_file_name"  : "mpm_fem_beam/cosim_mpm_fem_beam_particle_results.json",
                 "model_part_name"  : "MPM_Material",
-                "time_frequency"   : 1.0
+                "time_frequency"   : 1.0,
+                "tolerance"        : 5e-3
             }
         }],
         "gravity"                  : [{
@@ -73,6 +74,7 @@
             "Parameters"    : {
                 "model_part_name" : "MPM_Material",
                 "variable_name"   : "MP_VOLUME_ACCELERATION",
+                "constrained"     : false,
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0]
             }
