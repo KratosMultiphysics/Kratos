@@ -185,6 +185,8 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
             << "search iteration: " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius: " << mSearchRadius << std::endl;
 
+        mIsLastSearchIteration = (num_iteration == max_search_iterations);
+
         BuiltinTimer timer;
 
         ConductSearchIteration(rpInterfaceInfo);
@@ -235,7 +237,7 @@ void InterfaceCommunicator::InitializeSearchIteration(const MapperInterfaceInfoU
 
     IndexType local_sys_idx = 0;
     for (const auto& r_local_sys : mrMapperLocalSystems) {
-        if (!r_local_sys->HasInterfaceInfoThatIsNotAnApproximation()) { // Only the local_systems that have not received an InterfaceInfo create a new one
+        if (!r_local_sys->IsDoneSearching()) { // Only the local_systems that have not received an InterfaceInfo create a new one
             const auto& r_coords = r_local_sys->Coordinates();
             r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx, 0)); // dummy-rank of 0
         }
@@ -390,6 +392,10 @@ void InterfaceCommunicator::ConductLocalSearch()
     int sum_num_results = 0;
     int sum_num_searched_objects = 0;
 
+    array_1d<double, 3> time_raw {0.0, 0.0, 0.0};
+    array_1d<double, 3> time_avg {0.0, 0.0, 0.0};
+    array_1d<double, 3> time_max {0.0, 0.0, 0.0};
+
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
 
         struct SearchTLS {
@@ -417,6 +423,7 @@ void InterfaceCommunicator::ConductLocalSearch()
                 SearchTLS(num_interface_obj_bin), [
                 &r_interface_infos_rank,
                 num_interface_obj_bin,
+                &time_raw,
                 this](const std::size_t Index, SearchTLS& rTLS) {
                 auto& r_interface_info = r_interface_infos_rank[Index];
 
@@ -425,14 +432,23 @@ void InterfaceCommunicator::ConductLocalSearch()
                 // reset the containers
                 auto results_itr = rTLS.mNeighborResults.begin();
 
+                BuiltinTimer search_timer;
+
                 const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
                     rTLS.mInterfaceObject, mSearchRadius, results_itr,
                     num_interface_obj_bin);
+
+                time_raw[0] += search_timer.ElapsedSeconds();
+
+                BuiltinTimer proc_timer;
 
                 for (IndexType j=0; j<number_of_results; ++j) {
                     r_interface_info->ProcessSearchResult(*(rTLS.mNeighborResults[j]));
                 }
 
+                time_raw[1] += proc_timer.ElapsedSeconds();
+
+                BuiltinTimer proc_approx_timer;
                 // If the search did not result in a "valid" result (e.g. the projection fails)
                 // we try to compute an approximation
                 if (!r_interface_info->GetLocalSearchWasSuccessful()) {
@@ -440,6 +456,7 @@ void InterfaceCommunicator::ConductLocalSearch()
                         r_interface_info->ProcessSearchResultForApproximation(*(rTLS.mNeighborResults[j]));
                     }
                 }
+                time_raw[2] += proc_approx_timer.ElapsedSeconds();
 
                 return number_of_results;
             });
@@ -451,12 +468,18 @@ void InterfaceCommunicator::ConductLocalSearch()
         if (r_data_comm.IsDefinedOnThisRank()) {
             sum_num_results = r_data_comm.Sum(sum_num_results, 0);
             sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+
+            time_avg = r_data_comm.Sum(time_raw, 0);
+            time_avg /= static_cast<double>(r_data_comm.Size());
+            time_max = r_data_comm.Max(time_raw, 0);
         }
 
         const double avg_num_results = std::round(sum_num_results / static_cast<double>(sum_num_searched_objects));
 
         KRATOS_INFO("Mapper search") << "An average of " << avg_num_results << " objects was found while searching" << std::endl;
         KRATOS_WARNING_IF("Mapper search", avg_num_results > 200) << "Many search results are found, consider adjusting the search settings for improving performance" << std::endl;
+        KRATOS_INFO("Mapper search") << "Average times:\n    Search:  " << time_avg[0] << "\n    Proc:   " << time_avg[1] << "\n    ProcAp: " << time_avg[2] << std::endl;
+        KRATOS_INFO("Mapper search") << "Max times:\n    Search:  " << time_max[0] << "\n    Proc:   " << time_max[1] << "\n    ProcAp: " << time_max[2] << std::endl;
     }
 
     KRATOS_CATCH("");

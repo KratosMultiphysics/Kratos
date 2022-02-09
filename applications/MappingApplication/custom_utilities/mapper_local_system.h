@@ -56,6 +56,8 @@ public:
     typedef InterfaceObject::NodePointerType NodePointerType;
     typedef InterfaceObject::GeometryPointerType GeometryPointerType;
 
+    static constexpr std::size_t NUM_SEARCH_PARTICIPATIONS = 3;
+
     ///@}
     ///@name  Enum's
     ///@{
@@ -154,6 +156,16 @@ public:
         return false;
     }
 
+    bool IsDoneSearching() const
+    {
+        return HasInterfaceInfoThatIsNotAnApproximation() || mFoundSomethingWhileSearching >= NUM_SEARCH_PARTICIPATIONS;
+    }
+
+    void IncrementeSearchCounter()
+    {
+        mFoundSomethingWhileSearching += 1;
+    }
+
     virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
     {
         KRATOS_ERROR << "Create is not implemented for NodePointerType!" << std::endl;
@@ -234,6 +246,9 @@ protected:
                               MapperLocalSystem::PairingStatus& rPairingStatus) const = 0;
 
     ///@}
+
+private:
+    std::size_t mFoundSomethingWhileSearching = 0;
 
 }; // Class MapperLocalSystem
 

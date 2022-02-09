@@ -74,10 +74,12 @@ public:
 
     explicit MapperInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                         const IndexType SourceLocalSystemIndex,
-                        const IndexType SourceRank)
+                        const IndexType SourceRank,
+                        const bool SaveApproximation)
         : mSourceLocalSystemIndex(SourceLocalSystemIndex),
           mCoordinates(rCoordinates),
-          mSourceRank(SourceRank)
+          mSourceRank(SourceRank),
+          mSaveApproximation(SaveApproximation)
     {}
 
     /// Destructor.
@@ -116,7 +118,8 @@ public:
 
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,
-                                                const IndexType SourceRank) const = 0;
+                                                const IndexType SourceRank,
+                                                const bool SaveApproximation) const = 0;
 
     // needed for serialization
     virtual MapperInterfaceInfo::Pointer Create() const = 0;
