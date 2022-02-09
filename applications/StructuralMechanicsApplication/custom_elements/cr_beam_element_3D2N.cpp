@@ -1106,7 +1106,7 @@ CrBeamElement3D2N::CalculateElementForces() const
     const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
-    BoundedVector<double, msLocalSize> initial_strain_vector = ZeroVector(3);
+    BoundedVector<double, 3> initial_strain_vector;
     double initial_unit_elongation = 0.0;
     double initial_unit_rotation_2 = 0.0;
     double initial_unit_rotation_3 = 0.0;
