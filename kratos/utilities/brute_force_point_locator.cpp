@@ -77,6 +77,21 @@ int BruteForcePointLocator::FindCondition(const Point& rThePoint,
     return found_condition_id;
 }
 
+int BruteForcePointLocator::FindObject(const PointerVector<GeometricalObject>& rObjects,
+                                       const Point& rThePoint,
+                                       Vector& rShapeFunctionValues,
+                                       const Globals::Configuration Configuration,
+                                       const double LocalCoordTol) const
+{
+    int found_object_id = -1; // if no condition is found this will be returned
+    FindObject(rObjects, "Object",
+                rThePoint, found_object_id,
+                rShapeFunctionValues,
+                Configuration,
+                LocalCoordTol);
+    return found_object_id;
+}
+
 template<typename TObjectType>
 void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
                                         const std::string& rObjectName,
@@ -86,7 +101,6 @@ void BruteForcePointLocator::FindObject(const TObjectType& rObjects,
                                         const Globals::Configuration configuration,
                                         const double LocalCoordTol) const
 {
-    rObjectId = -1; // if no object is found this will be returned
     int local_object_found = 0;
     array_1d<double, 3> local_coordinates;
 
@@ -167,14 +181,6 @@ bool BruteForcePointLocator::NodeIsCloseEnough(const Node<3>& rNode,
 
     return (distance < DistanceThreshold);
 }
-
-template void BruteForcePointLocator::FindObject(const PointerVector<GeometricalObject>&, 
-                                                 const std::string& rObjectName,
-                                                 const Point& rThePoint,
-                                                 int& rObjectId,
-                                                 Vector& rShapeFunctionValues,
-                                                 const Globals::Configuration configuration,
-                                                 const double LocalCoordTol) const;
 
 }  // namespace Kratos.
 
