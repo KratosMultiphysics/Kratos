@@ -103,16 +103,16 @@ namespace Kratos
     if (this->Is(DEMThermalFlags::HAS_MOTION))
       SphericParticle::InitializeSolutionStep(r_process_info);
 
-    // Check if it is time to compute heat transfer
+    // Check if it is time to evaluate thermal problem
     const int step = r_process_info[TIME_STEPS];
     const int freq = r_process_info[THERMAL_FREQUENCY];
     mIsTimeToSolve = (step > 0) && (freq != 0) && (step - 1) % freq == 0;
 
-    // Save pre-step temperature
-    mPreviousTemperature = GetParticleTemperature();
-
     // Number of steps passed since last thermal evaluation
     mNumStepsEval = (r_process_info[TIME_STEPS] == 1) ? 1 : r_process_info[THERMAL_FREQUENCY];
+
+    // Save pre-step temperature
+    mPreviousTemperature = GetParticleTemperature();
 
     // Initialize number of contact particle neighbors
     // (currently used only for cleaning contact parameters map)
