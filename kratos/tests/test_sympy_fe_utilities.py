@@ -89,9 +89,8 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
         A = KratosSympy.DefineSymmetricMatrix("A", nrows, ncols)
 
         square_region = min(nrows, ncols)
-        for i in range(square_region):
-            for j in range(square_region):
-                self.assertEqual(A[i,j], A[j,i])
+        A_square = A[:square_region, :square_region]
+        self.assertEqual(A_square.T, A_square)
 
 if __name__ == '__main__':
     KratosUnittest.main()
