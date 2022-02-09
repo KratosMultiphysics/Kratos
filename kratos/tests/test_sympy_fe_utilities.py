@@ -90,6 +90,7 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
 
         square_region = min(nrows, ncols)
         A_square = A[:square_region, :square_region]
+
         self.assertEqual(A_square.T, A_square)
 
 if __name__ == '__main__':
