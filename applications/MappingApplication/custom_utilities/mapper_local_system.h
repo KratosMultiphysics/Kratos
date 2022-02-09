@@ -139,6 +139,7 @@ public:
     void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) // TODO pass by const ref?
     {
         mInterfaceInfos.push_back(pInterfaceInfo);
+        mFoundSomethingWhileSearching = true;
     }
 
     bool HasInterfaceInfo() const
@@ -158,18 +159,21 @@ public:
 
     bool IsDoneSearching() const
     {
-        return HasInterfaceInfoThatIsNotAnApproximation() || mFoundSomethingWhileSearching >= NUM_SEARCH_PARTICIPATIONS;
+        return HasInterfaceInfoThatIsNotAnApproximation() || mSearchCounter >= NUM_SEARCH_PARTICIPATIONS;
     }
 
     bool ComputeApproximation() const
     {
         // compute the approximation only in the last search iteration
-        return (mFoundSomethingWhileSearching-1) >= NUM_SEARCH_PARTICIPATIONS;
+        return (mSearchCounter-1) >= NUM_SEARCH_PARTICIPATIONS;
     }
 
-    void IncrementeSearchCounter()
+    void FinalizeSearchIteration()
     {
-        mFoundSomethingWhileSearching += 1;
+        if (mFoundSomethingWhileSearching) {
+            mSearchCounter += 1;
+        }
+        mFoundSomethingWhileSearching = false; // resetting
     }
 
     virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
@@ -254,7 +258,8 @@ protected:
     ///@}
 
 private:
-    std::size_t mFoundSomethingWhileSearching = 0;
+    bool mFoundSomethingWhileSearching = false;
+    std::size_t mSearchCounter = 0;
 
 }; // Class MapperLocalSystem
 

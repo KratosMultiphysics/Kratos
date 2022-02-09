@@ -411,20 +411,20 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
             // only contains doubles converted from ints
             // e.g. 4.5 is not allowed!
             double int_part;
-            double fract_part = std::modf((r_rank_buffer[j*4]+0.1), &int_part);
+            double fract_part = std::modf((r_rank_buffer[j*5]+0.1), &int_part);
 
             KRATOS_ERROR_IF(std::abs(fract_part-0.1) > 1e-10)
-                << "Buffer contains a double (" << r_rank_buffer[j*4]
+                << "Buffer contains a double (" << r_rank_buffer[j*5]
                 << ") that was not casted from an int, i.e. it contains a "
                 << "fractional part of " << std::abs(fract_part-0.1) << "!" << std::endl;
 #endif
             // retrive data from buffer
-            const int local_sys_idx = static_cast<IndexType>(r_rank_buffer[j*4]+0.1);
+            const int local_sys_idx = static_cast<IndexType>(r_rank_buffer[j*5]+0.1);
             // 0.1 is added to prevent truncation errors like (int)1.9999 = 1
-            coords[0] = r_rank_buffer[j*4 + 1];
-            coords[1] = r_rank_buffer[j*4 + 2];
-            coords[2] = r_rank_buffer[j*4 + 3];
-            const bool compute_approximation = static_cast<bool>(r_rank_buffer[j*4 + 4]+0.1);
+            coords[0] = r_rank_buffer[j*5 + 1];
+            coords[1] = r_rank_buffer[j*5 + 2];
+            coords[2] = r_rank_buffer[j*5 + 3];
+            const bool compute_approximation = static_cast<bool>(r_rank_buffer[j*5 + 4]+0.1);
             r_interface_infos_rank[j] = rpRefInterfaceInfo->Create(coords, local_sys_idx, i_rank, compute_approximation);
         }
     }

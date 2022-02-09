@@ -292,6 +292,10 @@ void InterfaceCommunicator::AssignInterfaceInfos()
         }
     }
 
+    block_for_each(mrMapperLocalSystems, [](const MapperLocalSystemPointer& rLocalSys){
+        rLocalSys->FinalizeSearchIteration();
+    });
+
     KRATOS_CATCH("");
 }
 
