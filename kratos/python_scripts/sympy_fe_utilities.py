@@ -391,7 +391,7 @@ def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace
 
     return outstring
 
-def OutputSymbolicVariable(expression, language="python", replace_indices=True):
+def OutputSymbolicVariable(expression, language, replace_indices=True):
     """
     This function generates code from an expression..
 
