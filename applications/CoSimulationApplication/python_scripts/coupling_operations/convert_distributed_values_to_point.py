@@ -8,45 +8,66 @@ def Create(*args):
     return ConvertDistributedValuesToPoint(*args)
 
 class ConvertDistributedValuesToPoint(CoSimulationCouplingOperation):
+    """This operation converts distributed quantities (such as tractions) into concentrated nodal values (such as nodal loads)
+    It is the inverse operation of the "DistributePointValuesOperation" operation
+    """
 
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         super().__init__(settings, process_info, data_communicator)
 
         solver_name = self.settings["solver"].GetString()
-        data_name = self.settings["data_name"].GetString()
-        self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
+        self.data_point = solver_wrappers[solver_name].GetInterfaceData(self.settings["data_point_values"].GetString())
+        self.data_dist  = solver_wrappers[solver_name].GetInterfaceData(self.settings["data_distributed_values"].GetString())
 
-        if self.interface_data.is_scalar_variable:
-            self.intermediate_variable = KM.KratosGlobals.GetVariable(self.settings["intermediate_variable_scalar"].GetString())
+        entities_to_use = self.settings["entities"].GetString()
+        if entities_to_use == "conditions":
+            self.entities = self.data_point.GetModelPart().Conditions
+        elif entities_to_use == "elements":
+            self.entities = self.data_point.GetModelPart().Elements
         else:
-            self.intermediate_variable = KM.KratosGlobals.GetVariable(self.settings["intermediate_variable_scalar"].GetString())
+            raise Exception('"entities" can only be "conditions" or "elements"!')
 
     def Execute(self):
-        KM.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
-            self.interface_data.GetModelPart(),
-            self.intermediate_variable,
-            self.interface_data.variable)
+        # TODO refactor the utility to allow mixed locations!
+        fct_ptr = KM.VariableRedistributionUtility.ConvertDistributedValuesToPoint
+        if self.data_point.location == "node_non_historical":
+            fct_ptr = KM.VariableRedistributionUtility.ConvertDistributedValuesToPointNonHistorical
+
+        fct_ptr(
+            self.data_point.GetModelPart(),
+            self.entities,
+            self.data_dist.variable,
+            self.data_point.variable)
 
     def Check(self):
-        # currently the redistribution-utility only works with conditions
-        num_local_conds = self.interface_data.GetModelPart().GetCommunicator().LocalMesh().NumberOfConditions()
-        data_comm = self.interface_data.GetModelPart().GetCommunicator().GetDataCommunicator()
-        num_local_conds = data_comm.SumAll(num_local_conds)
-        if num_local_conds < 1:
-            raise Exception('No conditions found in ModelPart "{}" of interface data "{}" of solver "{}"!'.format(var.Name(), self.interface_data.model_part_name, self.interface_data.name, self.interface_data.solver_name))
+        if self.data_point.model_part_name != self.data_dist.model_part_name:
+            raise Exception('The ModelParts must be the same!\n    ModelPart of point-data:       "{}"\n    ModelPart of distributed-data: "{}"'.format(self.data_point.model_part_name, self.data_dist.model_part_name))
 
-        # currently the redistribution-utility only supports historical values on the nodes
-        if not self.interface_data.GetModelPart().HasNodalSolutionStepVariable(self.intermediate_variable):
-            raise Exception('Variable "{}" is missing as SolutionStepVariable in ModelPart "{}" of interface data "{}" of solver "{}"!'.format(var.Name(), self.interface_data.model_part_name, self.interface_data.name, self.interface_data.solver_name))
+        num_entities = len(self.entities)
+        data_comm = self.data_point.GetModelPart().GetCommunicator().GetDataCommunicator()
+        num_entities = data_comm.SumAll(num_entities)
+        if num_entities < 1:
+            raise Exception('No entities ("{}") found in ModelPart "{}" of interface data "{}" of solver "{}"!'.format(self.settings["entities"].GetString(), self.data_point.model_part_name, self.data_point.name, self.data_point.solver_name))
+
+        if "node" not in self.data_point.location:
+            raise Exception('Only nodal values are supported (and not "{}")!\n    ModelPart "{}" of interface data "{}" of solver "{}"!'.format(self.data_point.location, self.data_point.model_part_name, self.data_point.name, self.data_point.solver_name))
+
+        if self.data_point.location != self.data_dist.location:
+            raise Exception('The location of the data must be the same!\n    Location of data in point-data:       "{}"\n    Location of data in distributed-data: "{}"'.format(self.data_point.location, self.data_dist.location))
+
+        if self.data_point.variable_type not in ["Double", "Array"]:
+            raise Exception('Only variables of type "Double" or "Array" are supported (and not "{}")!\n    ModelPart "{}" of interface data "{}" of solver "{}"!'.format(self.data_point.variable_type, self.data_point.model_part_name, self.data_point.name, self.data_point.solver_name))
+
+        if self.data_point.variable_type != self.data_dist.variable_type:
+            raise Exception('The variable types of the data must be the same!\n    Variable type of data in point-data:       "{}"\n    Variable type of data in distributed-data: "{}"'.format(self.data_point.variable_type, self.data_dist.variable_type))
 
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
-            "solver"                       : "UNSPECIFIED",
-            "data_name"                    : "UNSPECIFIED",
-            "intermediate_variable_scalar" : "NODAL_PAUX",
-            "intermediate_variable_vector" : "NODAL_VAUX"
+            "solver"                    : "UNSPECIFIED",
+            "data_point_values"         : "UNSPECIFIED",
+            "data_distributed_values"   : "UNSPECIFIED",
+            "entities"                  : "conditions"
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
-
