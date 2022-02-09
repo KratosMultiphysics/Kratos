@@ -26,6 +26,7 @@
 #include "includes/define.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_elements/small_displacement_simp_element.h"
+#include "utilities/builtin_timer.h"
 
 // Application includes
 #include "topology_optimization_application.h"
@@ -89,22 +90,23 @@ public:
     /// Computes DCDX sensitivities from the adjoint solution
     void ComputeStrainEnergySensitivities()
     {
-        KRATOS_TRY;
+       KRATOS_TRY;
 
         double Out = 0.0;
         int i= 0;
 
-        clock_t begin = clock();
+        BuiltinTimer timer;
+        const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
 
+        #pragma omp parallel for
         for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
         {
-            const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
             element_i->Calculate(DCDX, Out, ConstProcessInfo);
             i++;
         }
-        clock_t end = clock();
-        KRATOS_INFO("[TopOpt]") << "  Objective Function sensitivities computed  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+
+        KRATOS_INFO("[TopOpt]") << "  Objective Function sensitivities computed  [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -117,17 +119,17 @@ public:
 
         double Out = 0.0;
 
-        clock_t begin = clock();
+        BuiltinTimer timer;
+        const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
 
+        #pragma omp parallel for
         for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
         {
-            const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
             element_i->Calculate(DVDX, Out, ConstProcessInfo);
         }
 
-        clock_t end = clock();
-        KRATOS_INFO("[TopOpt]") << "  Volume fraction sensitivities computed     [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        KRATOS_INFO("[TopOpt]") << "  Volume fraction sensitivities computed     [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
 
         KRATOS_CATCH("");
     }

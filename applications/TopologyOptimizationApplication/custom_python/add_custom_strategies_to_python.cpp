@@ -16,7 +16,6 @@
 // ==============================================================================
 
 // External includes
-#include "boost/numeric/ublas/vector.hpp"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"

@@ -26,6 +26,7 @@
 
 // Application includes
 #include "topology_optimization_application.h"
+#include "utilities/builtin_timer.h"
 
 
 namespace Kratos
@@ -98,9 +99,7 @@ public:
     /// Computes the strain energy as the objective function of the optimization problem.
     double ComputeStrainEnergy()
     {
-        KRATOS_TRY;
-
-        clock_t begin = clock();
+        BuiltinTimer timer;
         KRATOS_INFO("[TopOpt]") << "  Start calculating strain energy."<<std::endl;
 
         double Out = 0.0;
@@ -117,8 +116,7 @@ public:
             
         }
 
-        clock_t end = clock();
-        KRATOS_INFO("[TopOpt]") <<  "  Strain energy calculated                  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        KRATOS_INFO("[TopOpt]") <<  "  Strain energy calculated                  [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
 
         // Return this obtained Global Strain Energy value as the objective function of the complete system
         return Global_Strain_Energy;
@@ -130,7 +128,7 @@ public:
     {
         KRATOS_TRY;
 
-        clock_t begin = clock();
+        BuiltinTimer timer;
         KRATOS_INFO("[TopOpt]") <<"  Start calculating volume fraction."<<std::endl;
 
         int number_elements = 0;
@@ -147,7 +145,7 @@ public:
 
             elemental_volume = element_i->GetValue(INITIAL_ELEMENT_SIZE);
             design_variable = element_i->GetValue(X_PHYS);
-            Global_Volume_Fraction += (elemental_volume*design_variable);
+            Global_Volume_Fraction += (elemental_volume*design_variable); //
             Total_volume += elemental_volume;
             number_elements++;
         }
@@ -155,8 +153,7 @@ public:
         // Calculate and return the Global Volume Fraction by knowing how many elements the model has
         Global_Volume_Fraction = Global_Volume_Fraction/Total_volume;
         KRATOS_INFO("[TopOpt]") <<"  Global Volume Fraction: " << Global_Volume_Fraction << std::endl;
-        clock_t end = clock();
-        KRATOS_INFO("[TopOpt]") <<"  Volume fraction calculated                [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+        KRATOS_INFO("[TopOpt]") <<"  Volume fraction calculated                [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         return Global_Volume_Fraction;
 
         KRATOS_CATCH("");

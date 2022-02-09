@@ -19,7 +19,6 @@
 #define  KRATOS_SMALL_DISPLACEMENT_SIMP_ELEMENT_H_INCLUDED
 
 // Project includes
-///#include <boost/numeric/ublas/storage.h> 
 
 #include "structural_mechanics_application.h"
 #include "custom_elements/small_displacement.h"

@@ -30,6 +30,7 @@
 #include "topology_optimization_application.h"
 #include "spatial_containers/spatial_containers.h"
 #include "custom_utilities/filter_function.h"
+#include "utilities/builtin_timer.h"
 
 
 namespace Kratos
@@ -164,7 +165,7 @@ public:
 
         // Function to Filter Sensitivities
         if ( strcmp( FilterType , "sensitivity" ) == 0 ){
-            clock_t begin = clock();
+            BuiltinTimer timer;
             KRATOS_INFO("[TopOpt]") << "  Sensitivity filter chosen as filter for sensitivities" << std::endl;
 
             if ( strcmp( FilterFunctionType , "linear" ) == 0 )
@@ -199,8 +200,8 @@ public:
             ElementPositionVector Results(mMaxElementsAffected);
             std::vector<double> resulting_squared_distances(mMaxElementsAffected);
 
-            clock_t tree_time = clock();
-            KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            BuiltinTimer timer_tree;
+            KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << timer_tree.ElapsedSeconds() << " ] " << std::endl;
 
             // Compute filtered sensitivities
             Vector dcdx_filtered;
@@ -255,8 +256,7 @@ public:
                     elem_i!=mrModelPart.ElementsEnd(); elem_i++)
                 elem_i->SetValue(DCDX,dcdx_filtered[i++]);
 
-            clock_t end = clock();
-            KRATOS_INFO("[TopOpt]") << "  Filtered sensitivities calculated          [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Filtered sensitivities calculated          [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         }
         else
             KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;
@@ -275,7 +275,7 @@ public:
 
         // Function to Filter Sensitivities
         if ( strcmp( FilterType , "density" ) == 0 ){
-            clock_t begin = clock();
+            BuiltinTimer timer;
             KRATOS_INFO("[TopOpt]") << "  Density filter chosen as filter for densities" << std::endl;
 
             if ( strcmp( FilterFunctionType , "linear" ) == 0 )
@@ -310,8 +310,8 @@ public:
             ElementPositionVector Results(mMaxElementsAffected);
             std::vector<double> resulting_squared_distances(mMaxElementsAffected);
 
-            clock_t tree_time = clock();
-            KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << double(tree_time - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            BuiltinTimer timer_tree;
+            KRATOS_INFO("[TopOpt]") << "  Filtered tree created                      [ spent time =  " << timer_tree.ElapsedSeconds() << " ] " << std::endl;
 
             // Compute filtered densities
             Vector x_phys_filtered;
@@ -375,8 +375,7 @@ public:
                     elem_i!=mrModelPart.ElementsEnd(); elem_i++)
                 elem_i->SetValue(X_PHYS, x_phys_filtered[i++]);
 
-            clock_t end = clock();
-            KRATOS_INFO("[TopOpt]") << "  Filtered densities calculated          	[ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Filtered densities calculated          	[ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         }
         else
             KRATOS_ERROR << "No valid FilterType selected for the simulation. Selected one: " << FilterType << std::endl;

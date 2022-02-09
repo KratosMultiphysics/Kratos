@@ -116,15 +116,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
         ;
     else {
 
-        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-        if (rValues.size() != integration_points.size())
-            rValues.resize(integration_points.size());
-
-        for ( SizeType ii = 0; ii < integration_points.size(); ii++ )
-      	{
-        rValues[ii] = 0.0;
-        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+            SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
       	}
 
 
@@ -184,11 +176,10 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
         for (SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++)
             rValues[PointNumber] = this->GetValue(X_PHYS);
     }
-    else
-    {
-        for (SizeType ii = 0; ii < integration_points.size(); ii++ )
-            rValues[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, rValues[ii]);
-    }
+    else {
+
+            SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+      	}
 
     KRATOS_CATCH( "" )
     } 

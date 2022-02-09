@@ -29,6 +29,7 @@
 // Application includes
 #include "topology_optimization_application.h"
 #include "structure_response_function_utilities.h"
+#include "utilities/builtin_timer.h"
 
 
 namespace Kratos
@@ -104,7 +105,7 @@ public:
         KRATOS_TRY;
 
         if ( strcmp( update_type , "oc_algorithm" ) == 0 ){
-            clock_t begin = clock();
+            BuiltinTimer timer;
             KRATOS_INFO("[TopOpt]") << "  Optimality Criterion Method (OC) chosen to solve the optimization problem" << std::endl;
 
             // Check if Grey Scale Filter should be used
@@ -191,8 +192,7 @@ public:
             }
 
             // Printing of results
-            clock_t end = clock();
-            KRATOS_INFO("[TopOpt]") << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
+            KRATOS_INFO("[TopOpt]") << "  Updating of values performed               [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
         } else {
             KRATOS_ERROR << "No valid optimization_algorithm selected for the simulation. Selected one: " << update_type << std::endl;
         }

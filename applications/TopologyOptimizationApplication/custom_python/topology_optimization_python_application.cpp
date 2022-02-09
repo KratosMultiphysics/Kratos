@@ -36,10 +36,6 @@ namespace Kratos
 
 namespace Python
 {
-
-  
-
-
   
     PYBIND11_MODULE(KratosTopologyOptimizationApplication,m)
     {

@@ -133,16 +133,17 @@ public:
         
 
         //Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
-        double E_min     = rCurrentElement.GetValue(YOUNGS_MODULUS_MIN);
-        double E_initial = rCurrentElement.GetValue(YOUNGS_MODULUS_0);
-        double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
-        double penalty   = rCurrentElement.GetValue(PENAL);
-        double x_phys    = rCurrentElement.GetValue(X_PHYS);
+        const double E_min     = rCurrentElement.GetValue(YOUNGS_MODULUS_MIN);
+        const double E_initial = rCurrentElement.GetValue(YOUNGS_MODULUS_0);
+        const double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
+        const double penalty   = rCurrentElement.GetValue(PENAL);
+        const double x_phys    = rCurrentElement.GetValue(X_PHYS);
 
-        double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
+        const double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
         //Calculate the factor that needs to be multiplied on the RHS and LHS
-        double factor    = E_new/E_current;
+        const double factor    = E_new/E_current;
+
 
         // Factorize LHS and RHS according SIMP approach
         // Note that when this function is called, all the contributions from the force conditions are missing.
