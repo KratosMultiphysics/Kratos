@@ -27,8 +27,12 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
             raise Exception('"entities" can only be "conditions" or "elements"!')
 
     def Execute(self):
-        # TODO adapt call if non-hist!
-        KM.VariableRedistributionUtility.DistributePointValues(
+        # TODO refactor the utility to allow mixed locations!
+        fct_ptr = KM.VariableRedistributionUtility.DistributePointValues
+        if self.data_point.location == "node_non_historical":
+            fct_ptr = KM.VariableRedistributionUtility.DistributePointValuesNonHistorical
+
+        fct_ptr(
             self.data_point.GetModelPart(),
             self.entities,
             self.data_point.variable,
@@ -37,18 +41,26 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
             self.redistribution_iterations)
 
     def Check(self):
-        return
-        # check input MPs are the same!
-        # Check if have entities
-        # Check if is compatible type => nodal or nodal-non-hist
-        # Check vars have same type => either both are double or both are array3
+        if self.data_point.model_part_name != self.data_dist.model_part_name:
+            raise Exception('The ModelParts must be the same!\n    ModelPart of point-data:       "{}"\n    ModelPart of distributed-data: "{}"'.format(self.data_point.model_part_name, self.data_dist.model_part_name))
 
-        # currently the redistribution-utility only works with conditions
-        num_local_conds = self.interface_data.GetModelPart().GetCommunicator().LocalMesh().NumberOfConditions()
-        data_comm = self.interface_data.GetModelPart().GetCommunicator().GetDataCommunicator()
-        num_local_conds = data_comm.SumAll(num_local_conds)
-        if num_local_conds < 1:
-            raise Exception('No conditions found in ModelPart "{}" of interface data "{}" of solver "{}"!'.format(var.Name(), self.interface_data.model_part_name, self.interface_data.name, self.interface_data.solver_name))
+        num_entities = len(self.entities)
+        data_comm = self.data_point.GetModelPart().GetCommunicator().GetDataCommunicator()
+        num_entities = data_comm.SumAll(num_entities)
+        if num_entities < 1:
+            raise Exception('No entities ("{}") found in ModelPart "{}" of interface data "{}" of solver "{}"!'.format(self.settings["entities"].GetString(), self.data_point.model_part_name, self.data_point.name, self.data_point.solver_name))
+
+        if "node" not in self.data_point.location:
+            raise Exception('Only nodal values are supported (and not "{}")!\n    ModelPart "{}" of interface data "{}" of solver "{}"!'.format(self.data_point.location, self.data_point.model_part_name, self.data_point.name, self.data_point.solver_name))
+
+        if self.data_point.location != self.data_dist.location:
+            raise Exception('The location of the data must be the same!\n    Location of data in point-data:       "{}"\n    Location of data in distributed-data: "{}"'.format(self.data_point.location, self.data_dist.location))
+
+        if self.data_point.variable_type not in ["Double", "Array"]:
+            raise Exception('Only variables of type "Double" or "Array" are supported (and not "{}")!\n    ModelPart "{}" of interface data "{}" of solver "{}"!'.format(self.data_point.variable_type, self.data_point.model_part_name, self.data_point.name, self.data_point.solver_name))
+
+        if self.data_point.variable_type != self.data_dist.variable_type:
+            raise Exception('The variable types of the data must be the same!\n    Variable type of data in point-data:       "{}"\n    Variable type of data in distributed-data: "{}"'.format(self.data_point.variable_type, self.data_dist.variable_type))
 
     @classmethod
     def _GetDefaultParameters(cls):
@@ -62,4 +74,3 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
-
