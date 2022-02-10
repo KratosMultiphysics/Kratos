@@ -1,5 +1,3 @@
-import math
-
 import KratosMultiphysics
 from KratosMultiphysics import SLIP, NORMAL, TIME, DELTA_TIME, MOMENTUM
 
@@ -71,7 +69,6 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
             if(root_model_part.ProcessInfo[TIME] > 0.95):
                 break
 
-            print(child_model_part.GetNode(1).GetSolutionStepValue(MOMENTUM))
 
             self.assertFalse(child_model_part.GetNode(1).Is(SLIP), "Slip enabled too soon, at time-step #{}".format(step))
             self.assertFalse(child_model_part.GetNode(2).Is(SLIP), "Slip enabled too soon, at time-step #{}".format(step))
@@ -81,8 +78,8 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
 
         expected = self._Rotate(3.0, 5.0e-3, 4/5, 3/5)
 
-        self.assertVectorAlmostEqual(child_model_part.GetNode(1).GetSolutionStepValue(MOMENTUM), expected, delta=0.01)
-        self.assertVectorAlmostEqual(child_model_part.GetNode(2).GetSolutionStepValue(MOMENTUM), expected, delta=0.01)
+        self.assertVectorAlmostEqual(child_model_part.GetNode(1).GetSolutionStepValue(MOMENTUM), expected, 2)
+        self.assertVectorAlmostEqual(child_model_part.GetNode(2).GetSolutionStepValue(MOMENTUM), expected, 2)
 
 
 if __name__ == "__main__":
