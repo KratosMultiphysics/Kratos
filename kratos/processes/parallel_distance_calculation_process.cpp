@@ -205,11 +205,7 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
 //                      }
 //                  }
 //                  distance = - numerator/denominator;
-//
-//                  KRATOS_WATCH(rGeometry[unknown_node_index].Id());
 
-
-// 		KRATOS_WATCH(discriminant);
         distance = -b / (2.0*a); //avg_dist ; //
     }
     else //in this case we solve (a*x^2 + b*x + c)=0
