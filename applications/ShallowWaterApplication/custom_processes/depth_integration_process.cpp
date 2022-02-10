@@ -207,7 +207,9 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
     SetValue(rNode, HEIGHT, height);
 }
 
-array_1d<double,3> DepthIntegrationProcess::InterpolateVelocity(const int ElementId, const Vector& rShapeFunctionValues) const
+array_1d<double,3> DepthIntegrationProcess::InterpolateVelocity(
+    const int ElementId,
+    const Vector& rShapeFunctionValues) const
 {
     array_1d<double,3> velocity = ZeroVector(3);
     auto& r_elem = mrVolumeModelPart.GetElement(ElementId);
