@@ -1060,7 +1060,7 @@ namespace Kratos
     const double eff_young      = ComputeEffectiveYoung();
     const double eff_young_real = ComputeEffectiveYoungReal();
     const double eff_radius     = ComputeEffectiveRadius();
-    const double identation     = std::max(mNeighborSeparation, 0.0);
+    const double identation     = std::max(-mNeighborSeparation, 0.0);
 
     // Contact force with simulation parameters (using Hertz theory)
     const double hertz_force = 4.0 * eff_young * sqrt(eff_radius) * pow(identation, 3.0 / 2.0) / 3.0;
