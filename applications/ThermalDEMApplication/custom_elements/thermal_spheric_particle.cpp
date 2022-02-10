@@ -1009,7 +1009,6 @@ namespace Kratos
     if (velocity_tangent == 0 || force_normal == 0) return 0.0;
     const double friction_conversion      = r_process_info[FRICTION_HEAT_CONVERSION];
     const double friction_coeff           = GetContactDynamicFrictionCoefficient();
-    
 
     // Partition coefficient
     const double k1 = GetParticleConductivity();
