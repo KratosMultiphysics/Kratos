@@ -36,6 +36,8 @@ class HRomTrainingUtility(object):
         self.time_step_residual_matrix_container = []
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"]
+        self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
+        self.include_condition_parents = settings["include_condition_parents"].GetBool()
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
 
     def AppendCurrentStepResiduals(self):
@@ -73,8 +75,7 @@ class HRomTrainingUtility(object):
         # Get solver data
         model_part_name = self.solver.settings["model_part_name"].GetString()
         model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
-        # computing_model_part = self.solver.GetComputingModelPart()
-        computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
+        origin_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part
@@ -84,7 +85,7 @@ class HRomTrainingUtility(object):
         # Get the weights and fill the HROM computing model part
         with open('RomParameters.json','r') as f:
             rom_parameters = KratosMultiphysics.Parameters(f.read())
-        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], computing_model_part, hrom_main_model_part)
+        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(rom_parameters["elements_and_weights"], origin_model_part, hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
@@ -96,22 +97,24 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
 
-        #TODO: Make this optional
         #TODO: Move this out of here
         # Create the HROM visualization model parts
         if self.hrom_visualization_model_part:
             # Create the HROM visualization mesh from the origin model part
+            save_condition_normals = True
             hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
             hrom_visualization_model_part = aux_model.CreateModelPart(hrom_visualization_model_part_name)
-            KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
+            KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(
+                origin_model_part,
+                hrom_visualization_model_part,
+                save_condition_normals)
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
 
-            print(hrom_visualization_model_part)
-
             # Write the HROM visualization mesh
             hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+            # model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE)
             model_part_io.WriteModelPart(hrom_visualization_model_part)
             KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:
@@ -123,6 +126,8 @@ class HRomTrainingUtility(object):
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
+            "include_minimum_condition" : false,
+            "include_condition_parents" : false,
             "create_hrom_visualization_model_part" : true
         }""")
         return default_settings
@@ -165,28 +170,24 @@ class HRomTrainingUtility(object):
                 else:
                     hrom_weights["Conditions"][int(z[j])-n_elements] = float(w[j])
 
-        #TODO: Make this optional
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
-        include_minimum_condition = False
-        if include_minimum_condition:
+        if self.include_minimum_condition:
             # Get the HROM conditions to be added
             minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
-                self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
+                self.solver.GetComputingModelPart().GetRootModelPart(),
                 hrom_weights["Conditions"])
 
             # Add the selected conditions to the conditions dict with a null weight
             for cond_id in minimum_conditions:
                 hrom_weights["Conditions"][cond_id] = 0.0
 
-        #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = False
-        if include_condition_parents:
+        if self.include_condition_parents:
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
-                self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
+                self.solver.GetComputingModelPart().GetRootModelPart(),
                 hrom_weights)
 
             # Add the missing parents to the elements dict with a null weight

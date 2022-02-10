@@ -91,7 +91,8 @@ public:
      */
     static void SetHRomVolumetricVisualizationModelPart(
         const ModelPart& rOriginModelPart,
-        ModelPart& rHRomVisualizationModelPart);
+        ModelPart& rHRomVisualizationModelPart,
+        const bool SaveConditionNormals);
 
     /**
      * @brief Return the missing HROM condition parents element ids

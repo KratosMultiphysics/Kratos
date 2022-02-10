@@ -19,8 +19,5 @@ class ApplyHRomVisualizationMeshProjectionProcess(KratosMultiphysics.Process):
 
         self.hrom_visualization_mesh_projection_process = KratosROM.HRomVisualizationMeshProjectionProcess(model, settings)
 
-    def ExecuteInitialize(self):
-        self.hrom_visualization_mesh_projection_process.ExecuteInitialize()
-
     def ExecuteBeforeOutputStep(self):
         self.hrom_visualization_mesh_projection_process.ExecuteBeforeOutputStep()

@@ -173,7 +173,8 @@ void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
 //TODO: Make it thin walled and beam compatible
 void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     const ModelPart& rOriginModelPart,
-    ModelPart& rHRomVisualizationModelPart)
+    ModelPart& rHRomVisualizationModelPart,
+    const bool SaveConditionNormals)
 {
     // Create a map for the potential skin entities
     // Key is a sorted vector with the face ids
@@ -267,6 +268,17 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     // This is required in order to set the BCs when projecting the HROM solution
     for (const auto& r_sub_mp : rOriginModelPart.SubModelParts()) {
         RecursiveVisualizationSubModelPartCreation(r_sub_mp, rHRomVisualizationModelPart);
+    }
+
+    // Compute and save the condition normals
+    // These might be required for the BCs imposition before the HROM solution projection
+    if (SaveConditionNormals) {
+        block_for_each(rOriginModelPart.Conditions(), [&rHRomVisualizationModelPart](Condition& rOriginCondition){
+            if (rHRomVisualizationModelPart.HasCondition(rOriginCondition.Id())) {
+                auto& r_vis_cond = rHRomVisualizationModelPart.GetCondition(rOriginCondition.Id());
+                r_vis_cond.SetValue(NORMAL, rOriginCondition.GetValue(NORMAL));
+            }
+        });
     }
 }
 
