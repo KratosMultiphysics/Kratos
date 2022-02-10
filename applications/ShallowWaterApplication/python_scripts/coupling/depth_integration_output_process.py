@@ -101,6 +101,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         condition_name = "LineCondition{}D2N".format(domain_size)
         KM.DuplicateMeshModeler(self.interface_model_part).GenerateMesh(
             self.output_model_part, element_name, condition_name)
+        self.output_model_part.ProcessInfo[KM.DOMAIN_SIZE] = domain_size
 
 
     def _MapToOutputModelPart(self):
