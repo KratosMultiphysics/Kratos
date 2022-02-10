@@ -521,7 +521,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check for contact
-    if (!mNeighborInContact)
+    if (!mNeighborInContact || !this->Is(DEMThermalFlags::HAS_MOTION))
       return;
 
     // Compute heat generation by friction according to selected model

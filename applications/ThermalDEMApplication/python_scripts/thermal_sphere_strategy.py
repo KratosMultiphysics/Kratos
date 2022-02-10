@@ -88,11 +88,13 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def Initialize(self):
-        # Base class initializer
-        BaseStrategy.Initialize(self)
-
         # Initialize utilities
+        # (important to be before the initialization of elements, because temperature is set here)
         self.InitializeCPlusPlusUtilities()
+
+        # Base class initializer
+        # (initialize the strategy and the elements, so temperature must be already set at this point)
+        BaseStrategy.Initialize(self)
     
     #----------------------------------------------------------------------------------------------
     def InitializeSolutionStep(self):
