@@ -68,15 +68,13 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
             if callable(getattr(sub_testsuite, subtest_name)) and subtest_name.startswith("test_")]
 
         for subtest_name in tests:
-            try:
+            with self.subTest(subtest_name):
                 result, reference = getattr(sub_testsuite, subtest_name)()
-            except Exception as e:
-                raise RuntimeError("Error in sub-test " + subtest_name) from e
 
-            if print_results:
-                print(result)
+                if print_results:
+                    print(result)
 
-            self.assertVectorAlmostEqual(result, reference, msg="Failure in sub-test " + subtest_name)
+                self.assertVectorAlmostEqual(result, reference)
 
     def _RunTest(self, geometry, print_results=False, cleanup=True):
         """
