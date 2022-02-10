@@ -68,6 +68,8 @@ add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCE
 target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} ${MPI_LIBRARIES} )
 set_target_properties( KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
 
+target_include_directories(KratosTrilinosCore PUBLIC ${TRILINOS_INCLUDE_DIR})
+
 ## TrilinosApplication python module
 pybind11_add_module( KratosTrilinosApplication MODULE THIN_LTO ${KRATOS_TRILINOS_PYTHON_INTERFACE_SOURCES} )
 target_link_libraries( KratosTrilinosApplication PRIVATE KratosTrilinosCore)
