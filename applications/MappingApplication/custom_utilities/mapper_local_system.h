@@ -162,6 +162,8 @@ public:
         return HasInterfaceInfoThatIsNotAnApproximation() || mSearchCounter >= NUM_SEARCH_PARTICIPATIONS;
     }
 
+    int GetSearchCounter() { return mSearchCounter; }
+
     bool ComputeApproximation() const
     {
         // compute the approximation only in the last search iteration

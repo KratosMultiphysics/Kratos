@@ -378,12 +378,19 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
         }
     }
 
+    std::size_t done_counter = 0;
     std::size_t approx_counter = 0;
+    std::vector<int> it_counters(5,0);
     for (const auto& loc_sys : rMapperLocalSystems) {
-        if (loc_sys->ComputeApproximation() && !loc_sys->IsDoneSearching()) approx_counter++;
+        if (loc_sys->IsDoneSearching()) {
+            done_counter++;
+            continue;
+        }
+        if (loc_sys->ComputeApproximation()) approx_counter++;
+        it_counters[loc_sys->GetSearchCounter()]++;
     }
 
-    KRATOS_INFO_ALL_RANKS("Mapper-Debug") << "Number of local systems computing an approximation: " << approx_counter << std::endl;
+    KRATOS_INFO_ALL_RANKS("Mapper-Debug") << "Overall: " << rMapperLocalSystems.size() << " | Done: " << done_counter << " | Approx: " << approx_counter << " | Searches: " << it_counters << std::endl;
 }
 
 void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
