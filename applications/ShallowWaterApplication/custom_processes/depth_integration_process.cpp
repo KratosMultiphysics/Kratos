@@ -23,6 +23,7 @@
 #include "depth_integration_process.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/brute_force_point_locator.h"
 #include "shallow_water_application_variables.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 
@@ -124,9 +125,9 @@ void DepthIntegrationProcess::CreateIntegrationLines(const double Low, const dou
 
     // Create the integration lines
     for (auto& node : mrInterfaceModelPart.Nodes()) {
-        const double distance = inner_prod(node, mDirection);
-        array_1d<double,3> start = node + mDirection * (Low + distance);
-        array_1d<double,3> end = node + mDirection * (High - distance);
+        const double origin = inner_prod(node, mDirection);
+        array_1d<double,3> start = node + mDirection * (Low - origin);
+        array_1d<double,3> end = node + mDirection * (High - origin);
         mpIntegrationModelPart->CreateNewNode(++node_id, start[0], start[1], start[2]);
         mpIntegrationModelPart->CreateNewNode(++node_id, end[0], end[1], end[2]);
         mpIntegrationModelPart->CreateNewElement(element_name, ++elem_id, {{node_id-1, node_id}}, p_prop);
@@ -146,53 +147,76 @@ void DepthIntegrationProcess::Integrate(std::vector<PointerVector<GeometricalObj
 void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode)
 {
     array_1d<double,3> velocity = ZeroVector(3);
-    array_1d<double,3> momentum = ZeroVector(3);
     double height = 0.0;
-    
+
     if (rObjects.size() > 0)
     {
         double min_elevation = 1e6;
         double max_elevation = -1e6;
-        int num_nodes = 0;
         for (auto& object : rObjects) {
-            array_1d<double,3> obj_velocity = ZeroVector(3);
-            double obj_min_elevation = 1e6;
-            double obj_max_elevation = -1e6;
-            for (auto& r_node : object.GetGeometry()) {
-                obj_velocity += r_node.FastGetSolutionStepValue(VELOCITY);
-                obj_min_elevation = std::min(obj_min_elevation, inner_prod(mDirection, r_node));
-                obj_max_elevation = std::max(obj_max_elevation, inner_prod(mDirection, r_node));
-            }
-            velocity += obj_velocity;
-            min_elevation = std::min(min_elevation, obj_min_elevation);
-            max_elevation = std::max(max_elevation, obj_max_elevation);
-            num_nodes += object.GetGeometry().size();
+            const double obj_elevation = inner_prod(mDirection, object.GetGeometry().Center());
+            min_elevation = std::min(min_elevation, obj_elevation);
+            max_elevation = std::max(max_elevation, obj_elevation);
         }
-        velocity /= num_nodes;
         height = max_elevation - min_elevation;
-        momentum = height*velocity;
 
-        // If we are interested in the velocity at a certain depth, then we replace the mean value by the specific value
-        if (!mVelocityDepthIntegration) {
+        const auto config = Globals::Configuration::Current;
+        Vector shape_functions;
+        BruteForcePointLocator locator(mrVolumeModelPart);
+
+        if (mVelocityDepthIntegration)
+        {
+            // Integrate the velocity over the water column
+            const int num_steps = 20;
+            const double step = (height -0.2 * rObjects.begin()->GetGeometry().Length()) / double(num_steps-1);
+            const double weight = 1.0 / double(num_steps);
+            const array_1d<double,3> start = rNode + mDirection * (min_elevation -inner_prod(rNode, mDirection));
+            Point point(start);
+
+            auto elem_id = locator.FindObject(rObjects, point, shape_functions, config);
+            array_1d<double,3> point_vel = ZeroVector(3);
+            if (elem_id > 0) {velocity += 0.5 * weight * InterpolateVelocity(elem_id, shape_functions);
+            }
+            array_1d<double,3> obj_velocity;
+            for (int i = 1; i < num_steps; ++i) {
+                point += step * mDirection;
+                elem_id = locator.FindObject(rObjects, point, shape_functions, config);
+                if (elem_id > 0) {
+                    obj_velocity = InterpolateVelocity(elem_id, shape_functions);
+                    velocity += weight * obj_velocity;
+                }
+            }
+            velocity -= 0.5 * weight * obj_velocity;
+        }
+        else
+        {
+            // Evaluate the velocity at a certain depth
             const double reference_depth = mMeanWaterLevel - min_elevation;
             const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
             const double target_distance = target_depth - inner_prod(mDirection, rNode);
-            array_1d<double,3> target_point = rNode + mDirection * target_distance;
-            Point local_coordinates;
-            velocity = ZeroVector(3);
-            for (auto& object : rObjects) {
-                if (object.GetGeometry().IsInside(target_point, local_coordinates)) {
-                    for (auto& r_node : object.GetGeometry()) {
-                        velocity += r_node.FastGetSolutionStepValue(VELOCITY);
-                    }
-                    velocity /= object.GetGeometry().size();
-                }
+            const Point target_point(rNode + mDirection * target_distance);
+            auto elem_id = locator.FindObject(rObjects, target_point, shape_functions, config);
+            if (elem_id > 0) {
+                velocity = InterpolateVelocity(elem_id, shape_functions);
             }
         }
     }
+    array_1d<double,3> momentum = height * velocity;
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);
+}
+
+array_1d<double,3> DepthIntegrationProcess::InterpolateVelocity(const int ElementId, const Vector& rShapeFunctionValues) const
+{
+    array_1d<double,3> velocity = ZeroVector(3);
+    auto& r_elem = mrVolumeModelPart.GetElement(ElementId);
+    int n = 0;
+    for (auto& r_node : r_elem.GetGeometry()) {
+        velocity += rShapeFunctionValues[n] * r_node.FastGetSolutionStepValue(VELOCITY);
+        n++;
+    }
+    return velocity;
 }
 
 int DepthIntegrationProcess::Check()
