@@ -41,6 +41,8 @@ namespace Kratos
 
       // Protected methods
       void InitializeThermalDataInSubModelParts(ModelPart& sphere_modelpart, ModelPart& rigidface_modelpart);
+      void InitializeThermalDataInParticles(ModelPart & sphere_modelpart);
+      void InitializeThermalDataInWalls(ModelPart & rigidface_modelpart);
 
     private:
     

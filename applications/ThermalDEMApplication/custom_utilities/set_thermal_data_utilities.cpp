@@ -40,6 +40,19 @@ namespace Kratos {
     KRATOS_TRY
 
     // Set particles data
+    InitializeThermalDataInParticles(sphere_modelpart);
+
+    // Set walls data
+    InitializeThermalDataInWalls(rigidface_modelpart);
+
+    KRATOS_CATCH("")
+  }
+
+  //-----------------------------------------------------------------------------------------------------------------------
+  void SetThermalDataUtilities::InitializeThermalDataInParticles(ModelPart& sphere_modelpart)
+  {
+    KRATOS_TRY
+
     if (sphere_modelpart.NumberOfSubModelParts()) {
       for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = sphere_modelpart.SubModelPartsBegin();
                                                            sub_model_part != sphere_modelpart.SubModelPartsEnd();
@@ -79,18 +92,18 @@ namespace Kratos {
             particle->Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);
           else
             particle->Set(DEMThermalFlags::IS_ADIABATIC, false);
-
-          // Set mass again:
-          // In case of temperature dependent density, mass was initialized with the density corresponding to a null temperature
-          const double temp    = particle->GetParticleTemperature();
-          const double density = particle->GetDensity();
-          const double vol     = particle->GetParticleVolume();
-          particle->SetParticleMass(density * vol);
         });
       }
     }
 
-    // Set walls data
+    KRATOS_CATCH("")
+  }
+
+  //-----------------------------------------------------------------------------------------------------------------------
+  void SetThermalDataUtilities::InitializeThermalDataInWalls(ModelPart& rigidface_modelpart)
+  {
+    KRATOS_TRY
+
     for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = rigidface_modelpart.SubModelPartsBegin();
                                                          sub_model_part != rigidface_modelpart.SubModelPartsEnd();
                                                        ++sub_model_part)
