@@ -29,6 +29,7 @@ typedef std::size_t SizeType;
 void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, false);
+    mNumSearchResults++;
 }
 
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
@@ -55,11 +56,7 @@ void NearestElementInterfaceInfo::SaveSearchResult(const InterfaceObject& rInter
     if (is_full_projection) {
         SetLocalSearchWasSuccessful();
     } else {
-        if (!ComputeApproximation) {
-            return;
-        } else {
-            SetIsApproximation();
-        }
+        SetIsApproximation();
     }
 
     const std::size_t num_values = shape_function_values.size();
@@ -158,6 +155,24 @@ void NearestElementLocalSystem::SetPairingStatusForPrinting()
 {
     if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
         mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
+    }
+}
+
+void NearestElementLocalSystem::FinalizeSearchIteration()
+{
+    if (mFoundSomethingWhileSearching) {
+        mSearchCounter += 1;
+    }
+    mFoundSomethingWhileSearching = false; // reseting
+
+    if (IsDoneSearching()) return; // if we are done anyway then no tampering is required
+
+    for (const auto& rp_info : mInterfaceInfos) {
+        const NearestElementInterfaceInfo& r_info = static_cast<const NearestElementInterfaceInfo&>(*rp_info);
+        if (r_info.GetNumSearchResults() > 20) {
+            mSearchCounter = MapperLocalSystem::NUM_SEARCH_PARTICIPATIONS - 1; // so that the next search iteration becomes the last one!
+            return;
+        }
     }
 }
 

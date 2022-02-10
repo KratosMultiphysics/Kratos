@@ -170,7 +170,7 @@ public:
         return (mSearchCounter+1) >= NUM_SEARCH_PARTICIPATIONS;
     }
 
-    void FinalizeSearchIteration()
+    virtual void FinalizeSearchIteration()
     {
         if (mFoundSomethingWhileSearching) {
             mSearchCounter += 1;
@@ -245,6 +245,9 @@ protected:
 
     mutable PairingStatus mPairingStatus = PairingStatus::NoInterfaceInfo;
 
+    bool mFoundSomethingWhileSearching = false;
+    int mSearchCounter = 0;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -258,10 +261,6 @@ protected:
                               MapperLocalSystem::PairingStatus& rPairingStatus) const = 0;
 
     ///@}
-
-private:
-    bool mFoundSomethingWhileSearching = false;
-    int mSearchCounter = 0;
 
 }; // Class MapperLocalSystem
 

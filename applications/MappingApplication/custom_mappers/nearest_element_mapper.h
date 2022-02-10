@@ -95,6 +95,8 @@ public:
         rValue = (int)mPairingIndex;
     }
 
+    std::size_t GetNumSearchResults() const { return mNumSearchResults; }
+
 private:
 
     std::vector<int> mNodeIds;
@@ -102,6 +104,7 @@ private:
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
     ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
     double mLocalCoordTol; // this is not needed after searching, hence no need to serialize it
+    std::size_t mNumSearchResults = 0;
 
     void SaveSearchResult(const InterfaceObject& rInterfaceObject,
                           const bool ComputeApproximation);
@@ -115,6 +118,7 @@ private:
         rSerializer.save("SFValues", mShapeFunctionValues);
         rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
         rSerializer.save("PairingIndex", (int)mPairingIndex);
+        rSerializer.save("NumSearchResults", mNumSearchResults);
     }
 
     void load(Serializer& rSerializer) override
@@ -126,6 +130,7 @@ private:
         int temp;
         rSerializer.load("PairingIndex", temp);
         mPairingIndex = (ProjectionUtilities::PairingIndex)temp;
+        rSerializer.load("NumSearchResults", mNumSearchResults);
     }
 
 };
@@ -154,6 +159,8 @@ public:
     void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
 
     void SetPairingStatusForPrinting() override;
+
+    void FinalizeSearchIteration() override;
 
 private:
     NodePointerType mpNode;
