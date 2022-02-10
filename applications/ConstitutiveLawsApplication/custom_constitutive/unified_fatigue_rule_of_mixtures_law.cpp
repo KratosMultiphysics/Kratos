@@ -111,6 +111,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     double cycles_to_failure = mCyclesToFailure;
     bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+    bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
 
     auto& r_material_properties = rValues.GetMaterialProperties();
     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
@@ -127,7 +128,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
             KRATOS_ERROR << "Fatigue properties not defined" << std::endl;
     }
 
-    if (max_indicator && min_indicator) {
+    if (max_indicator && min_indicator && current_load_type) {
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
@@ -173,7 +174,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress);
     }
-    if (adnvance_strategy_applied) {
+    if (adnvance_strategy_applied && current_load_type) {
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
@@ -194,6 +195,17 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress);
     }
+
+    //Adapting the volumetric participation to the type of load that is being applied
+    // if (!current_load_type) {       //Monotonic load being applied, i.e., no more damage is accumulated.
+    //     // mHCFVolumetricParticipation =
+    //             // mCombinationFactors[0] = damage_threshold / damage_now * mInitialCombinationFactor;
+    //             // mCombinationFactors[1] = 1.0 - damage_threshold / damage_now * mInitialCombinationFactor;
+    // } else if (current_load_type) { //Cyclic load being applied. Two cases: pure HCF transition case depending on Nf.
+
+    // }
+
+
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
     mReversionFactorRelativeError = reversion_factor_relative_error;
@@ -657,8 +669,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
         previous_stresses[1] = predictive_uniaxial_stress;
         previous_stresses[0] = r_aux_stresses[1];
         mPreviousStresses = previous_stresses;
-        // KRATOS_WATCH(r_integrated_stress_vector)
-        // KRATOS_WATCH(predictive_uniaxial_stress)
     }
 }
 
