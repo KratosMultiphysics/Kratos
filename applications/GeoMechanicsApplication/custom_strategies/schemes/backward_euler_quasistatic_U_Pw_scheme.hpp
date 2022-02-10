@@ -61,13 +61,22 @@ public:
     ///Destructor
     ~BackwardEulerQuasistaticUPwScheme() override {}
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
 
     /// Member Variables
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    inline void SetTimeFactors(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
 
+        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = 1.0/mDeltaTime;
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/mDeltaTime;
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY

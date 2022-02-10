@@ -35,6 +35,11 @@ from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 from adjoint_conditions import TestAdjointMonolithicWallCondition
 from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
+from test_navier_stokes_compressible_explicit_solver import NavierStokesCompressibleExplicitSolverTest
+from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
+from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
+from initialize_with_compressible_potential_flow_process_test import InitializeWithCompressiblePotentialSolutionProcessTest
+from compressible_navier_stokes_symbolic_generator_test import CompressibleNavierStokesSymbolicGeneratorTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -66,7 +71,10 @@ def AssembleTestSuites():
     smallSuite.addTest(NavierStokesWallConditionTest('testNavierStokesWallCondition'))
     smallSuite.addTest(FluidAnalysisTest('testSteadyAnalysisSmall'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([InitializeWithCompressiblePotentialSolutionProcessTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -108,6 +116,10 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTriangle'))
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorQuad'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -122,7 +134,7 @@ def AssembleTestSuites():
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
-
+    validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorTest('testGeneratorTetra')) # Takes too long
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']

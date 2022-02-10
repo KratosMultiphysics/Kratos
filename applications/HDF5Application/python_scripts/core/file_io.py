@@ -134,12 +134,8 @@ class _FilenameGetterWithDirectoryInitialization(object):
         return file_name
 
     def _InitializeDirectory(self, file_name):
-        dirname = os.path.dirname(file_name)
-        if dirname != '' and not os.path.exists(dirname):
-            if self.data_comm.Rank() == 0:
-                os.makedirs(dirname)
-            self.data_comm.Barrier()
-
+        dirname = Path(file_name).absolute().parent
+        KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(dirname))
 
 def Create(settings, data_comm):
     '''Return the IO object specified by the setting 'io_type'.

@@ -357,11 +357,17 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
     def AddDofs(self):
-        super(NavierStokesEmbeddedMonolithicSolver, self).AddDofs()
+        # Add formulation DOFs and reactions
+        super().AddDofs()
+
+        # Add mesh motion problem DOFs for the FM-ALE algorithm
         if self._FmAleIsActive():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.main_model_part)
+            dofs_and_reactions_to_add = []
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_X", "MESH_REACTION_X"])
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Y", "MESH_REACTION_Y"])
+            dofs_and_reactions_to_add.append(["MESH_DISPLACEMENT_Z", "MESH_REACTION_Z"])
+            KratosMultiphysics.VariableUtils.AddDofsList(dofs_and_reactions_to_add, self.main_model_part)
+
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "FM-ALE DOFs added correctly.")
 
     def PrepareModelPart(self):

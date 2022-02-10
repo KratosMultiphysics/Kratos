@@ -137,7 +137,7 @@ std::size_t ParallelRuleOfMixturesLaw<TDim>::WorkingSpaceDimension()
 /***********************************************************************************/
 
 template<unsigned int TDim>
-std::size_t ParallelRuleOfMixturesLaw<TDim>::GetStrainSize()
+std::size_t ParallelRuleOfMixturesLaw<TDim>::GetStrainSize() const
 {
     IndexType counter = 0;
     SizeType strain_size = 6;
@@ -969,7 +969,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
     if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Set new flags
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Auxiliar stress vector
@@ -1053,7 +1053,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
 
     if (r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS)) {
         // Set new flags
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Auxiliar stress vector
@@ -1310,7 +1310,7 @@ int ParallelRuleOfMixturesLaw<TDim>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     // The auxiliar output
     int aux_out = 0;

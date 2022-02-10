@@ -82,8 +82,8 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
         with open(self.outerlistfilename, "a") as listfile:
             listfile.write("Multiple\n")
-            folder_name = self.filename + "_Post_Files"
-            full_string_to_write = os.path.join(folder_name,self.filename+"_"+"%.12g"%step_label+ext)
+            output_path = self.filename + "_Post_Files"
+            full_string_to_write = os.path.join(output_path,self.filename+"_"+"%.12g"%step_label+ext)
             listfile.write(full_string_to_write+"\n")
 
 

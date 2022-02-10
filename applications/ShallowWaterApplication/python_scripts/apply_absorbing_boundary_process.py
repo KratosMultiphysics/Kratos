@@ -95,6 +95,7 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         return KM.Parameters("""{
             "computing_model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
             "absorbing_boundaries_list" : [],
+            "interval"                  : [0.0,"End"]
             "r_squared_threshold"       : 0.99,
             "relative_distance"         : 2.0,
             "relative_damping"          : 2.0,

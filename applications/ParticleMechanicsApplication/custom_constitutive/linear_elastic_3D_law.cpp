@@ -357,7 +357,7 @@ void LinearElastic3DLaw::GetLawFeatures(Features& rFeatures)
 
 int LinearElastic3DLaw::Check(const Properties& rMaterialProperties,
                               const GeometryType& rElementGeometry,
-                              const ProcessInfo& rCurrentProcessInfo)
+                              const ProcessInfo& rCurrentProcessInfo) const
 {
     HyperElastic3DLaw::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
