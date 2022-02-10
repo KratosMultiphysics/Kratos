@@ -53,54 +53,42 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _ImportSubTestSuite(cls, generated_file_name):
-        module_name = "compressible_symbolic_generation"
+        module_name = "compressible_symbolic_generation" + "." + generated_file_name[:-3]
 
         try:
-            test_module = __import__(module_name + "." + generated_file_name[:-3], fromlist=module_name)
+            test_module = __import__(module_name, fromlist=module_name)
         except ModuleNotFoundError as err:
-            print("Failed to import generated file:", module_name)
-            raise err
+            raise RuntimeError("Failed to import generated file:", generated_file_name) from err
         return test_module.SubTestSuite()
 
 
     def _RunSubTestSuite(self, sub_testsuite,print_results):
-        tests = [testname for testname in dir(sub_testsuite)
-            if callable(getattr(sub_testsuite, testname)) and testname.startswith("test_")]
+        tests = [subtest_name for subtest_name in dir(sub_testsuite)
+            if callable(getattr(sub_testsuite, subtest_name)) and subtest_name.startswith("test_")]
 
-        for testname in tests:
+        for subtest_name in tests:
             try:
-                result, reference = getattr(sub_testsuite, testname)()
+                result, reference = getattr(sub_testsuite, subtest_name)()
             except Exception as e:
-                raise RuntimeError("Error in sub-test " + testname) from e
+                raise RuntimeError("Error in sub-test " + subtest_name) from e
 
             if print_results:
                 print(result)
 
-            self.assertVectorAlmostEqual(result, reference, msg="Failure in sub-test " + testname)
+            self.assertVectorAlmostEqual(result, reference, msg="Failure in sub-test " + subtest_name)
 
-    def _RunTest(self, **kwargs):
+    def _RunTest(self, geometry, print_results=False, cleanup=True):
         """
         Runs the test.
 
         kwargs
         ------
-
-        - regenerate: Instructs the test whether to call the symbolic generator
-            or use a pre-existing source file.
         - cleanup: Instructs the test whether to remove the generated code
         - geometry: Choice of geometry. Format is xDyN, with x,y integers
         - print_results: Whether to print all the results even if they are correct
         """
-        regenerate = True if "regenerate" not in kwargs else kwargs["regenerate"]
-        cleanup    = True if "cleanup" not in kwargs else kwargs["cleanup"]
-        geometry   = kwargs["geometry"]
-        print_results = False if "print_results" not in kwargs else kwargs["print_results"]
 
-
-        if regenerate:
-            generated_file = self._Generate(geometry)
-        else:
-            generated_file = self._GetGeneratorSettings(geometry)["output_filename"].GetString()
+        generated_file = self._Generate(geometry)
 
         if cleanup:
             self.files_to_remove.append(os.path.abspath(generated_file))
@@ -109,37 +97,16 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         self._RunSubTestSuite(sub_testsuite, print_results)
 
     def test_SymbolicTriangle(self):
-        args = {
-            "regenerate": True,
-            "cleanup": True,
-            "print_results": False,
-            "geometry": "2D3N"
-        }
-
         with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
-            self._RunTest(**args)
+            self._RunTest("2D3N")
 
     def test_SymbolicQuadrilateral(self):
-        args = {
-            "regenerate": True,
-            "cleanup": True,
-            "print_results": False,
-            "geometry": "2D4N"
-        }
-
         with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
-            self._RunTest(**args)
+            self._RunTest("2D4N")
 
     def test_SymbolicTetrahedron(self):
-        args = {
-            "regenerate": True,
-            "cleanup": True,
-            "print_results": False,
-            "geometry": "3D4N"
-        }
-
         with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
-            self._RunTest(**args)
+            self._RunTest("3D4N")
 
 if __name__ == '__main__':
     KratosUnitTest.main()
