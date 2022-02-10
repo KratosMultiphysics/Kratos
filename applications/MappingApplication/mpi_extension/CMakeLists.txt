@@ -6,13 +6,6 @@ include_directories(
   ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication
 )
 
-if (NOT TRILINOS_FOUND)
-  find_package(TRILINOS REQUIRED)
-endif()
-
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
-
 file(
   GLOB_RECURSE
   KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES
@@ -22,7 +15,7 @@ file(
 ## Python module
 pybind11_add_module( KratosMappingMPIExtension MODULE THIN_LTO ${KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
-target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
+target_link_libraries( KratosMappingMPIExtension PRIVATE KratosMappingCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosMappingMPIExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
