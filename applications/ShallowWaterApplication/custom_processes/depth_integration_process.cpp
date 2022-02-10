@@ -214,7 +214,7 @@ array_1d<double,3> DepthIntegrationProcess::InterpolateVelocity(
     array_1d<double,3> velocity = ZeroVector(3);
     const auto& r_elem = mrVolumeModelPart.GetElement(ElementId);
     int n = 0;
-    for (auto& r_node : r_elem.GetGeometry()) {
+    for (const auto& r_node : r_elem.GetGeometry()) {
         velocity += rShapeFunctionValues[n] * r_node.FastGetSolutionStepValue(VELOCITY);
         n++;
     }
