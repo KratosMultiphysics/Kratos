@@ -160,7 +160,7 @@ void NearestElementLocalSystem::SetPairingStatusForPrinting()
 
 void NearestElementLocalSystem::FinalizeSearchIteration()
 {
-    MapperInterfaceInfo::FinalizeSearchIteration();
+    MapperLocalSystem::FinalizeSearchIteration();
 
     if (IsDoneSearching()) return; // if we are done anyway then no tampering is required
 
