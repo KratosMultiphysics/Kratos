@@ -222,8 +222,8 @@ public:
 
        const double dgauss = inner_prod(N,distances);
 
-        const double coeff1 = rCurrentProcessInfo.Has(VARIATIONAL_REDISTANCE_COEFFICIENT_1) ? rCurrentProcessInfo[VARIATIONAL_REDISTANCE_COEFFICIENT_1] : 0.01;
-        const double coeff2 = rCurrentProcessInfo.Has(VARIATIONAL_REDISTANCE_COEFFICIENT_2) ? rCurrentProcessInfo[VARIATIONAL_REDISTANCE_COEFFICIENT_2] : 0.1;
+        const double coeff1 = rCurrentProcessInfo.Has(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST) ? rCurrentProcessInfo[VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST] : 0.01;
+        const double coeff2 = rCurrentProcessInfo.Has(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND) ? rCurrentProcessInfo[VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND] : 0.1;
         const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
 
         if(step == 1) //solve a poisson problem with a positive/negative heat source depending on the sign of the existing distance function

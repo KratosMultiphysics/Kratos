@@ -503,8 +503,8 @@ protected:
 
         rBaseModelPart.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
 
-        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_1, mCoefficient1);
-        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_2, mCoefficient2);
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST, mCoefficient1);
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND, mCoefficient2);
 
         mDistancePartIsInitialized = true;
 
