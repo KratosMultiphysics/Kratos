@@ -86,26 +86,23 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         - print_results -- Set to `True` to print all results to console
         - cleanup -- Set to `True` in order to remove the generated code files
         """
+        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
+            generated_file = self._Generate(geometry)
 
-        generated_file = self._Generate(geometry)
+            if cleanup:
+                self.files_to_remove.append(os.path.abspath(generated_file))
 
-        if cleanup:
-            self.files_to_remove.append(os.path.abspath(generated_file))
-
-        sub_testsuite = self._ImportSubTestSuite(generated_file)
-        self._RunSubTestSuite(sub_testsuite, print_results)
+            sub_testsuite = self._ImportSubTestSuite(generated_file)
+            self._RunSubTestSuite(sub_testsuite, print_results)
 
     def test_SymbolicTriangle(self):
-        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
-            self._RunTest("2D3N")
+        self._RunTest("2D3N")
 
     def test_SymbolicQuadrilateral(self):
-        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
-            self._RunTest("2D4N")
+        self._RunTest("2D4N")
 
     def test_SymbolicTetrahedron(self):
-        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
-            self._RunTest("3D4N")
+        self._RunTest("3D4N")
 
 if __name__ == '__main__':
     KratosUnitTest.main()
