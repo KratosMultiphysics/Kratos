@@ -19,9 +19,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _GetGeneratorSettings(cls, geometry):
-        """
-        Returns the Kratos Parameters for the symbolic generator
-        """
+        """Returns the Kratos Parameters for the symbolic generator"""
         geometry_name = {
             "2D3N": "triangle",
             "2D4N": "quadrilateral",
@@ -44,6 +42,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _Generate(cls, geometry):
+        """Generates the code to be tested, and stores it in a file"""
         params = cls._GetGeneratorSettings(geometry)
         generator = CompressibleNavierStokesSymbolicGenerator(params)
         generator.Generate()
@@ -53,6 +52,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _ImportSubTestSuite(cls, generated_file_name):
+        """Imports the generated code as a sub-testsuite"""
         module_name = "compressible_symbolic_generation" + "." + generated_file_name[:-3]
 
         try:
@@ -62,7 +62,8 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         return test_module.SubTestSuite()
 
 
-    def _RunSubTestSuite(self, sub_testsuite,print_results):
+    def _RunSubTestSuite(self, sub_testsuite, print_results):
+        """Runs the generated code and compares it to the reference"""
         tests = [subtest_name for subtest_name in dir(sub_testsuite)
             if callable(getattr(sub_testsuite, subtest_name)) and subtest_name.startswith("test_")]
 
@@ -81,11 +82,9 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         """
         Runs the test.
 
-        kwargs
-        ------
-        - cleanup: Instructs the test whether to remove the generated code
-        - geometry: Choice of geometry. Format is xDyN, with x,y integers
-        - print_results: Whether to print all the results even if they are correct
+        - geometry -- Choice of geometry. Format is xDyN, with x,y integers
+        - print_results -- Set to `True` to print all results to console
+        - cleanup -- Set to `True` in order to remove the generated code files
         """
 
         generated_file = self._Generate(geometry)
