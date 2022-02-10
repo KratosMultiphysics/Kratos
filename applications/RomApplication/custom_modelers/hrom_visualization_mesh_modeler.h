@@ -11,8 +11,8 @@
 //
 //
 
-#ifndef KRATOS_HROM_VISUALIZATION_MESH_PROJECTION_PROCESS_H
-#define KRATOS_HROM_VISUALIZATION_MESH_PROJECTION_PROCESS_H
+#ifndef KRATOS_HROM_VISUALIZATION_MESH_MODELER_H
+#define KRATOS_HROM_VISUALIZATION_MESH_MODELER_H
 
 // System includes
 
@@ -22,7 +22,7 @@
 #include "containers/model.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "processes/process.h"
+#include "modeler/modeler.h"
 
 // Application includes
 
@@ -56,7 +56,7 @@ namespace Kratos
  * @brief Construct a new kratos api object
  *
  */
-class KRATOS_API(ROM_APPLICATION) HRomVisualizationMeshProjectionProcess : public Process
+class KRATOS_API(ROM_APPLICATION) HRomVisualizationMeshModeler : public Modeler
 {
 public:
     ///@name Type Definitions
@@ -68,24 +68,37 @@ public:
 
     using IndexType = std::size_t;
 
-    /// Pointer definition of HRomVisualizationMeshProjectionProcess
-    KRATOS_CLASS_POINTER_DEFINITION(HRomVisualizationMeshProjectionProcess);
+    /// Pointer definition of HRomVisualizationMeshModeler
+    KRATOS_CLASS_POINTER_DEFINITION(HRomVisualizationMeshModeler);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HRomVisualizationMeshProjectionProcess() = delete;
+    HRomVisualizationMeshModeler()
+        : Modeler()
+        , mpHRomModelPart(nullptr)
+        , mpVisualizationModelPart(nullptr)
+    {
+    }
 
     /// Constructor with Kratos model
-    HRomVisualizationMeshProjectionProcess(
+    HRomVisualizationMeshModeler(
         Model& rModel,
         Parameters rParameters);
 
     /// Destructor.
-    ~HRomVisualizationMeshProjectionProcess() override
+    ~HRomVisualizationMeshModeler() override
     {
+    }
+
+    /// Creates the Modeler Pointer
+    Modeler::Pointer Create(
+        Model &rModel,
+        const Parameters ModelParameters) const override
+    {
+        return Kratos::make_shared<HRomVisualizationMeshModeler>(rModel, ModelParameters);
     }
 
     ///@}
@@ -93,16 +106,16 @@ public:
     ///@{
 
     /// Assignment operator.
-    HRomVisualizationMeshProjectionProcess& operator=(HRomVisualizationMeshProjectionProcess const& rOther) = delete;
+    HRomVisualizationMeshModeler& operator=(HRomVisualizationMeshModeler const& rOther) = delete;
 
     /// Copy constructor.
-    HRomVisualizationMeshProjectionProcess(HRomVisualizationMeshProjectionProcess const& rOther) = delete;
+    HRomVisualizationMeshModeler(HRomVisualizationMeshModeler const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    void ExecuteBeforeOutputStep() override;
+    void SetupModelPart() override;
 
     ///@}
     ///@name Access
@@ -120,14 +133,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "HRomVisualizationMeshProjectionProcess" ;
+        buffer << "HRomVisualizationMeshModeler" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "HRomVisualizationMeshProjectionProcess";
+        rOStream << "HRomVisualizationMeshModeler";
     }
 
     /// Print object's data.
@@ -150,8 +163,8 @@ private:
 
     std::string mRomSettingsFilename;
 
-    const ModelPart& mrHRomModelPart;
-    ModelPart& mrVisualizationModelPart;
+    const ModelPart* mpHRomModelPart;
+    ModelPart* mpVisualizationModelPart;
 
     std::vector<const Variable<double>*> mRomVariablesList;
 
@@ -163,7 +176,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckDefaultsAndProcessSettings(Parameters &rParameters);
+    void CheckDefaultSettings(Parameters &rParameters);
 
     ///@}
     ///@name Private  Access
@@ -181,7 +194,7 @@ private:
 
 
     ///@}
-}; // Class HRomVisualizationMeshProjectionProcess
+}; // Class HRomVisualizationMeshModeler
 
 ///@}
 ///@name Type Definitions
@@ -197,4 +210,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_HROM_VISUALIZATION_MESH_PROJECTION_PROCESS_H
+#endif // KRATOS_HROM_VISUALIZATION_MESH_MODELER_H

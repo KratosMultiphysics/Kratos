@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "rom_application.h"
 #include "rom_application_variables.h"
+#include "custom_python/add_custom_modelers_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -44,6 +45,7 @@ PYBIND11_MODULE(KratosRomApplication,m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomModelersToPython(m);
 
     //registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_BASIS )
