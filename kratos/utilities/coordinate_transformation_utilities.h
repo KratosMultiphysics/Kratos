@@ -52,6 +52,7 @@ namespace Kratos {
 ///@{
 
 /// A utility to rotate the local contributions of certain nodes to the system matrix, which is required to apply slip conditions in arbitrary directions.
+/// TODO: Move code to source file. Use explicit template instantiation (this way the compilation is faster).
 template<class TLocalMatrixType, class TLocalVectorType, class TValueType>
 class CoordinateTransformationUtils {
 public:
