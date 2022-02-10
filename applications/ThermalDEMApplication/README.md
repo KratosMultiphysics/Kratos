@@ -33,7 +33,7 @@ To create a model for the Thermal DEM Application, the following adaptations mus
 
 ### Project Parameters (json file)
 
-Change **solver strategy**.
+Change **solver strategy**.\
 Available options: *thermal_sphere_strategy*.
 
 	"solver_settings": {
