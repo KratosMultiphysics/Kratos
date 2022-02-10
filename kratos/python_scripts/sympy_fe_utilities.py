@@ -137,7 +137,12 @@ def grad_sym_voigtform(DN, x):
 
 def DfjDxi(DN,f):
     """
-    This method defines a gradient. This returns a matrix D such that D(i,j) = D(fj)/D(xi).
+    This method defines a gradient. Returns a matrix D such that D(i,j) = D(fj)/D(xi)
+    
+    This is the standard in fluid dynamics, that is:
+        D(f1)/D(x1) D(f2)/D(x1) D(f3)/D(x1)
+        D(f1)/D(x2) D(f2)/D(x2) D(f3)/D(x2)
+        D(f1)/D(x3) D(f2)/D(x3) D(f3)/D(x3)
 
     Keyword arguments:
     - DN -- The shape function derivatives
@@ -148,6 +153,11 @@ def DfjDxi(DN,f):
 def DfiDxj(DN,f):
     """
     This method defines a gradient This returns a matrix D such that D(i,j) = D(fi)/D(xj).
+
+    This is the standard in structural mechanics, that is:
+        D(f1)/D(x1) D(f1)/D(x2) D(f1)/D(x3)
+        D(f2)/D(x1) D(f2)/D(x2) D(f2)/D(x3)
+        D(f3)/D(x1) D(f3)/D(x2) D(f3)/D(x3)
 
     Keyword arguments:
     - DN -- The shape function derivatives
