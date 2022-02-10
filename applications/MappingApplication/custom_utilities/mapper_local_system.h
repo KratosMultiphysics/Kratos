@@ -167,7 +167,7 @@ public:
     bool ComputeApproximation() const
     {
         // compute the approximation only in the last search iteration
-        return (mSearchCounter-1) >= NUM_SEARCH_PARTICIPATIONS;
+        return (mSearchCounter+1) >= NUM_SEARCH_PARTICIPATIONS;
     }
 
     void FinalizeSearchIteration()
