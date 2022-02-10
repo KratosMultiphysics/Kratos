@@ -174,10 +174,9 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
             Point point(start);
 
             auto elem_id = locator.FindObject(rObjects, point, shape_functions, config);
-            array_1d<double,3> point_vel = ZeroVector(3);
             if (elem_id > 0) {velocity += 0.5 * weight * InterpolateVelocity(elem_id, shape_functions);
             }
-            array_1d<double,3> obj_velocity;
+            array_1d<double,3> obj_velocity = ZeroVector(3);
             for (int i = 1; i < num_steps; ++i) {
                 point += step * mDirection;
                 elem_id = locator.FindObject(rObjects, point, shape_functions, config);
