@@ -167,12 +167,15 @@ void NearestElementLocalSystem::FinalizeSearchIteration()
 
     if (IsDoneSearching()) return; // if we are done anyway then no tampering is required
 
+    std::size_t sum_search_results = 0;
+
     for (const auto& rp_info : mInterfaceInfos) {
         const NearestElementInterfaceInfo& r_info = static_cast<const NearestElementInterfaceInfo&>(*rp_info);
-        if (r_info.GetNumSearchResults() > 20) {
-            mSearchCounter = MapperLocalSystem::NUM_SEARCH_PARTICIPATIONS - 1; // so that the next search iteration becomes the last one!
-            return;
-        }
+        sum_search_results += r_info.GetNumSearchResults();
+    }
+
+    if (sum_search_results > 20) {
+        mSearchCounter = MapperLocalSystem::NUM_SEARCH_PARTICIPATIONS - 1; // so that the next search iteration becomes the last one!
     }
 }
 
