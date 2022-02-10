@@ -654,8 +654,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
-    while(true)
-    {
+    while(true) {
         ReadWord(word);
         if(mpStream->eof())
             break;
@@ -672,8 +671,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
         } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
-        }
-        else {
+        } else {
             SkipBlock(word);
         }
     }
@@ -727,8 +725,7 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     //Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
-    while(true)
-    {
+    while(true) {
         ReadWord(word);
         if(mpStream->eof())
             break;
