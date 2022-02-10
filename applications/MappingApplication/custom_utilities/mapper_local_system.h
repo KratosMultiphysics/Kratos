@@ -56,7 +56,7 @@ public:
     typedef InterfaceObject::NodePointerType NodePointerType;
     typedef InterfaceObject::GeometryPointerType GeometryPointerType;
 
-    static constexpr std::size_t NUM_SEARCH_PARTICIPATIONS = 3;
+    static constexpr int NUM_SEARCH_PARTICIPATIONS = 3;
 
     ///@}
     ///@name  Enum's
@@ -173,7 +173,7 @@ public:
         if (mFoundSomethingWhileSearching) {
             mSearchCounter += 1;
         }
-        mFoundSomethingWhileSearching = false; // resetting
+        mFoundSomethingWhileSearching = false; // reseting
     }
 
     virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
@@ -259,7 +259,7 @@ protected:
 
 private:
     bool mFoundSomethingWhileSearching = false;
-    std::size_t mSearchCounter = 0;
+    int mSearchCounter = 0;
 
 }; // Class MapperLocalSystem
 

@@ -377,6 +377,13 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
             }
         }
     }
+
+    std::size_t approx_counter = 0;
+    for (const auto& loc_sys : rMapperLocalSystems) {
+        if (loc_sys->ComputeApproximation() && !loc_sys->IsDoneSearching()) approx_counter++;
+    }
+
+    KRATOS_INFO_ALL_RANKS("Mapper-Debug") << "Number of local systems computing an approximation: " << approx_counter << std::endl;
 }
 
 void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
@@ -388,6 +395,8 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
 
     KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == comm_size)
         << "Buffer-size mismatch!" << std::endl;
+
+    std::size_t approx_counter = 0;
 
     array_1d<double, 3> coords;
     // Loop the ranks and construct the MapperInterfaceInfos
@@ -424,10 +433,15 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
             coords[0] = r_rank_buffer[j*5 + 1];
             coords[1] = r_rank_buffer[j*5 + 2];
             coords[2] = r_rank_buffer[j*5 + 3];
-            const bool compute_approximation = static_cast<bool>(r_rank_buffer[j*5 + 4]+0.1);
+            const bool compute_approximation = (r_rank_buffer[j*5 + 4] > 1e-10);
+
+            if (compute_approximation) approx_counter++;
+
             r_interface_infos_rank[j] = rpRefInterfaceInfo->Create(coords, local_sys_idx, i_rank, compute_approximation);
         }
     }
+
+    KRATOS_INFO_ALL_RANKS("Mapper-Debug") << "Number of local interface infos computing an approximation: " << approx_counter << std::endl;
 }
 
 void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
