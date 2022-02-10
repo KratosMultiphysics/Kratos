@@ -65,39 +65,54 @@ public:
     /**
      * @brief This function finds a node based on a location
      * @param rThePoint the location to search
-     * @param configuration search the Initial or Current configuration
+     * @param Configuration search the Initial or Current configuration
      * @param DistanceThreshold threshold for the distance
      * @return Id of the found node. -1 if no node was found
      */
     int FindNode( const Point& rThePoint,
-                  const Globals::Configuration configuration = Globals::Configuration::Initial,
+                  const Globals::Configuration Configuration = Globals::Configuration::Initial,
                   const double DistanceThreshold = 1e-6 ) const;
 
     /**
      * @brief This function finds an element based on a location
      * @param rThePoint the location to search
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
-     * @param configuration search the Initial or Current configuration
+     * @param Configuration search the Initial or Current configuration
      * @param LocalCoordTol tolerance local-coordinates for IsInside
      * @return Id of the found element. -1 if no element was found
      */
     int FindElement( const Point& rThePoint,
                      Vector& rShapeFunctionValues,
-                     const Globals::Configuration configuration = Globals::Configuration::Initial,
+                     const Globals::Configuration Configuration = Globals::Configuration::Initial,
                      const double LocalCoordTol = 1e-6) const;
 
     /**
      * @brief This function finds a condition based on a location
      * @param rThePoint the location to search
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
-     * @param configuration search the Initial or Current configuration
+     * @param Configuration search the Initial or Current configuration
      * @param LocalCoordTol tolerance local-coordinates for IsInside
      * @return Id of the found condition. -1 if no condition was found
      */
     int FindCondition( const Point& rThePoint,
                        Vector& rShapeFunctionValues,
-                       const Globals::Configuration configuration = Globals::Configuration::Initial,
+                       const Globals::Configuration Configuration = Globals::Configuration::Initial,
                        const double LocalCoordTol = 1e-6) const;
+
+    /**
+     * @brief This function finds an object based on a location
+     * @param rObjects the objects to search
+     * @param rThePoint the location to search
+     * @param rShapeFunctionValues vector containing the shape-function values for the given point
+     * @param Configuration search the Initial or Current configuration
+     * @param LocalCoordTol tolerance local-coordinates for IsInside
+     * @return Id of the found object. -1 if no condition was found
+     */
+    int FindObject( const PointerVector<GeometricalObject>& rObjects,
+                    const Point& rThePoint,
+                    Vector& rShapeFunctionValues,
+                    const Globals::Configuration Configuration = Globals::Configuration::Initial,
+                    const double LocalCoordTol = 1e-6) const;
 
     ///@}
     ///@name Input and output
@@ -136,13 +151,13 @@ private:
      * @param rThePoint the location to search
      * @param rObjectId Id of the found condition. -1 if no object was found
      * @param rShapeFunctionValues vector containing the shape-function values for the given point
-     * @param configuration search the Initial or Current configuration
+     * @param Configuration search the Initial or Current configuration
      * @param LocalCoordTol tolerance local-coordinates for IsInside
      */
     template<typename TObjectType>
     void FindObject(const TObjectType& rObjects, const std::string& rObjectType,
                     const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues,
-                    const Globals::Configuration configuration, const double LocalCoordTol) const;
+                    const Globals::Configuration Configuration, const double LocalCoordTol) const;
 
     /**
      * @brief This function performs some checks after the search
@@ -158,13 +173,13 @@ private:
      * @brief This function checks whether a node is close to a point based on a threshold
      * @param rNode the node to check
      * @param rThePoint the location to search
-     * @param configuration search the Initial or Current configuration
+     * @param Configuration search the Initial or Current configuration
      * @param DistanceThreshold threshold for the distance
      * @return whether the rNode is close to rThePoint
      */
     bool NodeIsCloseEnough(const Node<3>& rNode,
                            const Point& rThePoint,
-                           const Globals::Configuration configuration,
+                           const Globals::Configuration Configuration,
                            const double DistanceThreshold) const;
 
     ///@}
