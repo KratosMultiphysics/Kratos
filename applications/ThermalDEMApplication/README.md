@@ -40,7 +40,7 @@ Available options: *thermal_sphere_strategy*.
 		"strategy": "thermal_sphere_strategy"
 	}
 
-Change **element type**.
+Change **element type**.\
 Available options: *ThermalSphericPartDEMElement3D*.
 
 	"ElementType": "ThermalSphericPartDEMElement3D"
@@ -128,7 +128,7 @@ Add **material relations variables**:
 
 ### DEM Model Parts (mdpa file)
 
-Change **elements type**.
+Change **elements type**.\
 Available options: *ThermalSphericParticle*.
 
 	Begin Elements ThermalSphericParticle
@@ -168,230 +168,230 @@ Add **SubModelPartData** to sub model parts with desired options:
 ## Input Explanations
 
 **Thermal settings**
-- *"ThermalIntegrationScheme"*:
-  Selected scheme for time integration of thermal problem.
+- *"ThermalIntegrationScheme"*:\
+  Selected scheme for time integration of thermal problem.\
   Default: "Forward_Euler"
   
-- *"thermal_solve_frequency"*:
-  Number of steps in which thermal problem is solved.
+- *"thermal_solve_frequency"*:\
+  Number of steps in which thermal problem is solved.\
   Default: 1
   
-- *"voronoi_tesselation_frequency"*:
-  Number of steps in which Voronoi diagram is built, in case it is required.
+- *"voronoi_tesselation_frequency"*:\
+  Number of steps in which Voronoi diagram is built, in case it is required.\
   Default: 1000
   
-- *"porosity_update_frequency"*:
-  Number of steps in which porosity is computed, in case it is required.
+- *"porosity_update_frequency"*:\
+  Number of steps in which porosity is computed, in case it is required.\
   Default: 1000
   
-- *"compute_motion"*:
-  Boolean for solving mechanical problem.
+- *"compute_motion"*:\
+  Boolean for solving mechanical problem.\
   Default: true
 
-- *"compute_direct_conduction"*:
-  Boolean for computing heat transfer between elements by direct conduction.
+- *"compute_direct_conduction"*:\
+  Boolean for computing heat transfer between elements by direct conduction.\
   Default: true
   
-- *"compute_indirect_conduction"*:
-  Boolean for computing heat transfer between elements by indirect conduction.
+- *"compute_indirect_conduction"*:\
+  Boolean for computing heat transfer between elements by indirect conduction.\
   Default: false
 
-- *"compute_convection"*:
-  Boolean for computing heat transfer from fluid to particles by convection.
+- *"compute_convection"*:\
+  Boolean for computing heat transfer from fluid to particles by convection.\
   Default: false
 
-- *"compute_radiation"*:
-  Boolean for computing heat transfer between elements by radiation.
+- *"compute_radiation"*:\
+  Boolean for computing heat transfer between elements by radiation.\
   Default: false
 
-- *"compute_friction_heat"*:
-  Boolean for computing heat generation by friction between elements.
+- *"compute_friction_heat"*:\
+  Boolean for computing heat generation by friction between elements.\
   Default: false
 
-- *"compute_adjusted_contact"*:
-  Boolean for adjusting contact geometry between elements according to the real value of Young modulus.
+- *"compute_adjusted_contact"*:\
+  Boolean for adjusting contact geometry between elements according to the real value of Young modulus.\
   Default: false
 
-- *"direct_conduction_model"*:
-  Selected model for simulating heat transfer by direct conduction.
+- *"direct_conduction_model"*:\
+  Selected model for simulating heat transfer by direct conduction.\
   Default: "batchelor_obrien"
 
-- *"indirect_conduction_model"*:
-  Selected model for simulating heat transfer by indirect conduction.
+- *"indirect_conduction_model"*:\
+  Selected model for simulating heat transfer by indirect conduction.\
   Default: "surrounding_layer"
 
-- *"nusselt_correlation"*:
-  Selected correlation for computing Nusselt number and thus simulating heat convection between solids and fluid.
+- *"nusselt_correlation"*:\
+  Selected correlation for computing Nusselt number and thus simulating heat convection between solids and fluid.\
   Default: "sphere_hanz_marshall"
 
-- *"radiation_model"*:
-  Selected model for simulating heat transfer by radiation.
+- *"radiation_model"*:\
+  Selected model for simulating heat transfer by radiation.\
   Default: "continuum_zhou"
 
-- *"adjusted_contact_model"*:
-  Selected model for adjusting contact geometry.
+- *"adjusted_contact_model"*:\
+  Selected model for adjusting contact geometry.\
   Default: "zhou"
 
-- *"voronoi_method"*:
-  Selected method for obtaining data from Voronoi diagram, in case it is required.
+- *"voronoi_method"*:\
+  Selected method for obtaining data from Voronoi diagram, in case it is required.\
   Default: "tesselation"
 
-- *"porosity_method"*:
-  Selected method for computing porosity, in case it is required.
+- *"porosity_method"*:\
+  Selected method for computing porosity, in case it is required.\
   Default: "average_alpha_shape"
 
-- *"min_conduction_distance"*:
-  Minimum heat conduction distance required for indirect conduction model "surrounding_layer".
+- *"min_conduction_distance"*:\
+  Minimum heat conduction distance required for indirect conduction model "surrounding_layer".\
   Default: 0.0000000275
 
-- *"max_conduction_distance"*:
-  Maximum distance for heat conduction (ratio of particle radius) required for indirect conduction model "voronoi_a" and "voronoi_b".
+- *"max_conduction_distance"*:\
+  Maximum distance for heat conduction (ratio of particle radius) required for indirect conduction model "voronoi_a" and "voronoi_b".\
   Default: 1.0
 
-- *"fluid_layer_thickness"*:
-  Thickness of particle fluid layer (ratio of particle radius) required for indirect conduction model "surrounding_layer".
+- *"fluid_layer_thickness"*:\
+  Thickness of particle fluid layer (ratio of particle radius) required for indirect conduction model "surrounding_layer".\
   Default: 0.4
 
-- *"isothermal_core_radius"*:
-  Radius of particle isothermal core (ratio of particle radius) required for indirect conduction model "voronoi_b".
+- *"isothermal_core_radius"*:\
+  Radius of particle isothermal core (ratio of particle radius) required for indirect conduction model "voronoi_b".\
   Default: 0.5
 
-- *"max_radiation_distance"*:
-  Maximum distance for heat radiation (ratio of particle radius) required by all radiation models.
+- *"max_radiation_distance"*:\
+  Maximum distance for heat radiation (ratio of particle radius) required by all radiation models.\
   Default: 2.0
 
-- *"friction_heat_conversion_ratio"*:
-  Ratio of the work done by frictional forces that is converted into heat.
+- *"friction_heat_conversion_ratio"*:\
+  Ratio of the work done by frictional forces that is converted into heat.\
   Default: 1.0
 
-- *"global_porosity"*:
-  Prescribed value for the porosity, required for porosity computation method "global".
+- *"global_porosity"*:\
+  Prescribed value for the porosity, required for porosity computation method "global".\
   Default: 0.0
 
-- *"alpha_shape_parameter"*:
-  Alpha radius for the alpha-shape method, required for porosity computation method "average_alpha_shape".
+- *"alpha_shape_parameter"*:\
+  Alpha radius for the alpha-shape method, required for porosity computation method "average_alpha_shape".\
   Default: 1.2
 
-- *"integral_tolerance"*:
-  Numerical tolerance for numerical integration, in case it is required.
+- *"integral_tolerance"*:\
+  Numerical tolerance for numerical integration, in case it is required.\
   Default: 0.000001
 
-- *"global_fluid_properties"*:
+- *"global_fluid_properties"*:\
   Prescribed values for the properties of the interstitial fluid, assumed as constant throughout all the analysis (fluid behavior does not change as it is not simulated).
 
-- *"global_fluid_properties.fluid_density"*:
-  Fixed value of fluid density.
+- *"global_fluid_properties.fluid_density"*:\
+  Fixed value of fluid density.\
   Default: 1.0
 
-- *"global_fluid_properties.fluid_viscosity"*:
-  Fixed value of fluid viscosity.
+- *"global_fluid_properties.fluid_viscosity"*:\
+  Fixed value of fluid viscosity.\
   Default: 1.0
 
-- *"global_fluid_properties.fluid_thermal_conductivity"*:
-  Fixed value of fluid thermal conductivity.
+- *"global_fluid_properties.fluid_thermal_conductivity"*:\
+  Fixed value of fluid thermal conductivity.\
   Default: 1.0
 
-- *"global_fluid_properties.fluid_heat_capacity"*:
-  Fixed value of fluid heat capacity.
+- *"global_fluid_properties.fluid_heat_capacity"*:\
+  Fixed value of fluid heat capacity.\
   Default: 1.0
 
-- *"global_fluid_properties.fluid_temperature"*:
-  Fixed value of fluid temperature.
+- *"global_fluid_properties.fluid_temperature"*:\
+  Fixed value of fluid temperature.\
   Default: 0.0
 
-- *"global_fluid_properties.fluid_velocity_X"*:
-  Fixed value of fluid velocity in global X direction.
+- *"global_fluid_properties.fluid_velocity_X"*:\
+  Fixed value of fluid velocity in global X direction.\
   Default: 0.0
 
-- *"global_fluid_properties.fluid_velocity_Y"*:
-  Fixed value of fluid velocity in global Y direction.
+- *"global_fluid_properties.fluid_velocity_Y"*:\
+  Fixed value of fluid velocity in global Y direction.\
   Default: 0.0
 
-- *"global_fluid_properties.fluid_velocity_Z"*:
-  Fixed value of fluid velocity in global Z direction.
+- *"global_fluid_properties.fluid_velocity_Z"*:\
+  Fixed value of fluid velocity in global Z direction.\
   Default: 0.0
 
 **Post options**
-- *"PostTemperature"*:
-  Boolean for showing elements temperature in post processing.
+- *"PostTemperature"*:\
+  Boolean for showing elements temperature in post processing.\
   Default: false
   
-- *"PostHeatFlux"*:
-  Boolean for showing elements heat flux in post processing.
+- *"PostHeatFlux"*:\
+  Boolean for showing elements heat flux in post processing.\
   Default: false
   
-- *"PostGraphParticleTempMin"*:
-  Boolean for writing a graph with the minimum particle temperature.
+- *"PostGraphParticleTempMin"*:\
+  Boolean for writing a graph with the minimum particle temperature.\
   Default: false
   
-- *"PostGraphParticleTempMax"*:
-  Boolean for writing a graph with the maximum particle temperature.
+- *"PostGraphParticleTempMax"*:\
+  Boolean for writing a graph with the maximum particle temperature.\
   Default: false
   
-- *"PostGraphParticleTempAvg"*:
-  Boolean for writing a graph with the average temperature of all particles.
+- *"PostGraphParticleTempAvg"*:\
+  Boolean for writing a graph with the average temperature of all particles.\
   Default: false
   
-- *"PostGraphParticleTempDev"*:
-  Boolean for writing a graph with the standard deviation of the temperature of all particles.
+- *"PostGraphParticleTempDev"*:\
+  Boolean for writing a graph with the standard deviation of the temperature of all particles.\
   Default: false
   
-- *"PostGraphModelTempAvg"*:
-  Boolean for writing a graph with the weighted average of the temperature of all particles (taking the particles volume into account).
+- *"PostGraphModelTempAvg"*:\
+  Boolean for writing a graph with the weighted average of the temperature of all particles (taking the particles volume into account).\
   Default: false
   
-- *"PostGraphHeatFluxContributions"*:
-  Boolean for writing a graph with the contribution of each heat transfer mechanism to the total heat transfer.
+- *"PostGraphHeatFluxContributions"*:\
+  Boolean for writing a graph with the contribution of each heat transfer mechanism to the total heat transfer.\
   Default: false
 
 **Material properties**
-- *"materials.Variables.THERMAL_CONDUCTIVITY"*:
+- *"materials.Variables.THERMAL_CONDUCTIVITY"*:\
   Thermal conductivity of material (always required).
 
-- *"materials.Variables.SPECIFIC_HEAT"*:
+- *"materials.Variables.SPECIFIC_HEAT"*:\
   Specific heat of material (always required).
 
-- *"materials.Variables.EMISSIVITY"*:
+- *"materials.Variables.EMISSIVITY"*:\
   Emissivity of material surface, from 0.0 to 1.0, in which 1.0 is a perfect black body (required by radiative heat transfer).
 
-- *"materials.Variables.THERMAL_EXPANSION_COEFFICIENT"*:
+- *"materials.Variables.THERMAL_EXPANSION_COEFFICIENT"*:\
   Thermal expansion coefficient of material (default: 0.0).
 
-- *"materials.Tables.input_variable"*:
+- *"materials.Tables.input_variable"*:\
   Input (X-axis) variable of the curve given by the table.
 
-- *"materials.Tables.output_variable"*:
+- *"materials.Tables.output_variable"*:\
   Output (Y-axis) variable of the curve given by the table.
 
-- *"materials.Tables.data"*:
+- *"materials.Tables.data"*:\
   Points of the curve given by the table.
 
-- *"material_relations.Variables.DYNAMIC_FRICTION"*:
+- *"material_relations.Variables.DYNAMIC_FRICTION"*:\
   Dynamic friction coefficient between materials (required by frictional heat generation).
 
 **SubModelPartData**
-- *TEMPERATURE*:
-  Initial temperature of the elements.
+- *TEMPERATURE*:\
+  Initial temperature of the elements.\
   Default: 0.0
 
-- *FIXED_TEMPERATURE*:
-  Boolean for fixing the temperature of the elements.
+- *FIXED_TEMPERATURE*:\
+  Boolean for fixing the temperature of the elements.\
   Default: 0
 
-- *HEATFLUX*:
-  Prescribed value of heat flux applied over elements surface (thermal power by area).
+- *HEATFLUX*:\
+  Prescribed value of heat flux applied over elements surface (thermal power by area).\
   Default: 0.0
 
-- *HEATSOURCE*:
-  Prescribed value of heat source applied over elements volume (thermal power by volume).
+- *HEATSOURCE*:\
+  Prescribed value of heat source applied over elements volume (thermal power by volume).\
   Default: 0.0
 
-- *ADIABATIC*:
-  Boolean for setting elements as adiabatic (no heat transfer with other elements).
+- *ADIABATIC*:\
+  Boolean for setting elements as adiabatic (no heat transfer with other elements).\
   Default: 0
 
-- *REAL_YOUNG_MODULUS_RATIO*:
-  Ratio between the real value of the Young modulus and the value used in the simulation.
+- *REAL_YOUNG_MODULUS_RATIO*:\
+  Ratio between the real value of the Young modulus and the value used in the simulation.\
   Default: 1.0
 
 ## Testing
