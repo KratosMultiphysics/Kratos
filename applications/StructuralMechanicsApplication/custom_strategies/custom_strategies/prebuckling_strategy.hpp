@@ -151,10 +151,12 @@ public:
         this->SetRebuildLevel(1);
 
         // Set Matrices and Vectors to empty pointers
-        mpStiffnessMatrix = TSparseSpace::CreateEmptyMatrixPointer();
-        mpStiffnessMatrixPrevious = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        const DataCommunicator &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        mpStiffnessMatrix = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        mpStiffnessMatrixPrevious = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+
+        mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        mpRHS = TSparseSpace::CreateEmptyVectorPointer(r_comm);
 
         rModelPart.GetProcessInfo()[TIME] = 1.0;
 
@@ -344,8 +346,9 @@ public:
             SparseVectorType& rDx  = *mpDx;
 
             // Initialize dummy vectors
-            SparseVectorPointerType _pDx = SparseSpaceType::CreateEmptyVectorPointer();
-            SparseVectorPointerType _pb = SparseSpaceType::CreateEmptyVectorPointer();
+            const DataCommunicator &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+            SparseVectorPointerType _pDx = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+            SparseVectorPointerType _pb = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
 
             // Reset solution dofs
             BuiltinTimer system_construction_time;

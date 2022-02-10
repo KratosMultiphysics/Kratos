@@ -139,7 +139,7 @@ public:
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
         if (TSparseSpace::Size(mPreviousDx) != TSparseSpace::Size(Dx)) {
-            TSparseSpace::Resize(mPreviousDx, TSparseSpace::Size(Dx));
+            // TSparseSpace::Resize(mPreviousDx, TSparseSpace::Size(Dx));
         }
         TSparseSpace::SetToZero(mPreviousDx);
         mIterationCounter = 0;

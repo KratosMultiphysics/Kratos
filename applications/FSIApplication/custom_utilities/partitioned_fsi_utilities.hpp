@@ -193,7 +193,8 @@ public:
      */
     virtual VectorPointerType SetUpInterfaceVector(ModelPart& rInterfaceModelPart)
     {
-        VectorPointerType p_int_vector = TSpace::CreateEmptyVectorPointer();
+        const DataCommunicator &r_comm = rInterfaceModelPart.GetCommunicator().GetDataCommunicator();
+        VectorPointerType p_int_vector = TSpace::CreateEmptyVectorPointer(r_comm);
         const unsigned int residual_size = this->GetInterfaceResidualSize(rInterfaceModelPart);
         if (TSpace::Size(*p_int_vector) != residual_size){
             TSpace::Resize(p_int_vector, residual_size);

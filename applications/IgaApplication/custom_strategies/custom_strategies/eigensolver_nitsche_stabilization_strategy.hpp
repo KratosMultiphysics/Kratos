@@ -288,8 +288,9 @@ public:
         SparseMatrixType& rStabilizationMatrix = this->GetStabilizationMatrix();
 
         // Initialize dummy vectors
-        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
+        const DataCommunicator &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
         auto& rDx = *pDx;
         auto& rb = *pb;
 
@@ -574,8 +575,10 @@ public:
             <<  "Entering FinalizeSolutionStep" << std::endl;
 
         SparseMatrixType& rStabilizationMatrix = this->GetStabilizationMatrix();
-        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
+
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
         pGetBuilderAndSolver()->FinalizeSolutionStep(
             BaseType::GetModelPart(), rStabilizationMatrix, *pDx, *pb);
         pGetScheme()->FinalizeSolutionStep(BaseType::GetModelPart(),
