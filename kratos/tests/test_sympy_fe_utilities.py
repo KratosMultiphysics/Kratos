@@ -6,7 +6,7 @@ import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
 class TestSympyFEUtilities(KratosUnittest.TestCase):
 
-    def test_ScalarOutput(self):
+    def testScalarOutput(self):
         x = sympy.var('x')
         y = sympy.var('y')
         z = sympy.var('z')
@@ -18,7 +18,7 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
 
         self.assertEqual(code, expected_code)
 
-    def test_VectorOutput(self):
+    def testVectorOutput(self):
         x = KratosSympy.DefineVector('x', 3)
         y = KratosSympy.DefineVector('y', 3)
 
@@ -34,7 +34,7 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
 
         self.assertEqual(code, expected_code)
 
-    def test_MatrixOutput(self):
+    def testMatrixOutput(self):
         x = KratosSympy.DefineMatrix('x', 2, 3)
         y = KratosSympy.DefineMatrix('y', 2, 3)
 
@@ -53,7 +53,7 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
 
         self.assertEqual(code, expected_code)
 
-    def test_OutputSymbolicVariableDeclaration(self):
+    def testOutputSymbolicVariableDeclaration(self):
         x = sympy.var('x')
         y = sympy.var('y')
 
@@ -64,7 +64,7 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
         expected_code = "    const double f = sqrt(pow(x, 2) + pow(y, 2));\n"
         self.assertEqual(code, expected_code)
 
-    def test_OutputScalar_CollectingFactors(self):
+    def testOutputScalar_CollectingFactors(self):
         x = KratosSympy.DefineVector('x', 5)
         y = KratosSympy.DefineVector('y', 5)
 
@@ -82,6 +82,16 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
             ""
         ])
         self.assertEqual(code, expected_code)
+
+    def testDefineSymmetricMatrix(self):
+        nrows = 5
+        ncols = 7
+        A = KratosSympy.DefineSymmetricMatrix("A", nrows, ncols)
+
+        square_region = min(nrows, ncols)
+        A_square = A[:square_region, :square_region]
+
+        self.assertEqual(A_square.T, A_square)
 
 if __name__ == '__main__':
     KratosUnittest.main()
