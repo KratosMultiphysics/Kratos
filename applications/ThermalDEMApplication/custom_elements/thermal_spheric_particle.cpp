@@ -420,7 +420,7 @@ namespace Kratos
       std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
       if      (model.compare("zhou")   == 0) mContactRadiusAdjusted = AdjustedContactRadiusZhou(r_process_info);
       else if (model.compare("lu")     == 0) mContactRadiusAdjusted = AdjustedContactRadiusLu(r_process_info);
-      else if (model.compare("Morris") == 0) mContactRadiusAdjusted = AdjustedContactRadiusMorris(r_process_info);
+      else if (model.compare("morris") == 0) mContactRadiusAdjusted = AdjustedContactRadiusMorris(r_process_info);
 
       // Compute adjusted distance/separation from adjusted contact radius
       mNeighborDistanceAdjusted   = ComputeDistanceToNeighborAdjusted();
