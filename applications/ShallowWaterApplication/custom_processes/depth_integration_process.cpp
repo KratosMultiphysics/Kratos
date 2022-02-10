@@ -196,7 +196,7 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
             const double target_distance = target_depth - inner_prod(mDirection, rNode);
             const Point target_point(rNode + mDirection * target_distance);
             auto elem_id = locator.FindObject(rObjects, target_point, shape_functions, config);
-            if (elem_id > 0) {
+            if (elem_id) {
                 velocity = InterpolateVelocity(elem_id, shape_functions);
             }
         }
