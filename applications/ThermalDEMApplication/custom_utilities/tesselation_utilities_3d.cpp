@@ -221,7 +221,7 @@ namespace Kratos {
 
     // Compute alpha radius
     // Assumption: Only in the 1st step - keeping alpha radius constant throghout simulation
-    if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0 && r_process_info[TIME_STEPS] == 1)
+    if (r_process_info[POROSITY_METHOD].compare("average_alpha_shape") == 0 && r_process_info[TIME_STEPS] == 1)
       ComputeAlphaRadius(rModelPart, rOut);
 
     // Accumulate total volume of tetahedra and particles
@@ -248,7 +248,7 @@ namespace Kratos {
       const double z4 = rOut.pointlist[3 * v4 + 2];
 
       // Perform alpha-shape
-      if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0) {
+      if (r_process_info[POROSITY_METHOD].compare("average_alpha_shape") == 0) {
         std::vector<double> coords = { x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4 };
         if (!AlphaShape(coords)) {
           continue;

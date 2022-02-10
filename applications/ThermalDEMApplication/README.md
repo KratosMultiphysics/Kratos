@@ -64,7 +64,7 @@ Add **thermal settings** with desired options:
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
 		"adjusted_contact_model"         : "zhou" or "lu" or "morris",
-		"voronoi_method"                 : "tesselation" or "posority",
+		"voronoi_method"                 : "tesselation" or "porosity",
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
 		"min_conduction_distance"        : 0.0000000275,
 		"max_conduction_distance"        : 1.0,

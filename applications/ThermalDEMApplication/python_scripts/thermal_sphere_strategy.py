@@ -250,7 +250,7 @@ class ExplicitStrategy(BaseStrategy):
             raise Exception('ThermalDEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
         if (self.voronoi_method != "tesselation" and
-            self.voronoi_method != "posority"):
+            self.voronoi_method != "porosity"):
             raise Exception('ThermalDEM', 'Voronoi method \'' + self.voronoi_method + '\' is not implemented.')
         
         if (self.porosity_method != "global"              and
@@ -308,7 +308,7 @@ class ExplicitStrategy(BaseStrategy):
         if   (self.compute_indirect_conduction_option         and
              (self.indirect_conduction_model == "voronoi_a"   or
               self.indirect_conduction_model == "voronoi_b")  and
-              self.voronoi_method            == "posority"    and
+              self.voronoi_method            == "porosity"    and
               self.porosity_method           != "global"):
               self.compute_porosity = True
         elif (self.compute_convection_option                  and
@@ -393,7 +393,7 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
         self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL,    self.adjusted_contact_model)
         self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD,            self.voronoi_method)
-        self.spheres_model_part.ProcessInfo.SetValue(POSORITY_METHOD,           self.porosity_method)
+        self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD,           self.porosity_method)
 
         # Model parameters
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)

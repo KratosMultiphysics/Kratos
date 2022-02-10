@@ -1177,7 +1177,7 @@ namespace Kratos
     }
 
     // Based on porosity
-    else if (r_process_info[VORONOI_METHOD].compare("posority") == 0) {
+    else if (r_process_info[VORONOI_METHOD].compare("porosity") == 0) {
       if (mNeighborType & WALL_NEIGHBOR) {
         // Assumption: using particle radius only
         return 0.56 * particle_radius * pow((1.0 - r_process_info[AVERAGE_POROSITY]), -1.0 / 3.0);

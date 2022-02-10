@@ -24,7 +24,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(std::string,                          RADIATION_MODEL)
   KRATOS_CREATE_VARIABLE(std::string,                          ADJUSTED_CONTACT_MODEL)
   KRATOS_CREATE_VARIABLE(std::string,                          VORONOI_METHOD)
-  KRATOS_CREATE_VARIABLE(std::string,                          POSORITY_METHOD)
+  KRATOS_CREATE_VARIABLE(std::string,                          POROSITY_METHOD)
   KRATOS_CREATE_VARIABLE(bool,                                 MOTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 DIRECT_CONDUCTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 INDIRECT_CONDUCTION_OPTION)

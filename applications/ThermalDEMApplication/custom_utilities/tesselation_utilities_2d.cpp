@@ -220,7 +220,7 @@ namespace Kratos {
 
     // Compute alpha radius
     // Assumption: Only in the 1st step - keeping alpha radius constant throghout simulation
-    if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0 && r_process_info[TIME_STEPS] == 1)
+    if (r_process_info[POROSITY_METHOD].compare("average_alpha_shape") == 0 && r_process_info[TIME_STEPS] == 1)
       ComputeAlphaRadius(rModelPart, rOut);
 
     // Accumulate total area of triangles and particles
@@ -240,7 +240,7 @@ namespace Kratos {
       const double y3 = rOut.pointlist[2 * v3 + 1];
 
       // Perform alpha-shape
-      if (r_process_info[POSORITY_METHOD].compare("average_alpha_shape") == 0) {
+      if (r_process_info[POROSITY_METHOD].compare("average_alpha_shape") == 0) {
         std::vector<double> coords = { x1, y1, x2, y2, x3, y3 };
         if (!AlphaShape(coords)) {
           continue;
