@@ -153,7 +153,7 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
     unsigned int unknown_node_index = 0;
     array_1d<double,TDim> d;
     double nodal_vol = Volume/static_cast<double>(TDim+1);
-    double avg_dist = 0.0;
+    //double avg_dist = 0.0;
 
     //compute discriminant and find the index of the unknown node
     noalias(d) = ZeroVector(TDim);
@@ -162,14 +162,14 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
         if (rGeometry[iii].Is(VISITED)) //identyfing the unknown node
         {
             const double distance = rGeometry[iii].FastGetSolutionStepValue(*mpDistanceVar);
-            avg_dist += distance;
+            //avg_dist += distance;
             for (unsigned int jjj = 0; jjj < TDim; jjj++)
                 d[jjj] += rDN_DX(iii, jjj) * distance;
         }
         else
             unknown_node_index = iii;
     }
-    avg_dist /= static_cast<double>(TDim);
+    //avg_dist /= static_cast<double>(TDim);
 
     //finalizing computation of discriminant
     double c = -1.0;
