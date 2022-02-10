@@ -164,7 +164,7 @@ void NearestElementLocalSystem::SetPairingStatusForPrinting()
 
 bool NearestElementLocalSystem::IsDoneSearching() const
 {
-    if (HasInterfaceInfoThatIsNotAnApproximation()) {return true};
+    if (HasInterfaceInfoThatIsNotAnApproximation()) {return true;};
 
     std::size_t sum_search_results = 0;
 
