@@ -63,7 +63,7 @@ Add **thermal settings** with desired options:
 		"indirect_conduction_model"      : "surrounding_layer" or "voronoi_a" or "voronoi_b" or "vargas_mccarthy",
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
-		"adjusted_contact_model"         : "zhou" or "lu" or "Morris",
+		"adjusted_contact_model"         : "zhou" or "lu" or "morris",
 		"voronoi_method"                 : "tesselation" or "posority",
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
 		"min_conduction_distance"        : 0.0000000275,
