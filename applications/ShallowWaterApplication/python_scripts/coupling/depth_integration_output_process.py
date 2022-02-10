@@ -66,18 +66,14 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
     def ExecuteBeforeSolutionLoop(self):
         '''Write the interface model part in HDF5 format.'''
+        self.integration_process.Execute()
+        self._MapToOutputModelPart()
         self.hdf5_process.ExecuteBeforeSolutionLoop()
 
 
     def ExecuteInitializeSolutionStep(self):
         '''Synchronize the ProcessInfo of the output and interface model part.'''
         self._SetOutputProcessInfo()
-
-
-    def ExecuteBeforeOutputStep(self):
-        '''Perform the depth integration over the interface model part.'''
-        self.integration_process.Execute()
-        self._MapToOutputModelPart()
 
 
     def IsOutputStep(self):
@@ -87,7 +83,9 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
 
     def PrintOutput(self):
-        '''Print the integrated variables from interface model part.'''
+        '''Perform the depth integration over the interface model part.'''
+        self.integration_process.Execute()
+        self._MapToOutputModelPart()
         self.hdf5_process.ExecuteFinalizeSolutionStep()
 
 
