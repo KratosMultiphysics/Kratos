@@ -380,7 +380,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
     std::size_t done_counter = 0;
     std::size_t approx_counter = 0;
-    std::vector<int> it_counters(5,0);
+    std::vector<int> it_counters(MapperLocalSystem::NUM_SEARCH_PARTICIPATIONS,0);
     for (const auto& loc_sys : rMapperLocalSystems) {
         if (loc_sys->IsDoneSearching()) {
             done_counter++;
