@@ -174,13 +174,14 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
             Point point(start);
 
             auto elem_id = locator.FindObject(rObjects, point, shape_functions, config);
-            if (elem_id > 0) {velocity += 0.5 * weight * InterpolateVelocity(elem_id, shape_functions);
+            if (elem_id) {
+                velocity += 0.5 * weight * InterpolateVelocity(elem_id, shape_functions);
             }
             array_1d<double,3> obj_velocity = ZeroVector(3);
             for (int i = 1; i < num_steps; ++i) {
                 point += step * mDirection;
                 elem_id = locator.FindObject(rObjects, point, shape_functions, config);
-                if (elem_id > 0) {
+                if (elem_id) {
                     obj_velocity = InterpolateVelocity(elem_id, shape_functions);
                     velocity += weight * obj_velocity;
                 }
@@ -195,7 +196,7 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
             const double target_distance = target_depth - inner_prod(mDirection, rNode);
             const Point target_point(rNode + mDirection * target_distance);
             auto elem_id = locator.FindObject(rObjects, target_point, shape_functions, config);
-            if (elem_id > 0) {
+            if (elem_id) {
                 velocity = InterpolateVelocity(elem_id, shape_functions);
             }
         }
@@ -206,12 +207,14 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
     SetValue(rNode, HEIGHT, height);
 }
 
-array_1d<double,3> DepthIntegrationProcess::InterpolateVelocity(const int ElementId, const Vector& rShapeFunctionValues) const
+array_1d<double,3> DepthIntegrationProcess::InterpolateVelocity(
+    const int ElementId,
+    const Vector& rShapeFunctionValues) const
 {
     array_1d<double,3> velocity = ZeroVector(3);
-    auto& r_elem = mrVolumeModelPart.GetElement(ElementId);
+    const auto& r_elem = mrVolumeModelPart.GetElement(ElementId);
     int n = 0;
-    for (auto& r_node : r_elem.GetGeometry()) {
+    for (const auto& r_node : r_elem.GetGeometry()) {
         velocity += rShapeFunctionValues[n] * r_node.FastGetSolutionStepValue(VELOCITY);
         n++;
     }

@@ -181,7 +181,9 @@ private:
 
     void Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode);
 
-    array_1d<double,3> InterpolateVelocity(const int ElementId, const Vector& rShapeFunctionValues) const;
+    array_1d<double,3> InterpolateVelocity(
+        const int ElementId,
+        const Vector& rShapeFunctionValues) const;
 
     template<class TDataType, class TVarType = Variable<TDataType>>
     void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType& rValue)
