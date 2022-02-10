@@ -163,7 +163,7 @@ private:
 
     std::vector<Kratos::Element> GetPipingElements() {
         ModelPart& CurrentModelPart = this->GetModelPart();
-        std::vector<SteadyStatePwPipingElement> PipeElements;
+        std::vector<Element> PipeElements;
         for (const Element element: CurrentModelPart.Elements())
         {
         	if (element.GetProperties().Has(PIPE_D_70))
