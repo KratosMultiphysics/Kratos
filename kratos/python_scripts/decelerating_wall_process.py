@@ -63,9 +63,6 @@ class DeceleratingWallProcess(KratosMultiphysics.Process):
         if self.period_ended:
             return
 
-        if self.recompute_normals:
-            KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, True)
-
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if time > self.period:
@@ -74,6 +71,9 @@ class DeceleratingWallProcess(KratosMultiphysics.Process):
             )
             self.period_ended = True
             return
+
+        if self.recompute_normals:
+            KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, True)
 
         dt = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         decay = (1000)**(-dt / self.period)
