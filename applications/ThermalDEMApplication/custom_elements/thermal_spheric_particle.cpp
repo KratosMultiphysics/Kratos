@@ -84,10 +84,6 @@ namespace Kratos
                         (this->Is(DEMThermalFlags::HAS_FRICTION_HEAT) ||
                         (this->Is(DEMThermalFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL].compare("collisional") == 0));    
 
-    // Initialize prescribed heat flux/source (currently a constant value)
-    SetParticlePrescribedHeatFluxSurface(0.0);
-    SetParticlePrescribedHeatFluxVolume(0.0);
-
     // Clear maps
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
