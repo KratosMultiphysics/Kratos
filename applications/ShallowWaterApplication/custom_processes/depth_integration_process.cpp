@@ -138,11 +138,11 @@ void DepthIntegrationProcess<TDim>::Integrate(
             elem_velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
             velocity += weight * elem_velocity;
         }
-        if (!prev_is_found & is_found) { // this is the first element
+        if (!prev_is_found && is_found) { // this is the first element
             min_height = inner_prod(point, mDirection);
             velocity -= 0.5 * weight * elem_velocity;
         }
-        if (prev_is_found & !is_found) { // the previous element is the last
+        if (prev_is_found && !is_found) { // the previous element is the last
             max_height = inner_prod(point, mDirection);
             velocity -= 0.5 * weight * elem_velocity;
         }
