@@ -1421,7 +1421,6 @@ namespace Kratos
 						noalias(vel) += geom[j].FastGetSolutionStepValue(mVelocityVar)*N[j];
 					}
 
-					//only_integral += 1.0; //values saved for the current time step
 
 					position+=vel*substep_dt;//weight;
 
