@@ -1524,7 +1524,6 @@ namespace Kratos
 				nsubsteps=1;
 			substep_dt = delta_t / double(nsubsteps);
 
-			//only_integral = 1.0;// weight;//*double(nsubsteps);
 			position -= vel*substep_dt;//weight;
 
 			for(unsigned int i=0; i<(nsubsteps-1); i++)// this is for the substeps n+1. in the first one we already knew the position of the particle.
