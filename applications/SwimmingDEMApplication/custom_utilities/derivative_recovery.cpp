@@ -69,9 +69,8 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
     convective_contributions_to_the_derivative.resize(entry);
 
     array_1d <double, 3> grad = ZeroVector(3);
-    array_1d <double, TDim + 1 > elemental_values;
-    array_1d <double, TDim + 1 > N; // shape functions vector
-    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
+    Vector N; // shape functions vector
+    Matrix DN_DX;
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
 
@@ -80,10 +79,24 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
             // computing the shape function derivatives
             Geometry<Node<3> >& geom = ielem->GetGeometry();
-            double Volume;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+            const unsigned int n_nodes = geom.PointsNumber();
+            Vector elemental_values = ZeroVector(n_nodes);
+            double Volume = geom.DomainSize();
 
-            for (unsigned int i = 0; i < TDim + 1; ++i){
+            const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            const IndexType number_of_gauss_points = integration_points.size();
+
+            const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            Vector detJ_vector(number_of_gauss_points);
+            geom.DeterminantOfJacobian(detJ_vector, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+                N = row(N_container, g);
+                DN_DX = geom.ShapeFunctionDerivatives(1, g, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+
+            for (unsigned int i = 0; i < n_nodes; ++i){
                 elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
             }
 
@@ -93,12 +106,13 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
                 grad[i] = grad_aux[i];
             }
 
-            double nodal_area = Volume / static_cast<double>(TDim + 1);
+            double nodal_area = Volume / n_nodes;
             grad *= nodal_area;
 
-            for (unsigned int i = 0; i < TDim + 1; ++i){
+            for (unsigned int i = 0; i < n_nodes; ++i){
                 geom[i].FastGetSolutionStepValue(material_derivative_container) += grad; // we use material_derivative_container to store the gradient of one component at a time
             }
+        }
         }
 
         // normalizing the constributions to the gradient and getting the j-component of the material derivative
@@ -319,36 +333,48 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, TScala
     }
 
     array_1d <double, 3> grad = ZeroVector(3); // its dimension is always 3
-    array_1d <double, TDim + 1 > elemental_values;
-    array_1d <double, TDim + 1 > N; // shape functions vector
-    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
+    Vector N; // shape functions vector
+    Matrix DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
 
         // computing the shape function derivatives
 
         Geometry<Node<3> >& geom = ielem->GetGeometry();
-        double Volume;
+        const unsigned int n_nodes = geom.PointsNumber();
+        Vector elemental_values = ZeroVector(n_nodes);
+        double Volume = geom.DomainSize();
 
-        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+        const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+        const IndexType number_of_gauss_points = integration_points.size();
 
-        // getting the gradients;
+        const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        for (unsigned int i = 0; i < TDim + 1; ++i){
-            elemental_values[i] = geom[i].FastGetSolutionStepValue(scalar_container);
-        }
+        Vector detJ_vector(number_of_gauss_points);
+        geom.DeterminantOfJacobian(detJ_vector, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+        for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+            N = row(N_container, g);
+            DN_DX = geom.ShapeFunctionDerivatives(1, g, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-        for (unsigned int i = 0; i < TDim; ++i){
-            grad[i] = grad_aux[i];
-        }
+            // getting the gradients;
 
-        double nodal_area = Volume / static_cast<double>(TDim + 1);
-        grad *= nodal_area;
+            for (unsigned int i = 0; i < n_nodes; ++i){
+                elemental_values[i] = geom[i].FastGetSolutionStepValue(scalar_container);
+            }
 
-        for (unsigned int i = 0; i < TDim + 1; ++i){
-            geom[i].FastGetSolutionStepValue(gradient_container) += grad;
+            array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+
+            for (unsigned int i = 0; i < TDim; ++i){
+                grad[i] = grad_aux[i];
+            }
+
+            double nodal_area = Volume / n_nodes;
+            grad *= nodal_area;
+
+            for (unsigned int i = 0; i < n_nodes; ++i){
+                geom[i].FastGetSolutionStepValue(gradient_container) += grad;
+            }
         }
     }
 
@@ -365,16 +391,28 @@ void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variab
         noalias(inode->FastGetSolutionStepValue(auxiliary_veriable)) = ZeroVector(3);
     }
 
-    array_1d <double, TDim + 1 > N; // shape functions vector
-    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
+    Vector N; // shape functions vector
+    Matrix DN_DX;
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         // computing the shape function derivatives
 
         Geometry<Node<3> >& geom = ielem->GetGeometry();
-        double Volume;
+        const unsigned int n_nodes = geom.PointsNumber();
+        double Volume = geom.DomainSize();
 
-        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+        const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+        const IndexType number_of_gauss_points = integration_points.size();
+
+        const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+        Vector detJ_vector(number_of_gauss_points);
+        geom.DeterminantOfJacobian(detJ_vector, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+        for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+            N = row(N_container, g);
+            DN_DX = geom.ShapeFunctionDerivatives(1, g, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
 
         array_1d <double, 3> average = ZeroVector(3); // its dimension is always 3
 
@@ -382,12 +420,13 @@ void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variab
             noalias(average) += geom[i].FastGetSolutionStepValue(vector_field);
         }
 
-        double nodal_area = Volume / static_cast<double>(TDim + 1);
+        double nodal_area = Volume / n_nodes;
         average *= nodal_area;
 
-        for (unsigned int i = 0; i < TDim + 1; ++i){
+        for (unsigned int i = 0; i < n_nodes; ++i){
             geom[i].FastGetSolutionStepValue(auxiliary_veriable) += average;
         }
+    }
     }
 
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
@@ -642,11 +681,8 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
     std::fill(laplacians.begin(), laplacians.end(), ZeroVector(3));
 
     array_1d <double, 3> grad = ZeroVector(3);
-    array_1d <double, TDim + 1 > elemental_values;
-    array_1d <double, TDim + 1 > N; // shape functions vector
-    BoundedMatrix<double, TDim + 1, TDim> DN_DX;
-    BoundedMatrix<double, TDim + 1, TDim> elemental_vectors; // They carry the nodal gradients of the corresponding component v_j
-    const double nodal_area_share = 1.0 / static_cast<double>(TDim + 1);
+    Vector N;
+    Matrix DN_DX;
 
     for (unsigned int j = 0; j < TDim; ++j){ // for each component of the original vector value
 
@@ -657,24 +693,39 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
             // computing the shape function derivatives
 
             Geometry<Node<3> >& geom = ielem->GetGeometry();
-            double Volume;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+            unsigned int n_nodes = geom.PointsNumber();
+            Vector elemental_values = ZeroVector(n_nodes);
+            const double nodal_area_share = 1.0 / n_nodes;
+            double Volume = geom.DomainSize();
 
-            for (unsigned int i = 0; i < TDim + 1; ++i){
-                elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
-            }
+            const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            const IndexType number_of_gauss_points = integration_points.size();
 
-            array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+            const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            for (unsigned int i = 0; i < TDim; ++i){
-                grad[i] = grad_aux[i];
-            }
+            Vector detJ_vector(number_of_gauss_points);
+            geom.DeterminantOfJacobian(detJ_vector, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            double nodal_area = Volume * nodal_area_share;
-            grad *= nodal_area;
+            for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+                N = row(N_container, g);
+                DN_DX = geom.ShapeFunctionDerivatives(1, g, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-            for (unsigned int i = 0; i < TDim + 1; ++i){
-                geom[i].FastGetSolutionStepValue(laplacian_container) += grad; // we use laplacian_container to store the gradient of one component at a time
+                for (unsigned int i = 0; i < n_nodes; ++i){
+                    elemental_values[i] = geom[i].FastGetSolutionStepValue(vector_container)[j];
+                }
+
+                array_1d <double, TDim> grad_aux = prod(trans(DN_DX), elemental_values); // its dimension may be 2
+
+                for (unsigned int i = 0; i < TDim; ++i){
+                    grad[i] = grad_aux[i];
+                }
+
+                double nodal_area = Volume * nodal_area_share;
+                grad *= nodal_area;
+
+                for (unsigned int i = 0; i < n_nodes; ++i){
+                    geom[i].FastGetSolutionStepValue(laplacian_container) += grad; // we use laplacian_container to store the gradient of one component at a time
+                }
             }
         }
 
@@ -688,28 +739,43 @@ void DerivativeRecovery<TDim>::CalculateVectorLaplacian(ModelPart& r_model_part,
 
         for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
             Geometry<Node<3> >& geom = ielem->GetGeometry();
-            double Volume;
-            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+            const unsigned int n_nodes = geom.PointsNumber();
+            Matrix elemental_vectors = ZeroMatrix(n_nodes, TDim);
+            double Volume = geom.DomainSize();
 
-            for (unsigned int i = 0; i < TDim + 1; ++i){
+            const auto& integration_points = geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            const IndexType number_of_gauss_points = integration_points.size();
+
+            const Matrix& N_container = geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            Vector detJ_vector(number_of_gauss_points);
+            geom.DeterminantOfJacobian(detJ_vector, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            for (IndexType g = 0; g < number_of_gauss_points; ++g) {
+                N = row(N_container, g);
+                DN_DX = geom.ShapeFunctionDerivatives(1, g, GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+
+            for (unsigned int i = 0; i < n_nodes; ++i){
                 for (unsigned int k = 0; k < TDim; ++k){
                     elemental_vectors(i, k) = geom[i].FastGetSolutionStepValue(laplacian_container)[k]; // it is actually the gradient of component v_j
                 }
             }
 
-            BoundedMatrix<double, TDim, TDim> grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
+            Matrix grad_aux = prod(trans(DN_DX), elemental_vectors); // its dimension may be 2
             double divergence_of_vi = 0.0;
 
             for (unsigned int k = 0; k < TDim; ++k){ // the divergence is the trace of the gradient
                 divergence_of_vi += grad_aux(k, k);
             }
 
-            double nodal_area = Volume / static_cast<double>(TDim + 1);
+            double nodal_area = Volume / n_nodes;
             divergence_of_vi *= nodal_area;
 
-            for (unsigned int i = 0; i < TDim + 1; ++i){
+            for (unsigned int i = 0; i < n_nodes; ++i){
                 laplacians[id_to_position[geom[i].Id()]][j] += divergence_of_vi; // adding the contribution of the elemental divergence to each of its nodes
             }
+        }
         }
 
         // clearing the values stored in laplacian_container for the next component
@@ -1127,7 +1193,8 @@ unsigned int DerivativeRecovery<TDim>::GetNumberOfUniqueNeighbours(const int my_
 
     for (unsigned int i_el = 0; i_el < my_neighbour_elements.size(); ++i_el){
         const Geometry<Node<3> >& geom = my_neighbour_elements[i_el].GetGeometry();
-        for (unsigned int jj = 0; jj < TDim + 1; ++jj){
+        const unsigned int n_nodes = geom.PointsNumber();
+        for (unsigned int jj = 0; jj < n_nodes; ++jj){
             int id = (int)geom[jj].Id();
             std::vector<int>::iterator it;
             it = find(ids.begin(), ids.end(), id);
@@ -1166,7 +1233,7 @@ double DerivativeRecovery<TDim>::CalculateTheMaximumEdgeLength(ModelPart& r_mode
 
     for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
         Geometry<Node<3> >& geom = ielem->GetGeometry();
-        unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
+        unsigned int n_nodes = geom.PointsNumber();
 
         for (unsigned int k = 1; k < n_nodes - 1; ++k){
             for (unsigned int i = k; i < n_nodes; ++i){
@@ -1197,7 +1264,7 @@ double DerivativeRecovery<TDim>::CalculateTheMinumumEdgeLength(ModelPart& r_mode
             min_distance_yet = distance_2;
         }
 
-        unsigned int n_nodes = static_cast<unsigned int>(TDim + 1);
+        unsigned int n_nodes = geom.PointsNumber();
 
         for (unsigned int k = 1; k < n_nodes - 1; ++k){
             for (unsigned int i = k; i < n_nodes; ++i){
