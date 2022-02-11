@@ -121,7 +121,10 @@ void AddSparseMatricesToPython(pybind11::module& m)
             const int index_j = index.second;
             return self(index_i, index_j);
         })        
-    .def("SpMV", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
+    .def("SpMV", [](const CsrMatrix<double,IndexType>& rA,const SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){
+        rA.SpMV(x,y);
+    })
+    .def("SpMV", [](const CsrMatrix<double,IndexType>& rA,const Vector& x, Vector& y){
         rA.SpMV(x,y);
     })
     // .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,SystemVector<double,IndexType>& x, SystemVector<double,IndexType>& y){

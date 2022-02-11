@@ -30,9 +30,8 @@ class TestFluidRom(KratosUnittest.TestCase):
             # Set up simulation
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            is_hrom = False
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters, is_hrom)
+            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
             # Patch the RomAnalysis class to save the selected time steps results
             def Initialize(cls):

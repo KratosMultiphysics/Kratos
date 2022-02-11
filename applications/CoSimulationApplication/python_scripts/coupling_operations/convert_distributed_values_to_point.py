@@ -5,11 +5,11 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
 def Create(*args):
-    return DistributePointValuesOperation(*args)
+    return ConvertDistributedValuesToPoint(*args)
 
-class DistributePointValuesOperation(CoSimulationCouplingOperation):
-    """This operation converts concentrated nodal values (such as nodal loads) into distributed quantities (such as tractions)
-    It is the inverse operation of the "ConvertDistributedValuesToPoint" operation
+class ConvertDistributedValuesToPoint(CoSimulationCouplingOperation):
+    """This operation converts distributed quantities (such as tractions) into concentrated nodal values (such as nodal loads)
+    It is the inverse operation of the "DistributePointValuesOperation" operation
     """
 
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
@@ -18,9 +18,6 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
         solver_name = self.settings["solver"].GetString()
         self.data_point = solver_wrappers[solver_name].GetInterfaceData(self.settings["data_point_values"].GetString())
         self.data_dist  = solver_wrappers[solver_name].GetInterfaceData(self.settings["data_distributed_values"].GetString())
-
-        self.redistribution_iterations = self.settings["redistribution_iterations"].GetInt()
-        self.redistribution_tolerance  = self.settings["redistribution_tolerance"].GetDouble()
 
         entities_to_use = self.settings["entities"].GetString()
         if entities_to_use == "conditions":
@@ -32,17 +29,15 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
 
     def Execute(self):
         # TODO refactor the utility to allow mixed locations!
-        fct_ptr = KM.VariableRedistributionUtility.DistributePointValues
+        fct_ptr = KM.VariableRedistributionUtility.ConvertDistributedValuesToPoint
         if self.data_point.location == "node_non_historical":
-            fct_ptr = KM.VariableRedistributionUtility.DistributePointValuesNonHistorical
+            fct_ptr = KM.VariableRedistributionUtility.ConvertDistributedValuesToPointNonHistorical
 
         fct_ptr(
             self.data_point.GetModelPart(),
             self.entities,
-            self.data_point.variable,
             self.data_dist.variable,
-            self.redistribution_tolerance,
-            self.redistribution_iterations)
+            self.data_point.variable)
 
     def Check(self):
         if self.data_point.model_part_name != self.data_dist.model_part_name:
@@ -72,9 +67,7 @@ class DistributePointValuesOperation(CoSimulationCouplingOperation):
             "solver"                    : "UNSPECIFIED",
             "data_point_values"         : "UNSPECIFIED",
             "data_distributed_values"   : "UNSPECIFIED",
-            "entities"                  : "conditions",
-            "redistribution_tolerance"  : 1e-7,
-            "redistribution_iterations" : 100
+            "entities"                  : "conditions"
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
