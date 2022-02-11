@@ -583,15 +583,19 @@ void DistanceModificationProcess::DeactivateFullNegativeElements()
 
 void DistanceModificationProcess::SetContinuousDistanceToSplitFlag()
 {
-    #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem) {
-        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
-        auto &r_geom = it_elem->GetGeometry();
-        std::vector<double> elem_dist;
-        for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
-            elem_dist.push_back(r_geom[i_node].FastGetSolutionStepValue(DISTANCE));
+    if( mrModelPart.NumberOfElements()>0){
+        std::size_t nodes_per_element = mrModelPart.ElementsBegin()->GetGeometry().PointsNumber();
+        std::vector<double> elem_dist(nodes_per_element, 0.0);
+        #pragma omp parallel for firstprivate(elem_dist)
+        for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem) {
+            auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+            auto &r_geom = it_elem->GetGeometry();
+            if(elem_dist.size() != r_geom.PointsNumber()) elem_dist.resize(r_geom.PointsNumber());
+            for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                elem_dist[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+            }
+            this->SetElementToSplitFlag(*it_elem, elem_dist);
         }
-        this->SetElementToSplitFlag(*it_elem, elem_dist);
     }
 }
 

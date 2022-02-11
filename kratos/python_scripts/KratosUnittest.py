@@ -73,47 +73,58 @@ class TestCase(TestCase):
         msg = self._formatMessage(msg, standardMsg)
         raise self.failureException(msg)
 
-    def assertVectorAlmostEqual(self, vector1, vector2, prec=7):
+    def assertVectorAlmostEqual(self, vector1, vector2, prec=7, msg=None):
         class LazyErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
-            def __init__(self, mismatch_idx):
+            def __init__(self, mismatch_idx, aux_message=None):
                 self.mismatch_idx = mismatch_idx
+                self.aux_message=aux_message
 
             def __str__(self):
                 err_msg  = '\nCheck failed because vector arguments are not equal in component {}'.format(self.mismatch_idx)
                 err_msg += '\nVector 1:\n{}\nVector 2:\n{}'.format(vector1, vector2)
+                if self.aux_message:
+                    err_msg += "\n{}".format(self.aux_message)
                 return err_msg
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
-            self.assertAlmostEqual(v1, v2, prec, msg=LazyErrMsg(i))
+            self.assertAlmostEqual(v1, v2, prec, msg=LazyErrMsg(i, msg))
 
-    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7):
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7, msg=None):
         class LazyDimErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
+            def __init__(self, aux_message=None):
+                self.aux_message = aux_message
+
             def __str__(self):
                 err_msg  = '\nCheck failed because matrix arguments do not have the same dimensions:\n'
                 err_msg += 'First argument has dimensions ({},{}), '.format(matrix1.Size1(), matrix1.Size2())
                 err_msg += 'Second argument has dimensions ({},{})'.format(matrix2.Size1(), matrix2.Size2())
+                if self.aux_message:
+                    err_msg += "\n{}".format(self.aux_message)
                 return err_msg
 
         class LazyValErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
-            def __init__(self, idx_1, idx_2):
+            def __init__(self, idx_1, idx_2, aux_message=None):
                 self.idx_1 = idx_1
                 self.idx_2 = idx_2
+                self.aux_msg = aux_message
 
             def __str__(self):
                 err_msg  = '\nCheck failed because matrix arguments are not equal in component ({},{})'.format(self.idx_1, self.idx_2)
                 err_msg += '\nMatrix 1:\n{}\nMatrix 2:\n{}'.format(matrix1, matrix2)
+                if self.aux_message:
+                    err_msg += "\n{}".format(self.aux_message)
                 return err_msg
 
         dimensions_match = (matrix1.Size1() == matrix2.Size1() and matrix1.Size2() == matrix2.Size2())
-        self.assertTrue(dimensions_match, msg=LazyDimErrMsg())
+        self.assertTrue(dimensions_match, msg=LazyDimErrMsg(msg))
 
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=LazyValErrMsg(i,j))
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=LazyValErrMsg(i,j,msg))
 
 
 def skipIfApplicationsNotAvailable(*application_names):
