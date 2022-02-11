@@ -18,8 +18,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "geometries/line_2d_2.h"
-#include "geometries/line_3d_2.h"
 #include "depth_integration_process.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
