@@ -17,7 +17,7 @@ from KratosMultiphysics.sympy_fe_utilities import *
 do_simplifications = False
 dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR"
-divide_by_rho = True                # Divide by density in mass conservation equation
+divide_by_rho = False                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
 time_integration="bdf2"
@@ -77,7 +77,7 @@ for dim in dim_vector:
     f = DefineMatrix('f',nnodes,dim)            # Forcing term
     fn = DefineMatrix('fn',nnodes,dim)          # Previous step forcing term
     vmeshn = DefineMatrix('vmeshn',nnodes,dim)  # Previous step mesh velocity
-    
+
     ## Constitutive matrix definition
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
 
@@ -96,7 +96,7 @@ for dim in dim_vector:
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
     volume_error_ratio = Symbol('volume_error_ratio')
-    
+
     ## Convective velocity definition
     if (linearisation == "Picard"):
         vconv = DefineMatrix('vconv',nnodes,dim)    # Convective velocity defined a symbol
@@ -141,13 +141,13 @@ for dim in dim_vector:
         raise Exception(err_msg)
 
     if time_integration=="bdf2":
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1  
+        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
     else:
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))  # Stabilization parameter 1
     tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1
 
     ## Data interpolation to the Gauss points
-    p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes 
+    p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes
     penr_gauss = penr.transpose()*Nenr
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
@@ -179,7 +179,7 @@ for dim in dim_vector:
         grad_sym_v_voigt = grad_sym_voigtform(DN,v)
     elif time_integration=="alpha_method":     # Symmetric gradient of v in Voigt notation
         grad_sym_v_voigt = grad_sym_voigtform(DN,v_alpha)
-    
+
     grad_sym_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
@@ -200,10 +200,10 @@ for dim in dim_vector:
     # Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p 
+    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p
     if time_integration=="bdf2":
         vel_residual-= K_darcy*v_gauss
-        
+
     # Mass conservation residual
     if (divide_by_rho):
         if time_integration=="alpha_method":
@@ -329,7 +329,7 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_enrichment_H_2D", H_out)
         outstring = outstring.replace("//substitute_enrichment_Kee_2D", Kee_out)
         outstring = outstring.replace("//substitute_enrichment_rhs_ee_2D", rhs_ee_out)
-    
+
     elif(dim == 3):
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)

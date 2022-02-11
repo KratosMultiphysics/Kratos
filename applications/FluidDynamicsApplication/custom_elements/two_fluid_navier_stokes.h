@@ -307,6 +307,8 @@ protected:
         TElementData& rData,
         VectorType& rRHS);
 
+    double ComputeMassSourceTerm(TElementData &rData);
+
     /**
      * @brief Computes the pressure enrichment contributions
      * This method computes the pressure enrichment contributions for
@@ -317,12 +319,12 @@ protected:
      * @param rKee Contribution related to the pressure enrichment DOFs in the enrichment equations
      * @param rRHS_ee Right Hand Side of the enrichment equations
      */
-	virtual void ComputeGaussPointEnrichmentContributions(
-		TElementData& rData,
-		MatrixType& rV,
-		MatrixType& rH,
-		MatrixType& rKee,
-		VectorType& rRHS_ee);
+    virtual void ComputeGaussPointEnrichmentContributions(
+        TElementData &rData,
+        MatrixType &rV,
+        MatrixType &rH,
+        MatrixType &rKee,
+        VectorType &rRHS_ee);
 
     /// Set up the element's data and constitutive law for the current integration point.
     /** @param[in/out] rData Container for the current element's data.
