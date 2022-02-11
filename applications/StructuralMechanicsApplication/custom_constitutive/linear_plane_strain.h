@@ -71,7 +71,7 @@ public:
     static constexpr SizeType Dimension = 2;
 
     /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = 3;
+    static constexpr SizeType VoigtSize = 4;
 
     /// Counted pointer of LinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain );

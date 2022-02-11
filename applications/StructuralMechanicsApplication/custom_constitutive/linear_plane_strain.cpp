@@ -136,7 +136,7 @@ void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
     //Set the strain size
-    rFeatures.mStrainSize = 3;
+    rFeatures.mStrainSize = GetStrainSize();
 
     //Set the spacedimension
     rFeatures.mSpaceDimension = 2;
@@ -160,9 +160,17 @@ void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& C, Constitut
 
     C(0, 0) = c1;
     C(0, 1) = c2;
+    C(0, 2) = c2;
+
     C(1, 0) = c2;
     C(1, 1) = c1;
-    C(2, 2) = c3;
+    C(1, 2) = c2;
+
+    C(2, 0) = c2;
+    C(2, 1) = c2;
+    C(2, 2) = c1;
+
+    C(3, 3) = c3;
 }
 
 /***********************************************************************************/
@@ -174,18 +182,10 @@ void LinearPlaneStrain::CalculatePK2Stress(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    noalias(rStressVector) = prod(C, rStrainVector);
 
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
-
-    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
-    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
-    rStressVector[2] = c3 * rStrainVector[2];
 }
 
 /***********************************************************************************/
