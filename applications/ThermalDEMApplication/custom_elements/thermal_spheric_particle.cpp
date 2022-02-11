@@ -181,6 +181,13 @@ namespace Kratos
       mNeighborType  = WALL_NEIGHBOR_CONTACT;
       mNeighborIndex = i;
       ComputeHeatFluxWithNeighbor(r_process_info);
+
+      // ATTENTION:
+      // Maximum of 2 contact neighbor walls (maybe can be removed).
+      // A rare bug was observed in the particle-wall contact in which 3 neighbor walls were detected when there was only 1.
+      // To avoid overcomputing heat transfer, this limit of 2 neighbors is being imposed.
+      if (i > 1)
+        return;
     }
 
     // Compute heat fluxes with noncontact neighbor walls
