@@ -23,7 +23,6 @@
 #include "geo_mechanics_application_variables.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 
-
 #include "boost/range/adaptor/filtered.hpp"
 
 namespace Kratos
@@ -56,7 +55,13 @@ public:
     typedef typename BaseType::TSystemMatrixType                                  TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType                                  TSystemVectorType;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    typedef typename SteadyStatePwPipingElement<2, 4>                    SteadyStatePwPipingElement;
+    typedef Properties PropertiesType;
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+	
+	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     ///Constructor
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(
         ModelPart& model_part,
@@ -93,7 +98,7 @@ public:
 
     void FinalizeSolutionStep() override
 	{
-    	KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
+    	KRATOS_INFO("PipingLoop") << "Max PipingX Iterations: " << mPipingIterations << std::endl;
     	
         int PipeIter = 0;
         bool Equilibrium = false;
@@ -102,12 +107,13 @@ public:
 
         // Open tip element of pipe (activate next pipe element)
         PipeElements.at(0).Set(ACTIVE, true);
-    	
+
+
     	// Implement Piping Loop (non-lin picard iteration)
     	while (PipeIter < mPipingIterations && !Equilibrium)
         {
-
-            // Update the pipe_height by the pipe increment
+            
+    		// Update the pipe_height by the pipe increment
     		
     		// Sellmeijer Piping Method 
             Equilibrium = true;
@@ -118,13 +124,11 @@ public:
 			
     		for (auto OpenPipeElement : OpenPipeElements)
             {
-				// For all open pipe elements:
-                //	if pipe_element_height > critical_height_element:
-                //      Equilibrium = false // Loop again
-                //      update the pipe_height by the pipe increment
-
-            	KRATOS_INFO("PipingLoop") << "Pipe Element: " << OpenPipeElement.Id() << " = " << OpenPipeElement.Is(ACTIVE) << std::endl;
-    			
+                SteadyStatePwPipingElement& pElement = static_cast<SteadyStatePwPipingElement>(OpenPipeElement);
+                GeometryType Geom = OpenPipeElement.GetGeometry();
+                PropertiesType Prop = OpenPipeElement.GetProperties();
+                auto pipeHeight = pElement.CalculateEquilibriumPipeHeight(Geom, Prop);
+                KRATOS_INFO("PipingLoop") << "Pipe Element: " << OpenPipeElement.Id() << " Pipe Height = " << pipeHeight << std::endl;
 
             }
     			// JN TODO: For transient analysis reset state to start of solution step ???
