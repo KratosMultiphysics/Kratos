@@ -44,7 +44,10 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         self.interval = KM.IntervalUtility(self.settings)
         self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT]
 
-        self.integration_process = SW.DepthIntegrationProcess(model, self._CreateIntegrationParameters())
+        if self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+            self.integration_process = SW.DepthIntegrationProcess2D(model, self._CreateIntegrationParameters())
+        else:
+            self.integration_process = SW.DepthIntegrationProcess3D(model, self._CreateIntegrationParameters())
         self.hdf5_process = single_mesh_temporal_output_process.Factory(self._CreateHDF5Parameters(), model)
 
 
