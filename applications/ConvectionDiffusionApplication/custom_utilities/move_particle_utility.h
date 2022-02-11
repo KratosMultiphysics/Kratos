@@ -1504,7 +1504,6 @@ namespace Kratos
 		//we start with the first position, then it will enter the loop.
 		position = pparticle.Coordinates(); // + (pparticle)->FastGetSolutionStepValue(DISPLACEMENT); //initial coordinates
 
-		//double only_integral  = 0.0 ;
 
 		is_found = FindNodeOnMesh(position, N ,pelement,result_begin,MaxNumberOfResults); //good, now we know where this point is:
 		if(is_found == true)
