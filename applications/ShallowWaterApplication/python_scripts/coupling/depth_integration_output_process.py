@@ -22,7 +22,6 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
             "interface_model_part_name" : "",
             "output_model_part_name"    : "",
             "store_historical_database" : false,
-            "direction_of_integration"  : [0.0, 0.0, 1.0],
             "velocity_depth_integration": true,
             "velocity_relative_depth"   : -0.531,
             "mean_water_level"          : 0.0,
@@ -136,7 +135,6 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         integration_settings = KM.Parameters()
         integration_settings.AddValue("volume_model_part_name", self.settings["volume_model_part_name"])
         integration_settings.AddValue("interface_model_part_name", self.settings["interface_model_part_name"])
-        integration_settings.AddValue("direction_of_integration", self.settings["direction_of_integration"])
         integration_settings.AddValue("store_historical_database", self.settings["store_historical_database"])
         integration_settings.AddValue("velocity_depth_integration", self.settings["velocity_depth_integration"])
         integration_settings.AddValue("velocity_relative_depth", self.settings["velocity_relative_depth"])
