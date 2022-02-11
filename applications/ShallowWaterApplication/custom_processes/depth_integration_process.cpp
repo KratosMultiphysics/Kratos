@@ -23,14 +23,13 @@
 #include "depth_integration_process.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/brute_force_point_locator.h"
 #include "shallow_water_application_variables.h"
-#include "processes/find_intersected_geometrical_objects_process.h"
 
 namespace Kratos
 {
 
-const Parameters DepthIntegrationProcess::GetDefaultParameters() const
+template<std::size_t TDim>
+const Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
 {
     auto default_parameters = Parameters(R"(
     {
@@ -45,7 +44,8 @@ const Parameters DepthIntegrationProcess::GetDefaultParameters() const
     return default_parameters;
 }
 
-DepthIntegrationProcess::DepthIntegrationProcess(
+template<std::size_t TDim>
+DepthIntegrationProcess<TDim>::DepthIntegrationProcess(
     Model& rModel,
     Parameters ThisParameters
     ) : Process(),
@@ -72,30 +72,30 @@ DepthIntegrationProcess::DepthIntegrationProcess(
     }
 }
 
-void DepthIntegrationProcess::Execute()
+template<std::size_t TDim>
+void DepthIntegrationProcess<TDim>::Execute()
 {
     double bottom, top;
-    InitializeIntegrationModelPart();
     GetBoundingVolumeLimits(bottom, top);
-    CreateIntegrationLines(bottom, top);
-    FindIntersectedGeometricalObjectsProcess find_intersected_objects_process(*mpIntegrationModelPart, mrVolumeModelPart);
-    find_intersected_objects_process.ExecuteInitialize();
-    find_intersected_objects_process.FindIntersections();
-    auto intersected_objects = find_intersected_objects_process.GetIntersections();
-    Integrate(intersected_objects);
+    BinBasedFastPointLocator<TDim> locator(mrVolumeModelPart);
+    locator.UpdateSearchDatabase();
+
+    struct locator_tls {
+        Vector N;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results;
+        locator_tls(const int max_results = 10000) {
+            N(TDim + 1);
+            results.resize(max_results);
+        }
+    };
+
+    block_for_each(mrInterfaceModelPart.Nodes(), locator_tls(), [&](NodeType& rNode, locator_tls& rTLS){
+        Integrate(rNode, bottom, top, locator, rTLS.results, rTLS.N);
+    });
 }
 
-void DepthIntegrationProcess::InitializeIntegrationModelPart()
-{
-    VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Nodes());
-    VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Elements());
-    VariableUtils().SetFlag(TO_ERASE, true, mpIntegrationModelPart->Conditions());
-    mpIntegrationModelPart->RemoveNodesFromAllLevels();
-    mpIntegrationModelPart->RemoveElementsFromAllLevels();
-    mpIntegrationModelPart->RemoveConditionsFromAllLevels();
-}
-
-void DepthIntegrationProcess::GetBoundingVolumeLimits(double& rMin, double& rMax)
+template<std::size_t TDim>
+void DepthIntegrationProcess<TDim>::GetBoundingVolumeLimits(double& rMin, double& rMax)
 {
     using MultipleReduction = CombinedReduction<MinReduction<double>,MaxReduction<double>>; 
 
@@ -105,100 +105,56 @@ void DepthIntegrationProcess::GetBoundingVolumeLimits(double& rMin, double& rMax
     });
 }
 
-void DepthIntegrationProcess::CreateIntegrationLines(const double Low, const double High)
+template<std::size_t TDim>
+void DepthIntegrationProcess<TDim>::Integrate(
+    NodeType& rNode,
+    const double Bottom,
+    const double Top,
+    BinBasedFastPointLocator<TDim>& rLocator,
+    typename BinBasedFastPointLocator<TDim>::ResultContainerType& rResults,
+    Vector& rShapeFunctionsValues)
 {
-    // Set the element name
-    const auto dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    std::string element_name = (dimension == 2) ? "Element2D2N" : "Element3D2N";
+    // Integrate the velocity over the water column
+    const int num_steps = 20;
+    const double step = (Top - Bottom) / double(num_steps-1);
+    const double weight = 1.0 / double(num_steps);
+    const array_1d<double,3> start = rNode + mDirection * (Bottom -inner_prod(rNode, mDirection));
+    array_1d<double,3> point(start);
 
-    // Get some properties
-    ModelPart::PropertiesType::Pointer p_prop;
-    if (mpIntegrationModelPart->HasProperties(1)) {
-        p_prop = mpIntegrationModelPart->pGetProperties(1);
-    } else {
-        p_prop = mpIntegrationModelPart->CreateNewProperties(1);
-    }
-
-    // Initialize the ids counter
-    std::size_t node_id = 0;
-    std::size_t elem_id = 0;
-
-    // Create the integration lines
-    for (auto& node : mrInterfaceModelPart.Nodes()) {
-        const double origin = inner_prod(node, mDirection);
-        array_1d<double,3> start = node + mDirection * (Low - origin);
-        array_1d<double,3> end = node + mDirection * (High - origin);
-        mpIntegrationModelPart->CreateNewNode(++node_id, start[0], start[1], start[2]);
-        mpIntegrationModelPart->CreateNewNode(++node_id, end[0], end[1], end[2]);
-        mpIntegrationModelPart->CreateNewElement(element_name, ++elem_id, {{node_id-1, node_id}}, p_prop);
-    }
-}
-
-void DepthIntegrationProcess::Integrate(std::vector<PointerVector<GeometricalObject>>& rResults)
-{
-    KRATOS_ERROR_IF(rResults.size() != mrInterfaceModelPart.NumberOfNodes()) << "DepthIntegrationProcess: the number of nodes in the interface and the number of integration lines mismatch.";
-    IndexPartition<int>(static_cast<int>(rResults.size())).for_each([&](int i) {
-        auto& objects_in_line = rResults[i];
-        auto i_node = mrInterfaceModelPart.NodesBegin() + i;
-        Integrate(objects_in_line, *i_node);
-    });
-}
-
-void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjects, NodeType& rNode)
-{
+    Element::Pointer p_elem;
+    double min_height = 0.0;
+    double max_height = 0.0;
     array_1d<double,3> velocity = ZeroVector(3);
-    double height = 0.0;
+    array_1d<double,3> elem_velocity;
 
-    if (rObjects.size() > 0)
-    {
-        double min_elevation = 1e6;
-        double max_elevation = -1e6;
-        for (auto& object : rObjects) {
-            const double obj_elevation = inner_prod(mDirection, object.GetGeometry().Center());
-            min_elevation = std::min(min_elevation, obj_elevation);
-            max_elevation = std::max(max_elevation, obj_elevation);
+    bool prev_is_found = false;
+    for (int i = 1; i < num_steps; ++i) {
+        point += step * mDirection;
+        bool is_found = rLocator.FindPointOnMesh(point, rShapeFunctionsValues, p_elem, rResults.begin());
+        if (is_found) {
+            elem_velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
+            velocity += weight * elem_velocity;
         }
-        height = max_elevation - min_elevation;
-
-        const auto config = Globals::Configuration::Current;
-        Vector shape_functions;
-        BruteForcePointLocator locator(mrVolumeModelPart);
-
-        if (mVelocityDepthIntegration)
-        {
-            // Integrate the velocity over the water column
-            const int num_steps = 20;
-            const double step = (height -0.2 * rObjects.begin()->GetGeometry().Length()) / double(num_steps-1);
-            const double weight = 1.0 / double(num_steps);
-            const array_1d<double,3> start = rNode + mDirection * (min_elevation -inner_prod(rNode, mDirection));
-            Point point(start);
-
-            auto elem_id = locator.FindObject(rObjects, point, shape_functions, config);
-            array_1d<double,3> point_vel = ZeroVector(3);
-            if (elem_id) {velocity += 0.5 * weight * InterpolateVelocity(elem_id, shape_functions);
-            }
-            array_1d<double,3> obj_velocity;
-            for (int i = 1; i < num_steps; ++i) {
-                point += step * mDirection;
-                elem_id = locator.FindObject(rObjects, point, shape_functions, config);
-                if (elem_id) {
-                    obj_velocity = InterpolateVelocity(elem_id, shape_functions);
-                    velocity += weight * obj_velocity;
-                }
-            }
-            velocity -= 0.5 * weight * obj_velocity;
+        if (!prev_is_found & is_found) { // this is the first element
+            min_height = inner_prod(rNode, mDirection);
+            velocity -= 0.5 * weight * elem_velocity;
         }
-        else
-        {
-            // Evaluate the velocity at a certain depth
-            const double reference_depth = mMeanWaterLevel - min_elevation;
-            const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
-            const double target_distance = target_depth - inner_prod(mDirection, rNode);
-            const Point target_point(rNode + mDirection * target_distance);
-            auto elem_id = locator.FindObject(rObjects, target_point, shape_functions, config);
-            if (elem_id) {
-                velocity = InterpolateVelocity(elem_id, shape_functions);
-            }
+        if (prev_is_found & !is_found) { // the previous element is the last
+            max_height = inner_prod(rNode, mDirection);
+            velocity -= 0.5 * weight * elem_velocity;
+        }
+        prev_is_found = is_found;
+    }
+    double height = max_height - min_height;
+
+    if (!mVelocityDepthIntegration) { // Evaluate the velocity at a certain depth
+        const double reference_depth = mMeanWaterLevel - min_height;
+        const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
+        const double target_distance = target_depth - inner_prod(mDirection, rNode);
+        const Point target_point(rNode + mDirection * target_distance);
+        bool is_found = rLocator.FindPointOnMesh(target_point, rShapeFunctionsValues, p_elem, rResults.begin());
+        if (is_found) {
+            velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
         }
     }
     array_1d<double,3> momentum = height * velocity;
@@ -207,21 +163,22 @@ void DepthIntegrationProcess::Integrate(PointerVector<GeometricalObject>& rObjec
     SetValue(rNode, HEIGHT, height);
 }
 
-array_1d<double,3> DepthIntegrationProcess::InterpolateVelocity(
-    const int ElementId,
+template<std::size_t TDim>
+array_1d<double,3> DepthIntegrationProcess<TDim>::InterpolateVelocity(
+    const Element::Pointer pElement,
     const Vector& rShapeFunctionValues) const
 {
     array_1d<double,3> velocity = ZeroVector(3);
-    const auto& r_elem = mrVolumeModelPart.GetElement(ElementId);
     int n = 0;
-    for (auto& r_node : r_elem.GetGeometry()) {
+    for (auto& r_node : pElement->GetGeometry()) {
         velocity += rShapeFunctionValues[n] * r_node.FastGetSolutionStepValue(VELOCITY);
         n++;
     }
     return velocity;
 }
 
-int DepthIntegrationProcess::Check()
+template<std::size_t TDim>
+int DepthIntegrationProcess<TDim>::Check()
 {
     const auto dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
     KRATOS_ERROR_IF(dimension != 2 && dimension != 3) << Info() << ": Wrong DOMAIN_SIZE equal to " << dimension << "in model part " << mrVolumeModelPart.Name() << std::endl;
@@ -229,5 +186,8 @@ int DepthIntegrationProcess::Check()
     KRATOS_ERROR_IF(mrVolumeModelPart.NumberOfNodes() == 0) << Info() << ": The volume model part is empty. Not possible to construct the octree." << std::endl;
     return 0;
 }
+
+template class DepthIntegrationProcess<2>;
+template class DepthIntegrationProcess<3>;
 
 }  // namespace Kratos.
