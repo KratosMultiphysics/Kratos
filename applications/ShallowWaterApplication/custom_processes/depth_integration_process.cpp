@@ -35,7 +35,6 @@ const Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
     {
         "volume_model_part_name"    : "",
         "interface_model_part_name" : "",
-        "direction_of_integration"  : [0.0, 0.0, 1.0],
         "store_historical_database" : false,
         "velocity_depth_integration": true,
         "velocity_relative_depth"   : -0.531,
@@ -54,13 +53,8 @@ DepthIntegrationProcess<TDim>::DepthIntegrationProcess(
 {
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
     mStoreHistorical = ThisParameters["store_historical_database"].GetBool();
-    mDirection = ThisParameters["direction_of_integration"].GetVector();
+    mDirection = -mrVolumeModelPart.GetProcessInfo()[GRAVITY];
     mDirection /= norm_2(mDirection);
-    if (rModel.HasModelPart("integration_auxiliary_model_part")) { // This is to allow multiple instances of this process
-        mpIntegrationModelPart = &rModel.GetModelPart("integration_auxiliary_model_part");
-    } else {
-        mpIntegrationModelPart = &rModel.CreateModelPart("integration_auxiliary_model_part");
-    }
     mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
     mVelocityRelativeDepth = ThisParameters["velocity_relative_depth"].GetDouble();
     mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
