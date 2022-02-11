@@ -120,38 +120,38 @@ void DepthIntegrationProcess<TDim>::Integrate(
     // Integrate the velocity over the water column
     const int num_steps = 50; // This number could be user defined, 20 steps produce good results for velocity but not for height
     const double step = (Top - Bottom) / double(num_steps-1);
-    const double weight = 1.0 / double(num_steps);
     const array_1d<double,3> start = rNode + mDirection * (Bottom -inner_prod(rNode, mDirection));
     array_1d<double,3> point(start);
 
     Element::Pointer p_elem;
-    double min_height = 0.0;
-    double max_height = 0.0;
     array_1d<double,3> velocity = ZeroVector(3);
+    array_1d<double,3> momentum = ZeroVector(3);
     array_1d<double,3> elem_velocity;
+    double height = 0.0;
+    double bottom_depth = 0.0;
 
     bool prev_is_found = false;
     for (int i = 1; i < num_steps; ++i) {
         point += step * mDirection;
         bool is_found = rLocator.FindPointOnMesh(point, rShapeFunctionsValues, p_elem, rResults.begin());
         if (is_found) {
+            height += step;
             elem_velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
-            velocity += weight * elem_velocity;
+            momentum += step * elem_velocity;
         }
         if (!prev_is_found && is_found) { // this is the first element
-            min_height = inner_prod(point, mDirection);
-            velocity -= 0.5 * weight * elem_velocity;
+            bottom_depth = inner_prod(point, mDirection);
+            momentum -= 0.5 * step * elem_velocity;
         }
         if (prev_is_found && !is_found) { // the previous element is the last
-            max_height = inner_prod(point, mDirection);
-            velocity -= 0.5 * weight * elem_velocity;
+            momentum -= 0.5 * step * elem_velocity;
         }
         prev_is_found = is_found;
     }
-    double height = max_height - min_height;
+    velocity = momentum / height;
 
     if (!mVelocityDepthIntegration) { // Evaluate the velocity at a certain depth
-        const double reference_depth = mMeanWaterLevel - min_height;
+        const double reference_depth = mMeanWaterLevel - bottom_depth;
         const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
         const double target_distance = target_depth - inner_prod(mDirection, rNode);
         const Point target_point(rNode + mDirection * target_distance);
@@ -160,7 +160,6 @@ void DepthIntegrationProcess<TDim>::Integrate(
             velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
         }
     }
-    array_1d<double,3> momentum = height * velocity;
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);
