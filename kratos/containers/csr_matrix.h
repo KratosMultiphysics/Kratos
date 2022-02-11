@@ -483,7 +483,6 @@ public:
         return value_map;
     }
 
-
     void BeginAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
     void FinalizeAssemble(){} //the SMP version does nothing. This function is there to be implemented in the MPI case
@@ -594,7 +593,37 @@ public:
     // SymmetricScaling
 
     //TODO
-    //void ApplyDirichlet
+    template<class TVectorType>
+    void ApplyDirichlet(const TVectorType& free_dofs_vector, const TDataType DiagonalValue)
+    {
+        KRATOS_ERROR_IF(size1() != free_dofs_vector.size() ) << "ApplyDirichlet: mismatch between row sizes : " << size1()  
+            << " and free_dofs_vector size " << free_dofs_vector.size() << std::endl;
+
+        if(nnz() != 0)
+        {
+            IndexPartition<IndexType>(size1()).for_each( [&](IndexType i){
+                IndexType row_begin = index1_data()[i];
+                IndexType row_end   = index1_data()[i+1];
+                if(free_dofs_vector[i]!=TDataType()) //row corresponding to free dofs
+                {
+                    for(IndexType k = row_begin; k < row_end; ++k){
+                        IndexType col = index2_data()[k];
+                        value_data()[k] *= free_dofs_vector[col]; //note that here we assume that free_dofs_vector is either 0 or 1
+                    }
+                }
+                else //row corresponding to a fixed dof
+                {
+                    for(IndexType k = row_begin; k < row_end; ++k){
+                        IndexType col = index2_data()[k];
+                        if(col!=i) //out-diagonal term
+                            value_data()[k] = TDataType();
+                        else
+                            value_data()[k] = DiagonalValue;
+                    }
+                }
+            });
+        }
+    }
 
     //TODO
     //NormFrobenius
