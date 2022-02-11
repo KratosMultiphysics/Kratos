@@ -69,13 +69,20 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-        # Construct the component by component parameter objects
-        x_params = KratosMultiphysics.Parameters("{}")
-        y_params = KratosMultiphysics.Parameters("{}")
-        z_params = KratosMultiphysics.Parameters("{}")
+        # Get domain size
+        # Note that we check both the current model part and the root one
+        if self.model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+            domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        else:
+            root_model_part = self.model_part.GetRootModelPart()
+            if root_model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+                domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            else:
+                raise Exception(f"Domain size is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers.")
 
-        list_params = [x_params, y_params, z_params]
-        for i_dir, var_string in enumerate(["_X", "_Y", "_Z"]):
+        # Construct the component by component parameter objects
+        list_params = [KratosMultiphysics.Parameters("{}") for _ in range(domain_size)]
+        for i_dir, var_string in enumerate(["_X", "_Y", "_Z"] if domain_size == 3 else ["_X", "_Y"]):
             list_params[i_dir].AddValue("model_part_name",settings["model_part_name"])
             list_params[i_dir].AddValue("mesh_id",settings["mesh_id"])
             list_params[i_dir].AddValue("constrained",settings["constrained"])
@@ -106,7 +113,7 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
         elif settings["direction"].IsArray():
             unit_direction = [0.0,0.0,0.0]
             direction_norm = 0.0
-            for i in range(0,3):
+            for i in range(domain_size):
                 if settings["direction"][i].IsNumber():
                     unit_direction[i] = settings["direction"][i].GetDouble()
                     direction_norm += pow(unit_direction[i],2)
@@ -120,28 +127,28 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                 direction_norm = math.sqrt(direction_norm)
                 if direction_norm < 1.0e-12:
                     raise Exception("Direction norm is close to 0 in AssignVectorByDirectionProcess.")
-                for i in range(0,3):
+                for i in range(domain_size):
                     unit_direction[i] = unit_direction[i]/direction_norm
 
         # Set the remainding parameters
         if settings["modulus"].IsNumber():
             modulus = settings["modulus"].GetDouble()
             if all_numeric:
-                for i_dir in range(3):
+                for i_dir in range(domain_size):
                     list_params[i_dir].AddEmptyValue("value").SetDouble(modulus * unit_direction[i_dir])
             else:
-                for i_dir in range(3):
+                for i_dir in range(domain_size):
                     list_params[i_dir].AddEmptyValue("value").SetString("("+str(unit_direction[i_dir])+")*("+str(modulus)+")")
         elif settings["modulus"].IsString():
             # The concatenated string is: "direction[i])*(f(x,y,z,t)"
             modulus = settings["modulus"].GetString()
-            for i_dir in range(3):
+            for i_dir in range(domain_size):
                 list_params[i_dir].AddEmptyValue("value").SetString("("+str(unit_direction[i_dir])+")*("+modulus+")")
 
 
         # Construct a AssignScalarToNodesProcess for each component
         self.aux_processes = []
-        for i_dir in range(3):
+        for i_dir in range(domain_size):
             self.aux_processes.append( assign_scalar_variable_process.AssignScalarVariableProcess(Model, list_params[i_dir]) )
 
     def ExecuteBeforeSolutionLoop(self):
