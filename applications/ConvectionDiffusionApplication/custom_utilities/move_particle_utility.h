@@ -1544,7 +1544,6 @@ namespace Kratos
 					}
 
 
-					//only_integral += 1.0;//weight ; //values saved for the current time step
 					position-=vel*substep_dt;//weight;
 				  }
 				  else KEEP_INTEGRATING=false;
