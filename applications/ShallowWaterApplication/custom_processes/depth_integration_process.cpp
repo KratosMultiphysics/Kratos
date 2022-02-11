@@ -107,7 +107,7 @@ void DepthIntegrationProcess<TDim>::Integrate(
     Vector& rShapeFunctionsValues)
 {
     // Integrate the velocity over the water column
-    const int num_steps = 20;
+    const int num_steps = 50; // This number could be user defined, 20 steps produce good results for velocity but not for height
     const double step = (Top - Bottom) / double(num_steps-1);
     const double weight = 1.0 / double(num_steps);
     const array_1d<double,3> start = rNode + mDirection * (Bottom -inner_prod(rNode, mDirection));
@@ -128,11 +128,11 @@ void DepthIntegrationProcess<TDim>::Integrate(
             velocity += weight * elem_velocity;
         }
         if (!prev_is_found & is_found) { // this is the first element
-            min_height = inner_prod(rNode, mDirection);
+            min_height = inner_prod(point, mDirection);
             velocity -= 0.5 * weight * elem_velocity;
         }
         if (prev_is_found & !is_found) { // the previous element is the last
-            max_height = inner_prod(rNode, mDirection);
+            max_height = inner_prod(point, mDirection);
             velocity -= 0.5 * weight * elem_velocity;
         }
         prev_is_found = is_found;
