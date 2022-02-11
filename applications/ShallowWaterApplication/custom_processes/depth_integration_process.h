@@ -154,9 +154,18 @@ private:
     ModelPart& mrInterfaceModelPart;
     array_1d<double,3> mDirection;
     bool mStoreHistorical;
+
+    // Option to substitute the depth integration by the specific depth
     bool mVelocityDepthIntegration;
     double mVelocityRelativeDepth;
     double mMeanWaterLevel;
+
+    // Option to substitute the boundaries by the neighbor
+    bool mExtrapolateBoundaries;
+    NodeType::Pointer mpFirstBoundaryNode;
+    NodeType::Pointer mpSecondBoundaryNode;
+    NodeType::Pointer mpFirstBoundaryNeighbor;
+    NodeType::Pointer mpSecondBoundaryNeighbor;
 
     ///@}
     ///@name Private Operators
@@ -182,13 +191,26 @@ private:
         const Vector& rShapeFunctionValues) const;
 
     template<class TDataType, class TVarType = Variable<TDataType>>
-    void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType& rValue)
+    void SetValue(NodeType& rNode, const TVarType& rVariable, TDataType rValue)
     {
         if (mStoreHistorical)
             rNode.FastGetSolutionStepValue(rVariable) = rValue;
         else
             rNode.GetValue(rVariable) = rValue;
     }
+
+    template<class TDataType, class TVarType = Variable<TDataType>>
+    TDataType GetValue(const NodeType& rNode, const TVarType& rVariable)
+    {
+        if (mStoreHistorical)
+            return rNode.FastGetSolutionStepValue(rVariable);
+        else
+            return rNode.GetValue(rVariable);
+    }
+
+    void FindBoundaryNeighbors();
+
+    void CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode);
 
     ///@}
     ///@name Private  Access

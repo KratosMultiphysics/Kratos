@@ -34,6 +34,7 @@ const Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
         "volume_model_part_name"    : "",
         "interface_model_part_name" : "",
         "store_historical_database" : false,
+        "extrapolate_boundaries"    : false,
         "velocity_depth_integration": true,
         "velocity_relative_depth"   : -0.531,
         "mean_water_level"          : 0.0
@@ -51,6 +52,7 @@ DepthIntegrationProcess<TDim>::DepthIntegrationProcess(
 {
     ThisParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
     mStoreHistorical = ThisParameters["store_historical_database"].GetBool();
+    mExtrapolateBoundaries = ThisParameters["extrapolate_boundaries"].GetBool();
     mDirection = -mrVolumeModelPart.GetProcessInfo()[GRAVITY];
     mDirection /= norm_2(mDirection);
     mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
@@ -61,6 +63,10 @@ DepthIntegrationProcess<TDim>::DepthIntegrationProcess(
         VariableUtils().SetNonHistoricalVariableToZero(MOMENTUM, mrInterfaceModelPart.Nodes());
         VariableUtils().SetNonHistoricalVariableToZero(VELOCITY, mrInterfaceModelPart.Nodes());
         VariableUtils().SetNonHistoricalVariableToZero(HEIGHT, mrInterfaceModelPart.Nodes());
+    }
+
+    if (mExtrapolateBoundaries) {
+        FindBoundaryNeighbors();
     }
 }
 
@@ -84,6 +90,11 @@ void DepthIntegrationProcess<TDim>::Execute()
     block_for_each(mrInterfaceModelPart.Nodes(), locator_tls(), [&](NodeType& rNode, locator_tls& rTLS){
         Integrate(rNode, bottom, top, locator, rTLS.results, rTLS.N);
     });
+
+    if (mExtrapolateBoundaries) {
+        CopyValues(*mpFirstBoundaryNeighbor, *mpFirstBoundaryNode);
+        CopyValues(*mpSecondBoundaryNeighbor, *mpSecondBoundaryNode);
+    }
 }
 
 template<std::size_t TDim>
@@ -174,9 +185,68 @@ int DepthIntegrationProcess<TDim>::Check()
 {
     const auto dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
     KRATOS_ERROR_IF(dimension != 2 && dimension != 3) << Info() << ": Wrong DOMAIN_SIZE equal to " << dimension << "in model part " << mrVolumeModelPart.Name() << std::endl;
-    KRATOS_ERROR_IF(mDirection.size() != 3) << Info() << ": The direction of integration must be given with three coordinates." << std::endl;
-    KRATOS_ERROR_IF(mrVolumeModelPart.NumberOfNodes() == 0) << Info() << ": The volume model part is empty. Not possible to construct the octree." << std::endl;
+    KRATOS_ERROR_IF(dimension == 2 and mExtrapolateBoundaries) << Info() << ": Is not possible to extrapolate the boundaries in a 2D simulation." << std::endl;
+    KRATOS_ERROR_IF(mrVolumeModelPart.NumberOfNodes() == 0) << Info() << ": The volume model part is empty. Not possible to construct the search structure." << std::endl;
     return 0;
+}
+
+template<std::size_t TDim>
+void DepthIntegrationProcess<TDim>::FindBoundaryNeighbors()
+{
+    // Step 1, find the center of the nodes
+    const std::size_t num_nodes = mrInterfaceModelPart.NumberOfNodes();
+    array_1d<double,3> center = block_for_each<SumReduction<array_1d<double,3>>>(
+        mrInterfaceModelPart.Nodes(), [&](NodeType& rNode){return rNode.Coordinates();}
+    );
+    center /= num_nodes;
+
+    // Step 2, compute the distances from the center
+    std::vector<double> distances(num_nodes);
+    IndexPartition<int>(num_nodes).for_each([&](int i){
+        auto it_node = mrInterfaceModelPart.NodesBegin() + i;
+        double distance = norm_2(center - *it_node);
+        distances[i] = distance;
+    });
+
+    // Step 3, the two further nodes are the boundaries
+    std::size_t i_first_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
+    double max_distance = distances[i_first_node];
+    distances[i_first_node] = 0.0;
+    std::size_t i_second_node = std::distance(distances.begin(), std::max_element(distances.begin(), distances.end()));
+    mpFirstBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_first_node);
+    mpSecondBoundaryNode = &*(mrInterfaceModelPart.NodesBegin() + i_second_node);
+
+    // Step 4, compute the distances from the first node, the closer is the neighbor
+    IndexPartition<int>(num_nodes).for_each([&](int i){
+        auto it_node = mrInterfaceModelPart.NodesBegin() + i;
+        double distance = norm_2(*mpFirstBoundaryNode - *it_node);
+        if (distance < 1e-6) {
+            distance = max_distance; // this is the boundary itself
+        }
+        distances[i] = distance;
+    });
+    std::size_t i_first_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
+    mpFirstBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_first_neigh);
+
+    // Step 5, compute the distances from the second node, the closer is the neighbor
+    IndexPartition<int>(num_nodes).for_each([&](int i){
+        auto it_node = mrInterfaceModelPart.NodesBegin() + i;
+        double distance = norm_2(*mpSecondBoundaryNode - *it_node);
+        if (distance < 1e-6) {
+            distance = max_distance; // this is the boundary itself
+        }
+        distances[i] = distance;
+    });
+    std::size_t i_second_neigh = std::distance(distances.begin(), std::min_element(distances.begin(), distances.end()));
+    mpSecondBoundaryNeighbor = &*(mrInterfaceModelPart.NodesBegin() + i_second_neigh);
+}
+
+template<std::size_t TDim>
+void DepthIntegrationProcess<TDim>::CopyValues(const NodeType& rOriginNode, NodeType& rDestinationNode)
+{
+    SetValue(rDestinationNode, HEIGHT, GetValue<double>(rOriginNode, HEIGHT));
+    SetValue(rDestinationNode, VELOCITY, GetValue<array_1d<double,3>>(rOriginNode, VELOCITY));
+    SetValue(rDestinationNode, MOMENTUM, GetValue<array_1d<double,3>>(rOriginNode, MOMENTUM));
 }
 
 template class DepthIntegrationProcess<2>;
