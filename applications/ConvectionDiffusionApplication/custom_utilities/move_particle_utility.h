@@ -1400,7 +1400,6 @@ namespace Kratos
 				nsubsteps=1;
 			substep_dt = delta_t / double(nsubsteps);
 
-			//only_integral = 1.0;// weight;//*double(nsubsteps);
 			position += vel*substep_dt;//weight;
 
 			//DONE THE FIRST LOCATION OF THE PARTICLE, NOW WE PROCEED TO STREAMLINE INTEGRATION USING THE MESH SEDIMENT_VELOCITY
