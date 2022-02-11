@@ -387,8 +387,8 @@ void InterfaceCommunicator::ConductLocalSearch()
 
     KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!" << std::endl;
 
-    int sum_num_results = 0;
-    int sum_num_searched_objects = 0;
+    std::size_t sum_num_results = 0;
+    std::size_t sum_num_searched_objects = 0;
 
     array_1d<double, 3> time_raw {0.0, 0.0, 0.0};
     array_1d<double, 3> time_avg {0.0, 0.0, 0.0};
@@ -464,8 +464,8 @@ void InterfaceCommunicator::ConductLocalSearch()
     if (mEchoLevel > 0) {
         const auto& r_data_comm = mrModelPartOrigin.GetCommunicator().GetDataCommunicator();
         if (r_data_comm.IsDefinedOnThisRank()) {
-            sum_num_results = r_data_comm.Sum(sum_num_results, 0);
-            sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+            sum_num_results = r_data_comm.Sum(static_cast<double>(sum_num_results), 0);
+            sum_num_searched_objects = r_data_comm.Sum(static_cast<double>(sum_num_searched_objects), 0);
 
             time_avg = r_data_comm.Sum(time_raw, 0);
             time_avg /= static_cast<double>(r_data_comm.Size());
@@ -527,27 +527,36 @@ void InterfaceCommunicator::PrintInfoAboutCurrentSearchSuccess(
 {
     if (rComm.GetDataCommunicator().IsNullOnThisRank()) { return; }
 
-    using TwoReduction = CombinedReduction<SumReduction<int>, SumReduction<int>>;
-    int approximations, no_neighbor;
-    std::tie(approximations, no_neighbor) = block_for_each<TwoReduction>(mrMapperLocalSystems,
+    array_1d<double, 3> counters = block_for_each<SumReduction<array_1d<double, 3>>>(mrMapperLocalSystems,
         [](const MapperLocalSystemPointer& rpLocalSys){
+            array_1d<double, 3> loc_counter;
+            loc_counter[0] = rpLocalSys->IsDoneSearching();
+
             if (rpLocalSys->HasInterfaceInfoThatIsNotAnApproximation()) {
-                return std::make_tuple(0,0);
+                loc_counter[1] = 0;
+                loc_counter[2] = 0;
             } else if (rpLocalSys->HasInterfaceInfo()) {
-                return std::make_tuple(1,0);
+                loc_counter[1] = 1;
+                loc_counter[2] = 0;
+            } else {
+                loc_counter[1] = 0;
+                loc_counter[2] = 1;
             }
-            return std::make_tuple(0,1);
+
+            return loc_counter;
     });
-    approximations = rComm.GetDataCommunicator().SumAll(approximations);
-    no_neighbor = rComm.GetDataCommunicator().SumAll(no_neighbor);
-    const int global_num_nodes = rComm.GlobalNumberOfNodes();
+
+    counters = rComm.GetDataCommunicator().Sum(counters, 0);
+    const double global_num_loc_sys = rComm.GetDataCommunicator().Sum(static_cast<double>(mrMapperLocalSystems.size()), 0);
+
+    const array_1d<double, 3> counters_proc = counters * 100 / global_num_loc_sys;
 
     KRATOS_INFO("Mapper search") << "current status:\n    "
-        << approximations << " / " << global_num_nodes << " ("
-        << std::round((approximations/static_cast<double>(global_num_nodes))*100)
+        << counters[0] << " / " << global_num_loc_sys << " (" << std::round(counters_proc[0])
+        << " %) local systems are done searching\n    "
+        << counters[1] << " / " << global_num_loc_sys << " (" << std::round(counters_proc[1])
         << " %) local systems found only an approximation\n    "
-        << no_neighbor << " / " << global_num_nodes << " ("
-        << std::round((no_neighbor/static_cast<double>(global_num_nodes))*100)
+        << counters[2] << " / " << global_num_loc_sys << " (" << std::round(counters_proc[2])
         << " %) local systems did not find a neighbor" << std::endl;
 
     KRATOS_INFO("Mapper search") << "Search iteration took " << rTimer.ElapsedSeconds() << " [s]" << std::endl;
