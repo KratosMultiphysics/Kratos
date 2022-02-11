@@ -51,17 +51,17 @@ class CompressibleNavierStokesSymbolicGeneratorTest(KratosUnittest.TestCase):
 
 
     def testGeneratorTetra(self):
-        reference_hash = "63c2a914c7127f4272bb653739aef97507ddf396f21a21bf4a31198640878fa93b8a3f7028f12cdef1ca8deda8b1bf9fa8331211b026ece3680d0dc40cc733df"
+        reference_hash = "9fcd17fc370c71a668278d7c2e0753e465562a4fbfebd180a8dbfda0c0422948bec06d23c9dbf7d956201a499dbdeb4d33305620d499a8f5b3ad614bfcf64d52"
         obtained_hash  = self._RunAndHashResult("tetrahedron")
         self.assertEqual(reference_hash, obtained_hash)
 
     def testGeneratorTriangle(self):
-        reference_hash = "8fd1983a5cd95f1c5c1504f3a5096672d1e8e714c0bde1c12f42d8ca2f04f58e6d01530d66a1cdb0832b09404663f295941614c5ee1f47aa28b8ee1c97f7d96f"
+        reference_hash = "6beb5916b633dfd6a4a8ac82ddc0ab9900410059d9df8f9fbd09b2c013d52f1894988804e3c1f77bc06e5989e626d10d3abd54e24d04b0166f084a1626a40a6d"
         obtained_hash  = self._RunAndHashResult("triangle")
         self.assertEqual(reference_hash, obtained_hash)
 
     def testGeneratorQuad(self):
-        reference_hash = "86d19a9d4b6ac20f0a0fcdabb79cecec4d312577d98d4ec4cedc3bba56c139656b56212aa40b81ee46c820980af2c5be87b087511ec7fe475acac4c0f9bf6bea"
+        reference_hash = "4c8f0284d7b0f40ffd49424cf174f31b21c91e1e6fd5ea98870db38ad0f04c76f53d5c5bef7fa01fcdb8118132e248ba10388ff0d747800277e0e9bac4ca2fab"
         obtained_hash  = self._RunAndHashResult("quadrilateral")
         self.assertEqual(reference_hash, obtained_hash)
 

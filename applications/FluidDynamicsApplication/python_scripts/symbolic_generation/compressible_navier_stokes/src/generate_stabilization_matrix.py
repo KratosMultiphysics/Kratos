@@ -1,5 +1,4 @@
 import sympy
-from KratosMultiphysics.sympy_fe_utilities import sqrt
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
     import CompressibleNavierStokesDefines as defs
 
@@ -28,16 +27,16 @@ def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, pr
     rho_g = U_gauss[0]
     norm_v_squared = sum([v**2 for v in primitives.V])
     norm_f_squared = sum([f**2 for f in f_gauss])
-    norm_v = sqrt(norm_v_squared)
+    norm_v = sympy.sqrt(norm_v_squared)
     nu = (params.mu + mu_sc_gauss) / rho_g
     alpha = (params.lamb + lamb_sc_gauss) / (rho_g * params.gamma * params.c_v)
 
     # Calculate sound speed
-    c = sqrt(params.gamma * primitives.P / rho_g)
+    c = sympy.sqrt(params.gamma * primitives.P / rho_g)
 
     # Calculate stabilization constants
     tau1_inv = (params.stab_c2 * (norm_v + c)) / params.h
-    tau1_inv += params.stab_c3 * sqrt((r_gauss**2 + 2.0 * c**2 * norm_f_squared + sqrt(r_gauss**4 + 4.0 * c**2 * norm_f_squared * r_gauss**2)) / (2.0 * c**4))
+    tau1_inv += params.stab_c3 * sympy.sqrt((r_gauss**2 + 2.0 * c**2 * norm_f_squared + sympy.sqrt(r_gauss**4 + 4.0 * c**2 * norm_f_squared * r_gauss**2)) / (2.0 * c**4))
     tau2_inv = ((params.stab_c1 * 4.0 * nu) / (3 * params.h**2)) + tau1_inv
     tau3_inv = (params.stab_c1 * alpha / params.h**2) + tau1_inv
 
