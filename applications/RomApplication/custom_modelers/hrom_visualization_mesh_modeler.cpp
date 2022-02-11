@@ -83,9 +83,6 @@ void HRomVisualizationMeshModeler::SetupModelPart()
     // Set the origin model part ProcessInfo in the visualization model part
     mpVisualizationModelPart->SetProcessInfo(mpHRomModelPart->pGetProcessInfo());
 
-    KRATOS_WATCH(mpHRomModelPart->GetProcessInfo()[DOMAIN_SIZE])
-    KRATOS_WATCH(mpVisualizationModelPart->GetProcessInfo()[DOMAIN_SIZE])
-
     // Add DOFs to enable fixity
     VariableUtils::AddDofsList(r_rom_var_names, *mpVisualizationModelPart);
 

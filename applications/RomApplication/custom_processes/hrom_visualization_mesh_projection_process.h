@@ -148,8 +148,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mRomSettingsFilename;
-
     const ModelPart& mrHRomModelPart;
     ModelPart& mrVisualizationModelPart;
 

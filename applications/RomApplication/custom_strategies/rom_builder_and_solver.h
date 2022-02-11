@@ -380,6 +380,12 @@ public:
                     old_dof_id = dof->Id();
                 }
                 rDx[dof->EquationId()] = inner_prod(row(*pcurrent_rom_nodal_basis, mMapPhi[dof->GetVariable().Key()]), rRomUnkowns);
+
+                if (dof->Id() == 200) {
+                    KRATOS_WATCH(rRomUnkowns)
+                    KRATOS_WATCH(dof->GetVariable().Name())
+                    KRATOS_WATCH(inner_prod(row(*pcurrent_rom_nodal_basis, mMapPhi[dof->GetVariable().Key()]), rRomUnkowns))
+                }
             }
         }
     }

@@ -421,6 +421,15 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
     const std::vector<const Variable<double>*> &rRomVariables,
     ModelPart &rModelPart)
 {
+    // Check that the provided variables list is provided in alphabetical order
+    // This is required as the DOFs list, which we are to emulate, is sorted in this way
+    for (IndexType i = 1; i < rRomVariables.size(); ++i) {
+        const auto p_var_i = rRomVariables[i];
+        const auto p_var_prev = rRomVariables[i-1];
+        KRATOS_ERROR_IF((p_var_i->Name()).compare(p_var_prev->Name()) < 0) << "Provided variable list is not alphabetically sorted" << std::endl;
+        KRATOS_ERROR_IF((p_var_i->Name()).compare(p_var_prev->Name()) == 0) << "Variable " << p_var_i->Name() << " is repeated." << std::endl;
+    }
+
     // Project the ROM solution increment onto the nodal basis and append it to the current value
     // Note that the ROM solution increment is retrieved from the root model part
     const auto& r_rom_sol_incr = rModelPart.GetRootModelPart().GetValue(ROM_SOLUTION_INCREMENT);
@@ -432,8 +441,9 @@ void RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes(
             if (!rNode.IsFixed(*p_var)) {
                 // Note that we add the ROM solution to the current value as we always calculate the current step solution increment
                 // Also note that we do not take the previous solution since the current buffer position already has it after the clone
-                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(row(r_rom_basis, i_var++), r_rom_sol_incr);
+                rNode.FastGetSolutionStepValue(*p_var) += inner_prod(row(r_rom_basis, i_var), r_rom_sol_incr);
             }
+            i_var++;
         }
     });
 }

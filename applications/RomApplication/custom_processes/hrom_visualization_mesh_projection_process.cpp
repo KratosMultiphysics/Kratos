@@ -38,8 +38,21 @@ HRomVisualizationMeshProjectionProcess::HRomVisualizationMeshProjectionProcess(
     // Check default settings
     this->CheckDefaultsAndProcessSettings(rParameters);
 
-    // Set the file name of the input ROM settings
-    mRomSettingsFilename = rParameters["rom_settings_filename"].GetString();
+    // Parse the ROM input settings
+    std::ifstream input_stream(rParameters["rom_settings_filename"].GetString() + ".json", std::ifstream::in);
+    Parameters rom_parameters(input_stream);
+
+    // Create an array with pointers to the ROM variables from the provided names
+    // Note that these are assumed to be provided in the same order that was used to create the basis
+    IndexType i_var = 0;
+    const auto& r_rom_var_names = rom_parameters["rom_settings"]["nodal_unknowns"].GetStringArray();
+    const SizeType n_nodal_dofs = r_rom_var_names.size();
+    mRomVariablesList.resize(n_nodal_dofs);
+    for (const auto& r_var_name : r_rom_var_names) {
+        KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_var_name))
+            << "Provided variable '" << r_var_name << "' is not in KratosComponents. Note that array-like variables need to be provided componentwise (e.g. DISPLACEMENT_X, DISPLACEMENT_Y)." << std::endl;
+        mRomVariablesList[i_var++] = &(KratosComponents<Variable<double>>::Get(r_var_name));
+    }
 }
 
 void HRomVisualizationMeshProjectionProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
