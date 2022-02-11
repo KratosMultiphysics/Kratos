@@ -1,6 +1,8 @@
 import sympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
     .src.defines import CompressibleNavierStokesDefines as defs
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes. \
+    src.quantity_converter import QuantityConverter
 
 
 def ComputeDiffusiveFlux(primitives, params):
@@ -20,18 +22,14 @@ def ComputeDiffusiveFlux(primitives, params):
     heat_flux = CalculateHeatFluxVector(lamb, primitives)
 
     # Define and fill the diffusive flux matrix
-    G = defs.Matrix('G', dim + 2, dim, real=True)
-    for j in range(dim):
-        G[0, j] = 0.0
-        G[dim + 1, j] = heat_flux[j]
-        for i in range(dim):
-            G[i + 1, j] = -tau_stress[j, i]
-            G[dim + 1, j] -= vel[i] * tau_stress[i, j]
+    G = sympy.zeros(dim+2, dim)
+    G[1:-1, :] = -tau_stress.T
+    G[-1, :] = heat_flux.T - vel.T*tau_stress
 
     return G
 
 
-def ComputeDiffusiveFluxWithShockCapturing(dUdx, primitives, params, sc_params):
+def ComputeDiffusiveFluxWithShockCapturing(primitives, params, sc_params):
     """
     Calculate the diffusive flux matrix with a physics-based shock
     capturing contribution. See:
@@ -46,7 +44,8 @@ def ComputeDiffusiveFluxWithShockCapturing(dUdx, primitives, params, sc_params):
     vel = primitives.V
 
     # Calculate the density flux
-    mass_flux = CalculuateMassFluxVector(sc_params.alpha, dUdx)
+    grad_rho = QuantityConverter.density_gradient(primitives, params)
+    mass_flux = CalculuateMassFluxVector(sc_params.alpha, grad_rho)
 
     # Calculate the viscous stress tensor
     mu = params.mu          # Dynamic viscosity
@@ -61,25 +60,22 @@ def ComputeDiffusiveFluxWithShockCapturing(dUdx, primitives, params, sc_params):
     heat_flux = CalculateHeatFluxVector(lamb, primitives)
 
     # Define and fill the isotropic shock capturing diffusive flux matrix
-    G = defs.Matrix('G', dim + 2, dim, real=True)
-    G[0, :] = mass_flux
-    for j in range(dim):
-        G[dim + 1, j] = heat_flux[j]
-        for i in range(dim):
-            G[i + 1, j] = -tau_stress[j,i]
-            G[dim + 1, j] -= vel[i] * tau_stress[i,j]
+    G = sympy.zeros(dim+2, dim)
+    G[0,:] = mass_flux
+    G[1:-1, :] = -tau_stress.T
+    G[-1, :] = heat_flux.T - vel.T*tau_stress
 
     return G
 
 
-def CalculuateMassFluxVector(alpha, dUdx):
+def CalculuateMassFluxVector(alpha, grad_rho):
     """
     Auxiliary function to calculate mass flux vector f_rho = alpha * gradient(u)
 
     Mass diffusivity (alpha) is 0 in the Navier-Stokes equations but some shock
     capturing methods introduce a positive, non-zero value
     """
-    return alpha * dUdx[0, :]
+    return alpha * grad_rho
 
 
 def CalculateViscousStressTensor(mu, beta, primitives, dim):

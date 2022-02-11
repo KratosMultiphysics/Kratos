@@ -1,26 +1,29 @@
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
     import CompressibleNavierStokesDefines as defs
 
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .quantity_converter import QuantityConverter
 
-def ComputeSourceMatrix(dofs, mass_source,  body_force, heat_source, params):
-    """This function calculates the source matrix"""
 
-    dim = params.dim  # Spatial dimensions
+def ComputeSourceMatrix(primitives, mass_source,  body_force, heat_source, params):
+    """This function calculates the source matrix
 
-    # Source fields definition
-    rho = dofs[0]           # Density
-    m = mass_source         # Mass source (kg/m³s)
-    f = body_force.copy()   # Body force vector
-    r = heat_source         # Heat source/sink
-
-    '''
     S - Reactive matrix definition
      m/rho 0  0  0
      fx    0  0  0
      fy    0  0  0
      r     fx fy 0
-    '''
-    S = defs.ZeroMatrix(dim + 2, dim + 2)  # Reactive matrix (source terms)
+    """
+
+    dim = params.dim  # Spatial dimensions
+
+    # Source fields definition
+    rho = QuantityConverter.density(primitives, params)
+    m = mass_source         # Mass source (kg/m³s)
+    f = body_force.copy()   # Body force vector
+    r = heat_source         # Heat source/sink
+
+    S = defs.ZeroMatrix(dim+2, dim+2)  # Reactive matrix (source terms)
     S[0, 0] = m / rho                 # Mass source term (divided by rho as S matrix will be later on multiplied by U vector)
     for i in range(1, dim+1):         # Body force
         S[i, 0] = f[i-1]
