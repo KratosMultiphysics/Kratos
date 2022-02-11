@@ -173,7 +173,7 @@ bool NearestElementLocalSystem::IsDoneSearching() const
         sum_search_results += r_info.GetNumSearchResults();
     }
 
-    return sum_search_results > 10;
+    return sum_search_results > 20;
 }
 
 }  // namespace Kratos.
