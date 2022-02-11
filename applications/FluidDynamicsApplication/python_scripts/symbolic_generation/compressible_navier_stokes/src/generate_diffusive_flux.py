@@ -26,6 +26,7 @@ def ComputeDiffusiveFlux(primitives, params):
     G[1:-1, :] = -tau_stress.T
     G[-1, :] = heat_flux.T - vel.T*tau_stress
 
+    G.simplify()
     return G
 
 
@@ -65,6 +66,7 @@ def ComputeDiffusiveFluxWithShockCapturing(primitives, params, sc_params):
     G[1:-1, :] = -tau_stress.T
     G[-1, :] = heat_flux.T - vel.T*tau_stress
 
+    G.simplify()
     return G
 
 

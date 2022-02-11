@@ -30,6 +30,7 @@ def ComputeSourceMatrix(primitives, mass_source,  body_force, heat_source, param
         S[dim+1, i] = f[i-1]
     S[dim+1, 0] = r                   # Heat source term
 
+    S.simplify()
     return S
 
 

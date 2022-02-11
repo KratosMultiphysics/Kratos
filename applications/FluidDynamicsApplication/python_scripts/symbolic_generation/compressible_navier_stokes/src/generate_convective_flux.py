@@ -3,7 +3,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
     .src.quantity_converter import QuantityConverter
 
 
-def ComputeEulerJacobianMatrix(dofs, params, primitives):
+def ComputeEulerJacobianMatrix(U, primitives, params):
     """This function calculates the Euler Jacobian matrix for convection"""
 
     # Auxiliary variables
@@ -33,7 +33,7 @@ def ComputeEulerJacobianMatrix(dofs, params, primitives):
         dE_dV.append(Astar_j)
 
     # Obtain the Euler Jacobian Matrix A := dE/dU = dE/dV * dV/dU
-    dV_dU = primitives.dVdU(dofs)
+    dV_dU = QuantityConverter.dVdU(U, primitives, params)
     A = dE_dV * dV_dU
     A.simplify()
     return A

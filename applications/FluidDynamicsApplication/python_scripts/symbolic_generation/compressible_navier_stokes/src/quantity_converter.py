@@ -180,12 +180,13 @@ class QuantityConverter:
         return (params.gamma - 1) * params.c_v
 
     @classmethod
-    def dVdU(cls, primitives, U):
+    def dVdU(cls, U, primitives, params):
         """
         Returns the derivative of the primitive vector V with respect to the conservative vector U
         """
         blocksize = primitives.ndims+2
         V = primitives.AsVector()
+        QuantityConverter.SubstitutePrimitivesWithConservatives(V, primitives, U, None, params)
         D = sympy.zeros(blocksize, blocksize)
         for i in range(blocksize):
             for j in range(blocksize):
@@ -202,6 +203,9 @@ class QuantityConverter:
         KratosSympy.SubstituteScalarValue(expr, primitives.P, P)
         KratosSympy.SubstituteMatrixValue(expr, primitives.V, V)
         KratosSympy.SubstituteScalarValue(expr, primitives.T, T)
+
+        if grad_U == None:
+            return
 
         (grad_P, grad_V, grad_T) = QuantityConverter.PrimitivesGradients(U, grad_U, params)
 
