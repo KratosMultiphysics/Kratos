@@ -380,12 +380,6 @@ public:
                     old_dof_id = dof->Id();
                 }
                 rDx[dof->EquationId()] = inner_prod(row(*pcurrent_rom_nodal_basis, mMapPhi[dof->GetVariable().Key()]), rRomUnkowns);
-
-                if (dof->Id() == 200) {
-                    KRATOS_WATCH(rRomUnkowns)
-                    KRATOS_WATCH(dof->GetVariable().Name())
-                    KRATOS_WATCH(inner_prod(row(*pcurrent_rom_nodal_basis, mMapPhi[dof->GetVariable().Key()]), rRomUnkowns))
-                }
             }
         }
     }
@@ -412,6 +406,20 @@ public:
                 noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
             }
         }
+    }
+
+    virtual void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        // Call the base B&S InitializeSolutionStep
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Reset the ROM solution increment in the root modelpart database
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(mNumberOfRomModes);
     }
 
     void BuildAndSolve(
@@ -540,7 +548,7 @@ public:
         // Save the ROM solution increment in the root modelpart database
         // This can be used later on to recover the solution in a visualization submodelpart
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = dxrom;
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
 
         // //update database
         // noalias(xrom) += dxrom;
