@@ -31,7 +31,6 @@ add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
-add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 # add_app ${KRATOS_APP_DIR}/FemToDemApplication;
@@ -63,6 +62,7 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=OFF                                                          \
+-DKRATOS_BUILD_TESTING=ON                                              \
 -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc               \
 -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \

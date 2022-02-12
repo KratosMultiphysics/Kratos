@@ -23,6 +23,7 @@ def Usage():
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
         '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
+        '\t -p, --path: Absolute path of the Kratos source directory containing the tests',
         '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
     for l in lines:
@@ -187,6 +188,7 @@ def main():
     verbosity = 1
     level = 'all'
     is_mpi = False
+    path = None
 
     # Keep the worst exit code
     exit_code = 0
@@ -195,12 +197,13 @@ def main():
     try:
         opts, args = getopt.getopt(
             sys.argv[1:],
-            'ha:v:l:c:', [
+            'h:a:v:l:c:p:', [
                 'help',
                 'applications=',
                 'verbose=',
                 'level=',
                 'command=',
+                'path=',
                 'using-mpi'
             ])
     except getopt.GetoptError as err:
@@ -252,6 +255,15 @@ def main():
                 Usage()
                 sys.exit()
 
+        elif o in ('-p', '--path'):
+            try:
+                path = str(a)
+                path = os.path.abspath(path)
+            except:
+                print('Error: Cannot parse Kratos source directory path containing the tests {}.'.format(a))
+                Usage()
+                sys.exit()
+
         elif o in ('--using-mpi'):
             is_mpi = True
 
@@ -280,7 +292,7 @@ def main():
         commander.RunTestSuit(
             'KratosCore',
             'kratos',
-            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()),
+            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()) if path is None else path,
             level,
             verbosity,
             cmd,
@@ -298,7 +310,7 @@ def main():
             commander.RunTestSuit(
                 application,
                 application,
-                KtsMp.KratosPaths.kratos_applications+'/',
+                KtsMp.KratosPaths.kratos_applications+'/' if path is None else os.path.join(path, "applications"),
                 level,
                 verbosity,
                 cmd,

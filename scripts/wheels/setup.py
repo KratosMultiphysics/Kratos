@@ -16,8 +16,12 @@ def replaceKeywords(stringArray):
 with open("wheel.json", "r") as conf_file:
     conf = json.loads(conf_file.read())
 
-with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
-    long_description = fh.read()
+readme_file = os.path.join(os.environ["KRATOS_ROOT"], conf["readme"])
+if os.path.exists(readme_file):
+    with open(readme_file, "r") as f:
+        long_description = f.read()
+else:
+    long_description = "Readme file not found"
 
 for module in conf["included_modules"]:
     shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
