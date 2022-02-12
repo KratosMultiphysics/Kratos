@@ -53,6 +53,13 @@ HRomVisualizationMeshProjectionProcess::HRomVisualizationMeshProjectionProcess(
             << "Provided variable '" << r_var_name << "' is not in KratosComponents. Note that array-like variables need to be provided componentwise (e.g. DISPLACEMENT_X, DISPLACEMENT_Y)." << std::endl;
         mRomVariablesList[i_var++] = &(KratosComponents<Variable<double>>::Get(r_var_name));
     }
+
+    // We sort the ROM variables alphabetically
+    // This is required to match the order of the DOF set
+    std::sort(
+        mRomVariablesList.begin(),
+        mRomVariablesList.end(),
+        [](const Variable<double>* pVarA, const Variable<double>* pVarB){return pVarA->Name() < pVarB->Name();});
 }
 
 void HRomVisualizationMeshProjectionProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
