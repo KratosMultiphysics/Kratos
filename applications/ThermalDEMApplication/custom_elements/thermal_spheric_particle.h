@@ -16,7 +16,6 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <limits>
 
 // External includes
 #include "includes/define.h"
@@ -62,12 +61,6 @@ namespace Kratos
         std::vector<double> impact_velocity;
         std::vector<double> local_velocity;
         std::vector<double> local_force;
-      };
-
-      struct IntegrandParams
-      {
-        double x;
-        double p1, p2, p3, p4, p5, p6, p7, p8, p9;
       };
 
       // Constructor
@@ -131,20 +124,18 @@ namespace Kratos
       double AdjustedContactRadiusLu            (const ProcessInfo& r_process_info);
       double AdjustedContactRadiusMorris        (const ProcessInfo& r_process_info);
 
+      // Integration expressions
+      static double EvalIntegrandSurrLayer    (NumericalIntegrationMethod* method);
+      static double EvalIntegrandVoronoiWall  (NumericalIntegrationMethod* method);
+      static double EvalIntegrandVoronoiMono  (NumericalIntegrationMethod* method);
+      static double EvalIntegrandVoronoiMulti (NumericalIntegrationMethod* method);
+
       // Auxiliary computations
       void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
       double ComputePrandtlNumber         (const ProcessInfo& r_process_info);
       double ComputeReynoldNumber         (const ProcessInfo& r_process_info);
       double ComputeFluidRelativeVelocity (const ProcessInfo& r_process_info);
       double GetVoronoiCellFaceRadius     (const ProcessInfo& r_process_info);
-
-      // Numerical integration
-      double AdaptiveSimpsonIntegration  (const ProcessInfo& r_process_info, double a, double b, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams));
-      double RecursiveSimpsonIntegration (double a, double b, double fa, double fb, double fc, double tol, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams));
-      double EvalIntegrandSurrLayer      (IntegrandParams params);
-      double EvalIntegrandVoronoiWall    (IntegrandParams params);
-      double EvalIntegrandVoronoiMono    (IntegrandParams params);
-      double EvalIntegrandVoronoiMulti   (IntegrandParams params);
 
       // Neighbor interaction computations
       void   CleanContactParameters              (const ProcessInfo& r_process_info);
@@ -166,7 +157,8 @@ namespace Kratos
       double ComputeAverageConductivity          (void);
 
       // Get/Set methods
-      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme();
+      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme(void);
+      NumericalIntegrationMethod&  GetNumericalIntegrationMethod(void);
 
       double GetYoung   (void) override;
       double GetPoisson (void) override;
@@ -214,6 +206,7 @@ namespace Kratos
       ContactParams      GetContactParameters                 (void);
 
       void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
+      void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -253,6 +246,7 @@ namespace Kratos
 
       // Pointers
       ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
+      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
 
       // General
       unsigned int mNumStepsEval;       // number of steps passed since last thermal evaluation

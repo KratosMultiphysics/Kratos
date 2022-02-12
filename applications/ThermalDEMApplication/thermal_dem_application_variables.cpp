@@ -17,7 +17,9 @@ namespace Kratos
 {
   // Variables
   KRATOS_CREATE_VARIABLE(ThermalDEMIntegrationScheme::Pointer, DEM_THERMAL_INTEGRATION_SCHEME_POINTER)
+  KRATOS_CREATE_VARIABLE(NumericalIntegrationMethod::Pointer,  DEM_NUMERICAL_INTEGRATION_METHOD_POINTER)
   KRATOS_CREATE_VARIABLE(std::string,                          DEM_THERMAL_INTEGRATION_SCHEME_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          DEM_NUMERICAL_INTEGRATION_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          DIRECT_CONDUCTION_MODEL)
   KRATOS_CREATE_VARIABLE(std::string,                          INDIRECT_CONDUCTION_MODEL)
   KRATOS_CREATE_VARIABLE(std::string,                          CONVECTION_MODEL)

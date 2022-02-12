@@ -49,6 +49,7 @@ Add **thermal settings** with desired options:
 
 	"thermal_settings" : {
 		"ThermalIntegrationScheme"       : "Forward_Euler",
+		"NumericalIntegrationMethod"     : "Adaptive_Simpson",
 		"thermal_solve_frequency"        : 1,
 		"voronoi_tesselation_frequency"  : 1000,
 		"porosity_update_frequency"      : 1000,
@@ -171,6 +172,10 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"ThermalIntegrationScheme"*:\
   Selected scheme for time integration of thermal problem.\
   Default: "Forward_Euler"
+  
+- *"NumericalIntegrationMethod"*:\
+  Selected metohd for solving integration expressions numerically.\
+  Default: "Adaptive_Simpson"
   
 - *"thermal_solve_frequency"*:\
   Number of steps in which thermal problem is solved.\

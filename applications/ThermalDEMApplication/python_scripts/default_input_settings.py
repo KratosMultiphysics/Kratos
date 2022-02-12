@@ -4,6 +4,7 @@ def GetDefaultInputSettings():
     default_settings = KratosMultiphysics.Parameters("""
         {
             "ThermalIntegrationScheme"       : "Forward_Euler",
+            "NumericalIntegrationMethod"     : "Adaptive_Simpson",
             "thermal_solve_frequency"        : 1,
             "voronoi_tesselation_frequency"  : 1000,
 	        "porosity_update_frequency"      : 1000,

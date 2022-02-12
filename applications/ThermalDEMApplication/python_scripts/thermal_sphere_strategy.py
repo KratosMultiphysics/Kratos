@@ -67,8 +67,9 @@ class ExplicitStrategy(BaseStrategy):
         # Set standard properties
         BaseStrategy.ModifyProperties(self, properties, param)
 
-        # Set thermal integration scheme
+        # Set time integration scheme and numerical integration method
         self.SetThermalIntegrationScheme(properties)
+        self.SetNumericalIntegrationMethod(properties)
     
     #----------------------------------------------------------------------------------------------
     def AddVariables(self):
@@ -158,8 +159,9 @@ class ExplicitStrategy(BaseStrategy):
         # General options
         self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
 
-        # Integration scheme
-        self.thermal_integration_scheme = self.thermal_settings["ThermalIntegrationScheme"].GetString()
+        # Integration scheme and method
+        self.thermal_integration_scheme   = self.thermal_settings["ThermalIntegrationScheme"].GetString()
+        self.numerical_integration_method = self.thermal_settings["NumericalIntegrationMethod"].GetString()
 
         # Frequencies
         self.thermal_solve_frequency       = self.thermal_settings["thermal_solve_frequency"].GetInt()
@@ -216,11 +218,16 @@ class ExplicitStrategy(BaseStrategy):
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
-        # Integration scheme
+        # Integration scheme and method
         if self.thermal_integration_scheme == "Forward_Euler":
             self.thermal_integration_scheme = "ThermalForwardEulerScheme"
         else:
             raise Exception('ThermalDEM', 'Integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.')
+        
+        if self.numerical_integration_method == "Adaptive_Simpson":
+            self.numerical_integration_method = "AdaptiveSimpsonQuadrature"
+        else:
+            raise Exception('ThermalDEM', 'Integration method \'' + self.numerical_integration_method + '\' is not implemented.')
         
         # Models for heat transfer
         if (self.direct_conduction_model != "batchelor_obrien" and
@@ -365,6 +372,23 @@ class ExplicitStrategy(BaseStrategy):
         
         thermal_scheme.SetThermalIntegrationSchemeInProperties(properties, True)
 
+    #----------------------------------------------------------------------------------------------
+    def SetNumericalIntegrationMethod(self, properties):
+        integration_method_name = self.numerical_integration_method
+
+        if properties.Has(DEM_NUMERICAL_INTEGRATION_METHOD_NAME):
+            if properties[DEM_NUMERICAL_INTEGRATION_METHOD_NAME] == "Adaptive_Simpson":
+                integration_method_name = "AdaptiveSimpsonQuadrature"
+            else:
+                raise Exception('ThermalDEM', 'Integration method \'' + integration_method_name + '\' is not implemented.')
+        
+        try:
+            integration_method = eval(integration_method_name)()
+        except:
+            raise Exception('The class corresponding to the numerical integration method named ' + integration_method_name + ' has not been added to python. Please, select a different name or add the required class.')
+        
+        integration_method.SetNumericalIntegrationMethodInProperties(properties, True)
+    
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options

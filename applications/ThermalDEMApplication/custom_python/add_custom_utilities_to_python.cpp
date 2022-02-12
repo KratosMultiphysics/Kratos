@@ -20,6 +20,8 @@
 #include "custom_utilities/set_thermal_data_utilities.h"
 #include "custom_utilities/tesselation_utilities_2d.h"
 #include "custom_utilities/tesselation_utilities_3d.h"
+#include "custom_utilities/numerical_integration_method.h"
+#include "custom_utilities/numerical_integration_adaptive_simpson.h"
 
 namespace Kratos
 {
@@ -46,8 +48,21 @@ namespace Kratos
 
       py::class_<TesselationUtilities3D, TesselationUtilities3D::Pointer>(m, "TesselationUtilities3D")
         .def(py::init<>())
-        .def("ExecuteInitialize", &TesselationUtilities3D::ExecuteInitialize)
+        .def("ExecuteInitialize",             &TesselationUtilities3D::ExecuteInitialize)
         .def("ExecuteInitializeSolutionStep", &TesselationUtilities3D::ExecuteInitializeSolutionStep);
+
+      py::class_<NumericalIntegrationMethod, NumericalIntegrationMethod::Pointer>(m, "NumericalIntegrationMethod")
+        .def(py::init<>())
+        .def("SetNumericalIntegrationMethodInProperties", &NumericalIntegrationMethod::SetNumericalIntegrationMethodInProperties);
+
+      py::class_<Variable<NumericalIntegrationMethod::Pointer>, Variable<NumericalIntegrationMethod::Pointer>::Pointer>(m, "NumericalIntegrationMethodPointerVariable")
+        .def("__str__", &Variable<NumericalIntegrationMethod::Pointer>::Info);
+
+      py::class_<Variable<NumericalIntegrationMethod*>, Variable<NumericalIntegrationMethod*>::Pointer>(m, "NumericalIntegrationMethodRawPointerVariable")
+        .def("__str__", &Variable<NumericalIntegrationMethod*>::Info);
+
+      py::class_<AdaptiveSimpsonQuadrature, AdaptiveSimpsonQuadrature::Pointer, NumericalIntegrationMethod>(m, "AdaptiveSimpsonQuadrature")
+        .def(py::init<>());
     }
 
   } // namespace Python
