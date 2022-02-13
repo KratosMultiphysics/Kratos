@@ -39,6 +39,7 @@ class ImplicitVertexMorphingMapper():
     def GetDefaultImplicitVMSettings(cls):
         return KM.Parameters("""{
             "element_type" : "helmholtz_vec_element",
+            "surface_element_type" : "helmholtz_surf_element",
             "only_design_surface_parameterization" : true,
             "formulate_on_the_undeformed_configuration" : true,
             "automatic_filter_size" : true,

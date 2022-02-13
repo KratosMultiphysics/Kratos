@@ -34,6 +34,12 @@
 #include "custom_elements/helmholtz_surf_prism_element.h"
 #include "custom_elements/helmholtz_vec_element.h"
 
+/* Adding shells and membranes elements */
+#include "custom_elements/shape_shell_thick_element_3D4N.hpp"
+#include "custom_elements/shape_shell_thin_element_3D4N.hpp"
+#include "custom_elements/shape_shell_thin_element_3D3N.hpp"
+#include "custom_elements/shape_shell_thick_element_3D3N.hpp"
+
 /* CONDITIONS */
 #include "custom_conditions/helmholtz_condition.h"
 
@@ -209,6 +215,15 @@ namespace Kratos
 			const HelmholtzVecElement mHelmholtzVec3D4N;
 			const HelmholtzVecElement mHelmholtzVec3D8N;
 			const HelmholtzVecElement mHelmholtzVec3D27N; 
+
+			// Adding the shells elements
+			const ShapeShellThickElement3D4N<ShapeShellKinematics::LINEAR>                 mShapeShellThickElement3D4N;
+			const ShapeShellThickElement3D4N<ShapeShellKinematics::NONLINEAR_COROTATIONAL> mShapeShellThickCorotationalElement3D4N;
+			const ShapeShellThinElement3D4N<ShapeShellKinematics::NONLINEAR_COROTATIONAL>  mShapeShellThinCorotationalElement3D4N;
+			const ShapeShellThinElement3D3N<ShapeShellKinematics::LINEAR>                  mShapeShellThinElement3D3N;
+			const ShapeShellThinElement3D3N<ShapeShellKinematics::NONLINEAR_COROTATIONAL>  mShapeShellThinCorotationalElement3D3N;
+			const ShapeShellThickElement3D3N<ShapeShellKinematics::NONLINEAR_COROTATIONAL> mShapeShellThickCorotationalElement3D3N;
+
 
 			/* CONDITIONS*/
 

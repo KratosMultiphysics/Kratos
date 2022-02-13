@@ -32,6 +32,10 @@
 #include "custom_elements/helmholtz_surf_element.h"
 #include "custom_elements/helmholtz_surf_prism_element.h"
 #include "custom_elements/helmholtz_vec_element.h"
+#include "custom_elements/shape_shell_thick_element_3D4N.hpp"
+#include "custom_elements/shape_shell_thin_element_3D4N.hpp"
+#include "custom_elements/shape_shell_thin_element_3D3N.hpp"
+#include "custom_elements/shape_shell_thick_element_3D3N.hpp"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
 #include "custom_strategies/strategies/helmholtz_vec_strategy.h"
 #include "containers/model.h"
@@ -123,6 +127,8 @@ public:
 
         std::string element_type = mMapperSettings["element_type"].GetString();
 
+        std::string surface_element_type = mMapperSettings["surface_element_type"].GetString();
+
         // here we create a model part for implicit VM
         mpVMModePart = &(mrModelPart.GetModel().CreateModelPart(mrModelPart.Name()+"_Implicit_VM_Part", 1));
 
@@ -140,7 +146,13 @@ public:
 
         // create a new property for the vm surface       
         p_vm_surf_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
-        p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["surface_filter_radius"].GetDouble());   
+        p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,mMapperSettings["surface_filter_radius"].GetDouble()); 
+        p_vm_surf_property->SetValue(YOUNG_MODULUS, mMapperSettings["surface_filter_radius"].GetDouble());
+        p_vm_surf_property->SetValue(POISSON_RATIO, 0.3);
+        p_vm_surf_property->SetValue(THICKNESS, 1.0);
+        p_vm_surf_property->SetValue(DENSITY, 1.0);
+        const auto & r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStress2DLaw");
+        p_vm_surf_property->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());  
 
         // create a new property for the vm elements       
         p_vm_bulk_property = mpVMModePart->CreateNewProperties(mpVMModePart->NumberOfProperties()+1);        
@@ -151,7 +163,10 @@ public:
             for (int i = 0; i < (int)design_surface_sub_model_part.Conditions().size(); i++) {
                 ModelPart::ConditionsContainerType::iterator it = design_surface_sub_model_part.ConditionsBegin() + i;
                 Element::Pointer p_element;
-                p_element = new HelmholtzSurfPrismElement(it->Id(), it->pGetGeometry(), p_vm_surf_property);               
+                if(surface_element_type.compare("helmholtz_surf_element") == 0)
+                    p_element = new HelmholtzSurfPrismElement(it->Id(), it->pGetGeometry(), p_vm_surf_property);
+                if(surface_element_type.compare("shell_surf_element") == 0)
+                    p_element = new ShapeShellThinElement3D3N<ShapeShellKinematics::LINEAR>(it->Id(), it->pGetGeometry(), p_vm_surf_property);
                 rmesh_elements.push_back(p_element);
             }  
         }
@@ -176,12 +191,16 @@ public:
             tetrahedralMeshOrientationCheck.Execute();                       
         }
 
+
+
         // calculate number of neighbour elements for each node.
         CalculateNodeNeighbourCount();
 
         mpHelmholtzStrategy = new HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> (*mpVMModePart,mpLinearSystemSolver);            
         
         mpHelmholtzStrategy->Initialize();
+
+      
 
         // now adjust the filter size if its adaptive
         if(mMapperSettings["only_design_surface_parameterization"].GetBool() && (mMapperSettings["automatic_filter_size"].GetBool() || 
@@ -206,6 +225,7 @@ public:
 
             double surface_filter_size = sqrt(std::pow(max_detJ/min_detJ, 0.5));
             p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,surface_filter_size);
+            p_vm_surf_property->SetValue(YOUNG_MODULUS, surface_filter_size);
 
             KRATOS_INFO("ShapeOpt") << " surface filter size is adjusted to " << surface_filter_size << std::endl;
         }
@@ -286,6 +306,7 @@ public:
         
         SetVariableZero(HELMHOLTZ_SOURCE);
         SetVariableZero(CONTROL_POINT);
+        SetVariableZero(HELMHOLTZ_ROTS);
 
         // // calculate (K+M) * X element wise, here we treat CONTROL_POINT as an auxilary 
         rCurrentProcessInfo[COMPUTE_CONTROL_POINTS] = false;
@@ -301,18 +322,21 @@ public:
         {
             VectorType rhs;
             MatrixType lhs;
+            elem_i.Initialize(mpVMModePart->GetProcessInfo());
             elem_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
             AddElementVariableValuesVector(elem_i,CONTROL_POINT,rhs,-1.0);
-        }
+        }        
 
         for(auto& cond_i : mpVMModePart->Conditions())
         {
             VectorType rhs;
             MatrixType lhs;
+            cond_i.Initialize(mpVMModePart->GetProcessInfo());
             cond_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
             AddConditionVariableValuesVector(cond_i,CONTROL_POINT,rhs,-1.0);
         }
 
+        
         // here we fill the RHS of M * S = (K+M) * X
         SetVariable1ToVarible2(CONTROL_POINT,HELMHOLTZ_SOURCE);
         SetVariableZero(HELMHOLTZ_VARS);
@@ -333,7 +357,6 @@ public:
         }
 
         
-
         // here we compute S = M-1 * (K+M) * X
         rCurrentProcessInfo[COMPUTE_CONTROL_POINTS] = true;    
         mpHelmholtzStrategy->Solve();
@@ -362,8 +385,10 @@ public:
        
         
         mIsMappingInitialized = true;
+        
 
         KRATOS_INFO("ShapeOpt") << "Finished initialization of mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
+        
     }
 
     // --------------------------------------------------------------------------
@@ -378,6 +403,7 @@ public:
 
         //first we need to multiply with mass matrix 
         SetVariableZero(HELMHOLTZ_VARS);
+        SetVariableZero(HELMHOLTZ_ROTS);
         SetVariableZero(HELMHOLTZ_SOURCE);
         //now we need to multiply with the mass matrix 
         for(auto& elem_i : mpVMModePart->Elements())
@@ -427,6 +453,7 @@ public:
 
         //filling the source
         SetVariableZero(HELMHOLTZ_VARS);
+        SetVariableZero(HELMHOLTZ_ROTS);
         SetVariable1ToVarible2(rDestinationVariable,HELMHOLTZ_SOURCE);
 
         //now solve 
@@ -497,6 +524,7 @@ public:
 
             double surface_filter_size = sqrt(std::pow(max_detJ/min_detJ, 0.5));
             p_vm_surf_property->SetValue(HELMHOLTZ_RADIUS,surface_filter_size);
+            p_vm_surf_property->SetValue(YOUNG_MODULUS, surface_filter_size);
 
             KRATOS_INFO("ShapeOpt") << " surface filter size is adjusted to " << surface_filter_size << std::endl;
 
@@ -692,27 +720,28 @@ private:
     {
         const GeometryType &rgeom = rElement.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
-        const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
-        const unsigned int local_size = num_nodes * dimension;
+        SizeType dofs_per_node;
+        if(mMapperSettings["surface_element_type"].GetString().compare("shell_surf_element") == 0)
+            dofs_per_node=6;
+        else
+            dofs_per_node=3;
+
+        const unsigned int local_size = num_nodes * dofs_per_node;
 
         if (rValues.size() != local_size)
             rValues.resize(local_size, false);
 
-        if (dimension == 2) {
-            SizeType index = 0;
-            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
-                rValues[index++] = r_nodal_variable[0];
-                rValues[index++] = r_nodal_variable[1];
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+            const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
+            rValues[dofs_per_node*i_node+0] = r_nodal_variable[0];
+            rValues[dofs_per_node*i_node+1] = r_nodal_variable[1];
+            rValues[dofs_per_node*i_node+2] = r_nodal_variable[2];
+            if(dofs_per_node==6){
+                rValues[dofs_per_node*i_node+3] = 0;
+                rValues[dofs_per_node*i_node+4] = 0;
+                rValues[dofs_per_node*i_node+5] = 0;                  
             }
-        } else if (dimension == 3) {
-            SizeType index = 0;
-            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
-                rValues[index++] = r_nodal_variable[0];
-                rValues[index++] = r_nodal_variable[1];
-                rValues[index++] = r_nodal_variable[2];
-            }
+          
         }
     }
     void GetConditionVariableValuesVector(const Condition& rCondition,
@@ -752,23 +781,18 @@ private:
     {
         GeometryType &rgeom = rElement.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
-        const unsigned int dimension = rElement.GetGeometry().WorkingSpaceDimension();
 
-        if (dimension == 2) {
-            SizeType index = 0;
-            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-                array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable); 
-                r_nodal_variable[0] += rWeight * rValues[index++];
-                r_nodal_variable[1] += rWeight * rValues[index++];
-            }
-        } else if (dimension == 3) {
-            SizeType index = 0;
-            for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-                array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
-                r_nodal_variable[0] += rWeight * rValues[index++];
-                r_nodal_variable[1] += rWeight * rValues[index++];
-                r_nodal_variable[2] += rWeight * rValues[index++];
-            }
+        SizeType dofs_per_node;
+        if(mMapperSettings["surface_element_type"].GetString().compare("shell_surf_element") == 0)
+            dofs_per_node=6;
+        else
+            dofs_per_node=3;
+
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+            array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
+            r_nodal_variable[0] += rWeight * rValues[dofs_per_node*i_node+0];
+            r_nodal_variable[1] += rWeight * rValues[dofs_per_node*i_node+1];
+            r_nodal_variable[2] += rWeight * rValues[dofs_per_node*i_node+2];
         }
     }
 

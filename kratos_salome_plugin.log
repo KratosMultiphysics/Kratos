@@ -1,0 +1,172 @@
+[2022-01-27 14:10:47] [INFO    ] KRATOS SALOME PLUGIN : Plugin version: 1.0.0
+[2022-01-27 14:10:47] [INFO    ] KRATOS SALOME PLUGIN : Running in Salome; version: 9.5.0; mode: GUI
+[2022-01-27 14:10:47] [DEBUG   ] KRATOS SALOME PLUGIN : Python version: 3.6.5
+[2022-01-27 14:10:47] [DEBUG   ] KRATOS SALOME PLUGIN : Operating system: linux
+[2022-01-27 14:10:47] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-01-27 14:10:47] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-01-27 14:10:47] [CRITICAL] kratos_salome_plugin.mesh_interface : Mesh with identifier "0:1:2:12" in MeshInterface does not exist
+[2022-01-27 14:10:49] [ERROR   ] KRATOS SALOME PLUGIN : Unhandled exception
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+  File "<string>", line 38, in <module>
+  File "/home/reza/Software/KratosSalomePlugin-master/create_kratos_input_tui.py", line 74, in CreateMdpaFile
+    model_part = CreateModelPart(meshes)
+  File "/home/reza/Software/KratosSalomePlugin-master/create_kratos_input_tui.py", line 66, in CreateModelPart
+    geometries_io.GeometriesIO.AddMeshes(model_part, meshes)
+  File "/home/reza/Software/KratosSalomePlugin-master/kratos_salome_plugin/geometries_io.py", line 97, in AddMeshes
+    raise Exception(err_msg)
+Exception: The meshes to be added to ModelPart "default" don't belong to the same main mesh!
+This is necessary to ensure a consistent numbering.
+[2022-01-27 15:15:38] [INFO    ] KRATOS SALOME PLUGIN : Plugin version: 1.0.0
+[2022-01-27 15:15:38] [INFO    ] KRATOS SALOME PLUGIN : Running in Salome; version: 9.5.0; mode: GUI
+[2022-01-27 15:15:38] [DEBUG   ] KRATOS SALOME PLUGIN : Python version: 3.6.5
+[2022-01-27 15:15:38] [DEBUG   ] KRATOS SALOME PLUGIN : Operating system: linux
+[2022-01-27 15:15:38] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-01-27 15:15:38] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "shell"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.shell"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 380 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.00125 [s]
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 676 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.003 [s]
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new Properties with Id 0 for "ShellThinElement3D3N"
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "ShellThinElement3D3N" exist already
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : 676 new entities were created and 0 existed already
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "left"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.left"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 11 Nodes from Mesh "Left" of type "MeshGroup" took 0.000238 [s]
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "back"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.back"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 32 Nodes from Mesh "Back" of type "MeshGroup" took 0.000194 [s]
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "front"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.front"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 32 Nodes from Mesh "Front" of type "MeshGroup" took 0.000186 [s]
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "right"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.right"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 11 Nodes from Mesh "Right" of type "MeshGroup" took 0.00015 [s]
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "surface_load"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.surface_load"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 380 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.000716 [s]
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 676 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.002 [s]
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "SurfaceLoadCondition3D3N"
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SurfaceLoadCondition3D3N" exist already
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : 676 new entities were created and 0 existed already
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "design"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.design"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 380 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.000678 [s]
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 676 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.002 [s]
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "SurfaceCondition3D3N"
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SurfaceCondition3D3N" exist already
+[2022-01-27 15:15:38] [DEBUG   ] kratos_salome_plugin.geometries_io : 676 new entities were created and 0 existed already
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.write_mdpa : Starting to write ModelPart "default" to file "/home/reza/Projects/Helmholtz/Arc/Meshes/Mesh_2/Arc_Mesh_2.mdpa"
+[2022-01-27 15:15:38] [INFO    ] kratos_salome_plugin.write_mdpa : Writing ModelPart took 0.01 [s]
+[2022-01-27 16:42:48] [INFO    ] KRATOS SALOME PLUGIN : Plugin version: 1.0.0
+[2022-01-27 16:42:48] [INFO    ] KRATOS SALOME PLUGIN : Running in Salome; version: 9.5.0; mode: GUI
+[2022-01-27 16:42:48] [DEBUG   ] KRATOS SALOME PLUGIN : Python version: 3.6.5
+[2022-01-27 16:42:48] [DEBUG   ] KRATOS SALOME PLUGIN : Operating system: linux
+[2022-01-27 16:42:48] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-01-27 16:42:48] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-01-27 16:42:48] [CRITICAL] kratos_salome_plugin.mesh_interface : Mesh with identifier "0:1:2:12" in MeshInterface does not exist
+[2022-01-27 16:42:53] [ERROR   ] KRATOS SALOME PLUGIN : Unhandled exception
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+  File "<string>", line 38, in <module>
+  File "/home/reza/Software/KratosSalomePlugin-master/create_kratos_input_tui.py", line 74, in CreateMdpaFile
+    model_part = CreateModelPart(meshes)
+  File "/home/reza/Software/KratosSalomePlugin-master/create_kratos_input_tui.py", line 66, in CreateModelPart
+    geometries_io.GeometriesIO.AddMeshes(model_part, meshes)
+  File "/home/reza/Software/KratosSalomePlugin-master/kratos_salome_plugin/geometries_io.py", line 97, in AddMeshes
+    raise Exception(err_msg)
+Exception: The meshes to be added to ModelPart "default" don't belong to the same main mesh!
+This is necessary to ensure a consistent numbering.
+[2022-01-27 16:43:46] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-01-27 16:43:46] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-01-27 16:43:46] [CRITICAL] kratos_salome_plugin.mesh_interface : Mesh with identifier "0:1:2:12" in MeshInterface does not exist
+[2022-01-27 16:43:53] [ERROR   ] KRATOS SALOME PLUGIN : Unhandled exception
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+  File "<string>", line 38, in <module>
+  File "/home/reza/Software/KratosSalomePlugin-master/create_kratos_input_tui.py", line 74, in CreateMdpaFile
+    model_part = CreateModelPart(meshes)
+  File "/home/reza/Software/KratosSalomePlugin-master/create_kratos_input_tui.py", line 66, in CreateModelPart
+    geometries_io.GeometriesIO.AddMeshes(model_part, meshes)
+  File "/home/reza/Software/KratosSalomePlugin-master/kratos_salome_plugin/geometries_io.py", line 97, in AddMeshes
+    raise Exception(err_msg)
+Exception: The meshes to be added to ModelPart "default" don't belong to the same main mesh!
+This is necessary to ensure a consistent numbering.
+[2022-01-27 16:44:35] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-01-27 16:44:35] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "shell"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.shell"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 3048 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.0137 [s]
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 5894 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.019 [s]
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new Properties with Id 0 for "ShellThinElement3D3N"
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "ShellThinElement3D3N" exist already
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : 5894 new entities were created and 0 existed already
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "left"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.left"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 51 Nodes from Mesh "left" of type "MeshGroup" took 0.000455 [s]
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "down"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.down"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 51 Nodes from Mesh "down" of type "MeshGroup" took 0.000247 [s]
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "top"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.top"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 51 Nodes from Mesh "top" of type "MeshGroup" took 0.00024 [s]
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "right"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.right"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 51 Nodes from Mesh "right" of type "MeshGroup" took 0.000234 [s]
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "surface_load"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.surface_load"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 3048 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.00538 [s]
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 5894 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.013 [s]
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "SurfaceLoadCondition3D3N"
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SurfaceLoadCondition3D3N" exist already
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : 5894 new entities were created and 0 existed already
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "design"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.design"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 3048 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.00568 [s]
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 5894 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.012 [s]
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "SurfaceCondition3D3N"
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SurfaceCondition3D3N" exist already
+[2022-01-27 16:44:35] [DEBUG   ] kratos_salome_plugin.geometries_io : 5894 new entities were created and 0 existed already
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.write_mdpa : Starting to write ModelPart "default" to file "/home/reza/Projects/Helmholtz/square_plate/meshes/3048_nodes/Square_Plate_3048.mdpa"
+[2022-01-27 16:44:35] [INFO    ] kratos_salome_plugin.write_mdpa : Writing ModelPart took 0.10 [s]
+[2022-01-27 17:04:19] [INFO    ] KRATOS SALOME PLUGIN : Plugin version: 1.0.0
+[2022-01-27 17:04:19] [INFO    ] KRATOS SALOME PLUGIN : Running in Salome; version: 9.5.0; mode: GUI
+[2022-01-27 17:04:19] [DEBUG   ] KRATOS SALOME PLUGIN : Python version: 3.6.5
+[2022-01-27 17:04:19] [DEBUG   ] KRATOS SALOME PLUGIN : Operating system: linux
+[2022-01-27 17:04:19] [DEBUG   ] create_kratos_input_tui : Calling "CreateMdpaFile"
+[2022-01-27 17:04:19] [DEBUG   ] create_kratos_input_tui : Calling "CreateModelPart"
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "shell"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.shell"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 11986 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.0205 [s]
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 23570 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.049 [s]
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new Properties with Id 0 for "ShellThinElement3D3N"
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "ShellThinElement3D3N" exist already
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : 23570 new entities were created and 0 existed already
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "left"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.left"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 101 Nodes from Mesh "left" of type "MeshGroup" took 0.000506 [s]
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "down"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.down"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 101 Nodes from Mesh "down" of type "MeshGroup" took 0.000344 [s]
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "top"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.top"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 101 Nodes from Mesh "top" of type "MeshGroup" took 0.000326 [s]
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "right"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.right"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 101 Nodes from Mesh "right" of type "MeshGroup" took 0.000322 [s]
+[2022-01-27 17:04:19] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "surface_load"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.surface_load"
+[2022-01-27 17:04:19] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 11986 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.0202 [s]
+[2022-01-27 17:04:20] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 23570 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.097 [s]
+[2022-01-27 17:04:20] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "SurfaceLoadCondition3D3N"
+[2022-01-27 17:04:20] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SurfaceLoadCondition3D3N" exist already
+[2022-01-27 17:04:20] [DEBUG   ] kratos_salome_plugin.geometries_io : 23570 new entities were created and 0 existed already
+[2022-01-27 17:04:20] [DEBUG   ] kratos_salome_plugin.geometries_io : Creating new SubModelPart "design"
+[2022-01-27 17:04:20] [INFO    ] kratos_salome_plugin.geometries_io : Adding mesh to ModelPart "default.design"
+[2022-01-27 17:04:20] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 11986 Nodes from Mesh "Mesh_1" of type "MeshProxy" took 0.0199 [s]
+[2022-01-27 17:04:20] [INFO    ] kratos_salome_plugin.mesh_interface : Getting 23570 Geometrical Entities from Mesh "Mesh_1" of type "MeshProxy" took 0.047 [s]
+[2022-01-27 17:04:20] [DEBUG   ] kratos_salome_plugin.geometries_io : Using existing Properties with Id 0 for "SurfaceCondition3D3N"
+[2022-01-27 17:04:20] [DEBUG   ] kratos_salome_plugin.geometries_io : No entities with name "SurfaceCondition3D3N" exist already
+[2022-01-27 17:04:20] [DEBUG   ] kratos_salome_plugin.geometries_io : 23570 new entities were created and 0 existed already
+[2022-01-27 17:04:20] [INFO    ] kratos_salome_plugin.write_mdpa : Starting to write ModelPart "default" to file "/home/reza/Projects/Helmholtz/square_plate/meshes/11986_nodes/Square_Plate_11986.mdpa"
+[2022-01-27 17:04:20] [INFO    ] kratos_salome_plugin.write_mdpa : Writing ModelPart took 0.41 [s]

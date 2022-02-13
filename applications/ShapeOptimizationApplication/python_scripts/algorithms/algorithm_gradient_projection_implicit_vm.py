@@ -76,8 +76,11 @@ class AlgorithmGradientProjectionImplicitVM(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_VARS)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_ROTS)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_SOURCE)
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.HELMHOLTZ_ROTS_SOURCE)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CONTROL_POINT) 
+        self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CONTROL_CURV)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SHAPE)       
 
     # --------------------------------------------------------------------------
@@ -101,11 +104,17 @@ class AlgorithmGradientProjectionImplicitVM(OptimizationAlgorithm):
                 node.AddDof(KSO.HELMHOLTZ_VARS_X)
                 node.AddDof(KSO.HELMHOLTZ_VARS_Y)
                 node.AddDof(KSO.HELMHOLTZ_VARS_Z)
+                node.AddDof(KSO.HELMHOLTZ_ROTS_X)
+                node.AddDof(KSO.HELMHOLTZ_ROTS_Y)
+                node.AddDof(KSO.HELMHOLTZ_ROTS_Z)                
             for key, value in self.model_part_controller.damping_regions.items():
                 for node in value.Nodes:
                     node.AddDof(KSO.HELMHOLTZ_VARS_X)
                     node.AddDof(KSO.HELMHOLTZ_VARS_Y)
-                    node.AddDof(KSO.HELMHOLTZ_VARS_Z)                
+                    node.AddDof(KSO.HELMHOLTZ_VARS_Z)   
+                    node.AddDof(KSO.HELMHOLTZ_ROTS_X)
+                    node.AddDof(KSO.HELMHOLTZ_ROTS_Y)
+                    node.AddDof(KSO.HELMHOLTZ_ROTS_Z)                                  
         else:
             for node in self.optimization_model_part.Nodes:
                 node.AddDof(KSO.HELMHOLTZ_VARS_X)
