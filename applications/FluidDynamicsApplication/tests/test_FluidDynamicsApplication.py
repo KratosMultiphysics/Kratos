@@ -118,8 +118,8 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
-    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testQuadrilateral'))
-    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testTriangle'))
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicQuadrilateral'))
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTriangle'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
@@ -134,7 +134,7 @@ def AssembleTestSuites():
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
-    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testTetrahedron'))
+    nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTetrahedron'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
