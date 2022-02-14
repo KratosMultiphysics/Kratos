@@ -43,8 +43,8 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         return self._rigid_body_solver.AdvanceInTime(current_time)
 
     def SolveSolutionStep(self):
-        self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self._rigid_body_solver.root_point_model_part[KM.DISPLACEMENT], 0)
-        self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_ROTATION",     self._rigid_body_solver.root_point_model_part[KM.ROTATION], 0)
+        #self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self._rigid_body_solver.root_point_model_part[KM.DISPLACEMENT], 0)
+        #self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_ROTATION",     self._rigid_body_solver.root_point_model_part[KM.ROTATION], 0)
         self._rigid_body_solver.SetSolutionStepValue("FORCE",                   self._rigid_body_solver.rigid_body_model_part[KM.FORCE], 0)
         self._rigid_body_solver.SetSolutionStepValue("MOMENT",                  self._rigid_body_solver.rigid_body_model_part[KM.MOMENT], 0)
 
