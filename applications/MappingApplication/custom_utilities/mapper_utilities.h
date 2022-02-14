@@ -118,11 +118,13 @@ GetUpdateFunction(const Kratos::Flags& rMappingOptions)
 template<class TVectorType, bool TParallel=true>
 void UpdateSystemVectorFromModelPart(
     TVectorType& rVector,
-    ModelPart& rModelPart,
+    const ModelPart& rModelPart,
     const Variable<double>& rVariable,
     const Kratos::Flags& rMappingOptions,
     const bool InParallel=true)
 {
+    KRATOS_TRY;
+
     // Here we construct a function pointer to not have the if all the time inside the loop
     const auto fill_fct = MapperUtilities::GetFillFunction(rMappingOptions);
 
@@ -132,9 +134,13 @@ void UpdateSystemVectorFromModelPart(
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
+    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable) && rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
+
     IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
+
+    KRATOS_CATCH("");
 }
 
 template<class TVectorType>
@@ -145,6 +151,8 @@ void UpdateModelPartFromSystemVector(
     const Kratos::Flags& rMappingOptions,
     const bool InParallel=true)
 {
+    KRATOS_TRY;
+
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
 
     // Here we construct a function pointer to not have the if all the time inside the loop
@@ -159,6 +167,8 @@ void UpdateModelPartFromSystemVector(
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
+    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable) && rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
+
     IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
@@ -170,6 +180,8 @@ void UpdateModelPartFromSystemVector(
             rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 /**
