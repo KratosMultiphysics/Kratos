@@ -52,6 +52,7 @@ namespace Kratos {
 ///@{
 
 /// A utility to rotate the local contributions of certain nodes to the system matrix, which is required to apply slip conditions in arbitrary directions.
+/// TODO: Move code to source file. Use explicit template instantiation (this way the compilation is faster).
 template<class TLocalMatrixType, class TLocalVectorType, class TValueType>
 class CoordinateTransformationUtils {
 public:
@@ -466,7 +467,7 @@ public:
 	{
 		//const unsigned int LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
-		unsigned int Index = 0;
+		//unsigned int Index = 0;
 
 		if (rLocalVector.size() > 0)
 		{
@@ -507,7 +508,7 @@ public:
 							rLocalVector[j*mBlockSize+k] = aux1[k];
 						}
 					}
-					Index += mBlockSize;
+					//Index += mBlockSize;
 				}
 
 			}
@@ -546,7 +547,7 @@ public:
 							rLocalVector[j*mBlockSize+k] = aux1[k];
 						}
 					}
-					Index += mBlockSize;
+					//Index += mBlockSize;
 				}
 
 			}
@@ -759,7 +760,7 @@ protected:
 	{
 		const unsigned int LocalSize = rLocalVector.size();
 
-		unsigned int Index = 0;
+		//unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / TBlockSize;
 		DenseVector<bool> NeedRotation( NumBlocks, false);
@@ -776,7 +777,7 @@ protected:
 				else LocalRotationOperator3D<TBlockSize,TSkip>(rRot[j],rGeometry[j]);
 			}
 
-			Index += TBlockSize;
+			//Index += TBlockSize;
 		}
 
 		if(rotations_needed > 0)
@@ -839,7 +840,7 @@ protected:
 	{
 		const unsigned int LocalSize = rLocalVector.size();
 
-		unsigned int Index = 0;
+		//unsigned int Index = 0;
 		int rotations_needed = 0;
 		const unsigned int NumBlocks = LocalSize / mBlockSize;
 		DenseVector<bool> NeedRotation( NumBlocks, false);
@@ -855,7 +856,7 @@ protected:
 				LocalRotationOperatorPure(rRot[j],rGeometry[j]);
 			}
 
-			Index += mBlockSize;
+			//Index += mBlockSize;
 		}
 
 		if(rotations_needed > 0)

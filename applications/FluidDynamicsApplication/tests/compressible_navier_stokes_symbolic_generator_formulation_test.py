@@ -62,7 +62,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         return test_module.SubTestSuite()
 
 
-    def _RunSubTestSuite(self, sub_testsuite, print_results):
+    def _RunSubTestSuite(self, geometry, sub_testsuite, print_results):
         """Runs the generated code and compares it to the reference"""
         tests = [subtest_name for subtest_name in dir(sub_testsuite)
             if callable(getattr(sub_testsuite, subtest_name)) and subtest_name.startswith("test_")]
@@ -72,7 +72,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
                 result, reference = getattr(sub_testsuite, subtest_name)()
 
                 if print_results:
-                    print(result)
+                    print("Result for {} -- {}: {}".format(geometry, subtest_name, result))
 
                 self.assertVectorAlmostEqual(result, reference)
 
@@ -91,7 +91,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
                 self.files_to_remove.append(os.path.abspath(generated_file))
 
             sub_testsuite = self._ImportSubTestSuite(generated_file)
-            self._RunSubTestSuite(sub_testsuite, print_results)
+            self._RunSubTestSuite(geometry, sub_testsuite, print_results)
 
     def test_SymbolicTriangle(self):
         self._RunTest("2D3N")
