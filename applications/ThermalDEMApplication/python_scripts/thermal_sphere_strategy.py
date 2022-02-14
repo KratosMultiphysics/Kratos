@@ -494,15 +494,15 @@ class ExplicitStrategy(BaseStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ADJUSTED_CONTACT_OPTION,    self.compute_adjusted_contact_option)
 
         # Model parameters
-        self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)
-        self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,    self.max_conduction_distance)
-        self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
-        self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,     self.isothermal_core_radius)
-        self.spheres_model_part.ProcessInfo.SetValue(MAX_RADIATION_DISTANCE,     self.max_radiation_distance)
-        self.spheres_model_part.ProcessInfo.SetValue(FRICTION_HEAT_CONVERSION,   self.friction_heat_conversion)
-        self.spheres_model_part.ProcessInfo.SetValue(AVERAGE_POROSITY,           self.global_porosity)
-        self.spheres_model_part.ProcessInfo.SetValue(ALPHA_SHAPE_PARAMETER,      self.alpha_parameter)
-        self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,         self.integral_tolerance)
+        self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,  self.min_conduction_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,  self.max_conduction_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,    self.fluid_layer_thickness)
+        self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,   self.isothermal_core_radius)
+        self.spheres_model_part.ProcessInfo.SetValue(MAX_RADIATION_DISTANCE,   self.max_radiation_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(FRICTION_HEAT_CONVERSION, self.friction_heat_conversion)
+        self.spheres_model_part.ProcessInfo.SetValue(AVERAGE_POROSITY,         self.global_porosity)
+        self.spheres_model_part.ProcessInfo.SetValue(ALPHA_SHAPE_PARAMETER,    self.alpha_parameter)
+        self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,       self.integral_tolerance)
 
         # Interstitial fluid properties
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_DENSITY,              self.fluid_density)
