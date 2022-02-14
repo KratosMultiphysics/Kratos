@@ -91,6 +91,27 @@ class QuantityConverter:
         return rho * R * T
 
     @classmethod
+    def _ValidateUAndDUShapes(cls, U, DU):
+        """Asserts to prevent cryptic sympy error messages for a common error"""
+        class LazyErrorMsg:
+            def __init__(self, expected, obtained):
+                self.rows_expected = expected[0]
+                self.cols_expected = expected[1]
+                self.rows = obtained[0]
+                self.cols = obtained[1]
+
+            def __str__(self):
+                return "[{}, {}] does not match expected [{},{}]".format(
+                    self.rows, self.cols, self.rows_expected, self.cols_expected
+                )
+
+        blocksize = U.shape[0]
+        dim = blocksize - 2
+        msg = LazyErrorMsg((blocksize, dim), DU.shape)
+        assert DU.shape[0] == blocksize, msg
+        assert DU.shape[1] == dim, msg
+
+    @classmethod
     def velocity_gradient(cls, U, DU):
         """
         Velocity gradient. Gradients defined as:
@@ -98,10 +119,15 @@ class QuantityConverter:
         grad_f := df_j/dx_i
 
         """
+        cls._ValidateUAndDUShapes(U, DU)
+        dim = U.shape[0] - 2
+
         rho = U[0]
-        grad_rho = DU[0]
-        mom = U[1:-1]
-        grad_mom = DU[1:-1]
+        mom = sympy.Matrix(dim, 1, lambda i,_: U[1+i])
+
+        grad_rho = sympy.Matrix(1,   dim, lambda _,j: DU[0, j])
+        grad_mom = sympy.Matrix(dim, dim, lambda i,j: DU[1+i, j])
+
         return (grad_mom*rho - mom*grad_rho) / rho**2
 
 
@@ -132,6 +158,8 @@ class QuantityConverter:
         ```
 
         """
+        cls._ValidateUAndDUShapes(U, DU)
+
         if vel is None:
             vel = cls.velocity(U)
         V2 = vel.transpose() * vel
@@ -143,8 +171,8 @@ class QuantityConverter:
             T = cls.temperature(U, params, vel)
 
         rho = U[0]
-        grad_rho = DU[0]
-        grad_e_tot = DU[-1]
+        grad_rho = sympy.Matrix(DU[0, :])
+        grad_e_tot = sympy.Matrix(DU[-1, :])
 
         grad_e_k = rho*vel.transpose()*grad_vel + 0.5 * V2 * grad_rho
         return (grad_e_tot - grad_e_k)/(rho*params.c_v) - T/rho * grad_rho
@@ -157,6 +185,8 @@ class QuantityConverter:
         grad_f := df_j/dx_i
 
         """
+        cls._ValidateUAndDUShapes(U, DU)
+
         if T is None:
             T = cls.temperature(U, params)
 
@@ -164,7 +194,7 @@ class QuantityConverter:
             grad_T = cls.temperature_gradient(U, DU, params, T=T)
 
         rho = U[0]
-        grad_rho = DU[0]
+        grad_rho = sympy.Matrix(DU[0, :])
 
         R = cls.gas_constant_R(params)
 
@@ -188,7 +218,7 @@ class QuantityConverter:
         """
         blocksize = primitives.ndims+2
         V = primitives.AsVector()
-        QuantityConverter.SubstitutePrimitivesWithConservatives(V, primitives, U, None, params)
+        QuantityConverter.SubstitutePrimitivesWithConservatives(V, primitives, U, None, params, substitute_gradients=False)
         D = sympy.zeros(blocksize, blocksize)
         for i in range(blocksize):
             for j in range(blocksize):
@@ -196,7 +226,7 @@ class QuantityConverter:
         return D
 
     @classmethod
-    def SubstitutePrimitivesWithConservatives(cls, expr, primitives, U, grad_U, params):
+    def SubstitutePrimitivesWithConservatives(cls, expr, primitives, U, grad_U, params, substitute_gradients=True):
         """
         Substitutes the primitive variables in the expression `expr` with their definitions as functions of constervative variables `U`
         """
@@ -206,11 +236,11 @@ class QuantityConverter:
         KratosSympy.SubstituteMatrixValue(expr, primitives.V, V)
         KratosSympy.SubstituteScalarValue(expr, primitives.T, T)
 
-        if grad_U == None:
+        if not substitute_gradients:
             return
 
         (grad_P, grad_V, grad_T) = QuantityConverter.PrimitivesGradients(U, grad_U, params)
 
-        KratosSympy.SubstituteScalarValue(expr, primitives.grad_P, grad_P)
+        KratosSympy.SubstituteMatrixValue(expr, primitives.grad_P, grad_P)
         KratosSympy.SubstituteMatrixValue(expr, primitives.grad_V, grad_V)
-        KratosSympy.SubstituteScalarValue(expr, primitives.grad_T, grad_T)
+        KratosSympy.SubstituteMatrixValue(expr, primitives.grad_T, grad_T)

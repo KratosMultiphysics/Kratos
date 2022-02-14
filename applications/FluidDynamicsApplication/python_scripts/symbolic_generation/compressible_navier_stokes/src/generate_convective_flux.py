@@ -23,19 +23,22 @@ def ComputeEulerJacobianMatrix(U, primitives, params):
     E[1:-1, :] = rho*vel*vel.T + p*delta
     E[-1, :]   = vel.T * (e_tot + p)
 
-    # Obtain the Euler Jacobian Matrix A := dE/dU = dE/dV * dV/dU
+    # Obtain the Euler Jacobian Matrix
+    #     A_jik := dE_ji/dU_k
+    #            = dE_ij/dV_m * dV_m/dU_k
+
     V = primitives.AsVector()
     dV_dU = QuantityConverter.dVdU(U, primitives, params)
     A = [0] * dim
     for j in range(dim):
-        dE_dV = sympy.zeros(blocksize, blocksize)
-
+        dEj_dV = sympy.zeros(blocksize, blocksize)
         for i in range(blocksize):
-            for l in range(blocksize):
-                dE_dV[i, l] = sympy.diff(E[i, j], V[l])
-        A[j] = dE_dV * dV_dU[j, :]
+            for m in range(blocksize):
+                dEj_dV[i, m] = sympy.diff(E[i, j], V[m])
 
-    A.simplify()
+        A[j] = dEj_dV * dV_dU
+        A[j].simplify()
+
     return A
 
 

@@ -62,7 +62,7 @@ def ComputeDiffusiveFluxWithShockCapturing(primitives, params, sc_params):
 
     # Define and fill the isotropic shock capturing diffusive flux matrix
     G = sympy.zeros(dim+2, dim)
-    G[0,:] = mass_flux
+    G[0,:] = mass_flux.T
     G[1:-1, :] = -tau_stress.T
     G[-1, :] = heat_flux.T - vel.T*tau_stress
 

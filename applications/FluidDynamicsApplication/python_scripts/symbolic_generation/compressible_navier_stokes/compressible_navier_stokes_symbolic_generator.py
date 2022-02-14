@@ -234,9 +234,6 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Substitute the symbols in the residual
         res_gauss = res.copy()
 
-        if self.primitive_interpolation == "nodal":
-            QuantityConverter.SubstitutePrimitivesWithConservatives(res_gauss, primitives, U_gauss, grad_U, params)
-
         KratosSympy.SubstituteMatrixValue(res_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, H, grad_U)
@@ -329,7 +326,6 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Primitive interpolation
         KratosSympy.SubstituteMatrixValue(rv_gauss, Tau, tau_gauss)
-        primitives.InterpolateAndSubstitute(rv_gauss, U, Ng, self.geometry.DN(), params)
         KratosSympy.SubstituteMatrixValue(rv_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, H, grad_U)
@@ -520,6 +516,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         if self.primitive_interpolation == "gaussian":
             QuantityConverter.SubstitutePrimitivesWithConservatives(res, primitives, Ug, H, params)
+            QuantityConverter.SubstitutePrimitivesWithConservatives(rv, primitives, Ug, H, params)
 
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
             self._print(1, "   - Gauss point: " + str(i_gauss))
