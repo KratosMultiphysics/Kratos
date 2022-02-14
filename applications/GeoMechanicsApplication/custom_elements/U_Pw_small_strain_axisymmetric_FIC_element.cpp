@@ -75,8 +75,7 @@ double UPwSmallStrainAxisymmetricFICElement<TDim,TNumNodes>::
 {
     Vector N;
     N = this->GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-    const double radius = GeoElementUtilities::CalculateRadius(N, this->GetGeometry());
-    const double radiusWeight = 2.0 * Globals::Pi * radius;
+    const double radiusWeight = GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
 
     return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
 }

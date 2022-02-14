@@ -171,6 +171,7 @@ namespace Kratos
         const WaveElement<9> mWaveElement2D9N;
         const CrankNicolsonWaveElement<3> mCrankNicolsonWaveElement2D3N;
         const BoussinesqElement<3> mBoussinesqElement2D3N;
+        const BoussinesqElement<4> mBoussinesqElement2D4N;
         const ConservativeElement<3> mConservativeElement2D3N;
         const ShallowWater2D3 mShallowWater2D3N;
         // Conditions

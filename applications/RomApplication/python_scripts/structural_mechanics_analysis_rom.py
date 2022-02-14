@@ -11,6 +11,7 @@ import numpy as np
 class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
     def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
+        KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'StructuralMechanicsAnalysisROM\'", "class is deprecated. Use the \'RomAnalysis\' one instead.")
         super().__init__(model,project_parameters)
         if hyper_reduction_element_selector != None :
             if hyper_reduction_element_selector == "EmpiricalCubature":

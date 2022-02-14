@@ -29,6 +29,7 @@
 #include "containers/distributed_vector_exporter.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -206,8 +207,20 @@ public:
             AddEntry(*it);
     }
 
+    TDataType Dot(const DistributedSystemVector& rOtherVector, MpiIndexType gather_on_rank=0)
+    {
+        const auto& other_data = rOtherVector.GetLocalData();
+        TDataType dot_value = IndexPartition<IndexType>(mLocalData.size()).template for_each<SumReduction<TDataType>>([&](IndexType i){
+                return mLocalData[i]*other_data[i];
+            });
 
-    void Add(const double factor,
+        dot_value = GetComm().Sum(dot_value, gather_on_rank);
+        if(GetComm().Rank() != gather_on_rank) dot_value = -1; //give an impossible result in case it is not on the reduction rank
+        return dot_value; // note that the value to be reduced should be returned
+    }
+
+
+    void Add(const TDataType factor,
              const DistributedSystemVector& rOtherVector
             )
     {

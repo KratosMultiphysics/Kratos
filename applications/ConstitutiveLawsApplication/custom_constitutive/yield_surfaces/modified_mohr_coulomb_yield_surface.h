@@ -275,9 +275,7 @@ class ModifiedMohrCoulombYieldSurface
         const double tens_yield = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
         const double n = compr_yield / tens_yield;
 
-        const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
-
-        const double angle_phi = (Globals::Pi * 0.25) + dilatancy * 0.5;
+        const double angle_phi = (Globals::Pi * 0.25) + friction_angle * 0.5;
         const double alpha = n / (std::tan(angle_phi) * std::tan(angle_phi));
 
         const double CFL = 2.0 * std::tan(angle_phi) / cons_phi;

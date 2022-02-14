@@ -71,9 +71,7 @@ public:
     {
         KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
@@ -93,29 +91,28 @@ public:
             mSlope = (y[1] - y[0])
                     /(mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
 
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node<3>& rNode) {
+                    const double pressure = CalculatePressure(rNode, y);
 
-            block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node<3>& rNode) {
-                double height = 0.0;
-                if (rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate && rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
-                    height = mSlope * (rNode.Coordinates()[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node<3>& rNode) {
+                    const double pressure = CalculatePressure(rNode, y);
 
-                } else if (rNode.Coordinates()[mHorizontalDirection] < mMinHorizontalCoordinate) {
-                    height = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
-
-                } else if (rNode.Coordinates()[mHorizontalDirection] > mMaxHorizontalCoordinate) {
-                    height = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
-                }
-
-                const double distance = height - rNode.Coordinates()[mGravityDirection];
-                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
-
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            });
-
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
+            }
         }
 
         KRATOS_CATCH("");
@@ -146,6 +143,24 @@ protected:
 
     array_1d<TableType::Pointer,2> mpTable;
     double mTimeUnitConverter;
+
+    double CalculatePressure(const Node<3> &rNode, const array_1d<double, 2> &y) const
+    {
+        double height = 0.0;
+        if (rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate && rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
+            height = mSlope * (rNode.Coordinates()[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
+
+        } else if (rNode.Coordinates()[mHorizontalDirection] < mMinHorizontalCoordinate) {
+            height = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
+
+        } else if (rNode.Coordinates()[mHorizontalDirection] > mMaxHorizontalCoordinate) {
+            height = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
+        }
+
+        const double distance = height - rNode.Coordinates()[mGravityDirection];
+        const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
+        return pressure;
+    }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

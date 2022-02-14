@@ -22,7 +22,10 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
             "interface_model_part_name" : "",
             "output_model_part_name"    : "",
             "store_historical_database" : false,
-            "direction_of_integration"  : [0.0, 0.0, 1.0],
+            "extrapolate_boundaries"    : false,
+            "velocity_depth_integration": true,
+            "velocity_relative_depth"   : -0.531,
+            "mean_water_level"          : 0.0,
             "interval"                  : [0.0,"End"],
             "file_settings"             : {},
             "output_time_settings"      : {}
@@ -41,7 +44,10 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         self.interval = KM.IntervalUtility(self.settings)
         self.variables = [KM.VELOCITY, KM.MOMENTUM, SW.HEIGHT]
 
-        self.integration_process = SW.DepthIntegrationProcess(model, self._CreateIntegrationParameters())
+        if self.volume_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 2:
+            self.integration_process = SW.DepthIntegrationProcess2D(model, self._CreateIntegrationParameters())
+        else:
+            self.integration_process = SW.DepthIntegrationProcess3D(model, self._CreateIntegrationParameters())
         self.hdf5_process = single_mesh_temporal_output_process.Factory(self._CreateHDF5Parameters(), model)
 
 
@@ -63,18 +69,14 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
     def ExecuteBeforeSolutionLoop(self):
         '''Write the interface model part in HDF5 format.'''
+        self.integration_process.Execute()
+        self._MapToOutputModelPart()
         self.hdf5_process.ExecuteBeforeSolutionLoop()
 
 
     def ExecuteInitializeSolutionStep(self):
         '''Synchronize the ProcessInfo of the output and interface model part.'''
         self._SetOutputProcessInfo()
-
-
-    def ExecuteBeforeOutputStep(self):
-        '''Perform the depth integration over the interface model part.'''
-        self.integration_process.Execute()
-        self._MapToOutputModelPart()
 
 
     def IsOutputStep(self):
@@ -84,7 +86,9 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
 
 
     def PrintOutput(self):
-        '''Print the integrated variables from interface model part.'''
+        '''Perform the depth integration over the interface model part.'''
+        self.integration_process.Execute()
+        self._MapToOutputModelPart()
         self.hdf5_process.ExecuteFinalizeSolutionStep()
 
 
@@ -98,6 +102,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         condition_name = "LineCondition{}D2N".format(domain_size)
         KM.DuplicateMeshModeler(self.interface_model_part).GenerateMesh(
             self.output_model_part, element_name, condition_name)
+        self.output_model_part.ProcessInfo[KM.DOMAIN_SIZE] = domain_size
 
 
     def _MapToOutputModelPart(self):
@@ -131,8 +136,11 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         integration_settings = KM.Parameters()
         integration_settings.AddValue("volume_model_part_name", self.settings["volume_model_part_name"])
         integration_settings.AddValue("interface_model_part_name", self.settings["interface_model_part_name"])
-        integration_settings.AddValue("direction_of_integration", self.settings["direction_of_integration"])
         integration_settings.AddValue("store_historical_database", self.settings["store_historical_database"])
+        integration_settings.AddValue("extrapolate_boundaries", self.settings["extrapolate_boundaries"])
+        integration_settings.AddValue("velocity_depth_integration", self.settings["velocity_depth_integration"])
+        integration_settings.AddValue("velocity_relative_depth", self.settings["velocity_relative_depth"])
+        integration_settings.AddValue("mean_water_level", self.settings["mean_water_level"])
         return integration_settings
 
 

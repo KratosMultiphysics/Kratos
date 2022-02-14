@@ -374,6 +374,12 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
+if(Boost_VERSION_STRING VERSION_LESS 1.70)
+  message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
+else()
+  add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+endif ()
+
 ##*****************************
 # Finding cuda if needed
 if(${USE_CUDA} MATCHES ON)
@@ -400,7 +406,7 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tetgen library
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     set(TETGEN_ZIP_FILE "tetgen")
-    
+
     if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Use TetGen from local source
         set(TETGEN_EXT_PATH ${CMAKE_CURRENT_BINARY_DIR}/external_libraries/tetgen)
@@ -412,7 +418,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
             find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
             message("Copying tetgen dir to ${TETGEN_EXT_PATH}")
         endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
-        
+
         # Prepare tetgen
         add_definitions(-DTETLIBRARY)
         add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
@@ -574,13 +580,7 @@ message("***********************************************************************
 message("")
 
 message("List of upcoming api-breaking changes:")
-message("\t Making variables non-copiable: https://github.com/KratosMultiphysics/Kratos/pull/6339")
-message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kratos/pull/6233")
-message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
-message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
-message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
 message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
-message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 message("\t Make Check() method of ConstitutiveLaw const: https://github.com/KratosMultiphysics/Kratos/pull/7948")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")

@@ -1304,4 +1304,16 @@ void ShellCrossSection::Ply::RecoverOrthotropicProperties(const IndexType IdxCur
     laminaProps[SHELL_ORTHOTROPIC_LAYERS] = current_ply_properties;
 }
 
+
+std::vector<ConstitutiveLaw::Pointer> ShellCrossSection::GetConstitutiveLawsVector(const Properties& rProps)
+{
+    std::vector<ConstitutiveLaw::Pointer> claws_vector;
+    for (auto& r_ply : mStack) {
+        for (const auto& r_int_point : r_ply.GetIntegrationPoints(rProps)) {
+            claws_vector.push_back(r_int_point.GetConstitutiveLaw());
+        }
+    }
+    return claws_vector;
+}
+
 }
