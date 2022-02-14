@@ -65,22 +65,35 @@ public:
     {
         KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-        if (nNodes > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             const double deltaH = mpTable->GetValue(Time);
 
-            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
-                const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
-                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                    const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            });
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0.0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node<3>& rNode) {
+                    const double distance = mReferenceCoordinate - rNode.Coordinates()[mGravityDirection];
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (distance + deltaH);
+
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
+            }
         }
 
         KRATOS_CATCH("")

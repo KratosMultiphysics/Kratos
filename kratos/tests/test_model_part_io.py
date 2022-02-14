@@ -42,6 +42,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.NumberOfNodes(), 6)
         self.assertEqual(model_part.NumberOfProperties(), 1)
+        self.assertEqual(model_part.NumberOfGeometries(), 9)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
 
@@ -113,6 +114,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(inlets_model_part.NumberOfTables(), 1)
         self.assertEqual(inlets_model_part.NumberOfProperties(), 0)
         self.assertEqual(inlets_model_part.NumberOfNodes(), 3)
+        self.assertEqual(inlets_model_part.NumberOfGeometries(), 0)
         self.assertEqual(inlets_model_part.NumberOfElements(), 1)
         self.assertEqual(inlets_model_part.NumberOfConditions(), 3)
         self.assertEqual(inlets_model_part.NumberOfSubModelParts(), 2)
@@ -124,6 +126,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(inlet1_model_part.NumberOfTables(), 0)
         self.assertEqual(inlet1_model_part.NumberOfProperties(), 0)
         self.assertEqual(inlet1_model_part.NumberOfNodes(), 2)
+        self.assertEqual(inlet1_model_part.NumberOfGeometries(), 0)
         self.assertEqual(inlet1_model_part.NumberOfElements(), 0)
         self.assertEqual(inlet1_model_part.NumberOfConditions(), 2)
         self.assertEqual(inlet1_model_part.NumberOfSubModelParts(), 0)
@@ -133,6 +136,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(inlet2_model_part.NumberOfTables(), 0)
         self.assertEqual(inlet2_model_part.NumberOfProperties(), 0)
         self.assertEqual(inlet2_model_part.NumberOfNodes(), 0)
+        self.assertEqual(inlet2_model_part.NumberOfGeometries(), 0)
         self.assertEqual(inlet2_model_part.NumberOfElements(), 0)
         self.assertEqual(inlet2_model_part.NumberOfConditions(), 2)
         self.assertEqual(inlet2_model_part.NumberOfSubModelParts(), 0)
@@ -144,6 +148,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(outlet_model_part.NumberOfTables(), 0)
         self.assertEqual(outlet_model_part.NumberOfProperties(), 1)
         self.assertEqual(outlet_model_part.NumberOfNodes(), 0)
+        self.assertEqual(outlet_model_part.NumberOfGeometries(), 0)
         self.assertEqual(outlet_model_part.NumberOfElements(), 0)
         self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
         self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
@@ -187,6 +192,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfTables(), 0)
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.NumberOfNodes(), 6)
+        self.assertEqual(model_part.NumberOfGeometries(), 9)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
 
@@ -266,7 +272,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         import filecmp
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
-        self.assertEqual(value, True)
+        self.assertTrue(value)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_model_part_io_write_model_part_mesh_only(self):
@@ -281,7 +287,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
 
         import filecmp
         value = filecmp.cmp(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write_mesh_only.mdpa"), GetFilePath("test_model_part_io_write_mesh_only.out.mdpa"))
-        self.assertEqual(value, True)
+        self.assertTrue(value)
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):

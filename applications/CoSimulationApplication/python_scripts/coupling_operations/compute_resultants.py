@@ -11,8 +11,8 @@ def Create(*args):
 class ComputeResultantsOperation(CoSimulationCouplingOperation):
     """This operation computes the Normals (NORMAL) on a given ModelPart
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.reference_point = self.settings["reference_point"].GetVector()

@@ -69,6 +69,7 @@ public:
 
     const_iterator_adaptor begin() const {return const_iterator_adaptor(mPointerVector.begin());}
     const_iterator_adaptor end()   const {return const_iterator_adaptor(mPointerVector.end());}
+    std::size_t size()             const {return mPointerVector.size();}
 
 private:
     const ContainerType& mPointerVector;

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2016, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

@@ -8,5 +8,5 @@ def Factory(solver, parameters):
 
 class PrescribedRootPointDisplacementProcess(_PrescribedValueProcess):
     
-    def _ApplyValue(self, prescribed_value):
-        self.solver.prescribed_root_point_displ += prescribed_value
+    def _ApplyValue(self, index, prescribed_value):
+        self.solver.prescribed_root_point_displ[index] += prescribed_value

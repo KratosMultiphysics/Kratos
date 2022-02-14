@@ -9,13 +9,13 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 import numpy as np
 
 def Create(*args):
-    return ComputeResultantsOperation(*args)
+    return ImposeMeshDisplacementOperation(*args)
 
-class ComputeResultantsOperation(CoSimulationCouplingOperation):
+class ImposeMeshDisplacementOperation(CoSimulationCouplingOperation):
     """This operation computes the Normals (NORMAL) on a given ModelPart
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.reference_point = self.settings["reference_point"].GetVector()

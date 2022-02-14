@@ -31,9 +31,9 @@ class _PrescribedValueProcess(_RigidBodyProcess):
             index = self.solver.available_dofs.index(self.dof)
             scope_vars = {'t' : self.solver.time}
             prescribed_value = GenericCallFunction(self.formula, scope_vars, check=False)
-            self._ApplyValue(prescribed_value)
+            self._ApplyValue(index, prescribed_value)
 
-    def _ApplyValue(self, prescribed_value):
+    def _ApplyValue(self, index, prescribed_value):
         raise Exception("This method should be overwritten in the derived class.")
 
     def GetDefaultParameters(self):
