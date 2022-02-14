@@ -18,6 +18,15 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         self.files_to_remove = []
 
     @classmethod
+    def _FormatVector(cls, vector, fmt = "{:>.6}"):
+        """Mimics KratosMultiphysics.vector.__str__ but with a customizable format string"""
+        output = "[{}]".format(vector.Size())
+        output = "("
+        output = output + ", ".join([fmt.format(x) for x in vector])
+        output = output + ")"
+        return output
+
+    @classmethod
     def _GetGeneratorSettings(cls, geometry):
         """Returns the Kratos Parameters for the symbolic generator"""
         geometry_name = {
@@ -72,7 +81,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
                 result, reference = getattr(sub_testsuite, subtest_name)()
 
                 if print_results:
-                    print("Result for {} -- {}: {}".format(geometry, subtest_name, result))
+                    print("Result for {} -- {}: {}".format(geometry, subtest_name, self._FormatVector(result, "{:>10}")))
 
                 self.assertVectorAlmostEqual(result, reference)
 
