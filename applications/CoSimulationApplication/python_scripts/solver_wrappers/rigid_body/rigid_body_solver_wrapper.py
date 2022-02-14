@@ -50,8 +50,8 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
 
         self._rigid_body_solver.SolveSolutionStep()
 
-        self._rigid_body_solver.rigid_body_model_part[KM.DISPLACEMENT] =    self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
-        self._rigid_body_solver.rigid_body_model_part[KM.ROTATION] =        self._rigid_body_solver.GetSolutionStepValue("ROTATION", 0)
+        #self._rigid_body_solver.rigid_body_model_part[KM.DISPLACEMENT] =    self._rigid_body_solver.GetSolutionStepValue("DISPLACEMENT", 0)
+        #self._rigid_body_solver.rigid_body_model_part[KM.ROTATION] =        self._rigid_body_solver.GetSolutionStepValue("ROTATION", 0)
         self._rigid_body_solver.root_point_model_part[KM.REACTION] =        self._rigid_body_solver.GetSolutionStepValue("REACTION", 0)
         self._rigid_body_solver.root_point_model_part[KM.REACTION_MOMENT] = self._rigid_body_solver.GetSolutionStepValue("REACTION_MOMENT", 0)
 

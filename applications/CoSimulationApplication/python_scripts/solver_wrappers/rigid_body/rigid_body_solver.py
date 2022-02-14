@@ -41,12 +41,8 @@ class RigidBodySolver(object):
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
 
-
         self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
         self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
-
-        for node in self.rigid_body_model_part.Nodes:
-            print(node.GetSolutionStepValue(KM.DISPLACEMENT))
 
         # Degrees of freedom that can be activated from the parameters
         self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z',
@@ -178,9 +174,9 @@ class RigidBodySolver(object):
         self.time = self.start_time
 
         # Initialize total displacement, velocity and acceleration
-        self.x = np.zeros((self.system_size, self.buffer_size))
-        self.v = np.zeros((self.system_size, self.buffer_size))
-        self.a = np.zeros((self.system_size, self.buffer_size))
+        #self.x = np.zeros((self.system_size, self.buffer_size))
+        #self.v = np.zeros((self.system_size, self.buffer_size))
+        #self.a = np.zeros((self.system_size, self.buffer_size))
 
         # Initialize the displacement, velocity and accelerration of the root point
         self.x_root = np.zeros((self.system_size, self.buffer_size))
@@ -197,9 +193,18 @@ class RigidBodySolver(object):
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
         # Apply initial conditions
-        self.x[:,0] = self.initial_displacement
-        self.v[:,0] = self.initial_velocity
-        self.a[:,0] = self.initial_acceleration
+        initial_disp = list(self.initial_displacement[:self.linear_size])
+        initial_rot = list(self.initial_displacement[-self.angular_size:])
+        initial_vel = list(self.initial_velocity[:self.linear_size])
+        initial_ang_vel = list(self.initial_velocity[-self.angular_size:])
+        initial_acc = list(self.initial_acceleration[:self.linear_size])
+        initial_ang_acc = list(self.initial_acceleration[-self.angular_size:])
+        self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, initial_disp+initial_rot)
+        self._SetCompleteVector("rigid_body", KM.VELOCITY, KM.ANGULAR_VELOCITY, initial_disp+initial_rot)
+        self._SetCompleteVector("rigid_body", KM.ACCELERATION, KM.ANGULAR_ACCELERATION, initial_disp+initial_rot)
+        #self.x[:,0] = self.initial_displacement
+        #self.v[:,0] = self.initial_velocity
+        #self.a[:,0] = self.initial_acceleration
 
         # Apply external load as an initial impulse
         self.total_load[:,0] = self.load_impulse
@@ -267,20 +272,22 @@ class RigidBodySolver(object):
                 # TODO: this sould be calculated elsewhere or not outputed
                 reaction = self.CalculateReaction()
 
+                x, v, a = self._GetKinematics("rigid_body")
+
                 # Write the output only for the active DOFs
                 for index, dof in enumerate(self.available_dofs):
                     if dof in self.active_dofs:
                         with open(self.output_file_name[dof], "a") as results_rigid_body:
                             results_rigid_body.write(str(self.time) + " " +
-                                                    str(self.x[index,0]) + " " +
-                                                    str(self.v[index,0]) + " " +
-                                                    str(self.a[index,0]) + " " +
+                                                    str(x[index]) + " " +
+                                                    str(v[index]) + " " +
+                                                    str(a[index]) + " " +
                                                     str(self.x_root[index,0]) + " " +
                                                     str(self.v_root[index,0]) + " " +
                                                     str(self.a_root[index,0]) + " " +
-                                                    str(self.x[index,0] - self.x_root[index,0]) + " " +
-                                                    str(self.v[index,0] - self.v_root[index,0]) + " " +
-                                                    str(self.a[index,0] - self.a_root[index,0]) + " " +
+                                                    str(x[index] - self.x_root[index,0]) + " " +
+                                                    str(v[index] - self.v_root[index,0]) + " " +
+                                                    str(a[index] - self.a_root[index,0]) + " " +
                                                     str(reaction[index]) + "\n")
 
 
@@ -290,11 +297,11 @@ class RigidBodySolver(object):
         # Column 0 is the current time step, column 1 the previous one...
 
         # Variables whith buffer. Column 0 will be overwriten later
-        self.x = np.roll(self.x,1,axis=1)
+        #self.x = np.roll(self.x,1,axis=1)
         self.x_root = np.roll(self.x_root,1,axis=1)
-        self.v = np.roll(self.v,1,axis=1)
+        #self.v = np.roll(self.v,1,axis=1)
         self.v_root = np.roll(self.v_root,1,axis=1)
-        self.a = np.roll(self.a,1,axis=1)
+        #self.a = np.roll(self.a,1,axis=1)
         self.a_root = np.roll(self.a_root,1,axis=1)
         self.total_load = np.roll(self.total_load,1,axis=1)
         self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
@@ -328,12 +335,12 @@ class RigidBodySolver(object):
         # Calculate the gen-alpha load for the construction of the RHS
         F = (1.0 - self.alpha_f) * self.effective_load[:,0] + self.alpha_f * self.effective_load[:,1]
 
+        x_prev, v_prev, a_prev = self._GetKinematics("rigid_body", buffer=1)
+
         # Creation of the RHS according to the gen-alpha method
-        RHS = np.dot(self.M, (self.a1m * self.x[:,1] +
-                            self.a2m * self.v[:,1] + self.a3m * self.a[:,1]))
-        RHS += np.dot(self.C, (self.a1b * self.x[:,1] +
-                            self.a2b * self.v[:,1] + self.a3b * self.a[:,1]))
-        RHS += np.dot(self.a1k * self.K, self.x[:,1]) + F
+        RHS = np.dot(self.M, (self.a1m * x_prev + self.a2m * v_prev + self.a3m * a_prev))
+        RHS += np.dot(self.C, (self.a1b * x_prev + self.a2b * v_prev + self.a3b * a_prev))
+        RHS += np.dot(self.a1k * self.K, x_prev) + F
 
         # Make zero the corrresponding values of RHS so the inactive dofs are not excited
         for index, dof in enumerate(self.available_dofs):
@@ -341,18 +348,21 @@ class RigidBodySolver(object):
                 RHS[index] = 0
 
         # Solve the solution step and find the new displacements
-        self.x[:,0] = np.linalg.solve(self.LHS, RHS)
+        x = np.linalg.solve(self.LHS, RHS)
 
         # constrained dofs will have the root_point_displacement as a total displacement
         for index, dof in enumerate(self.available_dofs):
             if self.is_constrained[dof]:
-                self.x[index,0] = self.total_root_point_displ[index,0]
+                x[index] = self.total_root_point_displ[index,0]
 
         # Update velocity and acceleration according to the gen-alpha method
-        self.v[:,0] = self.a1v * (self.x[:,0] - self.x[:,1]) + self.a2v * \
-                        self.v[:,1] + self.a3v * self.a[:,1]
-        self.a[:,0] = self.a1a * (self.x[:,0] - self.x[:,1]) + self.a2a * \
-                        self.v[:,1] + self.a3a * self.a[:,1]
+        self._UpdateDisplacement("rigid_body", x)
+        #self.v[:,0] = self.a1v * (x - x_prev) + self.a2v * \
+        #                self.v[:,1] + self.a3v * self.a[:,1]
+        #self.a[:,0] = self.a1a * (x - x_prev) + self.a2a * \
+        #                self.v[:,1] + self.a3a * self.a[:,1]
+         
+        #self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, x)
 
 
     def _UpdateRootPointDisplacement(self, displ):
@@ -363,6 +373,27 @@ class RigidBodySolver(object):
             self.v_root[:,1] + self.a3v * self.a_root[:,1]
         self.a_root[:,0] = self.a1a * (self.x_root[:,0] - self.x_root[:,1]) + self.a2a * \
             self.v_root[:,1] + self.a3a * self.a_root[:,1]
+
+    def _UpdateDisplacement(self, model_part_name, x):
+
+        x_prev, v_prev, a_prev = self._GetKinematics("rigid_body", buffer=1)
+
+        # Calculate the velocity and acceleration according to the gen-alpha method
+        v = self.a1v * (x - x_prev) + self.a2v * v_prev + self.a3v * a_prev
+        a = self.a1a * (x - x_prev) + self.a2a * v_prev + self.a3a * a_prev
+
+        self._SetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, x)
+        self._SetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, v)
+        self._SetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, a)
+
+    
+    def _GetKinematics(self, model_part_name, buffer=0):
+
+        x = self._GetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, buffer=buffer)
+        v = self._GetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, buffer=buffer)
+        a = self._GetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, buffer=buffer)
+
+        return x, v, a
 
 
     def _CalculateEquivalentForceFromRootPointDisplacement(self):
@@ -387,20 +418,20 @@ class RigidBodySolver(object):
 
         return effective_load
     
-
+    '''
     def _UpdateVelocityAndAcceleration(self, x):
         # Update the velocity and acceleration according to the gen-alpha method
         self.v[:,0] = self.a1v * (x - self.x[:,1]) + self.a2v * \
                         self.v[:,1] + self.a3v * self.a[:,1]
         self.a[:,0] = self.a1a * (x - self.x[:,1]) + self.a2a * \
                         self.v[:,1] + self.a3a * self.a[:,1]
-
+    '''
 
     def CalculateReaction(self, buffer_idx=0):
         # TODO: Check how does it work with constrained DOFs
-        reaction = self.C.dot(self.v[:,buffer_idx] - self.v_root[:,buffer_idx]) \
-                + self.K.dot(self.x[:,buffer_idx] - self.x_root[:,buffer_idx])
-        return reaction
+        #reaction = self.C.dot(self.v[:,buffer_idx] - self.v_root[:,buffer_idx]) \
+        #        + self.K.dot(self.x[:,buffer_idx] - self.x_root[:,buffer_idx])
+        return [0, 0, 0, 0, 0, 0]
 
 
     def CalculateSelfWeight(self):
@@ -422,6 +453,8 @@ class RigidBodySolver(object):
             msg += ' but it should be of size ' + str(expected_size)
             raise Exception(msg)
 
+        x = np.zeros(expected_size)
+
         # Loop through input active DOFs saving the values
         for index, value in enumerate(values):
             # Increase the index so it fits with the angular terms (if necessary)
@@ -430,7 +463,7 @@ class RigidBodySolver(object):
             # Save input variables in their corresponding spots
             if self.available_dofs[index] in self.active_dofs:
                 if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
-                    self.x[index, buffer_idx] = value
+                    x[index] = value
                 elif identifier == "VELOCITY":
                     self.v[index, buffer_idx] = value
                 elif identifier == "ACCELERATION":
@@ -441,6 +474,8 @@ class RigidBodySolver(object):
                     self.external_root_point_displ[index] = value
                 else:
                     raise Exception("Identifier is unknown!")
+        
+        #self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, x)
 
 
     # CAN BE ERASED
@@ -452,6 +487,8 @@ class RigidBodySolver(object):
         # Initialize output as a KM vector
         output = KM.Vector(self._ExpectedDataSize(identifier))
 
+        x = self._GetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION)
+
         # Save all the values from the active DOFs
         for index in range(len(output)):
             out_index = index
@@ -460,7 +497,7 @@ class RigidBodySolver(object):
                 index += self.linear_size
             # Fill the output with its corresponding values
             if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
-                output[out_index] = self.x[index, buffer_idx]
+                output[out_index] = x[index]
             elif identifier == "VELOCITY":
                 output[out_index] = self.v[index, buffer_idx]
             elif identifier == "ACCELERATION":
@@ -483,4 +520,34 @@ class RigidBodySolver(object):
             expected_size = self.system_size
 
         return expected_size
+
+    
+    def _GetCompleteVector(self, model_part_name, linear_variable, angular_variable, buffer=0):
+
+        if model_part_name == "rigid_body":
+            linear_values = self.rigid_body_model_part.Nodes[1].GetSolutionStepValue(linear_variable, buffer)
+            angular_values = self.rigid_body_model_part.Nodes[1].GetSolutionStepValue(angular_variable, buffer)
+        elif model_part_name == "root_point":
+            linear_values = self.root_point_model_part.Nodes[2].GetSolutionStepValue(linear_variable, buffer)
+            angular_values = self.root_point_model_part.Nodes[2].GetSolutionStepValue(angular_variable, buffer)
+        else:
+            raise Exception('model_part_name should be "rigid_body" or "root_point".')
+
+        return np.array(list(linear_values) + list(angular_values))
+
+    
+    def _SetCompleteVector(self, model_part_name, linear_variable, angular_variable, values, buffer=0):
+
+        linear_values = list(values[:self.linear_size])
+        angular_values = list(values[-self.angular_size:])
+
+        if model_part_name == "rigid_body":
+            self.rigid_body_model_part.Nodes[1].SetSolutionStepValue(linear_variable, buffer, linear_values)
+            self.rigid_body_model_part.Nodes[1].SetSolutionStepValue(angular_variable, buffer, angular_values)
+        elif model_part_name == "root_point":
+            self.root_point_model_part.Nodes[2].SetSolutionStepValue(linear_variable, buffer, linear_values)
+            self.root_point_model_part.Nodes[2].SetSolutionStepValue(angular_variable, buffer, angular_values)
+        else:
+            raise Exception('model_part_name should be "rigid_body" or "root_point".')
+
 
