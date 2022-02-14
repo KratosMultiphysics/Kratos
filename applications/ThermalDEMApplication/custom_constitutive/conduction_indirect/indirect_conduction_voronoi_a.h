@@ -35,8 +35,11 @@ namespace Kratos
       virtual ~IndirectConductionVoronoiA();
 
       // Public methods
-      double GetSearchDistance (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
-      double ComputeHeatFlux   (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double        GetSearchDistance         (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double        ComputeHeatFlux           (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      static double EvalIntegrandVoronoiWall  (NumericalIntegrationMethod* method);
+      static double EvalIntegrandVoronoiMono  (NumericalIntegrationMethod* method);
+      static double EvalIntegrandVoronoiMulti (NumericalIntegrationMethod* method);
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {

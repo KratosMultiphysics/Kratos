@@ -75,7 +75,7 @@ namespace Kratos {
 
     // Fill integration parameters
     integ.CleanParameters();
-    integ.mpEvalIntegrand = &ThermalSphericParticle::EvalIntegrandVoronoiWall;
+    integ.mpEvalIntegrand = &IndirectConductionVoronoiA::EvalIntegrandVoronoiWall;
     integ.mLimMin         = contact_radius;
     integ.mLimMax         = upp_lim;
     integ.mParams.p1      = distance;
@@ -112,7 +112,7 @@ namespace Kratos {
 
     // Fill integration parameters
     integ.CleanParameters();
-    integ.mpEvalIntegrand = &ThermalSphericParticle::EvalIntegrandVoronoiMono;
+    integ.mpEvalIntegrand = &IndirectConductionVoronoiA::EvalIntegrandVoronoiMono;
     integ.mLimMin         = contact_radius;
     integ.mLimMax         = upp_lim;
     integ.mParams.p1      = distance;
@@ -162,7 +162,7 @@ namespace Kratos {
 
     // Fill integration parameters
     integ.CleanParameters();
-    integ.mpEvalIntegrand = &ThermalSphericParticle::EvalIntegrandVoronoiMulti;
+    integ.mpEvalIntegrand = &IndirectConductionVoronoiA::EvalIntegrandVoronoiMulti;
     integ.mLimMin         = contact_radius;
     integ.mLimMax         = upp_lim;
     integ.mParams.p1      = distance;
@@ -178,6 +178,62 @@ namespace Kratos {
 
     // Heat transfer coefficient from integral expression solved numerically
     return integ.SolveIntegral();
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double IndirectConductionVoronoiA::EvalIntegrandVoronoiWall(NumericalIntegrationMethod* method) {
+    KRATOS_TRY
+
+    const double r   = method->mCoord;
+    const double d   = method->mParams.p1;
+    const double kf  = method->mParams.p2;
+    const double kp  = method->mParams.p3;
+    const double rp  = method->mParams.p4;
+    const double rij = method->mParams.p5;
+
+    return 2.0 * Globals::Pi * r / ((sqrt(rp * rp - r * r) - r * d / rij) / kp + (d - sqrt(rp * rp - r * r)) / kf);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double IndirectConductionVoronoiA::EvalIntegrandVoronoiMono(NumericalIntegrationMethod* method) {
+    KRATOS_TRY
+
+    const double r    = method->mCoord;
+    const double d    = method->mParams.p1;
+    const double kf   = method->mParams.p2;
+    const double keff = method->mParams.p3;
+    const double rp   = method->mParams.p4;
+    const double rij  = method->mParams.p5;
+
+    return 2.0 * Globals::Pi * r / ((sqrt(rp * rp - r * r) - r * d / (2.0 * rij)) / keff + 2.0 * (d / 2.0 - sqrt(rp * rp - r * r)) / kf);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double IndirectConductionVoronoiA::EvalIntegrandVoronoiMulti(NumericalIntegrationMethod* method) {
+    KRATOS_TRY
+
+    const double r    = method->mCoord;
+    const double d    = method->mParams.p1;
+    const double kf   = method->mParams.p2;
+    const double k1   = method->mParams.p3;
+    const double k2   = method->mParams.p4;
+    const double r1   = method->mParams.p5;
+    const double r2   = method->mParams.p6;
+    const double rij  = method->mParams.p7;
+    const double rij_ = method->mParams.p8;
+    const double D1   = method->mParams.p9;
+    const double D2   = method->mParams.p10;
+
+    const double beta1 = sqrt(r1 * r1 - r * r);
+    const double beta2 = sqrt(r2 * r2 - r * r);
+
+    return 2.0 * Globals::Pi * r / ((beta1 - D1 * r / rij) / k1 + (beta2 - D2 * r / rij_) / k2 + (d - beta1 - beta2) / kf);
 
     KRATOS_CATCH("")
   }

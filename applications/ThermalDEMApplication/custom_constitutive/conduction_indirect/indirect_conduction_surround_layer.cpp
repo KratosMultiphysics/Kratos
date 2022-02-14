@@ -109,7 +109,7 @@ namespace Kratos {
 
     // Fill integration parameters
     integ.CleanParameters();
-    integ.mpEvalIntegrand = &ThermalSphericParticle::EvalIntegrandSurrLayer;
+    integ.mpEvalIntegrand = &IndirectConductionSurroundLayer::EvalIntegrandSurrLayer;
     integ.mLimMin         = contact_radius;
     integ.mLimMax         = upp_lim;
     integ.mParams.p1      = distance;
@@ -119,6 +119,21 @@ namespace Kratos {
 
     // Heat transfer coefficient from integral expression solved numerically
     return fluid_conductivity * integ.SolveIntegral();
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double IndirectConductionSurroundLayer::EvalIntegrandSurrLayer(NumericalIntegrationMethod* method) {
+    KRATOS_TRY
+
+    const double r    = method->mCoord;
+    const double d    = method->mParams.p1;
+    const double dmin = method->mParams.p2;
+    const double r1   = method->mParams.p3;
+    const double r2   = method->mParams.p4;
+
+    return 2.0 * Globals::Pi * r / std::max(dmin, d - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r));
 
     KRATOS_CATCH("")
   }

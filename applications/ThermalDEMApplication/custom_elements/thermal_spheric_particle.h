@@ -97,12 +97,6 @@ namespace Kratos
       double AdjustedContactRadiusLu     (const ProcessInfo& r_process_info);
       double AdjustedContactRadiusMorris (const ProcessInfo& r_process_info);
 
-      // Integration expressions
-      static double EvalIntegrandSurrLayer    (NumericalIntegrationMethod* method);
-      static double EvalIntegrandVoronoiWall  (NumericalIntegrationMethod* method);
-      static double EvalIntegrandVoronoiMono  (NumericalIntegrationMethod* method);
-      static double EvalIntegrandVoronoiMulti (NumericalIntegrationMethod* method);
-
       // Auxiliary computations
       void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
       double ComputePrandtlNumber         (const ProcessInfo& r_process_info);
