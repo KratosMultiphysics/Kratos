@@ -159,7 +159,7 @@ namespace Kratos {
     // Compute temperature results (avg, dev)
     particle_temp_avg /= num_of_particles;
     model_temp_avg    /= total_vol;
-    particle_temp_dev  = std::max(0.0, particle_temp_dev / num_of_particles - particle_temp_avg * particle_temp_avg);
+    particle_temp_dev  = sqrt(std::max(0.0, particle_temp_dev / num_of_particles - particle_temp_avg * particle_temp_avg));
 
     // Compute average of relative contribution of each heat transfer mechanism
     if (mGraph_ParticleHeatFluxContributions && num_ratio_particles > 0) {
