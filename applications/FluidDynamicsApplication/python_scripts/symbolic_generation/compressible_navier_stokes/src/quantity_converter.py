@@ -182,7 +182,9 @@ class QuantityConverter:
     @classmethod
     def dVdU(cls, U, primitives, params):
         """
-        Returns the derivative of the primitive vector V with respect to the conservative vector U
+        Returns the derivative of the primitive vector V with respect to the conservative vector U.
+
+        returns `dV_i/dU_j`
         """
         blocksize = primitives.ndims+2
         V = primitives.AsVector()
