@@ -63,15 +63,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      FrictionModel& operator=(FrictionModel const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      FrictionModel(FrictionModel const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      FrictionModel& operator=(FrictionModel const& rOther) {return *this;}
+      FrictionModel(FrictionModel const& rOther) {*this = rOther;}
 
   }; // Class FrictionModel
 

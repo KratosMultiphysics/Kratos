@@ -62,15 +62,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      RadiationContinuumKrause& operator=(RadiationContinuumKrause const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      RadiationContinuumKrause(RadiationContinuumKrause const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      RadiationContinuumKrause& operator=(RadiationContinuumKrause const& rOther) {return *this;}
+      RadiationContinuumKrause(RadiationContinuumKrause const& rOther) {*this = rOther;}
 
   }; // Class RadiationContinuumKrause
 

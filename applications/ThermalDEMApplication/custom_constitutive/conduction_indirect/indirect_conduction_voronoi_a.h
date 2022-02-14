@@ -35,11 +35,14 @@ namespace Kratos
       virtual ~IndirectConductionVoronoiA();
 
       // Public methods
-      double        GetSearchDistance         (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
-      double        ComputeHeatFlux           (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
-      static double EvalIntegrandVoronoiWall  (NumericalIntegrationMethod* method);
-      static double EvalIntegrandVoronoiMono  (NumericalIntegrationMethod* method);
-      static double EvalIntegrandVoronoiMulti (NumericalIntegrationMethod* method);
+      double        GetSearchDistance          (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double        ComputeHeatFlux            (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double        SphereWallCoeff            (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      double        SphereSphereMonoSizeCoeff  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      double        SphereSphereMultiSizeCoeff (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      static double EvalIntegrandVoronoiWall   (NumericalIntegrationMethod* method);
+      static double EvalIntegrandVoronoiMono   (NumericalIntegrationMethod* method);
+      static double EvalIntegrandVoronoiMulti  (NumericalIntegrationMethod* method);
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {
@@ -63,24 +66,11 @@ namespace Kratos
       virtual void PrintInfo(std::ostream & rOStream) const override { rOStream << "IndirectConductionVoronoiA"; }
       virtual void PrintData(std::ostream & rOStream) const override {}
 
-    protected:
-
-      // Protected methods
-      double SphereWallCoeff            (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-      double SphereSphereMonoSizeCoeff  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-      double SphereSphereMultiSizeCoeff (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-
     private:
 
-      // Assignment operator
-      IndirectConductionVoronoiA& operator=(IndirectConductionVoronoiA const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      IndirectConductionVoronoiA(IndirectConductionVoronoiA const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      IndirectConductionVoronoiA& operator=(IndirectConductionVoronoiA const& rOther) {return *this;}
+      IndirectConductionVoronoiA(IndirectConductionVoronoiA const& rOther) {*this = rOther;}
 
   }; // Class IndirectConductionVoronoiA
 

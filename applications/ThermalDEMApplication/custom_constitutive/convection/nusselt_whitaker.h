@@ -60,15 +60,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      NusseltWhitaker& operator=(NusseltWhitaker const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      NusseltWhitaker(NusseltWhitaker const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      NusseltWhitaker& operator=(NusseltWhitaker const& rOther) {return *this;}
+      NusseltWhitaker(NusseltWhitaker const& rOther) {*this = rOther;}
 
   }; // Class NusseltWhitaker
 

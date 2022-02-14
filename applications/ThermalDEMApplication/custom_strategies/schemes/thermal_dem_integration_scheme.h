@@ -66,15 +66,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      ThermalDEMIntegrationScheme& operator=(ThermalDEMIntegrationScheme const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      ThermalDEMIntegrationScheme(ThermalDEMIntegrationScheme const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      ThermalDEMIntegrationScheme& operator=(ThermalDEMIntegrationScheme const& rOther) {return *this;}
+      ThermalDEMIntegrationScheme(ThermalDEMIntegrationScheme const& rOther) {*this = rOther;}
 
       // Serializer
       friend class Serializer;

@@ -34,8 +34,11 @@ namespace Kratos
       virtual ~IndirectConductionVoronoiB();
 
       // Public methods
-      double GetSearchDistance (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
-      double ComputeHeatFlux   (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double GetSearchDistance          (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double ComputeHeatFlux            (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double SphereWallCoeff            (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      double SphereSphereMonoSizeCoeff  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      double SphereSphereMultiSizeCoeff (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {
@@ -59,24 +62,11 @@ namespace Kratos
       virtual void PrintInfo(std::ostream & rOStream) const override { rOStream << "IndirectConductionVoronoiB"; }
       virtual void PrintData(std::ostream & rOStream) const override {}
 
-    protected:
-
-      // Protected methods
-      double SphereWallCoeff            (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-      double SphereSphereMonoSizeCoeff  (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-      double SphereSphereMultiSizeCoeff (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-
     private:
 
-      // Assignment operator
-      IndirectConductionVoronoiB& operator=(IndirectConductionVoronoiB const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      IndirectConductionVoronoiB(IndirectConductionVoronoiB const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      IndirectConductionVoronoiB& operator=(IndirectConductionVoronoiB const& rOther) {return *this;}
+      IndirectConductionVoronoiB(IndirectConductionVoronoiB const& rOther) {*this = rOther;}
 
   }; // Class IndirectConductionVoronoiB
 

@@ -69,15 +69,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      HeatExchangeMechanism& operator=(HeatExchangeMechanism const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      HeatExchangeMechanism(HeatExchangeMechanism const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      HeatExchangeMechanism& operator=(HeatExchangeMechanism const& rOther) {return *this;}
+      HeatExchangeMechanism(HeatExchangeMechanism const& rOther) {*this = rOther;}
 
       // Serializer
       friend class Serializer;

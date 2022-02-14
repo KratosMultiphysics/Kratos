@@ -61,15 +61,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      FrictionCoulomb& operator=(FrictionCoulomb const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      FrictionCoulomb(FrictionCoulomb const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      FrictionCoulomb& operator=(FrictionCoulomb const& rOther) {return *this;}
+      FrictionCoulomb(FrictionCoulomb const& rOther) {*this = rOther;}
 
   }; // Class FrictionCoulomb
 

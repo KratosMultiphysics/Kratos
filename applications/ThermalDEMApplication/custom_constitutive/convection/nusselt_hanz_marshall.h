@@ -60,15 +60,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      NusseltHanzMarshall& operator=(NusseltHanzMarshall const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      NusseltHanzMarshall(NusseltHanzMarshall const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      NusseltHanzMarshall& operator=(NusseltHanzMarshall const& rOther) {return *this;}
+      NusseltHanzMarshall(NusseltHanzMarshall const& rOther) {*this = rOther;}
 
   }; // Class NusseltHanzMarshall
 

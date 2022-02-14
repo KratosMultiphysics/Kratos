@@ -68,15 +68,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      NumericalIntegrationMethod& operator=(NumericalIntegrationMethod const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      NumericalIntegrationMethod(NumericalIntegrationMethod const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      NumericalIntegrationMethod& operator=(NumericalIntegrationMethod const& rOther) {return *this;}
+      NumericalIntegrationMethod(NumericalIntegrationMethod const& rOther) {*this = rOther;}
 
       // Serializer
       friend class Serializer;

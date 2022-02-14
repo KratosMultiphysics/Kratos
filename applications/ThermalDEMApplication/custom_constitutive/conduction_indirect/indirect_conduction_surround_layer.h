@@ -37,6 +37,8 @@ namespace Kratos
       // Public methods
       double        GetSearchDistance      (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
       double        ComputeHeatFlux        (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double        SphereWallCoeff        (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
+      double        SphereSphereCoeff      (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       static double EvalIntegrandSurrLayer (NumericalIntegrationMethod* method);
 
       // Clone
@@ -61,23 +63,11 @@ namespace Kratos
       virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "IndirectConductionSurroundLayer"; }
       virtual void PrintData(std::ostream& rOStream) const override {}
 
-    protected:
-
-      // Protected methods
-      double SphereWallCoeff   (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-      double SphereSphereCoeff (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
-
     private:
 
-      // Assignment operator
-      IndirectConductionSurroundLayer& operator=(IndirectConductionSurroundLayer const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      IndirectConductionSurroundLayer(IndirectConductionSurroundLayer const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      IndirectConductionSurroundLayer& operator=(IndirectConductionSurroundLayer const& rOther) {return *this;}
+      IndirectConductionSurroundLayer(IndirectConductionSurroundLayer const& rOther) {*this = rOther;}
 
   }; // Class IndirectConductionSurroundLayer
 

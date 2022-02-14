@@ -60,15 +60,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      AdaptiveSimpsonQuadrature& operator=(AdaptiveSimpsonQuadrature const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      AdaptiveSimpsonQuadrature(AdaptiveSimpsonQuadrature const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      AdaptiveSimpsonQuadrature& operator=(AdaptiveSimpsonQuadrature const& rOther) {return *this;}
+      AdaptiveSimpsonQuadrature(AdaptiveSimpsonQuadrature const& rOther) {*this = rOther;}
 
   }; // Class AdaptiveSimpsonQuadrature
 } // namespace Kratos

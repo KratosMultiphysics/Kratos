@@ -60,15 +60,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      DirectConductionCollision& operator=(DirectConductionCollision const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      DirectConductionCollision(DirectConductionCollision const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      DirectConductionCollision& operator=(DirectConductionCollision const& rOther) {return *this;}
+      DirectConductionCollision(DirectConductionCollision const& rOther) {*this = rOther;}
 
   }; // Class DirectConductionCollision
 

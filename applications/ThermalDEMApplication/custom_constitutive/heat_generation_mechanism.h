@@ -68,15 +68,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      HeatGenerationMechanism& operator=(HeatGenerationMechanism const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      HeatGenerationMechanism(HeatGenerationMechanism const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      HeatGenerationMechanism& operator=(HeatGenerationMechanism const& rOther) {return *this;}
+      HeatGenerationMechanism(HeatGenerationMechanism const& rOther) {*this = rOther;}
 
       // Serializer
       friend class Serializer;

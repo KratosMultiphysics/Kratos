@@ -62,15 +62,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      DirectConductionModel& operator=(DirectConductionModel const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      DirectConductionModel(DirectConductionModel const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      DirectConductionModel& operator=(DirectConductionModel const& rOther) {return *this;}
+      DirectConductionModel(DirectConductionModel const& rOther) {*this = rOther;}
 
   }; // Class DirectConductionModel
 

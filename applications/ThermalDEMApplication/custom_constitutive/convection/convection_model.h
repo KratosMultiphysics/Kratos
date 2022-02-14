@@ -63,15 +63,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      ConvectionModel& operator=(ConvectionModel const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      ConvectionModel(ConvectionModel const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      ConvectionModel& operator=(ConvectionModel const& rOther) {return *this;}
+      ConvectionModel(ConvectionModel const& rOther) {*this = rOther;}
 
   }; // Class ConvectionModel
 

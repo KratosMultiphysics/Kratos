@@ -67,15 +67,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      ThermalForwardEulerScheme& operator=(ThermalForwardEulerScheme const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      ThermalForwardEulerScheme(ThermalForwardEulerScheme const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      ThermalForwardEulerScheme& operator=(ThermalForwardEulerScheme const& rOther) {return *this;}
+      ThermalForwardEulerScheme(ThermalForwardEulerScheme const& rOther) {*this = rOther;}
 
   }; // Class ThermalForwardEulerScheme
 

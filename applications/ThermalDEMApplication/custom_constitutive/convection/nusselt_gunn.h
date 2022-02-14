@@ -60,15 +60,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      NusseltGunn& operator=(NusseltGunn const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      NusseltGunn(NusseltGunn const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      NusseltGunn& operator=(NusseltGunn const& rOther) {return *this;}
+      NusseltGunn(NusseltGunn const& rOther) {*this = rOther;}
 
   }; // Class NusseltGunn
 

@@ -60,15 +60,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      NusseltLiMason& operator=(NusseltLiMason const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      NusseltLiMason(NusseltLiMason const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      NusseltLiMason& operator=(NusseltLiMason const& rOther) {return *this;}
+      NusseltLiMason(NusseltLiMason const& rOther) {*this = rOther;}
 
   }; // Class NusseltLiMason
 

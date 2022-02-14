@@ -68,15 +68,9 @@ namespace Kratos
 
     private:
 
-      // Assignment operator
-      RadiationModel& operator=(RadiationModel const& rOther) {
-        return *this;
-      }
-
-      // Copy constructor
-      RadiationModel(RadiationModel const& rOther) {
-        *this = rOther;
-      }
+      // Assignment operator / Copy constructor
+      RadiationModel& operator=(RadiationModel const& rOther) {return *this;}
+      RadiationModel(RadiationModel const& rOther) {*this = rOther;}
 
   }; // Class RadiationModel
 
