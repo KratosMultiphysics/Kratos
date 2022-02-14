@@ -26,6 +26,11 @@ namespace Kratos {
   void HeatExchangeMechanism::SetHeatExchangeMechanismInProperties(Properties::Pointer pProp, bool verbose) const {}
 
   //------------------------------------------------------------------------------------------------------------
+  double HeatExchangeMechanism::GetSearchDistance(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    return 0.0;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double HeatExchangeMechanism::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     return 0.0;
   }

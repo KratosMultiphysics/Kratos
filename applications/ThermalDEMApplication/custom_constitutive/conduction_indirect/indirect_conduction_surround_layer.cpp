@@ -23,6 +23,11 @@ namespace Kratos {
   IndirectConductionSurroundLayer::~IndirectConductionSurroundLayer() {}
 
   //------------------------------------------------------------------------------------------------------------
+  double IndirectConductionSurroundLayer::GetSearchDistance(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    return particle->GetParticleRadius() * r_process_info[FLUID_LAYER_THICKNESS];
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double IndirectConductionSurroundLayer::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 

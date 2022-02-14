@@ -28,6 +28,11 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
+  double RadiationModel::GetSearchDistance(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    return particle->GetParticleRadius() * (r_process_info[MAX_RADIATION_DISTANCE]);
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double RadiationModel::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     return 0.0;
   }

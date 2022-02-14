@@ -23,6 +23,11 @@ namespace Kratos {
   IndirectConductionVoronoiB::~IndirectConductionVoronoiB() {}
 
   //------------------------------------------------------------------------------------------------------------
+  double IndirectConductionVoronoiB::GetSearchDistance(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    return particle->GetParticleRadius() * r_process_info[MAX_CONDUCTION_DISTANCE];
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double IndirectConductionVoronoiB::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 

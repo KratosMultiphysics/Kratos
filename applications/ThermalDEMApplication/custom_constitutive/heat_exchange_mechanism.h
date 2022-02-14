@@ -41,6 +41,7 @@ namespace Kratos
 
       // Public methods
       virtual void   SetHeatExchangeMechanismInProperties (Properties::Pointer pProp, bool verbose = true) const;
+      virtual double GetSearchDistance                    (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       virtual double ComputeHeatFlux                      (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
       virtual double FinalizeHeatFlux                     (const ProcessInfo& r_process_info, ThermalSphericParticle* particle);
 
