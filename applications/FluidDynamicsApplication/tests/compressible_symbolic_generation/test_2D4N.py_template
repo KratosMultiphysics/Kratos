@@ -148,14 +148,14 @@ class SubTestSuite:
         //substitute_mom_proj_2D
 
         expected = KratosMultiphysics.Vector(self.dim * self.num_nodes)
-        expected[0] = 323.41193368440514178
-        expected[1] = -9.8639477702076238232e-13
-        expected[2] = 86.657966453324164036
-        expected[3] = -2.6430368392099063291e-13
-        expected[4] = 323.41193368440514178
-        expected[5] = -9.8639477702076238232e-13
-        expected[6] = 1206.9897682842961331
-        expected[7] = -3.6812754241620587954e-12
+        expected[0] = 323.41193368440514
+        expected[1] = -9.863947770207624e-13
+        expected[2] = 86.65796645332416
+        expected[3] = -2.6430368392099063e-13
+        expected[4] = 323.41193368440514
+        expected[5] = -9.863947770207624e-13
+        expected[6] = 1206.9897682842961
+        expected[7] = -3.681275424162059e-12
 
         return (mom_proj_gauss, expected)
 
@@ -170,10 +170,10 @@ class SubTestSuite:
         //substitute_tot_ener_proj_2D
 
         expected = KratosMultiphysics.Vector(self.num_nodes)
-        expected[0] = -28449.159438906241121
-        expected[1] = -7622.9292969991793143
-        expected[2] = -28449.159438906241121
-        expected[3] = -106173.70845862576971
+        expected[0] = -28449.15943890624
+        expected[1] = -7622.929296999179
+        expected[2] = -28449.15943890624
+        expected[3] = -106173.70845862577
 
         return (tot_ener_proj_gauss, expected)
 
@@ -193,22 +193,22 @@ class SubTestSuite:
         //substitute_rhs_2D_OSS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
-        expected[0] = -0.27983535927973562929
-        expected[1] = 131.11110392555048065
-        expected[2] = 195.386026326388901
-        expected[3] = -97816.487139542135992
-        expected[4] = 0.27983535927973962609
-        expected[5] = 238.23440538623225393
-        expected[6] = 52.353527966481571809
-        expected[7] = 72815.815767064399552
-        expected[8] = 1.0443597785862750449
-        expected[9] = 889.10290501237784611
-        expected[10] = -52.353527966484271872
-        expected[11] = 271752.32403725769836
-        expected[12] = -1.0443597785862790417
-        expected[13] = 489.31330128659192269
-        expected[14] = -195.38602632639174317
-        expected[15] = -365056.09982268471504
+        expected[0] = -0.27983535927973563
+        expected[1] = 131.11055098836943
+        expected[2] = 195.38396273673573
+        expected[3] = -97816.69711904741
+        expected[4] = 0.2798353592797396
+        expected[5] = 238.2349583234133
+        expected[6] = 52.3529750293005
+        expected[7] = 72816.02574656968
+        expected[8] = 1.044359778586275
+        expected[9] = 889.104968602031
+        expected[10] = -52.3529750293032
+        expected[11] = 271753.10769144
+        expected[12] = -1.044359778586279
+        expected[13] = 489.311237696939
+        expected[14] = -195.38396273673857
+        expected[15] = -365056.88347686693
 
         return (rhs_gauss, expected)
 
@@ -227,21 +227,21 @@ class SubTestSuite:
         //substitute_rhs_2D_ASGS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
-        expected[0] = -0.27983535927973562929
-        expected[1] = 131.11110392555048065
-        expected[2] = 195.386026326388901
-        expected[3] = -97816.487139542135992
-        expected[4] = 0.27983535927973962609
-        expected[5] = 238.23440538623225393
-        expected[6] = 52.353527966481571809
-        expected[7] = 72815.815767064399552
-        expected[8] = 1.0443597785862750449
-        expected[9] = 889.10290501237784611
-        expected[10] = -52.353527966484271872
-        expected[11] = 271752.32403725769836
-        expected[12] = -1.0443597785862790417
-        expected[13] = 489.31330128659192269
-        expected[14] = -195.38602632639174317
-        expected[15] = -365056.09982268471504
+        expected[0] = -0.27983535927973563
+        expected[1] = 131.11055098836943
+        expected[2] = 195.38396273673573
+        expected[3] = -97816.69711904741
+        expected[4] = 0.2798353592797396
+        expected[5] = 238.2349583234133
+        expected[6] = 52.3529750293005
+        expected[7] = 72816.02574656968
+        expected[8] = 1.044359778586275
+        expected[9] = 889.104968602031
+        expected[10] = -52.3529750293032
+        expected[11] = 271753.10769144
+        expected[12] = -1.044359778586279
+        expected[13] = 489.311237696939
+        expected[14] = -195.38396273673857
+        expected[15] = -365056.88347686693
 
         return (rhs_gauss, expected)
