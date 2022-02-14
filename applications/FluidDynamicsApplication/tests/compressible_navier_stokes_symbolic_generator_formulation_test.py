@@ -21,9 +21,9 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
     def _FormatVector(cls, vector, fmt = "{:>.6}"):
         """Mimics KratosMultiphysics.vector.__str__ but with a customizable format string."""
         output = "[{}]".format(vector.Size())
-        output = "("
-        output = output + ", ".join([fmt.format(x) for x in vector])
-        output = output + ")"
+        output += "("
+        output += ", ".join([fmt.format(x) for x in vector])
+        output += ")"
         return output
 
     @classmethod
