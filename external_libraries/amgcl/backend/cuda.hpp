@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -387,6 +387,8 @@ struct cuda {
                 );
 
     typedef real value_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
     typedef cuda_matrix<real>       matrix;
     typedef thrust::device_vector<real> vector;
     typedef thrust::device_vector<real> matrix_diagonal;

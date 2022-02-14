@@ -60,6 +60,14 @@ class PythonSolver:
         """
         pass
 
+    def GetDofsList(self):
+        """This function returns a list containing the DOFs required by this PythonSolver
+        In needs to be reimplemented in the derived solvers according to the physics to be solved
+        Ideally, DOFs list must be retrieved from the elements and conditions GetSpecification method
+        (see GetDofsListFromSpecifications in the SpecificationUtilities)
+        """
+        raise Exception("This function has to be implemented in the derived class")
+
     def ImportModelPart(self):
         """This function reads the ModelPart
         """
