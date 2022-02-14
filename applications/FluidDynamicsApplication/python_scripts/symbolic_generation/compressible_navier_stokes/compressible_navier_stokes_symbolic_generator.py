@@ -1,6 +1,7 @@
 import sympy
 
 import KratosMultiphysics
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.quantity_converter import QuantityConverter
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
@@ -232,7 +233,10 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Substitute the symbols in the residual
         res_gauss = res.copy()
-        primitives.InterpolateAndSubstitute(res_gauss, U, Ng, self.geometry.DN(), params)
+
+        if self.primitive_interpolation == "nodal":
+            QuantityConverter.SubstitutePrimitivesWithConservatives(res_gauss, primitives, U_gauss, grad_U, params)
+
         KratosSympy.SubstituteMatrixValue(res_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, H, grad_U)
@@ -466,20 +470,20 @@ class CompressibleNavierStokesSymbolicGenerator:
         res_proj = defs.Vector('res_proj', block_size, real=True)  # Residuals projection for the OSS
 
         # Primitive variables
-        primitives = PrimitiveMagnitudes(self.geometry, params, Ug, H, self.primitive_interpolation)
+        primitives = PrimitiveMagnitudes(self.geometry)
 
         # Calculate the Gauss point residual
         # Matrix Computation
         self._print(1, " - Compute Source Matrix")
-        S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
+        S = generate_source_term.ComputeSourceMatrix(primitives, mg, f, rg, params)
 
         self._print(1, " - Compute Euler Jacobian matrix")
-        A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params, primitives)
+        A = generate_convective_flux.ComputeEulerJacobianMatrix(U, primitives, params)
 
         if self.shock_capturing:
             sc_params = ShockCapturingParameters()
             self._print(1, " - Compute diffusive flux (shock capturing ON)")
-            G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(H, primitives, params, sc_params)
+            G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(primitives, params, sc_params)
         else:
             sc_params = None
             self._print(1, " - Compute diffusive flux (shock capturing OFF)")
@@ -513,6 +517,9 @@ class CompressibleNavierStokesSymbolicGenerator:
             "momentum" : defs.ZeroVector(n_nodes*dim),
             "energy"   : defs.ZeroVector(n_nodes)
         }
+
+        if self.primitive_interpolation == "gaussian":
+            QuantityConverter.SubstitutePrimitivesWithConservatives(res, primitives, Ug, H, params)
 
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
             self._print(1, "   - Gauss point: " + str(i_gauss))
