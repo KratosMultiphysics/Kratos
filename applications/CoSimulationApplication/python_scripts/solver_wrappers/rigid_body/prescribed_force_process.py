@@ -8,5 +8,5 @@ def Factory(solver, parameters):
 
 class PrescribedForceProcess(_PrescribedValueProcess):
     
-    def _ApplyValue(self, prescribed_value):
-        self.solver.prescribed_load += prescribed_value
+    def _ApplyValue(self, index, prescribed_value):
+        self.solver.prescribed_load[index] += prescribed_value
