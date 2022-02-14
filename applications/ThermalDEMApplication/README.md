@@ -7,7 +7,7 @@ This application is an extension of the [DEM Application](https://github.com/Kra
 - Heat generation by friction, collision, and internal sources.
 - Temperature dependent material properties.
 
-Theoretical information on thermal DEM analysis can be found [here](./DEM_HeatTransferModels.pdf).
+Theoretical information on thermal DEM analysis can be found [here](./ThermalDEMTheory.pdf).
 
 ## Authorship
 
