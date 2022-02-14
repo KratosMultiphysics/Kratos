@@ -66,11 +66,11 @@ class QuantityConverter:
         v_2 = sum([vi*vi for vi in primitives.V])
         T = primitives.T
 
-        return rho * (0.5 * v_2 + params.cv*T)
+        return rho * (0.5 * v_2 + params.c_v*T)
 
     @classmethod
     def velocity(cls, U):
-        return U[1:-1] / U[0]
+        return sympy.Matrix(U[1:-1]) / U[0]
 
     @classmethod
     def temperature(cls, U, params, vel=None):
