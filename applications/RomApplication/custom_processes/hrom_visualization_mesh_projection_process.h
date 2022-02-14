@@ -102,7 +102,7 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteBeforeOutputStep() override;
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Access

@@ -101,20 +101,17 @@ class HRomTrainingUtility(object):
         # Create the HROM visualization model parts
         if self.hrom_visualization_model_part:
             # Create the HROM visualization mesh from the origin model part
-            save_condition_normals = True
             hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
             hrom_visualization_model_part = aux_model.CreateModelPart(hrom_visualization_model_part_name)
             KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(
                 origin_model_part,
-                hrom_visualization_model_part,
-                save_condition_normals)
+                hrom_visualization_model_part)
             if self.echo_level > 0:
                 KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
 
             # Write the HROM visualization mesh
             hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            # model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
             model_part_io.WriteModelPart(hrom_visualization_model_part)
             KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:

@@ -173,8 +173,7 @@ void RomAuxiliaryUtilities::RecursiveHRomModelPartCreation(
 //TODO: Make it thin walled and beam compatible
 void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     const ModelPart& rOriginModelPart,
-    ModelPart& rHRomVisualizationModelPart,
-    const bool SaveConditionNormals)
+    ModelPart& rHRomVisualizationModelPart)
 {
     // Create a map for the potential skin entities
     // Key is a sorted vector with the face ids
@@ -269,17 +268,6 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
     for (const auto& r_sub_mp : rOriginModelPart.SubModelParts()) {
         RecursiveVisualizationSubModelPartCreation(r_sub_mp, rHRomVisualizationModelPart);
     }
-
-    // Compute and save the condition normals
-    // These might be required for the BCs imposition before the HROM solution projection
-    if (SaveConditionNormals) {
-        block_for_each(rOriginModelPart.Conditions(), [&rHRomVisualizationModelPart](Condition& rOriginCondition){
-            if (rHRomVisualizationModelPart.HasCondition(rOriginCondition.Id())) {
-                auto& r_vis_cond = rHRomVisualizationModelPart.GetCondition(rOriginCondition.Id());
-                r_vis_cond.SetValue(NORMAL, rOriginCondition.GetValue(NORMAL));
-            }
-        });
-    }
 }
 
 void RomAuxiliaryUtilities::RecursiveVisualizationSubModelPartCreation(
@@ -289,7 +277,7 @@ void RomAuxiliaryUtilities::RecursiveVisualizationSubModelPartCreation(
     // Create a sub model part in the visualization model part emulating the provided one
     auto& r_vis_sub_mp = rDestinationModelPart.CreateSubModelPart(rOriginSubModelPart.Name());
 
-    // Add the current visualization entities to the corresponding model part
+    // Add the current visualization nodes to the corresponding model part
     std::vector<IndexType> nodes_to_add;
     nodes_to_add.reserve(rDestinationModelPart.NumberOfNodes());
     for (const auto& r_node : rDestinationModelPart.Nodes()) {
@@ -299,23 +287,44 @@ void RomAuxiliaryUtilities::RecursiveVisualizationSubModelPartCreation(
     }
     r_vis_sub_mp.AddNodes(nodes_to_add);
 
-    std::vector<IndexType> conditions_to_add;
-    conditions_to_add.reserve(rDestinationModelPart.NumberOfConditions());
-    for (const auto& r_condition : rDestinationModelPart.Conditions()) {
-        if (rOriginSubModelPart.HasCondition(r_condition.Id())) {
-            conditions_to_add.push_back(r_condition.Id());
-        }
-    }
-    r_vis_sub_mp.AddConditions(conditions_to_add);
+    // Add the visualization conditions to the corresponding model part
+    // Note that we do this by connectivities as ids. might differ (e.g. origin mesh overlapping conditions)
+    if (rOriginSubModelPart.NumberOfConditions()) {
+        std::vector<IndexType> conditions_to_add;
+        conditions_to_add.reserve(rDestinationModelPart.NumberOfConditions());
+        std::vector<IndexType> aux_conn_orig((rOriginSubModelPart.ConditionsBegin()->GetGeometry()).PointsNumber());
+        std::vector<IndexType> aux_conn_dest((rDestinationModelPart.ConditionsBegin()->GetGeometry()).PointsNumber());
+        for (const auto& r_condition : rDestinationModelPart.Conditions()) {
+            // Set the destination model part condition connectivities
+            const auto& r_geom = r_condition.GetGeometry();
+            const SizeType n_nodes = r_geom.PointsNumber();
+            if (aux_conn_dest.size() != n_nodes) {
+                aux_conn_dest.resize(n_nodes);
+            }
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                aux_conn_dest[i_node] = r_geom[i_node].Id();
+            }
+            std::sort(aux_conn_dest.begin(), aux_conn_dest.end());
 
-    std::vector<IndexType> elements_to_add;
-    elements_to_add.reserve(rDestinationModelPart.NumberOfElements());
-    for (const auto& r_element : rDestinationModelPart.Elements()) {
-        if (rOriginSubModelPart.HasElement(r_element.Id())) {
-            elements_to_add.push_back(r_element.Id());
+            // Loop the origin sub model part conditions to check if the current condition is present
+            for (const auto& r_orig_cond : rOriginSubModelPart.Conditions()) {
+                const auto& r_orig_geom = r_orig_cond.GetGeometry();
+                const SizeType n_nodes_orig = r_orig_geom.PointsNumber();
+                if (aux_conn_orig.size() != n_nodes) {
+                    aux_conn_orig.resize(n_nodes);
+                }
+                for (IndexType i_node = 0; i_node < n_nodes_orig; ++i_node) {
+                    aux_conn_orig[i_node] = r_orig_geom[i_node].Id();
+                }
+                std::sort(aux_conn_orig.begin(), aux_conn_orig.end());
+
+                if (aux_conn_dest == aux_conn_orig) {
+                    conditions_to_add.push_back(r_condition.Id());
+                }
+            }
         }
+        r_vis_sub_mp.AddConditions(conditions_to_add);
     }
-    r_vis_sub_mp.AddElements(elements_to_add);
 
     // Recursively check sub model parts
     for (const auto& r_sub_mp : rOriginSubModelPart.SubModelParts()) {

@@ -81,7 +81,11 @@ void HRomVisualizationMeshModeler::SetupModelPart()
     mpVisualizationModelPart->SetBufferSize(mpHRomModelPart->GetBufferSize());
 
     // Set the origin model part ProcessInfo in the visualization model part
+    // Note that we do so also in the visualization submodel parts as this might be required for the visualization mesh BCs
     mpVisualizationModelPart->SetProcessInfo(mpHRomModelPart->pGetProcessInfo());
+    for (auto& r_vis_sub_mp : mpVisualizationModelPart->SubModelParts()) {
+        r_vis_sub_mp.SetProcessInfo(mpHRomModelPart->pGetProcessInfo());
+    }
 
     // Add DOFs to enable fixity
     VariableUtils::AddDofsList(r_rom_var_names, *mpVisualizationModelPart);

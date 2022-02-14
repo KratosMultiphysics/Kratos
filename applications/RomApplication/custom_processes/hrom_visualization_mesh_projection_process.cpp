@@ -73,7 +73,7 @@ void HRomVisualizationMeshProjectionProcess::CheckDefaultsAndProcessSettings(Par
     rParameters.ValidateAndAssignDefaults(default_parameters);
 }
 
-void HRomVisualizationMeshProjectionProcess::ExecuteBeforeOutputStep()
+void HRomVisualizationMeshProjectionProcess::ExecuteFinalizeSolutionStep()
 {
     // Retrieve the HROM solution from the HROM origin model part
     // Note that we assume this is always saved in the corresponding root model part

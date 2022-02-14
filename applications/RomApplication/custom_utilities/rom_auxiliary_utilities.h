@@ -84,15 +84,13 @@ public:
      * @brief Sets the HROM skin visualization model part for a volumetric body
      * This function detects the skin of the origin modelpart and creates the corresponding skin
      * entities (conditions) which are stored in an auxiliary modelpart to visualize the HROM solution
-     * It is important to mention that this function only works with volumetric (a.k.a. solid) bodies
-     * @param HRomWeights
-     * @param rOriginModelPart
-     * @param rHRomVisualizationModelPart
+     * It is important to mention that this function only works with volumetric bodies
+     * @param rOriginModelPart Origin model part to which the skin is to be the detected
+     * @param rHRomVisualizationModelPart Destination model part to store the generated skin
      */
     static void SetHRomVolumetricVisualizationModelPart(
         const ModelPart& rOriginModelPart,
-        ModelPart& rHRomVisualizationModelPart,
-        const bool SaveConditionNormals);
+        ModelPart& rHRomVisualizationModelPart);
 
     /**
      * @brief Return the missing HROM condition parents element ids

@@ -19,5 +19,6 @@ class ApplyHRomVisualizationMeshProjectionProcess(KratosMultiphysics.Process):
 
         self.hrom_visualization_mesh_projection_process = KratosROM.HRomVisualizationMeshProjectionProcess(model, settings)
 
-    def ExecuteBeforeOutputStep(self):
-        self.hrom_visualization_mesh_projection_process.ExecuteBeforeOutputStep()
+    # Note that this process must be called before the other BC processes in order to make sure that the fixity is kept
+    def ExecuteFinalizeSolutionStep(self):
+        self.hrom_visualization_mesh_projection_process.ExecuteFinalizeSolutionStep()
