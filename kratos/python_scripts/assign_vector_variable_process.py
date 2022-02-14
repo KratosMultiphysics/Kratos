@@ -67,11 +67,30 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
 
         self.model_part = Model[settings["model_part_name"].GetString()]
 
-        self.aux_processes = []
+        # Get domain size
+        # Note that we check both the current model part and the root one
+        if self.model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+            domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            if domain_size not in [2,3]:
+                root_model_part = self.model_part.GetRootModelPart()
+                if root_model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+                    domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+                else:
+                    raise Exception(f"Domain size is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers.")
+        else:
+            root_model_part = self.model_part.GetRootModelPart()
+            if root_model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
+                domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            else:
+                raise Exception(f"Domain size is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers.")
 
+        # Check the obtained domain size value
+        if domain_size not in [2,3]:
+            raise ValueError(f"Domain size must be either 2 or 3. Found value {domain_size} in model part '{self.model_part.FullName()}'.")
 
         # Loop over components X, Y and Z
-        for indice,variable in enumerate(["_X", "_Y", "_Z"]):
+        self.aux_processes = []
+        for indice, variable in enumerate(["_X", "_Y", "_Z"] if domain_size == 3 else ["_X", "_Y"]):
             if not settings["value"][indice].IsNull():
                 i_params = KratosMultiphysics.Parameters("{}")
                 i_params.AddValue("model_part_name",settings["model_part_name"])
