@@ -475,6 +475,16 @@ class ExplicitStrategy(BaseStrategy):
                 temperature_dependent_radius = True
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, TEMPERATURE_DEPENDENT_RADIUS_OPTION, temperature_dependent_radius)
 
+        # Models for heat transfer
+        self.spheres_model_part.ProcessInfo.SetValue(DIRECT_CONDUCTION_MODEL_NAME,   self.direct_conduction_model)
+        self.spheres_model_part.ProcessInfo.SetValue(INDIRECT_CONDUCTION_MODEL_NAME, self.indirect_conduction_model)
+        self.spheres_model_part.ProcessInfo.SetValue(CONVECTION_MODEL_NAME,          self.nusselt_correlation)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL_NAME,           self.radiation_model)
+        self.spheres_model_part.ProcessInfo.SetValue(FRICTION_MODEL_NAME,            self.friction_model)
+        self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL_NAME,    self.adjusted_contact_model)
+        self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD_NAME,            self.voronoi_method)
+        self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD_NAME,           self.porosity_method)
+
         # Active heat transfer mechanisms
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, DIRECT_CONDUCTION_OPTION,   self.compute_direct_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
@@ -482,11 +492,6 @@ class ExplicitStrategy(BaseStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RADIATION_OPTION,           self.compute_radiation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, FRICTION_HEAT_OPTION,       self.compute_friction_heat_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ADJUSTED_CONTACT_OPTION,    self.compute_adjusted_contact_option)
-
-        # Methods for heat transfer
-        self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL_NAME, self.adjusted_contact_model)
-        self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD_NAME,         self.voronoi_method)
-        self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD_NAME,        self.porosity_method)
 
         # Model parameters
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)
