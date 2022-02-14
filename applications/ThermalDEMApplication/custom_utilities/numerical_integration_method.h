@@ -30,22 +30,9 @@ namespace Kratos
       // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(NumericalIntegrationMethod);
 
-      // Constructor
+      // Constructor / Destructor
       NumericalIntegrationMethod();
-
-      // Destructor
       virtual ~NumericalIntegrationMethod();
-
-      // Clone
-      virtual NumericalIntegrationMethod* CloneRaw() const {
-        NumericalIntegrationMethod* cloned_utl(new NumericalIntegrationMethod(*this));
-        return cloned_utl;
-      }
-
-      virtual NumericalIntegrationMethod::Pointer CloneShared() const {
-        NumericalIntegrationMethod::Pointer cloned_utl(new NumericalIntegrationMethod(*this));
-        return cloned_utl;
-      }
 
       // Generic parameters used in integral expression functions
       struct IntegrandParams
@@ -65,6 +52,17 @@ namespace Kratos
       double mTol;     // tolerance for recursive methods
       double (*mpEvalIntegrand)(NumericalIntegrationMethod*);  // pointer to function to evaluate the integrand
       IntegrandParams mParams;
+
+      // Clone
+      virtual NumericalIntegrationMethod* CloneRaw() const {
+        NumericalIntegrationMethod* cloned_utl(new NumericalIntegrationMethod(*this));
+        return cloned_utl;
+      }
+
+      virtual NumericalIntegrationMethod::Pointer CloneShared() const {
+        NumericalIntegrationMethod::Pointer cloned_utl(new NumericalIntegrationMethod(*this));
+        return cloned_utl;
+      }
 
     private:
 

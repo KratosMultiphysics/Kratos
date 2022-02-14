@@ -56,7 +56,7 @@ namespace Kratos
         return cloned_mechanism;
       }
 
-      // Print information about this object
+      // Turn back information as a string
       virtual std::string Info() const {
         std::stringstream buffer;
         buffer << "HeatExchangeMechanism";

@@ -32,11 +32,13 @@ namespace Kratos
       // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(AdaptiveSimpsonQuadrature);
 
-      // Constructor
+      // Constructor / Destructor
       AdaptiveSimpsonQuadrature();
-
-      // Destructor
       virtual ~AdaptiveSimpsonQuadrature();
+
+      // Public methods
+      void   SetNumericalIntegrationMethodInProperties (Properties::Pointer pProp, bool verbose = true) const override;
+      double SolveIntegral                             (void) override;
 
       // Clone
       NumericalIntegrationMethod* CloneRaw() const override {
@@ -48,10 +50,6 @@ namespace Kratos
         NumericalIntegrationMethod::Pointer cloned_utl(new AdaptiveSimpsonQuadrature(*this));
         return cloned_utl;
       }
-
-      // Public derived methods
-      void   SetNumericalIntegrationMethodInProperties (Properties::Pointer pProp, bool verbose = true) const override;
-      double SolveIntegral                             (void) override;
       
     protected:
 

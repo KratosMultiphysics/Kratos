@@ -30,7 +30,7 @@ namespace Kratos
       // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(SetThermalDataUtilities);
 
-      // Constructor / destructor methods
+      // Constructor / Destructor
       SetThermalDataUtilities();
       ~SetThermalDataUtilities();
 

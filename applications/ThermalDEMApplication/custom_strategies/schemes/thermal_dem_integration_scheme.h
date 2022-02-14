@@ -32,10 +32,8 @@ namespace Kratos
       // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(ThermalDEMIntegrationScheme);
 
-      // Constructor
+      // Constructor / Destructor
       ThermalDEMIntegrationScheme();
-
-      // Destructor
       virtual ~ThermalDEMIntegrationScheme();
 
       // Public methods
@@ -53,7 +51,7 @@ namespace Kratos
         return cloned_scheme;
       }
 
-      // Print information about this object
+      // Turn back information as a string
       virtual std::string Info() const {
         std::stringstream buffer;
         buffer << "ThermalDEMIntegrationScheme";

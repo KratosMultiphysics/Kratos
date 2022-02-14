@@ -45,7 +45,7 @@ namespace Kratos
         return "KratosThermalDEMApplication";
       }
 
-      // Print information about this object
+      // Turn back information as a string
       virtual void PrintInfo(std::ostream& rOStream) const override {
         rOStream << Info();
         PrintData(rOStream);

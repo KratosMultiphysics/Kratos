@@ -33,13 +33,11 @@ namespace Kratos
       // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(ThermalForwardEulerScheme);
 
-      // Constructor
+      // Constructor / Destructor
       ThermalForwardEulerScheme();
-
-      // Destructor
       virtual ~ThermalForwardEulerScheme();
 
-      // Public derived methods
+      // Public methods
       void SetThermalIntegrationSchemeInProperties (Properties::Pointer pProp, bool verbose = true) const override;
       void UpdateTemperature                       (Node<3>& i, const double delta_t, const double c) override;
 
@@ -54,7 +52,7 @@ namespace Kratos
         return cloned_scheme;
       }
 
-      // Print information about this object
+      // Turn back information as a string
       virtual std::string Info() const override {
         std::stringstream buffer;
         buffer << "ThermalForwardEulerScheme";

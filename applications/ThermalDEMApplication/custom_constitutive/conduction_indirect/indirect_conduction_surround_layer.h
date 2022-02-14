@@ -52,7 +52,7 @@ namespace Kratos
         return cloned_model;
       }
 
-      // Print information about this object
+      // Turn back information as a string
       virtual std::string Info() const override {
         std::stringstream buffer;
         buffer << "IndirectConductionSurroundLayer";

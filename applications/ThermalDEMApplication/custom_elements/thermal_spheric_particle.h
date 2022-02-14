@@ -274,6 +274,7 @@ namespace Kratos
       virtual void load(Serializer& rSerializer) override {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle);
       }
+
   }; // Class ThermalSphericParticle
 
   // input stream function

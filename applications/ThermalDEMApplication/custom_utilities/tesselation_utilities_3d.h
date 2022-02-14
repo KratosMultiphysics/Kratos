@@ -39,7 +39,7 @@ namespace Kratos
       // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(TesselationUtilities3D);
 
-      // Constructor / destructor methods
+      // Constructor / Destructor
       TesselationUtilities3D();
       ~TesselationUtilities3D();
 
