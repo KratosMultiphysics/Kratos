@@ -30,6 +30,7 @@ def ComputeEulerJacobianMatrix(dofs, params, primitives):
         for m in range(dim + 2):
             for n in range(dim + 2):
                 A_j[m, n] = sympy.diff(E[m, j], dofs[n])
+        A_j.simplify()
         A.append(A_j)
 
     return A

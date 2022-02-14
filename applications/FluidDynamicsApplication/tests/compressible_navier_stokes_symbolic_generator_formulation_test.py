@@ -1,10 +1,19 @@
 import os
+import sympy
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnitTest
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
     .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
+    .src.defines import CompressibleNavierStokesDefines as defs
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .symbolic_parameters import FormulationParameters, PrimitiveMagnitudes
 
 import KratosMultiphysics.FluidDynamicsApplication
 
@@ -110,6 +119,78 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     def testSymbolicTetrahedron(self):
         self._RunTest("3D4N")
+
+    def _assertSympyMatrixEqual(self, first, second, msg=None):
+        """Asserts that two sympy matrices are equivalent."""
+        class LazyMsg:
+            def __init__(self, fmt, *args):
+                self.fmt = fmt
+                self.args = args
+
+            def __str__(self):
+                if self.args:
+                    return self.fmt.format(*self.args)
+                return self.fmt
+
+        if not msg:
+            msg = ""
+
+        self.assertEqual(first.shape, second.shape, msg=LazyMsg("\nMismatching dimensions. {}x{} != {}x{} {}",
+                first.shape[0], first.shape[1], second.shape[0], second.shape[1], msg))
+
+        for i in range(first.shape[0]):
+            for j in range(first.shape[1]):
+                self.assertTrue(first[i,j].equals(second[i,j]),
+                    msg=LazyMsg("\nMissmatching entry in position [{},{}]:\n >  first: {}\n > second: {}\n{}",
+                        i, j, first[i,j], second[i,j], msg))
+
+
+    def testComputeEulerJacobianMatrix(self):
+        class _Geometry():
+            ndims = 2
+            nnodes = None
+
+        defs.SetFormat("python")
+
+        g = _Geometry()
+        U = defs.Vector("U", g.ndims+2)
+        DU = defs.Matrix("DU", g.ndims+2, g.ndims)
+        params = FormulationParameters(g, "python")
+        primitives = PrimitiveMagnitudes(g, params, U, DU, "gaussian")
+        A = generate_convective_flux.ComputeEulerJacobianMatrix(U, params, primitives)
+
+        A0_expected = sympy.Matrix([
+            [0, 1, 0, 0],
+            [(-U[1]**2 + 0.5*(U[1]**2 + U[2]**2)*(params.gamma - 1))/U[0]**2, U[1]*(3.0 - 1.0*params.gamma)/U[0], 1.0*U[2]*(1 - params.gamma)/U[0], params.gamma - 1],
+            [-U[1]*U[2]/U[0]**2, U[2]/U[0], U[1]/U[0], 0],
+            [1.0*U[1]*(-U[0]*U[3]*params.gamma + U[1]**2*params.gamma - U[1]**2 + U[2]**2*params.gamma - U[2]**2)/U[0]**3, (U[0]*U[3] + 1.0*U[1]**2*(1 - params.gamma) - (params.gamma - 1)*(-U[0]*U[3] + 0.5*U[1]**2 + 0.5*U[2]**2))/U[0]**2, 1.0*U[1]*U[2]*(1 - params.gamma)/U[0]**2, U[1]*params.gamma/U[0]]
+        ])
+
+        self._assertSympyMatrixEqual(A[0],  A0_expected)
+
+    def testComputeDiffusiveFlux(self):
+        class _Geometry():
+            ndims = 2
+            nnodes = None
+
+        defs.SetFormat("python")
+
+        g = _Geometry()
+        params = FormulationParameters(g, "python")
+        U = defs.Vector("U", g.ndims+2)
+        DU = defs.Matrix("DU", g.ndims+2, g.ndims)
+        primitives = PrimitiveMagnitudes(g, params, U, DU, "gaussian")
+        G = generate_diffusive_flux.ComputeDiffusiveFlux(primitives, params)
+
+        G_expected = sympy.Matrix([
+            [0, 0],
+            [params.mu*(8/3*DU[0,0]*U[1] + 2/3*DU[0,1]*U[2] - 8/3*DU[1,0]*U[0] - 2/3*DU[2,1]*U[0])/U[0]**2, params.mu*(DU[0,0]*U[2] + DU[0,1]*U[1] - DU[1,1]*U[0] - DU[2,0]*U[0])/U[0]**2],
+            [params.mu*(DU[0,0]*U[2] + DU[0,1]*U[1] - DU[1,1]*U[0] - DU[2,0]*U[0])/U[0]**2, params.mu*(2/3*DU[0,0]*U[1] + 8/3*DU[0,1]*U[2] - 2/3*DU[1,0]*U[0] - 8/3*DU[2,1]*U[0])/U[0]**2],
+            [(params.c_v*params.mu*(U[1]*(8/3*DU[0,0]*U[1] + 2/3*DU[0,1]*U[2] - 8/3*DU[1,0]*U[0] - 2/3*DU[2,1]*U[0]) + U[2]*(DU[0,0]*U[2] + DU[0,1]*U[1] - DU[1,1]*U[0] - DU[2,0]*U[0])) + 1.0*params.lamb*(DU[0,0]*U[0]*U[3] - DU[0,0]*U[1]**2 - DU[0,0]*U[2]**2 + DU[1,0]*U[0]*U[1] + DU[2,0]*U[0]*U[2] - DU[3,0]*U[0]**2))/(U[0]**3*params.c_v), (params.c_v*params.mu*(U[1]*(DU[0,0]*U[2] + DU[0,1]*U[1] - DU[1,1]*U[0] - DU[2,0]*U[0]) + U[2]*(2/3*DU[0,0]*U[1] + 8/3*DU[0,1]*U[2] - 2/3*DU[1,0]*U[0] - 8/3*DU[2,1]*U[0])) + 1.0*params.lamb*(DU[0,1]*U[0]*U[3] - DU[0,1]*U[1]**2 - DU[0,1]*U[2]**2 + DU[1,1]*U[0]*U[1] + DU[2,1]*U[0]*U[2] - DU[3,1]*U[0]**2))/(U[0]**3*params.c_v)]
+        ])
+
+        self._assertSympyMatrixEqual(G,  G_expected)
+
 
 if __name__ == '__main__':
     KratosUnitTest.main()

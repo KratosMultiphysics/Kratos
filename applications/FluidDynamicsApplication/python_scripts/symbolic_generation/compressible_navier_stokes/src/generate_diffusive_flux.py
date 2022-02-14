@@ -28,6 +28,7 @@ def ComputeDiffusiveFlux(primitives, params):
             G[i + 1, j] = -tau_stress[j, i]
             G[dim + 1, j] -= vel[i] * tau_stress[i, j]
 
+    G.simplify()
     return G
 
 
