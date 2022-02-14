@@ -47,8 +47,6 @@ namespace Kratos
       typedef Properties                          PropertiesType;
 
       // Definitions
-      #define STEFAN_BOLTZMANN 5.670374419e-8
-
       #define PARTICLE_NEIGHBOR        4   // binary = 100 (to use in bitwise operations)
       #define WALL_NEIGHBOR            3   // binary = 011 (to use in bitwise operations)
       #define WALL_NEIGHBOR_NONCONTACT 2   // binary = 010 (to use in bitwise operations)
@@ -82,47 +80,22 @@ namespace Kratos
       // Computation methods
       void CalculateRightHandSide          (const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
       void ComputeHeatFluxes               (const ProcessInfo& r_process_info);
+      void ComputeHeatFluxWithNeighbor     (const ProcessInfo& r_process_info);
+      void ComputeInteractionProps         (const ProcessInfo& r_process_info);
       void StoreBallToBallContactInfo      (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* neighbor, double GlobalContactForce[3], bool sliding) override;
       void StoreBallToRigidFaceContactInfo (const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* neighbor, double GlobalContactForce[3], bool sliding) override;
       void Move                            (const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) override;
 
       // Finalization methods
-      void FinalizeSolutionStep (const ProcessInfo& r_process_info) override;
-
-      // Update methods
+      void FinalizeSolutionStep                                             (const ProcessInfo& r_process_info) override;
       void UpdateTemperatureDependentRadius                                 (const ProcessInfo& r_process_info);
       void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion (const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, SphericParticle* element2);
       void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons   (const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbor) override;
 
-      // Heat fluxes computation
-      void ComputeHeatFluxWithNeighbor       (const ProcessInfo& r_process_info);
-      void ComputeInteractionProps           (const ProcessInfo& r_process_info);
-      void ComputeDirectConductionHeatFlux   (const ProcessInfo& r_process_info);
-      void ComputeIndirectConductionHeatFlux (const ProcessInfo& r_process_info);
-      void ComputeRadiativeHeatFlux          (const ProcessInfo& r_process_info);
-      void ComputeContinuumRadiativeHeatFlux (const ProcessInfo& r_process_info);
-      void ComputeFrictionHeatFlux           (const ProcessInfo& r_process_info);
-      void ComputeConvectiveHeatFlux         (const ProcessInfo& r_process_info);
-      void ComputePrescribedHeatFlux         (const ProcessInfo& r_process_info);
-
-      // Heat transfer models
-      double DirectConductionBatchelorOBrien    (const ProcessInfo& r_process_info);
-      double DirectConductionThermalPipe        (const ProcessInfo& r_process_info);
-      double DirectConductionCollisional        (const ProcessInfo& r_process_info);
-      double IndirectConductionSurroundingLayer (const ProcessInfo& r_process_info);
-      double IndirectConductionVoronoiA         (const ProcessInfo& r_process_info);
-      double IndirectConductionVoronoiB         (const ProcessInfo& r_process_info);
-      double IndirectConductionVargasMcCarthy   (const ProcessInfo& r_process_info);
-      double NusseltHanzMarshall                (const ProcessInfo& r_process_info);
-      double NusseltWhitaker                    (const ProcessInfo& r_process_info);
-      double NusseltGunn                        (const ProcessInfo& r_process_info);
-      double NusseltLiMason                     (const ProcessInfo& r_process_info);
-      double RadiationContinuumZhou             (const ProcessInfo& r_process_info);
-      double RadiationContinuumKrause           (const ProcessInfo& r_process_info);
-      double FrictionGenerationSlidingVelocity  (const ProcessInfo& r_process_info);
-      double AdjustedContactRadiusZhou          (const ProcessInfo& r_process_info);
-      double AdjustedContactRadiusLu            (const ProcessInfo& r_process_info);
-      double AdjustedContactRadiusMorris        (const ProcessInfo& r_process_info);
+      // Contact adjustment models
+      double AdjustedContactRadiusZhou   (const ProcessInfo& r_process_info);
+      double AdjustedContactRadiusLu     (const ProcessInfo& r_process_info);
+      double AdjustedContactRadiusMorris (const ProcessInfo& r_process_info);
 
       // Integration expressions
       static double EvalIntegrandSurrLayer    (NumericalIntegrationMethod* method);
@@ -157,8 +130,13 @@ namespace Kratos
       double ComputeAverageConductivity          (void);
 
       // Get/Set methods
-      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme(void);
-      NumericalIntegrationMethod&  GetNumericalIntegrationMethod(void);
+      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
+      NumericalIntegrationMethod&  GetNumericalIntegrationMethod (void);
+      HeatExchangeMechanism&       GetDirectConductionModel      (void);
+      HeatExchangeMechanism&       GetIndirectConductionModel    (void);
+      HeatExchangeMechanism&       GetConvectionModel            (void);
+      HeatExchangeMechanism&       GetRadiationModel             (void);
+      HeatGenerationMechanism&     GetFrictionModel              (void);
 
       double GetYoung   (void) override;
       double GetPoisson (void) override;
@@ -183,6 +161,7 @@ namespace Kratos
       array_1d<double,3> GetWallCoordinates                   (void);
       double             GetWallTemperature                   (void);
       double             GetWallRadius                        (void);
+      double             GetWallSurfaceArea                   (void);
       double             GetWallYoung                         (void);
       double             GetWallPoisson                       (void);
       double             GetWallDensity                       (void);
@@ -194,6 +173,7 @@ namespace Kratos
       array_1d<double,3> GetNeighborCoordinates               (void);
       double             GetNeighborTemperature               (void);
       double             GetNeighborRadius                    (void);
+      double             GetNeighborSurfaceArea               (void);
       double             GetNeighborYoung                     (void);
       double             GetNeighborPoisson                   (void);
       double             GetNeighborDensity                   (void);
@@ -207,6 +187,11 @@ namespace Kratos
 
       void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
       void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
+      void               SetDirectConductionModel             (HeatExchangeMechanism::Pointer& model);
+      void               SetIndirectConductionModel           (HeatExchangeMechanism::Pointer& model);
+      void               SetConvectionModel                   (HeatExchangeMechanism::Pointer& model);
+      void               SetRadiationModel                    (HeatExchangeMechanism::Pointer& model);
+      void               SetFrictionModel                     (HeatGenerationMechanism::Pointer& model);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -215,6 +200,11 @@ namespace Kratos
       void               SetParticleMass                      (const double mass);
       void               SetParticleMomentInertia             (const double moment_inertia);
       void               SetParticleRealYoungRatio            (const double ratio);
+
+      // General properties
+      unsigned int mNumStepsEval;       // number of steps passed since last thermal evaluation
+      bool         mIsTimeToSolve;      // flag to solve thermal problem in current step
+      bool         mStoreContactParam;  // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
       double mConductionDirectHeatFlux;
@@ -227,31 +217,14 @@ namespace Kratos
       double mPrescribedHeatFlux;
       double mTotalHeatFlux;
 
-      // Delaunay/Voronoi data
-      unsigned int         mDelaunayPointListIndex;
-      std::map<int,double> mNeighborVoronoiRadius;
-
-      // Turn back information as a string
-      virtual std::string Info() const override {
-        std::stringstream buffer;
-        buffer << "ThermalSphericParticle";
-        return buffer.str();
-      }
-
-      // Print object information
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "ThermalSphericParticle";}
-      virtual void PrintData(std::ostream& rOStream) const override {}
-
-    protected:
-
-      // Pointers
+      // Pointers to auxiliary objects
       ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
       NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
-
-      // General
-      unsigned int mNumStepsEval;       // number of steps passed since last thermal evaluation
-      bool         mIsTimeToSolve;      // flag to solve thermal problem in current step
-      bool         mStoreContactParam;  // flag to store contact parameters with neighbors when solving the mechanical problem
+      HeatExchangeMechanism*       mpDirectConductionModel;
+      HeatExchangeMechanism*       mpIndirectConductionModel;
+      HeatExchangeMechanism*       mpConvectionModel;
+      HeatExchangeMechanism*       mpRadiationModel;
+      HeatGenerationMechanism*     mpFrictionModel;
 
       // Neighboring data
       ThermalSphericParticle*                   mNeighbor_p;
@@ -279,6 +252,21 @@ namespace Kratos
 
       // History-dependent properties
       double mPreviousTemperature;
+
+      // Delaunay/Voronoi data
+      unsigned int         mDelaunayPointListIndex;
+      std::map<int,double> mNeighborVoronoiRadius;
+
+      // Turn back information as a string
+      virtual std::string Info() const override {
+        std::stringstream buffer;
+        buffer << "ThermalSphericParticle";
+        return buffer.str();
+      }
+
+      // Print object information
+      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "ThermalSphericParticle";}
+      virtual void PrintData(std::ostream& rOStream) const override {}
 
     private:
 

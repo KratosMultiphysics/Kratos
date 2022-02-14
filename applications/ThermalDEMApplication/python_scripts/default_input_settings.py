@@ -19,6 +19,7 @@ def GetDefaultInputSettings():
             "indirect_conduction_model"      : "surrounding_layer",
             "nusselt_correlation"            : "sphere_hanz_marshall",
             "radiation_model"                : "continuum_zhou",
+            "friction_model"                 : "coulomb",
             "adjusted_contact_model"         : "zhou",
             "voronoi_method"                 : "tesselation",
 	        "porosity_method"                : "average_alpha_shape",

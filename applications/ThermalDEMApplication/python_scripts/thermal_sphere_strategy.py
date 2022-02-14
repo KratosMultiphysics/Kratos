@@ -36,28 +36,23 @@ class ExplicitStrategy(BaseStrategy):
         self.CreateCPlusPlusUtilities()
 
     #----------------------------------------------------------------------------------------------
+    def AddVariables(self):
+        # Add standard variables
+        BaseStrategy.AddVariables(self)
+
+        # Add thermal variables to all model parts
+        self.AddThermalVariables()
+        
+    #----------------------------------------------------------------------------------------------
     def CreateCPlusPlusStrategy(self):
         # Set standard options
         BaseStrategy.SetVariablesAndOptions(self)
 
-        # Set thermal options
+        # Set thermal options (set ProcessInfo values)
         self.SetThermalVariablesAndOptions()
 
         # Create cpp strategy object
-        translational_integration_scheme = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
-        
-        if (translational_integration_scheme == 'Velocity_Verlet'):
-            raise Exception('ThermalDEM', '"Thermal strategy for translational integration scheme \'' + translational_integration_scheme + '\' is not implemented.')
-        else:
-            self.cplusplus_strategy = ThermalExplicitSolverStrategy(self.settings,
-                                                                    self.max_delta_time,
-                                                                    self.n_step_search,
-                                                                    self.safety_factor,
-                                                                    self.delta_option,
-                                                                    self.creator_destructor,
-                                                                    self.dem_fem_search,
-                                                                    self.search_strategy,
-                                                                    self.solver_settings)
+        self.CreateCPlusPlusThermalStrategy()
 
     #----------------------------------------------------------------------------------------------
     def ModifyProperties(self, properties, param = 0):
@@ -67,25 +62,10 @@ class ExplicitStrategy(BaseStrategy):
         # Set standard properties
         BaseStrategy.ModifyProperties(self, properties, param)
 
-        # Set time integration scheme and numerical integration method
+        # Set pointers: time integration scheme / numerical integration method / constitutive laws (heat transfer models)
         self.SetThermalIntegrationScheme(properties)
         self.SetNumericalIntegrationMethod(properties)
-    
-    #----------------------------------------------------------------------------------------------
-    def AddVariables(self):
-        # Add standard variables
-        BaseStrategy.AddVariables(self)
-
-        # Add thermal variables to all model parts
-        self.spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        self.cluster_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        self.inlet_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        self.fem_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-
-        self.spheres_model_part.AddNodalSolutionStepVariable(HEATFLUX)
-        self.cluster_model_part.AddNodalSolutionStepVariable(HEATFLUX)
-        self.inlet_model_part.AddNodalSolutionStepVariable(HEATFLUX)
-        self.fem_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.SetConstitutiveLaw(properties)
     
     #----------------------------------------------------------------------------------------------
     def Initialize(self):
@@ -159,14 +139,24 @@ class ExplicitStrategy(BaseStrategy):
         # General options
         self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
 
-        # Integration scheme and method
-        self.thermal_integration_scheme   = self.thermal_settings["ThermalIntegrationScheme"].GetString()
-        self.numerical_integration_method = self.thermal_settings["NumericalIntegrationMethod"].GetString()
-
         # Frequencies
         self.thermal_solve_frequency       = self.thermal_settings["thermal_solve_frequency"].GetInt()
         self.voronoi_tesselation_frequency = self.thermal_settings["voronoi_tesselation_frequency"].GetInt()
         self.porosity_update_frequency     = self.thermal_settings["porosity_update_frequency"].GetInt()
+
+        # Integration scheme and method
+        self.thermal_integration_scheme   = self.thermal_settings["ThermalIntegrationScheme"].GetString()
+        self.numerical_integration_method = self.thermal_settings["NumericalIntegrationMethod"].GetString()
+
+        # Models for heat transfer
+        self.direct_conduction_model   = self.thermal_settings["direct_conduction_model"].GetString()
+        self.indirect_conduction_model = self.thermal_settings["indirect_conduction_model"].GetString()
+        self.nusselt_correlation       = self.thermal_settings["nusselt_correlation"].GetString()
+        self.radiation_model           = self.thermal_settings["radiation_model"].GetString()
+        self.friction_model            = self.thermal_settings["friction_model"].GetString()
+        self.adjusted_contact_model    = self.thermal_settings["adjusted_contact_model"].GetString()
+        self.voronoi_method            = self.thermal_settings["voronoi_method"].GetString()
+        self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
 
         # Active heat transfer mechanisms
         self.compute_direct_conduction_option   = GetBoolParameterIfItExists(self.thermal_settings, "compute_direct_conduction")
@@ -175,15 +165,6 @@ class ExplicitStrategy(BaseStrategy):
         self.compute_radiation_option           = GetBoolParameterIfItExists(self.thermal_settings, "compute_radiation")
         self.compute_friction_heat_option       = GetBoolParameterIfItExists(self.thermal_settings, "compute_friction_heat")
         self.compute_adjusted_contact_option    = GetBoolParameterIfItExists(self.thermal_settings, "compute_adjusted_contact")
-
-        # Models for heat transfer
-        self.direct_conduction_model   = self.thermal_settings["direct_conduction_model"].GetString()
-        self.indirect_conduction_model = self.thermal_settings["indirect_conduction_model"].GetString()
-        self.nusselt_correlation       = self.thermal_settings["nusselt_correlation"].GetString()
-        self.radiation_model           = self.thermal_settings["radiation_model"].GetString()
-        self.adjusted_contact_model    = self.thermal_settings["adjusted_contact_model"].GetString()
-        self.voronoi_method            = self.thermal_settings["voronoi_method"].GetString()
-        self.porosity_method           = self.thermal_settings["porosity_method"].GetString()
         
         # Model parameters
         self.min_conduction_distance  = self.thermal_settings["min_conduction_distance"].GetDouble()
@@ -218,18 +199,15 @@ class ExplicitStrategy(BaseStrategy):
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
-        # Integration scheme and method
-        if self.thermal_integration_scheme == "Forward_Euler":
-            self.thermal_integration_scheme = "ThermalForwardEulerScheme"
-        else:
-            raise Exception('ThermalDEM', 'Integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.')
+        # Time integration scheme
+        if (self.thermal_integration_scheme != "Forward_Euler"):
+            raise Exception('ThermalDEM', 'Time integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.') 
         
-        if self.numerical_integration_method == "Adaptive_Simpson":
-            self.numerical_integration_method = "AdaptiveSimpsonQuadrature"
-        else:
-            raise Exception('ThermalDEM', 'Integration method \'' + self.numerical_integration_method + '\' is not implemented.')
+        # Numerical integration method
+        if (self.numerical_integration_method != "Adaptive_Simpson"):
+            raise Exception('ThermalDEM', 'Numerical integration method \'' + self.numerical_integration_method + '\' is not implemented.')
         
-        # Models for heat transfer
+        # Heat transfer models
         if (self.direct_conduction_model != "batchelor_obrien" and
             self.direct_conduction_model != "thermal_pipe"     and
             self.direct_conduction_model != "collisional"):
@@ -251,11 +229,15 @@ class ExplicitStrategy(BaseStrategy):
             self.radiation_model != "continuum_krause"):
             raise Exception('ThermalDEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
 
+        if (self.friction_model != "coulomb"):
+            raise Exception('ThermalDEM', 'Frictional heat generation model \'' + self.friction_model + '\' is not implemented.')
+
         if (self.adjusted_contact_model != "zhou" and
             self.adjusted_contact_model != "lu"   and
             self.adjusted_contact_model != "morris"):
             raise Exception('ThermalDEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
+        # Other methods
         if (self.voronoi_method != "tesselation" and
             self.voronoi_method != "porosity"):
             raise Exception('ThermalDEM', 'Voronoi method \'' + self.voronoi_method + '\' is not implemented.')
@@ -265,7 +247,7 @@ class ExplicitStrategy(BaseStrategy):
             self.porosity_method != "average_alpha_shape"):
             raise Exception('ThermalDEM', 'Porosity method \'' + self.porosity_method + '\' is not implemented.')
 
-        # Model parameters
+        # Model parameters values
         if (self.thermal_solve_frequency <= 0):
             self.thermal_solve_frequency = 1
         if (self.voronoi_tesselation_frequency < 0):
@@ -293,7 +275,7 @@ class ExplicitStrategy(BaseStrategy):
         if (self.integral_tolerance <= 0):
             raise Exception('ThermalDEM', '"integral_tolerance" must be positive.')
         
-        # Fluid properties
+        # Fluid properties values
         if (self.fluid_density              <= 0 or
             self.fluid_viscosity            <= 0 or
             self.fluid_thermal_conductivity <= 0 or
@@ -356,44 +338,135 @@ class ExplicitStrategy(BaseStrategy):
             self.graph_utils = GraphUtilities()
     
     #----------------------------------------------------------------------------------------------
-    def SetThermalIntegrationScheme(self, properties):
-        integration_scheme_name = self.thermal_integration_scheme
+    def AddThermalVariables(self):
+        self.spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.cluster_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.inlet_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        self.fem_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
 
+        self.spheres_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.cluster_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.inlet_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        self.fem_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+
+    #----------------------------------------------------------------------------------------------
+    def SetThermalIntegrationScheme(self, properties):
         if properties.Has(DEM_THERMAL_INTEGRATION_SCHEME_NAME):
-            if properties[DEM_THERMAL_INTEGRATION_SCHEME_NAME] == "Forward_Euler":
-                integration_scheme_name = "ThermalForwardEulerScheme"
-            else:
-                raise Exception('ThermalDEM', 'Integration scheme \'' + integration_scheme_name + '\' is not implemented.')
-        
+            input_name = properties[DEM_THERMAL_INTEGRATION_SCHEME_NAME]
+        else:
+            input_name = self.thermal_integration_scheme
+
+        if input_name == "Forward_Euler":
+            class_name = "ThermalForwardEulerScheme"
+        else:
+            raise Exception('ThermalDEM', 'Time integration scheme \'' + input_name + '\' is not implemented.')
+
         try:
-            thermal_scheme = eval(integration_scheme_name)()
+            object = eval(class_name)()
         except:
-            raise Exception('The class corresponding to the thermal integration scheme named ' + integration_scheme_name + ' has not been added to python. Please, select a different name or add the required class.')
+            raise Exception('The class corresponding to the time integration scheme named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
         
-        thermal_scheme.SetThermalIntegrationSchemeInProperties(properties, True)
+        object.SetThermalIntegrationSchemeInProperties(properties, True)
 
     #----------------------------------------------------------------------------------------------
     def SetNumericalIntegrationMethod(self, properties):
-        integration_method_name = self.numerical_integration_method
-
         if properties.Has(DEM_NUMERICAL_INTEGRATION_METHOD_NAME):
-            if properties[DEM_NUMERICAL_INTEGRATION_METHOD_NAME] == "Adaptive_Simpson":
-                integration_method_name = "AdaptiveSimpsonQuadrature"
-            else:
-                raise Exception('ThermalDEM', 'Integration method \'' + integration_method_name + '\' is not implemented.')
-        
+            input_name = properties[DEM_NUMERICAL_INTEGRATION_METHOD_NAME]
+        else:
+            input_name = self.numerical_integration_method
+
+        if input_name == "Adaptive_Simpson":
+            class_name = "AdaptiveSimpsonQuadrature"
+        else:
+            raise Exception('ThermalDEM', 'Numerical integration method \'' + input_name + '\' is not implemented.')
+
         try:
-            integration_method = eval(integration_method_name)()
+            object = eval(class_name)()
         except:
-            raise Exception('The class corresponding to the numerical integration method named ' + integration_method_name + ' has not been added to python. Please, select a different name or add the required class.')
+            raise Exception('The class corresponding to the numerical integration method named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
         
-        integration_method.SetNumericalIntegrationMethodInProperties(properties, True)
+        object.SetNumericalIntegrationMethodInProperties(properties, True)
     
+    #----------------------------------------------------------------------------------------------
+    def SetConstitutiveLaw(self, properties):
+        # Direct conduction
+        if self.direct_conduction_model == "batchelor_obrien":
+            class_name = "DirectConductionBOB"
+        elif self.direct_conduction_model == "thermal_pipe":
+            class_name = "DirectConductionPipe"
+        elif self.direct_conduction_model == "collisional":
+            class_name = "DirectConductionCollision"
+        else:
+            raise Exception('ThermalDEM', 'Direct thermal conduction model \'' + self.direct_conduction_model + '\' is not implemented.')
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the direct thermal conduction model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        object.SetHeatExchangeMechanismInProperties(properties, True)
+
+        # Indirect conduction
+        if self.indirect_conduction_model == "surrounding_layer":
+            class_name = "IndirectConductionLayer"
+        elif self.indirect_conduction_model == "voronoi_a":
+            class_name = "IndirectConductionVoronoiA"
+        elif self.indirect_conduction_model == "voronoi_b":
+            class_name = "IndirectConductionVoronoiB"
+        elif self.indirect_conduction_model == "vargas_mccarthy":
+            class_name = "IndirectConductionVargas"
+        else:
+            raise Exception('ThermalDEM', 'Indirect thermal conduction model \'' + self.indirect_conduction_model + '\' is not implemented.')
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the indirect thermal conduction model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        object.SetHeatExchangeMechanismInProperties(properties, True)
+
+        # Convection
+        if self.nusselt_correlation == "sphere_hanz_marshall":
+            class_name = "NusseltHanzMarshall"
+        elif self.nusselt_correlation == "sphere_whitaker":
+            class_name = "NusseltWhitaker"
+        elif self.nusselt_correlation == "sphere_gunn":
+            class_name = "NusseltGunn"
+        elif self.nusselt_correlation == "sphere_li_mason":
+            class_name = "NusseltLiMason"
+        else:
+            raise Exception('ThermalDEM', 'Nusselt number correlation \'' + self.nusselt_correlation + '\' is not implemented.')
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the nusselt number correlation named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        object.SetHeatExchangeMechanismInProperties(properties, True)
+
+        # Radiation
+        if self.radiation_model == "continuum_zhou":
+            class_name = "RadiationContinuumZhou"
+        elif self.radiation_model == "continuum_krause":
+            class_name = "RadiationContinuumKrause"
+        else:
+            raise Exception('ThermalDEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the thermal radiation model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        object.SetHeatExchangeMechanismInProperties(properties, True)
+
+        # Friction
+        if self.friction_model == "coulomb":
+            class_name = "FrictionCoulomb"
+        else:
+            raise Exception('ThermalDEM', 'Frictional heat generation model \'' + self.friction_model + '\' is not implemented.')
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the frictional heat generation model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        object.SetHeatGenerationMechanismInProperties(properties, True)
+
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
-        self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
+        self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
         
         temperature_dependent_radius = False
         for properties in self.spheres_model_part.Properties:
@@ -410,11 +483,7 @@ class ExplicitStrategy(BaseStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, FRICTION_HEAT_OPTION,       self.compute_friction_heat_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ADJUSTED_CONTACT_OPTION,    self.compute_adjusted_contact_option)
 
-        # Models for heat transfer
-        self.spheres_model_part.ProcessInfo.SetValue(DIRECT_CONDUCTION_MODEL,   self.direct_conduction_model)
-        self.spheres_model_part.ProcessInfo.SetValue(INDIRECT_CONDUCTION_MODEL, self.indirect_conduction_model)
-        self.spheres_model_part.ProcessInfo.SetValue(CONVECTION_MODEL,          self.nusselt_correlation)
-        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
+        # Methods for heat transfer
         self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL,    self.adjusted_contact_model)
         self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD,            self.voronoi_method)
         self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD,           self.porosity_method)
@@ -437,6 +506,23 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_HEAT_CAPACITY,        self.fluid_heat_capacity)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE,          self.fluid_temperature)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
+
+    #----------------------------------------------------------------------------------------------
+    def CreateCPlusPlusThermalStrategy(self):
+        translational_integration_scheme = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
+        
+        if (translational_integration_scheme == 'Velocity_Verlet'):
+            raise Exception('ThermalDEM', '"Thermal strategy for translational integration scheme \'' + translational_integration_scheme + '\' is not implemented.')
+        else:
+            self.cplusplus_strategy = ThermalExplicitSolverStrategy(self.settings,
+                                                                    self.max_delta_time,
+                                                                    self.n_step_search,
+                                                                    self.safety_factor,
+                                                                    self.delta_option,
+                                                                    self.creator_destructor,
+                                                                    self.dem_fem_search,
+                                                                    self.search_strategy,
+                                                                    self.solver_settings)
 
     #----------------------------------------------------------------------------------------------
     def InitializeCPlusPlusUtilities(self):
