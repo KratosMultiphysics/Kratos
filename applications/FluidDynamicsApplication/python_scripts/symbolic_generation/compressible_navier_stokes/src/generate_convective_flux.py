@@ -8,6 +8,7 @@ def ComputeEulerJacobianMatrix(U, primitives, params):
 
     # Auxiliary variables
     dim = params.dim
+    blocksize = dim + 2
 
     rho = QuantityConverter.density(primitives, params)
     e_tot = QuantityConverter.total_energy(primitives, params, rho=rho)
@@ -16,25 +17,24 @@ def ComputeEulerJacobianMatrix(U, primitives, params):
     p = primitives.P
 
     # Define and fill the convective flux matrix E
-    E = sympy.zeros(dim + 2, dim, real=True)
+    E = sympy.zeros(blocksize, dim, real=True)
     delta = sympy.eye(dim)
     E[0, :]    = rho * vel.T
     E[1:-1, :] = rho*vel*vel.T + p*delta
     E[-1, :]   = vel.T * (e_tot + p)
 
-    # Intermediate step to obtain dE/dV
-    dE_dV = []
-    primitives_vector = primitives.PrimitivesVector()
-    for j in range(dim):
-        Astar_j = sympy.zeros(dim + 2, dim + 2)
-        for m in range(dim + 2):
-            for n in range(dim + 2):
-                Astar_j[m, n] = sympy.diff(E[m, j], primitives_vector[n])
-        dE_dV.append(Astar_j)
-
     # Obtain the Euler Jacobian Matrix A := dE/dU = dE/dV * dV/dU
+    V = primitives.AsVector()
     dV_dU = QuantityConverter.dVdU(U, primitives, params)
-    A = dE_dV * dV_dU
+    A = [0] * dim
+    for j in range(dim):
+        dE_dV = sympy.zeros(blocksize, blocksize)
+
+        for i in range(blocksize):
+            for l in range(blocksize):
+                dE_dV[i, l] = sympy.diff(E[i, j], V[l])
+        A[j] = dE_dV * dV_dU[j, :]
+
     A.simplify()
     return A
 
