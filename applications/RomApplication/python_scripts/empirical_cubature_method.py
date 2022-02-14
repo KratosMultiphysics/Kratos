@@ -182,3 +182,9 @@ class EmpiricalCubatureMethod():
             aux2 = np.vstack([aux1[0:neg_index, :], aux1[neg_index + 1:, :], aux1[neg_index, :]])
             invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1, 0:-1]) / aux2[-1, -1]
         return invH_new
+
+
+
+
+
+
