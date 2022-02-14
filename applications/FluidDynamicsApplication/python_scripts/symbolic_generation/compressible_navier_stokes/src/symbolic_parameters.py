@@ -1,8 +1,6 @@
 import sympy
-import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
     import CompressibleNavierStokesDefines as defs
-from quantity_converter import QuantityConverter
 
 
 class FormulationParameters:
