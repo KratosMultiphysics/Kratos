@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -63,7 +63,7 @@ namespace Kratos {
 
   //------------------------------------------------------------------------------------------------------------
   // Solve solution step ignoring particles kinetics (forces and motion). Should be called when computing only heat transfer.
-  double ThermalExplicitSolverStrategy::SolveSolutionStepStatic() {
+  double ThermalExplicitSolverStrategy::SolveSolutionStepStatic(void) {
     KRATOS_TRY
 
     ExplicitSolverStrategy::GetForce();

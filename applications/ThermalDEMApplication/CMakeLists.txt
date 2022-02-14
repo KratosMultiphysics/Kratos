@@ -50,7 +50,7 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_collision.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_pipe.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_model.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_surrounding_layer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_surround_layer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_vargas.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_voronoi_a.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_indirect/indirect_conduction_voronoi_b.cpp

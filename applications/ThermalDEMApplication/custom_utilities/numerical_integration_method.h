@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -27,7 +27,7 @@ namespace Kratos
   {
     public:
 
-      // Pointer definition of NumericalIntegrationMethod
+      // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(NumericalIntegrationMethod);
 
       // Constructor

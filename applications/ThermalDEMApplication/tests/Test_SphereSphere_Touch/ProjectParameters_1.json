@@ -62,7 +62,7 @@
     "OutputFileType"                 : "Binary",
     "Multifile"                      : "multiple_files",
     "ElementType"                    : "ThermalSphericPartDEMElement3D",
-    "TranslationalIntegrationScheme" : "Forward_Euler",
+    "TranslationalIntegrationScheme" : "forward_euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
     "MaxTimeStep"                    : 1e-6,
     "FinalTime"                      : 1e-3,

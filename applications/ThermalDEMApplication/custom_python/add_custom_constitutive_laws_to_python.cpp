@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -23,7 +23,7 @@
 #include "custom_constitutive/conduction_direct/direct_conduction_collision.h"
 #include "custom_constitutive/conduction_direct/direct_conduction_pipe.h"
 #include "custom_constitutive/conduction_indirect/indirect_conduction_model.h"
-#include "custom_constitutive/conduction_indirect/indirect_conduction_surrounding_layer.h"
+#include "custom_constitutive/conduction_indirect/indirect_conduction_surround_layer.h"
 #include "custom_constitutive/conduction_indirect/indirect_conduction_vargas.h"
 #include "custom_constitutive/conduction_indirect/indirect_conduction_voronoi_a.h"
 #include "custom_constitutive/conduction_indirect/indirect_conduction_voronoi_b.h"
@@ -86,7 +86,7 @@ namespace Kratos
       py::class_<IndirectConductionModel, IndirectConductionModel::Pointer, HeatExchangeMechanism>(m, "IndirectConductionModel")
         .def(py::init<>());
 
-      py::class_<IndirectConductionLayer, IndirectConductionLayer::Pointer, IndirectConductionModel>(m, "IndirectConductionLayer")
+      py::class_<IndirectConductionSurroundLayer, IndirectConductionSurroundLayer::Pointer, IndirectConductionModel>(m, "IndirectConductionSurroundLayer")
         .def(py::init<>());
 
       py::class_<IndirectConductionVargas, IndirectConductionVargas::Pointer, IndirectConductionModel>(m, "IndirectConductionVargas")

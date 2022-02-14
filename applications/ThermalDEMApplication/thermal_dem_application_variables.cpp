@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -16,23 +16,23 @@
 namespace Kratos
 {
   // Variables
-  KRATOS_CREATE_VARIABLE(ThermalDEMIntegrationScheme::Pointer, DEM_THERMAL_INTEGRATION_SCHEME_POINTER)
-  KRATOS_CREATE_VARIABLE(NumericalIntegrationMethod::Pointer,  DEM_NUMERICAL_INTEGRATION_METHOD_POINTER)
-  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       DEM_DIRECT_CONDUCTION_MODEL_POINTER)
-  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       DEM_INDIRECT_CONDUCTION_MODEL_POINTER)
-  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       DEM_CONVECTION_MODEL_POINTER)
-  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       DEM_RADIATION_MODEL_POINTER)
-  KRATOS_CREATE_VARIABLE(HeatGenerationMechanism::Pointer,     DEM_FRICTION_MODEL_POINTER)
-  KRATOS_CREATE_VARIABLE(std::string,                          DEM_THERMAL_INTEGRATION_SCHEME_NAME)
-  KRATOS_CREATE_VARIABLE(std::string,                          DEM_NUMERICAL_INTEGRATION_METHOD_NAME)
-  KRATOS_CREATE_VARIABLE(std::string,                          DIRECT_CONDUCTION_MODEL)
-  KRATOS_CREATE_VARIABLE(std::string,                          INDIRECT_CONDUCTION_MODEL)
-  KRATOS_CREATE_VARIABLE(std::string,                          CONVECTION_MODEL)
-  KRATOS_CREATE_VARIABLE(std::string,                          RADIATION_MODEL)
-  KRATOS_CREATE_VARIABLE(std::string,                          FRICTION_MODEL)
-  KRATOS_CREATE_VARIABLE(std::string,                          ADJUSTED_CONTACT_MODEL)
-  KRATOS_CREATE_VARIABLE(std::string,                          VORONOI_METHOD)
-  KRATOS_CREATE_VARIABLE(std::string,                          POROSITY_METHOD)
+  KRATOS_CREATE_VARIABLE(ThermalDEMIntegrationScheme::Pointer, THERMAL_INTEGRATION_SCHEME_POINTER)
+  KRATOS_CREATE_VARIABLE(NumericalIntegrationMethod::Pointer,  NUMERICAL_INTEGRATION_METHOD_POINTER)
+  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       DIRECT_CONDUCTION_MODEL_POINTER)
+  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       INDIRECT_CONDUCTION_MODEL_POINTER)
+  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       CONVECTION_MODEL_POINTER)
+  KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       RADIATION_MODEL_POINTER)
+  KRATOS_CREATE_VARIABLE(HeatGenerationMechanism::Pointer,     FRICTION_MODEL_POINTER)
+  KRATOS_CREATE_VARIABLE(std::string,                          THERMAL_INTEGRATION_SCHEME_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          NUMERICAL_INTEGRATION_METHOD_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          DIRECT_CONDUCTION_MODEL_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          INDIRECT_CONDUCTION_MODEL_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          CONVECTION_MODEL_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          RADIATION_MODEL_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          FRICTION_MODEL_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          ADJUSTED_CONTACT_MODEL_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          VORONOI_METHOD_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          POROSITY_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(bool,                                 MOTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 DIRECT_CONDUCTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 INDIRECT_CONDUCTION_OPTION)

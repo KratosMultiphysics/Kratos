@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -15,15 +15,15 @@
 // External includes
 
 // Project includes
-#include "indirect_conduction_surrounding_layer.h"
+#include "indirect_conduction_surround_layer.h"
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
-  IndirectConductionLayer::IndirectConductionLayer() {}
-  IndirectConductionLayer::~IndirectConductionLayer() {}
+  IndirectConductionSurroundLayer::IndirectConductionSurroundLayer() {}
+  IndirectConductionSurroundLayer::~IndirectConductionSurroundLayer() {}
 
   //------------------------------------------------------------------------------------------------------------
-  double IndirectConductionLayer::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+  double IndirectConductionSurroundLayer::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 
     // Check if particles are close enough
@@ -46,7 +46,7 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double IndirectConductionLayer::SphereWallCoeff(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+  double IndirectConductionSurroundLayer::SphereWallCoeff(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 
     const double min_dist           = r_process_info[MIN_CONDUCTION_DISTANCE];
@@ -79,7 +79,7 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double IndirectConductionLayer::SphereSphereCoeff(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+  double IndirectConductionSurroundLayer::SphereSphereCoeff(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 
     NumericalIntegrationMethod& integ = particle->GetNumericalIntegrationMethod();

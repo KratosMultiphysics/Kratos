@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -28,7 +28,7 @@ namespace Kratos
   {
     public:
 
-      // Pointer definition of GraphUtilities
+      // Pointer definition
       KRATOS_CLASS_POINTER_DEFINITION(GraphUtilities);
 
       // Constructor / destructor methods
@@ -43,7 +43,7 @@ namespace Kratos
                              bool ModelTempAvg,
                              bool ParticleHeatFluxContributions);
       void ExecuteFinalizeSolutionStep(ModelPart& rModelPart);
-      void ExecuteFinalize();
+      void ExecuteFinalize(void);
 
     protected:
 

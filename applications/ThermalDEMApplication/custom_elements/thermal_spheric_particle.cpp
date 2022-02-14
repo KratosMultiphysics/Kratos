@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -125,33 +125,33 @@ namespace Kratos
     this->Set(DEMThermalFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
     // Set time integration scheme
-    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme = GetProperties()[DEM_THERMAL_INTEGRATION_SCHEME_POINTER];
+    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme = GetProperties()[THERMAL_INTEGRATION_SCHEME_POINTER];
     SetThermalIntegrationScheme(thermal_integration_scheme);
 
     // Set numerical integration method
-    NumericalIntegrationMethod::Pointer& numerical_integration_method = GetProperties()[DEM_NUMERICAL_INTEGRATION_METHOD_POINTER];
+    NumericalIntegrationMethod::Pointer& numerical_integration_method = GetProperties()[NUMERICAL_INTEGRATION_METHOD_POINTER];
     SetNumericalIntegrationMethod(numerical_integration_method);
 
     // Set constitutive laws (thermal models)
-    HeatExchangeMechanism::Pointer& direct_conduction_model = GetProperties()[DEM_DIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer& direct_conduction_model = GetProperties()[DIRECT_CONDUCTION_MODEL_POINTER];
     SetDirectConductionModel(direct_conduction_model);
 
-    HeatExchangeMechanism::Pointer& indirect_conduction_model = GetProperties()[DEM_INDIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer& indirect_conduction_model = GetProperties()[INDIRECT_CONDUCTION_MODEL_POINTER];
     SetIndirectConductionModel(indirect_conduction_model);
 
-    HeatExchangeMechanism::Pointer& convection_model = GetProperties()[DEM_CONVECTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer& convection_model = GetProperties()[CONVECTION_MODEL_POINTER];
     SetConvectionModel(convection_model);
 
-    HeatExchangeMechanism::Pointer& radiation_model = GetProperties()[DEM_RADIATION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer& radiation_model = GetProperties()[RADIATION_MODEL_POINTER];
     SetRadiationModel(radiation_model);
 
-    HeatGenerationMechanism::Pointer& friction_model = GetProperties()[DEM_FRICTION_MODEL_POINTER];
+    HeatGenerationMechanism::Pointer& friction_model = GetProperties()[FRICTION_MODEL_POINTER];
     SetFrictionModel(friction_model);
 
     // Set flag to store contact parameters during mechanical loop over neighbors
     mStoreContactParam = this->Is(DEMThermalFlags::HAS_MOTION)        &&
                         (this->Is(DEMThermalFlags::HAS_FRICTION_HEAT) ||
-                        (this->Is(DEMThermalFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL].compare("collisional") == 0));    
+                        (this->Is(DEMThermalFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
 
     // Clear maps
     mContactParamsParticle.clear();
@@ -340,7 +340,7 @@ namespace Kratos
     }
     else {
       // Compute adjusted contact radius according to selected model
-      std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
+      std::string model = r_process_info[ADJUSTED_CONTACT_MODEL_NAME];
       if      (model.compare("zhou")   == 0) mContactRadiusAdjusted = AdjustedContactRadiusZhou(r_process_info);
       else if (model.compare("lu")     == 0) mContactRadiusAdjusted = AdjustedContactRadiusLu(r_process_info);
       else if (model.compare("morris") == 0) mContactRadiusAdjusted = AdjustedContactRadiusMorris(r_process_info);
@@ -662,7 +662,7 @@ namespace Kratos
     KRATOS_TRY
 
     if (this->Is(DEMThermalFlags::HAS_INDIRECT_CONDUCTION)) {
-      std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL];
+      std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL_NAME];
       if (model.compare("surrounding_layer") == 0) {
         const double model_search_distance  = GetParticleRadius() * r_process_info[FLUID_LAYER_THICKNESS];
         const double current_added_distance = added_search_distance;
@@ -677,7 +677,7 @@ namespace Kratos
     }
 
     if (this->Is(DEMThermalFlags::HAS_RADIATION)) {
-      std::string model = r_process_info[RADIATION_MODEL];
+      std::string model = r_process_info[RADIATION_MODEL_NAME];
       if (model.compare("continuum_zhou")   == 0 ||
           model.compare("continuum_krause") == 0) {
         const double model_search_distance  = GetParticleRadius() * (r_process_info[MAX_RADIATION_DISTANCE]);
@@ -735,7 +735,7 @@ namespace Kratos
     const double neighbor_radius = GetNeighborRadius();
 
     // Based on voronoi diagram
-    if (r_process_info[VORONOI_METHOD].compare("tesselation") == 0) {
+    if (r_process_info[VORONOI_METHOD_NAME].compare("tesselation") == 0) {
       if (mNeighborType & WALL_NEIGHBOR) {
         // Assumption: radius of voronoi cell face is proportional to the particle radius
         return 1.5 * particle_radius;
@@ -749,7 +749,7 @@ namespace Kratos
     }
 
     // Based on porosity
-    else if (r_process_info[VORONOI_METHOD].compare("porosity") == 0) {
+    else if (r_process_info[VORONOI_METHOD_NAME].compare("porosity") == 0) {
       if (mNeighborType & WALL_NEIGHBOR) {
         // Assumption: using particle radius only
         return 0.56 * particle_radius * pow((1.0 - r_process_info[AVERAGE_POROSITY]), -1.0 / 3.0);
@@ -791,7 +791,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  bool ThermalSphericParticle::CheckAdiabaticNeighbor() {
+  bool ThermalSphericParticle::CheckAdiabaticNeighbor(void) {
     KRATOS_TRY
 
     return ((mNeighborType & PARTICLE_NEIGHBOR && mNeighbor_p->Is(DEMThermalFlags::IS_ADIABATIC)) ||
@@ -813,7 +813,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeDistanceToNeighbor() {
+  double ThermalSphericParticle::ComputeDistanceToNeighbor(void) {
     KRATOS_TRY
 
     if (mNeighborType & PARTICLE_NEIGHBOR) {
@@ -872,7 +872,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeDistanceToNeighborAdjusted() {
+  double ThermalSphericParticle::ComputeDistanceToNeighborAdjusted(void) {
     KRATOS_TRY
 
     // Corrected distance based on a corrected contact radius
@@ -894,7 +894,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeSeparationToNeighbor() {
+  double ThermalSphericParticle::ComputeSeparationToNeighbor(void) {
     KRATOS_TRY
 
     const double particle_radius = GetParticleRadius();
@@ -905,7 +905,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeSeparationToNeighborAdjusted() {
+  double ThermalSphericParticle::ComputeSeparationToNeighborAdjusted(void) {
     KRATOS_TRY
 
     const double particle_radius = GetParticleRadius();
@@ -916,7 +916,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeFourierNumber() {
+  double ThermalSphericParticle::ComputeFourierNumber(void) {
     KRATOS_TRY
 
     const double col_time_max = ComputeMaxCollisionTime();
@@ -949,7 +949,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeMaxCollisionTime() {
+  double ThermalSphericParticle::ComputeMaxCollisionTime(void) {
     KRATOS_TRY
 
     const double eff_radius             = ComputeEffectiveRadius();
@@ -966,7 +966,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeMaxContactRadius() {
+  double ThermalSphericParticle::ComputeMaxContactRadius(void) {
     KRATOS_TRY
 
     const double eff_radius             = ComputeEffectiveRadius();
@@ -980,7 +980,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeContactRadius() {
+  double ThermalSphericParticle::ComputeContactRadius(void) {
     KRATOS_TRY
     
     double Rc = 0.0;
@@ -1003,7 +1003,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeEffectiveRadius() {
+  double ThermalSphericParticle::ComputeEffectiveRadius(void) {
     KRATOS_TRY
 
     if (mNeighborType & PARTICLE_NEIGHBOR) {
@@ -1022,7 +1022,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeEffectiveMass() {
+  double ThermalSphericParticle::ComputeEffectiveMass(void) {
     KRATOS_TRY
 
     if (mNeighborType & PARTICLE_NEIGHBOR) {
@@ -1041,7 +1041,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeEffectiveYoung() {
+  double ThermalSphericParticle::ComputeEffectiveYoung(void) {
     KRATOS_TRY
 
     const double particle_young   = GetParticleYoung();
@@ -1055,7 +1055,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeEffectiveYoungReal() {
+  double ThermalSphericParticle::ComputeEffectiveYoungReal(void) {
     KRATOS_TRY
 
     const double particle_young   = GetParticleYoung() * mRealYoungRatio;
@@ -1069,7 +1069,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeEffectiveConductivity() {
+  double ThermalSphericParticle::ComputeEffectiveConductivity(void) {
     KRATOS_TRY
 
     const double particle_conductivity = GetParticleConductivity();
@@ -1081,7 +1081,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::ComputeAverageConductivity() {
+  double ThermalSphericParticle::ComputeAverageConductivity(void) {
     KRATOS_TRY
 
     const double r1 = GetParticleRadius();
@@ -1098,42 +1098,42 @@ namespace Kratos
   // Get/Set methods
 
   //------------------------------------------------------------------------------------------------------------
-  ThermalDEMIntegrationScheme& ThermalSphericParticle::GetThermalIntegrationScheme() {
+  ThermalDEMIntegrationScheme& ThermalSphericParticle::GetThermalIntegrationScheme(void) {
     return *mpThermalIntegrationScheme;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  NumericalIntegrationMethod& ThermalSphericParticle::GetNumericalIntegrationMethod() {
+  NumericalIntegrationMethod& ThermalSphericParticle::GetNumericalIntegrationMethod(void) {
     return *mpNumericalIntegrationMethod;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  HeatExchangeMechanism& ThermalSphericParticle::GetDirectConductionModel() {
+  HeatExchangeMechanism& ThermalSphericParticle::GetDirectConductionModel(void) {
     return *mpDirectConductionModel;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  HeatExchangeMechanism& ThermalSphericParticle::GetIndirectConductionModel() {
+  HeatExchangeMechanism& ThermalSphericParticle::GetIndirectConductionModel(void) {
     return *mpIndirectConductionModel;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  HeatExchangeMechanism& ThermalSphericParticle::GetConvectionModel() {
+  HeatExchangeMechanism& ThermalSphericParticle::GetConvectionModel(void) {
     return *mpConvectionModel;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  HeatExchangeMechanism& ThermalSphericParticle::GetRadiationModel() {
+  HeatExchangeMechanism& ThermalSphericParticle::GetRadiationModel(void) {
     return *mpRadiationModel;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  HeatGenerationMechanism& ThermalSphericParticle::GetFrictionModel() {
+  HeatGenerationMechanism& ThermalSphericParticle::GetFrictionModel(void) {
     return *mpFrictionModel;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetYoung() {
+  double ThermalSphericParticle::GetYoung(void) {
     if (GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
       return r_table.GetValue(GetParticleTemperature());
@@ -1144,7 +1144,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetPoisson() {
+  double ThermalSphericParticle::GetPoisson(void) {
     if (GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, POISSON_RATIO);
       return r_table.GetValue(GetParticleTemperature());
@@ -1155,7 +1155,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetDensity() {
+  double ThermalSphericParticle::GetDensity(void) {
     if (GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, PARTICLE_DENSITY);
       return r_table.GetValue(GetParticleTemperature());
@@ -1166,62 +1166,62 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  array_1d<double, 3> ThermalSphericParticle::GetParticleCoordinates() {
+  array_1d<double, 3> ThermalSphericParticle::GetParticleCoordinates(void) {
     return GetGeometry()[0].Coordinates();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  array_1d<double, 3> ThermalSphericParticle::GetParticleVelocity() {
+  array_1d<double, 3> ThermalSphericParticle::GetParticleVelocity(void) {
     return GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleTemperature() {
+  double ThermalSphericParticle::GetParticleTemperature(void) {
     return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleRadius() {
+  double ThermalSphericParticle::GetParticleRadius(void) {
     return GetRadius();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleSurfaceArea() {
+  double ThermalSphericParticle::GetParticleSurfaceArea(void) {
     return 4.0 * Globals::Pi * GetRadius() * GetRadius();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleCharacteristicLength() {
+  double ThermalSphericParticle::GetParticleCharacteristicLength(void) {
     return 2.0 * GetRadius();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleVolume() {
+  double ThermalSphericParticle::GetParticleVolume(void) {
     return CalculateVolume();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleYoung() {
+  double ThermalSphericParticle::GetParticleYoung(void) {
     return GetYoung();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticlePoisson() {
+  double ThermalSphericParticle::GetParticlePoisson(void) {
     return GetPoisson();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleDensity() {
+  double ThermalSphericParticle::GetParticleDensity(void) {
     return GetDensity();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleMass() {
+  double ThermalSphericParticle::GetParticleMass(void) {
     return GetMass();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleHeatCapacity() {
+  double ThermalSphericParticle::GetParticleHeatCapacity(void) {
     if (GetProperties().HasTable(TEMPERATURE, SPECIFIC_HEAT)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, SPECIFIC_HEAT);
       return r_table.GetValue(GetParticleTemperature());
@@ -1232,7 +1232,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleConductivity() {
+  double ThermalSphericParticle::GetParticleConductivity(void) {
     if (GetProperties().HasTable(TEMPERATURE, THERMAL_CONDUCTIVITY)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, THERMAL_CONDUCTIVITY);
       return r_table.GetValue(GetParticleTemperature());
@@ -1243,7 +1243,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleEmissivity() {
+  double ThermalSphericParticle::GetParticleEmissivity(void) {
     if (GetProperties().HasTable(TEMPERATURE, EMISSIVITY)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, EMISSIVITY);
       return r_table.GetValue(GetParticleTemperature());
@@ -1254,7 +1254,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleExpansionCoefficient() {
+  double ThermalSphericParticle::GetParticleExpansionCoefficient(void) {
     if (GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
       return r_table.GetValue(GetParticleTemperature());
@@ -1265,12 +1265,12 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  array_1d<double, 3> ThermalSphericParticle::GetWallCoordinates() {
+  array_1d<double, 3> ThermalSphericParticle::GetWallCoordinates(void) {
     return mNeighbor_w->GetGeometry().Center();
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallTemperature() {
+  double ThermalSphericParticle::GetWallTemperature(void) {
     // Assumption: wall temperature is the average of its nodes
     const double n_nodes = mNeighbor_w->GetGeometry().size();
     double wall_temp = 0.0;
@@ -1280,19 +1280,19 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallRadius() {
+  double ThermalSphericParticle::GetWallRadius(void) {
     // Assumption: zero to be consistent with its use in formulations
     return 0.0;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallSurfaceArea() {
+  double ThermalSphericParticle::GetWallSurfaceArea(void) {
     // Assumption: zero
     return 0.0;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallYoung() {
+  double ThermalSphericParticle::GetWallYoung(void) {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
       const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
       return r_table.GetValue(GetWallTemperature());
@@ -1303,7 +1303,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallPoisson() {
+  double ThermalSphericParticle::GetWallPoisson(void) {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, POISSON_RATIO)) {
       const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, POISSON_RATIO);
       return r_table.GetValue(GetWallTemperature());
@@ -1314,7 +1314,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallDensity() {
+  double ThermalSphericParticle::GetWallDensity(void) {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, PARTICLE_DENSITY)) {
       const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, PARTICLE_DENSITY);
       return r_table.GetValue(GetWallTemperature());
@@ -1325,13 +1325,13 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallMass() {
+  double ThermalSphericParticle::GetWallMass(void) {
     // Assumption: zero to be consistent with its use in formulations
     return 0.0;
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallHeatCapacity() {
+  double ThermalSphericParticle::GetWallHeatCapacity(void) {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, SPECIFIC_HEAT)) {
       const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, SPECIFIC_HEAT);
       return r_table.GetValue(GetWallTemperature());
@@ -1342,7 +1342,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallConductivity() {
+  double ThermalSphericParticle::GetWallConductivity(void) {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, THERMAL_CONDUCTIVITY)) {
       const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, THERMAL_CONDUCTIVITY);
       return r_table.GetValue(GetWallTemperature());
@@ -1353,7 +1353,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetWallEmissivity() {
+  double ThermalSphericParticle::GetWallEmissivity(void) {
     if (mNeighbor_w->GetProperties().HasTable(TEMPERATURE, EMISSIVITY)) {
       const auto& r_table = mNeighbor_w->GetProperties().GetTable(TEMPERATURE, EMISSIVITY);
       return r_table.GetValue(GetWallTemperature());
@@ -1364,7 +1364,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  array_1d<double, 3> ThermalSphericParticle::GetNeighborCoordinates() {
+  array_1d<double, 3> ThermalSphericParticle::GetNeighborCoordinates(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleCoordinates();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1374,7 +1374,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborTemperature() {
+  double ThermalSphericParticle::GetNeighborTemperature(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleTemperature();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1384,7 +1384,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborRadius() {
+  double ThermalSphericParticle::GetNeighborRadius(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleRadius();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1394,7 +1394,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborSurfaceArea() {
+  double ThermalSphericParticle::GetNeighborSurfaceArea(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleSurfaceArea();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1404,7 +1404,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborYoung() {
+  double ThermalSphericParticle::GetNeighborYoung(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleYoung();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1414,7 +1414,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborPoisson() {
+  double ThermalSphericParticle::GetNeighborPoisson(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticlePoisson();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1424,7 +1424,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborDensity() {
+  double ThermalSphericParticle::GetNeighborDensity(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleDensity();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1434,7 +1434,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborMass() {
+  double ThermalSphericParticle::GetNeighborMass(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleMass();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1444,7 +1444,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborHeatCapacity() {
+  double ThermalSphericParticle::GetNeighborHeatCapacity(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleHeatCapacity();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1454,7 +1454,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborConductivity() {
+  double ThermalSphericParticle::GetNeighborConductivity(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleConductivity();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1464,7 +1464,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetNeighborEmissivity() {
+  double ThermalSphericParticle::GetNeighborEmissivity(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleEmissivity();
     else if (mNeighborType & WALL_NEIGHBOR)
@@ -1474,7 +1474,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetContactDynamicFrictionCoefficient() {
+  double ThermalSphericParticle::GetContactDynamicFrictionCoefficient(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR) {
       Properties& properties_of_contact = GetProperties().GetSubProperties(mNeighbor_p->GetProperties().Id());
       return properties_of_contact[DYNAMIC_FRICTION];
@@ -1488,7 +1488,7 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  typename ThermalSphericParticle::ContactParams ThermalSphericParticle::GetContactParameters() {
+  typename ThermalSphericParticle::ContactParams ThermalSphericParticle::GetContactParameters(void) {
     if (mNeighborType & PARTICLE_NEIGHBOR && mContactParamsParticle.count(mNeighbor_p)) {
       return mContactParamsParticle[mNeighbor_p];
     }

@@ -1,6 +1,6 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ \
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics ThermalDEM Application
 //
@@ -23,40 +23,40 @@
 
 namespace Kratos
 {
-  class KRATOS_API(THERMAL_DEM_APPLICATION) IndirectConductionLayer : public IndirectConductionModel
+  class KRATOS_API(THERMAL_DEM_APPLICATION) IndirectConductionSurroundLayer : public IndirectConductionModel
   {
     public:
 
-      // Pointer definition of IndirectConductionLayer
-      KRATOS_CLASS_POINTER_DEFINITION(IndirectConductionLayer);
+      // Pointer definition
+      KRATOS_CLASS_POINTER_DEFINITION(IndirectConductionSurroundLayer);
 
       // Constructor / Destructor
-      IndirectConductionLayer();
-      virtual ~IndirectConductionLayer();
+      IndirectConductionSurroundLayer();
+      virtual ~IndirectConductionSurroundLayer();
 
       // Public methods
       double ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {
-        HeatExchangeMechanism* cloned_model(new IndirectConductionLayer(*this));
+        HeatExchangeMechanism* cloned_model(new IndirectConductionSurroundLayer(*this));
         return cloned_model;
       }
 
       HeatExchangeMechanism::Pointer CloneShared() const override {
-        HeatExchangeMechanism::Pointer cloned_model(new IndirectConductionLayer(*this));
+        HeatExchangeMechanism::Pointer cloned_model(new IndirectConductionSurroundLayer(*this));
         return cloned_model;
       }
 
       // Print information about this object
       virtual std::string Info() const override {
         std::stringstream buffer;
-        buffer << "IndirectConductionLayer";
+        buffer << "IndirectConductionSurroundLayer";
         return buffer.str();
       }
 
       // Print object information
-      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "IndirectConductionLayer"; }
+      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "IndirectConductionSurroundLayer"; }
       virtual void PrintData(std::ostream& rOStream) const override {}
 
     protected:
@@ -68,26 +68,26 @@ namespace Kratos
     private:
 
       // Assignment operator
-      IndirectConductionLayer& operator=(IndirectConductionLayer const& rOther) {
+      IndirectConductionSurroundLayer& operator=(IndirectConductionSurroundLayer const& rOther) {
         return *this;
       }
 
       // Copy constructor
-      IndirectConductionLayer(IndirectConductionLayer const& rOther) {
+      IndirectConductionSurroundLayer(IndirectConductionSurroundLayer const& rOther) {
         *this = rOther;
       }
 
-  }; // Class IndirectConductionLayer
+  }; // Class IndirectConductionSurroundLayer
 
   // input stream function
   inline std::istream& operator>>(std::istream& rIStream,
-    IndirectConductionLayer& rThis) {
+    IndirectConductionSurroundLayer& rThis) {
     return rIStream;
   }
 
   // output stream function
   inline std::ostream& operator<<(std::ostream& rOStream,
-    const IndirectConductionLayer& rThis) {
+    const IndirectConductionSurroundLayer& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);

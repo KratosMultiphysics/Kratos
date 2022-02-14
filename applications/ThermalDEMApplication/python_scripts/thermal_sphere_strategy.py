@@ -145,8 +145,8 @@ class ExplicitStrategy(BaseStrategy):
         self.porosity_update_frequency     = self.thermal_settings["porosity_update_frequency"].GetInt()
 
         # Integration scheme and method
-        self.thermal_integration_scheme   = self.thermal_settings["ThermalIntegrationScheme"].GetString()
-        self.numerical_integration_method = self.thermal_settings["NumericalIntegrationMethod"].GetString()
+        self.thermal_integration_scheme   = self.thermal_settings["thermal_integration_scheme"].GetString()
+        self.numerical_integration_method = self.thermal_settings["numerical_integration_method"].GetString()
 
         # Models for heat transfer
         self.direct_conduction_model   = self.thermal_settings["direct_conduction_model"].GetString()
@@ -200,11 +200,11 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
         # Time integration scheme
-        if (self.thermal_integration_scheme != "Forward_Euler"):
+        if (self.thermal_integration_scheme != "forward_euler"):
             raise Exception('ThermalDEM', 'Time integration scheme \'' + self.thermal_integration_scheme + '\' is not implemented.') 
         
         # Numerical integration method
-        if (self.numerical_integration_method != "Adaptive_Simpson"):
+        if (self.numerical_integration_method != "adaptive_simpson"):
             raise Exception('ThermalDEM', 'Numerical integration method \'' + self.numerical_integration_method + '\' is not implemented.')
         
         # Heat transfer models
@@ -351,12 +351,12 @@ class ExplicitStrategy(BaseStrategy):
 
     #----------------------------------------------------------------------------------------------
     def SetThermalIntegrationScheme(self, properties):
-        if properties.Has(DEM_THERMAL_INTEGRATION_SCHEME_NAME):
-            input_name = properties[DEM_THERMAL_INTEGRATION_SCHEME_NAME]
+        if properties.Has(THERMAL_INTEGRATION_SCHEME_NAME):
+            input_name = properties[THERMAL_INTEGRATION_SCHEME_NAME]
         else:
             input_name = self.thermal_integration_scheme
 
-        if input_name == "Forward_Euler":
+        if input_name == "forward_euler":
             class_name = "ThermalForwardEulerScheme"
         else:
             raise Exception('ThermalDEM', 'Time integration scheme \'' + input_name + '\' is not implemented.')
@@ -370,12 +370,12 @@ class ExplicitStrategy(BaseStrategy):
 
     #----------------------------------------------------------------------------------------------
     def SetNumericalIntegrationMethod(self, properties):
-        if properties.Has(DEM_NUMERICAL_INTEGRATION_METHOD_NAME):
-            input_name = properties[DEM_NUMERICAL_INTEGRATION_METHOD_NAME]
+        if properties.Has(NUMERICAL_INTEGRATION_METHOD_NAME):
+            input_name = properties[NUMERICAL_INTEGRATION_METHOD_NAME]
         else:
             input_name = self.numerical_integration_method
 
-        if input_name == "Adaptive_Simpson":
+        if input_name == "adaptive_simpson":
             class_name = "AdaptiveSimpsonQuadrature"
         else:
             raise Exception('ThermalDEM', 'Numerical integration method \'' + input_name + '\' is not implemented.')
@@ -406,7 +406,7 @@ class ExplicitStrategy(BaseStrategy):
 
         # Indirect conduction
         if self.indirect_conduction_model == "surrounding_layer":
-            class_name = "IndirectConductionLayer"
+            class_name = "IndirectConductionSurroundLayer"
         elif self.indirect_conduction_model == "voronoi_a":
             class_name = "IndirectConductionVoronoiA"
         elif self.indirect_conduction_model == "voronoi_b":
@@ -484,9 +484,9 @@ class ExplicitStrategy(BaseStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ADJUSTED_CONTACT_OPTION,    self.compute_adjusted_contact_option)
 
         # Methods for heat transfer
-        self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL,    self.adjusted_contact_model)
-        self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD,            self.voronoi_method)
-        self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD,           self.porosity_method)
+        self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL_NAME, self.adjusted_contact_model)
+        self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD_NAME,         self.voronoi_method)
+        self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD_NAME,        self.porosity_method)
 
         # Model parameters
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)
