@@ -462,6 +462,21 @@ class ExplicitStrategy(BaseStrategy):
             raise Exception('The class corresponding to the frictional heat generation model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
         object.SetHeatGenerationMechanismInProperties(properties, True)
 
+        # Real contact
+        if self.adjusted_contact_model == "zhou":
+            class_name = "RealContactZhou"
+        elif self.adjusted_contact_model == "lu":
+            class_name = "RealContactLu"
+        elif self.adjusted_contact_model == "morris":
+            class_name = "RealContactMorris"
+        else:
+            raise Exception('ThermalDEM', 'Real contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the real contact model named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        object.SetRealContactModelInProperties(properties, True)
+
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
@@ -481,7 +496,7 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(CONVECTION_MODEL_NAME,          self.nusselt_correlation)
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL_NAME,           self.radiation_model)
         self.spheres_model_part.ProcessInfo.SetValue(FRICTION_MODEL_NAME,            self.friction_model)
-        self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL_NAME,    self.adjusted_contact_model)
+        self.spheres_model_part.ProcessInfo.SetValue(REAL_CONTACT_MODEL_NAME,        self.adjusted_contact_model)
         self.spheres_model_part.ProcessInfo.SetValue(VORONOI_METHOD_NAME,            self.voronoi_method)
         self.spheres_model_part.ProcessInfo.SetValue(POROSITY_METHOD_NAME,           self.porosity_method)
 
@@ -491,7 +506,7 @@ class ExplicitStrategy(BaseStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, CONVECTION_OPTION,          self.compute_convection_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RADIATION_OPTION,           self.compute_radiation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, FRICTION_HEAT_OPTION,       self.compute_friction_heat_option)
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ADJUSTED_CONTACT_OPTION,    self.compute_adjusted_contact_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, REAL_CONTACT_OPTION,        self.compute_adjusted_contact_option)
 
         # Model parameters
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,  self.min_conduction_distance)

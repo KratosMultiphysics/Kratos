@@ -37,6 +37,7 @@ namespace Kratos
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
     mpFrictionModel              = NULL;
+    mpRealContactModel           = NULL;
   }
 
   ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry):SphericParticle(NewId, pGeometry) {
@@ -47,6 +48,7 @@ namespace Kratos
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
     mpFrictionModel              = NULL;
+    mpRealContactModel           = NULL;
   }
 
   ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):SphericParticle(NewId, ThisNodes) {
@@ -57,6 +59,7 @@ namespace Kratos
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
     mpFrictionModel              = NULL;
+    mpRealContactModel           = NULL;
   }
 
   ThermalSphericParticle::ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):SphericParticle(NewId, pGeometry, pProperties) {
@@ -67,6 +70,7 @@ namespace Kratos
     mpConvectionModel            = NULL;
     mpRadiationModel             = NULL;
     mpFrictionModel              = NULL;
+    mpRealContactModel           = NULL;
   }
 
   Element::Pointer ThermalSphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
@@ -102,6 +106,10 @@ namespace Kratos
       delete mpFrictionModel;
       mpFrictionModel = NULL;
     }
+    if (mpRealContactModel != NULL) {
+      delete mpRealContactModel;
+      mpRealContactModel = NULL;
+    }
   }
 
   //=====================================================================================================================================================================================
@@ -121,7 +129,7 @@ namespace Kratos
     this->Set(DEMThermalFlags::HAS_CONVECTION,                   r_process_info[CONVECTION_OPTION]);
     this->Set(DEMThermalFlags::HAS_RADIATION,                    r_process_info[RADIATION_OPTION]);
     this->Set(DEMThermalFlags::HAS_FRICTION_HEAT,                r_process_info[FRICTION_HEAT_OPTION]);
-    this->Set(DEMThermalFlags::HAS_ADJUSTED_CONTACT,             r_process_info[ADJUSTED_CONTACT_OPTION]);
+    this->Set(DEMThermalFlags::HAS_REAL_CONTACT,                 r_process_info[REAL_CONTACT_OPTION]);
     this->Set(DEMThermalFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
 
     // Set time integration scheme
@@ -147,6 +155,9 @@ namespace Kratos
 
     HeatGenerationMechanism::Pointer& friction_model = GetProperties()[FRICTION_MODEL_POINTER];
     SetFrictionModel(friction_model);
+
+    RealContactModel::Pointer& real_contact_model = GetProperties()[REAL_CONTACT_MODEL_POINTER];
+    SetRealContactModel(real_contact_model);
 
     // Set flag to store contact parameters during mechanical loop over neighbors
     mStoreContactParam = this->Is(DEMThermalFlags::HAS_MOTION)        &&
@@ -333,21 +344,13 @@ namespace Kratos
     mContactRadius      = ComputeContactRadius();
 
     // Set adjusted contact properties
-    if (!mNeighborInContact || !this->Is(DEMThermalFlags::HAS_ADJUSTED_CONTACT)) {
+    if (this->Is(DEMThermalFlags::HAS_REAL_CONTACT) && mNeighborInContact) {
+      GetRealContactModel().AdjustContact(r_process_info, this);
+    }
+    else {
       mNeighborDistanceAdjusted   = mNeighborDistance;
       mNeighborSeparationAdjusted = mNeighborSeparation;
       mContactRadiusAdjusted      = mContactRadius;
-    }
-    else {
-      // Compute adjusted contact radius according to selected model
-      std::string model = r_process_info[ADJUSTED_CONTACT_MODEL_NAME];
-      if      (model.compare("zhou")   == 0) mContactRadiusAdjusted = AdjustedContactRadiusZhou(r_process_info);
-      else if (model.compare("lu")     == 0) mContactRadiusAdjusted = AdjustedContactRadiusLu(r_process_info);
-      else if (model.compare("morris") == 0) mContactRadiusAdjusted = AdjustedContactRadiusMorris(r_process_info);
-
-      // Compute adjusted distance/separation from adjusted contact radius
-      mNeighborDistanceAdjusted   = ComputeDistanceToNeighborAdjusted();
-      mNeighborSeparationAdjusted = ComputeSeparationToNeighborAdjusted();
     }
 
     KRATOS_CATCH("")
@@ -511,74 +514,6 @@ namespace Kratos
                                                                                               double OldLocalCoordSystem[3][3],
                                                                                               double LocalCoordSystem[3][3],
                                                                                               SphericParticle* neighbor_iterator) {}
-
-  //=====================================================================================================================================================================================
-  // Contact adjustment models
-
-  //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::AdjustedContactRadiusZhou(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Simulation and real values of effective Young modulus
-    const double eff_young      = ComputeEffectiveYoung();
-    const double eff_young_real = ComputeEffectiveYoungReal();
-
-    // Adjusted value of contact radius
-    return mContactRadius * pow(eff_young / eff_young_real, 0.2);
-
-    KRATOS_CATCH("")
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::AdjustedContactRadiusLu(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Effective radius
-    const double eff_radius = ComputeEffectiveRadius();
-
-    // Simulation and real values of effective Young modulus
-    const double eff_young      = ComputeEffectiveYoung();
-    const double eff_young_real = ComputeEffectiveYoungReal();
-
-    // Simulation and real values of stiffness
-    const double stiff      = 4.0 / 3.0 * sqrt(eff_radius) * eff_young;
-    const double stiff_real = 4.0 / 3.0 * sqrt(eff_radius) * eff_young_real;
-
-    // Adjusted value of contact radius
-    return pow(mContactRadius * stiff / stiff_real, 2.0/3.0);
-
-    KRATOS_CATCH("")
-  }
-
-  //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::AdjustedContactRadiusMorris(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Parameters
-    const double eff_young      = ComputeEffectiveYoung();
-    const double eff_young_real = ComputeEffectiveYoungReal();
-    const double eff_radius     = ComputeEffectiveRadius();
-    const double identation     = std::max(-mNeighborSeparation, 0.0);
-
-    // Contact force with simulation parameters (using Hertz theory)
-    const double hertz_force = 4.0 * eff_young * sqrt(eff_radius) * pow(identation, 3.0 / 2.0) / 3.0;
-
-    // Area correction
-    const double correction_area = pow(hertz_force * eff_radius / eff_young_real, 1.0 / 3.0);
-
-    // Time correction
-    double correction_time = 1.0;
-
-    if (this->Is(DEMThermalFlags::HAS_MOTION)) {
-      // TODO: Compute time correction from collision time
-      correction_time = 1.0;
-    }
-
-    // Adjusted value of contact radius
-    return correction_area * correction_time;
-
-    KRATOS_CATCH("")
-  }
 
   //=====================================================================================================================================================================================
   // Auxiliary computations
@@ -1046,6 +981,11 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
+  RealContactModel& ThermalSphericParticle::GetRealContactModel(void) {
+    return *mpRealContactModel;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double ThermalSphericParticle::GetYoung(void) {
     if (GetProperties().HasTable(TEMPERATURE, YOUNG_MODULUS)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, YOUNG_MODULUS);
@@ -1452,6 +1392,11 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::SetFrictionModel(HeatGenerationMechanism::Pointer& model) {
     mpFrictionModel = model->CloneRaw();
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalSphericParticle::SetRealContactModel(RealContactModel::Pointer& model) {
+    mpRealContactModel = model->CloneRaw();
   }
 
   //------------------------------------------------------------------------------------------------------------

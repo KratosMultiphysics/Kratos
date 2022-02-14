@@ -64,6 +64,10 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_krause.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_zhou.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_lu.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_morris.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_zhou.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/thermal_explicit_solver_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/thermal_dem_integration_scheme.cpp

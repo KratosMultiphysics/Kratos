@@ -23,6 +23,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       CONVECTION_MODEL_POINTER)
   KRATOS_CREATE_VARIABLE(HeatExchangeMechanism::Pointer,       RADIATION_MODEL_POINTER)
   KRATOS_CREATE_VARIABLE(HeatGenerationMechanism::Pointer,     FRICTION_MODEL_POINTER)
+  KRATOS_CREATE_VARIABLE(RealContactModel::Pointer,            REAL_CONTACT_MODEL_POINTER)
   KRATOS_CREATE_VARIABLE(std::string,                          THERMAL_INTEGRATION_SCHEME_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          NUMERICAL_INTEGRATION_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          DIRECT_CONDUCTION_MODEL_NAME)
@@ -30,7 +31,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(std::string,                          CONVECTION_MODEL_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          RADIATION_MODEL_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          FRICTION_MODEL_NAME)
-  KRATOS_CREATE_VARIABLE(std::string,                          ADJUSTED_CONTACT_MODEL_NAME)
+  KRATOS_CREATE_VARIABLE(std::string,                          REAL_CONTACT_MODEL_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          VORONOI_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(std::string,                          POROSITY_METHOD_NAME)
   KRATOS_CREATE_VARIABLE(bool,                                 MOTION_OPTION)
@@ -39,7 +40,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool,                                 CONVECTION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 RADIATION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 FRICTION_HEAT_OPTION)
-  KRATOS_CREATE_VARIABLE(bool,                                 ADJUSTED_CONTACT_OPTION)
+  KRATOS_CREATE_VARIABLE(bool,                                 REAL_CONTACT_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 TEMPERATURE_DEPENDENT_RADIUS_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 FIXED_TEMPERATURE)
   KRATOS_CREATE_VARIABLE(bool,                                 ADIABATIC)
@@ -73,7 +74,7 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_CONVECTION,                   1005);
   KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_RADIATION,                    1006);
   KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_FRICTION_HEAT,                1007);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_ADJUSTED_CONTACT,             1008);
+  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_REAL_CONTACT,                 1008);
   KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_TEMPERATURE_DEPENDENT_RADIUS, 1009);
 
 } // namespace Kratos

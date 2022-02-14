@@ -37,6 +37,10 @@
 #include "custom_constitutive/radiation/radiation_continuum_zhou.h"
 #include "custom_constitutive/friction/friction_model.h"
 #include "custom_constitutive/friction/friction_coulomb.h"
+#include "custom_constitutive/real_contact/real_contact_model.h"
+#include "custom_constitutive/real_contact/real_contact_lu.h"
+#include "custom_constitutive/real_contact/real_contact_morris.h"
+#include "custom_constitutive/real_contact/real_contact_zhou.h"
 
 namespace Kratos
 {
@@ -66,6 +70,17 @@ namespace Kratos
 
       py::class_<Variable<HeatGenerationMechanism*>, Variable<HeatGenerationMechanism*>::Pointer>(m, "HeatGenerationMechanismRawPointerVariable")
         .def("__str__", &Variable<HeatGenerationMechanism*>::Info);
+
+
+      py::class_<RealContactModel, RealContactModel::Pointer>(m, "RealContactModel")
+        .def(py::init<>())
+        .def("SetRealContactModelInProperties", &RealContactModel::SetRealContactModelInProperties);
+
+      py::class_<Variable<RealContactModel::Pointer>, Variable<RealContactModel::Pointer>::Pointer>(m, "RealContactModelPointerVariable")
+        .def("__str__", &Variable<RealContactModel::Pointer>::Info);
+
+      py::class_<Variable<RealContactModel*>, Variable<RealContactModel*>::Pointer>(m, "RealContactModelRawPointerVariable")
+        .def("__str__", &Variable<RealContactModel*>::Info);
 
 
       // Direct conduction ----------------------------------------------------------------------------------------------------------
@@ -132,6 +147,17 @@ namespace Kratos
         .def(py::init<>());
 
       py::class_<FrictionCoulomb, FrictionCoulomb::Pointer, FrictionModel>(m, "FrictionCoulomb")
+        .def(py::init<>());
+
+
+      // Real contact ---------------------------------------------------------------------------------------------------------------
+      py::class_<RealContactLu, RealContactLu::Pointer, RealContactModel>(m, "RealContactLu")
+        .def(py::init<>());
+
+      py::class_<RealContactMorris, RealContactMorris::Pointer, RealContactModel>(m, "RealContactMorris")
+        .def(py::init<>());
+
+      py::class_<RealContactZhou, RealContactZhou::Pointer, RealContactModel>(m, "RealContactZhou")
         .def(py::init<>());
     }
 

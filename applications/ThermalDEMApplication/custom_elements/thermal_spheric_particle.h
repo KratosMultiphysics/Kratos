@@ -92,11 +92,6 @@ namespace Kratos
       void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion (const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, SphericParticle* element2);
       void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons   (const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbor) override;
 
-      // Contact adjustment models
-      double AdjustedContactRadiusZhou   (const ProcessInfo& r_process_info);
-      double AdjustedContactRadiusLu     (const ProcessInfo& r_process_info);
-      double AdjustedContactRadiusMorris (const ProcessInfo& r_process_info);
-
       // Auxiliary computations
       void   ComputeAddedSearchDistance   (const ProcessInfo& r_process_info, double& added_search_distance);
       double ComputePrandtlNumber         (const ProcessInfo& r_process_info);
@@ -131,6 +126,7 @@ namespace Kratos
       HeatExchangeMechanism&       GetConvectionModel            (void);
       HeatExchangeMechanism&       GetRadiationModel             (void);
       HeatGenerationMechanism&     GetFrictionModel              (void);
+      RealContactModel&            GetRealContactModel           (void);
 
       double GetYoung   (void) override;
       double GetPoisson (void) override;
@@ -186,6 +182,7 @@ namespace Kratos
       void               SetConvectionModel                   (HeatExchangeMechanism::Pointer& model);
       void               SetRadiationModel                    (HeatExchangeMechanism::Pointer& model);
       void               SetFrictionModel                     (HeatGenerationMechanism::Pointer& model);
+      void               SetRealContactModel                  (RealContactModel::Pointer& model);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -219,6 +216,7 @@ namespace Kratos
       HeatExchangeMechanism*       mpConvectionModel;
       HeatExchangeMechanism*       mpRadiationModel;
       HeatGenerationMechanism*     mpFrictionModel;
+      RealContactModel*            mpRealContactModel;
 
       // Neighboring data
       ThermalSphericParticle*                   mNeighbor_p;
