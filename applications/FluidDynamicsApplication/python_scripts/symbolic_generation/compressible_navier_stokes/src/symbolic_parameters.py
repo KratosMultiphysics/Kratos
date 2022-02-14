@@ -3,7 +3,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
     import CompressibleNavierStokesDefines as defs
 
 class FormulationParameters:
-    "Dictionary of the constant parameters used in the Variational Formulation"
+    "Dictionary of the constant parameters used in the Variational Formulation."
 
     def __init__(self, geometry, output_lang):
         self.mu      = sympy.Symbol('data.mu', positive = True)       # Dynamic viscosity

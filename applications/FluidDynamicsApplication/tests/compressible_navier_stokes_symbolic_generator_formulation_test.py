@@ -19,7 +19,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _FormatVector(cls, vector, fmt = "{:>.6}"):
-        """Mimics KratosMultiphysics.vector.__str__ but with a customizable format string"""
+        """Mimics KratosMultiphysics.vector.__str__ but with a customizable format string."""
         output = "[{}]".format(vector.Size())
         output = "("
         output = output + ", ".join([fmt.format(x) for x in vector])
@@ -28,7 +28,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _GetGeneratorSettings(cls, geometry):
-        """Returns the Kratos Parameters for the symbolic generator"""
+        """Returns the Kratos Parameters for the symbolic generator."""
         geometry_name = {
             "2D3N": "triangle",
             "2D4N": "quadrilateral",
@@ -51,7 +51,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _Generate(cls, geometry):
-        """Generates the code to be tested, and stores it in a file"""
+        """Generates the code to be tested, and stores it in a file."""
         params = cls._GetGeneratorSettings(geometry)
         generator = CompressibleNavierStokesSymbolicGenerator(params)
         generator.Generate()
@@ -61,7 +61,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
     @classmethod
     def _ImportSubTestSuite(cls, generated_file_name):
-        """Imports the generated code as a sub-testsuite"""
+        """Imports the generated code as a sub-testsuite."""
         module_name = "compressible_symbolic_generation" + "." + generated_file_name[:-3]
 
         try:
@@ -72,7 +72,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
 
     def _RunSubTestSuite(self, geometry, sub_testsuite, print_results):
-        """Runs the generated code and compares it to the reference"""
+        """Runs the generated code and compares it to the reference."""
         tests = [subtest_name for subtest_name in dir(sub_testsuite)
             if callable(getattr(sub_testsuite, subtest_name)) and subtest_name.startswith("test_")]
 
