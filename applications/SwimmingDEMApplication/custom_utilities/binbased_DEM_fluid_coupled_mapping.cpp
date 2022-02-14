@@ -1487,7 +1487,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             hydrodynamic_reaction += gentle_coupling_coeff * contribution;
 
             if (mTimeAveragingType == 0){
-                noalias(body_force) += hydrodynamic_reaction;
+                noalias(body_force) += gentle_coupling_coeff * contribution;
             }
 
             else {
