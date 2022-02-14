@@ -1,5 +1,4 @@
 # Importing the Kratos Library
-from multiprocessing.sharedctypes import Value
 import KratosMultiphysics
 from KratosMultiphysics import assign_scalar_variable_process
 
