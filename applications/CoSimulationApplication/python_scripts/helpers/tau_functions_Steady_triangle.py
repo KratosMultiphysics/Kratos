@@ -105,6 +105,9 @@ def ComputeFluidForces(working_path, step, word, ouput_file_pattern, velocity):
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
+    print('ComputeFluidForces')
+    print('min fluid_forces = ', np.amin(fluid_forces))
+    print('max fluid_forces = ', np.amax(fluid_forces))
 
     return fluid_forces
 
@@ -280,19 +283,34 @@ def ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern):
 # Calculate the fluid forces at the nodes
 def CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities):
     nodal_forces = np.zeros(3*len(X))
+    cell_forces = np.zeros(int(len(elem_connectivities)))
+    cell_areas = np.zeros(int(len(elem_connectivities)))
+    cell_pressures = np.zeros(int(len(elem_connectivities)/3))
     # Loop over cells
     for cell in range(int(len(elem_connectivities)/3)):
         # Get the node ids of the cell
         node_ids = GetCellNodeIds(elem_connectivities, cell)
 
         # Calculate cell force
-        cell_force = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
+        cell_force, cell_pressure, cell_area = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
+        for component in range(3):
+            cell_forces[3*cell+component] = cell_force[component]
+            cell_areas[3*cell+component] = cell_area[component]
+        cell_pressures[cell] = cell_pressure
 
         # Extrapolating cell force to the nodes
         for node in range(3):
             # Loop over xyz components
             for component in range(3):
                 nodal_forces[3*node_ids[node]+component] += cell_force[component] / 3.0
+
+    print('CalculateNodalFluidForces')
+    print('min cell_forces = ', np.amin(cell_forces))
+    print('max cell_forces = ', np.amax(cell_forces))
+    print('min cell_pressures = ', np.amin(cell_pressures))
+    print('max cell_pressures = ', np.amax(cell_pressures))
+    print('min cell_areas = ', np.amin(cell_areas))
+    print('max cell_areas = ', np.amax(cell_areas))
 
     return nodal_forces
 
@@ -386,6 +404,9 @@ def SavePressure(nodal_data, position_info, NodesNr, velocity):
     # Compute pressure from cp
     P = [x*velocity*velocity*0.5*1.225 for x in CP]
     P = np.array(P)
+    print('SavePressure')
+    print('min P = ', np.amin(P))
+    print('max P = ', np.amax(P))
     return P
 
 
@@ -411,7 +432,7 @@ def CalculateCellForce(node_ids, nodal_pressures, X, Y, Z):
     # Calculate cell force
     cell_force = pressure * area# * normal
 
-    return cell_force
+    return cell_force, pressure, area
 
 def CalculateCellArea(X, Y, Z, node_ids):
     # Calculate cell sides

@@ -49,7 +49,7 @@ def RemoveFilesFromPreviousSimulations():
     # Get a list of all the output and mesh file paths
     file_list = glob.glob(working_path + 'Outputs/*')
     #file_list += glob.glob(working_path + 'Mesh/airfoil_Structured_scaliert.grid.def*')
-    file_list += glob.glob(working_path + 'Mesh/FW_al05_NoRef_003.tau_grid.def*')
+    # file_list += glob.glob(working_path + 'Mesh/FW_al05_NoRef_003.tau_grid.def*')
 
     # Iterate over the list of filepaths and remove each file.
     for file_path in file_list:
@@ -64,7 +64,7 @@ def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, ouput_file_p
     PrintBlockHeader("Start Garthering Solution Data at time %s" % (str(time)))
     # Execute gather
     command = tau_path + 'gather ' +  para_path_mod
-    print(command)
+    # print(command)
     subprocess.call(command, shell=True)
 
     PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))
@@ -105,6 +105,9 @@ def ComputeFluidForces(working_path, step, word, ouput_file_pattern, substep, ve
 
     # calculating the force vector
     fluid_forces = CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities)
+    # print('ComputeFluidForces')
+    # print('min fluid_forces = ', np.amin(fluid_forces))
+    # print('max fluid_forces = ', np.amax(fluid_forces))
 
     return fluid_forces
 
@@ -113,11 +116,11 @@ def ComputeFluidForces(working_path, step, word, ouput_file_pattern, substep, ve
 def GetFluidMesh(working_path, step, word, ouput_file_pattern, substep, velocity):
     # Read mesh from interface file
     X, Y, Z, P, elem_connectivities = ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern, substep)
-    print("after ReadTauOutput")
+    # print("after ReadTauOutput")
 
     # Transform nodal coordinates to numpy array
     nodal_coords = ReadNodalCoordinates(X, Y, Z)
-    print("after ReadNodalCoordinates")
+    # print("after ReadNodalCoordinates")
     # Save element types in a numpy array
     element_types = ReadElementTypes(int(len(elem_connectivities)/3))
 
@@ -180,7 +183,7 @@ def ChangeFormatDisplacements(total_displacements):
 
     # Declaring and initializing new displacement vector
     number_of_nodes = int(len(total_displacements)/3)
-    print('len(number_of_nodes) = ', str(number_of_nodes))
+    # print('len(number_of_nodes) = ', str(number_of_nodes))
     new_displacements = np.zeros([number_of_nodes, 3])
 
     # Loop over nodes
@@ -200,8 +203,8 @@ def WriteInterfaceDeformationFile(ids, coordinates, relative_displacements, old_
     # define dimensions
     nops = 'no_of_points'
     number_of_points = len(ids[:])
-    print('len(ids[:] = ', str(len(ids[:])))
-    print('len(relative_displacements) = ', str(len(relative_displacements)))
+    # print('len(ids[:] = ', str(len(ids[:])))
+    # print('len(relative_displacements) = ', str(len(relative_displacements)))
     ncf.createDimension(nops, number_of_points)
 
     # define variables
@@ -227,15 +230,15 @@ def ChangeFormat(working_path, step, word1, word2, ouput_file_pattern, substep):
     # Find the interface file name
     interface_filename = FindInterfaceFilename(working_path, step, ouput_file_pattern, substep)
     # Change Format of 'interface_filename'
-    print("Looking for number 1")
+    # print("Looking for number 1")
     number1 = CF.Countline(interface_filename, word1)
-    print("number 1 = ", str(number1))
-    print("Looking for number 1")
+    # print("number 1 = ", str(number1))
+    # print("Looking for number 1")
     number2 = CF.Countline(interface_filename, word2)
-    print("number 2 = ", str(number2))
-    print("Looking for endFile")
+    # print("number 2 = ", str(number2))
+    # print("Looking for endFile")
     endline = CF.Endline(interface_filename)
-    print("endline = ", str(endline))
+    # print("endline = ", str(endline))
 
     with open(interface_filename,'r') as fread:
         with open(interface_filename[0:len(interface_filename)-4] + '.' + word1 + '.dat','w') as fwrite_word1:
@@ -259,20 +262,20 @@ def ChangeFormat(working_path, step, word1, word2, ouput_file_pattern, substep):
 def ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern, substep):
     # Find the interface file name
     interface_filename_original = FindInterfaceFilename(working_path, step, ouput_file_pattern, substep)
-    print("interface_filename_original = ",interface_filename_original)
+    # print("interface_filename_original = ",interface_filename_original)
     interface_filename = interface_filename_original[0:len(interface_filename_original)-4] + '.' + word + '.dat'
 
     # Read interface file
     position_info, mesh_info, nodal_data, elem_connectivities = ReadInterfaceFile(
         interface_filename)
-    print("after ReadInterfaceFile")
+    # print("after ReadInterfaceFile")
     # Read mesh info
     NodesNr = mesh_info[0]
-    print("NodesNr = ", NodesNr)
+    # print("NodesNr = ", NodesNr)
     X, Y, Z = SaveCoordinatesList(nodal_data, position_info, NodesNr)
-    print("SaveCoordinatesList")
+    # print("SaveCoordinatesList")
     P = SavePressure(nodal_data, position_info, NodesNr, velocity)
-    print("SavePressure")
+    # print("SavePressure")
 
     return X, Y, Z, P, elem_connectivities
 
@@ -280,19 +283,34 @@ def ReadTauOutput(working_path, step, velocity, word, ouput_file_pattern, subste
 # Calculate the fluid forces at the nodes
 def CalculateNodalFluidForces(X, Y, Z, nodal_pressures, elem_connectivities):
     nodal_forces = np.zeros(3*len(X))
+    cell_forces = np.zeros(int(len(elem_connectivities)))
+    cell_areas = np.zeros(int(len(elem_connectivities)))
+    cell_pressures = np.zeros(int(len(elem_connectivities)/3))
     # Loop over cells
     for cell in range(int(len(elem_connectivities)/3)):
         # Get the node ids of the cell
         node_ids = GetCellNodeIds(elem_connectivities, cell)
 
         # Calculate cell force
-        cell_force = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
+        cell_force, cell_pressure, cell_area = CalculateCellForce(node_ids, nodal_pressures, X, Y, Z)
+        # for component in range(3):
+        #     cell_forces[3*cell+component] = cell_force[component]
+        #     cell_areas[3*cell+component] = cell_area[component]
+        # cell_pressures[cell] = cell_pressure
 
         # Extrapolating cell force to the nodes
         for node in range(3):
             # Loop over xyz components
             for component in range(3):
                 nodal_forces[3*node_ids[node]+component] += cell_force[component] / 3.0
+
+    # print('CalculateNodalFluidForces')
+    # print('min cell_forces = ', np.amin(cell_forces))
+    # print('max cell_forces = ', np.amax(cell_forces))
+    # print('min cell_pressures = ', np.amin(cell_pressures))
+    # print('max cell_pressures = ', np.amax(cell_pressures))
+    # print('min cell_areas = ', np.amin(cell_areas))
+    # print('max cell_areas = ', np.amax(cell_areas))
 
     return nodal_forces
 
@@ -386,6 +404,9 @@ def SavePressure(nodal_data, position_info, NodesNr, velocity):
     # Compute pressure from cp
     P = [x*velocity*velocity*0.5*1.225 for x in CP]
     P = np.array(P)
+    # print('SavePressure')
+    # print('min P = ', np.amin(P))
+    # print('max P = ', np.amax(P))
     return P
 
 
@@ -411,7 +432,7 @@ def CalculateCellForce(node_ids, nodal_pressures, X, Y, Z):
     # Calculate cell force
     cell_force = pressure * area# * normal
 
-    return cell_force
+    return cell_force, pressure, area
 
 
 # Finds steps' corresponding primary grid filename
@@ -443,7 +464,7 @@ def FindOutputFilename(working_path, step, ouput_file_pattern, substep):
     # if rotate and unsteady "airfoilSol.pval.deform_i="
     # if non rotate and unsteady "airfoilSol.pval.unsteady_i="
     # if rotate and steady
-    print("step_FindOutputFilename = ", step)
+    # print("step_FindOutputFilename = ", step)
     CheckIfPathExists(FindFilename(outputs_path, ouput_file_pattern, step, substep))
     return FindFilename(outputs_path, ouput_file_pattern, step, substep)
 
@@ -548,8 +569,8 @@ def FindInitialMeshFilename(mesh_path, pattern):
 # Looks for a file matching the given pattern within the given path
 def FindMeshFilename(path, pattern, step):
     files_list = glob.glob(path + "*")
-    if echo_level > 0:
-        print('files_list = ', files_list)
+    # if echo_level > 0:
+        # print('files_list = ', files_list)
     for file in files_list:
         if file.startswith('%s' % path + '%s' % pattern + '%s' % step):
             print(file)
