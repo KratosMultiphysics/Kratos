@@ -125,6 +125,8 @@ void UpdateSystemVectorFromModelPart(
 {
     KRATOS_TRY;
 
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) return;
+
     // Here we construct a function pointer to not have the if all the time inside the loop
     const auto fill_fct = MapperUtilities::GetFillFunction(rMappingOptions);
 
@@ -134,7 +136,7 @@ void UpdateSystemVectorFromModelPart(
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
-    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable) && rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
+    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::FROM_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
 
     IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
@@ -153,6 +155,8 @@ void UpdateModelPartFromSystemVector(
 {
     KRATOS_TRY;
 
+    if (!rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) return;
+
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
 
     // Here we construct a function pointer to not have the if all the time inside the loop
@@ -167,18 +171,16 @@ void UpdateModelPartFromSystemVector(
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
-    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable) && rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
+    KRATOS_ERROR_IF(!rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL) && !rModelPart.HasNodalSolutionStepVariable(rVariable)) << "Solution step variable \"" << rVariable.Name() << "\" missing in ModelPart \"" << rModelPart.FullName() << "\"!" << std::endl;
 
     IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
 
-    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-        if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
-            rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
-        } else {
-            rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
-        }
+    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
     }
 
     KRATOS_CATCH("");
