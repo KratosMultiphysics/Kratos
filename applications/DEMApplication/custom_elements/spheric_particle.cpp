@@ -915,9 +915,6 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                                   GlobalElasticContactForce, GlobalElasticExtraContactForce, TotalGlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, other_ball_to_ball_forces, r_elastic_force, r_contact_force, i, r_process_info);
             //TODO: make different AddUpForces for continuum and discontinuum (different arguments, different operations!)
 
-            // Store contact information needed for other processes
-            StoreBallToBallContactInfo(r_process_info, data_buffer, data_buffer.mpOtherParticle, GlobalContactForce, sliding);
-
             // ROTATION FORCES
             if (this->Is(DEMFlags::HAS_ROTATION) && !data_buffer.mMultiStageRHS) {
                 ComputeMoments(LocalContactForce[2], GlobalContactForce, RollingResistance, data_buffer.mLocalCoordSystem[2], data_buffer.mpOtherParticle, data_buffer.mIndentation, i);
@@ -933,6 +930,9 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                     CalculateOnContactElements(i, LocalContactForce);
                 }
             }
+
+            // Store contact information needed for later processes
+            StoreBallToBallContactInfo(r_process_info, data_buffer, data_buffer.mpOtherParticle, GlobalContactForce, sliding);
 
             DEM_SET_COMPONENTS_TO_ZERO_3(DeltDisp)
             DEM_SET_COMPONENTS_TO_ZERO_3(LocalDeltDisp)
@@ -1107,9 +1107,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
                                      GlobalElasticContactForce, ViscoDampingLocalContactForce, cohesive_force, r_elastic_force,
                                      r_contact_force, mNeighbourRigidFacesElasticContactForce[i], mNeighbourRigidFacesTotalContactForce[i]);
 
-            // Store contact information needed for other processes
-            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, wall, GlobalContactForce, sliding);
-
             rigid_element_force[0] -= GlobalContactForce[0];
             rigid_element_force[1] -= GlobalContactForce[1];
             rigid_element_force[2] -= GlobalContactForce[2];
@@ -1133,6 +1130,10 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
                 AddWallContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], DistPToB, 0.0);
             }
+
+            // Store contact information needed for later processes
+            StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, wall, GlobalContactForce, sliding);
+
         } //ContactType if
     } //rNeighbours.size loop
 
@@ -1324,8 +1325,8 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,   
     if (points == 3 || points == 4)
     {
         unsigned int dummy_current_edge_index;
-        bool dummy_inside;
-        contact_exists = GeometryFunctions::FacetCheck(wall->GetGeometry(), node_coordinates, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index, dummy_inside);
+        bool is_inside;
+        contact_exists = GeometryFunctions::FacetCheck(wall->GetGeometry(), node_coordinates, radius, LocalCoordSystem, DistPToB, TempWeight, dummy_current_edge_index, is_inside);
         ContactType = 1;
         Weight[0]=TempWeight[0];
         Weight[1]=TempWeight[1];

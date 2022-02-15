@@ -74,7 +74,7 @@ namespace Kratos
   }
 
   Element::Pointer ThermalSphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
-    return SphericParticle::Pointer(new ThermalSphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new ThermalSphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
   }
 
   ThermalSphericParticle::~ThermalSphericParticle() {
@@ -360,6 +360,8 @@ namespace Kratos
   void ThermalSphericParticle::StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* neighbor, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
 
+    SphericParticle::StoreBallToBallContactInfo(r_process_info, data_buffer, neighbor, GlobalContactForce, sliding);
+
     if (!mStoreContactParam)
       return;
 
@@ -407,6 +409,8 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* neighbor, double GlobalContactForce[3], bool sliding) {
     KRATOS_TRY
+
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, neighbor, GlobalContactForce, sliding);
 
     if (!mStoreContactParam)
       return;
