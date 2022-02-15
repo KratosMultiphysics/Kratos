@@ -24,7 +24,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
     available_modules = {
         "KratosMultiphysics.FluidDynamicsApplication"       : "python_solvers_wrapper_fluid",
         "KratosMultiphysics.StructuralMechanicsApplication" : "python_solvers_wrapper_structural",
-        "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion"
+        "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion",
+        "KratosMultiphysics.CompressiblePotentialFlowApplication" : "python_solvers_wrapper_compressible_potential"
     }
 
     if application_module_name in available_modules:
