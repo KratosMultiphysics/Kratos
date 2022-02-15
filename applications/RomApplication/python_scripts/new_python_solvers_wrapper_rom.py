@@ -21,14 +21,17 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
 
     # Filter and retrieve the Python solvers wrapper from the corresponding application
     #TODO: This filtering wouldn't be required if we were using a unified solvers wrapper module name
-    if application_module_name == "KratosMultiphysics.FluidDynamicsApplication":
-        solvers_wrapper_module_module_name = "python_solvers_wrapper_fluid"
-    elif application_module_name == "KratosMultiphysics.StructuralMechanicsApplication":
-        solvers_wrapper_module_module_name = "python_solvers_wrapper_structural"
-    elif application_module_name == "KratosMultiphysics.ConvectionDiffusionApplication":
-        solvers_wrapper_module_module_name = "python_solvers_wrapper_convection_diffusion"
-    else:
-        err_msg = "Python module \'{0}\' is not available. Make sure \'{1}\' is compiled.".format(application_module_name, split_analysis_stage_module_name[1])
+    available_modules = {
+        "KratosMultiphysics.FluidDynamicsApplication"       : "python_solvers_wrapper_fluid",
+        "KratosMultiphysics.StructuralMechanicsApplication" : "python_solvers_wrapper_structural",
+        "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion"
+    }
+
+    if application_module_name in available_modules:
+        solvers_wrapper_module_module_name = available_modules[application_module_name]
+    else:    
+        err_msg = "Python module \'{0}\' is not available. Make sure \'{1}\' is compiled and in the following list:\n".format(application_module_name, split_analysis_stage_module_name[1])
+        err_msg += "\n".join(" - {}".format(key) for key in available_modules)
         raise Exception(err_msg)
     solvers_wrapper_module = importlib.import_module(application_module_name + "." + solvers_wrapper_module_module_name)
 
