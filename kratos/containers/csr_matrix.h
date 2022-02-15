@@ -592,19 +592,26 @@ public:
     // RightScaling
     // SymmetricScaling
 
-    //TODO
-    template<class TVectorType>
-    void ApplyDirichlet(const TVectorType& free_dofs_vector, const TDataType DiagonalValue)
+    template<class TVectorType1, class TVectorType2=TVectorType1>
+    void ApplyHomogeneousDirichlet(const TVectorType1& free_dofs_vector, 
+                                    const TDataType DiagonalValue, 
+                                    TVectorType2& rRHS)
     {
         KRATOS_ERROR_IF(size1() != free_dofs_vector.size() ) << "ApplyDirichlet: mismatch between row sizes : " << size1()  
+            << " and free_dofs_vector size " << free_dofs_vector.size() << std::endl;
+        KRATOS_ERROR_IF(size2() != free_dofs_vector.size() ) << "ApplyDirichlet: mismatch between col sizes : " << size2()  
             << " and free_dofs_vector size " << free_dofs_vector.size() << std::endl;
 
         if(nnz() != 0)
         {
             IndexPartition<IndexType>(size1()).for_each( [&](IndexType i){
+
+                //set to zero the relevant row in the RHS
+                rRHS[i] *= free_dofs_vector[i];
+
                 IndexType row_begin = index1_data()[i];
                 IndexType row_end   = index1_data()[i+1];
-                if(free_dofs_vector[i]!=TDataType()) //row corresponding to free dofs
+                if(std::abs(free_dofs_vector[i]-1.0) < 1e-10) //row corresponding to free dofs NOTE that we check if it is approx zero
                 {
                     for(IndexType k = row_begin; k < row_end; ++k){
                         IndexType col = index2_data()[k];
