@@ -5,6 +5,15 @@ import KratosMultiphysics
 from KratosMultiphysics import kratos_utilities
 from KratosMultiphysics.RomApplication import rom_solver
 
+
+def _GetAvailableSolverWrapperModules():
+    return {
+        "KratosMultiphysics.FluidDynamicsApplication"       : "python_solvers_wrapper_fluid",
+        "KratosMultiphysics.StructuralMechanicsApplication" : "python_solvers_wrapper_structural",
+        "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion"
+    }
+
+
 def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage_module_name):
 
     if not isinstance(model, KratosMultiphysics.Model):
@@ -21,17 +30,17 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
 
     # Filter and retrieve the Python solvers wrapper from the corresponding application
     #TODO: This filtering wouldn't be required if we were using a unified solvers wrapper module name
-    available_modules = {
-        "KratosMultiphysics.FluidDynamicsApplication"       : "python_solvers_wrapper_fluid",
-        "KratosMultiphysics.StructuralMechanicsApplication" : "python_solvers_wrapper_structural",
-        "KratosMultiphysics.ConvectionDiffusionApplication" : "python_solvers_wrapper_convection_diffusion"
-    }
+    available_modules = _GetAvailableSolverWrapperModules()
 
     if application_module_name in available_modules:
         solvers_wrapper_module_module_name = available_modules[application_module_name]
     else:    
-        err_msg = "Python module \'{0}\' is not available. Make sure \'{1}\' is compiled and in the following list:\n".format(application_module_name, split_analysis_stage_module_name[1])
-        err_msg += "\n".join(" - {}".format(key) for key in available_modules)
+        err_msg = "Python module \'{0}\' is not available. Make sure \'{1}\' is compiled and implemented.\n".format(
+            application_module_name, split_analysis_stage_module_name[1])
+        err_msg += "Currently implemented applications are:\n"
+        err_msg += "".join(" - {}\n".format(key) for key in available_modules)
+        err_msg += "To add a new implementation, do so in '{}' in {}".format(
+            _GetAvailableSolverWrapperModules.__name__, __file__)
         raise Exception(err_msg)
     solvers_wrapper_module = importlib.import_module(application_module_name + "." + solvers_wrapper_module_module_name)
 
