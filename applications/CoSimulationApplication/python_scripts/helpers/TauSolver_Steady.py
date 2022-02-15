@@ -268,11 +268,46 @@ if rank == 0:
 n_steps = 1
 coupling_interface_imported = False
 
+def synchron():
+    buf = False
+    size = tau_mpi_nranks()
+    print('size = ', size)
+    rank123 = tau_mpi_rank()
+    connection_name = "TAU"
+    print('rank = ', rank123)
+    if rank123 == 0:
+        buf = CoSimIO.IsConverged(connection_name)
+        for ip in range(1,size):
+            comm.send(buf,dest=ip)
+            # MPI.COMM_WORLD.send(buf, dest=ip, tag=42)
+            buf=comm.recv(source=ip)
+        for ip in range(1,size):
+            comm.send(buf,dest=ip)
+    else:
+        print("my rank is ", rank123)
+        buf=comm.recv(source=0)
+        print("the buffer is ", buf)
+        comm.send(buf,dest=0)
+        print("sent passed")
+        buf = comm.recv(source=0)
+        print("the buffer recieved is ", buf)
+
+    print("buf = ", buf)
+    return buf
+
+# if rank == 0:
+#     1/0
+#     MPI.COMM_WORLD.send(None, dest=1, tag=42)
+# elif rank == 1:
+#     MPI.COMM_WORLD.recv(source=0, tag=42)
+
+n_iterations = 1
 factor = 1.0
 for i in range(n_steps):
     if is_strong_coupling:
         is_converged = False
-        while not is_converged:
+        # while not is_converged:
+        for i in range(n_iterations):
             AdvanceInTime(0.0)
             print("step = ", step)
             print("i = ", i)
@@ -303,11 +338,20 @@ for i in range(n_steps):
             global step_mesh
             step_mesh += 1
 
+            # is_converged = synchron()
+
             if tau_mpi_rank() == 0:
                 is_converged = CoSimIO.IsConverged(connection_name)
                 print("RECEIVING worked", is_converged)
 
-            is_converged = comm.bcast(is_converged, 0)
+
+            # # # is_converged = True
+            # # tau_parallel_sync()
+            # # comm.Barrier()
+            is_converged = MPI.COMM_WORLD.bcast(is_converged, 0)
+            # print("is_converged = ", is_converged)
+
+
 
     if factor < 0.99:
         factor *= 2.0
