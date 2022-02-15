@@ -339,7 +339,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Check if the fluid properties are provided using a .json file
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
-            data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator() # only using the global comm as the Communicators are not yet created when running in MPI. Hotfix since this method will disappear completely when using subproperties!
+            data_comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator() # only using the global comm as the Communicators are not yet created when running in MPI. Hotfix since this method will disappear completely when using subproperties!
 
             def GetAuxMaterialsFileName(mat_file_name, prop_id):
                 p_mat_file_name = Path(mat_file_name)
