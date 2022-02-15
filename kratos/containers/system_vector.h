@@ -239,17 +239,6 @@ public:
         }
     }
 
-    template<class TVectorType>
-    void ApplyDirichlet(const TVectorType& free_dofs_vector)
-    {
-        KRATOS_ERROR_IF(size() != free_dofs_vector.size() ) << "ApplyDirichlet: mismatch between SystemVector size : " << size()  
-            << " and free_dofs_vector size " << free_dofs_vector.size() << std::endl;
-
-        IndexPartition<IndexType>(size()).for_each( [&](IndexType i){
-            mData[i] *= free_dofs_vector[i];
-        });
-    }
-
 
     ///@}
     ///@name Access
