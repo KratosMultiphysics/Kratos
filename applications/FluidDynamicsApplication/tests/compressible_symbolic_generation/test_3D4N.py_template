@@ -135,7 +135,7 @@ class SubTestSuite:
         expected[0] = -77.95116666666667
         expected[1] = -77.95116666666667
         expected[2] = -77.95116666666667
-        expected[3] = -77.95116666666667
+        expected[3] = -77.95116666666667n
 
         return (rho_proj, expected)
 
