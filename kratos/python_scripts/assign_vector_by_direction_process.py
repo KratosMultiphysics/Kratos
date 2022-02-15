@@ -78,13 +78,17 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
                 if root_model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
                     domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
                 else:
-                    raise Exception(f"Domain size is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers.")
+                    domain_size = 3
+                    warn_msg = f"DOMAIN_SIZE is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers. Defaulting to 3."
+                    KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionProcess", warn_msg)
         else:
             root_model_part = self.model_part.GetRootModelPart()
             if root_model_part.ProcessInfo.Has(KratosMultiphysics.DOMAIN_SIZE):
                 domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             else:
-                raise Exception(f"Domain size is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers.")
+                domain_size = 3
+                warn_msg = f"DOMAIN_SIZE is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers. Defaulting to 3."
+                KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionProcess", warn_msg)
 
         # Check the obtained domain size value
         if domain_size not in [2,3]:
