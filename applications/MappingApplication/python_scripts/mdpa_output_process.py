@@ -1,5 +1,4 @@
 import KratosMultiphysics as KM
-from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):

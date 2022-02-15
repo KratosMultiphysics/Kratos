@@ -10,6 +10,11 @@ def Factory(settings, model):
 
 
 class SerialOutputProcess(KM.OutputProcess):
+    """This process is used in distributed simulations to do post-processing on one rank
+    For this first the results are mapped to a serial ModelPart, with which then postprocessing is done
+    This is not the most efficient approach by principle, but sometimes it is necessary to collect
+    all the results on one rank
+    """
     def __init__(self, model, settings):
         super().__init__()
 
