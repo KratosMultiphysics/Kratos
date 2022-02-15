@@ -6,10 +6,10 @@ from KratosMultiphysics.process_factory import KratosProcessFactory
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return OutputSerialProcess(model, settings["Parameters"])
+    return SerialOutputProcess(model, settings["Parameters"])
 
 
-class OutputSerialProcess(KM.OutputProcess):
+class SerialOutputProcess(KM.OutputProcess):
     def __init__(self, model, settings):
         super().__init__()
 
@@ -108,14 +108,14 @@ class OutputSerialProcess(KM.OutputProcess):
             self.output_process.PrintOutput()
 
 
-def GetMapperFlags(transfer_options):
+def GetMapperFlags(settings):
     mapper_flags_dict = {
         "add_values"    : KM.Mapper.ADD_VALUES,
         "swap_sign"     : KM.Mapper.SWAP_SIGN,
         "use_transpose" : KM.Mapper.USE_TRANSPOSE
     }
     mapper_flags = KM.Flags()
-    for flag_name in transfer_options.GetStringArray():
+    for flag_name in settings.GetStringArray():
         mapper_flags |= mapper_flags_dict[flag_name]
 
     return mapper_flags
