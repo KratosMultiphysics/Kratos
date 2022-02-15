@@ -154,8 +154,8 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("AssembleEntry", [](CsrMatrix<double,IndexType>& rA, double value, IndexType I, IndexType J){
         rA.AssembleEntry(value,I,J);
     })
-    .def("ApplyDirichlet", &CsrMatrix<double,IndexType>::ApplyDirichlet<Vector>)
-    .def("ApplyDirichlet", &CsrMatrix<double,IndexType>::ApplyDirichlet<SystemVector<double,IndexType>>)
+    .def("ApplyHomogeneousDirichlet", &CsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet<Vector>)
+    .def("ApplyHomogeneousDirichlet", &CsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet<SystemVector<double,IndexType>>)
     .def("__str__", PrintObject<CsrMatrix<double,IndexType>>);
 
 
@@ -196,8 +196,6 @@ void AddSparseMatricesToPython(pybind11::module& m)
                         std::vector<IndexType>& indices){
        self.Assemble(values,indices);
     })
-    .def("ApplyDirichlet", &SystemVector<double,IndexType>::ApplyDirichlet<SystemVector<double,IndexType>>)
-    .def("ApplyDirichlet", &SystemVector<double,IndexType>::ApplyDirichlet<Vector>)
     //inplace
     .def("__iadd__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self += other_vec; }, py::is_operator())
     .def("__isub__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self -= other_vec;  }, py::is_operator())
