@@ -331,8 +331,8 @@ mpi_mapper = MappingMPIExtension.MPIMapperFactory.CreateMapper(
 
 ### Miscellaneous functionalities
 - [serial_output_process](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/MappingApplication/python_scripts/serial_output_process.py): This process can be used to map results to one rank and then do postprocessing on this rank. This has two advantages:
-  1. Some output formats write one file per rank in distributed simulations, which leads to many files when running with many cores. This process collects the results on one rank and can hence reduce the number of files significantly
-  2. Different meshes can be used to do the postprocessing. This is in particular useful when the computational mesh is very fine, but a coarser mesh would be sufficient for postprocessing.
+  - Some output formats write one file per rank in distributed simulations, which leads to many files when running with many cores. This process collects the results on one rank and can hence reduce the number of files significantly
+  - Different meshes can be used to do the postprocessing. This is in particular useful when the computational mesh is very fine, but a coarser mesh would be sufficient for postprocessing.
 
   <ins>The following input parameters are used:</ins>
   - `model_part_name_origin`: name of the origin ModelPart where the data comes from (is being mapped from)
