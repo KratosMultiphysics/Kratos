@@ -408,6 +408,20 @@ public:
         }
     }
 
+    virtual void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        // Call the base B&S InitializeSolutionStep
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Reset the ROM solution increment in the root modelpart database
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(mNumberOfRomModes);
+    }
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -534,7 +548,7 @@ public:
         // Save the ROM solution increment in the root modelpart database
         // This can be used later on to recover the solution in a visualization submodelpart
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = dxrom;
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
 
         // //update database
         // noalias(xrom) += dxrom;
