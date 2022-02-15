@@ -106,11 +106,7 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def FinalizeSolutionStep(self):
         BaseStrategy.FinalizeSolutionStep(self)
-
-        # Update search distance in case of temperature dependent radius
-        if (self.spheres_model_part.ProcessInfo[TEMPERATURE_DEPENDENT_RADIUS_OPTION]):
-            (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
-
+        
         # Write output graphs
         if (self.write_graph):
             self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
@@ -482,13 +478,6 @@ class ExplicitStrategy(BaseStrategy):
         # General options
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
-        
-        temperature_dependent_radius = False
-        for properties in self.spheres_model_part.Properties:
-            if ((properties.Has(THERMAL_EXPANSION_COEFFICIENT) and properties[THERMAL_EXPANSION_COEFFICIENT] != 0) or
-                (properties.HasTable(TEMPERATURE,THERMAL_EXPANSION_COEFFICIENT))):
-                temperature_dependent_radius = True
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, TEMPERATURE_DEPENDENT_RADIUS_OPTION, temperature_dependent_radius)
 
         # Models for heat transfer
         self.spheres_model_part.ProcessInfo.SetValue(DIRECT_CONDUCTION_MODEL_NAME,   self.direct_conduction_model)

@@ -83,9 +83,9 @@ namespace Kratos {
             particle->SetParticleRealYoungRatio(1.0);
 
           if (submp.Has(FIXED_TEMPERATURE))
-            particle->Set(DEMThermalFlags::HAS_FIXED_TEMPERATURE, submp[FIXED_TEMPERATURE]);
+            particle->mHasFixedTemperature = submp[FIXED_TEMPERATURE];
           else
-            particle->Set(DEMThermalFlags::HAS_FIXED_TEMPERATURE, false);
+            particle->mHasFixedTemperature = false;
 
           if (submp.Has(ADIABATIC))
             particle->Set(DEMThermalFlags::IS_ADIABATIC, submp[ADIABATIC]);

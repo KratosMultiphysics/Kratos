@@ -41,7 +41,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool,                                 RADIATION_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 FRICTION_HEAT_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 REAL_CONTACT_OPTION)
-  KRATOS_CREATE_VARIABLE(bool,                                 TEMPERATURE_DEPENDENT_RADIUS_OPTION)
   KRATOS_CREATE_VARIABLE(bool,                                 FIXED_TEMPERATURE)
   KRATOS_CREATE_VARIABLE(bool,                                 ADIABATIC)
   KRATOS_CREATE_VARIABLE(int,                                  THERMAL_FREQUENCY)
@@ -65,16 +64,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double,                               FLUID_TEMPERATURE)
   KRATOS_CREATE_VARIABLE(Vector,                               FLUID_VELOCITY)
 
-  // Flags (starting at 1000 to avoid conflicts with DEMFlags)
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, IS_ADIABATIC,                     19);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_MOTION,                       20);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_FIXED_TEMPERATURE,            21);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_DIRECT_CONDUCTION,            22);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_INDIRECT_CONDUCTION,          23);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_CONVECTION,                   24);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_RADIATION,                    25);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_FRICTION_HEAT,                26);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_REAL_CONTACT,                 27);
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, HAS_TEMPERATURE_DEPENDENT_RADIUS, 28);
+  // Flags (starting from the last value of the DEM Appication)
+  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, IS_ADIABATIC, 19);
 
 } // namespace Kratos

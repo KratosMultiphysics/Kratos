@@ -192,10 +192,24 @@ namespace Kratos
       void               SetParticleMomentInertia             (const double moment_inertia);
       void               SetParticleRealYoungRatio            (const double ratio);
 
+      // Pointers to auxiliary objects
+      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
+      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
+      HeatExchangeMechanism*       mpDirectConductionModel;
+      HeatExchangeMechanism*       mpIndirectConductionModel;
+      HeatExchangeMechanism*       mpConvectionModel;
+      HeatExchangeMechanism*       mpRadiationModel;
+      HeatGenerationMechanism*     mpFrictionModel;
+      RealContactModel*            mpRealContactModel;
+
       // General properties
-      unsigned int mNumStepsEval;       // number of steps passed since last thermal evaluation
-      bool         mIsTimeToSolve;      // flag to solve thermal problem in current step
-      bool         mStoreContactParam;  // flag to store contact parameters with neighbors when solving the mechanical problem
+      unsigned int mNumStepsEval;         // number of steps passed since last thermal evaluation
+      double       mPreviousTemperature;  // temperature from the beginning of the step
+      bool         mIsTimeToSolve;        // flag to solve thermal problem in current step
+      bool         mHasMotion;            // flag to solve mechanical behavior (forces and displacements)
+      bool         mHasFixedTemperature;  // flag for constant temperature
+      bool         mHasVariableRadius;    // flag for temperature-dependent radius
+      bool         mStoreContactParam;    // flag to store contact parameters with neighbors when solving the mechanical problem
 
       // Heat flux components
       double mConductionDirectHeatFlux;
@@ -207,25 +221,6 @@ namespace Kratos
       double mPrescribedHeatFluxVolume;
       double mPrescribedHeatFlux;
       double mTotalHeatFlux;
-
-      // Pointers to auxiliary objects
-      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
-      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
-      HeatExchangeMechanism*       mpDirectConductionModel;
-      HeatExchangeMechanism*       mpIndirectConductionModel;
-      HeatExchangeMechanism*       mpConvectionModel;
-      HeatExchangeMechanism*       mpRadiationModel;
-      HeatGenerationMechanism*     mpFrictionModel;
-      RealContactModel*            mpRealContactModel;
-
-      // Neighboring data
-      ThermalSphericParticle*                   mNeighbor_p;
-      DEMWall*                                  mNeighbor_w;
-      int                                       mNeighborType;
-      unsigned int                              mNeighborIndex;
-      unsigned int                              mNumberOfContactParticleNeighbor;
-      std::map<SphericParticle*, ContactParams> mContactParamsParticle;
-      std::map<DEMWall*, ContactParams>         mContactParamsWall;
 
       // Interaction properties
       bool   mNeighborInContact;           // flag for contact interaction
@@ -242,10 +237,16 @@ namespace Kratos
       double       mEnvironmentTemperature;
       double       mEnvironmentTempAux;
 
-      // History-dependent properties
-      double mPreviousTemperature;
+      // Neighboring data
+      ThermalSphericParticle*                   mNeighbor_p;
+      DEMWall*                                  mNeighbor_w;
+      int                                       mNeighborType;
+      unsigned int                              mNeighborIndex;
+      unsigned int                              mNumberOfContactParticleNeighbor;
+      std::map<SphericParticle*, ContactParams> mContactParamsParticle;
+      std::map<DEMWall*, ContactParams>         mContactParamsWall;
 
-      // Delaunay/Voronoi data
+      // Tesselation data
       unsigned int         mDelaunayPointListIndex;
       std::map<int,double> mNeighborVoronoiRadius;
 

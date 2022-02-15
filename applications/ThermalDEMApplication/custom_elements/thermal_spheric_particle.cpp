@@ -122,47 +122,40 @@ namespace Kratos
     // Initialize base class
     SphericParticle::Initialize(r_process_info);
 
-    // Set thermal flags
-    this->Set(DEMThermalFlags::HAS_MOTION,                       r_process_info[MOTION_OPTION]);
-    this->Set(DEMThermalFlags::HAS_DIRECT_CONDUCTION,            r_process_info[DIRECT_CONDUCTION_OPTION]);
-    this->Set(DEMThermalFlags::HAS_INDIRECT_CONDUCTION,          r_process_info[INDIRECT_CONDUCTION_OPTION]);
-    this->Set(DEMThermalFlags::HAS_CONVECTION,                   r_process_info[CONVECTION_OPTION]);
-    this->Set(DEMThermalFlags::HAS_RADIATION,                    r_process_info[RADIATION_OPTION]);
-    this->Set(DEMThermalFlags::HAS_FRICTION_HEAT,                r_process_info[FRICTION_HEAT_OPTION]);
-    this->Set(DEMThermalFlags::HAS_REAL_CONTACT,                 r_process_info[REAL_CONTACT_OPTION]);
-    this->Set(DEMThermalFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS, r_process_info[TEMPERATURE_DEPENDENT_RADIUS_OPTION]);
+    // Set flags
+    mHasMotion = r_process_info[MOTION_OPTION];
 
-    // Set time integration scheme
-    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme = GetProperties()[THERMAL_INTEGRATION_SCHEME_POINTER];
+    if ((GetProperties().Has(THERMAL_EXPANSION_COEFFICIENT) && GetProperties()[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
+         GetProperties().HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT)) {
+      mHasVariableRadius = true;
+    }
+    else {
+      mHasVariableRadius = false;
+    }
+
+    // Set pointers to to auxiliary objects
+    ThermalDEMIntegrationScheme::Pointer& thermal_integration_scheme   = GetProperties()[THERMAL_INTEGRATION_SCHEME_POINTER];
+    NumericalIntegrationMethod::Pointer&  numerical_integration_method = GetProperties()[NUMERICAL_INTEGRATION_METHOD_POINTER];
+    HeatExchangeMechanism::Pointer&       direct_conduction_model      = GetProperties()[DIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       indirect_conduction_model    = GetProperties()[INDIRECT_CONDUCTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       convection_model             = GetProperties()[CONVECTION_MODEL_POINTER];
+    HeatExchangeMechanism::Pointer&       radiation_model              = GetProperties()[RADIATION_MODEL_POINTER];
+    HeatGenerationMechanism::Pointer&     friction_model               = GetProperties()[FRICTION_MODEL_POINTER];
+    RealContactModel::Pointer&            real_contact_model           = GetProperties()[REAL_CONTACT_MODEL_POINTER];
+
     SetThermalIntegrationScheme(thermal_integration_scheme);
-
-    // Set numerical integration method
-    NumericalIntegrationMethod::Pointer& numerical_integration_method = GetProperties()[NUMERICAL_INTEGRATION_METHOD_POINTER];
     SetNumericalIntegrationMethod(numerical_integration_method);
-
-    // Set constitutive laws (thermal models)
-    HeatExchangeMechanism::Pointer& direct_conduction_model = GetProperties()[DIRECT_CONDUCTION_MODEL_POINTER];
     SetDirectConductionModel(direct_conduction_model);
-
-    HeatExchangeMechanism::Pointer& indirect_conduction_model = GetProperties()[INDIRECT_CONDUCTION_MODEL_POINTER];
     SetIndirectConductionModel(indirect_conduction_model);
-
-    HeatExchangeMechanism::Pointer& convection_model = GetProperties()[CONVECTION_MODEL_POINTER];
     SetConvectionModel(convection_model);
-
-    HeatExchangeMechanism::Pointer& radiation_model = GetProperties()[RADIATION_MODEL_POINTER];
     SetRadiationModel(radiation_model);
-
-    HeatGenerationMechanism::Pointer& friction_model = GetProperties()[FRICTION_MODEL_POINTER];
     SetFrictionModel(friction_model);
-
-    RealContactModel::Pointer& real_contact_model = GetProperties()[REAL_CONTACT_MODEL_POINTER];
     SetRealContactModel(real_contact_model);
 
     // Set flag to store contact parameters during mechanical loop over neighbors
-    mStoreContactParam = this->Is(DEMThermalFlags::HAS_MOTION)        &&
-                        (this->Is(DEMThermalFlags::HAS_FRICTION_HEAT) ||
-                        (this->Is(DEMThermalFlags::HAS_DIRECT_CONDUCTION) && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
+    mStoreContactParam = mHasMotion &&
+                        (r_process_info[FRICTION_HEAT_OPTION]  ||
+                        (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
 
     // Clear maps
     mContactParamsParticle.clear();
@@ -176,7 +169,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Initialize base class
-    if (this->Is(DEMThermalFlags::HAS_MOTION))
+    if (mHasMotion)
       SphericParticle::InitializeSolutionStep(r_process_info);
 
     // Check if it is time to evaluate thermal problem
@@ -211,7 +204,7 @@ namespace Kratos
     mTotalHeatFlux              = 0.0;
 
     // Initialize environment-related variables for radiation
-    if (this->Is(DEMThermalFlags::HAS_RADIATION)) {
+    if (r_process_info[RADIATION_OPTION]) {
       mRadiativeNeighbors     = 0;
       mEnvironmentTemperature = 0.0;
       mEnvironmentTempAux     = 0.0;
@@ -228,7 +221,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Force components
-    if (this->Is(DEMThermalFlags::HAS_MOTION))
+    if (mHasMotion)
       SphericParticle::CalculateRightHandSide(r_process_info, dt, gravity);
     
     // Heat flux components
@@ -284,11 +277,11 @@ namespace Kratos
     }
 
     // Finalize radiation computation of continuous methods
-    if (this->Is(DEMThermalFlags::HAS_RADIATION))
+    if (r_process_info[RADIATION_OPTION])
       mRadiationHeatFlux += GetRadiationModel().FinalizeHeatFlux(r_process_info, this);
 
     // Compute convection with surrounding fluid
-    if (this->Is(DEMThermalFlags::HAS_CONVECTION))
+    if (r_process_info[CONVECTION_OPTION])
       mConvectionHeatFlux += GetConvectionModel().ComputeHeatFlux(r_process_info, this);
 
     // Prescribed heat flux over surface area
@@ -318,16 +311,16 @@ namespace Kratos
     ComputeInteractionProps(r_process_info);
 
     // Heat transfer mechanisms
-    if (this->Is(DEMThermalFlags::HAS_DIRECT_CONDUCTION))
+    if (r_process_info[DIRECT_CONDUCTION_OPTION])
       mConductionDirectHeatFlux += GetDirectConductionModel().ComputeHeatFlux(r_process_info, this);
 
-    if (this->Is(DEMThermalFlags::HAS_INDIRECT_CONDUCTION))
+    if (r_process_info[INDIRECT_CONDUCTION_OPTION])
       mConductionIndirectHeatFlux += GetIndirectConductionModel().ComputeHeatFlux(r_process_info, this);
 
-    if (this->Is(DEMThermalFlags::HAS_RADIATION))
+    if (r_process_info[RADIATION_OPTION])
       mRadiationHeatFlux += GetRadiationModel().ComputeHeatFlux(r_process_info, this);
 
-    if (this->Is(DEMThermalFlags::HAS_FRICTION_HEAT) && this->Is(DEMThermalFlags::HAS_MOTION))
+    if (r_process_info[FRICTION_HEAT_OPTION] && mHasMotion)
       mFrictionHeatFlux += GetFrictionModel().ComputeHeatGeneration(r_process_info, this);
 
     KRATOS_CATCH("")
@@ -344,7 +337,7 @@ namespace Kratos
     mContactRadius      = ComputeContactRadius();
 
     // Set adjusted contact properties
-    if (this->Is(DEMThermalFlags::HAS_REAL_CONTACT) && mNeighborInContact) {
+    if (r_process_info[REAL_CONTACT_OPTION] && mNeighborInContact) {
       GetRealContactModel().AdjustContact(r_process_info, this);
     }
     else {
@@ -456,11 +449,11 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
     // Time integration of motion
-    if (this->Is(DEMThermalFlags::HAS_MOTION))
+    if (mHasMotion)
       SphericParticle::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
 
     // Time integration of temperature
-    if (mIsTimeToSolve && !this->Is(DEMThermalFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMThermalFlags::IS_ADIABATIC)) {
+    if (mIsTimeToSolve && !mHasFixedTemperature && !this->Is(DEMThermalFlags::IS_ADIABATIC)) {
       GetThermalIntegrationScheme().UpdateTemperature(GetGeometry()[0], delta_t * mNumStepsEval, GetParticleHeatCapacity()); // TODO: Remove last argument (capacity becomes a node property accessed with GetFastProperties - same as MOMENT_OF_INERTIA)
     }
   }
@@ -472,16 +465,22 @@ namespace Kratos
   void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (this->Is(DEMThermalFlags::HAS_MOTION))
+    if (mHasMotion)
       SphericParticle::FinalizeSolutionStep(r_process_info);
 
     // Remove non-contacting neighbors from maps of contact parameters
     if (mStoreContactParam)
       CleanContactParameters(r_process_info);
 
-    // Update temperature dependent properties
-    if (mIsTimeToSolve)
+    // Update temperature dependent radius 
+    if (mIsTimeToSolve && mHasVariableRadius) {
       UpdateTemperatureDependentRadius(r_process_info);
+
+      // Update search distance
+      double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+      ComputeAddedSearchDistance(r_process_info, added_search_distance);
+      SetSearchRadius(GetRadius() + added_search_distance);
+    }
 
     KRATOS_CATCH("")
   }
@@ -489,9 +488,6 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
     KRATOS_TRY
-
-    if (!this->Is(DEMThermalFlags::HAS_TEMPERATURE_DEPENDENT_RADIUS))
-      return;
 
     // Update radius
     const double new_radius = GetParticleRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
@@ -526,13 +522,13 @@ namespace Kratos
   void ThermalSphericParticle::ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) {
     KRATOS_TRY
 
-    if (this->Is(DEMThermalFlags::HAS_INDIRECT_CONDUCTION)) {
+    if (r_process_info[INDIRECT_CONDUCTION_OPTION] && mpIndirectConductionModel) {
       const double model_search_distance  = GetIndirectConductionModel().GetSearchDistance(r_process_info, this);
       const double current_added_distance = added_search_distance;
       added_search_distance = std::max(current_added_distance, model_search_distance);
     }
 
-    if (this->Is(DEMThermalFlags::HAS_RADIATION)) {
+    if (r_process_info[RADIATION_OPTION] && mpRadiationModel) {
       const double model_search_distance  = GetRadiationModel().GetSearchDistance(r_process_info, this);
       const double current_added_distance = added_search_distance;
       added_search_distance = std::max(current_added_distance, model_search_distance);
