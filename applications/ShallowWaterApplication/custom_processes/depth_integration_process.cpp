@@ -148,9 +148,11 @@ void DepthIntegrationProcess<TDim>::Integrate(
         }
         prev_is_found = is_found;
     }
-    velocity = momentum / height;
 
-    if (!mVelocityDepthIntegration) { // Evaluate the velocity at a certain depth
+    if (mVelocityDepthIntegration) { // Get the mean velocity
+        velocity = momentum / height;
+    }
+    else { // Evaluate the velocity at a certain depth
         const double reference_depth = mMeanWaterLevel - bottom_depth;
         const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
         const double target_distance = target_depth - inner_prod(mDirection, rNode);
