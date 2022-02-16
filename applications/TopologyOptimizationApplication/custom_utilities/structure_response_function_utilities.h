@@ -27,6 +27,7 @@
 // Application includes
 #include "topology_optimization_application.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos

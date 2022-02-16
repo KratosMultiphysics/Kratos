@@ -27,6 +27,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_elements/small_displacement_simp_element.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "topology_optimization_application.h"

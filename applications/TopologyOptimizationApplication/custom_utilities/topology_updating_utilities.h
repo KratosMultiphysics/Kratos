@@ -30,6 +30,7 @@
 #include "topology_optimization_application.h"
 #include "structure_response_function_utilities.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
