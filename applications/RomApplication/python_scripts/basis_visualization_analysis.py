@@ -3,9 +3,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.python_solver import PythonSolver
 
 class _RomParametersReaderSolver(PythonSolver):
-    """
-    Pretends to be a solver, but actually just reads the results from the RomParameters.json
-    """
+    """Pretends to be a solver, but actually just reads the results from the RomParameters.json"""
 
     def __init__(self, model, settings):
         super().__init__(model, settings)
