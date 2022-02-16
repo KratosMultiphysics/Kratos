@@ -34,7 +34,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
 
     if application_module_name in available_modules:
         solvers_wrapper_module_module_name = available_modules[application_module_name]
-    else:    
+    else:
         err_msg = "Python module \'{0}\' is not available. Make sure \'{1}\' is compiled and implemented.\n".format(
             application_module_name, split_analysis_stage_module_name[1])
         err_msg += "Currently implemented applications are:\n"
