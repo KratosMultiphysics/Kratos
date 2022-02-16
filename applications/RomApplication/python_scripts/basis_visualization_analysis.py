@@ -65,7 +65,7 @@ class _RomParametersReaderSolver(PythonSolver):
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(variable, self.GetComputingModelPart().Nodes)
 
     def GetCurrentMode(self):
-        return self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP]
+        return self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] - 1
 
     def GetNumberOfModes(self):
         return self.number_of_modes
