@@ -44,8 +44,8 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(bool,                                 FIXED_TEMPERATURE)
   KRATOS_CREATE_VARIABLE(bool,                                 ADIABATIC)
   KRATOS_CREATE_VARIABLE(int,                                  THERMAL_FREQUENCY)
-  //KRATOS_CREATE_VARIABLE(double,                             HEATFLUX)             // defined in DEMApp
-  //KRATOS_CREATE_VARIABLE(double,                             THERMAL_CONDUCTIVITY) // defined in DEMApp
+  KRATOS_CREATE_VARIABLE(double,                               HEATFLUX)
+  KRATOS_CREATE_VARIABLE(double,                               THERMAL_CONDUCTIVITY)
   KRATOS_CREATE_VARIABLE(double,                               REAL_YOUNG_MODULUS_RATIO)
   KRATOS_CREATE_VARIABLE(double,                               HEATSOURCE)
   KRATOS_CREATE_VARIABLE(double,                               MIN_CONDUCTION_DISTANCE)
@@ -65,6 +65,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(Vector,                               FLUID_VELOCITY)
 
   // Flags (starting from the last value of the DEM Appication)
-  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, IS_ADIABATIC, 19);
+  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, IS_ADIABATIC, 18);
+  KRATOS_CREATE_LOCAL_FLAG(DEMThermalFlags, IS_SINTERING, 19);
 
 } // namespace Kratos

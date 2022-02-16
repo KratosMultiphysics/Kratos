@@ -41,6 +41,8 @@
 #include "custom_constitutive/real_contact/real_contact_lu.h"
 #include "custom_constitutive/real_contact/real_contact_morris.h"
 #include "custom_constitutive/real_contact/real_contact_zhou.h"
+#include "custom_constitutive/sintering_continuum.h"
+#include "custom_constitutive/DEM_KDEM_CL.h"
 
 namespace Kratos
 {
@@ -159,6 +161,11 @@ namespace Kratos
 
       py::class_<RealContactZhou, RealContactZhou::Pointer, RealContactModel>(m, "RealContactZhou")
         .def(py::init<>());
+
+      // Sintering ---------------------------------------------------------------------------------------------------------------
+      py::class_<SinteringContinuum, SinteringContinuum::Pointer, DEM_KDEM>(m, "SinteringContinuum")
+        .def(py::init<>())
+        ;
     }
 
   } // namespace Python

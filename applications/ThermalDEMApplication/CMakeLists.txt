@@ -45,6 +45,7 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/thermal_dem_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_exchange_mechanism.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/heat_generation_mechanism.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/sintering_continuum.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_bob.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/conduction_direct/direct_conduction_collision.cpp
@@ -69,6 +70,8 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_morris.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_zhou.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_continuum_particle.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/strategies/thermal_explicit_solver_strategy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/thermal_dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/thermal_forward_euler_scheme.cpp

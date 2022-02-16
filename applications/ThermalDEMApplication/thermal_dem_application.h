@@ -26,6 +26,8 @@
 // Project includes
 #include "thermal_dem_application_variables.h"
 #include "custom_elements/thermal_spheric_particle.h"
+#include "custom_elements/thermal_spheric_continuum_particle.h"
+#include "custom_elements/sintering_spheric_continuum_particle.h"
 
 namespace Kratos
 {
@@ -68,7 +70,9 @@ namespace Kratos
     private:
 	  
       // Elements
-      const ThermalSphericParticle mThermalSphericParticle;
+      const ThermalSphericParticle            mThermalSphericParticle;
+      const ThermalSphericContinuumParticle   mThermalSphericContinuumParticle;
+      const SinteringSphericContinuumParticle mSinteringSphericContinuumParticle;
 
       // Assignment operator
       KratosThermalDEMApplication& operator=(KratosThermalDEMApplication const& rOther);

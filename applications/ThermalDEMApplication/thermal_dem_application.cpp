@@ -23,7 +23,9 @@
 namespace Kratos
 {
   KratosThermalDEMApplication::KratosThermalDEMApplication():KratosApplication("ThermalDEMApplication"),
-    mThermalSphericParticle(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3>> (Element::GeometryType::PointsArrayType(1))))
+    mThermalSphericParticle            (0, Element::GeometryType::Pointer(new Sphere3D1<Node<3>> (Element::GeometryType::PointsArrayType(1)))),
+    mThermalSphericContinuumParticle   (0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
+    mSinteringSphericContinuumParticle (0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1))))
   {}
 
   void KratosThermalDEMApplication::Register()
@@ -59,8 +61,8 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(FIXED_TEMPERATURE)
     KRATOS_REGISTER_VARIABLE(ADIABATIC)
     KRATOS_REGISTER_VARIABLE(THERMAL_FREQUENCY)
-    //KRATOS_REGISTER_VARIABLE(HEATFLUX)             // defined in DEMApp
-    //KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY) // defined in DEMApp
+    KRATOS_REGISTER_VARIABLE(HEATFLUX)
+    KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)
     KRATOS_REGISTER_VARIABLE(REAL_YOUNG_MODULUS_RATIO)
     KRATOS_REGISTER_VARIABLE(HEATSOURCE)
     KRATOS_REGISTER_VARIABLE(MIN_CONDUCTION_DISTANCE)
@@ -80,6 +82,8 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(FLUID_VELOCITY)
 
     // Register elements
-    KRATOS_REGISTER_ELEMENT("ThermalSphericParticle", mThermalSphericParticle)
+    KRATOS_REGISTER_ELEMENT("ThermalSphericParticle",            mThermalSphericParticle)
+    KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle",   mThermalSphericContinuumParticle)
+    KRATOS_REGISTER_ELEMENT("SinteringSphericContinuumParticle", mSinteringSphericContinuumParticle)
   }
 } // namespace Kratos
