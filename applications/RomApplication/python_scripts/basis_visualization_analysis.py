@@ -75,6 +75,7 @@ class FauxSolver(PythonSolver):
                 value = self.rom_settings["nodal_modes"][str(node.Id)][variable_idx][mode].GetDouble()
                 node.SetValue(variable, value)
                 variable_idx += 1
+        return 0
 
 
 class BasisVisualizationAnalysis(AnalysisStage):
