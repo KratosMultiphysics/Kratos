@@ -481,7 +481,7 @@ public:
 
                 const IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
                 const IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
-                if(std::abs(rFreeDofsVector.GetLocalData()[i] - 1.0) < 1e-10) //row corresponding to free dofs NOTE that we check if it is approx zero
+                if(std::abs(rFreeDofsVector.GetLocalData()[i] - 1.0) < 1e-14) //row corresponding to free dofs NOTE that we check if it is approx zero
                 {
                     for(IndexType k = row_begin; k < row_end; ++k)
                     {
