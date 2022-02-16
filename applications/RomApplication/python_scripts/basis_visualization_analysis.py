@@ -144,7 +144,8 @@ class BasisVisualizationAnalysis(AnalysisStage):
         }""")
 
         gid_settings["Parameters"]["model_part_name"].SetString(self.project_parameters["solver_settings"]["model_part_name"].GetString())
-        gid_settings["Parameters"]["output_name"].SetString(self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString())
+        output_filename = "{}_basis".format(self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString())
+        gid_settings["Parameters"]["output_name"].SetString(output_filename)
 
         for varname in self._GetSolver().GetVariableNames():
             gid_settings["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_nonhistorical_results"].Append(varname)

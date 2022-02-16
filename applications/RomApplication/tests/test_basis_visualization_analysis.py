@@ -37,7 +37,7 @@ class TestBasisVisualizationAnalysis(KratosUnittest.TestCase):
 
             self.assertIn(KratosMultiphysics.TEMPERATURE, analysis._GetSolver().GetVariables())
 
-            self.files_to_remove.append(os.path.abspath("Square_Radiation_Stationary.post.bin"))
+            self.files_to_remove.append(os.path.abspath("Square_Radiation_Stationary_basis.post.bin"))
             self.files_to_remove.append(os.path.abspath("thermal_static_test_files.post.lst"))
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
