@@ -1333,8 +1333,6 @@ class DEMIo():
         self.PostTangentialElasticForces = self.DEM_parameters["PostTangentialElasticForces"].GetBool()
         self.PostShearStress = self.DEM_parameters["PostShearStress"].GetBool()
         self.PostNodalArea = self.DEM_parameters["PostNodalArea"].GetBool()
-        self.PostTemperature = GetBoolParameterIfItExists(self.DEM_parameters, "PostTemperature")
-        self.PostHeatFlux = GetBoolParameterIfItExists(self.DEM_parameters, "PostHeatFlux")
         self.PostNeighbourSize = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
         self.PostBrokenRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostBrokenRatio")
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
@@ -1463,8 +1461,6 @@ class DEMIo():
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
         self.PushPrintVar(self.PostDeltaDisplacement, DELTA_DISPLACEMENT, self.global_variables)
-        self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.global_variables)
-        self.PushPrintVar(self.PostHeatFlux, HEATFLUX, self.global_variables)
 
     def AddGlobalNonHistoricalNodalVariables(self):
         self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_nonhistorical_nodal_variables)
