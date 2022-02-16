@@ -1,7 +1,6 @@
 import KratosMultiphysics
-from importlib import import_module
 
-def CreateSolverByParameters(model, solver_settings, parallelism):
+def CreateSolverByParameters(model, solver_settings, parallel_type):
 
     solver_type = solver_settings["solver_type"].GetString()
 
@@ -15,6 +14,4 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_adjoint_solver as adjoint_solver
         return adjoint_solver.CreateSolver(model, solver_settings)
     else:
-        raise Exception("Solver type '"+str(solver_type)+"' not added. Please specify an available solver")
-
-    return solver
+        raise ValueError("Solver type '"+str(solver_type)+"' not added. Please specify an available solver")
