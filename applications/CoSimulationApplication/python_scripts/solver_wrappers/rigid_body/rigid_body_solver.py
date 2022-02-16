@@ -185,10 +185,10 @@ class RigidBodySolver(object):
 
         # Other variables that are used in SolveSolutionStep()
         self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
-        self.total_load = np.zeros((self.system_size, self.buffer_size))
+        self.total_load = np.zeros(self.system_size)
         self.prescribed_load = np.zeros(self.system_size)
         self.prescribed_root_point_displ = np.zeros(self.system_size)
-        self.external_load = np.zeros(self.system_size)
+        #self.external_load = np.zeros(self.system_size)
         self.external_root_point_displ = np.zeros(self.system_size)
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
@@ -207,8 +207,8 @@ class RigidBodySolver(object):
         #self.a[:,0] = self.initial_acceleration
 
         # Apply external load as an initial impulse
-        self.total_load[:,0] = self.load_impulse
-        self.effective_load[:,0] = self.total_load[:,0]
+        self.total_load = self.load_impulse
+        self.effective_load[:,0] = self.total_load
 
         # Create output file and wrrite the time=start_time step
         if self.write_output_file:
@@ -304,15 +304,15 @@ class RigidBodySolver(object):
         #self.v_root = np.roll(self.v_root,1,axis=1)
         #self.a = np.roll(self.a,1,axis=1)
         #self.a_root = np.roll(self.a_root,1,axis=1)
-        self.total_load = np.roll(self.total_load,1,axis=1)
         self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
         self.effective_load = np.roll(self.effective_load,1,axis=1)
 
         # Variables that need to be reseted. They might not be overwriten later so they
         # need to be zero to avoid values from previous time steps ar not continously used.
+        self.total_load = np.zeros(self.system_size)
         self.prescribed_load = np.zeros(self.system_size)
         self.prescribed_root_point_displ = np.zeros(self.system_size)
-        self.external_load = np.zeros(self.system_size)
+        #self.external_load = np.zeros(self.system_size)
         self.external_root_point_displ = np.zeros(self.system_size)
 
         # Update the time of the simulation
@@ -408,7 +408,8 @@ class RigidBodySolver(object):
 
         # Calculate the total load
         self_weight = self.CalculateSelfWeight()
-        self.total_load[:,0] = self.external_load + self.prescribed_load + self_weight
+        external_load = self._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT)
+        self.total_load = external_load + self.prescribed_load + self_weight
 
         # Calculate the total root point displacement and the equivalent force it generates
         self.total_root_point_displ[:,0] = self.external_root_point_displ + self.prescribed_root_point_displ
@@ -416,7 +417,7 @@ class RigidBodySolver(object):
         root_point_force = self._CalculateEquivalentForceFromRootPointDisplacement()
         
         # Sum up both loads
-        effective_load = self.total_load[:,0] + root_point_force
+        effective_load = self.total_load + root_point_force
 
         return effective_load
     
