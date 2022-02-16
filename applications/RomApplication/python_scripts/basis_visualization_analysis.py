@@ -2,7 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.python_solver import PythonSolver
 
-class FauxSolver(PythonSolver):
+class _RomParametersReaderSolver(PythonSolver):
     """
     Pretends to be a solver, but actually just reads the results from the RomParameters.json
     """
@@ -86,7 +86,7 @@ class FauxSolver(PythonSolver):
 class BasisVisualizationAnalysis(AnalysisStage):
 
     def _CreateSolver(self):
-        return FauxSolver(self.model, self.project_parameters["solver_settings"])
+        return _RomParametersReaderSolver(self.model, self.project_parameters["solver_settings"])
 
     def KeepAdvancingSolutionLoop(self):
         return self._GetSolver().GetCurrentMode() + 1 != self._GetSolver().GetNumberOfModes()
