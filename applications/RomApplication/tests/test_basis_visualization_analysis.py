@@ -2,8 +2,10 @@ import os
 
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-
 from KratosMultiphysics.RomApplication.basis_visualization_analysis import BasisVisualizationAnalysis
+
+if KratosMultiphysics.kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
+    import KratosMultiphysics.StructuralMechanicsApplication
 
 
 class TestBasisVisualizationAnalysis(KratosUnittest.TestCase):
@@ -54,11 +56,14 @@ class TestBasisVisualizationAnalysis(KratosUnittest.TestCase):
             }
             """)
             model = KratosMultiphysics.Model()
-
             analysis = BasisVisualizationAnalysis(model, params)
             analysis.Run()
 
-            # self.files_to_remove.append(os.path.abspath("Square_Radiation_Stationary.post.bin"))
+            self.assertIn(analysis._GetSolver().GetVariables(), KratosMultiphysics.StructuralMechanicsApplication.DISPLACEMENT_X)
+            self.assertIn(analysis._GetSolver().GetVariables(), KratosMultiphysics.StructuralMechanicsApplication.DISPLACEMENT_Y)
+
+            self.files_to_remove.append(os.path.abspath("Structure_Dynamic_2D.post.bin"))
+            self.files_to_remove.append(os.path.abspath("Structure_Dynamic_2D.post.lst"))
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -29,6 +29,9 @@ class FauxSolver(PythonSolver):
     def GetVariableNames(self):
         return self.variable_names
 
+    def GetVariables(self):
+        return self.variables
+
     def GetDefaultParameters(self):
         return KratosMultiphysics.Parameters("""{
             "echo_level" : 0,
