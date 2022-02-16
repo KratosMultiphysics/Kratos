@@ -953,6 +953,7 @@ private:
      * @brief This method rotates the F or strain according to local axis from
      * global to local coordinates
      * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
      */
     void RotateToLocalAxes(
         ConstitutiveLaw::Parameters &rValues,
@@ -962,6 +963,7 @@ private:
      * @brief This method rotates the F or strain according to local axis from
      * local de global
      * @param rValues The constitutive laws parameters
+     * @param rThisKinematicVariables The Kinematic parameters
      */
     void RotateToGlobalAxes(
         ConstitutiveLaw::Parameters &rValues,
