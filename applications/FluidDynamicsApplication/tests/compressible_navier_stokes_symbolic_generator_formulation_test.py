@@ -148,21 +148,44 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
                         i, j, first[i,j], second[i,j], msg))
 
 
-    def testComputeEulerJacobianMatrix(self):
-        class _Geometry():
+    class _DummyGeometry:
             ndims = 2
             nnodes = None
 
+    def testdVdU(self):
+        defs.SetFormat("python")
+        g = self._DummyGeometry()
+
+        rho = sympy.Symbol("rho")
+        mom = defs.Vector("mom", 2)
+        mom2 = sum([m*m for m in mom])
+        e_t =sympy.Symbol("e_t")
+        U = sympy.Matrix([rho, *mom, e_t]).T
+
+        params = FormulationParameters(g, "python")
+        primitives = PrimitiveMagnitudes(g)
+        R = QuantityConverter.gas_constant_R(params)
+
+        dvdu = QuantityConverter.dVdU(U, primitives, params)
+
+        expected = sympy.Matrix([
+            [      R*mom2/(2*params.c_v*rho**2), *(-R*mom/(params.c_v*rho)),          R/params.c_v],
+            [                    -mom[0]/rho**2,       1/rho,             0,                     0],
+            [                    -mom[1]/rho**2,           0,         1/rho,                     0],
+            [(mom2-rho*e_t)/(params.c_v*rho**3), *(-mom/(rho**2*params.c_v)), 1/(rho * params.c_v)]
+        ])
+
+        self._assertSympyMatrixEqual(dvdu, expected)
+
+    def testComputeEulerJacobianMatrix(self):
         defs.SetFormat("python")
 
-        g = _Geometry()
+        g = self._DummyGeometry()
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
         params = FormulationParameters(g, "python")
         primitives = PrimitiveMagnitudes(g)
         A = generate_convective_flux.ComputeEulerJacobianMatrix(U, primitives, params)
-
-        print(A[0])
 
         QuantityConverter.SubstitutePrimitivesWithConservatives(A[0], primitives, U, DU, params)
         A[0].simplify()
@@ -176,14 +199,11 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
         self._assertSympyMatrixEqual(A[0],  A0_expected)
 
-    def testComputeDiffusiveFlux(self):
-        class _Geometry():
-            ndims = 2
-            nnodes = None
 
+    def testComputeDiffusiveFlux(self):
         defs.SetFormat("python")
 
-        g = _Geometry()
+        g = self._DummyGeometry()
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
         params = FormulationParameters(g, "python")

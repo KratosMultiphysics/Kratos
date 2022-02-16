@@ -70,4 +70,8 @@ class PrimitiveMagnitudes:
         self.ndims = geometry.ndims
 
     def AsVector(self):
-        return sympy.Matrix([self.P, *self.V, self.T]).T
+        V = [[self.P]]
+        for v in self.V:
+            V.append([v])
+        V.append([self.T])
+        return sympy.Matrix(V)

@@ -21,10 +21,6 @@ class QuantityConverter:
         T = cls.temperature(U, params, vel=vel)
         p = cls.pressure(U, params, T=T)
 
-        vel.simplify()
-        T.simplify()
-        p.simplify()
-
         return (p, vel, T)
 
     @classmethod
@@ -44,7 +40,9 @@ class QuantityConverter:
     @classmethod
     def density(cls, primitives, params):
         "Returns the density as a function of primitive variables"
-        return primitives.P / (cls.gas_constant_R(params) * primitives.T)
+        rho = primitives.P / (cls.gas_constant_R(params) * primitives.T)
+        rho.simplify()
+        return rho
 
     @classmethod
     def momentum(cls, primitives, params=None, density=None):
@@ -54,8 +52,10 @@ class QuantityConverter:
 
         if density is not None:
             density = cls.density(primitives, params)
-
-        return primitives / density
+        velocity = primitives.V
+        mom = velocity / density
+        mom.simplify()
+        return mom
 
     @classmethod
     def total_energy(cls, primitives, params, rho=None):
@@ -65,12 +65,15 @@ class QuantityConverter:
 
         v_2 = sum([vi*vi for vi in primitives.V])
         T = primitives.T
-
-        return rho * (0.5 * v_2 + params.c_v*T)
+        e_tot = rho * (0.5 * v_2 + params.c_v*T)
+        e_tot.simplify()
+        return e_tot
 
     @classmethod
     def velocity(cls, U):
-        return sympy.Matrix(U[1:-1]) / U[0]
+        vel = sympy.Matrix(U[1:-1]) / U[0]
+        vel.simplify()
+        return vel
 
     @classmethod
     def temperature(cls, U, params, vel=None):
@@ -78,9 +81,13 @@ class QuantityConverter:
         if vel is None:
             vel = cls.velocity(U)
         e_tot = U[-1]
+        vel2 = sum([v*v for v in vel])
 
-        e_kinetic = 0.5 * rho * sum([v**2 for v in vel])
-        return (e_tot - e_kinetic) / (rho * params.c_v)
+        e_kin = 0.5*rho*vel2
+
+        T = (e_tot - e_kin) / (rho * params.c_v)
+        T.simplify()
+        return T
 
     @classmethod
     def pressure(cls, U, params, T=None):
@@ -88,7 +95,9 @@ class QuantityConverter:
         R = cls.gas_constant_R(params)
         if T is None:
             T = cls.temperature(U, params)
-        return rho * R * T
+        p = rho * R * T
+        p.simplify()
+        return p
 
     @classmethod
     def _ValidateUAndDUShapes(cls, U, DU):
@@ -128,7 +137,9 @@ class QuantityConverter:
         grad_rho = sympy.Matrix(1,   dim, lambda _,j: DU[0, j])
         grad_mom = sympy.Matrix(dim, dim, lambda i,j: DU[1+i, j])
 
-        return (grad_mom*rho - mom*grad_rho) / rho**2
+        grad_vel = (grad_mom*rho - mom*grad_rho) / rho**2
+        grad_vel.simplify()
+        return grad_vel
 
 
     @classmethod
@@ -175,7 +186,9 @@ class QuantityConverter:
         grad_e_tot = sympy.Matrix(DU[-1, :])
 
         grad_e_k = rho*vel.transpose()*grad_vel + 0.5 * V2 * grad_rho
-        return (grad_e_tot - grad_e_k)/(rho*params.c_v) - T/rho * grad_rho
+        grad_temp = (grad_e_tot - grad_e_k)/(rho*params.c_v) - T/rho * grad_rho
+        grad_temp.simplify()
+        return grad_temp
 
     @classmethod
     def pressure_gradient(cls, U, DU, params, T=None, grad_T=None):
@@ -198,12 +211,16 @@ class QuantityConverter:
 
         R = cls.gas_constant_R(params)
 
-        return (grad_rho*T + rho*grad_T) * R
+        grad_p = (grad_rho*T + rho*grad_T) * R
+        grad_p.simplify()
+        return grad_p
 
     @classmethod
     def density_gradient(cls, primitives, params):
         R =  cls.gas_constant_R(params)
-        return (primitives.T*primitives.grad_P - primitives.grad_T*primitives.P) / (R * primitives.T**2)
+        grad_rho = (primitives.T*primitives.grad_P - primitives.grad_T*primitives.P) / (R * primitives.T**2)
+        grad_rho.simplify()
+        return grad_rho
 
     @classmethod
     def gas_constant_R(cls, params):
@@ -223,6 +240,7 @@ class QuantityConverter:
         for i in range(blocksize):
             for j in range(blocksize):
                 D[i,j] = sympy.diff(V[i], U[j])
+        D.simplify()
         return D
 
     @classmethod
@@ -232,9 +250,13 @@ class QuantityConverter:
         """
         (P, V, T) = QuantityConverter.Primitives(U, params)
 
-        KratosSympy.SubstituteScalarValue(expr, primitives.P, P)
-        KratosSympy.SubstituteMatrixValue(expr, primitives.V, V)
-        KratosSympy.SubstituteScalarValue(expr, primitives.T, T)
+        translator = [[P]]
+        for v in V:
+            translator.append([v])
+        translator.append([T])
+        translator = sympy.Matrix(translator)
+
+        KratosSympy.SubstituteMatrixValue(expr, primitives.AsVector(), translator)
 
         if not substitute_gradients:
             return
