@@ -40,9 +40,6 @@ class _RomParametersReaderSolver(PythonSolver):
             "model_import_settings" : {}
         }""")
 
-    def Check(self):
-        pass
-
     def ImportModelPart(self):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
