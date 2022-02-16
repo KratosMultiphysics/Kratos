@@ -72,10 +72,10 @@ public:
     ///@{
 
     //default constructor. To be used for low level operations
-    DistributedCsrMatrix() 
+    DistributedCsrMatrix()
     {}
 
-    DistributedCsrMatrix(const DataCommunicator& rComm) 
+    DistributedCsrMatrix(const DataCommunicator& rComm)
         : mpComm(&rComm)
     {}
 
@@ -456,40 +456,43 @@ public:
         return tmp;
     }
 
-    void ApplyHomogeneousDirichlet(const DistributedSystemVector<TDataType,TIndexType>& free_dofs_vector, 
-                                    const TDataType DiagonalValue, 
-                                    DistributedSystemVector<TDataType,TIndexType>& rRHS)
+    void ApplyHomogeneousDirichlet(const DistributedSystemVector<TDataType,TIndexType>& rFreeDofsVector,
+                                   const TDataType DiagonalValue,
+                                   DistributedSystemVector<TDataType,TIndexType>& rRHS)
     {
         KRATOS_TRY
-        KRATOS_ERROR_IF(local_size1() != free_dofs_vector.LocalSize() ) << "ApplyHomogeneousDirichlet: mismatch between row sizes : " << local_size1()  
-            << " and free_dofs_vector size " << free_dofs_vector.LocalSize() << std::endl;
+        KRATOS_ERROR_IF(local_size1() != rFreeDofsVector.LocalSize() ) << "ApplyHomogeneousDirichlet: mismatch between row sizes : " << local_size1()
+                << " and free_dofs_vector size " << rFreeDofsVector.LocalSize() << std::endl;
 
 
         //diagonal block
-        GetDiagonalBlock().ApplyHomogeneousDirichlet(free_dofs_vector.GetLocalData(), DiagonalValue, rRHS.GetLocalData());
+        GetDiagonalBlock().ApplyHomogeneousDirichlet(rFreeDofsVector.GetLocalData(), DiagonalValue, rRHS.GetLocalData());
 
         //off diagonal block
-        auto off_diag_free = mpVectorImporter->ImportData(free_dofs_vector); //obtain the nonlocal components of the free_dofs_vector
+        auto off_diag_free = mpVectorImporter->ImportData(rFreeDofsVector); //obtain the nonlocal components of the rFreeDofsVector
         if(GetOffDiagonalBlock().nnz() != 0)
         {
-            KRATOS_ERROR_IF(GetOffDiagonalBlock().size1() != free_dofs_vector.LocalSize() ) << "ApplyHomogeneousDirichlet - OffDiagonalBlock: mismatch between row sizes : " << GetOffDiagonalBlock().size1()  
-                << " and free_dofs_vector size " << free_dofs_vector.LocalSize() << std::endl;
-            KRATOS_ERROR_IF(GetOffDiagonalBlock().size2() != off_diag_free.size() ) << "ApplyHomogeneousDirichlet - OffDiagonalBlock: mismatch between col sizes : " << GetOffDiagonalBlock().size2()  
-                << " and free_dofs_vector size " << off_diag_free.size() << std::endl;
-            IndexPartition<IndexType>(GetDiagonalBlock().size1()).for_each( [&](IndexType i){
+            KRATOS_ERROR_IF(GetOffDiagonalBlock().size1() != rFreeDofsVector.LocalSize() ) << "ApplyHomogeneousDirichlet - OffDiagonalBlock: mismatch between row sizes : " << GetOffDiagonalBlock().size1()
+                    << " and free_dofs_vector size " << rFreeDofsVector.LocalSize() << std::endl;
+            KRATOS_ERROR_IF(GetOffDiagonalBlock().size2() != off_diag_free.size() ) << "ApplyHomogeneousDirichlet - OffDiagonalBlock: mismatch between col sizes : " << GetOffDiagonalBlock().size2()
+                    << " and free_dofs_vector size " << off_diag_free.size() << std::endl;
+            IndexPartition<IndexType>(GetDiagonalBlock().size1()).for_each( [&](IndexType i)
+            {
 
-                IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
-                IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
-                if(std::abs(free_dofs_vector.GetLocalData()[i] - 1.0) < 1e-10) //row corresponding to free dofs NOTE that we check if it is approx zero
+                const IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
+                const IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
+                if(std::abs(rFreeDofsVector.GetLocalData()[i] - 1.0) < 1e-10) //row corresponding to free dofs NOTE that we check if it is approx zero
                 {
-                    for(IndexType k = row_begin; k < row_end; ++k){
+                    for(IndexType k = row_begin; k < row_end; ++k)
+                    {
                         IndexType col = GetOffDiagonalBlock().index2_data()[k];
-                        GetOffDiagonalBlock().value_data()[k] *= off_diag_free[col]; //note that here we assume that free_dofs_vector is either 0 or 1
+                        GetOffDiagonalBlock().value_data()[k] *= off_diag_free[col]; //note that here we assume that rFreeDofsVector is either 0 or 1
                     }
                 }
                 else //row corresponding to a fixed dof - set to zero all non local row
                 {
-                    for(IndexType k = row_begin; k < row_end; ++k){
+                    for(IndexType k = row_begin; k < row_end; ++k)
+                    {
                         GetOffDiagonalBlock().value_data()[k] = TDataType();
                     }
                 }
@@ -864,7 +867,7 @@ protected:
     // otherwise -1
     template< class TVectorType >
     inline TIndexType BinarySearch(const TVectorType& arr,
-                                  TIndexType l, TIndexType r, TIndexType x)
+                                   TIndexType l, TIndexType r, TIndexType x)
     {
         while (l <= r)
         {
