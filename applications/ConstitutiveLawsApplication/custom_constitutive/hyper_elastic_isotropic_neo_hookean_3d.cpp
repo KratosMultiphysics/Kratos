@@ -108,6 +108,7 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateGreenLagrangianStrain(rValues, strain_vector);
+        KRATOS_WATCH(strain_vector)
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
@@ -148,7 +149,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
-    if(r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateAlmansiStrain(rValues, strain_vector);
     }
 
