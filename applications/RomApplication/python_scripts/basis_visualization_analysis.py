@@ -87,6 +87,21 @@ class BasisVisualizationAnalysis(AnalysisStage):
         return self._GetSolver().GetCurrentMode() + 1 != self._GetSolver().GetNumberOfModes()
 
     def __init__(self, model, project_parameters):
+
+        if "problem_data" not in project_parameters:
+            # Adding dummy values used by base analysis stage
+            project_parameters.AddEmptyValue("problem_data")
+
+            project_parameters["problem_data"] = KratosMultiphysics.Parameters("""
+                {
+                    "parallel_type": "OpenMP",
+                    "start_time": 0.0,
+                    "time_step": 1.0,
+                    "end_time": 1.0,
+                    "echo_level": 0
+                }
+            """)
+
         super().__init__(model, project_parameters)
 
         gid_settings = KratosMultiphysics.Parameters("""
