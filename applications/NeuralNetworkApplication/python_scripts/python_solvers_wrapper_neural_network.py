@@ -15,8 +15,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         solver_module_name = "neural_network_solver"
     elif solver_type == "pinn" or solver_type == "PINN":
         solver_module_name = "physics_informed_neural_network"
+    elif solver_type == "neural_network_mesh_moving" or solver_type == "Neural_network_mesh_moving":
+        solver_module_name = "neural_network_mesh_moving_solver"
     else:
-        print("the selected solver is not avaibale in the solvers, available solvers are neural_network and physics_informed_neural_network")
+        print("the selected solver is not avaibale in the solvers, available solvers are neural_network, neural_network_mesh_moving and physics_informed_neural_network")
 
     kratos_module = "KratosMultiphysics.NeuralNetworkApplication"
 
