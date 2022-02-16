@@ -71,3 +71,4 @@ def CreateSolver(model, custom_settings):
     solver_settings = custom_settings["solver_settings"]
 
     return CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage)
+
