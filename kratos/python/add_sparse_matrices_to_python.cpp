@@ -197,10 +197,10 @@ void AddSparseMatricesToPython(pybind11::module& m)
        self.Assemble(values,indices);
     })
     //inplace
-    .def("__iadd__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self += other_vec; }, py::is_operator())
-    .def("__isub__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self -= other_vec;  }, py::is_operator())
-    .def("__imul__", [](SystemVector<double,IndexType>& self, const double& value){ self*=value; }, py::is_operator())
-    .def("__itruediv__", [](SystemVector<double,IndexType>& self, const double& value){ self/=value; }, py::is_operator())
+    .def("__iadd__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec) -> SystemVector<double,IndexType>& {self += other_vec; return self;}, py::is_operator())
+    .def("__isub__", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec) -> SystemVector<double,IndexType>& {self -= other_vec;  return self;}, py::is_operator())
+    .def("__imul__", [](SystemVector<double,IndexType>& self, const double& value) -> SystemVector<double,IndexType>& { self*=value; return self;}, py::is_operator())
+    .def("__itruediv__", [](SystemVector<double,IndexType>& self, const double& value) -> SystemVector<double,IndexType>& { self/=value; return self;}, py::is_operator())
     //out of place
     //.def("__add__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){SystemVector<double,IndexType> aux(vec1); aux += vec2; return std::move(aux);}, py::is_operator())
     // .def("__sub__", [](const SystemVector<double,IndexType>& vec1, const SystemVector<double,IndexType>& vec2){SystemVector<double,IndexType> aux(vec1); aux -= vec2; return aux;}, py::is_operator())

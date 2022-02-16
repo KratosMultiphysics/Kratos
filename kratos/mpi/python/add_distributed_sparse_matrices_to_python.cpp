@@ -23,7 +23,6 @@
 #include "containers/distributed_csr_matrix.h"
 #include "add_distributed_sparse_matrices_to_python.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
-#include <pybind11/operators.h>
 namespace Kratos {
 namespace Python {
 
@@ -107,14 +106,10 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         })
         .def("Dot", &DistributedSystemVector<double,IndexType>::Dot)
         //inplace
-        // .def(py::self += py::self)
-        // .def(py::self -= py::self)
-        // .def(py::self *= double())
-        // .def(py::self /= double())
-        .def("__iadd__", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec){self += other_vec; } )
-        .def("__isub__", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec){self -= other_vec;  } )
-        .def("__imul__", [](DistributedSystemVector<double,IndexType>& self, const double& value){ self*=value; } )
-        .def("__itruediv__", [](DistributedSystemVector<double,IndexType>& self, const double& value){ self/=value; } )
+        .def("__iadd__", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec) -> DistributedSystemVector<double,IndexType>& {self += other_vec; return self;}, py::is_operator() )
+        .def("__isub__", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec) -> DistributedSystemVector<double,IndexType>& {self -= other_vec;  return self;}, py::is_operator() )
+        .def("__imul__", [](DistributedSystemVector<double,IndexType>& self, const double& value) -> DistributedSystemVector<double,IndexType>& { self*=value; return self;}, py::is_operator() )
+        .def("__itruediv__", [](DistributedSystemVector<double,IndexType>& self, const double& value) -> DistributedSystemVector<double,IndexType>& { self/=value; return self;} , py::is_operator())
         .def("Assign", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec){self = other_vec; } )
         .def("Add", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec){self += other_vec; } )
         .def("Sub", [](DistributedSystemVector<double,IndexType>& self, const DistributedSystemVector<double,IndexType>& other_vec){self -= other_vec;  } )
