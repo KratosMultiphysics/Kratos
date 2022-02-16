@@ -39,7 +39,10 @@ void RemoveConnection(const std::string& rConnectionName)
     s_co_sim_connections.erase(rConnectionName);
 }
 
-Info ConnectImpl(const Info& I_Settings, std::shared_ptr<DataCommunicator> I_DataComm)
+Info ConnectImpl(
+    const Info& I_Settings,
+    std::shared_ptr<DataCommunicator> I_DataComm,
+    const CommunicationFactory& rCommFactory)
 {
     const std::string my_name = I_Settings.Get<std::string>("my_name");
     const std::string connect_to = I_Settings.Get<std::string>("connect_to");
@@ -53,7 +56,10 @@ Info ConnectImpl(const Info& I_Settings, std::shared_ptr<DataCommunicator> I_Dat
 
     CO_SIM_IO_ERROR_IF(HasConnection(connection_name)) << "A connection from \"" << my_name << "\" to \"" << connect_to << "\"already exists!" << std::endl;
 
-    s_co_sim_connections[connection_name] = CoSimIO::make_unique<Connection>(I_Settings, I_DataComm);
+    s_co_sim_connections[connection_name] = CoSimIO::make_unique<Connection>(
+        I_Settings,
+        I_DataComm,
+        rCommFactory);
 
     auto info = GetConnection(connection_name).Connect(I_Settings);
     info.Set<std::string>("connection_name", connection_name);
