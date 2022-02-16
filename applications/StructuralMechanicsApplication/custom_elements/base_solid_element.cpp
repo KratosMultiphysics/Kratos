@@ -1592,11 +1592,9 @@ void BaseSolidElement::RotateToGlobalAxes(
             if (stress_option)
                 rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             if (constitutive_matrix_option) {
-                const auto& r_C = rValues.GetConstitutiveMatrix();
-                Matrix C_global = r_C;
-                noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
-                C_global = prod(C_global, voigt_rotation_matrix);
-                rValues.SetConstitutiveMatrix(C_global);
+                BoundedMatrix<double, 6, 6> aux;
+                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
             }
         } else if (strain_size == 3) {
             BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
@@ -1605,11 +1603,9 @@ void BaseSolidElement::RotateToGlobalAxes(
             if (stress_option)
                 rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             if (constitutive_matrix_option) {
-                const auto& r_C = rValues.GetConstitutiveMatrix();
-                Matrix C_global = r_C;
-                noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
-                C_global = prod(C_global, voigt_rotation_matrix);
-                rValues.SetConstitutiveMatrix(C_global);
+                BoundedMatrix<double, 3, 3> aux;
+                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
             }
         }
         // Now undo the rotation in F if required
