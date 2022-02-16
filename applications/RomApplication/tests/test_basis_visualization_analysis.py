@@ -19,19 +19,12 @@ class TestBasisVisualizationAnalysis(KratosUnittest.TestCase):
             params = KratosMultiphysics.Parameters("""
             {
                 "solver_settings": {
-                    "model_part_name": "ThermalModelPart",
+                    "model_part_name": "main_model_part",
                     "model_import_settings": {
                         "input_type": "mdpa",
                         "input_filename": "Square_Radiation_Stationary"
                     },
                     "rom_parameters_file" : "RomParameters.json"
-                },
-                "problem_data": {
-                    "parallel_type": "OpenMP",
-                    "start_time": 0.0,
-                    "time_step": 1.0,
-                    "end_time": 1.0,
-                    "echo_level": 0
                 }
             }
             """)
@@ -40,7 +33,10 @@ class TestBasisVisualizationAnalysis(KratosUnittest.TestCase):
             analysis = BasisVisualizationAnalysis(model, params)
             analysis.Run()
 
-            # self.files_to_remove.append(os.path.abspath("Square_Radiation_Stationary.post.bin"))
+            self.assertIn(KratosMultiphysics.TEMPERATURE, analysis._GetSolver().GetVariables())
+
+            self.files_to_remove.append(os.path.abspath("Square_Radiation_Stationary.post.bin"))
+            self.files_to_remove.append(os.path.abspath("thermal_static_test_files.post.lst"))
 
     @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
     def testMultipleDOF(self):
@@ -48,19 +44,12 @@ class TestBasisVisualizationAnalysis(KratosUnittest.TestCase):
             params = KratosMultiphysics.Parameters("""
             {
                 "solver_settings": {
-                    "model_part_name": "Parts_Structure",
+                    "model_part_name": "main_model_part",
                     "model_import_settings": {
                         "input_type": "mdpa",
                         "input_filename": "Structure_Dynamic_2D"
                     },
                     "rom_parameters_file" : "RomParameters.json"
-                },
-                "problem_data": {
-                    "parallel_type": "OpenMP",
-                    "start_time": 0.0,
-                    "time_step": 1.0,
-                    "end_time": 1.0,
-                    "echo_level": 0
                 }
             }
             """)
