@@ -5,6 +5,10 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.python_solver import PythonSolver
 
 class FauxSolver(PythonSolver):
+    """
+    Pretends to be a solver, but actually just reads the results from the RomParameters.json
+    """
+
     def __init__(self, model, settings):
         super().__init__(model, settings)
 
@@ -23,7 +27,7 @@ class FauxSolver(PythonSolver):
 
         self.number_of_modes = rom_params["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-        self.variable_names = rom_params["rom_settings"]["nodal_unknowns"]
+        self.variable_names = [p.GetString() for p in rom_params["rom_settings"]["nodal_unknowns"]]
         self.variables = None
 
     def GetVariableNames(self):
@@ -57,8 +61,8 @@ class FauxSolver(PythonSolver):
 
     def Initialize(self):
         self.variables = []
-        for name_json in self.GetVariableNames():
-            variable = KratosMultiphysics.KratosGlobals.GetVariable(name_json.GetString())
+        for name in self.GetVariableNames():
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(name)
             self.variables.append(variable)
 
         for variable in self.variables:
@@ -74,7 +78,7 @@ class FauxSolver(PythonSolver):
         mode = self.GetCurrentMode()
         for node in self.GetComputingModelPart().Nodes:
             variable_idx = 0
-            for variable in self.variables:
+            for variable in self.GetVariables():
                 value = self.rom_settings["nodal_modes"][str(node.Id)][variable_idx][mode].GetDouble()
                 node.SetValue(variable, value)
                 variable_idx += 1
@@ -142,8 +146,9 @@ class BasisVisualizationAnalysis(AnalysisStage):
         gid_settings["Parameters"]["model_part_name"].SetString(self.project_parameters["solver_settings"]["model_part_name"].GetString())
         gid_settings["Parameters"]["output_name"].SetString(self.project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString())
 
-        gid_settings["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_nonhistorical_results"] \
-            = self._GetSolver().GetVariableNames()
+        for varname in self._GetSolver().GetVariableNames():
+            gid_settings["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_nonhistorical_results"].Append(varname)
+
 
         if not "output_processes" in self.project_parameters:
             self.project_parameters.AddEmptyValue("output_processes")
