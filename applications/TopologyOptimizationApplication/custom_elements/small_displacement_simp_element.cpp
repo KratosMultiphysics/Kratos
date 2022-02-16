@@ -106,22 +106,6 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 {
     KRATOS_TRY
 
-    // Additional part for post-processing of the topology optimized model part
-    if (rVariable == X_PHYS)
-		//CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-        ;
-    // From original SmallDisplacementElement
-    else if (rVariable == VON_MISES_STRESS)
-		//CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-        ;
-    else {
-
-            SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-      	}
-
-
-    }
-
     // From original SmallDisplacementElement
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -194,11 +178,11 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
     if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
     {
         // Get values
-        double E_min     = this->GetValue(YOUNGS_MODULUS_MIN);
-        double E_initial = this->GetValue(YOUNGS_MODULUS_0);
-        double E_current = this->GetValue(YOUNG_MODULUS);
-        double penalty   = this->GetValue(PENAL);
-        double x_phys    = this->GetValue(X_PHYS);
+        const double E_min     = this->GetValue(YOUNGS_MODULUS_MIN);
+        const double E_initial = this->GetValue(YOUNGS_MODULUS_0);
+        const double E_current = this->GetValue(YOUNG_MODULUS);
+        const double penalty   = this->GetValue(PENAL);
+        const double x_phys    = this->GetValue(X_PHYS);
 
         // Get element stiffness matrix and modify it with the factor that considers the adjusted Youngs Modulus according to the SIMP method
         // Note that Ke0 is computed based on the originally provided Youngs Modulus in the .mdpa-file

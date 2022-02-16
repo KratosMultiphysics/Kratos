@@ -106,6 +106,7 @@ public:
         double Global_Strain_Energy = 0.0;
 
         // Loop over all elements to calculate their local objective function and sum it into the global objective function (Global Strain Energy)
+        #pragma omp parallel for
         for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
         {
@@ -139,6 +140,7 @@ public:
 
 
         // Loop over all elements to obtain their X_PHYS and know how many elements the model has
+        #pragma omp parallel for
         for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
         {
