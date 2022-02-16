@@ -1,11 +1,12 @@
 from importlib import import_module
-import KratosMultiphysics.NeuralNetworkApplication.input_dataclasses as InputDataclasses
 import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities
 import KratosMultiphysics
-from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDataWithLookback, ListNeuralNetworkData, NeuralNetworkData
+from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import  NeuralNetworkData
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
 from KratosMultiphysics.NeuralNetworkApplication import python_solvers_wrapper_neural_network as neural_network_solvers
+from KratosMultiphysics.NeuralNetworkApplication.neural_network_mesh_moving_solver import CreateSolver as MeshMovingCreateSolver
+from KratosMultiphysics.NeuralNetworkApplication.neural_network_solver import CreateSolver as CreateSolver
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_model import MachineLearningModel
 import numpy as np
 
@@ -26,6 +27,11 @@ class NeuralNetworkAnalysis(AnalysisStage):
             self.ml_model = MachineLearningModel('keras')
 
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        if self.project_parameters["problem_data"].Has("mesh_moving"):
+            self.mesh_moving = self.project_parameters["problem_data"]["mesh_moving"].GetBool()
+        else:
+            self.mesh_moving = False
+
         if self.problem_type == "predict_with_modelpart" or self.problem_type == "predict_without_modelpart":
             try:
                 neural_network_file = self.project_parameters["problem_data"]["neural_network_file"].GetString()
@@ -47,6 +53,8 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
                 self.solver = self._CreateNeuralNetworkSolver()
                 super().__init__(self.kratos_model, self.project_parameters)
+                if self.mesh_moving:
+                    self._GetNeuralNetworkSolver().AddVariables()
                 KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.model_geometry)
                 try:
                     self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
@@ -57,11 +65,14 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 self.model_geometry = self.kratos_model.CreateModelPart(self.model_geometry_name)
                 self.solver = self._CreateNeuralNetworkSolver()
                 super().__init__(self.kratos_model, self.project_parameters)
+                if self.mesh_moving:
+                    self._GetNeuralNetworkSolver().AddVariables()
                 # KratosMultiphysics.ModelPartIO(self.model_geometry_file).ReadModelPart(self.kratos_model[self.model_geometry_name])
                 try:
                     self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["solver_settings"]["solver_settings"]["domain_size"].GetInt()
                 except RuntimeError:
                     self.model_geometry.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = self.project_parameters["problem_data"]["domain_size"].GetInt()
+            
 
     def _CreateSolver(self):
         """This function creates the PHYSICS solver."""
@@ -122,8 +133,48 @@ class NeuralNetworkAnalysis(AnalysisStage):
         
         if self.problem_type == "predict_with_modelpart":
             print(self.kratos_model)
-            super().Initialize()
+            self._CreateModelers()
+            self._ModelersSetupGeometryModel()
+            self._ModelersPrepareGeometryModel()
+            self._ModelersSetupModelPart()
+
+            self._GetSolver().ImportModelPart()
+            self._GetSolver().PrepareModelPart()
+            if self.mesh_moving:
+                self._GetNeuralNetworkSolver().AddDofs()
+            self._GetSolver().AddDofs()
+
+            self.ModifyInitialProperties()
+            self.ModifyInitialGeometry()
+
+            ##here we initialize user-provided processes
+            self.__CreateListOfProcesses() # has to be done after importing and preparing the ModelPart
+            for process in self._GetListOfProcesses():
+                process.ExecuteInitialize()
+
+            self._GetSolver().Initialize()
             self._GetNeuralNetworkSolver().Initialize()
+            self.Check()
+
+            self.ModifyAfterSolverInitialize()
+
+            for process in self._GetListOfProcesses():
+                process.ExecuteBeforeSolutionLoop()
+
+            ## Stepping and time settings
+            self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+
+            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+                self.time = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
+            else:
+                self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+
+            ## If the echo level is high enough, print the complete list of settings used to run the simualtion
+            if self.echo_level > 1:
+                with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
+                    parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
+
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
             
         else:
             if data_input != None:
@@ -349,14 +400,10 @@ class NeuralNetworkAnalysis(AnalysisStage):
             if data_structure_in is None:
                 data_structure_in = self.data_in
             
-            if self.timesteps_as_features:
-                data_structure_in.SetTimestepsAsFeatures()
-            if self.feaures_as_timestpes:
-                data_structure_in.SetFeaturesAsTimesteps()
 
             for process in self._GetListOfProcesses():
                 try:
-                    output = process.Predict(self.neural_network_model, data_structure_in)
+                    output = process.Predict(self.ml_model.model, data_structure_in)
                     if not output is None:
                         data_out.UpdateData(output)
                 except AttributeError:
