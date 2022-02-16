@@ -1,6 +1,4 @@
 import KratosMultiphysics
-from KratosMultiphysics import gid_output_process
-import KratosMultiphysics.RomApplication as RomApp
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.python_solver import PythonSolver
 
