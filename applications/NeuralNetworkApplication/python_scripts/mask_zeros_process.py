@@ -74,6 +74,13 @@ class MaskZerosProcess(PreprocessingProcess):
                         mask_parameters.RemoveValue("output_log_name")
             # else:
             #     raise Exception("Masking objective not supported. Supported objectives are input and output")
+        else:
+            if self.objective == 'input':
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                masking_variables = input_log.get(self.log_denominator)
+            elif self.objective == 'output':
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                masking_variables = output_log.get(self.log_denominator)
 
         if len(masking_variables) > 0 or self.load_from_log:
             # Load the parameters to the masking process
@@ -106,24 +113,40 @@ class MaskZerosProcess(PreprocessingProcess):
             if self.objective == "input" or self.objective == "predict_input":
                 input_log = ImportDictionaryFromText(self.input_log_name)
                 input_zero_mask = input_log.get(self.log_denominator)
-                for index in input_zero_mask:
-                    data_in = np.insert(data_in, index, 0.0, axis = 1)
+                try:
+                    for index in input_zero_mask:
+                        data_in = np.insert(data_in, index, 0.0, axis = 1)
+                except IndexError:
+                    for index in input_zero_mask:
+                        data_in = np.insert(data_in, index, 0.0)
                 
             if self.objective == "output" or self.objective == "predict_output":
                 output_log = ImportDictionaryFromText(self.output_log_name)
                 output_zero_mask = output_log.get(self.log_denominator)
-                for index in output_zero_mask:
-                    data_out = np.insert(data_out, index, 0.0, axis = 1)
+                try:
+                    for index in output_zero_mask:
+                        data_out = np.insert(data_out, index, 0.0, axis = 1)
+                except IndexError:
+                    for index in output_zero_mask:
+                        data_out = np.insert(data_out, index, 0.0)
 
             if self.objective == "all" or self.objective == "predict_all":
                 input_log = ImportDictionaryFromText(self.input_log_name)
                 input_zero_mask = input_log.get(self.log_denominator)
-                for index in input_zero_mask:
-                    data_in = np.insert(data_in, index, 0.0, axis = 1)
+                try:
+                    for index in input_zero_mask:
+                        data_in = np.insert(data_in, index, 0.0, axis = 1)
+                except IndexError:
+                    for index in input_zero_mask:
+                        data_in = np.insert(data_in, index, 0.0)
                 output_log = ImportDictionaryFromText(self.output_log_name)
                 output_zero_mask = output_log.get(self.log_denominator)
-                for index in output_zero_mask:
-                    data_out = np.insert(data_out, index, 0.0, axis = 1)
+                try:
+                    for index in output_zero_mask:
+                        data_out = np.insert(data_out, index, 0.0, axis = 1)
+                except IndexError:
+                    for index in output_zero_mask:
+                        data_out = np.insert(data_out, index, 0.0)
 
             data_structure_in.UpdateData(data_in)
             data_structure_out.UpdateData(data_out)
