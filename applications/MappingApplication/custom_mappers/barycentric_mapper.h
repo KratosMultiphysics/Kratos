@@ -58,9 +58,12 @@ public:
 
     const ClosestPointsContainer& GetClosestPoints() const { return mClosestPoints; }
 
+    std::size_t GetNumSearchResults() const { return mNumSearchResults; }
+
 private:
     BarycentricInterpolationType mInterpolationType;
     ClosestPointsContainer mClosestPoints;
+    std::size_t mNumSearchResults = 0;
 
     friend class Serializer;
 
@@ -94,6 +97,8 @@ public:
     void PairingInfo(std::ostream& rOStream, const int EchoLevel) const override;
 
     void SetPairingStatusForPrinting() override;
+
+    bool IsDoneSearching() const override;
 
 private:
     NodePointerType mpNode;
