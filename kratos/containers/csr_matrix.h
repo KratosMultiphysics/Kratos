@@ -533,10 +533,9 @@ public:
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
 
-        unsigned int local_size = rMatrixInput.size1();
+        const unsigned int local_size = rMatrixInput.size1();
 
-        for (unsigned int i_local = 0; i_local < local_size; ++i_local)
-        {
+        for (unsigned int i_local = 0; i_local < local_size; ++i_local) {
             const IndexType I = EquationId[i_local];
             const IndexType row_begin = index1_data()[I];
             const IndexType row_end = index1_data()[I+1];
@@ -549,20 +548,14 @@ public:
             AtomicAdd(value_data()[k], rMatrixInput(i_local,0));
 
             //now find other entries. note that we assume that it is probably that next entries immediately follow in the ordering
-            for(unsigned int j_local=1; j_local<local_size; ++j_local)
-            {
+            for(unsigned int j_local=1; j_local<local_size; ++j_local) {
                 J = EquationId[j_local];
 
-                if(k+1<row_end && index2_data()[k+1] == J)
-                {
+                if(k+1<row_end && index2_data()[k+1] == J) {
                     k = k+1;
-                }
-                else if(J > lastJ)  //note that the case k+2 >= index2_data().size() should be impossible
-                {
+                } else if(J > lastJ) { //note that the case k+2 >= index2_data().size() should be impossible
                     k = BinarySearch(index2_data(), k+2, row_end, J);
-                }
-                else if(J < lastJ)
-                {
+                } else if(J < lastJ) {
                     k = BinarySearch(index2_data(), row_begin, k-1, J);
                 }
                 //the last missing case is J == lastJ, which should never happen in FEM. If that happens we can reuse k
@@ -584,11 +577,10 @@ public:
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != RowEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
         KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != ColEquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
 
-        unsigned int local_size = rMatrixInput.size1();
-        unsigned int col_size = rMatrixInput.size2();
+        const unsigned int local_size = rMatrixInput.size1();
+        const unsigned int col_size = rMatrixInput.size2();
 
-        for (unsigned int i_local = 0; i_local < local_size; ++i_local)
-        {
+        for (unsigned int i_local = 0; i_local < local_size; ++i_local) {
             const IndexType I = RowEquationId[i_local];
             const IndexType row_begin = index1_data()[I];
             const IndexType row_end = index1_data()[I+1];
@@ -601,20 +593,14 @@ public:
             AtomicAdd(value_data()[k], rMatrixInput(i_local,0));
 
             //now find other entries. note that we assume that it is probably that next entries immediately follow in the ordering
-            for(unsigned int j_local=1; j_local<col_size; ++j_local)
-            {
+            for(unsigned int j_local=1; j_local<col_size; ++j_local) {
                 J = ColEquationId[j_local];
 
-                if(k+1<row_end && index2_data()[k+1] == J)
-                {
+                if(k+1<row_end && index2_data()[k+1] == J) {
                     k = k+1;
-                }
-                else if(J > lastJ)  //note that the case k+2 >= index2_data().size() should be impossible
-                {
+                } else if(J > lastJ) { //note that the case k+2 >= index2_data().size() should be impossible
                     k = BinarySearch(index2_data(), k+2, row_end, J);
-                }
-                else if(J < lastJ)
-                {
+                } else if(J < lastJ) {
                     k = BinarySearch(index2_data(), row_begin, k-1, J);
                 }
                 //the last case is J == lastJ, which should never happen in FEM. If that happens we can reuse k
@@ -646,28 +632,20 @@ public:
         KRATOS_ERROR_IF(size2() != rFreeDofsVector.size() ) << "ApplyDirichlet: mismatch between col sizes : " << size2()
                 << " and free_dofs_vector size " << rFreeDofsVector.size() << std::endl;
 
-        if(nnz() != 0)
-        {
-            IndexPartition<IndexType>(size1()).for_each( [&](IndexType i)
-            {
-
+        if(nnz() != 0) {
+            IndexPartition<IndexType>(size1()).for_each( [&](IndexType i) {
                 //set to zero the relevant row in the RHS
                 rRHS[i] *= rFreeDofsVector[i];
 
                 const IndexType row_begin = index1_data()[i];
                 const IndexType row_end   = index1_data()[i+1];
-                if(std::abs(rFreeDofsVector[i]-1.0) < 1e-14) //row corresponding to free dofs NOTE that we check if it is approx zero
-                {
-                    for(IndexType k = row_begin; k < row_end; ++k)
-                    {
+                if(std::abs(rFreeDofsVector[i]-1.0) < 1e-14) { //row corresponding to free dofs NOTE that we check if it is approx zero TODO: Epsilon?
+                    for(IndexType k = row_begin; k < row_end; ++k) {
                         IndexType col = index2_data()[k];
                         value_data()[k] *= rFreeDofsVector[col]; //note that here we assume that rFreeDofsVector is either 0 or 1
                     }
-                }
-                else //row corresponding to a fixed dof
-                {
-                    for(IndexType k = row_begin; k < row_end; ++k)
-                    {
+                } else { //row corresponding to a fixed dof
+                    for(IndexType k = row_begin; k < row_end; ++k) {
                         IndexType col = index2_data()[k];
                         if(col!=i) //out-diagonal term
                             value_data()[k] = TDataType();
