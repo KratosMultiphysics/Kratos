@@ -70,9 +70,11 @@ class FauxSolver(PythonSolver):
     def SolveSolutionStep(self):
         mode = self.GetCurrentMode()
         for node in self.GetComputingModelPart().Nodes:
+            variable_idx = 0
             for variable in self.variables:
-                value = self.rom_settings["nodal_modes"][str(node.Id)][0][mode].GetDouble()
+                value = self.rom_settings["nodal_modes"][str(node.Id)][variable_idx][mode].GetDouble()
                 node.SetValue(variable, value)
+                variable_idx += 1
 
 
 class BasisVisualizationAnalysis(AnalysisStage):
