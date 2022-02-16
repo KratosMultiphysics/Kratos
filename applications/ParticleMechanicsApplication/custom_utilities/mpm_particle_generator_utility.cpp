@@ -33,6 +33,7 @@ namespace MPMParticleGeneratorUtility
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
 
+        const ProcessInfo& rCurrentProcessInfo = rBackgroundGridModelPart.GetProcessInfo();
         // Initialize zero the variables needed
         std::vector<array_1d<double, 3>> xg = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_displacement = { ZeroVector(3) };
@@ -110,8 +111,14 @@ namespace MPMParticleGeneratorUtility
                     // Set element type
                     std::string element_type_name = "UpdatedLagrangian";
                     if (IsMixedFormulation) {
-                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
-                        else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                        if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION) == 0) {
+                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
+                            else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                        }
+                        else if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION) == 2) {
+                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUPVMS";
+                            else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
+                        }
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
                     else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {

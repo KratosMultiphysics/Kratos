@@ -58,17 +58,17 @@ class PrebucklingSolver(MechanicalSolver):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
     # Builder and Solver Eigen
-    def get_builder_and_solver_eigen(self):
+    def _GetBuilderAndSolverEigen(self):
         if not hasattr(self, '_builder_and_solver_eigen'):
             self._builder_and_solver_eigen = self._create_builder_and_solver_eigen()
         return self._builder_and_solver_eigen
 
     def _create_builder_and_solver_eigen(self):
-        linear_solver = self.get_linear_solver_eigen()
+        linear_solver = self._GetLinearSolverEigen()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
-    def get_linear_solver_eigen(self):
+    def _GetLinearSolverEigen(self):
         if not hasattr(self, '_linear_solver_eigen'):
             self._linear_solver_eigen = self._create_linear_solver_eigen()
         return self._linear_solver_eigen
@@ -84,7 +84,7 @@ class PrebucklingSolver(MechanicalSolver):
             warn_msg = '"Elimination Builder is required. \n'
             warn_msg += '"use_block_builder" specification will be ignored'
             KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsPrebucklingAnalysis; Warning", warn_msg)
-        linear_solver = self.get_linear_solver()
+        linear_solver = self._GetLinearSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
@@ -103,9 +103,9 @@ class PrebucklingSolver(MechanicalSolver):
 
     def _create_mechanical_solution_strategy(self):
         solution_scheme = self._GetScheme()
-        eigen_solver = self.get_builder_and_solver_eigen() # The eigensolver is created here.
-        builder_and_solver = self.get_builder_and_solver() # The linear solver is created here.
-        convergence_criteria = self.get_convergence_criterion()
+        eigen_solver = self._GetBuilderAndSolverEigen() # The eigensolver is created here.
+        builder_and_solver = self._GetBuilderAndSolver() # The linear solver is created here.
+        convergence_criteria = self._GetConvergenceCriterion()
         computing_model_part = self.GetComputingModelPart()
         buckling_settings = self.settings["buckling_settings"]
 
