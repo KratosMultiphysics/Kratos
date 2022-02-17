@@ -9,6 +9,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_stabilization_matrix
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
     .src.defines import CompressibleNavierStokesDefines as defs
@@ -20,7 +21,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 import KratosMultiphysics.FluidDynamicsApplication
 
-class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.TestCase):
+class CompressibleNavierStokesSymbolicGeneratorValidationTest(KratosUnitTest.TestCase):
     def setUp(self):
         self.files_to_remove = []
 
@@ -123,6 +124,8 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
     # def testSymbolicTetrahedron(self):
     #     self._RunTest("3D4N")
 
+
+class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase):
     def _assertSympyMatrixEqual(self, first, second, msg=None):
         """Asserts that two sympy matrices are equivalent."""
         class LazyMsg:
@@ -245,6 +248,28 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
 
         self._assertSympyMatrixEqual(G,  G_expected)
 
+    def testComputeStabilizationMatrix(self):
+        g = self._DummyGeometry()
+        params = FormulationParameters(g, "python")
+        tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
+
+        tau_expected = sympy.Matrix([
+            [sympy.Symbol('tau1'),                    0,                    0,                    0],
+            [                   0, sympy.Symbol('tau2'),                    0,                    0],
+            [                   0,                    0, sympy.Symbol('tau2'),                    0],
+            [                   0,                    0,                    0, sympy.Symbol('tau3')]
+        ])
+
+        self._assertSympyMatrixEqual(tau,  tau_expected)
+
 
 if __name__ == '__main__':
-    KratosUnitTest.main()
+    suites = KratosUnitTest.KratosSuites
+
+    suites["small"].addTests(KratosUnitTest.TestLoader().loadTestsFromTestCases([CompressibleNavierStokesSymbolicGeneratorUnitTest]))
+    suites["validation"].addTests(KratosUnitTest.TestLoader().loadTestsFromTestCases([CompressibleNavierStokesSymbolicGeneratorValidationTest]))
+
+    suites["all"].addTests(suites["small"])
+    # suites["all"].addTests(suites["validation"])
+
+    KratosUnitTest.runTests(suites)
