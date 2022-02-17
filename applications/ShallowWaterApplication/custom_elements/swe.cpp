@@ -399,7 +399,7 @@ void SWE<TNumNodes, TFramework>::AddConvectiveTerms(
 {
     if (TFramework == Eulerian)
     {
-        BoundedMatrix<double,2, rVariables.LocalSize> convection_operator;
+        BoundedMatrix<double,2, 3*TNumNodes> convection_operator;
         convection_operator = rVariables.velocity[0] * rVariables.Grad_q1;
         convection_operator += rVariables.velocity[1] * rVariables.Grad_q2;
 

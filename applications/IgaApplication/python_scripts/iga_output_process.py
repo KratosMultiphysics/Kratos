@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.IgaApplication
+import KratosMultiphysics.StructuralMechanicsApplication
 
 import KratosMultiphysics.kratos_utilities
 
