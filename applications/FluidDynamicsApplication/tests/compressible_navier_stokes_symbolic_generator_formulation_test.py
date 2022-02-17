@@ -126,6 +126,10 @@ class CompressibleNavierStokesSymbolicGeneratorValidationTest(KratosUnitTest.Tes
 
 
 class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase):
+
+    def setUp(self):
+        defs.SetFormat("python")
+
     def _assertSympyMatrixEqual(self, first, second, msg=None):
         """Asserts that two sympy matrices are equivalent."""
         class LazyMsg:
@@ -154,9 +158,9 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
     class _DummyGeometry:
             ndims = 2
             nnodes = None
+            blocksize = ndims + 2
 
     def testdVdU(self):
-        defs.SetFormat("python")
         g = self._DummyGeometry()
 
         rho = sympy.Symbol("rho")
@@ -181,7 +185,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         self._assertSympyMatrixEqual(dvdu, expected)
 
     def testComputeEulerJacobianMatrix(self):
-        defs.SetFormat("python")
 
         g = self._DummyGeometry()
         U = defs.Vector("U", g.ndims+2)
@@ -203,7 +206,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         self._assertSympyMatrixEqual(A[0],  A0_expected)
 
     def testComputeDiffusiveFlux(self):
-        defs.SetFormat("python")
 
         g = self._DummyGeometry()
         U = defs.Vector("U", g.ndims+2)
@@ -225,7 +227,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         self._assertSympyMatrixEqual(G,  G_expected)
 
     def testComputeDiffusiveFluxWithShockCapturing(self):
-        defs.SetFormat("python")
 
         g = self._DummyGeometry()
         params = FormulationParameters(g, "python")
