@@ -17,7 +17,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 import KratosMultiphysics.FluidDynamicsApplication
 
-class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.TestCase):
+class CompressibleNavierStokesSymbolicGeneratorValidationTest(KratosUnitTest.TestCase):
     def setUp(self):
         self.files_to_remove = []
 
@@ -120,6 +120,8 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
     def testSymbolicTetrahedron(self):
         self._RunTest("3D4N")
 
+
+class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase):
     def _assertSympyMatrixEqual(self, first, second, msg=None):
         """Asserts that two sympy matrices are equivalent."""
         class LazyMsg:
