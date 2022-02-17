@@ -35,7 +35,7 @@ namespace Python
 
     template< typename TVectorType > py::class_< TVectorType > CreateVectorInterface(pybind11::module& m, std::string Name )
     {
-        py::class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str());
+        py::class_< TVectorType, std::shared_ptr<TVectorType> > binder(m,Name.c_str(), py::buffer_protocol());
         binder.def(py::init<>());
         binder.def(py::init<const TVectorType&>());
 
@@ -81,6 +81,28 @@ namespace Python
                 self[start] = value[i]; start += step;
             }
         });
+        binder.def(py::init( [](py::buffer b){
+          py::buffer_info info = b.request();
+          KRATOS_ERROR_IF( info.format != py::format_descriptor<typename TVectorType::value_type >::value ) << "Expected a double array\n";
+          KRATOS_ERROR_IF( info.ndim != 1 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
+          TVectorType vec(info.shape[0]);
+
+          for( int i=0; i<info.shape[0]; ++i ) {
+              vec[i]= static_cast<typename TVectorType::value_type *>(info.ptr)[i];
+          }
+
+          return vec;
+        }));
+        binder.def_buffer( [](TVectorType& self)-> py::buffer_info{
+                                                                    return py::buffer_info(
+                                                                    self.data().begin(),
+                                                                    sizeof(typename TVectorType::value_type),
+                                                                    py::format_descriptor<typename TVectorType::value_type>::format(),
+                                                                    1,
+                                                                    {self.size()},
+                                                                    {sizeof(typename TVectorType::value_type)}
+                                                                    );
+                                                                    });
     #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         binder.def("__getitem__", [](TVectorType &self, pybind11::slice this_slice) -> AMatrix::SubVector<TVectorType> {
           size_t start, stop, step, slicelength;
@@ -144,7 +166,7 @@ namespace Python
             return tmp;
         }));
 
-
+        py::implicitly_convertible<py::buffer, array_1d<double,TSize>>();
         py::implicitly_convertible<py::list, array_1d<double,TSize>>();
         py::implicitly_convertible<Vector, array_1d<double,TSize>>();
     }
@@ -219,6 +241,7 @@ namespace Python
         vector_binder.def(py::init([](const VectorSlice& input) -> Vector {
                                 return input;
                                 }));
+        py::implicitly_convertible<py::buffer, Vector>();
         py::implicitly_convertible<py::list, Vector>();
         py::implicitly_convertible<array_1d<double,3>, Vector>();
 
