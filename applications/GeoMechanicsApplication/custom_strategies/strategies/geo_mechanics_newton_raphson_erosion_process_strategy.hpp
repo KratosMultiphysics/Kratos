@@ -124,10 +124,9 @@ public:
 			
     		for (auto OpenPipeElement : OpenPipeElements)
             {
-                SteadyStatePwPipingElement& pElement = static_cast<SteadyStatePwPipingElement>(OpenPipeElement);
-                GeometryType Geom = OpenPipeElement.GetGeometry();
-                PropertiesType Prop = OpenPipeElement.GetProperties();
-                auto pipeHeight = pElement.CalculateEquilibriumPipeHeight(Geom, Prop);
+                auto& pElement = static_cast<SteadyStatePwPipingElement>(OpenPipeElement);
+                auto pipeHeight = pElement.CalculateEquilibriumPipeHeight(OpenPipeElement.GetProperties(), OpenPipeElement.GetGeometry());
+                KRATOS_INFO("PipingLoop") << "Pipe Element: " << OpenPipeElement.Id() << " Pipe Element Length = " << OpenPipeElement.GetValue(PIPE_ELEMENT_LENGTH) << std::endl;
                 KRATOS_INFO("PipingLoop") << "Pipe Element: " << OpenPipeElement.Id() << " Pipe Height = " << pipeHeight << std::endl;
 
             }
@@ -151,8 +150,6 @@ protected:
 
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
 
-   
-  
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
