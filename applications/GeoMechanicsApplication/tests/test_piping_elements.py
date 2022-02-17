@@ -1,6 +1,7 @@
 import sys
 import os
 
+
 sys.path.append(os.path.join('..', '..', '..'))
 sys.path.append(os.path.join('..', 'python_scripts'))
 sys.path.append(os.path.join('D:\\kratos'))
@@ -49,6 +50,27 @@ class TestPipingElements(KratosUnittest.TestCase):
                 os.path.join('./SteadyStatePipeElementWithEmbankment', test_name + '.gid'))
             simulation = test_helper.run_kratos(file_path)
             model_part = simulation._list_of_output_processes[0].model_part
+            
+    def test_SteadyStatePipeElementWithEmbankment_RepeatNodes(self):
+        # GiD Non-Repeat Numbering of Nodes in Pipe\Interface Element Connectivity
+        file_path = test_helper.get_file_path('./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid')
+        simulation = test_helper.run_kratos(file_path)
+        x, y, head = test_helper.get_hydraylic_head_with_intergration_points(simulation)
+        
+        # Repeat Node Numbers in Pipe\Interface Element Connectivity
+        file_path = test_helper.get_file_path('./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment_repeated_nodes')
+        simulation = test_helper.run_kratos(file_path)
+        x_r, y_r, head_r = test_helper.get_hydraylic_head_with_intergration_points(simulation)
+        
+        for a,b in zip(x, x_r):
+            self.assertTrue(abs(a - b) < 1.e-2)
+            
+        for a,b in zip(y, y_r):
+            self.assertTrue(abs(a - b) < 1.e-2)
+            
+        for a,b in zip(head, head_r):
+            self.assertTrue(abs(a - b) < 1.e-2)
+      
 
 
 if __name__ == '__main__':
