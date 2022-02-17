@@ -144,15 +144,14 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
                     msg=LazyMsg("\nMissmatching entry in position [{},{}]:\n >  first: {}\n > second: {}\n{}",
                         i, j, first[i,j], second[i,j], msg))
 
+    class _DummyGeometry:
+        ndims = 2
+        nnodes = None
 
     def testComputeEulerJacobianMatrix(self):
-        class _Geometry():
-            ndims = 2
-            nnodes = None
-
         defs.SetFormat("python")
 
-        g = _Geometry()
+        g = self._DummyGeometry()
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
         params = FormulationParameters(g, "python")
@@ -169,13 +168,9 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         self._assertSympyMatrixEqual(A[0],  A0_expected)
 
     def testComputeDiffusiveFlux(self):
-        class _Geometry():
-            ndims = 2
-            nnodes = None
-
         defs.SetFormat("python")
 
-        g = _Geometry()
+        g = self._DummyGeometry()
         params = FormulationParameters(g, "python")
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
