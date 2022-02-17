@@ -229,8 +229,11 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         sc_params = ShockCapturingParameters()
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
-        primitives = PrimitiveMagnitudes(g, params, U, DU, "gaussian")
-        G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(DU, primitives, params, sc_params)
+        primitives = PrimitiveMagnitudes(g)
+        G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(primitives, params, sc_params)
+
+        QuantityConverter.SubstitutePrimitivesWithConservatives(G, primitives, U, DU, params)
+        G.simplify()
 
         G_expected = sympy.Matrix([
             [DU[0,0]*sc_params.alpha, DU[0,1]*sc_params.alpha],
@@ -238,8 +241,6 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
             [(params.mu + sc_params.mu)*(DU[0,0]*U[2] + DU[0,1]*U[1] - DU[1,1]*U[0] - DU[2,0]*U[0])/U[0]**2, (2*(params.mu + sc_params.mu)*(DU[0,1]*U[2] - DU[2,1]*U[0]) + (-sc_params.beta + 2/3*params.mu + 2/3*sc_params.mu)*(DU[0,0]*U[1] + DU[0,1]*U[2] - DU[1,0]*U[0] - DU[2,1]*U[0]))/U[0]**2],
             [(params.c_v*(U[1]*(2*(params.mu + sc_params.mu)*(DU[0,0]*U[1] - DU[1,0]*U[0]) + (-sc_params.beta + 2/3*params.mu + 2/3*sc_params.mu)*(DU[0,0]*U[1] + DU[0,1]*U[2] - DU[1,0]*U[0] - DU[2,1]*U[0])) + U[2]*(params.mu + sc_params.mu)*(DU[0,0]*U[2] + DU[0,1]*U[1] - DU[1,1]*U[0] - DU[2,0]*U[0])) + 1.0*(sc_params.lamb + params.lamb)*(DU[0,0]*U[0]*U[3] - DU[0,0]*U[1]**2 - DU[0,0]*U[2]**2 + DU[1,0]*U[0]*U[1] + DU[2,0]*U[0]*U[2] - DU[3,0]*U[0]**2))/(U[0]**3*params.c_v), (params.c_v*(U[1]*(params.mu + sc_params.mu)*(DU[0,0]*U[2] + DU[0,1]*U[1] - DU[1,1]*U[0] - DU[2,0]*U[0]) + U[2]*(2*(params.mu + sc_params.mu)*(DU[0,1]*U[2] - DU[2,1]*U[0]) + (-sc_params.beta + 2/3*params.mu + 2/3*sc_params.mu)*(DU[0,0]*U[1] + DU[0,1]*U[2] - DU[1,0]*U[0] - DU[2,1]*U[0]))) + 1.0*(sc_params.lamb + params.lamb)*(DU[0,1]*U[0]*U[3] - DU[0,1]*U[1]**2 - DU[0,1]*U[2]**2 + DU[1,1]*U[0]*U[1] + DU[2,1]*U[0]*U[2] - DU[3,1]*U[0]**2))/(U[0]**3*params.c_v)]
         ])
-
-        G.simplify()
         G_expected.simplify()
 
         self._assertSympyMatrixEqual(G,  G_expected)
