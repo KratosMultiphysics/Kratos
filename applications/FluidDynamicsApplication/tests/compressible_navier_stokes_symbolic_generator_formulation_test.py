@@ -9,6 +9,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_stabilization_matrix
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
     .src.defines import CompressibleNavierStokesDefines as defs
@@ -210,6 +211,20 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         G_expected.simplify()
 
         self._assertSympyMatrixEqual(G,  G_expected)
+
+    def testComputeStabilizationMatrix(self):
+        g = self._DummyGeometry()
+        params = FormulationParameters(g, "python")
+        tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
+
+        tau_expected = sympy.Matrix([
+            [sympy.Symbol('tau1'),                    0,                    0,                    0],
+            [                   0, sympy.Symbol('tau2'),                    0,                    0],
+            [                   0,                    0, sympy.Symbol('tau2'),                    0],
+            [                   0,                    0,                    0, sympy.Symbol('tau3')]
+        ])
+
+        self._assertSympyMatrixEqual(tau,  tau_expected)
 
 
 if __name__ == '__main__':
