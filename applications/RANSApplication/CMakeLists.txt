@@ -87,7 +87,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosRANSCore DESTINATION libs )
 install(TARGETS KratosRANSApplication DESTINATION libs )
 
-if(${USE_MPI})
+if(${USE_MPI} and  ${TRILINOS_FOUND})
   message("Enabling trilinos extension for KratosRANSApplication")
   add_subdirectory(trilinos_extension)
 endif(${USE_MPI})
