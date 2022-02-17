@@ -239,6 +239,7 @@ public:
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] = rOtherVector.mLocalData[i];
         });
+        return *this;
     }
 
 
