@@ -23,8 +23,8 @@ class _RomParametersReaderSolver(PythonSolver):
 
         self.number_of_modes = rom_params["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-        self.variable_names = rom_params["rom_settings"].GetStringArray()
-        self.variables = kratos_utilities.GenerateVariableListFromInput(rom_params["rom_settings"])
+        self.variable_names = rom_params["rom_settings"]["nodal_unknowns"].GetStringArray()
+        self.variables = KratosMultiphysics.kratos_utilities.GenerateVariableListFromInput(rom_params["rom_settings"]["nodal_unknowns"])
 
     def GetVariableNames(self):
         return self.variable_names
@@ -53,11 +53,6 @@ class _RomParametersReaderSolver(PythonSolver):
         return t
 
     def Initialize(self):
-        self.variables = []
-        for name in self.GetVariableNames():
-            variable = KratosMultiphysics.KratosGlobals.GetVariable(name)
-            self.variables.append(variable)
-
         for variable in self.variables:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(variable, self.GetComputingModelPart().Nodes)
 
