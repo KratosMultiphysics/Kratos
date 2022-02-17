@@ -135,7 +135,7 @@ class LineGraphOutputProcess(KM.OutputProcess):
         dummy_extension = ".z" #NOTE: the dummy extension will be replaced by the file utility. It is used to keep the decimals.
         self.file_settings["file_name"].SetString(self.file_name + '-' + self.time_format.format(time) + dummy_extension)
         file = TimeBasedAsciiFileWriterUtility(self.model_part, self.file_settings, self._GetHeader()).file
-        for point, entity, area_coords in zip(self.positions, self.entities, self.area_coords):
+        for point, entity, area_coords in zip(self.found_positions, self.entities, self.area_coords):
             file.write(self._GetPointData(point, entity, area_coords))
         file.close()
 
@@ -162,12 +162,14 @@ class LineGraphOutputProcess(KM.OutputProcess):
     def _SearchPoints(self):
         self.entities = []
         self.area_coords = []
+        self.found_positions = []
         if self.entity_type == "node":
             for point in self.positions:
                 found_id = KM.BruteForcePointLocator(self.model_part).FindNode(point, self.search_configuration, self.search_tolerance)
                 if found_id > -1:
                     self.entities.append(self.model_part.Nodes[found_id])
                     self.area_coords.append("dummy") # needed for looping later
+                    self.found_positions.append(point)
         elif self.entity_type == "element":
             for point in self.positions:
                 self.sf_values = KM.Vector()
@@ -175,6 +177,7 @@ class LineGraphOutputProcess(KM.OutputProcess):
                 if found_id > -1:
                     self.entities.append(self.model_part.Elements[found_id])
                     self.area_coords.append(self.sf_values)
+                    self.found_positions.append(point)
         elif self.entity_type == "condition":
             for point in self.positions:
                 self.sf_values = KM.Vector()
@@ -182,11 +185,12 @@ class LineGraphOutputProcess(KM.OutputProcess):
                 if found_id > -1:
                     self.entities.append(self.model_part.Conditions[found_id])
                     self.area_coords.append(self.sf_values)
+                    self.found_positions.append(point)
 
 
     def _GetHeader(self):
-        start = list(self.positions[0])
-        end = list(self.positions[-1])
+        start = list(self.found_positions[0])
+        end = list(self.found_positions[-1])
         time = self.model_part.ProcessInfo[KM.TIME]
         header = "# Results for '{}s' over line {}-{} at time {}\n# ".format(self.entity_type, start, end, time)
         coordinates = ["X", "Y", "Z"]

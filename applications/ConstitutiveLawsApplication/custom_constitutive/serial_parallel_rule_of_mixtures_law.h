@@ -336,7 +336,27 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2(Parameters& rValues) override;
+    void InitializeMaterialResponsePK2(Parameters& rValues) override {};
+
+    /**
+     * Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy(Parameters& rValues) override {};
+
+    /**
+     * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+    void InitializeMaterialResponsePK1 (Parameters& rValues) override {};
+
+    /**
+     * Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+
+    void InitializeMaterialResponseKirchhoff (Parameters& rValues) override {};
 
     /**
      * This method computes the strain vector in the fiber and matrix according to the total

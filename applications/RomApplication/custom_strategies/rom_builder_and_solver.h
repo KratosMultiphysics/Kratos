@@ -408,6 +408,20 @@ public:
         }
     }
 
+    virtual void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        // Call the base B&S InitializeSolutionStep
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        // Reset the ROM solution increment in the root modelpart database
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(mNumberOfRomModes);
+    }
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -418,12 +432,12 @@ public:
         // Define a dense matrix to hold the reduced problem
         Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
         Vector brom = ZeroVector(mNumberOfRomModes);
-        TSystemVectorType x(Dx.size());
+        // TSystemVectorType x(Dx.size());
 
-        const auto forward_projection_timer = BuiltinTimer();
-        Vector xrom = ZeroVector(mNumberOfRomModes);
+        // const auto forward_projection_timer = BuiltinTimer();
+        // Vector xrom = ZeroVector(mNumberOfRomModes);
         //this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << forward_projection_timer.ElapsedSeconds() << std::endl;
+        // KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << forward_projection_timer.ElapsedSeconds() << std::endl;
 
         // Build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -526,10 +540,15 @@ public:
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
-        Vector dxrom(xrom.size());
+        Vector dxrom(mNumberOfRomModes);
         const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(Arom, dxrom, brom);
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
+
+        // Save the ROM solution increment in the root modelpart database
+        // This can be used later on to recover the solution in a visualization submodelpart
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
 
         // //update database
         // noalias(xrom) += dxrom;
