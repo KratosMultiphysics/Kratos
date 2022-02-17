@@ -108,6 +108,17 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fem_fem/small_2d_plate", "cosim_fem_fem_small_2d_plate_full_mortar")
             self._runTest()
 
+    def test_FEM_FEM_Neumann_Neumann_Jacobi_Solver(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_fem_fem_dependencies:
+            self.skipTest("FEM-FEM dependencies are not available!")
+
+        self.name = "test_FEM_FEM_neumann_neumann_jacobi_solver"
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fem_fem/static_2d_cantilever", "cosim_fem_fem_neumann_neumann_jacobi_solver")
+            self._runTest()
+
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
     #    if not numpy_available:
     #        self.skipTest("Numpy not available")
