@@ -5,16 +5,11 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
-# Set compiler
-export CC=/usr/lib64/mpich/bin/mpicc
-export CXX=/usr/lib64/mpich/bin/mpicxx
-
 # Set variables
 export KRATOS_SOURCE=${KRATOS_ROOT}
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
 export KRATOS_APP_DIR="${KRATOS_SOURCE}/applications"
 # export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
-
 
 export KRATOS_BUILD_TYPE="Release"
 export PYTHON_EXECUTABLE=$1
@@ -65,8 +60,8 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
--DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc               \
--DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
+-DCMAKE_C_COMPILER=/usr/lib64/mpich/bin/mpicc                          \
+-DCMAKE_CXX_COMPILER=/usr/lib64/mpich/bin/mpicxx                       \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
