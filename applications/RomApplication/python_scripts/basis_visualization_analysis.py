@@ -23,8 +23,8 @@ class _RomParametersReaderSolver(PythonSolver):
 
         self.number_of_modes = rom_params["rom_settings"]["number_of_rom_dofs"].GetInt()
 
-        self.variable_names = [p.GetString() for p in rom_params["rom_settings"]["nodal_unknowns"]]
-        self.variables = None
+        self.variable_names = rom_params["rom_settings"].GetStringArray()
+        self.variables = kratos_utilities.GenerateVariableListFromInput(rom_params["rom_settings"])
 
     def GetVariableNames(self):
         return self.variable_names
