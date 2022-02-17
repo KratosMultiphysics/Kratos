@@ -6,8 +6,8 @@ add_app () {
 }
 
 # Set compiler
-export CC=gcc
-export CXX=g++
+export CC=/usr/lib64/mpich/bin/mpicc
+export CXX=/usr/lib64/mpich/bin/mpicxx
 
 # Set variables
 export KRATOS_SOURCE=${KRATOS_ROOT}
