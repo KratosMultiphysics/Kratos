@@ -178,9 +178,11 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("BeginAssemble", &SystemVector<double,IndexType>::BeginAssemble)
     .def("FinalizeAssemble", &SystemVector<double,IndexType>::FinalizeAssemble)
     .def("BeginAssemble", &SystemVector<double,IndexType>::BeginAssemble)
-    .def("data", [](SystemVector<double,IndexType>& self){
+    .def("Data", [](SystemVector<double,IndexType>& self) -> DenseVector<double>&{
        return self.data();
     }, py::return_value_policy::reference)
+    .def("SetData", [](SystemVector<double,IndexType>& self, const DenseVector<double>& other_data) { noalias(self.data()) = other_data; })
+    .def("Assign", [](SystemVector<double,IndexType>& self, const SystemVector<double,IndexType>& other_vec){self = other_vec; } )
     .def_buffer([](SystemVector<double,IndexType>& self) -> py::buffer_info {
         return py::buffer_info(
             &(self.data())[0],                               /* Pointer to buffer */
