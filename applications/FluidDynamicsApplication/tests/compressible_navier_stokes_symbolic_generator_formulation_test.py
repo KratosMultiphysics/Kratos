@@ -263,7 +263,38 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
         self._assertSympyMatrixEqual(tau,  tau_expected)
 
+    class _DummyGenerator(CompressibleNavierStokesSymbolicGenerator):
+        def __init__(self, geometry_class):
+            # self.write_language = "python"
+            # self.is_explicit = False
+            # self.shock_capturing = True
+            # self.echo_level = 0
+            # self.primitive_interpolation = "nodal"
+            self.geometry = geometry_class
+            # self.outstring = None
 
+        def ComputeNonLinearOperator(self, A, H, S, Ug):
+            return super()._ComputeNonLinearOperator(A, H, S, Ug)
+
+
+    def testComputeNonLinearOperator(self):
+        dim = 2
+        A = defs.Matrix('A', dim+2, dim+2)
+        H = defs.Matrix('H', dim+2, dim+2)
+        S = defs.Matrix('S', dim+2, dim+2)
+        U = defs.Vector('U', dim+2)
+
+        dummy_geneator = self._DummyGenerator(self._DummyGeometry)
+        L = dummy_geneator.ComputeNonLinearOperator(A, H, S, U)
+
+        L_expected = sympy.Matrix([
+            [A[0,0]*H[0,0] + A[0,1]*H[0,1] - S[0,0]*U[0] - S[0,1]*U[1] - S[0,2]*U[2] - S[0,3]*U[3]],
+            [A[0,0]*H[1,0] + A[0,1]*H[1,1] - S[1,0]*U[0] - S[1,1]*U[1] - S[1,2]*U[2] - S[1,3]*U[3]],
+            [A[0,0]*H[2,0] + A[0,1]*H[2,1] - S[2,0]*U[0] - S[2,1]*U[1] - S[2,2]*U[2] - S[2,3]*U[3]],
+            [A[0,0]*H[3,0] + A[0,1]*H[3,1] - S[3,0]*U[0] - S[3,1]*U[1] - S[3,2]*U[2] - S[3,3]*U[3]]
+        ])
+
+        self._assertSympyMatrixEqual(L, L_expected)
 if __name__ == '__main__':
     suites = KratosUnitTest.KratosSuites
 
