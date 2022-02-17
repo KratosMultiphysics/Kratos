@@ -163,7 +163,7 @@ install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)
-endif(${USE_MPI})
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidDynamicsCore" PARENT_SCOPE)
