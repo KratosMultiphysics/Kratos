@@ -567,7 +567,7 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(surface.GetGeometryType(), geometry_type);
     }
 
-    /// Check refinement of nurbs surface in direction u.
+    /// Check refinement of nurbs surface in direction v.
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceRefinementV, KratosCoreNurbsGeometriesFastSuite) {
         auto surface = GenerateReferenceNodeSurface();
 

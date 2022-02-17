@@ -30,7 +30,6 @@ namespace Kratos {
         const Vector& knots_u_old = rGeometry.KnotsU();
 
         SortAndFilter(rKnotsUToInsert, knots_u_old);
-        KRATOS_WATCH(rKnotsUToInsert)
         if (rKnotsUToInsert.size() > 0) {
             const SizeType nb_knots_u_to_insert = rKnotsUToInsert.size();
 
@@ -193,7 +192,6 @@ namespace Kratos {
         const Vector& knots_v_old = rGeometry.KnotsV();
 
         SortAndFilter(rKnotsVToInsert, knots_v_old);
-        KRATOS_WATCH(knots_v_old)
         if (rKnotsVToInsert.size() > 0) {
             const SizeType nb_knots_v_to_insert = rKnotsVToInsert.size();
 
