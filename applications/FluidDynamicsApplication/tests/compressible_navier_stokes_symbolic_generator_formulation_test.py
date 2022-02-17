@@ -228,4 +228,12 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
 
 if __name__ == '__main__':
-    KratosUnitTest.main()
+    suites = KratosUnitTest.KratosSuites
+
+    suites["small"].addTests(KratosUnitTest.TestLoader().loadTestsFromTestCases([CompressibleNavierStokesSymbolicGeneratorUnitTest]))
+    suites["validation"].addTests(KratosUnitTest.TestLoader().loadTestsFromTestCases([CompressibleNavierStokesSymbolicGeneratorValidationTest]))
+
+    suites["all"].addTests(suites["small"])
+    # suites["all"].addTests(suites["validation"])
+
+    KratosUnitTest.runTests(suites)
