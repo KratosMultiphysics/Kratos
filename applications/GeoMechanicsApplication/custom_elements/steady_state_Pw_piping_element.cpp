@@ -66,7 +66,7 @@ template< >
 void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
 {
     KRATOS_TRY
-        this->SetValue(PIPE_ELEMENT_LENGTH, Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
+        this->SetValue(PIPE_ELEMENT_LENGTH, abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]));
 	KRATOS_CATCH("")
 }
 
@@ -199,8 +199,7 @@ double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const Pr
 /// <param name="Geom"></param>
 /// <returns></returns>
 template< unsigned int TDim, unsigned int TNumNodes >
-double SteadyStatePwPipingElement<TDim,TNumNodes>::
-    CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom)
 {
     // todo add modelFactor input and calculate slope of pipe
     const double modelFactor = 1;
@@ -223,10 +222,24 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>::
     // gravity is taken from first node
     array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
+	
     return modelFactor * M_PI / 3.0 * d70 * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdx;
 
 }
-    
+
+template< unsigned int TDim, unsigned int TNumNodes >
+bool SteadyStatePwPipingElement<TDim, TNumNodes>:: InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom)
+{
+	// Calculation if Element in Equilibrium
+    double pipeEquilibriumPipeHeight = CalculateEquilibriumPipeHeight(Prop, Geom);
+
+	// Logic if in equilibrium
+	
+    const bool inEquilibrium = false;
+	return inEquilibrium;
+
+}
+	
 template class SteadyStatePwPipingElement<2,4>;
 template class SteadyStatePwPipingElement<3,6>;
 template class SteadyStatePwPipingElement<3,8>;

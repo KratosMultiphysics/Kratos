@@ -98,9 +98,10 @@ public:
 
     void FinalizeSolutionStep() override
 	{
-    	KRATOS_INFO("PipingLoop") << "Max PipingX Iterations: " << mPipingIterations << std::endl;
+    	KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
     	
         int PipeIter = 0;
+        int openPipeElements = 0;
         bool Equilibrium = false;
 
     	auto PipeElements = GetPipingElements();
@@ -122,20 +123,35 @@ public:
             auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
             KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
 			
+            // Check if elements are in equilibrium
     		for (auto OpenPipeElement : OpenPipeElements)
             {
                 auto& pElement = static_cast<SteadyStatePwPipingElement>(OpenPipeElement);
-                auto pipeHeight = pElement.CalculateEquilibriumPipeHeight(OpenPipeElement.GetProperties(), OpenPipeElement.GetGeometry());
-                KRATOS_INFO("PipingLoop") << "Pipe Element: " << OpenPipeElement.Id() << " Pipe Element Length = " << OpenPipeElement.GetValue(PIPE_ELEMENT_LENGTH) << std::endl;
-                KRATOS_INFO("PipingLoop") << "Pipe Element: " << OpenPipeElement.Id() << " Pipe Height = " << pipeHeight << std::endl;
-
+                if (!pElement.InEquilibrium(OpenPipeElement.GetProperties(), OpenPipeElement.GetGeometry()))
+                {
+                    Equilibrium = false;
+                    break;
+                }          
             }
-    			// JN TODO: For transient analysis reset state to start of solution step ???
-                Recalculate();
-                PipeIter += 1;
-                Equilibrium = false;
-                PipeElements.at(PipeIter).Set(ACTIVE, true);
-            
+
+            if (!Equilibrium)
+            {
+                // Update Piping Elements 
+            	for (auto OpenPipeElement : OpenPipeElements)
+                {
+                    auto& pElement = static_cast<SteadyStatePwPipingElement>(OpenPipeElement);
+                    // Update here
+                }
+            	Recalculate();
+                PipeIter += 1;  
+            }
+            else
+            {
+                // open new piping element
+                openPipeElements += 1;
+            	PipeElements.at(openPipeElements).Set(ACTIVE, true);
+            }
+    		
         }
 
         GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
@@ -172,6 +188,10 @@ private:
                 PipeElements.push_back(element);
             }
         }
+
+        // We assume that the piping elements are provided in order.
+    
+    	// todo JDN  - Make sure elements are sorted correctly
 
         KRATOS_INFO("PipingLoop") << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
         return PipeElements;
