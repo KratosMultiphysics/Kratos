@@ -85,8 +85,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMonolithicWallCondition]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([InitializeWithCompressiblePotentialSolutionProcessTest]))
     if sympy_available:
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([InitializeWithCompressiblePotentialSolutionProcessTest]))
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CompressibleNavierStokesSymbolicGeneratorUnitTest]))
 
     # Create a test suite with the selected tests plus all small tests
