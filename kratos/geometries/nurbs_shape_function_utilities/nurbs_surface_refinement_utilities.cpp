@@ -414,12 +414,13 @@ namespace Kratos {
 
             for(IndexType i = 1; i < (degree_u / 2) + 1; ++i)
             {
+                double inv = 1.0 / NurbsUtilities::GetBinomCoefficient(degree_u, i);
                 SizeType min_degree = std::min(degree_u_old, i);
                 int index = std::max(0, static_cast<int>(i - rDegreeUToElevate));
 
                 for(IndexType j = index; j < min_degree + 1; ++j)
                 {
-                    bezier_alphas(i, j) = NurbsUtilities::GetBinomCoefficient(degree_u_old, j) * NurbsUtilities::GetBinomCoefficient(rDegreeUToElevate, i - j) / NurbsUtilities::GetBinomCoefficient(degree_u, i);
+                    bezier_alphas(i, j) = inv * NurbsUtilities::GetBinomCoefficient(degree_u_old, j) * NurbsUtilities::GetBinomCoefficient(rDegreeUToElevate, i - j);
                     bezier_alphas(degree_u - i, degree_u_old - j) = bezier_alphas(i, j);
                 }
             }
@@ -795,12 +796,13 @@ namespace Kratos {
 
             for(IndexType i = 1; i < (degree_v / 2) + 1; ++i)
             {
+                double inv = 1.0 / NurbsUtilities::GetBinomCoefficient(degree_v, i);
                 SizeType min_degree = std::min(degree_v_old, i);
                 int index = std::max(0, static_cast<int>(i - rDegreeVToElevate));
 
                 for(IndexType j = index; j < min_degree + 1; ++j)
                 {
-                    bezier_alphas(i, j) = NurbsUtilities::GetBinomCoefficient(degree_v_old, j) * NurbsUtilities::GetBinomCoefficient(rDegreeVToElevate, i - j) / NurbsUtilities::GetBinomCoefficient(degree_v, i);;
+                    bezier_alphas(i, j) = inv * NurbsUtilities::GetBinomCoefficient(degree_v_old, j) * NurbsUtilities::GetBinomCoefficient(rDegreeVToElevate, i - j);
                     bezier_alphas(degree_v - i, degree_v_old - j) = bezier_alphas(i, j);
                 }
             }
