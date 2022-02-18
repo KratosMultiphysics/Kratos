@@ -538,31 +538,6 @@ public:
     virtual int Check(const ModelPart& rModelPart) const
     {
         KRATOS_TRY
-
-        //TODO: This is required for the exception handling. It can be removed once we move to the C++ parallelism
-#ifdef KRATOS_SMP_CXX11
-        int num_threads = ParallelUtilities::GetNumThreads();
-#else
-        int num_threads = 1;
-#endif
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Checks for all of the elements
-        BlockPartition<const ModelPart::ElementsContainerType>(rModelPart.Elements(), num_threads).for_each([&r_current_process_info](const Element& rElement){
-            rElement.Check(r_current_process_info);
-        });
-
-        // Checks for all of the conditions
-        BlockPartition<const ModelPart::ConditionsContainerType>(rModelPart.Conditions(), num_threads).for_each([&r_current_process_info](const Condition& rCondition){
-            rCondition.Check(r_current_process_info);
-        });
-
-        // Checks for all of the constraints
-        BlockPartition<const ModelPart::MasterSlaveConstraintContainerType>(rModelPart.MasterSlaveConstraints(), num_threads).for_each([&r_current_process_info](const MasterSlaveConstraint& rConstraint){
-            rConstraint.Check(r_current_process_info);
-        });
-
         return 0;
         KRATOS_CATCH("");
     }

@@ -128,22 +128,13 @@ protected:
         KRATOS_TRY
 
         //Update DtPressure
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
+                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
+            const auto &PreviousDtPressure = rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
 
-        double DeltaPressure;
-
-        const int NNodes = static_cast<int>(rModelPart.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
-
-        #pragma omp parallel for private(DeltaPressure)
-        for(int i = 0; i < NNodes; ++i) {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
-
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
-
-            CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
-        }
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+        });
 
         KRATOS_CATCH( "" )
     }

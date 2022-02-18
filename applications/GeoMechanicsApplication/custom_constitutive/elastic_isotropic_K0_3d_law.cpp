@@ -250,12 +250,12 @@ int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
                                    const GeometryType& rElementGeometry,
                                    const ProcessInfo& rCurrentProcessInfo) const
 {
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(YOUNG_MODULUS))
-                    << "YOUNG_MODULUS is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))
+                        << "YOUNG_MODULUS is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(POISSON_RATIO))
-                    << "POISSON_RATIO is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))
+                        << "POISSON_RATIO is not availabe in material parameters" << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = ((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));

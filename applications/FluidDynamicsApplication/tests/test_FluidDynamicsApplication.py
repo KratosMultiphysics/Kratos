@@ -1,6 +1,14 @@
 import subprocess
 import os.path
 
+
+try:
+    import sympy
+    sympy_available = True
+except:
+    sympy_available = False
+    print("Skipping tests that require sympy")
+
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
@@ -39,6 +47,9 @@ from test_navier_stokes_compressible_explicit_solver import NavierStokesCompress
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
 from initialize_with_compressible_potential_flow_process_test import InitializeWithCompressiblePotentialSolutionProcessTest
+if sympy_available:
+    from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
+
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -118,6 +129,10 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
 
+    if sympy_available:
+        nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicQuadrilateral'))
+        nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTriangle'))
+
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
@@ -131,7 +146,8 @@ def AssembleTestSuites():
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
-
+    if sympy_available:
+        nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTetrahedron'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']

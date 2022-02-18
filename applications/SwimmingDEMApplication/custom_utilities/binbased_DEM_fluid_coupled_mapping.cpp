@@ -688,7 +688,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::SearchPa
 
     NodesArrayType& p_dem_nodes = r_dem_model_part.GetCommunicator().LocalMesh().Nodes();
     NodesArrayType& p_fluid_nodes = r_fluid_model_part.GetCommunicator().LocalMesh().Nodes();
-    mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+    mpSpSearch->SearchNodesInRadiusExclusive(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+    // mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
 
     for (unsigned int i = 0; i < mVectorsOfNeighNodes.size(); ++i){
         unsigned int n_neigh = mVectorsOfNeighNodes[i].size();
@@ -735,7 +736,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::SearchPa
 
     NodesArrayType& p_dem_nodes = r_dem_model_part.GetCommunicator().LocalMesh().Nodes();
     NodesArrayType& p_fluid_nodes = r_fluid_model_part.GetCommunicator().LocalMesh().Nodes();
-    mpPointPointSearch->SearchPointsImplementation(p_dem_nodes, p_fluid_nodes, mSearchRadii, mVectorsOfNeighNodes, mVectorsOfDistances);
+    mpSpSearch->SearchNodesInRadiusExclusive(p_dem_nodes,
+                                             p_fluid_nodes,
+                                             mSearchRadii,
+                                             mVectorsOfNeighNodes,
+                                             mVectorsOfDistances);
 
     // passing the neighbour's information to the particles
 
@@ -1599,7 +1604,9 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::UpdateGe
         Node<3>& node = p_sphere->GetGeometry()[0];
         double& gentle_coupling_coeff = node.FastGetSolutionStepValue(GENTLE_INITIATION_COUPLING_COEFFICIENT);
         const double initialization_time = p_sphere->GetInitializationTime();
+        const double programmed_destruction_time = p_sphere->GetProgrammedDestructionTime();
         const double particle_age = current_time - initialization_time;
+        const double particle_time_left = programmed_destruction_time - current_time;
 
         if (mGentleCouplingInitiationInterval <= particle_age){
             gentle_coupling_coeff = 1.0;
@@ -1607,6 +1614,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::UpdateGe
 
         else {
             gentle_coupling_coeff = particle_age / mGentleCouplingInitiationInterval;
+        }
+
+        if (particle_time_left <= mGentleCouplingInitiationInterval && particle_time_left > 0.0){
+            gentle_coupling_coeff = std::min(gentle_coupling_coeff, particle_time_left / mGentleCouplingInitiationInterval);
         }
     });
 }

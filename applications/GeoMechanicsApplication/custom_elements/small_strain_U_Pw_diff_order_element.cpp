@@ -1068,14 +1068,65 @@ void SmallStrainUPwDiffOrderElement::
     if ( rVariable == VON_MISES_STRESS ) {
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
-            ComparisonUtilities EquivalentStress;
-            rOutput[GPoint] =  EquivalentStress.CalculateVonMises(mStressVector[GPoint]);
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateVonMisesStress(mStressVector[GPoint]);
         }
-    } else if (rVariable == DEGREE_OF_SATURATION ||
-             rVariable == EFFECTIVE_SATURATION ||
-             rVariable == BISHOP_COEFFICIENT ||
-             rVariable == DERIVATIVE_OF_SATURATION ||
-             rVariable == RELATIVE_PERMEABILITY )
+    } else if (rVariable == MEAN_EFFECTIVE_STRESS ) {
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] = EquivalentStress.CalculateMeanStress(mStressVector[GPoint]);
+        }
+    } else if (rVariable == MEAN_STRESS ) {
+        std::vector<Vector> StressVector;
+        CalculateOnIntegrationPoints( TOTAL_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateMeanStress(StressVector[GPoint]);
+        }
+    } else if (rVariable == ENGINEERING_VON_MISES_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateVonMisesStrain(StrainVector[GPoint]);
+        }
+    } else if (rVariable == ENGINEERING_VOLUMETRIC_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( ENGINEERING_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateTrace(StrainVector[GPoint]);
+        }
+    } else if (rVariable == GREEN_LAGRANGE_VON_MISES_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateVonMisesStrain(StrainVector[GPoint]);
+        }
+    } else if (rVariable == GREEN_LAGRANGE_VOLUMETRIC_STRAIN ) {
+        std::vector<Vector> StrainVector;
+        CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
+
+        //loop integration points
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
+            StressStrainUtilities EquivalentStress;
+            rOutput[GPoint] =  EquivalentStress.CalculateTrace(StrainVector[GPoint]);
+        }
+    } else if (rVariable == DEGREE_OF_SATURATION     ||
+               rVariable == EFFECTIVE_SATURATION     ||
+               rVariable == BISHOP_COEFFICIENT       ||
+               rVariable == DERIVATIVE_OF_SATURATION ||
+               rVariable == RELATIVE_PERMEABILITY)
     {
         //Element variables
         ElementVariables Variables;
@@ -1095,7 +1146,7 @@ void SmallStrainUPwDiffOrderElement::
 
             if (rVariable == DEGREE_OF_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
             if (rVariable == EFFECTIVE_SATURATION)     rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateEffectiveSaturation(RetentionParameters);
-            if (rVariable == BISHOP_COEFFICIENT)        rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
+            if (rVariable == BISHOP_COEFFICIENT)       rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateBishopCoefficient(RetentionParameters);
             if (rVariable == DERIVATIVE_OF_SATURATION) rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateDerivativeOfSaturation(RetentionParameters);
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[GPoint] = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
         }
@@ -2510,17 +2561,13 @@ void SmallStrainUPwDiffOrderElement::
                                                   InvJ,
                                                   GPoint);
 
-    if(detJ < 0.0) {
-        std::cerr << "Error: Element " << this->Id() << " is inverted. DetJ: " << detJ << std::endl 
-        << "This usually indicates the deformations are too large for the mesh size." << std::endl;
-
-        KRATOS_ERROR_IF(detJ < 0.0)
-            << "ERROR:: ELEMENT ID: "
-            << this->Id()
-            << " INVERTED. DETJ: "
-            << detJ
-            << std::endl;
-    }
+    KRATOS_ERROR_IF(detJ < 0.0)
+        << "ERROR:: Element "
+        << this->Id()
+        << " is inverted. DetJ: "
+        << detJ
+        << std::endl
+        << "This usually indicates that the deformations are too large for the mesh size." << std::endl;
 
     // Deformation gradient
     noalias(rVariables.F) = prod( J, InvJ0 );
