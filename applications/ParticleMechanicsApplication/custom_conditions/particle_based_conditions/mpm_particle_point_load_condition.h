@@ -186,6 +186,8 @@ protected:
      */
     double GetPointLoadIntegrationWeight() override;
 
+    virtual void MPMShapeFunctionPointValuesKinematic(Vector& rResult) const;
+
     /**
      * this is called for non-linear analysis at the end of the iteration process
      */
