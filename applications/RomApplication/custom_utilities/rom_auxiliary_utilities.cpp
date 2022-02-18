@@ -461,7 +461,7 @@ void RomAuxiliaryUtilities::GetPhiElemental(
 
                 const Matrix& nodal_rom_basis = it_node->GetValue(ROM_BASIS);
 
-                auto variable_key = r_dof.GetVariable().Key();
+                const auto variable_key = r_dof.GetVariable().Key();
                 const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);
 
                 noalias(row(rPhiElemental, i)) = row(nodal_rom_basis, row_id);
