@@ -76,7 +76,7 @@ class EigenSolver {
 
             S.compute(
                     MatrixType(
-                        Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, ptrdiff_t>(
+                        Eigen::Map<Eigen::SparseMatrix<value_type, Eigen::RowMajor, ptrdiff_t>>(
                             backend::rows(A), backend::cols(A), backend::nonzeros(A),
                             const_cast<ptr_type*>(backend::ptr_data(A)),
                             const_cast<col_type*>(backend::col_data(A)),
