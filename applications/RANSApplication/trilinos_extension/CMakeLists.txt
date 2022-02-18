@@ -34,6 +34,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosRANSTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosRANSTrilinosExtension" PARENT_SCOPE)
+
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosRANSTrilinosExtension DESTINATION libs )
