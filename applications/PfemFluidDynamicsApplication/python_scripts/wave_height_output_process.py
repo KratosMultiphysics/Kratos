@@ -68,7 +68,7 @@ class WaveHeightOutputProcess(KM.OutputProcess):
         for i, coordinate in enumerate(self.coordinates_list, start=1):
             file_settings = self.settings["output_file_settings"].Clone()
             self._ExecuteReplacement(i, coordinate, file_settings["file_name"])
-            header = "# Wave height at coordinate {}\n".format(coordinate)
+            header = "# Wave height at coordinate {}\n".format(list(coordinate))
             header += "#Time \t\tHeight\n"
             self.files.append(TimeBasedAsciiFileWriterUtility(self.model_part, file_settings, header).file)
 
