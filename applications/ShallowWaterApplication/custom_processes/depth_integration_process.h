@@ -158,7 +158,6 @@ private:
     // Option to substitute the depth integration by the specific depth
     bool mVelocityDepthIntegration;
     double mVelocityRelativeDepth;
-    double mMeanWaterLevel;
 
     // Option to substitute the boundaries by the neighbor
     bool mExtrapolateBoundaries;
