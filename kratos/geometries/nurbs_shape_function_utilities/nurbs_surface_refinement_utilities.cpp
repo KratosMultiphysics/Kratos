@@ -415,9 +415,9 @@ namespace Kratos {
             for(IndexType i = 1; i < (degree_u / 2) + 1; ++i)
             {
                 SizeType min_degree = std::min(degree_u_old, i);
-                int index = (i - rDegreeUToElevate);
+                int index = std::max(0, i - rDegreeVToElevate);
 
-                for(int j = std::max(0, index); j < min_degree + 1; ++j)
+                for(IndexType j = index; j < min_degree + 1; ++j)
                 {
                     bezier_alphas(i, j) = NurbsUtilities::GetBinomCoefficient(degree_u_old, j) * NurbsUtilities::GetBinomCoefficient(rDegreeUToElevate, i - j) / NurbsUtilities::GetBinomCoefficient(degree_u, i);
                     bezier_alphas(degree_u - i, degree_u_old - j) = bezier_alphas(i, j);
@@ -481,7 +481,7 @@ namespace Kratos {
                 int r_old = r;
                 r = degree_u_old - mult;
 
-                int left_bezier, right_bezier;
+                IndexType left_bezier, right_bezier;
                 if (r_old > 0)
                 {
                     left_bezier = (r_old + 2) / 2; 
@@ -508,7 +508,7 @@ namespace Kratos {
                         alphas[k - mult - 1] = (knot_u_old_b - knot_u_old_a)/(knots_u_old[a + k] - knot_u_old_a); 
                     }
 
-                    for (IndexType j = 1; j < r + 1; ++j) 
+                    for (IndexType j = 1; j < static_cast<IndexType>(r + 1); ++j) 
                     {
                         int save = r - j;
                         IndexType s = mult + j;
@@ -554,9 +554,9 @@ namespace Kratos {
                     }
 
                     SizeType min_degree = std::min(degree_u_old, i);
-                    int index = (i - rDegreeUToElevate);
+                    int index = std::max(0, i - rDegreeUToElevate);
 
-                    for (int j = std::max(0, index); j < min_degree + 1; ++j)
+                    for (IndexType j = index; j < min_degree + 1; ++j)
                     {
                         for (IndexType m = 0; m < nb_cp_v; ++m) {
                             IndexType cp_index_bpts = NurbsUtilities::GetVectorIndexFromMatrixIndices(
@@ -580,7 +580,7 @@ namespace Kratos {
 
                     double beta = (knot_u_old_b - rKnotsURefined[knot_index - 2]) / (knot_u_old_b - knot_u_old_a);
 
-                    for (IndexType t = 1; t < r_old; ++t)
+                    for (IndexType t = 1; t < static_cast<IndexType>(r_old); ++t)
                     {
                         IndexType i = first;
                         IndexType j = last;
@@ -673,7 +673,7 @@ namespace Kratos {
                 // Setup for the next pass through loop
                 if (b < nb_knots_u_old)
                 {
-                    for (IndexType j = 0; j < r; ++j)
+                    for (IndexType j = 0; j < static_cast<IndexType>(r); ++j)
                     {
                         for (IndexType m = 0; m < nb_cp_v; ++m) {
                             IndexType cp_index_btps = NurbsUtilities::GetVectorIndexFromMatrixIndices(
@@ -796,9 +796,9 @@ namespace Kratos {
             for(IndexType i = 1; i < (degree_v / 2) + 1; ++i)
             {
                 SizeType min_degree = std::min(degree_v_old, i);
-                int index = (i - rDegreeVToElevate);
+                int index = std::max(0, i - rDegreeVToElevate);
 
-                for(int j = std::max(0, index); j < min_degree + 1; ++j)
+                for(IndexType j = index; j < min_degree + 1; ++j)
                 {
                     bezier_alphas(i, j) = NurbsUtilities::GetBinomCoefficient(degree_v_old, j) * NurbsUtilities::GetBinomCoefficient(rDegreeVToElevate, i - j) / NurbsUtilities::GetBinomCoefficient(degree_v, i);;
                     bezier_alphas(degree_v - i, degree_v_old - j) = bezier_alphas(i, j);
@@ -862,7 +862,7 @@ namespace Kratos {
                 int r_old = r;
                 r = degree_v_old - mult;
 
-                int left_bezier, right_bezier;
+                IndexType left_bezier, right_bezier;
                 if (r_old > 0)
                 {
                     left_bezier = (r_old + 2) / 2; 
@@ -889,7 +889,7 @@ namespace Kratos {
                         alphas[k - mult - 1] = (knot_v_old_b - knot_v_old_a)/(knots_v_old[a + k] - knot_v_old_a); 
                     }
 
-                    for (IndexType j = 1; j < r + 1; ++j) 
+                    for (IndexType j = 1; j < static_cast<IndexType>(r + 1); ++j) 
                     {
                         int save = r - j;
                         IndexType s = mult + j;
@@ -935,9 +935,9 @@ namespace Kratos {
                     }
 
                     SizeType min_degree = std::min(degree_v_old, i);
-                    int index = (i - rDegreeVToElevate);
+                    int index = std::max(0, i - rDegreeUToElevate);
 
-                    for (int j = std::max(0, index); j < min_degree + 1; ++j)
+                    for (IndexType j = index; j < min_degree + 1; ++j)
                     {
                         for (IndexType m = 0; m < nb_cp_u; ++m) {
                             IndexType cp_index_bpts = NurbsUtilities::GetVectorIndexFromMatrixIndices(
@@ -961,7 +961,7 @@ namespace Kratos {
 
                     double beta = (knot_v_old_b - rKnotsVRefined[knot_index - 2]) / (knot_v_old_b - knot_v_old_a);
 
-                    for (IndexType t = 1; t < r_old; ++t)
+                    for (IndexType t = 1; t < static_cast<IndexType>(r_old); ++t)
                     {
                         IndexType i = first;
                         IndexType j = last;
@@ -1054,7 +1054,7 @@ namespace Kratos {
                 // Setup for the next pass through loop
                 if (b < nb_knots_v_old)
                 {
-                    for (IndexType j = 0; j < r; ++j)
+                    for (IndexType j = 0; j < static_cast<IndexType>(r); ++j)
                     {
                         for (IndexType m = 0; m < nb_cp_u; ++m) {
                             IndexType cp_index_btps = NurbsUtilities::GetVectorIndexFromMatrixIndices(
