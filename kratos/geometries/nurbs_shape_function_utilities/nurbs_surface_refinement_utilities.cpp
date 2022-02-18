@@ -415,7 +415,7 @@ namespace Kratos {
             for(IndexType i = 1; i < (degree_u / 2) + 1; ++i)
             {
                 SizeType min_degree = std::min(degree_u_old, i);
-                int index = std::max(0, i - rDegreeVToElevate);
+                int index = std::max(0, static_cast<int>(i - rDegreeUToElevate));
 
                 for(IndexType j = index; j < min_degree + 1; ++j)
                 {
@@ -554,7 +554,7 @@ namespace Kratos {
                     }
 
                     SizeType min_degree = std::min(degree_u_old, i);
-                    int index = std::max(0, i - rDegreeUToElevate);
+                    int index = std::max(0, static_cast<int>(i - rDegreeUToElevate));
 
                     for (IndexType j = index; j < min_degree + 1; ++j)
                     {
@@ -796,7 +796,7 @@ namespace Kratos {
             for(IndexType i = 1; i < (degree_v / 2) + 1; ++i)
             {
                 SizeType min_degree = std::min(degree_v_old, i);
-                int index = std::max(0, i - rDegreeVToElevate);
+                int index = std::max(0, static_cast<int>(i - rDegreeVToElevate));
 
                 for(IndexType j = index; j < min_degree + 1; ++j)
                 {
@@ -935,7 +935,7 @@ namespace Kratos {
                     }
 
                     SizeType min_degree = std::min(degree_v_old, i);
-                    int index = std::max(0, i - rDegreeUToElevate);
+                    int index = std::max(0, static_cast<int>(i - rDegreeVToElevate));
 
                     for (IndexType j = index; j < min_degree + 1; ++j)
                     {
