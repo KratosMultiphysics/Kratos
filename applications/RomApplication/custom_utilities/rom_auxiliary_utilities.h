@@ -28,6 +28,7 @@
 #include "modified_shape_functions/modified_shape_functions.h"
 
 // Application includes
+#include "rom_application_variables.h"
 
 
 namespace Kratos
@@ -129,6 +130,15 @@ public:
     static void ProjectRomSolutionIncrementToNodes(
         const std::vector<std::string> &rRomVariableNames,
         ModelPart &rModelPart);
+
+    /**
+     * @brief Obtain the elemental basis matrix for a particular element.
+     */
+    static void GetPhiElemental(
+        Matrix &rPhiElemental,
+        const Element::DofsVectorType& rDofs,
+        const Element::GeometryType& rGeom,
+        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
     ///@}
 

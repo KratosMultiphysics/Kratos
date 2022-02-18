@@ -27,6 +27,7 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
+#include "custom_utilities/rom_auxiliary_utilities.h"
 
 namespace Kratos
 {
@@ -384,35 +385,6 @@ public:
         }
     }
 
-    void GetPhiElemental(
-        Matrix &PhiElemental,
-        const Element::DofsVectorType& rDofs,
-        const Element::GeometryType& rGeom)
-    {
-        for(std::size_t i = 0; i < rDofs.size(); ++i)
-        {    
-            const Dof<double>& r_dof = *rDofs[i];
-            if (r_dof.IsFixed())
-            {
-                noalias(row(PhiElemental, i)) = ZeroVector(PhiElemental.size2());
-            }
-            else
-            {
-                const auto it_node = std::find_if(rGeom.begin(), rGeom.end(),
-                    [&](const Node<3>& rNode)
-                    {
-                        return rNode.Id() == r_dof.Id();
-                    });
-                KRATOS_DEBUG_ERROR_IF(it_node == rGeom.end());
-
-                const Matrix& nodal_rom_basis = it_node->GetValue(ROM_BASIS);
-
-                auto variable_key = r_dof.GetVariable().Key();
-                noalias(row(PhiElemental, i)) = row(nodal_rom_basis, mMapPhi[variable_key]);
-            }
-        }
-    }
-
     virtual void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
@@ -495,7 +467,7 @@ public:
                     if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
                         aux.resize(dofs.size(), mNumberOfRomModes,false);
                     }
-                    GetPhiElemental(PhiElemental, dofs, geom);
+                    RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
@@ -525,7 +497,7 @@ public:
                     if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
                         aux.resize(dofs.size(), mNumberOfRomModes,false);
                     }
-                    GetPhiElemental(PhiElemental, dofs, geom);
+                    RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
@@ -667,7 +639,7 @@ protected:
 
     SizeType mNodalDofs;
     SizeType mNumberOfRomModes;
-    std::unordered_map<Kratos::VariableData::KeyType,int> mMapPhi;
+    std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
 
     ElementsArrayType mSelectedElements;
     ConditionsArrayType mSelectedConditions;
