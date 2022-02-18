@@ -389,21 +389,26 @@ public:
         const Element::DofsVectorType& rDofs,
         const Element::GeometryType& rGeom)
     {
-        const Matrix *pcurrent_rom_nodal_basis = nullptr;
-        int counter = 0;
-        for(int k = 0; k < static_cast<int>(rDofs.size()); ++k){
-            auto variable_key = rDofs[k]->GetVariable().Key();
-            if(k==0) {
-                pcurrent_rom_nodal_basis = &(rGeom[counter].GetValue(ROM_BASIS));
-            } else if(rDofs[k]->Id() != rDofs[k-1]->Id()) {
-                counter++;
-                pcurrent_rom_nodal_basis = &(rGeom[counter].GetValue(ROM_BASIS));
+        for(std::size_t i = 0; i < rDofs.size(); ++i)
+        {    
+            const Dof<double>& r_dof = *rDofs[i];
+            if (r_dof.IsFixed())
+            {
+                noalias(row(PhiElemental, i)) = ZeroVector(PhiElemental.size2());
             }
+            else
+            {
+                const auto it_node = std::find_if(rGeom.begin(), rGeom.end(),
+                    [&](const Node<3>& rNode)
+                    {
+                        return rNode.Id() == r_dof.Id();
+                    });
+                KRATOS_DEBUG_ERROR_IF(it_node == rGeom.end());
 
-            if (rDofs[k]->IsFixed()) {
-                noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
-            } else {
-                noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
+                const Matrix& nodal_rom_basis = it_node->GetValue(ROM_BASIS);
+
+                auto variable_key = r_dof.GetVariable().Key();
+                noalias(row(PhiElemental, i)) = row(nodal_rom_basis, mMapPhi[variable_key]);
             }
         }
     }
