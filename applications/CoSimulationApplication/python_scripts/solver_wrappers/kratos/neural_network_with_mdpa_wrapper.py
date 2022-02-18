@@ -1,7 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.NeuralNetworkApplication.input_dataclasses as InputDataclasses
-from KratosMultiphysics.NeuralNetworkApplication.reorder_process import ReorderProcess
-import KratosMultiphysics.StructuralMechanicsApplication
+from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 import numpy as np
 
 # Importing the Kratos Library
@@ -168,6 +167,8 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
             self.preprocessed_previous = InputDataclasses.NeuralNetworkData()
         self.output_data_structure = InputDataclasses.NeuralNetworkData()
         self.current_time = 0
+        
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
 
     def Finalize(self):
         pass
