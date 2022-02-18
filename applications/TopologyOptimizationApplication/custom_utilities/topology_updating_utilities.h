@@ -128,7 +128,7 @@ public:
             // Update Densities procedure
             double l1    = 0.0;
             double l2    = 1.0e12; ///10000000000.0
-            double move    = 0.2;
+            const double move    = 0.2;
             double sum_X_Phys;
             int nele;
             double x_new = 0.0;
@@ -144,10 +144,10 @@ public:
 
                 for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
                 {
-                    double x_old = element_i->GetValue(X_PHYS_OLD);
-                    int solid_void = element_i->GetValue(SOLID_VOID);
-                    double dcdx  = element_i->GetValue(DCDX);
-                    double dvdx  = element_i->GetValue(DVDX);
+                    const double x_old = element_i->GetValue(X_PHYS_OLD);
+                    const int solid_void = element_i->GetValue(SOLID_VOID);
+                    const double dcdx  = element_i->GetValue(DCDX);
+                    const double dvdx  = element_i->GetValue(DVDX);
 
                     // Update Density
                     // When q = 1, Grey Scale Filter is not activated, i.e., the results are in the classical OC update method

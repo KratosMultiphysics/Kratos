@@ -106,56 +106,8 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
 {
     KRATOS_TRY
 
-    // From original SmallDisplacementElement
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-
-    if (rValues.size() != integration_points.size())
-        rValues.resize(integration_points.size(), false);
-
-    if (rVariable == VON_MISES_STRESS) {
-
-        //create and initialize element variables:
-        const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-        KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);
-
-        //create constitutive law parameters:
-        ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-
-        //set constitutive law flags:
-        Flags &ConstitutiveLawOptions = Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-
-        Values.SetStrainVector(this_constitutive_variables.StrainVector);
-
-        const std::size_t number_of_integration_points = integration_points.size();
-
-        
-        for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
-                // Compute element kinematics B, F, DN_DX ...
-                CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
-
-                // Compute VM stress
-                if (dimension == 2 ) {
-                    rValues[point_number] = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
-                } else {
-                    rValues[point_number] = ConstitutiveLawUtilities<6>::CalculateVonMisesEquivalentStress(this_constitutive_variables.StressVector);
-                }
-        }
-	} 
-
     // Additional part for post-processing of the topology optimized model part
-    else if (rVariable == X_PHYS)
+    if (rVariable == X_PHYS)
     {
         for (SizeType PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++)
             rValues[PointNumber] = this->GetValue(X_PHYS);
@@ -168,8 +120,8 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
     KRATOS_CATCH( "" )
     } 
 
-//************************************************************************************
-//************************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, double &rOutput, const ProcessInfo &rCurrentProcessInfo)
 {
@@ -178,8 +130,8 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
     if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
     {
         // Get values
-        const double E_min     = this->GetValue(YOUNGS_MODULUS_MIN);
-        const double E_initial = this->GetValue(YOUNGS_MODULUS_0);
+        const double E_min     = this->GetProperties()[YOUNGS_MODULUS_MIN];
+        const double E_initial = this->GetProperties()[YOUNGS_MODULUS_0];
         const double E_current = this->GetValue(YOUNG_MODULUS);
         const double penalty   = this->GetValue(PENAL);
         const double x_phys    = this->GetValue(X_PHYS);
@@ -239,38 +191,8 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
     KRATOS_CATCH( "" )
 } 
  
-// =============================================================================================================================================
-// =============================================================================================================================================
-
-void SmallDisplacementSIMPElement::SetElementData(const KinematicVariables& rThisKinematicVariables,
-                                              ConstitutiveLaw::Parameters& rValues,
-                                              const int & rPointNumber)
-{
-    KRATOS_TRY
-
-    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
-
-    ConstitutiveVariables this_constitutive_variables(strain_size);
-
-    rValues.SetStrainVector(this_constitutive_variables.StrainVector);
-    rValues.SetStressVector(this_constitutive_variables.StressVector);
-    rValues.SetConstitutiveMatrix(this_constitutive_variables.D);
-    rValues.SetShapeFunctionsDerivatives(rThisKinematicVariables.DN_DX);
-    rValues.SetShapeFunctionsValues(rThisKinematicVariables.N);
-
-    if(rThisKinematicVariables.detJ0<0)
-        {
-    KRATOS_ERROR << " (small displacement) ELEMENT INVERTED |J|<0 : " << rThisKinematicVariables.detJ0 << std::endl;
-        }
-
-    rValues.SetDeterminantF(rThisKinematicVariables.detF);
-    rValues.SetDeformationGradientF(rThisKinematicVariables.F);
-
-    KRATOS_CATCH( "" )
-}
-
-// =============================================================================================================================================
-// =============================================================================================================================================
+/***********************************************************************************/
+/***********************************************************************************/
 
 
 void SmallDisplacementSIMPElement::save( Serializer& rSerializer ) const

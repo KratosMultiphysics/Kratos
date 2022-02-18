@@ -25,8 +25,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for MPI parallelism
     elif parallelism == "MPI":
-        err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not yet in the python solvers wrapper for Topology Optimization\n"
-        err_msg += "Available options are: \"implicit\""
+        err_msg =  "The requested parallel type MPI is not yet available!\n"
         raise Exception(err_msg)
 
     else:

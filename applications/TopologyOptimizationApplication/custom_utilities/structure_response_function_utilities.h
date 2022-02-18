@@ -27,7 +27,6 @@
 // Application includes
 #include "topology_optimization_application.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/parallel_utilities.h"
 
 
 namespace Kratos
@@ -100,6 +99,8 @@ public:
     /// Computes the strain energy as the objective function of the optimization problem.
     double ComputeStrainEnergy()
     {
+        KRATOS_TRY;
+
         BuiltinTimer timer;
         KRATOS_INFO("[TopOpt]") << "  Start calculating strain energy."<<std::endl;
 
@@ -107,7 +108,6 @@ public:
         double Global_Strain_Energy = 0.0;
 
         // Loop over all elements to calculate their local objective function and sum it into the global objective function (Global Strain Energy)
-        #pragma omp parallel for
         for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
         {
@@ -133,7 +133,6 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("[TopOpt]") <<"  Start calculating volume fraction."<<std::endl;
 
-        int number_elements = 0;
         double Global_Volume_Fraction = 0.0;
         double elemental_volume = 0.0;
         double design_variable = 0.0;
@@ -141,7 +140,6 @@ public:
 
 
         // Loop over all elements to obtain their X_PHYS and know how many elements the model has
-        #pragma omp parallel for
         for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
                 element_i++ )
         {
@@ -150,7 +148,6 @@ public:
             design_variable = element_i->GetValue(X_PHYS);
             Global_Volume_Fraction += (elemental_volume*design_variable); //
             Total_volume += elemental_volume;
-            number_elements++;
         }
 
         // Calculate and return the Global Volume Fraction by knowing how many elements the model has

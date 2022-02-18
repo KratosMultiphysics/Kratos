@@ -167,14 +167,6 @@ public:
     ) override;  
 
 
-
-    /// Function that overwrites the CalculateOnIntegrationPoints, to insert the X_PHYS into all Gauss Points of the given element
-    /// That allows printing X_PHYS as elemental value in GiD
-
-    //void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void SetElementData(const KinematicVariables& rThisKinematicVariables, ConstitutiveLaw::Parameters& rValues, const int & rPointNumber);
-
     // =============================================================================================================================================
     // =============================================================================================================================================
 

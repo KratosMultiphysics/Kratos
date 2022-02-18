@@ -4,7 +4,6 @@
         "simp_property"                 :  1,
         "penalty"                       :  3,
         "continuation_strategy"         : 0,
-        "E_min"                         : 0.000000001,
         "initial_volume_fraction"       : 0.5,
         "density_filter"	            : "densit",
         "filter_type"                   : "sensitivity",

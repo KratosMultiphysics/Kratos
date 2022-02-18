@@ -40,6 +40,8 @@ solver.AddDofs()
 model_part.GetProperties()[1].SetValue(km.YOUNG_MODULUS, 1)
 model_part.GetProperties()[1].SetValue(km.POISSON_RATIO, 0.3)
 model_part.GetProperties()[1].SetValue(km.DENSITY, 1)
+model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_MIN, 1e-09)
+model_part.GetProperties()[1].SetValue(kto.YOUNGS_MODULUS_0, 1)
 
 
 cons_law = ksm.LinearElastic3DLaw()

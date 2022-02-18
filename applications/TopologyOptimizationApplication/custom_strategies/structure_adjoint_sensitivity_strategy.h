@@ -99,13 +99,11 @@ public:
         BuiltinTimer timer;
         const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
 
-        #pragma omp parallel for
-        for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
-                element_i++ )
+        block_for_each(mr_structure_model_part.Elements(), [&](Element& element_i)
         {
-            element_i->Calculate(DCDX, Out, ConstProcessInfo);
+            element_i.Calculate(DCDX, Out, ConstProcessInfo);
             i++;
-        }
+        });
 
         KRATOS_INFO("[TopOpt]") << "  Objective Function sensitivities computed  [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
 
@@ -123,12 +121,10 @@ public:
         BuiltinTimer timer;
         const ProcessInfo& ConstProcessInfo= mr_structure_model_part.GetProcessInfo();
 
-        #pragma omp parallel for
-        for ( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
-                element_i++ )
+        block_for_each(mr_structure_model_part.Elements(), [&](Element& element_i)
         {
-            element_i->Calculate(DVDX, Out, ConstProcessInfo);
-        }
+            element_i.Calculate(DVDX, Out, ConstProcessInfo);
+        });
 
         KRATOS_INFO("[TopOpt]") << "  Volume fraction sensitivities computed     [ spent time =  " << timer.ElapsedSeconds() << " ] " << std::endl;
 

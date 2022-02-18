@@ -133,8 +133,8 @@ public:
         
 
         //Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
-        const double E_min     = rCurrentElement.GetValue(YOUNGS_MODULUS_MIN);
-        const double E_initial = rCurrentElement.GetValue(YOUNGS_MODULUS_0);
+        const double E_min     = rCurrentElement.GetProperties()[YOUNGS_MODULUS_MIN];
+        const double E_initial = rCurrentElement.GetProperties()[YOUNGS_MODULUS_0];
         const double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
         const double penalty   = rCurrentElement.GetValue(PENAL);
         const double x_phys    = rCurrentElement.GetValue(X_PHYS);

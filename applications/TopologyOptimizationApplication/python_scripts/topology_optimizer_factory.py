@@ -102,11 +102,9 @@ class SIMPMethod:
 
         # Initialize element variables
         for element_i in opt_model_part.Elements:
-            element_i.SetValue(kto.YOUNGS_MODULUS_MIN, config["E_min"].GetDouble())
             element_i.SetValue(kto.PENAL, config["penalty"].GetInt())
             element_i.SetValue(kto.X_PHYS, config["initial_volume_fraction"].GetDouble())
             element_i.SetValue(kto.X_PHYS_OLD, config["initial_volume_fraction"].GetDouble())
-            element_i.SetValue(kto.YOUNGS_MODULUS_0, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
             element_i.SetValue(km.YOUNG_MODULUS, opt_model_part.GetProperties()[config["simp_property"].GetInt()].GetValue(km.YOUNG_MODULUS))
             elemental_volume = element_i.GetGeometry().DomainSize()
             element_i.SetValue(kto.INITIAL_ELEMENT_SIZE, elemental_volume)
@@ -187,7 +185,7 @@ class SIMPMethod:
 
         # Print the Topology Optimization Settings that will be used in the program
         km.Logger.Print("\n::[Topology Optimization Settings]::")
-        km.Logger.Print("  E_min:          ", self.config["E_min"].GetDouble())
+        km.Logger.Print("  E_min:          ", self.opt_model_part.GetProperties()[self.config["simp_property"].GetInt()].GetValue(kto.YOUNGS_MODULUS_MIN))
         km.Logger.Print("  Filter radius:  ", self.config["filter_radius"].GetDouble())
         km.Logger.Print("  Penalty factor: ", self.config["penalty"].GetInt())
         km.Logger.Print("  Rel. Tolerance: ", self.config["relative_tolerance"].GetDouble())
