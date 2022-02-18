@@ -133,6 +133,10 @@ public:
 
     /**
      * @brief Obtain the elemental basis matrix for a particular element.
+     * @param rPhiElemental The matrix to store the result in. Must have the appropiate size already.
+     * @param rDofs The set of dofs of the element.
+     * @param rGeom The geometry of the element.
+     * @rVarToRowMapping A map from each variables's key to its row in the basis matrix.
      */
     static void GetPhiElemental(
         Matrix &rPhiElemental,
