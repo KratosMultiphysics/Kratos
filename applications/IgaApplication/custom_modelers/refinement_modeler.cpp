@@ -172,9 +172,8 @@ namespace Kratos
                             << " by inserting knots in v, however insert_nb_per_span_v is set to 0." << std::endl;
                     }
                 }
-                if (rParameters["parameters"].Has("insert_degree_u")) {
-                    SizeType degree_u = rParameters["parameters"]["insert_degree_u"].GetInt();
-                    std::cout<<"debug 0"<<std::endl;
+                if (rParameters["parameters"].Has("increase_degree_u")) {
+                    SizeType degree_u = rParameters["parameters"]["increase_degree_u"].GetInt();
 
                     if (degree_u > 0) {
                         std::vector<double> spans_local_space;
@@ -211,12 +210,11 @@ namespace Kratos
                     } else {
                         KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
                             << "Trying to refine nurbs surface #" << p_nurbs_surface->Id()
-                            << " by elevating degree in u, however insert_degree_u is set to 0." << std::endl;
+                            << " by elevating degree in u, however increase_degree_u is set to 0." << std::endl;
                     }
                 }
-                if (rParameters["parameters"].Has("insert_degree_v")) {
-                    SizeType degree_v = rParameters["parameters"]["insert_degree_v"].GetInt();
-                    std::cout<<"debug 0"<<std::endl;
+                if (rParameters["parameters"].Has("increase_degree_v")) {
+                    SizeType degree_v = rParameters["parameters"]["increase_degree_v"].GetInt();
 
                     if (degree_v > 0) {
                         std::vector<double> spans_local_space;
@@ -253,7 +251,7 @@ namespace Kratos
                     } else {
                         KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
                             << "Trying to refine nurbs surface #" << p_nurbs_surface->Id()
-                            << " by elevating degree in v, however insert_degree_v is set to 0." << std::endl;
+                            << " by elevating degree in v, however increase_degree_v is set to 0." << std::endl;
                     }
                 }
             }
