@@ -41,6 +41,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidDynamicsTrilinosExtension" PARENT_SCOPE)
+
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosFluidDynamicsTrilinosExtension DESTINATION libs )

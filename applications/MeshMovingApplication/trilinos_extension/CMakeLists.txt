@@ -41,6 +41,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshMovingTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMeshMovingTrilinosExtension" PARENT_SCOPE)
+
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosMeshMovingTrilinosExtension DESTINATION libs )
