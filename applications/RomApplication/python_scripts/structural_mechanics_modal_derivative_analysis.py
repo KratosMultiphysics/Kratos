@@ -46,7 +46,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
 
             number_of_extended_rom_dofs = None
             derivative_type = self.project_parameters["solver_settings"]["derivative_type"].GetString()
-            if derivative_type == "static": # dynamic modal derivatives
+            if derivative_type == "static": # static modal derivatives
                 number_of_extended_rom_dofs = int(self.number_of_initial_rom_dofs + self.number_of_initial_rom_dofs * ( self.number_of_initial_rom_dofs + 1 ) / 2)
             else : # dynamic modal derivatives
                 number_of_extended_rom_dofs = int(self.number_of_initial_rom_dofs * ( self.number_of_initial_rom_dofs + 1 ))

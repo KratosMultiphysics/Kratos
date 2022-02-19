@@ -16,7 +16,7 @@
 
 // System includes
 
-#if defined(KRATOS_PYTHON)
+//#if defined(KRATOS_PYTHON)
 // External includes
 #include <pybind11/pybind11.h>
 
@@ -26,6 +26,7 @@
 #include "rom_application.h"
 #include "rom_application_variables.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 
@@ -43,6 +44,7 @@ PYBIND11_MODULE(KratosRomApplication,m)
         ;
 
     AddCustomStrategiesToPython(m);
+    AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
@@ -56,4 +58,4 @@ PYBIND11_MODULE(KratosRomApplication,m)
 } // namespace Python.
 } // namespace Kratos.
 
-#endif // KRATOS_PYTHON defined
+//#endif // KRATOS_PYTHON defined

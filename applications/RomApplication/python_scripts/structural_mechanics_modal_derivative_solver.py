@@ -37,7 +37,7 @@ class ModalDerivativeSolver(MechanicalSolver):
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         # Possible derivative parameters
 
         finite_difference_types = ["forward", "central"]
@@ -52,18 +52,18 @@ class ModalDerivativeSolver(MechanicalSolver):
         # Create scheme
         return RomApplication.ModalDerivativeScheme(self.settings)
         
-    def _create_builder_and_solver(self):
+    def _CreateBuilderAndSolver(self):
 
         if not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             err_msg  = "Modal derivative analysis is only available with block builder and solver!"
             raise Exception(err_msg)
 
-        return super()._create_builder_and_solver()
+        return super()._CreateBuilderAndSolver()
 
-    def _create_mechanical_solution_strategy(self):
+    def _CreateSolutionStrategy(self):
         computing_model_part = self.GetComputingModelPart()
-        modal_derivative_scheme = self.get_solution_scheme()
-        builder_and_solver = self.get_builder_and_solver()
+        modal_derivative_scheme = self._GetScheme()
+        builder_and_solver = self._GetBuilderAndSolver()
 
         # Check strategy related input
         derivative_types = ["static", "dynamic"]
