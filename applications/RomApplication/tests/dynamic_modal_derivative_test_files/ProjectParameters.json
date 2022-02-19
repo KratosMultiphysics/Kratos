@@ -12,10 +12,10 @@
         "finite_difference_type"          : "central",
         "finite_difference_step_size"     : 1e-3,
         "mass_orthonormalize"             : false,
-        "rom_parameters_filename"         :"InitialRomParameters.json",
         "rom_settings":
         {
-            "nodal_unknowns": ["ROTATION_X","ROTATION_Y","ROTATION_Z","DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"]
+            "rom_parameters_filename"     :"InitialRomParameters.json",
+            "nodal_unknowns"              : ["ROTATION_X","ROTATION_Y","ROTATION_Z","DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"]
         },
         "model_part_name"                 : "Structure",
         "domain_size"                     : 3,
@@ -58,6 +58,16 @@
             }
         }],
         "loads_process_list"       : [],
-        "list_other_processes"     : []
+        "list_other_processes"     : [{
+            "python_module" : "postprocess_rom_basis_process",
+            "kratos_module" : "KratosMultiphysics.RomApplication",
+            "help"          : "This process postprocesses the ROM basis for GiD",
+            "process_name"  : "PostProcessRomBasisProcess",
+            "Parameters"    : {
+                "result_file_name" : "",
+                "animation_steps"  : 20,
+                "file_format"      : "vtk"
+            }
+        }]
     }
 }

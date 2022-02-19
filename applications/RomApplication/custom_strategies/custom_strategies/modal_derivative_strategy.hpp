@@ -108,20 +108,24 @@ public:
         // Set derivative type: static or dynamic
         const auto& derivative_type = InputParameters["derivative_type"].GetString();
         if (derivative_type == "static")
-            mDerivativeTypeFlag = false;
+            mDerivativeType = DerivativeType::Static;
         else if (derivative_type == "dynamic")
-            mDerivativeTypeFlag = true;
+            mDerivativeType = DerivativeType::Dynamic;
         else
             KRATOS_ERROR << "\"derivative_type\" can only be \"static\" or \"dynamic\""  << std::endl;
 
+        // Set mass ortho-normalization flag
         mMassOrthonormalizeFlag = InputParameters["mass_orthonormalize"].GetBool();
         
+        // Initialize dynamic derivative DOF index
         mFixedDofIndex = 0;
 
+        // Set the derivative index to compute
         mNumberInitialBasis = rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].size();
         rModelPart.GetProcessInfo()[DERIVATIVE_INDEX] = mNumberInitialBasis;
 
-        if ( mDerivativeTypeFlag)   // Dynamic derivatives are unsymmetric
+        // Resize the vector of eigenvalues and derivatives
+        if ( mDerivativeType == DerivativeType::Dynamic)   // Dynamic derivatives are unsymmetric
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis*( mNumberInitialBasis + 1 ), true);
         else // Static derivatives are symmetric
             rModelPart.GetProcessInfo()[EIGENVALUE_VECTOR].resize(mNumberInitialBasis + mNumberInitialBasis * ( mNumberInitialBasis + 1 ) / 2, true);
@@ -287,14 +291,14 @@ public:
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  r_model_part);
                 
-                if (mDerivativeTypeFlag)
+                if (mDerivativeType == DerivativeType::Dynamic)
                 {   // Dynamic derivatives need both mass and stiffness to be built separately
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
                                                                  r_model_part);
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpStiffnessMatrix, mpDx, mpb,
                                                                  r_model_part);
                 } 
-                else if (!mDerivativeTypeFlag && mMassOrthonormalizeFlag)
+                else if (mDerivativeType == DerivativeType::Static && mMassOrthonormalizeFlag)
                 {   // Static derivatives need mass matrix only if mass orthonormalization is necessary
                     p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpMassMatrix, mpDx, mpb,
                                                                  r_model_part);
@@ -352,6 +356,32 @@ public:
         mSolutionStepIsInitialized = false;
 
         KRATOS_INFO_IF("ModalDerivativeStrategy", BaseType::GetEchoLevel() > 2) <<  "Exiting FinalizeSolutionStep" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    bool SolveSolutionStep() override
+    {
+        KRATOS_TRY
+
+        auto& r_model_part = BaseType::GetModelPart();
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(r_model_part);
+
+        if (mDerivativeType == DerivativeType::Static)
+        {   // Static derivatives
+            return this->SolveSolutionStepStaticDerivatives();
+        }
+        else if (mDerivativeType == DerivativeType::Dynamic)
+        {   // Dynamic derivatives
+            return this->SolveSolutionStepDynamicDerivatives();
+        }
+        else
+            return false;
+        
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(r_model_part);
 
         KRATOS_CATCH("")
     }
@@ -573,7 +603,6 @@ public:
 
                 // Add dynamic part of RHS
                 rb += deigenvalue_i_dbasis_j * prod(rMassMatrix, basis);
-
                 KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Build time RHS: " << time_build_rhs.ElapsedSeconds() << std::endl;
 
                 // Apply the master-slave constraints to RHS only
@@ -620,25 +649,6 @@ public:
         KRATOS_INFO_IF("ModalDerivativeStrategy", this->GetEchoLevel() >= 1) << "Eigenvalues and derivatives: " << r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR] << std::endl;
 
         return true;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
-     */
-    bool SolveSolutionStep() override
-    {
-        KRATOS_TRY
-
-        if (!mDerivativeTypeFlag)
-        {   // Static derivatives
-            return this->SolveSolutionStepStaticDerivatives();
-        }
-        else
-        {   // Dynamic derivatives
-            return this->SolveSolutionStepDynamicDerivatives();
-        }
 
         KRATOS_CATCH("")
     }
@@ -711,25 +721,6 @@ public:
             }
         );
 
-        // //for (auto r_node : r_model_part.Nodes())
-        // for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++)
-        // {
-        //     //auto& node_dofs = r_node.GetDofs();
-        //     //const auto& r_nodal_basis = r_node.GetValue(ROM_BASIS);
-        //     auto& node_dofs = itNode->GetDofs();
-        //     const auto& r_nodal_basis = itNode->GetValue(ROM_BASIS);
-        //     for (const auto& rp_dof : node_dofs)
-        //     {
-        //         bool is_active = !(r_dof_set.find(*rp_dof) == r_dof_set.end());
-        //         if (rp_dof->IsFree() && is_active)
-        //         {
-        //             KRATOS_WATCH(rp_dof->GetVariable().Key())
-        //             const std::size_t dof_index = r_current_process_info[MAP_PHI].at(rp_dof->GetVariable().Key());
-        //             rBasis[rp_dof->EquationId()] = r_nodal_basis(dof_index,BasisIndex);
-        //         }
-        //     }
-        // }
-
         KRATOS_CATCH("")
     }
 
@@ -791,6 +782,15 @@ public:
         // Component c for the null space solution
         double c = -inner_prod(rDx, prod(rMassMatrix, rBasis));
 
+        // Additional term related to the mass matrix derivative
+        // This is necessary because corotational element mass matrices are orientation dependent
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_eigenvalues = r_model_part.GetProcessInfo()[EIGENVALUE_VECTOR];
+        const double eigenvalue_i = r_eigenvalues[r_model_part.GetProcessInfo()[BASIS_I]];
+        const double deigenvalue_i_dparameter = r_eigenvalues[r_model_part.GetProcessInfo()[DERIVATIVE_INDEX]];            
+        c += (0.5*deigenvalue_i_dparameter/eigenvalue_i);
+        /////////////////////////////////////////////////
+
         rDx += c*rBasis;
 
         KRATOS_CATCH("")
@@ -825,7 +825,7 @@ public:
             {
                 this->GetBasis(j, basis_j);
                 Mred(i,j) = inner_prod(basis_i, prod(rMassMatrix, basis_j));
-                if (mDerivativeTypeFlag)
+                if (mDerivativeType == DerivativeType::Static)
                     Kred(i,j) = inner_prod(basis_i, prod(rStiffnessMatrix, basis_j));
                 else
                     Kred(i,j) = inner_prod(basis_i, prod(rA, basis_j));
@@ -988,7 +988,9 @@ private:
 
     TBuilderAndSolverPointerType mpBuilderAndSolver;
 
-    bool mDerivativeTypeFlag;
+    enum DerivativeType {Static, Dynamic};
+
+    DerivativeType mDerivativeType;
 
     bool mMassOrthonormalizeFlag;
 

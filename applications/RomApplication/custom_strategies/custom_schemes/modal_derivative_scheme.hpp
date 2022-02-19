@@ -132,30 +132,6 @@ public:
     ///@{
 
     /**
-     * @brief unction to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
-     * @note Take care: the elemental function with the same name is NOT called here.
-     * @warning Must be defined in derived classes
-     * @details The function is called in the builder for memory efficiency
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-        ) override
-    {
-        KRATOS_TRY
-
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
      * @param rCondition The condition to compute
      * @param RHS_Contribution The RHS vector contribution
@@ -197,12 +173,17 @@ public:
     {
         KRATOS_TRY
 
-        if (rCurrentProcessInfo[BUILD_LEVEL] == 1 ) // Mass matrix
+        switch(rCurrentProcessInfo[BUILD_LEVEL])
+        {
+        case 1: // Mass matrix
             rElement.CalculateMassMatrix(rLHS_Contribution, rCurrentProcessInfo);
-        else if (rCurrentProcessInfo[BUILD_LEVEL] == 2) // Stiffness matrix
+            break;
+        case 2: // Stiffness matrix
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-        else 
-            KRATOS_ERROR <<"Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+            break;
+        default:
+            KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
+        }
         
         rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -229,21 +210,20 @@ public:
         const auto basis_i = rCurrentProcessInfo[BASIS_I];
         const auto basis_j = rCurrentProcessInfo[BASIS_J];
 
-        // Get element DOF list
-        TElementDofPointersVectorType r_element_dof_list;
-        rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
-        const std::size_t element_dofs_size = r_element_dof_list.size();
-
         // Get PhiElemental
-        LocalSystemVectorType phi_elemental(element_dofs_size);
-        this->GetPhiElemental(phi_elemental, basis_i, rElement, r_element_dof_list, rCurrentProcessInfo);
+        LocalSystemVectorType phi_elemental;
+        this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
+        const std::size_t num_element_dofs = phi_elemental.size();
 
         // Compute element LHS derivative
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
-        Matrix element_matrix_derivative(element_dofs_size, element_dofs_size);        
+        
         // Perform FD
-        switch (mFiniteDifferenceType) {
+        Matrix element_matrix_derivative(num_element_dofs, num_element_dofs);
+        element_matrix_derivative.clear();        
+        switch (mFiniteDifferenceType) 
+        {
             case FiniteDifferenceType::Forward:
                 this->ForwardDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
                 break;
@@ -255,13 +235,89 @@ public:
         this->UnlockElementNodes(rElement);
 
         // Compute RHS contribution
-        if (rRHS_Contribution.size() != element_dofs_size)
-            rRHS_Contribution.resize(element_dofs_size);
+        if (rRHS_Contribution.size() != num_element_dofs)
+            rRHS_Contribution.resize(num_element_dofs);
         rRHS_Contribution.clear();
         noalias(rRHS_Contribution) -= prod(element_matrix_derivative, phi_elemental);
 
         rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Functions totally analogous to the precedent but applied to the "condition" objects
+     * @param rCondition The condition to compute
+     * @param RHS_Contribution The RHS vector contribution
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateSystemContributions(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        KRATOS_TRY
+
+        this->CalculateLHSContribution(rCondition, rLHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
+
+        this->CalculateRHSContribution(rCondition, rRHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
+
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function is designed to calculate just the LHS contribution
+     * @param rCondition The condition to compute
+     * @param LHS_Contribution The RHS vector contribution
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateLHSContribution(
+        Condition& rCondition,
+        LocalSystemMatrixType& rLHS_Contribution,
+        Condition::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        KRATOS_TRY
+
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
+
+        const std::size_t size = rEquationIdVector.size();
+        rLHS_Contribution.resize(size, size);
+        rLHS_Contribution.clear();
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This function is designed to calculate just the RHS contribution
+     * @param rCondition The condition to compute
+     * @param RHS_Contribution The RHS vector contribution
+     * @param rEquationIdVector The ID's of the condition degrees of freedom
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateRHSContribution(
+        Condition& rCondition,
+        LocalSystemVectorType& rRHS_Contribution,
+        Condition::EquationIdVectorType& rEquationIdVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        KRATOS_TRY
+        
+        rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
+
+        const std::size_t size = rEquationIdVector.size();
+        rRHS_Contribution.resize(size, size);
+        rRHS_Contribution.clear();
+        
         KRATOS_CATCH("")
     }
 
@@ -362,29 +418,34 @@ protected:
         LocalSystemVectorType& rPhiElemental,
         const std::size_t BasisIndex,
         const Element& rElement,
-        const TElementDofPointersVectorType& rElementDofList,        
         const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY
 
+        // Get element DOF list
+        TElementDofPointersVectorType r_element_dof_list;
+        rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
+
         // Get elemental and nodal DOFs size
-        const std::size_t element_dofs_size = rElementDofList.size();
-        const std::size_t nodal_dof_size = element_dofs_size/rElement.GetGeometry().size();
+        const std::size_t num_element_dofs = r_element_dof_list.size();
+        const std::size_t num_element_nodes = rElement.GetGeometry().size();
+        const std::size_t num_nodal_dofs = num_element_dofs/num_element_nodes;
         
         // Get PhiElemental
-        if (rPhiElemental.size() != element_dofs_size)
-            rPhiElemental.resize(element_dofs_size);
-        for(std::size_t i_node = 0; i_node < rElement.GetGeometry().size(); ++i_node)
+        if (rPhiElemental.size() != num_element_dofs)
+            rPhiElemental.resize(num_element_dofs, false);
+        for(std::size_t i_node = 0; i_node < num_element_nodes; ++i_node)
         {
             const auto& r_node = rElement.GetGeometry()[i_node];
             const auto& r_phi_nodal = r_node.GetValue(ROM_BASIS);
-            for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
+            for (std::size_t i_dof = 0; i_dof < num_nodal_dofs; ++i_dof)
             {
-                const auto& rp_dof = rElementDofList[i_node*nodal_dof_size+i_dof];
-                rPhiElemental[i_node*nodal_dof_size+i_dof] = r_phi_nodal(rCurrentProcessInfo[MAP_PHI].at(rp_dof->GetVariable().Key()), BasisIndex);
+                const auto& rp_dof = r_element_dof_list[i_node*num_nodal_dofs+i_dof];
+                rPhiElemental[i_node*num_nodal_dofs+i_dof] = r_phi_nodal(rCurrentProcessInfo[MAP_PHI].at(rp_dof->GetVariable().Key()), BasisIndex);
             }
         }
+        
         KRATOS_CATCH("")
     }
 
@@ -410,6 +471,9 @@ protected:
         LocalSystemMatrixType element_matrix_p_perturbed(matrix_size, matrix_size);
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_matrix_p_perturbed += trans(element_matrix_p_perturbed);
+        element_matrix_p_perturbed *= 0.5;
 
         // Reset perturbation
         this->PerturbElementWithBasis(-1.0, BasisIndex, rElement, rCurrentProcessInfo);
@@ -417,6 +481,9 @@ protected:
         // Neutral state
         LocalSystemMatrixType element_matrix(matrix_size, matrix_size);
         rElement.CalculateLeftHandSide(element_matrix, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_matrix += trans(element_matrix);
+        element_matrix *= 0.5;
 
         // Compute ElementMatrixDerivative
         noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix) / mFiniteDifferenceStepSize;
@@ -446,11 +513,17 @@ protected:
         LocalSystemMatrixType element_matrix_p_perturbed(matrix_size, matrix_size);
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_matrix_p_perturbed += trans(element_matrix_p_perturbed);
+        element_matrix_p_perturbed *= 0.5;
 
         // Negative perturbation
         LocalSystemMatrixType element_matrix_n_perturbed(matrix_size, matrix_size);
         this->PerturbElementWithBasis(-2.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_n_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_matrix_n_perturbed += trans(element_matrix_n_perturbed);
+        element_matrix_n_perturbed *= 0.5;
 
         // Reset perturbation
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
@@ -479,25 +552,23 @@ protected:
     {
         KRATOS_TRY
 
-        // Initialize is necessary for updating the section properties of shell elements
-        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
-
         // Get DOF list
         TElementDofPointersVectorType r_element_dof_list;
         rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
 
         // Get PhiElemental
-        LocalSystemVectorType phi_elemental(r_element_dof_list.size());
-        this->GetPhiElemental(phi_elemental, BasisIndex, rElement, r_element_dof_list, rCurrentProcessInfo);
+        LocalSystemVectorType phi_elemental;
+        this->GetPhiElemental(phi_elemental, BasisIndex, rElement, rCurrentProcessInfo);
 
         // Apply perturbation
-        const std::size_t nodal_dof_size = r_element_dof_list.size()/rElement.GetGeometry().size();
-        for(std::size_t i_node = 0; i_node < rElement.GetGeometry().size(); ++i_node)
+        const std::size_t num_element_nodes = rElement.GetGeometry().size();
+        const std::size_t num_nodal_dofs = phi_elemental.size()/num_element_nodes;
+        for(std::size_t i_node = 0; i_node < num_element_nodes; ++i_node)
         {
-            for (std::size_t i_dof = 0; i_dof < nodal_dof_size; ++i_dof)
+            for (std::size_t i_dof = 0; i_dof < num_nodal_dofs; ++i_dof)
             {
-                const double dof_perturbation = Step*mFiniteDifferenceStepSize*phi_elemental[i_node*nodal_dof_size+i_dof];
-                auto& rp_dof = r_element_dof_list[i_node*nodal_dof_size+i_dof];
+                const double dof_perturbation = Step*mFiniteDifferenceStepSize*phi_elemental[i_node*num_nodal_dofs+i_dof];
+                auto& rp_dof = r_element_dof_list[i_node*num_nodal_dofs+i_dof];
 
                 // Some elements need solution step value while others need the current coordinate. Thus perturb all!
                 // Update solution step value
@@ -510,8 +581,10 @@ protected:
             }
         }
 
-        // Finalize is necessary for updating the section properties of shell elements
+        // Finalize and initialize is necessary to update corotational element internals. 
+        // The element is in the new configuration only after initialize
         rElement.FinalizeNonLinearIteration(rCurrentProcessInfo);
+        rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
