@@ -170,6 +170,9 @@ public:
             break;
         case 2: // Stiffness matrix
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+            // symmetrization due to nonsymmetric stiffness matrices of corotational shell elements
+            rLHS_Contribution += trans(rLHS_Contribution);
+            rLHS_Contribution *= 0.5;
             break;
         default:
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
@@ -369,11 +372,17 @@ protected:
         // Neutral state
         LocalSystemMatrixType element_LHS_initial;
         rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
+        // symmetrization due to nonsymmetric stiffness matrices of corotational shell elements
+        element_LHS_initial += trans(element_LHS_initial);
+        element_LHS_initial *= 0.5;
 
         // Positive perturbation
         LocalSystemMatrixType element_LHS_p_perturbed;
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+        // symmetrization due to nonsymmetric stiffness matrices of corotational shell elements
+        element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+        element_LHS_p_perturbed *= 0.5;
 
         // Reset perturbation
         this->PerturbElementWithBasis(-1.0, BasisIndex, rElement, rCurrentProcessInfo);
@@ -404,11 +413,17 @@ protected:
         LocalSystemMatrixType element_LHS_p_perturbed;
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+        // symmetrization due to nonsymmetric stiffness matrices of corotational shell elements
+        element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+        element_LHS_p_perturbed *= 0.5;
 
         // Negative perturbation
         LocalSystemMatrixType element_LHS_n_perturbed;
         this->PerturbElementWithBasis(-2.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_LHS_n_perturbed, rCurrentProcessInfo);
+        // symmetrization due to nonsymmetric stiffness matrices of corotational shell elements
+        element_LHS_n_perturbed += trans(element_LHS_n_perturbed);
+        element_LHS_n_perturbed *= 0.5;
 
         // Reset perturbation
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
