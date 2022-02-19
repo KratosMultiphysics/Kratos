@@ -42,7 +42,7 @@ public:
 
     ///@name Pointer Definitions
     /// Pointer definition of EmbeddedCompressiblePotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedCompressiblePotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(EmbeddedCompressiblePotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -115,6 +115,12 @@ public:
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                               const ProcessInfo& rCurrentProcessInfo) override;
+
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
     /// Turn back information as a string.
     std::string Info() const override;
@@ -135,6 +141,11 @@ private:
     void CalculateEmbeddedLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateKuttaWakeLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo);
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override;

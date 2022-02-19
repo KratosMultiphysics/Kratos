@@ -34,6 +34,25 @@ namespace Kratos {
         rModelPart.CreateNewCondition("LineCondition2D2N", 2, {{1,4}}, p_elem_prop);
         rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{2,5}}, p_elem_prop);
         rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{5,6}}, p_elem_prop);
+
+        std::vector<NodeType::Pointer> condition_nodes_3 (2);
+        condition_nodes_3[0] = rModelPart.pGetNode(5);
+        condition_nodes_3[1] = rModelPart.pGetNode(6);
+
+        rModelPart.CreateNewGeometry("Line2D2", 1, {{1,2}});
+        rModelPart.CreateNewGeometry("Line2D2", 2, rModelPart.pGetCondition(1)->pGetGeometry());
+        rModelPart.CreateNewGeometry("Line2D2", 3, rModelPart.pGetCondition(2)->pGetGeometry());
+        rModelPart.CreateNewGeometry("Line2D2", 4, PointerVector<NodeType>{condition_nodes_3});
+
+        std::vector<NodeType::Pointer> element_nodes_0 (3);
+        element_nodes_0[0] = rModelPart.pGetNode(1);
+        element_nodes_0[1] = rModelPart.pGetNode(2);
+        element_nodes_0[2] = rModelPart.pGetNode(3);
+
+        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<NodeType>{element_nodes_0});
+        rModelPart.CreateNewGeometry("Triangle2D3", rModelPart.pGetElement(1)->pGetGeometry());
+        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_7", {{2,5,3}});
+        rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", {{5,6,3}});
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
@@ -106,13 +125,51 @@ namespace Kratos {
             "Error: Please don't use empty names (\"\") when creating a ModelPart");
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(ModelPartNameContainingPoint, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartBaseCreation, KratosCoreFastSuite)
     {
         Model current_model;
 
-        // Constructor with name
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(current_model.CreateModelPart("name.other"),
-            "Error: Please don't use names containing (\".\") when creating a ModelPart (used in \"name.other\")");
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        // Check results
+        KRATOS_CHECK(r_model_part.NumberOfNodes() == 6);
+        KRATOS_CHECK(r_model_part.NumberOfElements() == 4);
+        KRATOS_CHECK(r_model_part.NumberOfConditions() == 4);
+        KRATOS_CHECK(r_model_part.NumberOfGeometries() == 8);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartAddGeometries, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+
+        // Generate submodelpart (I)
+        auto& r_sub_model_1 = r_model_part.CreateSubModelPart("Sub1");
+        KRATOS_CHECK(r_sub_model_1.NumberOfGeometries() == 0);
+
+        // Copy one
+        r_sub_model_1.AddGeometries(r_model_part.GeometriesBegin(), r_model_part.GeometriesEnd());
+
+        // Check results
+        KRATOS_CHECK(r_sub_model_1.NumberOfGeometries() == 8);
+
+        // Generate submodelpart (II)
+        auto& r_sub_model_2 = r_model_part.CreateSubModelPart("Sub2");
+        KRATOS_CHECK(r_sub_model_2.NumberOfGeometries() == 0);
+
+        // Copy one
+        const std::vector<std::size_t> indexes = {1,2,3,4};
+        r_sub_model_2.AddGeometries(indexes);
+
+        // Check results
+        KRATOS_CHECK(r_sub_model_2.NumberOfGeometries() == 4);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartTable, KratosCoreFastSuite)
@@ -275,6 +332,145 @@ namespace Kratos {
 
         // Check results
         KRATOS_CHECK_EQUAL(r_model_part.NumberOfProperties(), 1);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartGetSubModelPart, KratosCoreFastSuite)
+    {
+        Model model;
+
+        auto& model_part = model.CreateModelPart("Main");
+
+        // Checking SubModelPart
+        model_part.CreateSubModelPart("Inlet1");
+
+        ModelPart& smp = model_part.GetSubModelPart("Inlet1");
+        KRATOS_CHECK_EQUAL("Inlet1", smp.Name());
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Random"),
+            "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
+
+        // Checking SubSubModelPart
+        auto& ssmp = smp.CreateSubModelPart("sub_inlet");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+
+        KRATOS_CHECK_EQUAL("sub_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
+            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe the following sub model parts are available:\n\tsub_inlet");
+
+        // Checking SubSubSubModelPart
+        ssmp.CreateSubModelPart("tiny_inlet");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet.tiny_inlet"));
+
+        KRATOS_CHECK_EQUAL("tiny_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
+            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe the following sub model parts are available:\n\ttiny_inlet");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartHasSubModelPart, KratosCoreFastSuite)
+    {
+        Model model;
+
+        auto& model_part = model.CreateModelPart("Main");
+
+        model_part.CreateSubModelPart("Inlet1");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
+
+        ModelPart& smp = model_part.GetSubModelPart("Inlet1");
+        auto& ssmp = smp.CreateSubModelPart("SubInlet");
+        ssmp.CreateSubModelPart("SuperSubInlet");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.SubInlet"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.SubInlet.SuperSubInlet"));
+        KRATOS_CHECK(smp.HasSubModelPart("SubInlet"));
+        KRATOS_CHECK(smp.HasSubModelPart("SubInlet.SuperSubInlet"));
+        KRATOS_CHECK(ssmp.HasSubModelPart("SuperSubInlet"));
+
+        KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("SubInlet"));
+        KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("SuperSubInlet"));
+        KRATOS_CHECK_IS_FALSE(smp.HasSubModelPart("SuperSubInlet"));
+
+        KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("Random"));
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartCreateSubModelPart, KratosCoreFastSuite)
+    {
+        Model model;
+
+        auto& model_part = model.CreateModelPart("Main");
+
+        // Checking SubModelPart
+        auto& smp = model_part.CreateSubModelPart("Inlet1");
+        KRATOS_CHECK_EQUAL("Inlet1", smp.Name());
+
+        // Checking SubSubModelPart
+        // here Inlet1 exists already
+        auto& ssmp = model_part.CreateSubModelPart("Inlet1.sub_inlet");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+        KRATOS_CHECK(smp.HasSubModelPart("sub_inlet"));
+
+        // here InletCustom does NOT exists yet
+        auto& ssmp_2 = model_part.CreateSubModelPart("InletCustom.ccc_sub_inlet");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("InletCustom"));
+        KRATOS_CHECK(model_part.HasSubModelPart("InletCustom.ccc_sub_inlet"));
+        KRATOS_CHECK(model_part.GetSubModelPart("InletCustom").HasSubModelPart("ccc_sub_inlet"));
+        KRATOS_CHECK_EQUAL(ssmp_2.Name(), "ccc_sub_inlet");
+
+        // Checking SubSubSubModelPart
+        auto& sssmp = model_part.CreateSubModelPart("Inlet1.sub_inlet.aabbcc");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet.aabbcc"));
+        KRATOS_CHECK(ssmp.HasSubModelPart("aabbcc"));
+        KRATOS_CHECK_EQUAL(sssmp.Name(), "aabbcc");
+
+        // here nothing exists yet
+        auto& sssmp_2 = model_part.CreateSubModelPart("Fancy.xxx_sub_inlet.uztr");
+
+        KRATOS_CHECK(model_part.HasSubModelPart("Fancy"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Fancy.xxx_sub_inlet"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Fancy.xxx_sub_inlet.uztr"));
+        KRATOS_CHECK(model_part.GetSubModelPart("Fancy").HasSubModelPart("xxx_sub_inlet"));
+        KRATOS_CHECK(model_part.GetSubModelPart("Fancy").HasSubModelPart("xxx_sub_inlet.uztr"));
+        KRATOS_CHECK_EQUAL(sssmp_2.Name(), "uztr");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveSubModelPart, KratosCoreFastSuite)
+    {
+        Model model;
+
+        auto& model_part = model.CreateModelPart("Main");
+
+        // Checking SubModelPart
+        auto& smp = model_part.CreateSubModelPart("Inlet1");
+        model_part.CreateSubModelPart("Inlet1.sub_inlet.sub_sub_inlet");
+        auto& ssmp_2 = model_part.CreateSubModelPart("test1.InletCustom.ccc_sub_inlet");
+
+        ssmp_2.RemoveSubModelPart("ccc_sub_inlet");
+        KRATOS_CHECK_IS_FALSE(ssmp_2.HasSubModelPart("ccc_sub_inlet"));
+
+        model_part.RemoveSubModelPart("Inlet1.sub_inlet.sub_sub_inlet");
+        KRATOS_CHECK_IS_FALSE(smp.HasSubModelPart("sub_inlet.sub_sub_inlet"));
+        KRATOS_CHECK(smp.HasSubModelPart("sub_inlet"));
+        KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+
+        model_part.RemoveSubModelPart("test1");
+        KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("test1"));
+        KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("test1.InletCustom"));
+        KRATOS_CHECK_IS_FALSE(model_part.HasSubModelPart("test1.InletCustom"));
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            model_part.RemoveSubModelPart("Inlet1.sub_inlet.sub_sub_inlet.test"),
+            "Error: There is no sub model part with name \"sub_sub_inlet\" in model part \"Main.Inlet1.sub_inlet\"");
     }
   }  // namespace Testing.
 }  // namespace Kratos.

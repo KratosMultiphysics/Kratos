@@ -33,9 +33,9 @@ KratosRomApplication::KratosRomApplication():
 void KratosRomApplication::Register()
 {
     KRATOS_INFO("") << "Initializing KratosRomApplication..." << std::endl;
-    KRATOS_REGISTER_VARIABLE( AUX_ID )
     KRATOS_REGISTER_VARIABLE( ROM_BASIS )
     KRATOS_REGISTER_VARIABLE ( HROM_WEIGHT )
+    KRATOS_REGISTER_VARIABLE ( ROM_SOLUTION_INCREMENT )
     KRATOS_REGISTER_VARIABLE( MAP_PHI )
     
     // Modal derivative variables
@@ -43,5 +43,6 @@ void KratosRomApplication::Register()
     KRATOS_REGISTER_VARIABLE( BASIS_I )
     KRATOS_REGISTER_VARIABLE( BASIS_J )
 
+    
 }
 }  // namespace Kratos.

@@ -34,7 +34,10 @@
             "automatic_time_step" : false
         },
         "use_oss" : false,
-        "shock_capturing" : true
+        "shock_capturing_settings" : 
+        {
+            "type" : "physics_based"
+        }
     },
     "processes" : {
         "initial_conditions_process_list"  : [{

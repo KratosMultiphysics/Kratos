@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
@@ -54,7 +54,7 @@ template<class TSparseSpace,
          class TLinearSolver
          >
 class EigensolverStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
@@ -62,7 +62,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(EigensolverStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
 
@@ -95,7 +95,7 @@ public:
         double StiffnessMatrixDiagonalValue,
         bool ComputeModalDecomposition = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
             mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
             mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
             mComputeModalDecompostion(ComputeModalDecomposition)
@@ -620,8 +620,7 @@ private:
             block_for_each(r_model_part.MasterSlaveConstraints(), [&i_eigenvalue, &rEigenvectors](const MasterSlaveConstraint& r_master_slave_constraint){
                 const auto& r_slave_dofs_vector = r_master_slave_constraint.GetSlaveDofsVector();
                 for (const auto& r_slave_dof: r_slave_dofs_vector){
-                    #pragma omp atomic
-                    rEigenvectors(i_eigenvalue, r_slave_dof->EquationId()) *= 0.0;
+                    AtomicMult(rEigenvectors(i_eigenvalue, r_slave_dof->EquationId()), 0.0);
                 }
             });
 

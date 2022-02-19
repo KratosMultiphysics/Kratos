@@ -13,6 +13,7 @@
 // Project includes
 #include "apply_far_field_process.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -36,12 +37,14 @@ void ApplyFarFieldProcess::Execute()
     if (mInitializeFlowField){
         InitializeFlowField();
     }
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, false, mrModelPart.GetRootModelPart().Nodes());
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, true, mrModelPart.Nodes());
 }
 
 void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()
 {
     // Declaring omp variables, generating vectors of size = num_threads
-    std::size_t num_threads = OpenMPUtils::GetNumThreads();
+    std::size_t num_threads = ParallelUtilities::GetNumThreads();
     std::vector<double> min_projections(num_threads, std::numeric_limits<double>::max());
     std::vector<std::size_t> nodes_id_list(num_threads, 0);
 

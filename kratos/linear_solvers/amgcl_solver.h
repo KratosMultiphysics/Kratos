@@ -356,8 +356,9 @@ public:
 
         // Use rigid body modes or set block size
         int static_block_size = mUseBlockMatricesIfPossible ? mBlockSize : 1;
+        std::vector<double> B;
         if(mUseAMGPreconditioning && mProvideCoordinates && (mBlockSize == 2 || mBlockSize == 3)) {
-            std::vector<double> B;
+ 
             int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
                     boost::make_iterator_range(
                         &mCoordinates[0][0],
@@ -893,8 +894,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
     return rOStream;
 }
-
-//#undef MPI_COMM_WORLD
 
 }  // namespace Kratos.
 

@@ -91,96 +91,6 @@ Element::Pointer ShellThinElement3D3N<TKinematics>::Create(IndexType NewId,  Geo
     return Kratos::make_intrusive< ShellThinElement3D3N >(NewId, pGeom, pProperties);
 }
 
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    BaseType::Initialize(rCurrentProcessInfo);
-
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        this->mpCoordinateTransformation->Initialize();
-        this->SetupOrientationAngles();
-    }
-
-    KRATOS_CATCH("")
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->InitializeNonLinearIteration();
-
-    this->BaseInitializeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->mpCoordinateTransformation->FinalizeNonLinearIteration();
-
-    this->BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->BaseInitializeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->InitializeSolutionStep();
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    this->BaseFinalizeSolutionStep(rCurrentProcessInfo);
-
-    this->mpCoordinateTransformation->FinalizeSolutionStep();
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
-{
-    if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18)) {
-        rMassMatrix.resize(18, 18, false);
-    }
-    noalias(rMassMatrix) = ZeroMatrix(18, 18);
-
-    // Compute the local coordinate system.
-
-    ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
-        this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-    // lumped area
-
-    double lump_area = referenceCoordinateSystem.Area() / 3.0;
-
-    // Calculate avarage mass per unit area
-
-    const SizeType num_gps = this->GetNumberOfGPs();
-
-    double av_mass_per_unit_area = 0.0;
-    for (SizeType i = 0; i < num_gps; i++) {
-        av_mass_per_unit_area += this->mSections[i]->CalculateMassPerUnitArea(GetProperties());
-    }
-    av_mass_per_unit_area /= double(num_gps);
-
-    // loop on nodes
-    for (SizeType i = 0; i < 3; i++) {
-        SizeType index = i * 6;
-
-        double nodal_mass = av_mass_per_unit_area * lump_area;
-
-        // translational mass
-        rMassMatrix(index, index)            = nodal_mass;
-        rMassMatrix(index + 1, index + 1)    = nodal_mass;
-        rMassMatrix(index + 2, index + 2)    = nodal_mass;
-
-        // rotational mass - neglected for the moment...
-    }
-}
-
 // =====================================================================================
 //
 // Class ShellThinElement3D3N - Results on Gauss Points
@@ -350,34 +260,6 @@ void ShellThinElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Varia
 
     if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) {
         return;
-    }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
-        std::vector<array_1d<double,3> >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_AXIS_1 ||
-            rVariable == LOCAL_AXIS_2 ||
-            rVariable == LOCAL_AXIS_3) {
-        BaseType::ComputeLocalAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    } else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
-               rVariable == LOCAL_MATERIAL_AXIS_2 ||
-               rVariable == LOCAL_MATERIAL_AXIS_3) {
-        BaseType::ComputeLocalMaterialAxis(rVariable, rOutput, this->mpCoordinateTransformation);
-    }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::Calculate(const Variable<Matrix>& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_ELEMENT_ORIENTATION) {
-        Output.resize(3, 3, false);
-
-        // Compute the local coordinate system.
-        ShellT3_LocalCoordinateSystem localCoordinateSystem(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-        Output = trans(localCoordinateSystem.Orientation());
     }
 }
 
@@ -662,67 +544,6 @@ void ShellThinElement3D3N<TKinematics>::CalculateVonMisesStress(const Calculatio
         rVon_Mises_Result =
             std::sqrt(std::max(von_mises_top,
                                std::max(von_mises_mid, von_mises_bottom)));
-    }
-}
-
-template <ShellKinematics TKinematics>
-void ShellThinElement3D3N<TKinematics>::SetupOrientationAngles()
-{
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) {
-        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
-            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
-        }
-    } else {
-        ShellT3_LocalCoordinateSystem lcs(this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-        Vector3Type normal;
-        noalias(normal) = lcs.Vz();
-
-        Vector3Type dZ;
-        dZ(0) = 0.0;
-        dZ(1) = 0.0;
-        dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
-
-        Vector3Type dirX;
-        MathUtils<double>::CrossProduct(dirX,   dZ, normal);
-
-        // try to normalize the x vector. if it is near zero it means that we need
-        // to choose a default one.
-        double dirX_norm = dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2);
-        if (dirX_norm < 1.0E-12) {
-            dirX(0) = 1.0;
-            dirX(1) = 0.0;
-            dirX(2) = 0.0;
-        } else if (dirX_norm != 1.0) {
-            dirX_norm = std::sqrt(dirX_norm);
-            dirX /= dirX_norm;
-        }
-
-        Vector3Type elem_dirX = lcs.Vx();
-
-        // now calculate the angle between the element x direction and the material x direction.
-        Vector3Type& a = elem_dirX;
-        Vector3Type& b = dirX;
-        double a_dot_b = a(0)*b(0) + a(1)*b(1) + a(2)*b(2);
-        if (a_dot_b < -1.0) {
-            a_dot_b = -1.0;
-        }
-        if (a_dot_b >  1.0) {
-            a_dot_b =  1.0;
-        }
-        double angle = std::acos(a_dot_b);
-
-        // if they are not counter-clock-wise, let's change the sign of the angle
-        if (angle != 0.0) {
-            const MatrixType& R = lcs.Orientation();
-            if (dirX(0)*R(1, 0) + dirX(1)*R(1, 1) + dirX(2)*R(1, 2) < 0.0) {
-                angle = -angle;
-            }
-        }
-
-        for (auto it = this->mSections.begin(); it != this->mSections.end(); ++it) {
-            (*it)->SetOrientationAngle(angle);
-        }
     }
 }
 

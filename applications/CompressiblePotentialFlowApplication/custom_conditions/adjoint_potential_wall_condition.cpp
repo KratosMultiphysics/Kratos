@@ -68,23 +68,8 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetValuesVector(Vector& rV
     if(rValues.size() != TNumNodes)
         rValues.resize(TNumNodes, false);
 
-    bool is_kutta=false;
-    const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
-            is_kutta=true;
-            break;
-        }
-    }
-    for(unsigned int i=0; i<TNumNodes; i++){
-        if(is_kutta){
-            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
-                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
-            else
-                rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
-        }
-        else
-            rValues[i] = r_geometry[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+        rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
     }
 
     KRATOS_CATCH("");
@@ -170,23 +155,9 @@ void AdjointPotentialWallCondition<TPrimalCondition>::EquationIdVector(EquationI
     if (rResult.size() != TNumNodes)
         rResult.resize(TNumNodes, false);
 
-    bool is_kutta=false;
     const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
-            is_kutta=true;
-            break;
-        }
-    }
-    for(unsigned int i=0; i<TNumNodes; i++){
-        if(is_kutta){
-            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
-                rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
-            else
-                rResult[i] = r_geometry[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
-        }
-        else
-            rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+        rResult[i] = r_geometry[i].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
     }
 }
 
@@ -197,23 +168,9 @@ void AdjointPotentialWallCondition<TPrimalCondition>::GetDofList(DofsVectorType&
     if (ConditionDofList.size() != TNumNodes)
     ConditionDofList.resize(TNumNodes);
 
-    bool is_kutta=false;
     const auto& r_geometry = GetGeometry();
     for(unsigned int i=0; i<TNumNodes; i++){
-        if (r_geometry[i].GetValue(WAKE_DISTANCE)<0.0){
-            is_kutta=true;
-            break;
-        }
-    }
-    for(unsigned int i=0; i<TNumNodes; i++){
-        if(is_kutta){
-            if(r_geometry[i].GetValue(WAKE_DISTANCE)<0.0)
-                ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
-            else
-                ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL);
-        }
-        else
-            ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
+        ConditionDofList[i] = r_geometry[i].pGetDof(ADJOINT_VELOCITY_POTENTIAL);
     }
 }
 
@@ -221,6 +178,19 @@ template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     mpPrimalCondition -> FinalizeSolutionStep(rCurrentProcessInfo);
+}
+
+template <class TPrimalCondition>
+void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    mpPrimalCondition -> FinalizeNonLinearIteration(rCurrentProcessInfo);
+
+    const auto& velocity = mpPrimalCondition -> GetValue(VELOCITY);
+    const double density = mpPrimalCondition -> GetValue(DENSITY);
+    const double pressure = mpPrimalCondition -> GetValue(PRESSURE_COEFFICIENT);
+    this->SetValue(VELOCITY, velocity);
+    this->SetValue(DENSITY, density);
+    this->SetValue(PRESSURE_COEFFICIENT, pressure);
 }
 
 /// Turn back information as a string.
@@ -262,6 +232,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::load(Serializer& rSerializ
 }
 
 template class AdjointPotentialWallCondition<PotentialWallCondition<2,2>>;
+template class AdjointPotentialWallCondition<PotentialWallCondition<3,3>>;
 
 
 }  // namespace Kratos.

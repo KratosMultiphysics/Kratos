@@ -47,7 +47,12 @@ def GetDefaultInputParameters():
                 "time_averaging_type" : 0
             },
 
+            "gentle_coupling_initiation": {
+                "initiation_interval": 0
+            },
+
             "backward_coupling" : {
+                "backward_time_interval" : 1,
                 "meso_scale_length" : 0.2,
                 "meso_scale_length_comment" : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
                 "shape_factor" : 0.5,
@@ -165,11 +170,15 @@ def GetDefaultInputParameters():
             "fluid_model_type_comment" : " untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)"
         },
 
-        "dem_parameters" : {},
+        "dem_parameters" : {
+            "seed" : 42
+        },
 
         "custom_dem" : {
             "do_solve_dem" : true,
             "do_search_neighbours" : true,
+            "do_search_dem_neighbours" : true,
+            "do_search_fem_neighbours" : true,
             "type_of_dem_inlet" : "VelocityImposed",
             "translational_integration_scheme" : "Hybrid_Bashforth"
         },

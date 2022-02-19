@@ -31,7 +31,7 @@ namespace Kratos
   AxisymmetricLineElasticCondition::AxisymmetricLineElasticCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : LineElasticCondition(NewId, pGeometry, pProperties)
   {
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
   }
 
   //************************************************************************************
@@ -198,7 +198,7 @@ namespace Kratos
   //***********************************************************************************
   //***********************************************************************************
 
-  int AxisymmetricLineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int AxisymmetricLineElasticCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

@@ -115,7 +115,7 @@ ConstitutiveLaw::SizeType ConstitutiveLaw::WorkingSpaceDimension()
  * returns the size of the strain vector of the current constitutive law
  * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
  */
-ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize()
+ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize() const
 {
     KRATOS_ERROR <<  "Called the virtual function for GetStrainSize"<< std::endl;;
 }
@@ -445,6 +445,58 @@ array_1d<double, 6 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterVal
         array_1d<double, 6 > & rValue)
 {
     return rValue;
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<double>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    double& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Vector>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Vector& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<Matrix>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    Matrix& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
+}
+
+void ConstitutiveLaw::CalculateDerivative(
+    Parameters& rParameterValues,
+    const Variable<array_1d<double, 3>>& rFunctionVariable,
+    const Variable<double>& rDerivativeVariable,
+    array_1d<double, 3>& rOutput)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR << "Derivative of " << rFunctionVariable.Name() << " w.r.t. " << rDerivativeVariable.Name() << " is not implemented.\n";
+
+    KRATOS_CATCH("");
 }
 
 /**
@@ -1285,7 +1337,7 @@ void ConstitutiveLaw::GetLawFeatures(Features& rFeatures)
  */
 int ConstitutiveLaw::Check(const Properties& rMaterialProperties,
                            const GeometryType& rElementGeometry,
-                           const ProcessInfo& rCurrentProcessInfo)
+                           const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

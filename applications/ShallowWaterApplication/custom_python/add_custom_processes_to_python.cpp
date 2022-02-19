@@ -23,6 +23,8 @@
 #include "custom_processes/elemental_refining_criteria_process.h"
 #include "custom_processes/apply_perturbation_function_process.h"
 #include "custom_processes/apply_sinusoidal_function_process.h"
+#include "custom_processes/calculate_distance_to_boundary_process.h"
+#include "custom_processes/depth_integration_process.h"
 
 
 namespace Kratos
@@ -59,6 +61,22 @@ namespace Python
         py::class_<ApplySinusoidalVectorFunctionProcess, ApplySinusoidalVectorFunctionProcess::Pointer, Process>
         (m, "ApplySinusoidalFunctionToVector")
         .def(py::init<ModelPart&, Variable<array_1d<double,3>>&, Parameters&>())
+        ;
+
+        py::class_<CalculateDistanceToBoundaryProcess, CalculateDistanceToBoundaryProcess::Pointer, Process>
+        (m, "CalculateDistanceToBoundaryProcess")
+        .def(py::init<ModelPart&, ModelPart&>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        ;
+
+        py::class_<DepthIntegrationProcess<2>, DepthIntegrationProcess<2>::Pointer, Process>
+        (m, "DepthIntegrationProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<DepthIntegrationProcess<3>, DepthIntegrationProcess<3>::Pointer, Process>
+        (m, "DepthIntegrationProcess3D")
+        .def(py::init<Model&, Parameters>())
         ;
 
     }

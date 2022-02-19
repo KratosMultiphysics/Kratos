@@ -24,6 +24,7 @@
 #include "spaces/ublas_space.h"
 
 // Strategies
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/custom_strategies/modal_derivative_strategy.hpp"
 
 // Schemes
