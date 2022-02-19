@@ -18,11 +18,13 @@
 
 // System includes
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 // External includes
 
 
 // Project includes
+#include "includes/define.h"
 #include "includes/define_python.h"
 
 
