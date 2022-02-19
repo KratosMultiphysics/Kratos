@@ -22,6 +22,10 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
     def _CreateSolver(self):
         """Create the Solver (and create and import the ModelPart if it is not already in the model)."""
         ## Solver construction
+        rom_parameters_filename = self.project_parameters["solver_settings"]["rom_settings"]["rom_parameters_filename"].GetString()
+        with open(rom_parameters_filename) as rom_parameters_file:
+            rom_parameters = json.load(rom_parameters_file)
+            self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].SetStringArray(rom_parameters["rom_settings"]["nodal_unknowns"])
         return solver_wrapper_rom.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
@@ -34,7 +38,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         self.WriteRomParameters()
     
     def ModifyInitialGeometry(self):
-        """Here is the place where the BASIS_ROM and the AUX_ID are imposed to each node."""
+        """Here is the place where the BASIS_ROM is imposed to each node."""
         super().ModifyInitialGeometry()
         computing_model_part = self._solver.GetComputingModelPart()
 
@@ -48,7 +52,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             err_msg  = '\"derivative_type\" can only be \"static\" or \"dynamic\"'
             raise Exception(err_msg)
 
-        rom_parameters_filename = self.project_parameters["solver_settings"]["rom_parameters_filename"].GetString()
+        rom_parameters_filename = self.project_parameters["solver_settings"]["rom_settings"]["rom_parameters_filename"].GetString()
         with open(rom_parameters_filename) as rom_parameters_file:
             rom_parameters = json.load(rom_parameters_file)
 
@@ -65,7 +69,7 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
             for i in range(self.number_of_initial_rom_dofs):
                 kratos_eigenvalues[i] = eigenvalues[i]
             computing_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR] = kratos_eigenvalues
-                        
+
             counter = 0
             nodal_dofs = len(rom_parameters["rom_settings"]["nodal_unknowns"])
             nodal_modes = rom_parameters["nodal_modes"]
@@ -73,11 +77,10 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
                 aux = KratosMultiphysics.Matrix(nodal_dofs, number_of_extended_rom_dofs)
                 aux.fill(0.0)
                 for i in range(nodal_dofs):
-                    Counter=str(node.Id)
+                    mode_id=str(node.Id)
                     for j in range(self.number_of_initial_rom_dofs):
-                        aux[i,j] = nodal_modes[Counter][i][j]
+                        aux[i,j] = nodal_modes[mode_id][i][j]
                 node.SetValue(RomApplication.ROM_BASIS, aux ) # ROM basis
-                node.SetValue(RomApplication.AUX_ID, counter) # Aux ID
                 counter+=1
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Nodal modes imported from ",rom_parameters_filename)

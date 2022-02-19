@@ -25,7 +25,7 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "rom_application_variables.h"
 
@@ -57,19 +57,15 @@ namespace Kratos
  * @details This is the base class from which we will derive all the strategies (line-search, NR, etc...)
  */
 
-template<class TSparseSpace,
-         class TDenseSpace,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         >
-class ModalDerivativeStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+class ModalDerivativeStrategy : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     // Base type definition
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
@@ -103,7 +99,7 @@ public:
         TBuilderAndSolverPointerType pBuilderAndSolver,
         Parameters InputParameters
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
+        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
         mpScheme(pScheme),
         mpBuilderAndSolver(pBuilderAndSolver)
     {
@@ -696,7 +692,7 @@ public:
         const auto& r_current_process_info = r_model_part.GetProcessInfo();
         const auto& r_dof_set = this->pGetBuilderAndSolver()->GetDofSet();
         TSparseSpace::SetToZero(rBasis);
-        
+
         block_for_each(
             r_model_part.Nodes(),[&](ModelPart::NodeType& r_node)
             {
@@ -714,6 +710,25 @@ public:
                 }
             }
         );
+
+        // //for (auto r_node : r_model_part.Nodes())
+        // for (ModelPart::NodeIterator itNode = r_model_part.NodesBegin(); itNode!= r_model_part.NodesEnd(); itNode++)
+        // {
+        //     //auto& node_dofs = r_node.GetDofs();
+        //     //const auto& r_nodal_basis = r_node.GetValue(ROM_BASIS);
+        //     auto& node_dofs = itNode->GetDofs();
+        //     const auto& r_nodal_basis = itNode->GetValue(ROM_BASIS);
+        //     for (const auto& rp_dof : node_dofs)
+        //     {
+        //         bool is_active = !(r_dof_set.find(*rp_dof) == r_dof_set.end());
+        //         if (rp_dof->IsFree() && is_active)
+        //         {
+        //             KRATOS_WATCH(rp_dof->GetVariable().Key())
+        //             const std::size_t dof_index = r_current_process_info[MAP_PHI].at(rp_dof->GetVariable().Key());
+        //             rBasis[rp_dof->EquationId()] = r_nodal_basis(dof_index,BasisIndex);
+        //         }
+        //     }
+        // }
 
         KRATOS_CATCH("")
     }
