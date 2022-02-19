@@ -9,6 +9,8 @@
 //
 //  Main authors:   Raul Bravo
 //
+//  Contributors:   Altug Emiroglu, http://github.com/emiroglu
+//
 //
 
 
@@ -47,6 +49,7 @@ PYBIND11_MODULE(KratosRomApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_BASIS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HROM_WEIGHT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ROM_SOLUTION_INCREMENT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVALUE_VECTOR )
 
 }
 

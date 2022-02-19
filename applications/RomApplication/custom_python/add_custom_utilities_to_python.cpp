@@ -9,18 +9,16 @@
 //
 //  Main authors:   Raul Bravo
 //
+//  Contributors:   Altug Emiroglu, http://github.com/emiroglu
 //
 
 
 // System includes
 
 // External includes
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
 
 // Project includes
-#include "includes/define.h"
+// #include "includes/define.h"
 
 // Application includes
 #include "custom_python/add_custom_utilities_to_python.h"

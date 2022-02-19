@@ -10,6 +10,8 @@
 //  Main authors: Riccardo Rossi
 //                Raul Bravo
 //
+//  Contributors: Altug Emiroglu, https://github.com/emiroglu
+//
 
 
 // System includes
@@ -35,5 +37,12 @@ void KratosRomApplication::Register()
     KRATOS_REGISTER_VARIABLE( ROM_BASIS )
     KRATOS_REGISTER_VARIABLE ( HROM_WEIGHT )
     KRATOS_REGISTER_VARIABLE ( ROM_SOLUTION_INCREMENT )
+    KRATOS_REGISTER_VARIABLE( MAP_PHI )
+
+    // Modal derivative variables
+    KRATOS_REGISTER_VARIABLE( EIGENVALUE_VECTOR )
+    KRATOS_REGISTER_VARIABLE( BASIS_I )
+    KRATOS_REGISTER_VARIABLE( BASIS_J )
+
 }
 }  // namespace Kratos.
