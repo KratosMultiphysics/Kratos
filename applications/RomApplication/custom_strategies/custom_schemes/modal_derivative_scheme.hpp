@@ -180,6 +180,9 @@ public:
             break;
         case 2: // Stiffness matrix
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+            // Symmetrization due to corotational elements
+            rLHS_Contribution += trans(rLHS_Contribution);
+            rLHS_Contribution *= 0.5;
             break;
         default:
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
