@@ -15,7 +15,7 @@
         "rom_settings":
         {
             "rom_parameters_filename"     :"InitialRomParameters.json",
-            "nodal_unknowns"              : ["ROTATION_X","ROTATION_Y","ROTATION_Z","DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"]
+            "nodal_unknowns"              : []
         },
         "model_part_name"                 : "Structure",
         "domain_size"                     : 3,

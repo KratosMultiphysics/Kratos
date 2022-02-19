@@ -25,7 +25,13 @@ class StructuralMechanicsModalDerivativeAnalysis(StructuralMechanicsAnalysis):
         rom_parameters_filename = self.project_parameters["solver_settings"]["rom_settings"]["rom_parameters_filename"].GetString()
         with open(rom_parameters_filename) as rom_parameters_file:
             rom_parameters = json.load(rom_parameters_file)
-            self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].SetStringArray(rom_parameters["rom_settings"]["nodal_unknowns"])
+            nodal_unknowns_rom_parameters = rom_parameters["rom_settings"]["nodal_unknowns"]
+            if not self.project_parameters["solver_settings"]["rom_settings"].Has("nodal_unknowns"):
+                self.project_parameters["solver_settings"]["rom_settings"].AddEmptyValue("nodal_unknowns")
+                self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].SetStringArray(nodal_unknowns_rom_parameters)
+            elif self.project_parameters["solver_settings"]["rom_settings"].Has("nodal_unknowns") and (self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray() != nodal_unknowns_rom_parameters):
+                self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].SetStringArray(nodal_unknowns_rom_parameters)
+
         return solver_wrapper_rom.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
