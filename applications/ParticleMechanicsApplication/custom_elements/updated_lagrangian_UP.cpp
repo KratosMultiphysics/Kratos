@@ -1201,7 +1201,7 @@ void UpdatedLagrangianUP::CalculateOnIntegrationPoints(const Variable<double>& r
 
 void UpdatedLagrangianUP::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)

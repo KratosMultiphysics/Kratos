@@ -56,7 +56,7 @@ namespace Kratos
 * @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that purpose
 * @author Riccardo Rossi
 */
-class KRATOS_API(KRATOS_CORE) Model
+class KRATOS_API(KRATOS_CORE) Model final
 {
 public:
     ///@name Type Definitions
@@ -76,7 +76,7 @@ public:
     Model(){};
 
     /// Destructor.
-    virtual ~Model()
+    ~Model()
     {
         mRootModelPartMap.clear();
     }
@@ -167,13 +167,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -253,6 +253,13 @@ private:
      * @return The vector containing each part of the name defining the model part hierarchy
      */
     std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
+
+    /**
+     * @brief This method creates a new model part contained in the current Model with a given name and buffer size
+     * @param ModelPartName The name of the new model part to be created
+     * @param NewBufferSize The size of the buffer of the new model part created
+     */
+    void CreateRootModelPart(const std::string ModelPartName, ModelPart::IndexType NewBufferSize);
 
     ///@}
     ///@name Private  Access

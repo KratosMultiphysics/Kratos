@@ -309,7 +309,7 @@ public:
             const ProcessInfo& rCurrentProcessInfo) override
     {}
 
-    void SetValuesOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double> &rVariable, const std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

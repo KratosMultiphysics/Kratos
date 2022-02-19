@@ -1,0 +1,30 @@
+{
+    "element_condition_list": [{
+        "brep_ids": [1],
+        "geometry_type": "GeometrySurface",
+        "iga_model_part": "StructuralAnalysis",
+        "parameters": {
+            "type": "element",
+            "name": "IgaMembraneElement",
+            "shape_function_derivatives_order": 3
+        }
+    }, {
+        "brep_ids": [3],
+        "geometry_type": "SurfaceEdge",
+        "iga_model_part": "Load_3",
+        "parameters": {
+            "type": "condition",
+            "name": "LoadCondition",
+            "shape_function_derivatives_order": 3
+        }
+    }, {
+        "brep_ids": [2],
+        "geometry_type": "SurfaceEdge",
+        "iga_model_part": "Support_2",
+        "parameters": {
+            "type": "condition",
+            "name": "SupportLagrangeCondition",
+            "shape_function_derivatives_order": 2
+        }
+    }]
+}

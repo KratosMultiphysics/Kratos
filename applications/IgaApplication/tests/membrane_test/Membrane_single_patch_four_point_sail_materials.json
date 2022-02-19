@@ -1,0 +1,54 @@
+{
+    "properties": [{
+        "model_part_name": "IgaModelPart.StructuralAnalysis",
+        "properties_id": 20,
+        "Material": {
+            "name": "LIN_ELAST_ISOTROPIC",
+            "constitutive_law": {
+                "name": "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 800000000,
+                "POISSON_RATIO": 0.4,
+                "DENSITY": 800,
+                "THICKNESS": 0.001,
+                "PRESTRESS": [3000000.0, 3000000.0, 0.0]
+            },
+            "Tables": {}
+        }
+    }, {
+        "model_part_name": "IgaModelPart.Edge1",
+        "properties_id": 22,
+        "Material": {
+            "name": "LIN_ELAST_ISOTROPIC",
+            "constitutive_law": {
+                "name": "UserProvidedLinearElastic2DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 160000000000,
+                "DENSITY": 8300,
+                "THICKNESS": 0.006,
+                "CROSS_AREA": 0.000113097335529233,
+                "PRESTRESS_CAUCHY": 530516476.972985
+            },
+            "Tables": {}
+        }
+    }, {
+        "model_part_name": "IgaModelPart.Edge2",
+        "properties_id": 24,
+        "Material": {
+            "name": "LIN_ELAST_ISOTROPIC",
+            "constitutive_law": {
+                "name": "UserProvidedLinearElastic2DLaw"
+            },
+            "Variables": {
+                "YOUNG_MODULUS": 160000000000,
+                "DENSITY": 8300,
+                "THICKNESS": 0.006,
+                "CROSS_AREA": 0.000113097335529233,
+                "PRESTRESS_CAUCHY": 530516476.972985
+            },
+            "Tables": {}
+        }
+    }]
+}

@@ -822,7 +822,7 @@ double ElementSizeCalculator<3,4>::AverageElementSizeDerivative(
     detJ_derivative -= z10 * y20_derivative * x30;
     detJ_derivative -= z10 * y20 * x30_derivative;
 
-    return (1./3.) * (detJ_derivative/6.0) / std::pow(detJ/6.0, 2.*3.);
+    return (1./3.) * (detJ_derivative/6.0) / std::pow(detJ/6.0, 2./3.);
 
     KRATOS_CATCH("");
 }

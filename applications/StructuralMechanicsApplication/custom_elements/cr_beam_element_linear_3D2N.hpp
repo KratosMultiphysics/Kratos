@@ -33,7 +33,7 @@ namespace Kratos
  * @author Klaus B Sautter
  */
 
-class CrBeamElementLinear3D2N : public CrBeamElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CrBeamElementLinear3D2N : public CrBeamElement3D2N
 {
 
 public:

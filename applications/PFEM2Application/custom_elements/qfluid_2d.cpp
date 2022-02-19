@@ -54,7 +54,7 @@ QFluid2D::QFluid2D(IndexType NewId, GeometryType::Pointer pGeometry)
   }
 
 
-  void QFluid2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void QFluid2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -73,7 +73,7 @@ QFluid2D::QFluid2D(IndexType NewId, GeometryType::Pointer pGeometry)
       }
 
 
-void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo)
+void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY;
 
@@ -281,7 +281,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
 
 
 
-  void QFluid2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void QFluid2D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
@@ -438,7 +438,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
 
    KRATOS_CATCH("")
      }
-  void QFluid2D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void QFluid2D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -469,7 +469,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     BoundedMatrix<double,3,3> aux_matrix = ZeroMatrix(3,3);
     BoundedMatrix<double,3,3> aux_matrix1 = ZeroMatrix(3,3);
 
-    mThisIntegrationMethod= GeometryData::GI_GAUSS_1;
+    mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_1;
 
     if(rRightHandSideVector.size() != 3)
       {
@@ -479,7 +479,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     KRATOS_CATCH("")
       }
 
-  void QFluid2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  void QFluid2D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -837,7 +837,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     KRATOS_CATCH("");
 }
 
-void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dim = 2;
@@ -865,7 +865,7 @@ void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Curr
     }
 }
 
-  void QFluid2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+  void QFluid2D::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const
   {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dim = 2;
@@ -984,7 +984,7 @@ void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Curr
 
   //************************************************************************************
 
-  int QFluid2D::Check(const ProcessInfo& rCurrentProcessInfo)
+  int QFluid2D::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 

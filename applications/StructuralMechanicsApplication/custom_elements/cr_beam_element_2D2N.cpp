@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -159,12 +160,9 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType& rMassMatrix,
     const double A = GetProperties()[CROSS_AREA];
     const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
-    bool use_consistent_mass_matrix = true;
-    if (GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
-        use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
-    }
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(GetProperties(), rCurrentProcessInfo);
 
-    if (use_consistent_mass_matrix) {
+    if (!compute_lumped_mass_matrix) {
         const double pre_beam = (rho * A * L) / 420.00;
         const double pre_bar = (rho * A * L) / 6.00;
 
@@ -297,7 +295,7 @@ CrBeamElement2D2N::CalculateBodyForces() const
     KRATOS_TRY
     // getting shapefunctionvalues for linear SF
     const Matrix& Ncontainer =
-        GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        GetGeometry().ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
     BoundedVector<double, 3> equivalent_line_load = ZeroVector(3);
     BoundedVector<double, msElementSize> body_forces_global =
@@ -749,7 +747,7 @@ void CrBeamElement2D2N::CalculateOnIntegrationPoints(
 
     // Element with two nodes can only represent results at one node
     const auto& r_geometry = GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::GI_GAUSS_3);
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3);
     const SizeType write_points_number = r_integration_points.size();
     if (rOutput.size() != write_points_number) {
         rOutput.resize(write_points_number);
@@ -802,7 +800,7 @@ CrBeamElement2D2N::IntegrationMethod
 CrBeamElement2D2N::GetIntegrationMethod() const
 {
     // do this to have 3GP as an output in GID
-    return Kratos::GeometryData::GI_GAUSS_3;
+    return Kratos::GeometryData::IntegrationMethod::GI_GAUSS_3;
 }
 
 BoundedVector<double, CrBeamElement2D2N::msElementSize>
@@ -841,14 +839,12 @@ void CrBeamElement2D2N::AddExplicitContribution(
     BoundedVector<double, msElementSize> damping_residual_contribution =
         ZeroVector(msElementSize);
     // calculate damping contribution to residual -->
-    if ((GetProperties().Has(RAYLEIGH_ALPHA) ||
-            GetProperties().Has(RAYLEIGH_BETA)) &&
+    if (StructuralMechanicsElementUtilities::HasRayleighDamping(GetProperties(), rCurrentProcessInfo) &&
             (rDestinationVariable != NODAL_INERTIA)) {
         Vector current_nodal_velocities = ZeroVector(msElementSize);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) =
             prod(damping_matrix, current_nodal_velocities);
@@ -897,8 +893,7 @@ void CrBeamElement2D2N::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_INERTIA) {
         Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-        ProcessInfo temp_info; // Dummy
-        CalculateMassMatrix(element_mass_matrix, temp_info);
+        CalculateMassMatrix(element_mass_matrix, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < msNumberOfNodes; ++i) {
             double aux_nodal_mass = 0.0;
@@ -911,12 +906,11 @@ void CrBeamElement2D2N::AddExplicitContribution(
                 aux_nodal_inertia += element_mass_matrix(index + msDimension, j);
             }
 
-            #pragma omp atomic
-            GetGeometry()[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+            AtomicAdd(GetGeometry()[i].GetValue(NODAL_MASS), aux_nodal_mass);
+
 
             array_1d<double, 3>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
-            #pragma omp atomic
-            r_nodal_inertia[msDimension] += std::abs(aux_nodal_inertia);
+            AtomicAdd(r_nodal_inertia[msDimension], std::abs(aux_nodal_inertia));
         }
     }
 
@@ -975,6 +969,36 @@ int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 
     KRATOS_CATCH("")
+}
+
+const Parameters CrBeamElement2D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["MOMENT","FORCE","INTEGRATION_COORDINATES"],
+            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","ROTATION"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","ROTATION_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["BeamConstitutiveLaw"],
+            "dimension"   : ["2D"],
+            "strain_size" : [3]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a 2D non-linear beam formulation."
+    })");
+
+    return specifications;
 }
 
 void CrBeamElement2D2N::save(Serializer& rSerializer) const

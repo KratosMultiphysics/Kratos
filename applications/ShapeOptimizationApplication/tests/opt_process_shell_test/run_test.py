@@ -14,7 +14,7 @@ with open("optimization_parameters.json",'r') as parameter_file:
 model = KM.Model()
 
 # Create optimizer and perform optimization
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model)
+optimizer = optimizer_factory.Create( model, parameters["optimization_settings"])
 optimizer.Optimize()
 
 # =======================================================================================================
