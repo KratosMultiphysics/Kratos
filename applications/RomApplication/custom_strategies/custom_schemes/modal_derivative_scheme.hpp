@@ -142,17 +142,17 @@ public:
         Element& rElement,
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        this->CalculateLHSContribution(rElement, rLHS_Contribution, rEquationId, rCurrentProcessInfo);
+        rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
 
-        this->CalculateRHSContribution(rElement, rRHS_Contribution, rEquationId, rCurrentProcessInfo);
+        this->CalculateLHSContribution(rElement, rLHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
 
-        rElement.EquationIdVector(rEquationId,rCurrentProcessInfo);
+        this->CalculateRHSContribution(rElement, rRHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -167,11 +167,19 @@ public:
     void CalculateLHSContribution(
         Element& rElement,
         LocalSystemMatrixType& rLHS_Contribution,
-        Element::EquationIdVectorType& rEquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
+
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
+
+        // Resize LHS contribution
+        const std::size_t num_element_dofs = rEquationIdVector.size();
+        if (rLHS_Contribution.size1() != num_element_dofs || rLHS_Contribution.size2() != num_element_dofs )
+            rLHS_Contribution.resize(num_element_dofs, num_element_dofs);
+        rLHS_Contribution.clear();
 
         switch(rCurrentProcessInfo[BUILD_LEVEL])
         {
@@ -180,16 +188,15 @@ public:
             break;
         case 2: // Stiffness matrix
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-            // Symmetrization due to corotational elements
-            rLHS_Contribution += trans(rLHS_Contribution);
-            rLHS_Contribution *= 0.5;
             break;
         default:
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
         }
-        
-        rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
 
+        // Symmetrization due to corotational elements
+        rLHS_Contribution += trans(rLHS_Contribution);
+        rLHS_Contribution *= 0.5;
+        
         KRATOS_CATCH("")
     }
 
@@ -203,11 +210,19 @@ public:
     void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
+
+        rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
+        
+        // Resize RHS contribution
+        const std::size_t num_element_dofs = rEquationIdVector.size();
+        if (rRHS_Contribution.size() != num_element_dofs)
+            rRHS_Contribution.resize(num_element_dofs);
+        rRHS_Contribution.clear();
 
         // Derivative of basis_i wrt basis_j
         const auto basis_i = rCurrentProcessInfo[BASIS_I];
@@ -216,34 +231,28 @@ public:
         // Get PhiElemental
         LocalSystemVectorType phi_elemental;
         this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
-        const std::size_t num_element_dofs = phi_elemental.size();
-
+        
         // Compute element LHS derivative
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
         
         // Perform FD
-        Matrix element_matrix_derivative(num_element_dofs, num_element_dofs);
-        element_matrix_derivative.clear();        
+        Matrix element_LHS_derivative(num_element_dofs, num_element_dofs);
+        element_LHS_derivative.clear();        
         switch (mFiniteDifferenceType) 
         {
             case FiniteDifferenceType::Forward:
-                this->ForwardDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
+                this->ForwardDifferencingWithBasis_LHS(element_LHS_derivative, basis_j, rElement, rCurrentProcessInfo);
                 break;
             case FiniteDifferenceType::Central:
-                this->CentralDifferencingWithBasis(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
+                this->CentralDifferencingWithBasis_LHS(element_LHS_derivative, basis_j, rElement, rCurrentProcessInfo);
                 break;
         }
         // Unlock element nodes
         this->UnlockElementNodes(rElement);
 
         // Compute RHS contribution
-        if (rRHS_Contribution.size() != num_element_dofs)
-            rRHS_Contribution.resize(num_element_dofs);
-        rRHS_Contribution.clear();
-        noalias(rRHS_Contribution) -= prod(element_matrix_derivative, phi_elemental);
-
-        rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
+        noalias(rRHS_Contribution) -= prod(element_LHS_derivative, phi_elemental);
 
         KRATOS_CATCH("")
     }
@@ -455,41 +464,39 @@ protected:
     /**
      * @brief This function performs forward differencing on the element LHS matrix
      * @details 
-     * @param rElementMatrixDerivative The element to unlock nodes
+     * @param rElementLHSDerivative The element to unlock nodes
      * @param BasisIndex The index of the basis for perturbation
      * @param rElement The element to compute finite differencing
      * @param rCurrentProcessInfo The current process info instance
      */
-    void ForwardDifferencingWithBasis(
-         LocalSystemMatrixType& rElementMatrixDerivative,
+    void ForwardDifferencingWithBasis_LHS(
+         LocalSystemMatrixType& rElementLHSDerivative,
          const std::size_t BasisIndex,
-         Element&rElement,
+         Element& rElement,
          const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-
-        const std::size_t matrix_size = rElementMatrixDerivative.size1();
+        
+        // Neutral state
+        LocalSystemMatrixType element_LHS_initial;
+        rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_initial += trans(element_LHS_initial);
+        element_LHS_initial *= 0.5;
 
         // Positive perturbation
-        LocalSystemMatrixType element_matrix_p_perturbed(matrix_size, matrix_size);
+        LocalSystemMatrixType element_LHS_p_perturbed;
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
-        rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
+        rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
         // Symmetrization due to corotational elements
-        element_matrix_p_perturbed += trans(element_matrix_p_perturbed);
-        element_matrix_p_perturbed *= 0.5;
+        element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+        element_LHS_p_perturbed *= 0.5;
 
         // Reset perturbation
         this->PerturbElementWithBasis(-1.0, BasisIndex, rElement, rCurrentProcessInfo);
 
-        // Neutral state
-        LocalSystemMatrixType element_matrix(matrix_size, matrix_size);
-        rElement.CalculateLeftHandSide(element_matrix, rCurrentProcessInfo);
-        // Symmetrization due to corotational elements
-        element_matrix += trans(element_matrix);
-        element_matrix *= 0.5;
-
         // Compute ElementMatrixDerivative
-        noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix) / mFiniteDifferenceStepSize;
+        noalias(rElementLHSDerivative) = (element_LHS_p_perturbed - element_LHS_initial) / mFiniteDifferenceStepSize;
 
         KRATOS_CATCH("")
     }
@@ -497,23 +504,21 @@ protected:
     /**
      * @brief This function performs central differencing on the element LHS matrix
      * @details 
-     * @param rElementMatrixDerivative The element to unlock nodes
+     * @param rElementLHSDerivative The element to unlock nodes
      * @param BasisIndex The index of the basis for perturbation
      * @param rElement The element to compute finite differencing
      * @param rCurrentProcessInfo The current process info instance
      */
-    void CentralDifferencingWithBasis(
-         LocalSystemMatrixType& rElementMatrixDerivative,
+    void CentralDifferencingWithBasis_LHS(
+         LocalSystemMatrixType& rElementLHSDerivative,
          const std::size_t BasisIndex,
          Element& rElement,
          const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
-        const std::size_t matrix_size = rElementMatrixDerivative.size1();
-
         // Positive perturbation
-        LocalSystemMatrixType element_matrix_p_perturbed(matrix_size, matrix_size);
+        LocalSystemMatrixType element_matrix_p_perturbed;
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_p_perturbed, rCurrentProcessInfo);
         // Symmetrization due to corotational elements
@@ -521,7 +526,7 @@ protected:
         element_matrix_p_perturbed *= 0.5;
 
         // Negative perturbation
-        LocalSystemMatrixType element_matrix_n_perturbed(matrix_size, matrix_size);
+        LocalSystemMatrixType element_matrix_n_perturbed;
         this->PerturbElementWithBasis(-2.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_matrix_n_perturbed, rCurrentProcessInfo);
         // Symmetrization due to corotational elements
@@ -532,7 +537,7 @@ protected:
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
 
         // Compute LHS derivative
-        noalias(rElementMatrixDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0 * mFiniteDifferenceStepSize);
+        noalias(rElementLHSDerivative) = (element_matrix_p_perturbed - element_matrix_n_perturbed) / (2.0 * mFiniteDifferenceStepSize);
 
         KRATOS_CATCH("")
     }
