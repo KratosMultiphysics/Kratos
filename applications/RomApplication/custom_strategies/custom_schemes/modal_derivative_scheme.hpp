@@ -163,6 +163,14 @@ public:
     {
         KRATOS_TRY
 
+        rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
+
+        // Resize LHS contribution
+        const std::size_t num_element_dofs = rEquationIdVector.size();
+        if (rLHS_Contribution.size1() != num_element_dofs || rLHS_Contribution.size2() != num_element_dofs )
+            rLHS_Contribution.resize(num_element_dofs, num_element_dofs);
+        rLHS_Contribution.clear();
+
         switch(rCurrentProcessInfo[BUILD_LEVEL])
         {
         case 1: // Mass matrix
@@ -170,6 +178,9 @@ public:
             break;
         case 2: // Stiffness matrix
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+            // Symmetrization due to corotational elements
+            rLHS_Contribution += trans(rLHS_Contribution);
+            rLHS_Contribution *= 0.5;
             break;
         default:
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
@@ -242,8 +253,6 @@ public:
         ) override
     {
         KRATOS_TRY
-
-        rCondition.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
                 
         rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
@@ -269,11 +278,12 @@ public:
         ) override
     {
         KRATOS_TRY
-
-        rCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
-        rRHS_Contribution.clear();
         
         rCondition.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
+        
+        const std::size_t size = rEquationIdVector.size();
+        rRHS_Contribution.resize(size);
+        rRHS_Contribution.clear();
         
         KRATOS_CATCH("")
     }

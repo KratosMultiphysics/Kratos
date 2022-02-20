@@ -138,26 +138,22 @@ public:
     void CalculateRHSContribution(
         Element& rElement,
         LocalSystemVectorType& rRHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
+        Element::EquationIdVectorType& rEquationIdVector,
         const ProcessInfo& rCurrentProcessInfo
         ) override
     {
         KRATOS_TRY
 
-        // Get element DOF list and resize rRHS_Contribution
-        TElementDofPointersVectorType r_element_dof_list;
-        rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
-        const std::size_t num_element_dofs = r_element_dof_list.size();
+        rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
 
-        // Initialize rRHS_contribution
+        // Resize RHS contribution
+        const std::size_t num_element_dofs = rEquationIdVector.size();
         if (rRHS_Contribution.size() != num_element_dofs)
-            rRHS_Contribution.resize(num_element_dofs, false);
+            rRHS_Contribution.resize(num_element_dofs);
         rRHS_Contribution.clear();
 
         // Basis derivative RHS contribution
         CalculateModalDerivativeRHSContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
-
-        rElement.EquationIdVector(EquationId,rCurrentProcessInfo);
 
         KRATOS_CATCH("")
     }
@@ -230,6 +226,9 @@ protected:
         {
             // Linear dependency
             rElement.CalculateMassMatrix(element_matrix_derivative, rCurrentProcessInfo);
+            // Symmetrization due to corotational elements
+            element_matrix_derivative += trans(element_matrix_derivative);
+            element_matrix_derivative *= 0.5;
             element_matrix_derivative *= (-rCurrentProcessInfo[EIGENVALUE_VECTOR][basis_i] / rElement.GetProperties()(DENSITY));
         }
         else if (*mpDerivativeParameter == YOUNG_MODULUS  || *mpDerivativeParameter == POISSON_RATIO)
@@ -292,6 +291,9 @@ protected:
         // Neutral state
         LocalSystemMatrixType element_LHS_initial;
         rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_initial += trans(element_LHS_initial);
+        element_LHS_initial *= 0.5;
 
         // Save property pointer
         Properties::Pointer p_global_properties = rElement.pGetProperties();
@@ -306,6 +308,9 @@ protected:
         LocalSystemMatrixType element_LHS_p_perturbed;
         p_local_property->SetValue(*mpDerivativeParameter, (initial_property_value + property_value_step_size));
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+        element_LHS_p_perturbed *= 0.5;
 
         // Reset perturbationby giving original properties back
         rElement.SetProperties(p_global_properties);
@@ -342,11 +347,17 @@ protected:
         LocalSystemMatrixType element_LHS_p_perturbed;
         p_local_property->SetValue(*mpDerivativeParameter, (initial_property_value + property_value_step_size));
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+        element_LHS_p_perturbed *= 0.5;
 
         // Negative perturbation
         LocalSystemMatrixType element_LHS_n_perturbed;
         p_local_property->SetValue(*mpDerivativeParameter, (initial_property_value - property_value_step_size));
         rElement.CalculateLeftHandSide(element_LHS_n_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_n_perturbed += trans(element_LHS_n_perturbed);
+        element_LHS_n_perturbed *= 0.5;
 
         // Reset perturbationby giving original properties back
         rElement.SetProperties(p_global_properties);

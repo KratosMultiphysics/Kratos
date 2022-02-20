@@ -124,6 +124,14 @@ public:
     {
         KRATOS_TRY
 
+        rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
+        
+        // Resize RHS contribution
+        const std::size_t num_element_dofs = rEquationIdVector.size();
+        if (rRHS_Contribution.size() != num_element_dofs)
+            rRHS_Contribution.resize(num_element_dofs);
+        rRHS_Contribution.clear();
+
         // Derivative of basis_i wrt basis_j
         const auto basis_i = rCurrentProcessInfo[BASIS_I];
         const auto basis_j = rCurrentProcessInfo[BASIS_J];
@@ -131,36 +139,28 @@ public:
         // Get PhiElemental
         LocalSystemVectorType phi_elemental;
         this->GetPhiElemental(phi_elemental, basis_i, rElement, rCurrentProcessInfo);
-        const std::size_t num_element_dofs = phi_elemental.size();
-
-        // Initialize rRHS_Contribution
-        if (rRHS_Contribution.size() != num_element_dofs)
-            rRHS_Contribution.resize(num_element_dofs,false);
-        rRHS_Contribution.clear();
 
         // Compute element LHS derivative
         // Lock element nodes for OMP parallelism
         this->LockElementNodes(rElement);
         
-        LocalSystemMatrixType element_matrix_derivative(num_element_dofs, num_element_dofs);
-        element_matrix_derivative.clear();
         // Perform FD
+        LocalSystemMatrixType element_LHS_derivative(num_element_dofs, num_element_dofs);
+        element_LHS_derivative.clear();
         switch (BaseType::mFiniteDifferenceType)
         {
         case BaseType::FiniteDifferenceType::Forward:
-            this->ForwardDifferencingWithBasis_LHS(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
+            this->ForwardDifferencingWithBasis_LHS(element_LHS_derivative, basis_j, rElement, rCurrentProcessInfo);
             break;
         case BaseType::FiniteDifferenceType::Central:
-            this->CentralDifferencingWithBasis_LHS(element_matrix_derivative, basis_j, rElement, rCurrentProcessInfo);
+            this->CentralDifferencingWithBasis_LHS(element_LHS_derivative, basis_j, rElement, rCurrentProcessInfo);
             break;
         }
         // Unlock element nodes
         this->UnlockElementNodes(rElement);
 
         // Compute RHS contribution
-        noalias(rRHS_Contribution) = -prod(element_matrix_derivative, phi_elemental);
-
-        rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
+        noalias(rRHS_Contribution) = -prod(element_LHS_derivative, phi_elemental);
 
         KRATOS_CATCH("")
     }
@@ -214,11 +214,17 @@ protected:
         // Neutral state
         LocalSystemMatrixType element_LHS_initial;
         rElement.CalculateLeftHandSide(element_LHS_initial, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_initial += trans(element_LHS_initial);
+        element_LHS_initial *= 0.5;
 
         // Positive perturbation
         LocalSystemMatrixType element_LHS_p_perturbed;
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+        element_LHS_p_perturbed *= 0.5;
 
         // Reset perturbation
         this->PerturbElementWithBasis(-1.0, BasisIndex, rElement, rCurrentProcessInfo);
@@ -249,11 +255,17 @@ protected:
         LocalSystemMatrixType element_LHS_p_perturbed;
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+        element_LHS_p_perturbed *= 0.5;
 
         // Negative perturbation
         LocalSystemMatrixType element_LHS_n_perturbed;
         this->PerturbElementWithBasis(-2.0, BasisIndex, rElement, rCurrentProcessInfo);
         rElement.CalculateLeftHandSide(element_LHS_n_perturbed, rCurrentProcessInfo);
+        // Symmetrization due to corotational elements
+        element_LHS_n_perturbed += trans(element_LHS_n_perturbed);
+        element_LHS_n_perturbed *= 0.5;
 
         // Reset perturbation
         this->PerturbElementWithBasis(1.0, BasisIndex, rElement, rCurrentProcessInfo);

@@ -129,17 +129,20 @@ public:
             break;
         case 2: // Stiffness matrix
             rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
+            
             break;
         case 3: // Adjoint LHS matrix
         {    
-            LocalSystemMatrixType tmp_rLHS_Contribution;
-            rElement.CalculateLeftHandSide(tmp_rLHS_Contribution, rCurrentProcessInfo);
-            rLHS_Contribution = trans(tmp_rLHS_Contribution);
+            rElement.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
             break;
         }
         default:
             KRATOS_ERROR << "Invalid BUILD_LEVEL: " << rCurrentProcessInfo[BUILD_LEVEL] << std::endl;
         }
+
+        // Symmetrization due to corotational elements
+        rLHS_Contribution += trans(rLHS_Contribution);
+        rLHS_Contribution *= 0.5;
 
         rElement.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
 
@@ -164,10 +167,8 @@ public:
 
         if (rCurrentProcessInfo[BUILD_LEVEL] == 4 || rCurrentProcessInfo[BUILD_LEVEL] == 6)
         {
-            // Get element DOF list and resize rRHS_Contribution
-            TElementDofPointersVectorType r_element_dof_list;
-            rElement.GetDofList(r_element_dof_list, rCurrentProcessInfo);
-            const std::size_t element_dofs_size = r_element_dof_list.size();
+            rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
+            const std::size_t element_dofs_size = rEquationIdVector.size();
 
             // Initialize rRHS_contribution
             if (rRHS_Contribution.size() != element_dofs_size)
@@ -184,7 +185,6 @@ public:
                 // Adjoint sensitivity contribution
                 CalculateAdjointSensitivityContribution(rElement, rRHS_Contribution, rCurrentProcessInfo);
             }
-            rElement.EquationIdVector(rEquationIdVector,rCurrentProcessInfo);
         }
         else if (rCurrentProcessInfo[BUILD_LEVEL] == 5)
         {
@@ -327,6 +327,9 @@ private:
                     rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     element_LHS_p_perturbed.clear();
                     rElement.CalculateLeftHandSide(element_LHS_p_perturbed, rCurrentProcessInfo);
+                    // Symmetrization due to corotational elements
+                    element_LHS_p_perturbed += trans(element_LHS_p_perturbed);
+                    element_LHS_p_perturbed *= 0.5;
 
                     // Negative perturbation                    
                     rp_dof->GetSolutionStepValue() -= 2.0*BaseType::mFiniteDifferenceStepSize;
@@ -336,6 +339,9 @@ private:
                     rElement.InitializeNonLinearIteration(rCurrentProcessInfo);
                     element_LHS_m_perturbed.clear();
                     rElement.CalculateLeftHandSide(element_LHS_m_perturbed, rCurrentProcessInfo);
+                    // Symmetrization due to corotational elements
+                    element_LHS_m_perturbed += trans(element_LHS_m_perturbed);
+                    element_LHS_m_perturbed *= 0.5;
                     
                     // Reset Perturbation
                     rp_dof->GetSolutionStepValue() = dof_value;
