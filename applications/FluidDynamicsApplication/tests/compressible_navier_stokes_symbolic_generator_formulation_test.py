@@ -243,19 +243,20 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
     def testComputeNonLinearOperator(self):
         dim = 2
-        A = defs.Matrix('A', dim+2, dim+2)
-        H = defs.Matrix('H', dim+2, dim+2)
-        S = defs.Matrix('S', dim+2, dim+2)
-        U = defs.Vector('U', dim+2)
+        blocksize = dim+2
+        A = [defs.Matrix('A[{}]'.format(d), blocksize, blocksize) for d in range(dim)]
+        H = defs.Matrix('H', blocksize, dim)
+        S = defs.Matrix('S', blocksize, blocksize)
+        U = defs.Vector('U', blocksize)
 
         dummy_geneator = self._DummyGenerator(self._DummyGeometry)
         L = dummy_geneator.ComputeNonLinearOperator(A, H, S, U)
 
         L_expected = sympy.Matrix([
-            [A[0,0]*H[0,0] + A[0,1]*H[0,1] - S[0,0]*U[0] - S[0,1]*U[1] - S[0,2]*U[2] - S[0,3]*U[3]],
-            [A[0,0]*H[1,0] + A[0,1]*H[1,1] - S[1,0]*U[0] - S[1,1]*U[1] - S[1,2]*U[2] - S[1,3]*U[3]],
-            [A[0,0]*H[2,0] + A[0,1]*H[2,1] - S[2,0]*U[0] - S[2,1]*U[1] - S[2,2]*U[2] - S[2,3]*U[3]],
-            [A[0,0]*H[3,0] + A[0,1]*H[3,1] - S[3,0]*U[0] - S[3,1]*U[1] - S[3,2]*U[2] - S[3,3]*U[3]]
+            [A[0][0,0]*H[0,0] + A[0][0,1]*H[1,0] + A[0][0,2]*H[2,0] + A[0][0,3]*H[3,0] + A[1][0,0]*H[0,1] + A[1][0,1]*H[1,1] + A[1][0,2]*H[2,1] + A[1][0,3]*H[3,1] - S[0,0]*U[0] - S[0,1]*U[1] - S[0,2]*U[2] - S[0,3]*U[3]],
+            [A[0][1,0]*H[0,0] + A[0][1,1]*H[1,0] + A[0][1,2]*H[2,0] + A[0][1,3]*H[3,0] + A[1][1,0]*H[0,1] + A[1][1,1]*H[1,1] + A[1][1,2]*H[2,1] + A[1][1,3]*H[3,1] - S[1,0]*U[0] - S[1,1]*U[1] - S[1,2]*U[2] - S[1,3]*U[3]],
+            [A[0][2,0]*H[0,0] + A[0][2,1]*H[1,0] + A[0][2,2]*H[2,0] + A[0][2,3]*H[3,0] + A[1][2,0]*H[0,1] + A[1][2,1]*H[1,1] + A[1][2,2]*H[2,1] + A[1][2,3]*H[3,1] - S[2,0]*U[0] - S[2,1]*U[1] - S[2,2]*U[2] - S[2,3]*U[3]],
+            [A[0][3,0]*H[0,0] + A[0][3,1]*H[1,0] + A[0][3,2]*H[2,0] + A[0][3,3]*H[3,0] + A[1][3,0]*H[0,1] + A[1][3,1]*H[1,1] + A[1][3,2]*H[2,1] + A[1][3,3]*H[3,1] - S[3,0]*U[0] - S[3,1]*U[1] - S[3,2]*U[2] - S[3,3]*U[3]]
         ])
 
         self._assertSympyMatrixEqual(L, L_expected)
