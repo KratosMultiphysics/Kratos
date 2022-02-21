@@ -156,9 +156,9 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
 
     class _DummyGeometry:
-            ndims = 2
-            nnodes = None
-            blocksize = ndims + 2
+        ndims = 2
+        nnodes = None
+        blocksize = ndims + 2
 
     def testdVdU(self):
         g = self._DummyGeometry()
