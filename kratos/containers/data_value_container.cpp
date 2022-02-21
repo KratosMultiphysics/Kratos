@@ -62,6 +62,8 @@ namespace Kratos
 
     void DataValueContainer::save(Serializer& rSerializer) const
     {
+        KRATOS_TRY
+
         std::size_t size = mData.size();
         rSerializer.save("Size", size);
         for (std::size_t i = 0; i < size; i++)
@@ -69,10 +71,14 @@ namespace Kratos
             rSerializer.save("Variable Name", mData[i].first->Name());
             mData[i].first->Save(rSerializer, mData[i].second);
         }
+
+        KRATOS_CATCH("")
     }
 
     void DataValueContainer::load(Serializer& rSerializer)
     {
+        KRATOS_TRY
+
         std::size_t size;
         rSerializer.load("Size", size);
         mData.resize(size);
@@ -84,6 +90,8 @@ namespace Kratos
             mData[i].first->Allocate(&(mData[i].second));
             mData[i].first->Load(rSerializer, mData[i].second);
         }
+
+        KRATOS_CATCH("")
     }
 
 

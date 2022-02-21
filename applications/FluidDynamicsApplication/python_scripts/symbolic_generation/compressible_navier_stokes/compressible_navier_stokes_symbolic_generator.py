@@ -1,7 +1,7 @@
-import KratosMultiphysics
 import sympy
-import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
+import KratosMultiphysics
+import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_convective_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_source_term
@@ -45,7 +45,9 @@ class CompressibleNavierStokesSymbolicGenerator:
     def __init__(self, settings):
         settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.write_mode = settings["mode"].GetString()
+        self.write_language = settings["language"].GetString()
+        defs.SetFormat(self.write_language)
+
         self.is_explicit = settings["explicit"].GetBool()
         self.simplify = settings["do_simplifications"].GetBool()
         self.shock_capturing = settings["shock_capturing"].GetBool()
@@ -57,23 +59,45 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         self.template_filename = settings["template_filename"].GetString()
         self.output_filename = settings["output_filename"].GetString()
+
+        self.outstring = None
         self._GenerateFiles()
 
         self._print(2, settings)
 
+    def _FindAndRemoveIndentation(self, target_substring):
+        end = self.outstring.find(target_substring)
+        begin = end
+        leading_spaces = 0
+        while begin > 0:
+            if self.outstring[begin] == '\n':
+                break
+            if self.outstring[begin] != ' ':
+                end = begin - 1
+            begin -= 1
+
+        leading_spaces = end - begin
+
+        if leading_spaces % 4 == 0:
+            self.outstring = self.outstring[:begin+1] + self.outstring[end+1:]
+            return int(leading_spaces / 4)
+
+        raise ValueError(
+            "Inconsistent indentation in source file! Substitution {} found {} leading spaces, which is not a multiple of four.".format(
+            target_substring, leading_spaces
+        ))
+
     def _CollectAndReplace(self, target_substring, expression, name):
-        # If integrated during run-time, the assignment has to be an accumulation:
-        assignment = " = " if self.geometry.symbolic_integration else " += "
+        indentation_level  = self._FindAndRemoveIndentation(target_substring)
 
-        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_mode, replace_indices=False, assignment_op=assignment)
-
+        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_language, indentation_level=indentation_level, replace_indices=False, assignment_op=" = ")
         self.outstring = self.outstring.replace(target_substring, out)
 
     @classmethod
     def GetDefaultParameters(cls):
         return KratosMultiphysics.Parameters("""
         {
-            "mode": "c",
+            "language": "c",
             "explicit": true,
             "do_simplifications": false,
             "geometry": "triangle",
@@ -212,9 +236,19 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _OutputProjections(self, res_rho_proj, res_mom_proj, res_tot_ener_proj):
         dim = self.geometry.ndims
-        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, "rho_proj")
-        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, "mom_proj")
-        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, "tot_ener_proj")
+
+        if self.geometry.symbolic_integration:
+            rho_name = "rho_proj"
+            mom_name = "mom_proj"
+            ene_name = "tot_ener_proj"
+        else:
+            rho_name = "rho_proj_gauss"
+            mom_name = "mom_proj_gauss"
+            ene_name = "tot_ener_proj_gauss"
+
+        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, rho_name)
+        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, mom_name)
+        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, ene_name)
 
     def _SubstituteSubscales(self, res, res_proj, rv, subscales, subscales_type, Tau):
         rv_gauss = rv.copy()
@@ -317,14 +351,21 @@ class CompressibleNavierStokesSymbolicGenerator:
         # Reading and filling the template file
         self._print(1, "    Substituting outstring from {}".format(self.template_filename))
 
+        if self.geometry.symbolic_integration:
+            rhs_name = "rRightHandSideBoundedVector"
+            lhs_name = "rLeftHandSideBoundedVector"
+        else:
+            rhs_name = "rhs_gauss"
+            lhs_name = "lhs_gauss"
+
         target = "//substitute_rhs_{}D_{}".format(self.geometry.ndims, subscales_type)
-        self._CollectAndReplace(target, rhs, "rRightHandSideBoundedVector")
+        self._CollectAndReplace(target, rhs, rhs_name)
 
         if self.is_explicit:
             return
 
         target = "//substitute_lhs_{}D_{}".format(self.geometry.ndims, subscales_type)
-        self._CollectAndReplace(target, lhs, "rLeftHandSideBoundedVector")
+        self._CollectAndReplace(target, lhs, lhs_name)
 
     def _ReplaceWarningMessage(self):
         message = "\n".join([
@@ -356,7 +397,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         n_nodes = self.geometry.nnodes
         block_size = self.geometry.blocksize
 
-        params = FormulationParameters(self.geometry)
+        params = FormulationParameters(self.geometry, self.write_language)
 
         # Unknowns
         U = defs.Matrix('data.U', n_nodes, block_size, real=True)

@@ -22,7 +22,7 @@
 #include "custom_utilities/estimate_dt_utility.h"
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
-#include "custom_utilities/move_mesh_utility.h"
+#include "custom_utilities/move_shallow_mesh_utility.h"
 #include "custom_utilities/derivatives_recovery_utility.h"
 
 
@@ -141,12 +141,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
-    py::class_<MoveMeshUtility>(m, "MoveMeshUtility")
+    py::class_<MoveShallowMeshUtility>(m, "MoveShallowMeshUtility")
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
-        .def("Check", &MoveMeshUtility::Check)
-        .def("Initialize", &MoveMeshUtility::Initialize)
-        .def("MoveMesh", &MoveMeshUtility::MoveMesh)
-        .def("MapResults", &MoveMeshUtility::MapResults)
+        .def("Check", &MoveShallowMeshUtility::Check)
+        .def("Initialize", &MoveShallowMeshUtility::Initialize)
+        .def("MoveMesh", &MoveShallowMeshUtility::MoveMesh)
+        .def("MapResults", &MoveShallowMeshUtility::MapResults)
         ;
 
     py::class_<DerivativesRecoveryUtility<2>>(m, "DerivativesRecoveryUtility2D")
