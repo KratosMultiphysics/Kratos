@@ -26,7 +26,7 @@ class TestCompressiblePotentialRom(KratosUnittest.TestCase):
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Cleaning
-            files_to_remove = [f for f in os.listdir() if f.endswith(".time")] 
+            files_to_remove = [f for f in os.listdir() if f.endswith(".time")]
             for file_name in files_to_remove:
                 kratos_utilities.DeleteFileIfExisting(file_name)
 
