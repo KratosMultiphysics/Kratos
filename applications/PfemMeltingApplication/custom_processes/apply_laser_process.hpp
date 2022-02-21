@@ -139,6 +139,7 @@ public:
         Node < 3 > work_point(0, 0.0, 0.0, 0.0);
 
         array_1d<double, 3> direction;
+        array_1d<double, 3> normal;
         /*direction[0] = 0.0;
         direction[1] = 1.0;
         direction[2] = 0.0;*/
@@ -146,7 +147,7 @@ public:
         direction[0] = mDirectionx;
         direction[1] = mDirectiony;
         direction[2] = mDirectionz;
-
+        direction *=-1.0;
 	//KRATOS_WATCH(direction)
         array_1d<double, 3> unitary_dir = direction * (1.0 / MathUtils<double>::Norm3(direction));
 
@@ -161,6 +162,15 @@ public:
             
             const double distance = MathUtils<double>::Norm3(distance_vector); // TODO: squared norm is better here
 
+            normal=list_of_nodes[k]->FastGetSolutionStepValue(NORMAL);
+
+            double norm_direction = std::sqrt( direction[0] * direction[0] + direction[1] * direction[1] + direction[2] * direction[2] );
+	    double norm_normal = std::sqrt( normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2] );
+
+	    double cos_angle=direction[0] * normal[0] + direction[1] * normal[1] + direction[2] * normal[2]; 
+            cos_angle /=(norm_direction * norm_normal);
+            //KRATOS_WATCH(cos_angle) 
+
             //KRATOS_WATCH(distance)  
             const double distance_projected_to_dir = distance_vector[0]*unitary_dir[0] + distance_vector[1]*unitary_dir[1] + distance_vector[2]*unitary_dir[2];
             //KRATOS_WATCH(distance_projected_to_dir)   
@@ -171,7 +181,7 @@ public:
             //KRATOS_WATCH(mRadius)
             if(distance_to_laser_axis < mRadius) {
                 double& aux= list_of_nodes[k]->FastGetSolutionStepValue(FACE_HEAT_FLUX);
-                aux =  mPower / (Globals::Pi * mRadius * mRadius);
+                aux =  cos_angle * mPower / (Globals::Pi * mRadius * mRadius);
 
 		//KRATOS_WATCH(aux)
             }
