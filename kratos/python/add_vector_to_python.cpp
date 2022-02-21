@@ -166,7 +166,7 @@ namespace Python
             return tmp;
         }));
 
-        py::implicitly_convertible<py::buffer, array_1d<double,TSize>>();
+        //py::implicitly_convertible<py::buffer, array_1d<double,TSize>>();
         py::implicitly_convertible<py::list, array_1d<double,TSize>>();
         py::implicitly_convertible<Vector, array_1d<double,TSize>>();
     }
