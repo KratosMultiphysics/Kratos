@@ -1,0 +1,37 @@
+# Importing the Kratos Library
+import KratosMultiphysics
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
+# Import applications
+import KratosMultiphysics.RomApplication as RomApplication
+
+# Other imports
+import os
+
+def Factory(settings, Model):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+
+    process_settings = settings["Parameters"]
+
+    folder_settings = KratosMultiphysics.Parameters("""{
+        "folder_name"                 : "RomBasis",
+        "save_output_files_in_folder" : true
+    }""")
+
+    process_settings.AddMissingParameters(folder_settings)
+
+    if process_settings["save_output_files_in_folder"].GetBool():
+        folder_name = process_settings["folder_name"].GetString()
+        kratos_utils.DeleteDirectoryIfExisting(folder_name) # make sure to remove old results
+        os.mkdir(folder_name)
+
+    if process_settings.Has("computing_model_part_name"):
+        computing_model_part = Model[process_settings["computing_model_part_name"].GetString()]
+    else: # using default name
+        computing_model_part = Model["Structure"]
+
+    process_settings.RemoveValue("computing_model_part_name")
+    process_settings.RemoveValue("help")
+
+    return RomApplication.PostprocessRomBasisProcess(computing_model_part, process_settings)

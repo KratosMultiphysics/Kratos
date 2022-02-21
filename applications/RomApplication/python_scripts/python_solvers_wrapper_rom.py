@@ -39,6 +39,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "stationary" or solver_type == "Stationary"):
             solver_module_name = "convection_diffusion_stationary_rom_solver"
+            
+        elif solver_type == "modal_derivative":
+            solver_module_name = "structural_mechanics_modal_derivative_solver"
 
         elif (solver_type == "monolithic" or solver_type == "Monolithic"):
             solver_module_name = "navier_stokes_solver_vmsmonolithic_rom"
@@ -75,4 +78,3 @@ def CreateSolver(model, custom_settings):
     solver_settings = custom_settings["solver_settings"]
 
     return CreateSolverByParameters(model, solver_settings, parallelism)
-
