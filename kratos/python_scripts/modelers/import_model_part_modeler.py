@@ -1,6 +1,6 @@
 import KratosMultiphysics
 
-class ImportModelPartModeler(KratosMultiphysics.Modeler):
+class ImportMDPAModeler(KratosMultiphysics.Modeler):
 
     def __init__(self, model, settings):
         super().__init__(model, settings)
@@ -47,4 +47,4 @@ class ImportModelPartModeler(KratosMultiphysics.Modeler):
         return default_settings
 
 def Factory(model, settings):
-    return ImportModelPartModeler(model, settings)
+    return ImportMDPAModeler(model, settings)

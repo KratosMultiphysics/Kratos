@@ -4,12 +4,12 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-from KratosMultiphysics.modelers.import_model_part_modeler import ImportModelPartModeler
+from KratosMultiphysics.modelers.import_model_part_modeler import ImportMDPAModeler
 
 def GetFilePath(filename):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
 
-class TestImportModelPartModeler(KratosUnittest.TestCase):
+class TestImportMDPAModeler(KratosUnittest.TestCase):
     def tearDown(self):
         # Clean up temporary files
         KratosUtilities.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
@@ -19,7 +19,7 @@ class TestImportModelPartModeler(KratosUnittest.TestCase):
         KratosUtilities.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.out.time"))
         KratosUtilities.DeleteFileIfExisting(GetFilePath("test_model_part_io_write_mesh_only.time"))
 
-    def testImportModelPartModeler(self):
+    def testImportMDPAModeler(self):
         # Set up the import model part modeler
         model = KratosMultiphysics.Model()
         settings = KratosMultiphysics.Parameters('''{
@@ -28,7 +28,7 @@ class TestImportModelPartModeler(KratosUnittest.TestCase):
             "model_part_name" : "Main"
         }''')
         settings["input_filename"].SetString(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
-        import_model_part_modeler = ImportModelPartModeler(model, settings)
+        import_model_part_modeler = ImportMDPAModeler(model, settings)
 
         # Get the model part created by the modeler
         model_part = model.GetModelPart(settings["model_part_name"].GetString())
