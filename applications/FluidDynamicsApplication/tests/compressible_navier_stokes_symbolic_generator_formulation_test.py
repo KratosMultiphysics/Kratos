@@ -154,7 +154,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
                     msg=LazyMsg("\nMissmatching entry in position [{},{}]:\n >  first: {}\n > second: {}\n{}",
                         i, j, first[i,j], second[i,j], msg))
 
-
     class _DummyGeometry:
         ndims = 2
         nnodes = None
@@ -264,13 +263,13 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         self._assertSympyMatrixEqual(tau,  tau_expected)
 
     class _DummyGenerator(CompressibleNavierStokesSymbolicGenerator):
-        def __init__(self):
+        def __init__(self, geometry_class):
             # self.write_language = "python"
             # self.is_explicit = False
             # self.shock_capturing = True
             # self.echo_level = 0
             # self.primitive_interpolation = "nodal"
-            self.geometry = self._DummyGeometry()
+            self.geometry = geometry_class
             # self.outstring = None
 
         def ComputeNonLinearOperator(self, A, H, S, Ug):
@@ -284,7 +283,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         S = defs.Matrix('S', dim+2, dim+2)
         U = defs.Vector('U', dim+2)
 
-        dummy_geneator = self._DummyGenerator()
+        dummy_geneator = self._DummyGenerator(self._DummyGeometry)
         L = dummy_geneator.ComputeNonLinearOperator(A, H, S, U)
 
         L_expected = sympy.Matrix([
@@ -295,6 +294,8 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         ])
 
         self._assertSympyMatrixEqual(L, L_expected)
+
+
 if __name__ == '__main__':
     suites = KratosUnitTest.KratosSuites
 
