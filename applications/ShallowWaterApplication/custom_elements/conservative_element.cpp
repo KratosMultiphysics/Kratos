@@ -51,7 +51,19 @@ typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNu
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
+void ConservativeElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step)
+{
+    for (IndexType i = 0; i < TNumNodes; i++)
+    {
+        rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
+        rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
+        rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+        rData.nodal_q[i] = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, Step);
+    }
+}
+
+template<std::size_t TNumNodes>
+void ConservativeElement<TNumNodes>::UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
     const double h = inner_prod(rData.nodal_h, rN);
     const double c2 = rData.gravity * h;
@@ -116,6 +128,7 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
     BoundedMatrix<double,3,3>& rViscosity,
     BoundedMatrix<double,2,2>& rDiffusion,
     const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
     double jump = 0;

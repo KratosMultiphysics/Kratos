@@ -726,12 +726,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._GetStructureToFluidPositiveInterfaceMapper().InverseMap(
             self._GetTractionVariable(),
             KratosMultiphysics.POSITIVE_MAPPED_VECTOR_VARIABLE,
-            KratosMapping.Mapper.SWAP_SIGN)
+            KratosMultiphysics.Mapper.SWAP_SIGN)
         if self.double_faced_structure:
             self._GetStructureToFluidNegativeInterfaceMapper().InverseMap(
                 self._GetTractionVariable(),
                 KratosMultiphysics.NEGATIVE_MAPPED_VECTOR_VARIABLE,
-                KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+                KratosMultiphysics.Mapper.ADD_VALUES | KratosMultiphysics.Mapper.SWAP_SIGN)
 
         # Send the mapped load from the structure FSI coupling interface to the parent one
         self._GetFSICouplingInterfaceStructure().TransferValuesToFatherModelPart(self._GetTractionVariable())
