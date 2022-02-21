@@ -162,7 +162,7 @@ void BasicGenericFunctionUtility::InitializeParser()
             ss << "\nParsing error in function: " << mFunctionBody << '\n';
             ss <<   "Error occurred near here : ";
             for(int i=0; i<err-1; ++i) ss << ' ';
-            ss << "^ (char ["<< err << "])\n";
+            ss << "^ (char ["<< err-1 << "])\n";
 
             KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << ss.str() << std::endl;
         } else { // Ternary operator
