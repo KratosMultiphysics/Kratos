@@ -30,7 +30,8 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
             "model_part_name": "please_specify_skin_model_part_name",
             "calculate_wss": true,
             "calculate_osi": true,
-            "recompute_normals": false
+            "compute_normals": true,
+            "compute_normals_at_each_step": false
         }
         """)
         settings.ValidateAndAssignDefaults(default_settings)
@@ -44,36 +45,25 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
         # Note that this overwrites the existent nodal normal values
         # Also note that if there is a slip condition that shares part of the WSS model part the corner normals could be altered
         # TODO: Improve the NormalCalculationUtils to accept alternative storage variables (to be discussed)
-        if self.settings["recompute_normals"].GetBool():
-            skin_model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
+        skin_model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
+        if self.settings["compute_normals"].GetBool():
             KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
                 skin_model_part,
                 skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-    def ExecuteFinalizeSolutionStep(self):
-        # model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
+        # Initialize the WSS variables
+        FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.InitializeWSSVariables(skin_model_part)
+
+    def ExecuteBeforeOutputStep(self):
         skin_model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
 
-        if self.settings["recompute_normals"].GetBool():
-            print ("Computing NORMAL ---------------------------------------------------------------------->")
-            self.ExecuteInitialize()
+        if self.settings["compute_normals_at_each_step"].GetBool():
+            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+                skin_model_part,
+                skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
         if self.settings["calculate_wss"].GetBool():
-            print ("Computing WSS ----------------------------------------------------------------------->")
             FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateWSS(skin_model_part)
-            #,skin_model_part)
 
         if self.settings["calculate_osi"].GetBool():
-            print ("Computing TWSS ----------------------------------------------------------------------->")
-            FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateTWSS(skin_model_part)
-            print ("Computing OSI ----------------------------------------------------------------------->")
-            # FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateOSI(skin_model_part)
-
-
-    # def ExecuteFinalize(self):
-    #     model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
-    #     skin_model_part = self.model.GetModelPart(self.settings["skin_model_part"].GetString())
-    #     if (self.settings["calculate_osi"].GetBool()):
-    #         print ("Computing OSI ----------------------------------------------------------------------->")
-    #         FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateOSI(skin_model_part)
-    #         FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateTWSS(skin_model_part)
+            FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateOSI(skin_model_part)
