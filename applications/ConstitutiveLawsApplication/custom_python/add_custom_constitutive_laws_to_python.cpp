@@ -87,6 +87,7 @@
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/rankine_plastic_potential.h"
 
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
@@ -1474,6 +1475,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
     (m,"AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb").def(py::init<>());
+
+    py::class_< AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>,
+    typename AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"AssociativePlasticDamageModel3DRankineRankine").def(py::init<>());
 }
 
 }  // namespace Python.

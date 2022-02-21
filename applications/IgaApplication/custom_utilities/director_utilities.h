@@ -36,10 +36,11 @@ namespace Kratos
         typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-
         typedef typename SparseSpaceType::MatrixType SparseMatrixType;
+        typedef typename LocalSpaceType::MatrixType DenseMatrixType;
         typedef typename LocalSpaceType::VectorType DenseVectorType;
+
+        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
         /// Constructor
         DirectorUtilities(

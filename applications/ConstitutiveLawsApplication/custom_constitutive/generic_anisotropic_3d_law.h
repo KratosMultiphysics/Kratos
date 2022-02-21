@@ -146,7 +146,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 6;
     };
@@ -357,7 +357,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
 
     int Check(const Properties &rMaterialProperties,
               const GeometryType &rElementGeometry,
-              const ProcessInfo &rCurrentProcessInfo) override;
+              const ProcessInfo &rCurrentProcessInfo) const override;
 
     void CalculateTangentTensor(ConstitutiveLaw::Parameters &rValues);
     ///@}

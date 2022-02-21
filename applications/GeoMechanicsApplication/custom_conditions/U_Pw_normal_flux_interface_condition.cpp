@@ -34,14 +34,14 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
-    for(unsigned int i = 0; i<NumGPoints; i++)
+    for(unsigned int i = 0; i<NumGPoints; ++i)
         (JContainer[i]).resize(TDim,LocalDim,false);
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
     
@@ -49,7 +49,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::
     array_1d<double,TNumNodes*TDim> DisplacementVector;
     ConditionUtilities::GetDisplacementsVector(DisplacementVector,Geom);
     array_1d<double,TNumNodes> NormalFluxVector;
-    for(unsigned int i=0; i<TNumNodes; i++)
+    for(unsigned int i=0; i<TNumNodes; ++i)
     {
         NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
@@ -71,7 +71,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::
     {
         //Compute normal flux
         NormalFlux = 0.0;
-        for(unsigned int i=0; i<TNumNodes; i++)
+        for(unsigned int i=0; i<TNumNodes; ++i)
         {
             NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
         }
@@ -87,7 +87,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::
         }
         
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], integration_points[GPoint].Weight(), JointWidth );
+        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], IntegrationPoints[GPoint].Weight(), JointWidth );
                 
         //Contributions to the right hand side
         noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;

@@ -123,6 +123,7 @@ class RestartUtility:
 
         # Load the ModelPart
         serializer = KratosMultiphysics.FileSerializer(restart_path, self.serializer_flag)
+        serializer.Set(self._GetSerializerFlags())
         serializer.Load(self.model_part_name, self.model_part)
 
         self._ExecuteAfterLoad()
@@ -158,6 +159,7 @@ class RestartUtility:
 
         # Save the ModelPart
         serializer = KratosMultiphysics.FileSerializer(file_name, self.serializer_flag)
+        serializer.Set(self._GetSerializerFlags())
         serializer.Save(self.model_part.Name, self.model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("Restart Utility", "Saved restart file", file_name + ".rest")
@@ -166,7 +168,6 @@ class RestartUtility:
         if self.restart_save_frequency > 0.0: # Note: if == 0, we'll just always print
             while self.next_output <= control_label:
                 self.next_output += self.restart_save_frequency
-
 
         # Cleanup
         self._ClearObsoleteRestartFiles()
@@ -182,10 +183,7 @@ class RestartUtility:
 
     def CreateOutputFolder(self):
         if self.save_restart_files_in_folder:
-            folder_path = self.__GetFolderPathSave()
-            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
-                os.makedirs(folder_path)
-            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+            KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(self.__GetFolderPathSave())
 
     #### Protected functions ####
 
@@ -245,6 +243,9 @@ class RestartUtility:
             file_name_pattern += "_<step>"
         file_name_pattern += ".rest"
         return file_name_pattern
+
+    def _GetSerializerFlags(self):
+        return KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION
 
     #### Private functions ####
 

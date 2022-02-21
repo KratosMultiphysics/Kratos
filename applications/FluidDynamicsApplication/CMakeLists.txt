@@ -22,7 +22,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/statistics_record.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vorticity_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/acceleration_limitation_utilities.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_post_process_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_slip_utilities.cpp
 
@@ -31,8 +30,10 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms_dem_coupled.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/alternative_qs_vms_dem_coupled.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/d_vms_dem_coupled.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/alternative_d_vms_dem_coupled.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element_discontinuous.cpp
@@ -46,10 +47,11 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D_twofluid.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_ausas_navier_stokes.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes2D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes3D.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit_2D3N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit_2D4N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/compressible_navier_stokes_explicit_3D4N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_fluid_navier_stokes_alpha_method.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms_adjoint_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/distance_smoothing_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/weakly_compressible_navier_stokes.cpp
@@ -88,7 +90,9 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_smoothing_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calulate_levelset_consistent_nodal_gradient_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_physics_based_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_entropy_viscosity_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.cpp
 )
 
 ## define python interface sources

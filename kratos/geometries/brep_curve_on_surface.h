@@ -404,27 +404,26 @@ public:
     ///@name Projection
     ///@{
 
-    /* Makes projection of rPointGlobalCoordinates to
-     * the closest point rProjectedPointGlobalCoordinates on the curve,
-     * with local coordinates rProjectedPointLocalCoordinates.
-     *
-     * Condiders limits of this BrepCurveOnSurface as borders.
-     *
-     * @param Tolerance is the breaking criteria.
-     * @return 1 -> projection succeeded
-     *         0 -> projection failed
-     */
-    int ProjectionPoint(
+     /* @brief Makes projection of rPointGlobalCoordinates to
+      *       the closest point on the curve, with
+      *       local coordinates rProjectedPointLocalCoordinates.
+      *
+      * @param Tolerance is the breaking criteria.
+      * @return 1 -> projection succeeded
+      *         0 -> projection failed
+      */
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
+        CoordinatesArrayType point_global_coordinates;
+
         return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
-            rProjectedPointGlobalCoordinates,
+            point_global_coordinates,
             *this,
             20, Tolerance);
     }
@@ -536,7 +535,7 @@ public:
         SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+            rIntegrationPoints, spans, rIntegrationInfo);
     }
 
     ///@}
@@ -586,19 +585,19 @@ public:
         return mpCurveOnSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
     }
 
+    ///@}
+    ///@name Geometry Classification
+    ///@{
+
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Brep;
+        return GeometryData::KratosGeometryFamily::Kratos_Brep;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Brep_Curve;
+        return GeometryData::KratosGeometryType::Kratos_Brep_Curve_On_Surface;
     }
-    ///@}
-    ///@name Input and output
-    ///@{
-
 
     ///@}
     ///@name Information
@@ -697,7 +696,7 @@ template<class TContainerPointType, class TContainerPointEmbeddedType = TContain
 template<class TContainerPointType, class TContainerPointEmbeddedType> const
 GeometryData BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     {}, {}, {});
 
 template<class TContainerPointType, class TContainerPointEmbeddedType>
