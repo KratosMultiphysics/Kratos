@@ -31,16 +31,16 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
         super().SetupModelPart()
 
         # Import the model part data
-        # Note that at this point solvers must have added the variables to the nodal variable data
+        # Note that at this point solvers must have already added the variables to the nodal variable data
+        input_type = "mdpa"
         KratosMultiphysics.SingleImportModelPart.Import(
             self.model_part,
             self.settings,
-            self.settings["input_type"].GetString())
+            input_type)
 
     def __GetDefaultSettings(self):
         default_settings = KratosMultiphysics.Parameters('''{
             "echo_level" : 0,
-            "input_type" : "mdpa",
             "input_filename" : "",
             "model_part_name" : ""
         }''')

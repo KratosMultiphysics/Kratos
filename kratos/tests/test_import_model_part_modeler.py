@@ -4,7 +4,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-from KratosMultiphysics.modelers.import_model_part_modeler import ImportMDPAModeler
+from KratosMultiphysics.modelers.import_mdpa_modeler import ImportMDPAModeler
 
 def GetFilePath(filename):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
@@ -28,7 +28,7 @@ class TestImportMDPAModeler(KratosUnittest.TestCase):
             "model_part_name" : "Main"
         }''')
         settings["input_filename"].SetString(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
-        import_model_part_modeler = ImportMDPAModeler(model, settings)
+        import_mdpa_modeler = ImportMDPAModeler(model, settings)
 
         # Get the model part created by the modeler
         model_part = model.GetModelPart(settings["model_part_name"].GetString())
@@ -39,9 +39,9 @@ class TestImportMDPAModeler(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
 
         # Call the modeler methods
-        import_model_part_modeler.SetupGeometryModel()
-        import_model_part_modeler.PrepareGeometryModel()
-        import_model_part_modeler.SetupModelPart()
+        import_mdpa_modeler.SetupGeometryModel()
+        import_mdpa_modeler.PrepareGeometryModel()
+        import_mdpa_modeler.SetupModelPart()
 
         # Check results
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
