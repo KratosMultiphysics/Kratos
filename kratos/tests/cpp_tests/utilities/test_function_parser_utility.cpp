@@ -25,10 +25,10 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility1, KratosCoreFastSuite)
 {
-    auto function0 = GenericFunctionUtility("x");
+    auto function0 = GenericFunctionUtility("2*x");
     KRATOS_CHECK(function0.DependsOnSpace());
     KRATOS_CHECK_IS_FALSE(function0.UseLocalSystem());
-    KRATOS_CHECK_STRING_EQUAL(function0.FunctionBody(), "x");
+    KRATOS_CHECK_STRING_EQUAL(function0.FunctionBody(), "2*x");
     KRATOS_CHECK_DOUBLE_EQUAL(function0.CallFunction(4.0,3.0,0.0,0.0), 4);
 
     auto function1 = GenericFunctionUtility("x**2+y**2");
