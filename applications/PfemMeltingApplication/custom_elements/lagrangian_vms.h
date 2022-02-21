@@ -1018,7 +1018,10 @@ void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
 	double R=8.31; //universal gas constant
 
 
-	if(Temperature >800.0) Temperature=800.0;
+	if(Temperature > 800.0) Temperature=800.0;
+	if(Temperature < 500.0) Arrhenius_coefficient=0.0;
+
+	//if(Temperature < 700.0) Arrhenius_coefficient=0.0;
 
 	double E_over_R_polymer = Activation_energy / R;
 
