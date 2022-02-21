@@ -265,9 +265,9 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
     class _DummyGenerator(CompressibleNavierStokesSymbolicGenerator):
         def __init__(self, geometry_class):
             # self.write_language = "python"
-            # self.is_explicit = False
+            self.is_explicit = False
             # self.shock_capturing = True
-            # self.echo_level = 0
+            self.echo_level = 0
             # self.primitive_interpolation = "nodal"
             self.geometry = geometry_class
             # self.outstring = None
@@ -277,6 +277,9 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
         def ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
             return super()._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
+
+        def ComputeVariationalFormulation(self, A, acc, G, H, L_adj, Q, S, Ug, V):
+            return super()._ComputeVariationalFormulation(A, acc, G, H, L_adj, Q, S, Ug, V)
 
 
     def testComputeNonLinearOperator(self):
@@ -321,6 +324,31 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         ])
 
         self._assertSympyMatrixEqual(Ladj, Ladj_expected)
+
+    def testComputeVariationalFormulation(self):
+        dim = 2
+        blocksize = dim+2
+        A = [defs.Matrix('A[{}]'.format(d), blocksize, blocksize) for d in range(dim)]
+        H = defs.Matrix('H', blocksize, dim)
+        G = defs.Matrix('G', blocksize, dim)
+        Ladj = defs.Vector('Ladj', blocksize)
+        Q = defs.Matrix('Q', blocksize, dim)
+        S = defs.Matrix('S', blocksize, blocksize)
+        U = defs.Vector('U', blocksize)
+        V = defs.Vector('V', blocksize)
+        acc = defs.Vector('acc', blocksize)
+
+        dummy_geneator = self._DummyGenerator(self._DummyGeometry)
+        rv, subscales = dummy_geneator.ComputeVariationalFormulation(A, acc, G, H, Ladj, Q, S, U, V)
+
+        rv_expected = sympy.Matrix([
+            [G[0,0]*Q[0,0] + G[0,1]*Q[0,1] + G[1,0]*Q[1,0] + G[1,1]*Q[1,1] + G[2,0]*Q[2,0] + G[2,1]*Q[2,1] + G[3,0]*Q[3,0] + G[3,1]*Q[3,1] + Ladj[0]*subscales[0] + Ladj[1]*subscales[1] + Ladj[2]*subscales[2] + Ladj[3]*subscales[3] - V[0]*acc[0] + V[0]*(S[0,0]*U[0] + S[0,1]*U[1] + S[0,2]*U[2] + S[0,3]*U[3]) - V[0]*(A[0][0,0]*H[0,0] + A[0][0,1]*H[1,0] + A[0][0,2]*H[2,0] + A[0][0,3]*H[3,0] + A[1][0,0]*H[0,1] + A[1][0,1]*H[1,1] + A[1][0,2]*H[2,1] + A[1][0,3]*H[3,1]) - V[1]*acc[1] + V[1]*(S[1,0]*U[0] + S[1,1]*U[1] + S[1,2]*U[2] + S[1,3]*U[3]) - V[1]*(A[0][1,0]*H[0,0] + A[0][1,1]*H[1,0] + A[0][1,2]*H[2,0] + A[0][1,3]*H[3,0] + A[1][1,0]*H[0,1] + A[1][1,1]*H[1,1] + A[1][1,2]*H[2,1] + A[1][1,3]*H[3,1]) - V[2]*acc[2] + V[2]*(S[2,0]*U[0] + S[2,1]*U[1] + S[2,2]*U[2] + S[2,3]*U[3]) - V[2]*(A[0][2,0]*H[0,0] + A[0][2,1]*H[1,0] + A[0][2,2]*H[2,0] + A[0][2,3]*H[3,0] + A[1][2,0]*H[0,1] + A[1][2,1]*H[1,1] + A[1][2,2]*H[2,1] + A[1][2,3]*H[3,1]) - V[3]*acc[3] + V[3]*(S[3,0]*U[0] + S[3,1]*U[1] + S[3,2]*U[2] + S[3,3]*U[3]) - V[3]*(A[0][3,0]*H[0,0] + A[0][3,1]*H[1,0] + A[0][3,2]*H[2,0] + A[0][3,3]*H[3,0] + A[1][3,0]*H[0,1] + A[1][3,1]*H[1,1] + A[1][3,2]*H[2,1] + A[1][3,3]*H[3,1])]
+        ])
+
+        subscales_expected = defs.Vector('subscales', blocksize)
+
+        self._assertSympyMatrixEqual(rv, rv_expected)
+        self._assertSympyMatrixEqual(subscales, subscales_expected)
 
 
 if __name__ == '__main__':
