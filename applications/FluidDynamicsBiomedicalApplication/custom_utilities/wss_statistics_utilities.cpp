@@ -12,16 +12,24 @@
 //                   Eduardo Soudah
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/variables.h"
-#include "utilities/variable_redistribution_utility.h"
 #include "utilities/body_normal_calculation_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/variable_redistribution_utility.h"
+#include "utilities/variable_utils.h"
+
+// Application includes
 #include "wss_statistics_utilities.h"
 #include "fluid_dynamics_biomedical_application_variables.h"
 
 namespace Kratos {
 
-void WssStatisticsUtilities::CalculateWSS(ModelPart &rModelPart) 
-//, ModelPart &rSkinModelPart)
+void WssStatisticsUtilities::CalculateWSS(ModelPart &rModelPart)
 {
     // Initialize WSS variables
     array_1d<double,3> aux_zero = ZeroVector(3);
@@ -37,67 +45,60 @@ void WssStatisticsUtilities::CalculateWSS(ModelPart &rModelPart)
         it_node->SetValue(WSS_TANGENTIAL_STRESS, aux_zero);
         it_node->SetValue(TEMPORAL_OSI, aux_zero);
     }
-    
+
     // Check if buffer size is filled (we need REACTION to be already computed)
+    // TODO: Remove this once https://github.com/KratosMultiphysics/Kratos/pull/9592 is merged
     const unsigned int buffer_size = rModelPart.GetBufferSize();
     const unsigned int step = rModelPart.GetProcessInfo()[STEP];
     if (step > buffer_size) {
-        //Distribute the REACTION as a surface load
-        
+        // Distribute the REACTION as a surface load
+        // Note that we first save the REACTION variable in the non-historical nodal database to operate with that one
+        // This avoids the need of adding the FACE_LOAD variable to the historical nodal database in the CFD solver
         double tolerance = 1.0e-5;
         const unsigned int max_it = 100;
-        
-        VariableRedistributionUtility::DistributePointValues(rModelPart, REACTION, FACE_LOAD, tolerance, max_it);
-        
-        // Allocate auxiliary arrays
-        array_1d<double,3> normal_load;
-        array_1d<double,3> tangential_load;
+        VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(REACTION, rModelPart, rModelPart);
+        VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rModelPart.Conditions(), REACTION, FACE_LOAD, tolerance, max_it);
 
-        // Loop the WSS model part conditions
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            auto it_node = rModelPart.NodesBegin() + i_node;
+        // Create the auxiliary TLS container
+        struct WSSTLS
+        {
+            array_1d<double,3> normal_tls;
+            array_1d<double,3> normal_load;
+            array_1d<double,3> tangential_load;
+        };
+
+        // Loop the WSS model part nodes
+        block_for_each(rModelPart.Nodes(), WSSTLS(), [](NodeType& rNode, WSSTLS& rAuxTLS){
+            // Get TLS arrays
+            auto& normal = rAuxTLS.normal_tls;
+            auto& normal_load = rAuxTLS.normal_load;
+            auto& tangential_load = rAuxTLS.tangential_load;
 
             // Normalize nodal normal
-            array_1d<double,3> normal = it_node->FastGetSolutionStepValue(NORMAL);
+            normal = rNode.FastGetSolutionStepValue(NORMAL);
             const double normal_norm = norm_2(normal);
             if (normal_norm > 1.0e-12) {
                 normal /= normal_norm;
-            } 
-            // else {
-            //     std::cout << "Node " << str(it_node->Id()) << " has normal_norm " << str(normal_norm) << std::endl;
-            // }
+            } else {
+                KRATOS_WARNING("CalculateWSS") << rNode.Id() << " has normal norm equal to " << normal_norm << "." << std::endl;
+            }
 
             // Calculate the FACE_LOAD (distributed REACTION) projections
-            const auto& r_face_load = it_node->FastGetSolutionStepValue(FACE_LOAD);
-            //const double projection = r_face_load[0]*normal[0] + r_face_load[1]*normal[1] + r_face_load[2]*normal[2];
+            const auto& r_face_load = rNode.GetValue(FACE_LOAD);
             const double projection = inner_prod(r_face_load, normal);
-            //KRATOS_WATCH(it_node->FastGetSolutionStepValue(FACE_LOAD));
-            //KRATOS_WATCH(normal_norm);
-            //KRATOS_WATCH(r_face_load);
-            //KRATOS_WATCH(projection);
-            normal_load[0] = projection * normal[0];
-            normal_load[1] = projection * normal[1];
-            normal_load[2] = projection * normal[2];
-            //normal_load = projection * normal;
-            tangential_load[0] = r_face_load[0] - normal_load[0];
-            tangential_load[1] = r_face_load[1] - normal_load[1];
-            tangential_load[2] = r_face_load[2] - normal_load[2];
-            //tangential_load = r_face_load - normal_load;
+            normal_load = projection * normal;
+            tangential_load = r_face_load - normal_load;
 
-            const double wss = norm_2(tangential_load);
-            // KRATOS_WATCH(wss);
             // Save computed magnitudes
-            it_node->GetValue(WSS) = wss;
-            it_node->GetValue(WSS_NORMAL_STRESS) = normal_load;
-            it_node->GetValue(WSS_TANGENTIAL_STRESS) = tangential_load;
-            //KRATOS_WATCH(it_node->GetValue(WSS_TANGENTIAL_STRESS))
-        }
+            rNode.GetValue(WSS) = norm_2(tangential_load);
+            rNode.GetValue(WSS_NORMAL_STRESS) = normal_load;
+            rNode.GetValue(WSS_TANGENTIAL_STRESS) = tangential_load;
+        });
     }
 }
 
 void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
-{ 
+{
 
     // Allocate auxiliary arrays
     array_1d<double,3> previous_tangential;
@@ -113,7 +114,7 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
 
     // Get the step counter
     const unsigned int step = rModelPart.GetProcessInfo()[STEP];
-    const unsigned int buffer_size = rModelPart.GetBufferSize();    
+    const unsigned int buffer_size = rModelPart.GetBufferSize();
     if (step > buffer_size) {
         //TWSS :Time-averaged wall shear stress (save in the last value)
         double twss = 0.0;
@@ -131,7 +132,6 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
             previous_tangential[1]=previous_tangential[1]+((tangential[1]-previous_tangential[1])/step);
             previous_tangential[2]=previous_tangential[2]+((tangential[2]-previous_tangential[2])/step);
             it_node->GetValue(TEMPORAL_OSI)=previous_tangential;
-            KRATOS_WATCH(previous_tangential)
             //Calculates the sum of the WSS magnitudes for all time steps
             twss= it_node->GetValue(TAWSS,0) + ((norm_2(tangential) - it_node->GetValue(TAWSS,0))/step);
             it_node->GetValue(TWSS)=twss;
@@ -140,7 +140,6 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
             sum_WSS=it_node->GetValue(TEMPORAL_OSI);
             sum_WSS *= factor;
             aux_WSS=norm_2(sum_WSS);
-            KRATOS_WATCH(aux_WSS)
             //Calculates the magnitude of the time-averaged WSS vector
             aux_TWSS=(it_node->GetValue(TWSS,0)/step);
             // KRATOS_WATCH(aux_WSS)
@@ -157,8 +156,8 @@ void WssStatisticsUtilities::CalculateTWSS(ModelPart &rModelPart)
                 else {
                     aux_RRT=1/((1-2*aux_OSI)*aux_WSS);
                 }
-                aux_ECAP= (aux_OSI/aux_WSS);  
-            }      
+                aux_ECAP= (aux_OSI/aux_WSS);
+            }
             it_node->GetValue(ECAP)=aux_ECAP;
             it_node->GetValue(RRT)=aux_RRT;
             it_node->GetValue(OSI)=aux_OSI;
@@ -179,7 +178,7 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 
     // // Get the step counter
     // const unsigned int step = rModelPart.GetProcessInfo()[STEP];
-    // const unsigned int buffer_size = rModelPart.GetBufferSize();    
+    // const unsigned int buffer_size = rModelPart.GetBufferSize();
     // if (step > buffer_size) {
     //     const unsigned int n_nodes = rModelPart.NumberOfNodes();
     //     #pragma omp parallel for
@@ -187,7 +186,7 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
     //     {
     //         auto it_node = rModelPart.NodesBegin() + i_node;
     //         //Calculate the sum of the vector components of WSS for all times step
-    //         sum_WSS=it_node->GetValue(TEMPORAL_OSI);        
+    //         sum_WSS=it_node->GetValue(TEMPORAL_OSI);
     //         sum_WSS *= (1/step);
     //         aux_WSS=norm_2(sum_WSS);
     //         KRATOS_WATCH(aux_WSS)
@@ -205,9 +204,9 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
     // }
 }
 
-// // // CONDITIONS 
+// // // CONDITIONS
 // void WssStatisticsUtilities::CalculateWSSGauss(ModelPart &rModelPart) {
-    
+
 //     KRATOS_WATCH ("Computing CONDITIONS WSS")
 
 //     // Normal Calculation

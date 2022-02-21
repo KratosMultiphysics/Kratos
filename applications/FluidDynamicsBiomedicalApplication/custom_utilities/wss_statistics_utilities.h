@@ -28,7 +28,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A set of functions to compute the Wall Shear Stress (WSS) 
+/// A set of functions to compute the Wall Shear Stress (WSS)
 class KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) WssStatisticsUtilities {
 public:
     ///@name Type Definitions
@@ -36,6 +36,9 @@ public:
 
     /// Pointer definition of WssStatisticsUtilities
     KRATOS_CLASS_POINTER_DEFINITION(WssStatisticsUtilities);
+
+    /// Node definition
+    using NodeType = ModelPart::NodeType;
 
     ///@}
     ///@name Life Cycle

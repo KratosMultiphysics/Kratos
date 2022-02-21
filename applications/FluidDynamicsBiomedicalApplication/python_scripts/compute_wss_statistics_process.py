@@ -28,10 +28,9 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "model_part_name": "please_specify_skin_model_part_name",
-            "skin_model_part": "",
             "calculate_wss": true,
             "calculate_osi": true,
-            "normals_calculation": true
+            "recompute_normals": false
         }
         """)
         settings.ValidateAndAssignDefaults(default_settings)
@@ -45,48 +44,35 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
         # Note that this overwrites the existent nodal normal values
         # Also note that if there is a slip condition that shares part of the WSS model part the corner normals could be altered
         # TODO: Improve the NormalCalculationUtils to accept alternative storage variables (to be discussed)
-        skin_model_part = self.model.GetModelPart(self.settings["skin_model_part"].GetString())
-        KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
-            skin_model_part,
-            skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
-        
-        # Set the redistribution settings
-        # redistribution_tolerance = 1e-3
-        # redistribution_max_iters = 500
+        if self.settings["recompute_normals"].GetBool():
+            skin_model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
+            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+                skin_model_part,
+                skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
-        # Convert the nodal reaction to traction loads before transfering
-        # print ("Computing NORMAL distribution----------------------------------------------------------------------->")
-        # KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
-        #     model_part,
-        #     KratosMultiphysics.REACTION,
-        #     KratosMultiphysics.FACE_LOAD,
-        #     redistribution_tolerance,
-        #     redistribution_max_iters)
-
-            
     def ExecuteFinalizeSolutionStep(self):
-        # model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())      
-        skin_model_part = self.model.GetModelPart(self.settings["skin_model_part"].GetString())   
+        # model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
+        skin_model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
 
-        if (self.settings["normals_calculation"].GetBool()):
+        if self.settings["recompute_normals"].GetBool():
             print ("Computing NORMAL ---------------------------------------------------------------------->")
             self.ExecuteInitialize()
 
-        if (self.settings["calculate_wss"].GetBool()):
+        if self.settings["calculate_wss"].GetBool():
             print ("Computing WSS ----------------------------------------------------------------------->")
             FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateWSS(skin_model_part)
             #,skin_model_part)
-            
-        if (self.settings["calculate_osi"].GetBool()):
+
+        if self.settings["calculate_osi"].GetBool():
             print ("Computing TWSS ----------------------------------------------------------------------->")
-            FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateTWSS(skin_model_part)  
+            FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateTWSS(skin_model_part)
             print ("Computing OSI ----------------------------------------------------------------------->")
             # FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateOSI(skin_model_part)
-            
+
 
     # def ExecuteFinalize(self):
     #     model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
-    #     skin_model_part = self.model.GetModelPart(self.settings["skin_model_part"].GetString())   
+    #     skin_model_part = self.model.GetModelPart(self.settings["skin_model_part"].GetString())
     #     if (self.settings["calculate_osi"].GetBool()):
     #         print ("Computing OSI ----------------------------------------------------------------------->")
     #         FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateOSI(skin_model_part)
