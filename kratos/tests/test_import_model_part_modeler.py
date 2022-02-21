@@ -10,7 +10,8 @@ def GetFilePath(filename):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), filename)
 
 class TestImportMDPAModeler(KratosUnittest.TestCase):
-    def tearDown(self):
+    @classmethod
+    def tearDown(cls):
         # Clean up temporary files
         KratosUtilities.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
         KratosUtilities.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
