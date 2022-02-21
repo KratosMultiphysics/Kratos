@@ -264,13 +264,13 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         self._assertSympyMatrixEqual(tau,  tau_expected)
 
     class _DummyGenerator(CompressibleNavierStokesSymbolicGenerator):
-        def __init__(self, geometry_class):
+        def __init__(self):
             # self.write_language = "python"
             # self.is_explicit = False
             # self.shock_capturing = True
             # self.echo_level = 0
             # self.primitive_interpolation = "nodal"
-            self.geometry = geometry_class
+            self.geometry = self._DummyGeometry()
             # self.outstring = None
 
         def ComputeNonLinearOperator(self, A, H, S, Ug):
@@ -284,7 +284,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         S = defs.Matrix('S', dim+2, dim+2)
         U = defs.Vector('U', dim+2)
 
-        dummy_geneator = self._DummyGenerator(self._DummyGeometry)
+        dummy_geneator = self._DummyGenerator()
         L = dummy_geneator.ComputeNonLinearOperator(A, H, S, U)
 
         L_expected = sympy.Matrix([
