@@ -1,5 +1,4 @@
 import os
-import types
 
 try:
     import numpy as np
