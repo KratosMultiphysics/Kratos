@@ -261,7 +261,7 @@ void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
 
         return vec;
     }));
-    binder.def_buffer( [](array_1d<double,TSize>& self)-> py::buffer_info
+    /*binder.def_buffer( [](array_1d<double,TSize>& self)-> py::buffer_info
     {
         return py::buffer_info(
             self.data().begin(),
@@ -271,7 +271,7 @@ void CreateArray1DInterface(pybind11::module& m, const std::string& Name )
         {self.size()},
         {sizeof(typename array_1d<double,TSize>::value_type)}
         );
-    });
+    });*/
 
     py::implicitly_convertible<py::buffer, array_1d<double,TSize>>();
     py::implicitly_convertible<py::list, array_1d<double,TSize>>();
