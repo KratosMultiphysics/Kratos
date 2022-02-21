@@ -92,7 +92,10 @@ class AssignVectorByDirectionProcess(KratosMultiphysics.Process):
 
         # Check the obtained domain size value
         if domain_size not in [2,3]:
-            raise ValueError(f"Domain size must be either 2 or 3. Found value {domain_size} in model part '{self.model_part.FullName()}'.")
+            if domain_size == 1:
+                raise Exception(f"Domain size equals 1. Use 'AssignScalarVariableProcess' to assign values of 1D problem variables.")
+            else:
+                raise ValueError(f"Domain size must be either 2 or 3. Found value {domain_size} in model part '{self.model_part.FullName()}'.")
 
         # Construct the component by component parameter objects
         list_params = [KratosMultiphysics.Parameters("{}") for _ in range(domain_size)]
