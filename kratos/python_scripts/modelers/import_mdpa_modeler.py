@@ -38,7 +38,8 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
             self.settings,
             input_type)
 
-    def __GetDefaultSettings(self):
+    @classmethod
+    def __GetDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters('''{
             "echo_level" : 0,
             "input_filename" : "",
