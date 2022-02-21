@@ -240,6 +240,9 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         def ComputeNonLinearOperator(self, A, H, S, Ug):
             return super()._ComputeNonLinearOperator(A, H, S, Ug)
 
+        def ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
+            return super()._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
+
 
     def testComputeNonLinearOperator(self):
         dim = 2
@@ -260,6 +263,29 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         ])
 
         self._assertSympyMatrixEqual(L, L_expected)
+
+    def testComputeNonLinearAdjointOperator(self):
+        dim = 2
+        blocksize = dim+2
+        A = [defs.Matrix('A[{}]'.format(d), blocksize, blocksize) for d in range(dim)]
+        H = defs.Matrix('H', blocksize, dim)
+        Q = defs.Matrix('Q', blocksize, dim)
+        S = defs.Matrix('S', blocksize, blocksize)
+        U = defs.Vector('U', blocksize)
+        V = defs.Vector('V', blocksize)
+
+        dummy_geneator = self._DummyGenerator(self._DummyGeometry)
+        Ladj = dummy_geneator.ComputeNonLinearAdjointOperator(A, H, Q, S, U, V)
+
+        print(Ladj)
+        Ladj_expected = sympy.Matrix([
+            [A[0][0,0]*Q[0,0] + A[0][1,0]*Q[1,0] + A[0][2,0]*Q[2,0] + A[0][3,0]*Q[3,0] + A[1][0,0]*Q[0,1] + A[1][1,0]*Q[1,1] + A[1][2,0]*Q[2,1] + A[1][3,0]*Q[3,1] + S[0,0]*V[0] + S[1,0]*V[1] + S[2,0]*V[2] + S[3,0]*V[3]],
+            [A[0][0,1]*Q[0,0] + A[0][1,1]*Q[1,0] + A[0][2,1]*Q[2,0] + A[0][3,1]*Q[3,0] + A[1][0,1]*Q[0,1] + A[1][1,1]*Q[1,1] + A[1][2,1]*Q[2,1] + A[1][3,1]*Q[3,1] + S[0,1]*V[0] + S[1,1]*V[1] + S[2,1]*V[2] + S[3,1]*V[3]],
+            [A[0][0,2]*Q[0,0] + A[0][1,2]*Q[1,0] + A[0][2,2]*Q[2,0] + A[0][3,2]*Q[3,0] + A[1][0,2]*Q[0,1] + A[1][1,2]*Q[1,1] + A[1][2,2]*Q[2,1] + A[1][3,2]*Q[3,1] + S[0,2]*V[0] + S[1,2]*V[1] + S[2,2]*V[2] + S[3,2]*V[3]],
+            [A[0][0,3]*Q[0,0] + A[0][1,3]*Q[1,0] + A[0][2,3]*Q[2,0] + A[0][3,3]*Q[3,0] + A[1][0,3]*Q[0,1] + A[1][1,3]*Q[1,1] + A[1][2,3]*Q[2,1] + A[1][3,3]*Q[3,1] + S[0,3]*V[0] + S[1,3]*V[1] + S[2,3]*V[2] + S[3,3]*V[3]]
+        ])
+
+        self._assertSympyMatrixEqual(Ladj, Ladj_expected)
 
 
 if __name__ == '__main__':
