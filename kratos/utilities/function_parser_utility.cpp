@@ -37,8 +37,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-    if (mFunctionBody != "x"                                       &&
-        !std::regex_search(mFunctionBody, std::regex("[^e]x[^p]")) &&
+    if (!std::regex_search(mFunctionBody, std::regex("[^e]x[^p]")) &&
          mFunctionBody.find(std::string("y")) == std::string::npos &&
          mFunctionBody.find(std::string("z")) == std::string::npos &&
          mFunctionBody.find(std::string("X")) == std::string::npos &&
