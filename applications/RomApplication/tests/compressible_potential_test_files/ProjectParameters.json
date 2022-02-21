@@ -20,10 +20,13 @@
         "material_import_settings" : {
             "materials_filename" : "FluidMaterials.json"
         },
+        "formulation" :{
+            "element_type" : "perturbation_compressible"
+        },
         "maximum_iterations"       : 10,
         "echo_level"               : 0,
-        "volume_model_part_name"   : "FluidParts_Fluid",
-        "skin_parts"               : ["PotentialWallCondition2D_FarField","Body2D_Body"],
+        "volume_model_part_name"   : "Parts_Parts_Auto1",
+        "skin_parts"               : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "no_skin_parts"            : [],
         "reform_dofs_at_each_step" : false
     },
@@ -33,7 +36,7 @@
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
-                "model_part_name" : "FluidModelPart.PotentialWallCondition2D_FarField",
+                "model_part_name" : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "angle_of_attack" : 0.0,
                 "mach_infinity"   : 0.03,
                 "speed_of_sound"  : 340.0,
