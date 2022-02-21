@@ -469,7 +469,7 @@ namespace Kratos {
             while (b < nb_knots_u_old)
             {
                 IndexType i = b;
-                while (b < nb_knots_u_old && knots_u_old[b] == knots_u_old[b + 1])
+                while (b < (nb_knots_u_old - 1) && knots_u_old[b] == knots_u_old[b + 1])
                 {
                     b++;
                 }
@@ -851,7 +851,7 @@ namespace Kratos {
             while (b < nb_knots_v_old)
             {
                 IndexType i = b;
-                while (b < nb_knots_v_old && knots_v_old[b] == knots_v_old[b + 1])
+                while (b < (nb_knots_v_old - 1) && knots_v_old[b] == knots_v_old[b + 1])
                 {
                     b++;
                 }
