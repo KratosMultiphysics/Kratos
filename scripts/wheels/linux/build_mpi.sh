@@ -122,7 +122,7 @@ build_core () {
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
 
-	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
+	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure_mpi.sh ./configure.sh
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION $PREFIX_LOCATION
 
@@ -136,7 +136,7 @@ build_interface () {
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
 
-	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure.sh ./configure.sh
+	cp /workspace/kratos/Kratos/scripts/wheels/linux/configure_mpi.sh ./configure.sh
 	chmod +x configure.sh
 	./configure.sh $PYTHON_LOCATION $PREFIX_LOCATION
 
