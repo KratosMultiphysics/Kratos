@@ -21,7 +21,7 @@ endif(POLICY CMP0074)
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
 set (KratosMultiphysics_MINOR_VERSION 0)
-set (KratosMultiphysics_PATCH_VERSION "Dev")
+set (KratosMultiphysics_PATCH_VERSION 3)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -285,8 +285,19 @@ endif(DEFINED ENV{PYTHON_EXECUTABLE})
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
-set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
-set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+if(NOT DEFINED KRATOS_ENABLE_LTO)
+    message("LTO is Disabled")
+    set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
+    set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+else(NOT DEFINED KRATOS_ENABLE_LTO)
+    message("LTO is Enabled")
+    if(${CMAKE_COMPILER_IS_GNUCXX})
+        set(CMAKE_SHARED_LINKER_FLAGS "-flto=n")
+    endif(${CMAKE_COMPILER_IS_GNUCXX})
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        set(CMAKE_SHARED_LINKER_FLAGS "-flto=thin")
+    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+endif(NOT DEFINED KRATOS_ENABLE_LTO)
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
