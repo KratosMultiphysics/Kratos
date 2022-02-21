@@ -23,7 +23,6 @@ class TestImportMDPAModeler(KratosUnittest.TestCase):
         # Set up the import model part modeler
         model = KratosMultiphysics.Model()
         settings = KratosMultiphysics.Parameters('''{
-            "input_type" : "mdpa",
             "input_filename" : "",
             "model_part_name" : "Main"
         }''')
