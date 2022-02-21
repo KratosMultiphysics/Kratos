@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/memory_info.h"
+#include "add_memory_info_to_python.h"
 
 namespace Kratos
 {
@@ -24,7 +25,7 @@ namespace Python
 {
 
 //
-void  AddMemoryInfoToPython(pybind11::module& m)
+void AddMemoryInfoToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
@@ -32,6 +33,8 @@ void  AddMemoryInfoToPython(pybind11::module& m)
     .def(py::init<>())
     .def_static("GetPeakMemoryUsage", &MemoryInfo::GetPeakMemoryUsage)
 	.def_static("GetCurrentMemoryUsage", &MemoryInfo::GetCurrentMemoryUsage)
+	.def_static("HumanReadableSize", &MemoryInfo::HumanReadableSize)
+    .def("__str__", PrintObject<MemoryInfo>)
     ;
 }
 
