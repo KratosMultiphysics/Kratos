@@ -37,7 +37,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-    if (mFunctionBody != "x" && // NOTE: Could be fixed with [^e]x[^p]|(?<![\w\d])x(?![\w\d]), but regex is weird and it is different in JS (most documentation I found) and C++
+    if (mFunctionBody != "x"                                       &&
         !std::regex_search(mFunctionBody, std::regex("[^e]x[^p]")) &&
          mFunctionBody.find(std::string("y")) == std::string::npos &&
          mFunctionBody.find(std::string("z")) == std::string::npos &&
