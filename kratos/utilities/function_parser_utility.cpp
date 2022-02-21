@@ -19,6 +19,7 @@
 // Project includes
 #include "utilities/function_parser_utility.h"
 #include "utilities/string_utilities.h"
+#include <sstream>
 
 namespace Kratos
 {
@@ -156,7 +157,14 @@ void BasicGenericFunctionUtility::InitializeParser()
         const bool python_like_ternary = StringUtilities::ContainsPartialString(mFunctionBody, "if") ? true : false;
         if (!python_like_ternary) {
             mpTinyExpr[0] = te_compile(mFunctionBody.c_str(), vars, 7, &err);
-            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << mFunctionBody << std::endl;
+
+            std::stringstream ss;
+            ss << "\nParsing error in function: " << mFunctionBody << '\n';
+            ss <<   "Error occurred near here : ";
+            for(int i=0; i<err; ++i) ss << ' ';
+            ss << "^ (char ["<< err << "])\n";
+
+            KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << ss.str() << std::endl;
         } else { // Ternary operator
             mpTinyExpr.resize(3, nullptr);
             std::string condition, first_function, second_function;
