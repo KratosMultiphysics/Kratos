@@ -79,6 +79,13 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
         self.assertEqual(function4.FunctionBody(), "(cos(x*pi)+sin(y*pi))*t")
         self.assertEqual(function4.CallFunction(0.25,0.15,0.0,1.5,0.0,0.0,0.0), 1.5*(math.cos(0.25*math.pi) + math.sin(0.15*math.pi)))
 
+        function5 = KM.GenericFunctionUtility("(0.0)*(50*(exp(t)-1))")
+
+        self.assertTrue(function5.DependsOnSpace())
+        self.assertFalse(function5.UseLocalSystem())
+        self.assertEqual(function5.FunctionBody(), "(0.0)*(50*(exp(t)-1))")
+        self.assertEqual(function5.CallFunction(0.25,0.15,0.0,1.5,0.0,0.0,0.0), 0.0)
+
     def test_GenericFunctionUtility2(self):
         parameters = KM.Parameters ("""{
             "origin" : [0,0,0],
