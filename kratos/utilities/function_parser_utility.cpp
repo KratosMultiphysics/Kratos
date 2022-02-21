@@ -161,7 +161,7 @@ void BasicGenericFunctionUtility::InitializeParser()
             std::stringstream ss;
             ss << "\nParsing error in function: " << mFunctionBody << '\n';
             ss <<   "Error occurred near here : ";
-            for(int i=0; i<err; ++i) ss << ' ';
+            for(int i=0; i<err-1; ++i) ss << ' ';
             ss << "^ (char ["<< err << "])\n";
 
             KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << ss.str() << std::endl;
