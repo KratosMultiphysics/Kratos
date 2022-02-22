@@ -420,11 +420,13 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
         # Just an example nonsense set of expressions
         inner_prod = lambda U,V: sum([u*v for u,v in zip(U,V)])
+        rho = QuantityConverter.density(primitives, params)
         res = sympy.Matrix([
-            acc[0] + inner_prod(primitives.V, H[0,:]) - mg,
-            Ug[0]*sympy.Matrix(acc[1:-1]) + Ug[0]*primitives.grad_V*primitives.V - f,
+            acc[0] + inner_prod(primitives.V, QuantityConverter.density_gradient(primitives, params)) - mg,
+            rho*sympy.Matrix(acc[1:-1]) + rho*primitives.grad_V*primitives.V - f,
             acc[-1] + inner_prod(primitives.V, primitives.grad_T) - rg - inner_prod(primitives.V, f)
         ])
+        QuantityConverter.SubstitutePrimitivesWithConservatives(res, primitives, Ug, H, params)
 
         dummy_geneator = self._DummyGenerator(geometry)
         dummy_geneator.ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, 0, mg, projections, res, rg, U, Ug, Un, Unn)
