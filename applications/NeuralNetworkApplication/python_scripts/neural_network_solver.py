@@ -81,7 +81,7 @@ class NeuralNetworkSolver(PythonSolver):
         if project_parameters["output_model_part"].IsArray():
             self.output_is_vector = True
             self.output_model_parts_names = project_parameters["output_model_part"].GetStringArray()
-            
+
         else:
             self.output_is_vector = False
             self.output_model_parts_names = [project_parameters["output_model_part"].GetString()]
@@ -241,7 +241,7 @@ class NeuralNetworkSolver(PythonSolver):
             else: self.converge_flag = False
         except AttributeError:
             pass
-
+        
         # Retrieve input from geometry
         self.input_from_modelpart = np.squeeze(np.reshape(self.input_from_modelpart, (int(self.input_from_modelpart.size/self.dimension_in), self.dimension_in)))
         self.input_data_structure.UpdateData(self.input_from_modelpart)
@@ -301,7 +301,9 @@ class NeuralNetworkSolver(PythonSolver):
                 self.preprocessed_data_structure.UpdateRecordLast(self.input_data_structure.ExportAsArray())
             self.record_data = self.preprocessed_data_structure.data
         else:
-            self.preprocessed_data_structure.UpdateData(self.input_data_structure.ExportAsArray())
+
+            self.preprocessed_data_structure.UpdateData(np.transpose(self.input_data_structure.ExportAsArray()[:,np.newaxis]))
+            # self.preprocessed_data_structure.UpdateData(self.input_data_structure.ExportAsArray())
         # Set the reordering of the preprocessed data structure
         if self.reorder_partitions > 1:
             self.preprocessed_data_structure.reorder_partitions = self.reorder_partitions
