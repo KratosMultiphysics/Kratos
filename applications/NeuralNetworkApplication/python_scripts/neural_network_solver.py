@@ -6,6 +6,7 @@ import KratosMultiphysics
 from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDataWithLookback, ListNeuralNetworkData, NeuralNetworkData
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
+from importlib import import_module
 
 import tensorflow.keras as keras
 import numpy as np
@@ -35,10 +36,15 @@ class NeuralNetworkSolver(PythonSolver):
         self.model_import_settings.AddEmptyValue("input_filename")
         self.model_import_settings["input_filename"].SetString(self.model_geometry_file)
         self.lookback = project_parameters ["lookback"].GetInt()
-        self.time_buffer = project_parameters["time_buffer"].GetInt()
+        self.time_buffer = project_parameters["time_buffer"].GetDouble()
         self.timestep = project_parameters["timestep"].GetDouble()
         self.end_time = project_parameters["end_time"].GetDouble()
         self.start_time = project_parameters["start_time"].GetDouble()
+
+        if project_parameters.Has("import_applications"):
+            applications_list = project_parameters["import_applications"].GetStringArray()
+            for application in applications_list:
+                import_module("KratosMultiphysics." + application)
         try:
             self.record = project_parameters["record"].GetBool()
         except RuntimeError:
@@ -137,7 +143,7 @@ class NeuralNetworkSolver(PythonSolver):
             self.output_order = "variables_first"
 
     def Initialize(self):
-
+        self.LoadGeometry()
         self.input_data_structure = InputDataclasses.NeuralNetworkData()
         if self.lookback>0:
             self.preprocessed_data_structure = InputDataclasses.DataWithLookback(lookback_index=self.lookback)  
@@ -168,11 +174,20 @@ class NeuralNetworkSolver(PythonSolver):
         self.dict_input = list(zip(self.input_model_parts, self.input_variables, self.input_sources))
 
 
+
     def InitializeSolutionStep(self):
+
+        pass
+
+
+    def SolveSolutionStep(self):
+
+        print("Receiving data into the neural network model")
         current_time = self.input_model_parts[0].ProcessInfo[KratosMultiphysics.TIME]
         input_value_list=[]
         # TODO: Modify to use vector variables instead of the components (unzip Kratos.Array)
 
+        previous_timestep_model_part_index = 0
         for model_part, variable, source in self.dict_input:
             model_input_value_list = []
             # Process related variables (e.g. TIME, STEP)
@@ -189,9 +204,9 @@ class NeuralNetworkSolver(PythonSolver):
             elif source == "previous_solution_step":
                 # TODO: modify to enable the use of the surrogate model only in a set interval
                 # and the physics-based one in the rest. Other parts of the code are also affected.
-                if current_time > 0.0:
-                    for node in model_part.Nodes:
-                        model_input_value_list.append(node.GetSolutionStepValue(variable,1))
+                if current_time > self.timestep:
+                    model_input_value_list = self.input_from_previous[previous_timestep_model_part_index]
+                    previous_timestep_model_part_index += 1
                 else:
                     for node in model_part.Nodes:
                         model_input_value_list.append(node.GetSolutionStepValue(variable,0))
@@ -199,20 +214,14 @@ class NeuralNetworkSolver(PythonSolver):
             elif source == "condition":
                 for condition in model_part.GetConditions():
                     model_input_value_list.append(condition.GetValue(variable))
-            # Reorder if indicated
-            if self.input_order == 'sources_first':
-                try:
-                    model_input_value_list = self._OrderSourcesFirst(model_input_value_list, self.dict_input.items())
-                except IndexError:
-                    pass
             input_value_list.extend(model_input_value_list)
-
+        # Reorder if indicated
+        if self.input_order == 'sources_first':
+            try:
+                model_input_value_list = self._OrderSourcesFirst(model_input_value_list, self.dict_input)
+            except IndexError:
+                pass
         self.input_from_modelpart = np.array(input_value_list)
-
-
-    def SolveSolutionStep(self):
-
-        print("Receiving data into the neural network model")
 
         # Restarting preprocessed data if no FinalizeSolutionStep took place
         try:
@@ -262,6 +271,9 @@ class NeuralNetworkSolver(PythonSolver):
                 elif source == "solution_step":
                     for node in model_part.Nodes:
                         output_model_value_list.append(node.GetSolutionStepValue(variable,0))
+                elif source == "previous_solution_step":
+                    for node in model_part.Nodes:
+                        output_model_value_list.append(node.GetSolutionStepValue(variable,0))
                 # Condition values
                 elif source == "condition":
                     for condition in model_part.GetConditions():
@@ -308,17 +320,17 @@ class NeuralNetworkSolver(PythonSolver):
         if self.reorder_partitions > 1:
             self.preprocessed_data_structure.reorder_partitions = self.reorder_partitions
             
-            # Undo the reorder if indicated
-        if self.output_order == 'sources_first':
-            try:
-                output_value_list = self._OrderVariablesFirst(output_value_list, self.dict_output.items())
-            except IndexError:
-                pass
 
         # Predict (and invert the transformations) from the new input and update it to the output
         self.output_data_structure.UpdateData(self.PredictNeuralNetwork(data_structure_in = self.preprocessed_data_structure))
         output_value_list = np.squeeze(self.output_data_structure.ExportAsArray())
 
+            # Undo the reorder if indicated
+        if self.output_order == 'sources_first':
+            try:
+                output_value_list = self._OrderVariablesFirst(output_value_list, self.dict_output)
+            except IndexError:
+                pass
         # TODO: Right now, it only works with one variable that has the same shape as the output.
         if self.time >= self.time_buffer: # TODO: Check for consistency with timesteps nad time
             output_value_index = 0
@@ -330,18 +342,18 @@ class NeuralNetworkSolver(PythonSolver):
                 # Node properties (e.g. position)
                 elif source == 'node':
                     for node, node_id in zip(model_part.Nodes, range(model_part.NumberOfNodes())):
-                        node.SetValue(variable, output_value_list)
-                        output_value_index += 1
+                        node.SetValue(variable, output_value_list[node_id + output_value_index])
+                    output_value_index += node_id
                 # Node step values (e.g. variables like displacement)
                 elif source == "solution_step":
                     for node, node_id in zip(model_part.Nodes, range(model_part.NumberOfNodes())):
-                        node.SetSolutionStepValue(variable,0, output_value_list[node_id])
-                        output_value_index += 1
-                # Condition values
+                        node.SetSolutionStepValue(variable,0, output_value_list[node_id + output_value_index])
+                    output_value_index += node_id
+                # Condition values (should be checked)
                 elif source == "condition":
                     for condition, conditions_id in zip(model_part.GetConditions(), range(model_part.NumberOfConditions())):
-                        condition.SetValue(variable, output_value_list[conditions_id])
-                        output_value_index += 1
+                        condition.SetValue(variable, output_value_list[conditions_id + output_value_index])
+                    output_value_index += conditions_id
 
     def PredictNeuralNetwork(self, data_structure_in = None):
        
@@ -409,6 +421,15 @@ class NeuralNetworkSolver(PythonSolver):
             self.preprocessed_previous.UpdateLookbackAll(self.preprocessed_data_structure.lookback_data)
             self.preprocessed_previous.reorder_partitions = self.reorder_partitions
             self.reorder_partitions = 0 # Flag for only setting the reorder once
+
+        self.input_from_previous = []
+        for model_part, variable, source in self.dict_input:
+            model_input_value_list = []
+            if source == "previous_solution_step":
+                for node in model_part.Nodes:
+                    model_input_value_list.append(node.GetSolutionStepValue(variable,0))
+                self.input_from_previous.append(model_input_value_list)
+                
         self.converge_flag = True
     
     def AdvanceInTime(self, previous_time):
@@ -425,6 +446,8 @@ class NeuralNetworkSolver(PythonSolver):
 
     def LoadNeuralNetworkModel(self, neural_network_model):
         self.neural_network_model = neural_network_model
+        if self.echo_level > 0:
+            self.neural_network_model.summary()
 
     def LoadGeometry(self):
         self.model_geometry = self.model[self.model_geometry_name]
@@ -460,8 +483,9 @@ class NeuralNetworkSolver(PythonSolver):
         """ Reorders the values list by sources instead of by variables (e.g. node by node)."""
         ordered_list = []
         k, m = divmod(len(values_list), len(values_list)/len(variables_dictionary))
+        k, m = int(k), int(m)
         # Split the lists
-        split_list = list(values_list[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(len(values_list)/len(variables_dictionary)))
+        split_list = list(values_list[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(int(len(values_list)/len(variables_dictionary))))
         # Reorder the lists by source entry
         for index in range(len(split_list[0])):
             for variable_list in split_list:

@@ -257,6 +257,11 @@ class DataGeneratorProcess(KM.Process):
                             input_value = op.imul(node.GetSolutionStepValue(variable), (1.0+factor))
                             node.SetSolutionStepValue(variable, input_value)
                             model_input_value_list.append(node.GetSolutionStepValue(variable,0))
+                    elif source == "previous_solution_step":
+                        for node in model_part.Nodes:
+                            input_value = op.imul(node.GetSolutionStepValue(variable), (1.0+factor))
+                            node.SetSolutionStepValue(variable, input_value)
+                            model_input_value_list.append(node.GetSolutionStepValue(variable,1))
                     # Condition values
                     elif source == "condition":
                         for condition in model_part.GetConditions():
@@ -276,17 +281,20 @@ class DataGeneratorProcess(KM.Process):
                     elif source == "solution_step":
                         for node in model_part.Nodes:
                             model_input_value_list.append(node.GetSolutionStepValue(variable,0))
+                    elif source == "previous_solution_step":
+                        for node in model_part.Nodes:
+                            model_input_value_list.append(node.GetSolutionStepValue(variable,1))
                     # Condition values
                     elif source == "condition":
                         for condition in model_part.GetConditions():
                             model_input_value_list.append(condition.GetValue(variable))
-                # Reorder if indicated
-                if self.input_order == 'sources_first':
-                    try:
-                        model_input_value_list = self._OrderSourcesFirst(model_input_value_list, self.dict_input)
-                    except IndexError:
-                        pass
                 input_value_list.extend(model_input_value_list)
+            # Reorder if indicated
+            if self.input_order == 'sources_first':
+                try:
+                    input_value_list = self._OrderSourcesFirst(input_value_list, self.dict_input)
+                except IndexError:
+                    pass
 
             # Writing input file
             if (self.write_output_file):
@@ -321,13 +329,13 @@ class DataGeneratorProcess(KM.Process):
                 elif source == "condition":
                     for condition in model_part.GetConditions():
                         model_output_value_list.append(condition.GetValue(variable))
-                # Reorder if indicated
-                if self.output_order == 'sources_first':
-                    try:
-                        model_output_value_list = self._OrderSourcesFirst(model_output_value_list, self.dict_output)
-                    except IndexError:
-                        pass
                 output_value_list.extend(model_output_value_list)
+            # Reorder if indicated
+            if self.output_order == 'sources_first':
+                try:
+                    output_value_list = self._OrderSourcesFirst(output_value_list, self.dict_output)
+                except IndexError:
+                    pass
 
             # Writing output file
             if (self.write_output_file):

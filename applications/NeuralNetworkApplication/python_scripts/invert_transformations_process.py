@@ -52,10 +52,13 @@ class InvertTransformationsProcess(NeuralNetworkProcess):
 
         # Invert the transformations
         for process in reversed(processes):
-            inversion_settings = process.Invert(self.data_in, self.data_out)
-            if not inversion_settings is None:
-                self.data_in = inversion_settings[0]
-                self.data_out = inversion_settings[1]
+            try:
+                inversion_settings = process.Invert(self.data_in, self.data_out)
+                if not inversion_settings is None:
+                    self.data_in = inversion_settings[0]
+                    self.data_out = inversion_settings[1]
+            except AttributeError:
+                pass
 
         # Save the data
         if self.write_output:

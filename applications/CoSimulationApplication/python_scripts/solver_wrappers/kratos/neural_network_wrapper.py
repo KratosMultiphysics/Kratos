@@ -21,6 +21,10 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
         with self.thread_manager:
             self._analysis_stage._GetNeuralNetworkSolver().SolveSolutionStep()
     
+    def Predict(self):
+        with self.thread_manager:
+            self._analysis_stage._GetNeuralNetworkSolver().Predict()
+    
     def AdvanceInTime(self, current_time):
         with self.thread_manager:
             new_time = self._analysis_stage._GetNeuralNetworkSolver().AdvanceInTime(current_time)
