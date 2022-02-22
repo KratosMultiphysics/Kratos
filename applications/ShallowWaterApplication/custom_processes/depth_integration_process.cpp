@@ -36,8 +36,7 @@ const Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
         "store_historical_database" : false,
         "extrapolate_boundaries"    : false,
         "velocity_depth_integration": true,
-        "velocity_relative_depth"   : -0.531,
-        "mean_water_level"          : 0.0
+        "velocity_relative_depth"   : -0.531
     })");
     return default_parameters;
 }
@@ -57,7 +56,6 @@ DepthIntegrationProcess<TDim>::DepthIntegrationProcess(
     mDirection /= norm_2(mDirection);
     mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
     mVelocityRelativeDepth = ThisParameters["velocity_relative_depth"].GetDouble();
-    mMeanWaterLevel = ThisParameters["mean_water_level"].GetDouble();
 
     if (!mStoreHistorical) {
         VariableUtils().SetNonHistoricalVariableToZero(MOMENTUM, mrInterfaceModelPart.Nodes());
@@ -153,14 +151,16 @@ void DepthIntegrationProcess<TDim>::Integrate(
         velocity = momentum / height;
     }
     else { // Evaluate the velocity at a certain depth
-        const double reference_depth = mMeanWaterLevel - bottom_depth;
-        const double target_depth = mMeanWaterLevel + mVelocityRelativeDepth * reference_depth;
+        const double target_depth = bottom_depth + (1.0 + mVelocityRelativeDepth) * height;
         const double target_distance = target_depth - inner_prod(mDirection, rNode);
         const Point target_point(rNode + mDirection * target_distance);
         bool is_found = rLocator.FindPointOnMesh(target_point, rShapeFunctionsValues, p_elem, rResults.begin());
         if (is_found) {
             velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
         }
+    }
+    if (height < 1e-4) { // Sanity check to avoid Nan
+        velocity = ZeroVector(3);
     }
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);

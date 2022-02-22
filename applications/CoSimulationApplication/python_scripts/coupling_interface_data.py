@@ -62,7 +62,8 @@ class BaseCouplingInterfaceData:
             "model_part_name" : "",
             "variable_name"   : "",
             "location"        : "node_historical",
-            "dimension"       : -1
+            "dimension"       : -1,
+            "additional_info" : { }
         }""")
 
     def IsDefinedOnThisRank(self):
