@@ -7,8 +7,8 @@ class _ElementData:
     def __init__(self, dim, num_nodes):
         block_size = dim + 2
 
-        self.U = self._ZeroMatrix(block_size, num_nodes)
-        self.dUdt = self._ZeroMatrix(block_size, num_nodes)
+        self.U = self._ZeroMatrix(num_nodes, block_size)
+        self.dUdt = self._ZeroMatrix(num_nodes, block_size)
 
         self.m_ext = self._ZeroVector(num_nodes)
         self.r_ext = self._ZeroVector(num_nodes)
@@ -128,7 +128,6 @@ class SubTestSuite:
 
         return (rho_proj, expected)
 
-
     def test_substitute_mom_proj_2D(self):
         N = self.N
         DN_DX = self.DN_DX
@@ -140,12 +139,12 @@ class SubTestSuite:
         //substitute_mom_proj_2D
 
         expected = KratosMultiphysics.Vector(self.dim * self.num_nodes)
-        expected[0] = -15074.669035298386007
-        expected[1] = -15076.405054351418585
-        expected[2] = -15075.42578645597132
-        expected[3] = -15076.174751211932744
-        expected[4] = -15075.460788465843507
-        expected[5] = -15076.164099001256545
+        expected[0] = -70.16710435072491
+        expected[1] = -18827.458223912312
+        expected[2] = -1657.2440149107315
+        expected[3] = -18430.688996272314
+        expected[4] = -1657.244014910731
+        expected[5] = -18430.68899627231
 
         return (mom_proj, expected)
 
@@ -160,12 +159,11 @@ class SubTestSuite:
         //substitute_tot_ener_proj_2D
 
         expected = KratosMultiphysics.Vector(self.num_nodes)
-        expected[0] = 1712.3910912142378038
-        expected[1] = 738.00562019298854466
-        expected[2] = 688.89753394371905415
+        expected[0] = 12991.898657996207
+        expected[1] = 144283.21405862877
+        expected[2] = 144283.21405862644
 
         return (tot_ener_proj, expected)
-
 
     def test_substitute_rhs_2D_OSS(self):
         N = self.N
@@ -182,18 +180,18 @@ class SubTestSuite:
         //substitute_rhs_2D_OSS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
-        expected[0] = 47264.288734433073842
-        expected[1] = -15379.402979698103081
-        expected[2] = -15576.430423595746106
-        expected[3] = 213563.16351141795167
-        expected[4] = -23635.684471189790202
-        expected[5] = -14538.279451626927766
-        expected[6] = -15112.339370110219534
-        expected[7] = -3990.3328559225551544
-        expected[8] = -23628.60426324328364
-        expected[9] = -15064.189988995642125
-        expected[10] = -14495.58857930533668
-        expected[11] = -7262.2965689810916956
+        expected[0]  = 42.05006715584659
+        expected[1]  = 15748.244308287842
+        expected[2]  = -4584.926338808977
+        expected[3]  = 15942542.839721099
+        expected[4]  = -2.47188258779613
+        expected[5]  = -1758.848035175144
+        expected[6]  = -31104.56351907629
+        expected[7]  = -625548.6033353243
+        expected[8]  = -39.57818456805043
+        expected[9]  = -14169.554590311482
+        expected[10] = -17112.329315902658
+        expected[11] = -15055808.497435391
 
         return (rRightHandSideBoundedVector, expected)
 
@@ -212,17 +210,17 @@ class SubTestSuite:
         //substitute_rhs_2D_ASGS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
-        expected[0] = 47264.288734433073842
-        expected[1] = -15379.402979698103081
-        expected[2] = -15576.430423595746106
-        expected[3] = 213563.16351141795167
-        expected[4] = -23635.684471189790202
-        expected[5] = -14538.279451626927766
-        expected[6] = -15112.339370110219534
-        expected[7] = -3990.3328559225551544
-        expected[8] = -23628.60426324328364
-        expected[9] = -15064.189988995643944
-        expected[10] = -14495.58857930533668
-        expected[11] = -7262.2965689810916956
+        expected[0]  = 42.05006715584659
+        expected[1]  = 15748.244308287842
+        expected[2]  = -4584.926338808977
+        expected[3]  = 15942542.839721099
+        expected[4]  = -2.47188258779613
+        expected[5]  = -1758.848035175144
+        expected[6]  = -31104.56351907629
+        expected[7]  = -625548.6033353243
+        expected[8]  = -39.57818456805043
+        expected[9]  = -14169.55459031148
+        expected[10] = -17112.329315902658
+        expected[11] = -15055808.497435391
 
         return (rRightHandSideBoundedVector, expected)
