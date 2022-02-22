@@ -320,7 +320,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         dummy_geneator = self._DummyGenerator(self._DummyGeometry)
         Ladj = dummy_geneator.ComputeNonLinearAdjointOperator(A, H, Q, S, U, V)
 
-        print(Ladj)
         Ladj_expected = sympy.Matrix([
             [A[0][0,0]*Q[0,0] + A[0][1,0]*Q[1,0] + A[0][2,0]*Q[2,0] + A[0][3,0]*Q[3,0] + A[1][0,0]*Q[0,1] + A[1][1,0]*Q[1,1] + A[1][2,0]*Q[2,1] + A[1][3,0]*Q[3,1] + S[0,0]*V[0] + S[1,0]*V[1] + S[2,0]*V[2] + S[3,0]*V[3]],
             [A[0][0,1]*Q[0,0] + A[0][1,1]*Q[1,0] + A[0][2,1]*Q[2,0] + A[0][3,1]*Q[3,0] + A[1][0,1]*Q[0,1] + A[1][1,1]*Q[1,1] + A[1][2,1]*Q[2,1] + A[1][3,1]*Q[3,1] + S[0,1]*V[0] + S[1,1]*V[1] + S[2,1]*V[2] + S[3,1]*V[3]],
@@ -370,7 +369,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         U = sympy.Matrix([rho, *mom, e_tot])
         H = sympy.Matrix([grad_rho.T, grad_mom[0, :], grad_mom[1, :], grad_e_tot.T])
 
-        print(H)
 
         expr = primitives.AsVector()
 
@@ -382,7 +380,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         ])
         QuantityConverter.SubstitutePrimitivesWithConservatives(expr, primitives, U, H, params)
 
-        print(expr)
         self.assertTrue(expr.equals(expected))
 
     def testComputeOSSProjectionsAtGaussPoint(self):
