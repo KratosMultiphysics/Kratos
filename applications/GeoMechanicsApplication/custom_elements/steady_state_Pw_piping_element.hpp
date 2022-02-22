@@ -141,4 +141,4 @@ private:
 
 } // namespace Kratos
 
-#endif // KRATOS_GEO_STEADY_STATE_PW_INTERFACE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_GEO_STEADY_STATE_PW_PIPING_ELEMENT_H_INCLUDED  defined
