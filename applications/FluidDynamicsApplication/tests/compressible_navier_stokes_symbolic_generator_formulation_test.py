@@ -364,8 +364,6 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         dummy_geneator = self._DummyGenerator(geometry)
         dummy_geneator.ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, 0, mg, params, primitives, projections, res, rg, U, Ug, Un, Unn)
 
-        print(projections["energy"])
-
         N = geometry.N_gauss(0)
         DN_DX = geometry.DN()
 
