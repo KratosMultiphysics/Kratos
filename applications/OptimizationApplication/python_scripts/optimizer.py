@@ -14,41 +14,41 @@ from __future__ import print_function, absolute_import, division
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KO
+from KratosMultiphysics.OptimizationApplication import model_parts_controller
+from KratosMultiphysics.OptimizationApplication import analyzers_controller
+from KratosMultiphysics.OptimizationApplication import responses_controller
 
 # additional imports
 
 
 ## Purely for backward compatibility, should be removed soon.
-def CreateOptimizer(optimization_settings):
-    return Optimizer(optimization_settings)
+def CreateOptimizer(optimization_settings,model):
+    return Optimizer(optimization_settings,model)
 
-def Create(optimization_settings):
-    return Optimizer(optimization_settings)
+def Create(optimization_settings,model):
+    return Optimizer(optimization_settings,model)
 
 # ==============================================================================
 class Optimizer:
     # --------------------------------------------------------------------------
-    def __init__(self, optimization_settings):
+    def __init__(self, optimization_settings,model):
         self._ValidateSettings(optimization_settings)
         self.optimization_settings = optimization_settings
-        
-        
+        self.model_parts_controller = model_parts_controller.CreateController(optimization_settings["model_parts"],model)
+        self.analyzers_controller = analyzers_controller.CreateController(optimization_settings["analyzers"],model,self.model_parts_controller)
+        self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.analyzers_controller)
 
 
     def _ValidateSettings(self, optimization_settings):
         self._ValidateTopLevelSettings(optimization_settings)
-        self._ValidateModelPartsSettingsRecursively(optimization_settings["model_parts"])
-        self._ValidateControlsSettingsRecursively(optimization_settings["controls"])
-        self._ValidateAnalysisSettingsRecursively(optimization_settings["analysis"])
-        self._ValidateAlgorithmsSettingsRecursively(optimization_settings["algorithms"])
-
     # ------------------------------------------------------------------------------
     def _ValidateTopLevelSettings(self, optimization_settings):
         default_settings = KM.Parameters("""
         {
             "model_parts" : [ ],
+            "analyzers" : [ ],
+            "responses" : [ ],            
             "controls" : [ ],
-            "analysis" : [ ],
             "algorithms" : [ ]
         }""")
 
