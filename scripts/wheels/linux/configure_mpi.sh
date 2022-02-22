@@ -8,7 +8,7 @@ add_app () {
 export MPI_HOME=/usr/lib64/mpich/bin
 export PATH=${PATH}:${MPI_HOME}
 
-export MPI_C=`wich mpicc`
+export MPI_C=`which mpicc`
 export MPI_CXX=`which mpicxx`
 
 # Set variables
