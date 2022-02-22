@@ -5,8 +5,11 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
-export MPI_C=/usr/lib64/mpich/bin/mpicc
-export MPI_CXX=/usr/lib64/mpich/bin/mpicxx
+export MPI_HOME=/usr/lib64/mpich/bin
+export PATH=${PATH}:${MPI_HOME}
+
+export MPI_C=`wich mpicc`
+export MPI_CXX=`which mpicxx`
 
 # Set variables
 export KRATOS_SOURCE=${KRATOS_ROOT}
