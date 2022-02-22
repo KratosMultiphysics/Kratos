@@ -114,7 +114,7 @@ class KratosCoSimIO(CoSimulationIO):
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "connect_to"           : "",
-            "communication_format" : "file",
+            "communication_format" : "socket",
             "print_timing"         : false
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())

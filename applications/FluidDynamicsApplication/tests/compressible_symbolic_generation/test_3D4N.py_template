@@ -7,8 +7,8 @@ class _ElementData:
     def __init__(self, dim, num_nodes):
         block_size = dim + 2
 
-        self.U = self._ZeroMatrix(block_size, num_nodes)
-        self.dUdt = self._ZeroMatrix(block_size, num_nodes)
+        self.U = self._ZeroMatrix(num_nodes, block_size)
+        self.dUdt = self._ZeroMatrix(num_nodes, block_size)
 
         self.m_ext = self._ZeroVector(num_nodes)
         self.r_ext = self._ZeroVector(num_nodes)
@@ -151,18 +151,18 @@ class SubTestSuite:
         //substitute_mom_proj_3D
 
         expected = KratosMultiphysics.Vector(self.dim * self.num_nodes)
-        expected[0]  = -38199.02672739978
-        expected[1]  = -23123.790603943835
-        expected[2]  = -23123.743318150053
-        expected[3]  = -38199.37073395902
-        expected[4]  = -23123.681303369005
-        expected[5]  = -23123.657316510238
-        expected[6]  = -38199.38895411392
-        expected[7]  = -23123.675308142858
-        expected[8]  = -23123.65276147152
-        expected[9]  = -38199.370733959026
-        expected[10] = -23123.681303369005
-        expected[11] = -23123.657316510238
+        expected[0]  = -45889.2750050228
+        expected[1]  = -16907.891379201792
+        expected[2]  = -16907.891379201792
+        expected[3]  = -47191.06452683102
+        expected[4]  = -16950.908952085905
+        expected[5]  = -16950.908952085905
+        expected[6]  = -45889.2750050228
+        expected[7]  = -16907.891379201792
+        expected[8]  = -16907.891379201792
+        expected[9]  = -45889.275005022806
+        expected[10] = -16907.891379201792
+        expected[11] = -16907.891379201792
 
         return (mom_proj, expected)
 
@@ -177,10 +177,10 @@ class SubTestSuite:
         //substitute_tot_ener_proj_3D
 
         expected = KratosMultiphysics.Vector(self.num_nodes)
-        expected[0] = 650.3440456366135
-        expected[1] = 237.28688757874562
-        expected[2] = 203.7025514637592
-        expected[3] = 224.71439433220826
+        expected[0] = -30079467.71620096
+        expected[1] = -29953919.120589163
+        expected[2] = -30079467.71620097
+        expected[3] = -30079467.71620096
 
         return (tot_ener_proj, expected)
 
@@ -200,26 +200,26 @@ class SubTestSuite:
         //substitute_rhs_3D_OSS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
-        expected[0]  = 129586.20119766363
-        expected[1]  = -37873.97680550018
-        expected[2]  = -23262.112022792877
-        expected[3]  = -23254.902094387715
-        expected[4]  = 413798.27815090655
-        expected[5]  = -88081.72225294712
-        expected[6]  = -38089.27176059989
-        expected[7]  = -23214.188567774396
-        expected[8]  = -23209.942729985993
-        expected[9]  = -78249.92364793493
-        expected[10] = -53318.556610606465
-        expected[11] = -38189.82410562327
-        expected[12] = -22809.305721861176
-        expected[13] = -23116.55461027401
-        expected[14] = -20008.098125665212
-        expected[15] = -53329.80318294185
-        expected[16] = -38182.965865428974
-        expected[17] = -23120.398712731923
-        expected[18] = -22804.74677521582
-        expected[19] = -14319.600207868687
+        expected[0]  = 68.26488866957148
+        expected[1]  = 35325.200048254206
+        expected[2]  = 9032.334489289658
+        expected[3]  = 9032.334489289658
+        expected[4]  = 31401957.676319435
+        expected[5]  = -204.5930505405032
+        expected[6]  = -130827.40310772619
+        expected[7]  = -33487.04668676353
+        expected[8]  = -33487.04668676353
+        expected[9]  = -85964509.7899978
+        expected[10] = -124.29226623192696
+        expected[11] = -61986.315172143804
+        expected[12] = -35819.91114761498
+        expected[13] = -15890.930088727864
+        expected[14] = -47562058.48372695
+        expected[15] = -124.29226623192696
+        expected[16] = -61986.315172143804
+        expected[17] = -15890.930088727862
+        expected[18] = -35819.91114761498
+        expected[19] = -47562058.48372696
 
         return (rRightHandSideBoundedVector, expected)
 
@@ -238,25 +238,25 @@ class SubTestSuite:
         //substitute_rhs_3D_ASGS
 
         expected = KratosMultiphysics.Vector(self.block_size*self.num_nodes)
-        expected[0]  = 129586.20119766363
-        expected[1]  = -37873.97680550017
-        expected[2]  = -23262.112022792873
-        expected[3]  = -23254.90209438772
-        expected[4]  = 413798.27815090655
-        expected[5]  = -88081.72225294712
-        expected[6]  = -38089.2717605999
-        expected[7]  = -23214.1885677744
-        expected[8]  = -23209.942729985996
-        expected[9]  = -78249.92364793495
-        expected[10] = -53318.556610606465
-        expected[11] = -38189.82410562327
-        expected[12] = -22809.305721861172
-        expected[13] = -23116.55461027401
-        expected[14] = -20008.0981256652
-        expected[15] = -53329.80318294185
-        expected[16] = -38182.965865428974
-        expected[17] = -23120.39871273192
-        expected[18] = -22804.74677521582
-        expected[19] = -14319.600207868678
+        expected[0]  = 68.26488866957148
+        expected[1]  = 35325.20004825419
+        expected[2]  = 9032.334489289658
+        expected[3]  = 9032.334489289658
+        expected[4]  = 31401957.676319435
+        expected[5]  = -204.5930505405032
+        expected[6]  = -130827.40310772619
+        expected[7]  = -33487.04668676353
+        expected[8]  = -33487.04668676353
+        expected[9]  = -85964509.7899978
+        expected[10] = -124.29226623192696
+        expected[11] = -61986.315172143804
+        expected[12] = -35819.91114761496
+        expected[13] = -15890.930088727864
+        expected[14] = -47562058.48372695
+        expected[15] = -124.29226623192696
+        expected[16] = -61986.315172143804
+        expected[17] = -15890.930088727862
+        expected[18] = -35819.91114761496
+        expected[19] = -47562058.48372696
 
         return (rRightHandSideBoundedVector, expected)

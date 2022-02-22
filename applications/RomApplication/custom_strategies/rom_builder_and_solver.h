@@ -27,6 +27,7 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
+#include "custom_utilities/rom_auxiliary_utilities.h"
 
 namespace Kratos
 {
@@ -384,28 +385,18 @@ public:
         }
     }
 
-    void GetPhiElemental(
-        Matrix &PhiElemental,
-        const Element::DofsVectorType& rDofs,
-        const Element::GeometryType& rGeom)
+    virtual void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
     {
-        const Matrix *pcurrent_rom_nodal_basis = nullptr;
-        int counter = 0;
-        for(int k = 0; k < static_cast<int>(rDofs.size()); ++k){
-            auto variable_key = rDofs[k]->GetVariable().Key();
-            if(k==0) {
-                pcurrent_rom_nodal_basis = &(rGeom[counter].GetValue(ROM_BASIS));
-            } else if(rDofs[k]->Id() != rDofs[k-1]->Id()) {
-                counter++;
-                pcurrent_rom_nodal_basis = &(rGeom[counter].GetValue(ROM_BASIS));
-            }
+        // Call the base B&S InitializeSolutionStep
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
 
-            if (rDofs[k]->IsFixed()) {
-                noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
-            } else {
-                noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, mMapPhi[variable_key]);
-            }
-        }
+        // Reset the ROM solution increment in the root modelpart database
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(mNumberOfRomModes);
     }
 
     void BuildAndSolve(
@@ -476,7 +467,7 @@ public:
                     if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
                         aux.resize(dofs.size(), mNumberOfRomModes,false);
                     }
-                    GetPhiElemental(PhiElemental, dofs, geom);
+                    RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
@@ -506,7 +497,7 @@ public:
                     if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
                         aux.resize(dofs.size(), mNumberOfRomModes,false);
                     }
-                    GetPhiElemental(PhiElemental, dofs, geom);
+                    RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
                     double h_rom_weight = it->GetValue(HROM_WEIGHT);
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
@@ -534,7 +525,7 @@ public:
         // Save the ROM solution increment in the root modelpart database
         // This can be used later on to recover the solution in a visualization submodelpart
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = dxrom;
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
 
         // //update database
         // noalias(xrom) += dxrom;
@@ -648,7 +639,7 @@ protected:
 
     SizeType mNodalDofs;
     SizeType mNumberOfRomModes;
-    std::unordered_map<Kratos::VariableData::KeyType,int> mMapPhi;
+    std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
 
     ElementsArrayType mSelectedElements;
     ConditionsArrayType mSelectedConditions;
