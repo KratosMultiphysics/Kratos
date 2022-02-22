@@ -149,7 +149,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
     class _DummyGeometry:
         ndims = 2
-        nnodes = None
+        nnodes = 3
         blocksize = ndims+2
 
     def testComputeEulerJacobianMatrix(self):
@@ -229,12 +229,12 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
     class _DummyGenerator(CompressibleNavierStokesSymbolicGenerator):
         def __init__(self, geometry_class):
-            # self.write_language = "python"
-            self.is_explicit = False
-            # self.shock_capturing = True
+            self.is_explicit = True
             self.echo_level = 0
-            # self.primitive_interpolation = "nodal"
             self.geometry = geometry_class
+            # self.write_language = "python"
+            # self.shock_capturing = True
+            # self.primitive_interpolation = "nodal"
             # self.outstring = None
 
         def ComputeNonLinearOperator(self, A, H, S, Ug):
@@ -307,7 +307,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         rv, subscales = dummy_geneator.ComputeVariationalFormulation(A, acc, G, H, Ladj, Q, S, U, V)
 
         rv_expected = sympy.Matrix([
-            [G[0,0]*Q[0,0] + G[0,1]*Q[0,1] + G[1,0]*Q[1,0] + G[1,1]*Q[1,1] + G[2,0]*Q[2,0] + G[2,1]*Q[2,1] + G[3,0]*Q[3,0] + G[3,1]*Q[3,1] + Ladj[0]*subscales[0] + Ladj[1]*subscales[1] + Ladj[2]*subscales[2] + Ladj[3]*subscales[3] - V[0]*acc[0] + V[0]*(S[0,0]*U[0] + S[0,1]*U[1] + S[0,2]*U[2] + S[0,3]*U[3]) - V[0]*(A[0][0,0]*H[0,0] + A[0][0,1]*H[1,0] + A[0][0,2]*H[2,0] + A[0][0,3]*H[3,0] + A[1][0,0]*H[0,1] + A[1][0,1]*H[1,1] + A[1][0,2]*H[2,1] + A[1][0,3]*H[3,1]) - V[1]*acc[1] + V[1]*(S[1,0]*U[0] + S[1,1]*U[1] + S[1,2]*U[2] + S[1,3]*U[3]) - V[1]*(A[0][1,0]*H[0,0] + A[0][1,1]*H[1,0] + A[0][1,2]*H[2,0] + A[0][1,3]*H[3,0] + A[1][1,0]*H[0,1] + A[1][1,1]*H[1,1] + A[1][1,2]*H[2,1] + A[1][1,3]*H[3,1]) - V[2]*acc[2] + V[2]*(S[2,0]*U[0] + S[2,1]*U[1] + S[2,2]*U[2] + S[2,3]*U[3]) - V[2]*(A[0][2,0]*H[0,0] + A[0][2,1]*H[1,0] + A[0][2,2]*H[2,0] + A[0][2,3]*H[3,0] + A[1][2,0]*H[0,1] + A[1][2,1]*H[1,1] + A[1][2,2]*H[2,1] + A[1][2,3]*H[3,1]) - V[3]*acc[3] + V[3]*(S[3,0]*U[0] + S[3,1]*U[1] + S[3,2]*U[2] + S[3,3]*U[3]) - V[3]*(A[0][3,0]*H[0,0] + A[0][3,1]*H[1,0] + A[0][3,2]*H[2,0] + A[0][3,3]*H[3,0] + A[1][3,0]*H[0,1] + A[1][3,1]*H[1,1] + A[1][3,2]*H[2,1] + A[1][3,3]*H[3,1])]
+            G[0,0]*Q[0,0] + G[0,1]*Q[0,1] + G[1,0]*Q[1,0] + G[1,1]*Q[1,1] + G[2,0]*Q[2,0] + G[2,1]*Q[2,1] + G[3,0]*Q[3,0] + G[3,1]*Q[3,1] + Ladj[0]*subscales[0] + Ladj[1]*subscales[1] + Ladj[2]*subscales[2] + Ladj[3]*subscales[3] + V[0]*(S[0,0]*U[0] + S[0,1]*U[1] + S[0,2]*U[2] + S[0,3]*U[3]) - V[0]*(A[0][0,0]*H[0,0] + A[0][0,1]*H[1,0] + A[0][0,2]*H[2,0] + A[0][0,3]*H[3,0] + A[1][0,0]*H[0,1] + A[1][0,1]*H[1,1] + A[1][0,2]*H[2,1] + A[1][0,3]*H[3,1]) + V[1]*(S[1,0]*U[0] + S[1,1]*U[1] + S[1,2]*U[2] + S[1,3]*U[3]) - V[1]*(A[0][1,0]*H[0,0] + A[0][1,1]*H[1,0] + A[0][1,2]*H[2,0] + A[0][1,3]*H[3,0] + A[1][1,0]*H[0,1] + A[1][1,1]*H[1,1] + A[1][1,2]*H[2,1] + A[1][1,3]*H[3,1]) + V[2]*(S[2,0]*U[0] + S[2,1]*U[1] + S[2,2]*U[2] + S[2,3]*U[3]) - V[2]*(A[0][2,0]*H[0,0] + A[0][2,1]*H[1,0] + A[0][2,2]*H[2,0] + A[0][2,3]*H[3,0] + A[1][2,0]*H[0,1] + A[1][2,1]*H[1,1] + A[1][2,2]*H[2,1] + A[1][2,3]*H[3,1]) + V[3]*(S[3,0]*U[0] + S[3,1]*U[1] + S[3,2]*U[2] + S[3,3]*U[3]) - V[3]*(A[0][3,0]*H[0,0] + A[0][3,1]*H[1,0] + A[0][3,2]*H[2,0] + A[0][3,3]*H[3,0] + A[1][3,0]*H[0,1] + A[1][3,1]*H[1,1] + A[1][3,2]*H[2,1] + A[1][3,3]*H[3,1])
         ])
 
         subscales_expected = defs.Vector('subscales', blocksize)
