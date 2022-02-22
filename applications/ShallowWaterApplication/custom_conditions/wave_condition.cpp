@@ -145,7 +145,7 @@ void WaveCondition<TNumNodes>::Calculate(
 {
     if (rVariable == FORCE)
     {
-        rOutput = ZeroVector();
+        rOutput = ZeroVector(3);
         const double gravity = rCurrentProcessInfo[GRAVITY_Z];
         const double density = this->GetProperties()[DENSITY];
         const auto& r_geometry = this->GetGeometry();

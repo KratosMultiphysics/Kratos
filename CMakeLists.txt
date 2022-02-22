@@ -375,7 +375,7 @@ message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
 if(Boost_VERSION_STRING VERSION_LESS 1.70)
-  message(STATUS "WARNING: Kratos requires at least boost version 1.70 to enable boost related performance improvements")
+  message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
 else()
   add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 endif ()
@@ -471,6 +471,7 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
+  find_package(TRILINOS QUIET)
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -528,6 +529,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+# Create custom targets. Not the cleanest solution, but minimizes the changes
+add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
+add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
+
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
@@ -553,10 +558,6 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
-
-# Create custom targets. Not the cleanest solution, but minimizes the changes
-add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
-add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
 
 message("")
 message("***********************************************************************")

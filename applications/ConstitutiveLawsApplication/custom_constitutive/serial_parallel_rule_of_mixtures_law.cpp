@@ -1049,13 +1049,6 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK2(Parameters& rValues)
-{
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();

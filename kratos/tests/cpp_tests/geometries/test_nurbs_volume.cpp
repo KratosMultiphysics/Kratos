@@ -102,10 +102,8 @@ namespace Testing {
         // Construct a distroted cube.
         PointerVector<Point> points(100);
         std::vector<double> y_direction = {-1.0, -1.0/3.0, 1.0/3.0, 1.0};
-        double t = 0.8;
         int index = 0;
         for( int i = 0; i <=4; ++i){
-            t += 0.2;
             for( auto j : y_direction) {
                 for( int k = -2; k <=2; ++k ) {
                     double x = k;
