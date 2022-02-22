@@ -115,14 +115,14 @@ class CompressibleNavierStokesSymbolicGeneratorValidationTest(KratosUnitTest.Tes
             sub_testsuite = self._ImportSubTestSuite(generated_file)
             self._RunSubTestSuite(geometry, sub_testsuite, print_results)
 
-    # def testSymbolicTriangle(self):
-    #     self._RunTest("2D3N")
+    def testSymbolicTriangle(self):
+        self._RunTest("2D3N")
 
-    # def testSymbolicQuadrilateral(self):
-    #     self._RunTest("2D4N")
+    def testSymbolicQuadrilateral(self):
+        self._RunTest("2D4N")
 
-    # def testSymbolicTetrahedron(self):
-    #     self._RunTest("3D4N")
+    def testSymbolicTetrahedron(self):
+        self._RunTest("3D4N")
 
 
 class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase):
