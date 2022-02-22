@@ -67,8 +67,6 @@ class ResponsesController:
   
         self.responses = {}
 
-    # --------------------------------------------------------------------------
-    def Initialize(self):
 
         sho_response_functions = [
             "plane_based_packaging",
@@ -89,16 +87,22 @@ class ResponsesController:
             response_id = itr+1
             response_name = response_settings["response_name"].GetString()            
             response_type = response_settings["response_type"].GetString()
-            response_analyzer_name = response_settings["response_analyzer_name"].GetString()
+            response_analyzer_name = response_settings["response_analyzer_name"].GetString()            
 
             if response_type in csm_response_functions:
+                csm_response_settings = response_settings["response_settings"]               
+                csm_response_settings.AddEmptyValue("response_type").SetString(response_type)
                 if csm_response_factory is None:
                     raise RuntimeError("ResponsesController: Response function {} requires StructuralMechanicsApplication.".format(response_name))
                 if not self.analyzers_controller.CheckIfAnalysisExists(response_analyzer_name):
                     raise RuntimeError("ResponsesController: Response {} requires analysis {} which does not exist!".format(response_name,response_analyzer_name))
-                self.responses[response_name] = csm_response_factory.CreateResponseFunction(response_id, response_settings["response_settings"], self.model)
+                self.responses[response_name] = csm_response_factory.CreateResponseFunction(response_id, csm_response_settings, self.model)
             else:
-                raise NameError("The response function '{}' of type '{}' is not available.".format(response_id, response_type ))           
+                raise NameError("The response function '{}' of type '{}' is not available.".format(response_id, response_type ))
+
+    # --------------------------------------------------------------------------
+    def Initialize(self):
+        pass           
 
 
             

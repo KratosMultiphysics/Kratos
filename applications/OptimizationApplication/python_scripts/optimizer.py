@@ -17,6 +17,7 @@ import KratosMultiphysics.OptimizationApplication as KO
 from KratosMultiphysics.OptimizationApplication import model_parts_controller
 from KratosMultiphysics.OptimizationApplication import analyzers_controller
 from KratosMultiphysics.OptimizationApplication import responses_controller
+from KratosMultiphysics.OptimizationApplication import controls_controller
 
 # additional imports
 
@@ -37,6 +38,7 @@ class Optimizer:
         self.model_parts_controller = model_parts_controller.CreateController(optimization_settings["model_parts"],model)
         self.analyzers_controller = analyzers_controller.CreateController(optimization_settings["analyzers"],model,self.model_parts_controller)
         self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.analyzers_controller)
+        self.controls_controller = controls_controller.CreateController(optimization_settings["controls"],model,self.model_parts_controller)
 
 
     def _ValidateSettings(self, optimization_settings):
@@ -58,50 +60,4 @@ class Optimizer:
 
         optimization_settings.ValidateAndAssignDefaults(default_settings)
 
-    # ------------------------------------------------------------------------------
-    def _ValidateModelPartsSettingsRecursively(self, model_parts_settings):
-        default_settings = KM.Parameters("""
-        {
-            "domain_size"           : 3,
-            "model_part_name"       : "MODEL_PART_NAME",
-            "model_import_settings"              : {
-                "input_type"     : "mdpa",
-                "input_filename" : "MODEL_PART_FILENAME"
-            }
-        }""")
-        for itr in range(model_parts_settings.size()):
-            model_parts_settings[itr].ValidateAndAssignDefaults(default_settings)
-
-    # ------------------------------------------------------------------------------
-    def _ValidateControlsSettingsRecursively(self, controls_settings):
-        default_settings = KM.Parameters("""
-        {
-            "name"       : "CONTROL_NAME",
-            "type"       : "CONTROL_TYPE",
-            "settings"              : {}
-        }""")
-        for itr in range(controls_settings.size()):
-            controls_settings[itr].ValidateAndAssignDefaults(default_settings)
-    # ------------------------------------------------------------------------------
-    def _ValidateAnalysisSettingsRecursively(self, analysis_settings):
-        default_settings = KM.Parameters("""
-        {
-            "name"       : "ANALYSIS_NAME",
-            "type"       : "ANALYSIS_TYPE",
-            "settings"              : {}
-        }""")
-        for itr in range(analysis_settings.size()):
-            analysis_settings[itr].ValidateAndAssignDefaults(default_settings) 
-    # ------------------------------------------------------------------------------
-    def _ValidateAlgorithmsSettingsRecursively(self, algorithms_settings):
-        default_settings = KM.Parameters("""
-        {
-            "name"       : "ALGORITHM_NAME",
-            "type"       : "ALGORITHM_TYPE",
-            "settings"              : {}
-        }""")
-        if algorithms_settings.size() > 1 :
-            raise NameError("OptimizationApplication only handles single algorithm, check your optimization settings ")
-
-        for itr in range(algorithms_settings.size()):
-            algorithms_settings[itr].ValidateAndAssignDefaults(default_settings)             
+       
