@@ -164,7 +164,7 @@ do
 	cd $KRATOS_ROOT
 	export HASH=$(git show -s --format=%h) # Used in version number
 	export LD_LIBRARY_PATH=${PREFIX_LOCATION}/libs:$BASE_LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib64/mpich/bin
+    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib64/mpich/lib
 	echo $LD_LIBRARY_PATH
 
     echo "Building Core Wheel"
