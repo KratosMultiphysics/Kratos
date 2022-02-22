@@ -12,6 +12,9 @@
 //
 
 // System includes
+#ifdef KRATOS_MODERN_REGEX
+    #include <regex>
+#endif
 
 // External includes
 #include "tinyexpr/tinyexpr/tinyexpr.h"
@@ -23,6 +26,9 @@
 namespace Kratos
 {
 
+#ifdef KRATOS_MODERN_REGEX
+
+#else
 // A check only to check that the x is not part of exp
 inline bool CheckThereIsNotx(const std::string& rString)
 {
@@ -43,6 +49,7 @@ inline bool CheckThereIsNotx(const std::string& rString)
 
     return true;
 }
+#endif
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -60,6 +67,10 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
+#ifdef KRATOS_MODERN_REGEX
+    const std::regex space_regex("\\b[xyz]\\b", std::regex_constants::icase);
+    mDependsOnSpace = std::regex_search(mFunctionBody, space_regex);
+#else
     if (CheckThereIsNotx(mFunctionBody)                           &&
         mFunctionBody.find(std::string("y")) == std::string::npos &&
         mFunctionBody.find(std::string("z")) == std::string::npos &&
@@ -68,6 +79,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
         mFunctionBody.find(std::string("Z")) == std::string::npos) {
         mDependsOnSpace = false;
     }
+#endif
 }
 
 /***********************************************************************************/
