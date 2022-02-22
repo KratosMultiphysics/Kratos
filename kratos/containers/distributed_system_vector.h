@@ -239,39 +239,44 @@ public:
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] = rOtherVector.mLocalData[i];
         });
+        return *this;
     }
 
 
-    void operator+=(const DistributedSystemVector& rOtherVector)
+    DistributedSystemVector& operator+=(const DistributedSystemVector& rOtherVector)
     {
         KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in += operator. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] += rOtherVector.mLocalData[i];
         });
+        return *this;
     }
 
-    void operator-=(const DistributedSystemVector& rOtherVector)
+    DistributedSystemVector& operator-=(const DistributedSystemVector& rOtherVector)
     {
         KRATOS_ERROR_IF(LocalSize() != rOtherVector.LocalSize()) << "size mismatch in -= operator. LocalSize is " << LocalSize()
                 << " " << " rOtherVector.LocalSize() " << rOtherVector.LocalSize() << std::endl;
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] -= rOtherVector.mLocalData[i];
         });
+        return *this;
     }
 
-    void operator*=(const TDataType& multiplier_factor)
+    DistributedSystemVector& operator*=(const TDataType& multiplier_factor)
     {
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] *= multiplier_factor;
         });
+        return *this;
     }
 
-    void operator/=(const TDataType& divide_factor)
+    DistributedSystemVector& operator/=(const TDataType& divide_factor)
     {
         IndexPartition<IndexType>(LocalSize()).for_each([&](IndexType i){
             (mLocalData)[i] /= divide_factor;
         });
+        return *this;
     }
 
     ///@}

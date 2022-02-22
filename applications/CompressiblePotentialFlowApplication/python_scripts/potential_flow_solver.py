@@ -222,7 +222,10 @@ class PotentialFlowSolver(FluidSolver):
             strategy_type = None
         return strategy_type
 
-    @classmethod
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
+        return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+
     def _CreateScheme(self):
         # Fake scheme creation to do the solution update
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -239,11 +242,13 @@ class PotentialFlowSolver(FluidSolver):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
         linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         if strategy_type == "linear":
             solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,
                 time_scheme,
                 linear_solver,
+                builder_and_solver,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["calculate_solution_norm"].GetBool(),
@@ -255,6 +260,7 @@ class PotentialFlowSolver(FluidSolver):
                 time_scheme,
                 linear_solver,
                 convergence_criterion,
+                builder_and_solver,
                 self.settings["maximum_iterations"].GetInt(),
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),

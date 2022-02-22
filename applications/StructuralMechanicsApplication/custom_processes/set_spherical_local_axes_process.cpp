@@ -71,12 +71,23 @@ void SetSphericalLocalAxesProcess::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SetSphericalLocalAxesProcess::ExecuteInitializeSolutionStep()
+{
+    if (mThisParameters["update_at_each_step"].GetBool()) {
+        ExecuteInitialize();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 const Parameters SetSphericalLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
         "spherical_reference_axis"   : [0.0,0.0,1.0],
-        "spherical_central_point"    : [0.0,0.0,0.0]
+        "spherical_central_point"    : [0.0,0.0,0.0],
+        "update_at_each_step"        : false
     })" );
 
     return default_parameters;
