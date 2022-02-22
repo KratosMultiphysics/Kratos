@@ -170,7 +170,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
         params = FormulationParameters(g, "python")
         primitives = PrimitiveMagnitudes(g)
-        R = QuantityConverter.gas_constant_R(params)
+        R = params.R()
 
         dvdu = QuantityConverter.dVdU(U, primitives, params)
 

@@ -19,6 +19,9 @@ class FormulationParameters:
         lamb = 'data.lambda_' if output_lang == 'python' else 'data.lambda'
         self.lamb    = sympy.Symbol(lamb, positive = True)   # Thermal Conductivity of the fluid
 
+    def R(self):
+        return (self.gamma - 1) * self.c_v
+
 class ShockCapturingParameters:
     def __init__(self):
         self.alpha = sympy.Symbol('data.alpha_sc', positive = True) # Artificial density diffusivity for shock capturing

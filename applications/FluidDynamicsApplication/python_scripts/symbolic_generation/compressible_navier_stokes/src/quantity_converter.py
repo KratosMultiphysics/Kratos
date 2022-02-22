@@ -40,7 +40,7 @@ class QuantityConverter:
     @classmethod
     def density(cls, primitives, params):
         "Returns the density as a function of primitive variables"
-        rho = primitives.P / (cls.gas_constant_R(params) * primitives.T)
+        rho = primitives.P / (params.R() * primitives.T)
         rho.simplify()
         return rho
 
@@ -92,7 +92,7 @@ class QuantityConverter:
     @classmethod
     def pressure(cls, U, params, T=None):
         rho = U[0]
-        R = cls.gas_constant_R(params)
+        R = params.R()
         if T is None:
             T = cls.temperature(U, params)
         p = rho * R * T
@@ -209,7 +209,7 @@ class QuantityConverter:
         rho = U[0]
         grad_rho = sympy.Matrix(DU[0, :])
 
-        R = cls.gas_constant_R(params)
+        R = params.R()
 
         grad_p = (grad_rho*T + rho*grad_T) * R
         grad_p.simplify()
@@ -217,14 +217,10 @@ class QuantityConverter:
 
     @classmethod
     def density_gradient(cls, primitives, params):
-        R =  cls.gas_constant_R(params)
+        R =  params.R()
         grad_rho = (primitives.T*primitives.grad_P - primitives.grad_T*primitives.P) / (R * primitives.T**2)
         grad_rho.simplify()
         return grad_rho
-
-    @classmethod
-    def gas_constant_R(cls, params):
-        return (params.gamma - 1) * params.c_v
 
     @classmethod
     def dVdU(cls, U, primitives, params):
