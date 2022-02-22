@@ -134,7 +134,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
                                                     rValues,
                                                     serial_strain_matrix_old);
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector 
+        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector
                                      + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
 
         // Previous flags restored
@@ -172,28 +172,28 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     bool is_converged = false;
     int iteration = 0, max_iterations = 150;
     Vector parallel_strain_matrix(num_parallel_components), stress_residual(rSerialStrainMatrix.size());
-    Matrix constitutive_tensor_matrix_ss(num_serial_components, num_serial_components), 
+    Matrix constitutive_tensor_matrix_ss(num_serial_components, num_serial_components),
         constitutive_tensor_fiber_ss(num_serial_components, num_serial_components);
 
     // Iterative procedure until the equilibrium is reached in the serial stresses
     while (!is_converged && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: rSerialStrainMatrix
-            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,  
+            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,
                                                                   rMaterialProperties,  parallel_projector,  serial_projector,
                                                                   constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss,
                                                                   rSerialStrainMatrix);
         }
         // This method computes the strain vector for the matrix & fiber
-        this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, 
+        this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector,
                                               rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
 
         // This method integrates the stress according to each simple material CL
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector);
 
         // Here we check the convergence of the loop -> serial stresses equilibrium
-        this->CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, 
-                                     stress_residual, is_converged, constitutive_tensor_matrix_ss, 
+        this->CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector,
+                                     stress_residual, is_converged, constitutive_tensor_matrix_ss,
                                      constitutive_tensor_fiber_ss);
         if (is_converged) {
             break;
@@ -337,7 +337,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
     const auto& r_props_matrix_cl = *(it_cl_begin);
     const auto& r_props_fiber_cl = *(it_cl_begin + 1);
-    
+
     ConstitutiveLaw::Parameters values_fiber  = rValues;
     ConstitutiveLaw::Parameters values_matrix = rValues;
 
@@ -423,7 +423,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
 
     // We project the serial and parallel strains in order to add them and obtain the total strain for the fib/matrix
     noalias(rStrainVectorMatrix) = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
-    noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), 
+    noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector),
                                (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
 }
 
@@ -448,7 +448,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
             parallel_counter++;
         } else {
             rSerialProjector(serial_counter, i_comp) = 1.0;
-            serial_counter++; 
+            serial_counter++;
         }
     }
 }
@@ -566,7 +566,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
         const auto& r_props_matrix_cl = *(it_cl_begin);
         const auto& r_props_fiber_cl = *(it_cl_begin + 1);
-        
+
         ConstitutiveLaw::Parameters values_fiber  = rValues;
         ConstitutiveLaw::Parameters values_matrix = rValues;
 
@@ -577,7 +577,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
 
-        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, 
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector,
                                               mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
 
         values_fiber.SetStrainVector(fiber_strain_vector);
@@ -601,7 +601,18 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
     } else if (rThisVariable == DAMAGE_FIBER) {
          return mpFiberConstitutiveLaw->GetValue(DAMAGE, rValue);
     }
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+    if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
+        return mpFiberConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
+    } else if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
+        return mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        double uniaxial_stress_fiber;
+        double uniaxial_stress_matrix;
+        mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_fiber);
+        mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_matrix);
+        rValue = mFiberVolumetricParticipation * uniaxial_stress_fiber + (1.0 - mFiberVolumetricParticipation) * uniaxial_stress_matrix;
+        return rValue;
+    } else if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
         return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
@@ -641,6 +652,44 @@ Matrix& SerialParallelRuleOfMixturesLaw::GetValue(
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
         return rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::SetValue(
+    const Variable<int>& rThisVariable,
+    const int& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // We set the value in all layers
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else {
+        rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // We set the propotional value in all layers
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)){
+        mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else {
+        rValue;
     }
 }
 
@@ -960,7 +1009,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
         this->CalculateStrainsOnEachComponent(r_strain_vector,
-                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix, 
+                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
                                               matrix_strain_vector, fiber_strain_vector);
         rValue = MathUtils<double>::StrainVectorToTensor(matrix_strain_vector);
         return rValue;
@@ -972,7 +1021,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         const Vector& r_strain_vector = rParameterValues.GetStrainVector();
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
         this->CalculateStrainsOnEachComponent(r_strain_vector,
-                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix, 
+                                              parallel_projector, serial_projector, mPreviousSerialStrainMatrix,
                                               matrix_strain_vector, fiber_strain_vector);
         rValue = MathUtils<double>::StrainVectorToTensor(fiber_strain_vector);
         return rValue;
