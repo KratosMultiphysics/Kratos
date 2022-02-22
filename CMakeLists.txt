@@ -293,6 +293,8 @@ else(NOT DEFINED KRATOS_ENABLE_LTO)
     message("LTO is Enabled")
     if(${CMAKE_COMPILER_IS_GNUCXX})
         set(CMAKE_AR "gcc-ar")
+        set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_C_ARCHIVE_FINISH true)
         set(CMAKE_C_FLAGS "-flto=jobserver")
         set(CMAKE_CXX_FLAGS "-flto=jobserver")
         set(CMAKE_SHARED_LINKER_FLAGS "-flto=jobserver")
@@ -303,6 +305,8 @@ else(NOT DEFINED KRATOS_ENABLE_LTO)
         set(CMAKE_SHARED_LINKER_FLAGS "-flto=thin")
     endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
 endif(NOT DEFINED KRATOS_ENABLE_LTO)
+
+message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
