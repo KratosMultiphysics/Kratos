@@ -283,8 +283,8 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         def ComputeVariationalFormulation(self, A, acc, G, H, L_adj, Q, S, Ug, V):
             return super()._ComputeVariationalFormulation(A, acc, G, H, L_adj, Q, S, Ug, V)
 
-        def ComputeOSSProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, primitives, projections, res, rg, U, Ug, Un, Unn):
-            return super()._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, primitives, projections, res, rg, U, Ug, Un, Unn)
+        def ComputeOSSProjectionsAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn):
+            return super()._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
 
 
     def testComputeNonLinearOperator(self):
@@ -394,7 +394,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         params = FormulationParameters(geometry, "python")
         H = defs.Matrix('H', blocksize, dim)
         Ug = defs.Vector('Ug', blocksize)
-        primitives = PrimitiveMagnitudes(geometry, params, Ug, H, "gaussian")
+        primitives = PrimitiveMagnitudes(geometry)
         U = defs.Matrix('U', numnodes, blocksize)
         mg  = sympy.Symbol('mg')
         f = defs.Vector('f', dim)
@@ -427,7 +427,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         ])
 
         dummy_geneator = self._DummyGenerator(geometry)
-        dummy_geneator.ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, 0, mg, params, primitives, projections, res, rg, U, Ug, Un, Unn)
+        dummy_geneator.ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, 0, mg, projections, res, rg, U, Ug, Un, Unn)
 
         print(projections["energy"])
 
