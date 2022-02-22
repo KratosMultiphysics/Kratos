@@ -164,7 +164,11 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 Vector int_gauss_pts_weights;
                 std::vector< array_1d<double,3> > int_normals_neg;
 
-                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION]){
+                // Base momentum correction and momentum/mass correction are incompatible
+                KRATOS_ERROR_IF(rCurrentProcessInfo[MOMENTUM_CORRECTION] && rCurrentProcessInfo[ENERGY_PRESERVING_MOMENTUM_TERM]) << "Base momentum correction and momentum/mass correction are incompatible." << std::endl;
+
+                if (rCurrentProcessInfo[SURFACE_TENSION] || rCurrentProcessInfo[MOMENTUM_CORRECTION] || rCurrentProcessInfo[ENERGY_PRESERVING_MOMENTUM_TERM])
+                {
                     ComputeSplitInterface(
                         data,
                         int_shape_function,
@@ -174,6 +178,62 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                         int_gauss_pts_weights,
                         int_normals_neg,
                         p_modified_sh_func);
+                }
+                if (rCurrentProcessInfo[ENERGY_PRESERVING_MOMENTUM_TERM]){
+
+                    BoundedMatrix<double, LocalSize, LocalSize> lhs_acc_correction = ZeroMatrix(LocalSize, LocalSize);
+                    double positive_density = 0.0;
+                    double negative_density = 0.0;
+                    const auto &r_geom = this->GetGeometry();
+                    for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp)
+                    {
+                        double u_distance = 0.0;
+                        array_1d<double, 3> u_field = ZeroVector(3);
+                        for (unsigned int i = 0; i < NumNodes; ++i)
+                        {
+                            noalias(u_field) += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStepValue(VELOCITY,1);
+                            u_distance += int_shape_function(intgp, i) * r_geom[i].FastGetSolutionStepValue(DISTANCE,1);
+
+                            if (data.Distance[i] > 0.0)
+                            {
+                                positive_density = data.NodalDensity[i];
+                            }
+                            else
+                            {
+                                negative_density = data.NodalDensity[i];
+                            }
+                        }
+
+                        u_distance /= data.DeltaTime;
+                        const array_1d<double, 3> &r_n = int_normals_neg[intgp];
+                        double u_prime = u_distance;
+                        u_prime -= inner_prod(u_field, r_n);
+
+                        for (unsigned int i = 0; i < BlockSize; ++i)
+                        {
+                            for (unsigned int j = 0; j < BlockSize; ++j)
+                            {
+                                for (unsigned int dim = 0; dim < Dim; ++dim)
+                                {
+                                    lhs_acc_correction(i * (BlockSize) + dim, j * (BlockSize) + dim) +=
+                                    int_shape_function(intgp, i) * int_shape_function(intgp, j) * u_prime * int_gauss_pts_weights(intgp);
+                                }
+                            }
+                        }
+                    }
+
+                    lhs_acc_correction *= (positive_density-negative_density);
+                    noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+
+                    Kratos::array_1d<double, LocalSize> tempU; // Unknowns vector containing only velocity components
+                    for (unsigned int i = 0; i < NumNodes; ++i)
+                    {
+                        for (unsigned int dimi = 0; dimi < Dim; ++dimi)
+                        {
+                            tempU[i * (BlockSize) + dimi] = data.Velocity(i, dimi);
+                        }
+                    }
+                    noalias(rRightHandSideVector) -= prod(lhs_acc_correction, tempU);
                 }
 
                 if (rCurrentProcessInfo[MOMENTUM_CORRECTION]){

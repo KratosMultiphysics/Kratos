@@ -1483,7 +1483,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const double max_spectral_radius=rData.MaxSprectraRadius;
     const double dt = rData.DeltaTime;
     const double alpha_f=1/(1-max_spectral_radius);
-
     const double dyn_tau = rData.DynamicTau;
 
     const auto &v = rData.Velocity;
