@@ -5,6 +5,9 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+export MPI_C=mpicc
+export MPI_CXX=mpicxx
+
 # Set variables
 export KRATOS_SOURCE=${KRATOS_ROOT}
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
