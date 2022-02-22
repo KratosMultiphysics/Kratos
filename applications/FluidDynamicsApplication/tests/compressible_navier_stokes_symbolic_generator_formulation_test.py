@@ -350,6 +350,36 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         self._assertSympyMatrixEqual(rv, rv_expected)
         self._assertSympyMatrixEqual(subscales, subscales_expected)
 
+    def testSubstitutePrimitivesWithConservatives(self):
+        rho = sympy.Symbol('rho')
+        mom = defs.Vector('mom', 2)
+        e_tot = sympy.Symbol('e_tot')
+
+        grad_rho = defs.Vector('grad_rho', 2)
+        grad_mom = defs.Matrix('grad_mom', 2, 2)
+        grad_e_tot = defs.Vector('grad_e_tot', 2)
+
+        primitives = PrimitiveMagnitudes(self._DummyGeometry())
+        params = FormulationParameters(self._DummyGeometry(), "python")
+
+        U = sympy.Matrix([rho, *mom, e_tot])
+        H = sympy.Matrix([grad_rho.T, grad_mom[0, :], grad_mom[1, :], grad_e_tot.T])
+
+        print(H)
+
+        expr = primitives.AsVector()
+
+        expected = sympy.Matrix([
+            [params.R()/params.c_v * (e_tot - (mom.T*mom)[0,0]/(2*rho))],
+            [mom[0]/rho],
+            [mom[1]/rho],
+            [1/(rho*params.c_v) * (e_tot - (mom.T*mom)[0,0]/(2*rho))]
+        ])
+        QuantityConverter.SubstitutePrimitivesWithConservatives(expr, primitives, U, H, params)
+
+        print(expr)
+        self.assertTrue(expr.equals(expected))
+
 
 if __name__ == '__main__':
     suites = KratosUnitTest.KratosSuites
