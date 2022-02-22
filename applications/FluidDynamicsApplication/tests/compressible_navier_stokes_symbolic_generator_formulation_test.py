@@ -461,6 +461,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         self.assertTrue(projections["momentum"].equals(expected_mom_proj))
         self.assertTrue(projections["energy"].equals(expected_etot_proj))
 
+
 if __name__ == '__main__':
     suites = KratosUnitTest.KratosSuites
 
