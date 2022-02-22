@@ -549,9 +549,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-# Create custom targets. Not the cleanest solution, but minimizes the changes
-add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
-add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
+set(${KRATOS_KERNEL} "")
+set(${KRATOS_PYTHON_INTERFACE} "")
 
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
@@ -578,6 +577,10 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
+# Create custom targets. Not the cleanest solution, but minimizes the changes
+add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
+add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
 
 message("")
 message("***********************************************************************")
