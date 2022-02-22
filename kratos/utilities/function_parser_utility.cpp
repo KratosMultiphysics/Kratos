@@ -12,7 +12,7 @@
 //
 
 // System includes
-#ifdef KRATOS_MODERN_REGEX
+#if !(defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))))
     #include <regex>
 #endif
 
