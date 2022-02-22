@@ -498,12 +498,25 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                     self.constraint_buffer_variables[identifier]["buffer_size_factor"] += abs(self.constraint_buffer_variables[identifier]["buffer_value"]-self.constraint_buffer_variables[identifier]["buffer_value-1"])
 
             if self.optimization_iteration > 1:
+                if constraint["type"].GetString() == ">=":
+                    if delta_g >= 0.0 and constraint_value > 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] > 0:
+                        self.constraint_buffer_variables[identifier]["central_buffer_value"] -= self.constraint_buffer_variables[identifier]["constraint_value-1"]
+                        self.constraint_buffer_variables[identifier]["central_buffer_value"] = max(self.constraint_buffer_variables[identifier]["central_buffer_value"],0.0)
+                    elif delta_g <= 0.0 and constraint_value < 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] < 0:
+                        self.constraint_buffer_variables[identifier]["central_buffer_value"] -= self.constraint_buffer_variables[identifier]["constraint_value-1"]
+                elif constraint["type"].GetString() == "<=":
+                    if delta_g >= 0.0 and constraint_value > 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] > 0:
+                        self.constraint_buffer_variables[identifier]["central_buffer_value"] += self.constraint_buffer_variables[identifier]["constraint_value-1"]
+                    elif delta_g <= 0.0 and constraint_value < 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] < 0:
+                        self.constraint_buffer_variables[identifier]["central_buffer_value"] += self.constraint_buffer_variables[identifier]["constraint_value-1"]
+                        self.constraint_buffer_variables[identifier]["central_buffer_value"] = max(self.constraint_buffer_variables[identifier]["central_buffer_value"],0.0)
+
                 delta_g = constraint_value - self.constraint_buffer_variables[identifier]["constraint_value-1"]
 
                 if delta_g >= 0.0 and constraint_value > 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] > 0:
-                    self.constraint_buffer_variables[identifier]["central_buffer_value"] -= self.constraint_buffer_variables[identifier]["constraint_value-1"]
+                    self.constraint_buffer_variables[identifier]["central_buffer_value"] -= self.constraint_buffer_variables[identifier]["constraint_value-1"] * factor
                 elif delta_g <= 0.0 and constraint_value < 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] < 0:
-                    self.constraint_buffer_variables[identifier]["central_buffer_value"] -= self.constraint_buffer_variables[identifier]["constraint_value-1"]
+                    self.constraint_buffer_variables[identifier]["central_buffer_value"] -= self.constraint_buffer_variables[identifier]["constraint_value-1"] * factor
                     self.constraint_buffer_variables[identifier]["central_buffer_value"] = min(self.constraint_buffer_variables[identifier]["central_buffer_value"],0.0)
 
             self.constraint_buffer_variables[identifier]["constraint_value-3"] = self.constraint_buffer_variables[identifier]["constraint_value-2"]
