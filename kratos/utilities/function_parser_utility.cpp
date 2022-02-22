@@ -67,7 +67,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-#ifdef KRATOS_MODERN_REGEX
+#if !(defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))))
     const std::regex space_regex("\\b[xyz]\\b", std::regex_constants::icase);
     mDependsOnSpace = std::regex_search(mFunctionBody, space_regex);
 #else
