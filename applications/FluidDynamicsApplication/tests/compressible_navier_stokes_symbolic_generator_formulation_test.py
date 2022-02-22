@@ -264,12 +264,12 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
 
     class _DummyGenerator(CompressibleNavierStokesSymbolicGenerator):
         def __init__(self, geometry_class):
-            # self.write_language = "python"
             self.is_explicit = False
-            # self.shock_capturing = True
             self.echo_level = 0
-            # self.primitive_interpolation = "nodal"
             self.geometry = geometry_class
+            # self.write_language = "python"
+            # self.shock_capturing = True
+            # self.primitive_interpolation = "nodal"
             # self.outstring = None
 
         def ComputeNonLinearOperator(self, A, H, S, Ug):
