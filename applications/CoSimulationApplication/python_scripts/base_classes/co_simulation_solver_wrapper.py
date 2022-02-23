@@ -6,6 +6,7 @@ import KratosMultiphysics.CoSimulationApplication.factories.io_factory as io_fac
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
+from KratosMultiphysics.CoSimulationApplication.utilities import data_communicator_utilities
 
 def Create(settings, name):
     raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
@@ -148,8 +149,13 @@ class CoSimulationSolverWrapper:
         return self.__io is not None
 
     def _GetDataCommunicator(self):
-        # by default, the solver uses all available processes
-        return KM.ParallelEnvironment.GetDefaultDataCommunicator()
+        if len(self.settings["mpi_settings"].keys()) > 0:
+            if self.settings["mpi_settings"]["num_processes"].GetInt() == 1:
+                return data_communicator_utilities.GetRankZeroDataCommunicator()
+            return data_communicator_utilities.CreateDataCommunicatorWithNProcesses(self.settings["mpi_settings"])
+        else:
+            # if no special input is specified use the default implementation from the baseclass
+            return KM.ParallelEnvironment.GetDefaultDataCommunicator()
 
     @classmethod
     def _GetDefaultParameters(cls):
@@ -158,5 +164,6 @@ class CoSimulationSolverWrapper:
             "solver_wrapper_settings" : {},
             "io_settings"             : {},
             "data"                    : {},
+            "mpi_settings"            : {},
             "echo_level"              : 0
         }""")
