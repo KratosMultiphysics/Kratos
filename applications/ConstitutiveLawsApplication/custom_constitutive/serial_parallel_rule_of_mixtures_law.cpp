@@ -578,7 +578,6 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // Total strain vector
-        Vector& r_strain_vector = rValues.GetStrainVector();
         Vector fiber_stress_vector, matrix_stress_vector;
         this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
                                                     fiber_stress_vector,
