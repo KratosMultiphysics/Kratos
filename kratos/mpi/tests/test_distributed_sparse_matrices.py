@@ -161,7 +161,6 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         y.SetValue(0.0)
         A.TransposeSpMV(b,y) 
 
-
         At = A.Transpose()
         y2 =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)
         y2.SetValue(0.0)  

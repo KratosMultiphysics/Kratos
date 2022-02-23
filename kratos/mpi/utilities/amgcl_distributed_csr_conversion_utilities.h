@@ -145,9 +145,9 @@ public:
     {
 		bool move_to_backend=false; //important!
 		auto offdiag_global_index2 = rA.GetOffDiagonalIndex2DataInGlobalNumbering();
-        auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA, offdiag_global_index2, move_to_backend);
+        const auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA, offdiag_global_index2, move_to_backend);
 
-        auto pAamgcl_transpose = transpose(*pAamgcl);
+        const auto pAamgcl_transpose = transpose(*pAamgcl);
 
         auto pAt = ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, rA.GetComm());
 

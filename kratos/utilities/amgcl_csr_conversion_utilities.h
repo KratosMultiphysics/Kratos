@@ -87,9 +87,9 @@ public:
 			CsrMatrix<TDataType, TIndexType>& rA
 			)	
     {
-        auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA);
+        const auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA);
 
-        auto pAamgcl_transpose = amgcl::backend::transpose(*pAamgcl);
+        const auto pAamgcl_transpose = amgcl::backend::transpose(*pAamgcl);
 
         return ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose);
 	}
