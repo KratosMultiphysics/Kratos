@@ -525,14 +525,44 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(Constitu
 
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    const Vector& r_strain_vector = rValues.GetStrainVector();
-    mPreviousStrainVector = r_strain_vector;
-
-    // Recalculation to obtain the serial_strain_matrix and store the value
+    Flags& r_flags = rValues.GetOptions();
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
-    // Get Values to compute the constitutive law:
-    Flags& r_flags = rValues.GetOptions();
+    // In case the element has not computed the Strain
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+
+        Vector& r_strain_vector = rValues.GetStrainVector();
+
+        Matrix F_deformation_gradient(dimension, dimension);
+        this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
+        const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
+        // Doing resize in case is needed
+        if (r_strain_vector.size() != voigt_size)
+            r_strain_vector.resize(voigt_size);
+
+         // Identity matrix
+        Matrix identity_matrix(dimension, dimension);
+        for (IndexType i = 0; i < dimension; ++i) {
+            for (IndexType j = 0; j < dimension; ++j) {
+                if (i == j) identity_matrix(i, j) = 1.0;
+                else identity_matrix(i, j) = 0.0;
+            }
+        }
+
+        // Calculating the inverse of the left Cauchy tensor
+        Matrix inverse_B_tensor(dimension, dimension);
+        double aux_det_b = 0;
+        MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
+
+        // Calculate E matrix
+        const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
+        // Almansi Strain Calculation
+        r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+    }
+    const Vector& r_strain_vector = rValues.GetStrainVector();
+    mPreviousStrainVector = r_strain_vector;
 
     // Previous flags saved
     const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
