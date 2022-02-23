@@ -71,6 +71,6 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
 -DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
 -DINCLUDE_MMG=ON                                                       \
--DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_3"               \
+-DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
 -DINSTALL_RUNKRATOS=OFF

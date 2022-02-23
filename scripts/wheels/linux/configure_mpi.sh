@@ -72,6 +72,6 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_C_FLAGS="-msse3"                                               \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DINCLUDE_MMG=ON                                                       \
--DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_3"               \
+-DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
 -DKRATOS_BUILD_TESTING=OFF                                             \
 -DINSTALL_RUNKRATOS=OFF

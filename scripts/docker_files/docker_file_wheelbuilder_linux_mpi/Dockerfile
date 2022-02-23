@@ -1,6 +1,6 @@
 FROM quay.io/pypa/manylinux2014_x86_64
 
-ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_3
+ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
 RUN yum install -y git wget zip
@@ -28,14 +28,14 @@ RUN yum install -y mpich mpich-devel mpich-autoload metis metis-devel
 
 # Install MMG 5.5.3
 # Note ( upgraded from 5.4.1 because of https://github.com/MmgTools/mmg/issues/85)
-RUN mkdir -p /workspace/mmg_5_5_3
-RUN git clone -b 'v5.5.3' --depth 1 https://github.com/MmgTools/mmg /workspace/mmg_5_5_3 && \
-    mkdir /workspace/mmg_5_5_3/build && \
-    mkdir -p /workspace/external_libraries/mmg/mmg_5_5_3 && \
-    cd /workspace/mmg_5_5_3/build && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/workspace/external_libraries/mmg/mmg_5_5_3" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
+RUN mkdir -p /workspace/mmg_5_5_1
+RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/mmg_5_5_1 && \
+    mkdir /workspace/mmg_5_5_1/build && \
+    mkdir -p /workspace/external_libraries/mmg/mmg_5_5_1 && \
+    cd /workspace/mmg_5_5_1/build && \
+    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/workspace/external_libraries/mmg/mmg_5_5_1" -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make -j2 install && \
-    rm -r /workspace/mmg_5_5_3 && \
+    rm -r /workspace/mmg_5_5_1 && \
     cd /
 
 ENV CMAKE /workspace/cmake/cmake-3.15.3-Linux-x86_64/bin/cmake
