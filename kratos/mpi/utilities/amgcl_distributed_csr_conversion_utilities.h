@@ -136,12 +136,12 @@ public:
         // mfem_assemble_colors
 
 		return pAconverted;
-	}	
+    }	
 
     template< class TDataType, class TIndexType >
-	static typename DistributedCsrMatrix<TDataType, TIndexType>::Pointer Transpose(
-			const DistributedCsrMatrix<TDataType, TIndexType>& rA
-			)	
+    static typename DistributedCsrMatrix<TDataType, TIndexType>::Pointer Transpose(
+        const DistributedCsrMatrix<TDataType, TIndexType>& rA
+        )	
     {
         bool move_to_backend=false; //important!
         auto offdiag_global_index2 = rA.GetOffDiagonalIndex2DataInGlobalNumbering();
