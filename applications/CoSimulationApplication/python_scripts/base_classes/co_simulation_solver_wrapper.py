@@ -125,9 +125,8 @@ class CoSimulationSolverWrapper:
             raise Exception('Requested data field "{}" does not exist for solver "{}"'.format(data_name, self.name))
 
     def PrintInfo(self):
-        '''This function can be filled if desired, e.g. to print settings at higher echo-levels
-        '''
-        pass
+        if self.echo_level > 0 and self.data_communicator.IsDefinedOnThisRank():
+            cs_tools.cs_print_info("CoSimulationSolverWrapper", self._ClassName(), self.name, "Using {} mpi-processes".format(self.data_communicator.Size()))
 
     def Check(self):
         cs_tools.cs_print_warning("CoSimulationSolverWrapper", "your solver does not implement Check!!!")
