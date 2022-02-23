@@ -13,7 +13,7 @@ RUN mkdir -p /workspace/scripts; \
 
 # Install Boost
 RUN /workspace/boost; \
-    git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules https://github.com/boostorg/boost.git boost_1_71_0
+    git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git boost_1_71_0
 
 # Install CMake
 RUN mkdir /workspace/cmake; \
