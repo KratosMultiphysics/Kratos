@@ -92,14 +92,7 @@ class SerialOutputProcess(KM.OutputProcess):
                 self.model_part_destination,
                 settings["mapper_settings"])
 
-    def IsOutputStep(self):
-        is_output_step = False
-        if self.data_comm.Rank() == self.destination_rank:
-            if self.output_process:
-                is_output_step = self.output_process.IsOutputStep()
-        return bool(self.data_comm.Broadcast(int(is_output_step), self.destination_rank))
-
-    def PrintOutput(self):
+    def ExecuteFinalizeSolutionStep(self):
         defaults = KM.Parameters('''{
             "variable_origin"      : "UNSPECIFIED",
             "variable_destination" : "UNSPECIFIED",
@@ -115,6 +108,14 @@ class SerialOutputProcess(KM.OutputProcess):
 
             self.mapper.Map(variable_origin, variable_destination, mapper_flags)
 
+    def IsOutputStep(self):
+        is_output_step = False
+        if self.data_comm.Rank() == self.destination_rank:
+            if self.output_process:
+                is_output_step = self.output_process.IsOutputStep()
+        return bool(self.data_comm.Broadcast(int(is_output_step), self.destination_rank))
+
+    def PrintOutput(self):
         if self.data_comm.Rank() == self.destination_rank and self.output_process:
             self.output_process.PrintOutput()
 
