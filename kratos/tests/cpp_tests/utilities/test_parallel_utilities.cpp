@@ -540,6 +540,18 @@ KRATOS_TEST_CASE_IN_SUITE(OmpVsPureC11, KratosCoreFastSuite)
 
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MaxReductionInEmptyVector, KratosCoreFastSuite)
+{
+    std::vector<double> data_vector;
+    double max_value = 0.0;
+
+    max_value = block_for_each<MaxReduction<double>>(data_vector,[&](double& value){
+        return value;
+    });
+
+    KRATOS_CHECK_NEAR(max_value, 0.0, 1e-10);
+}
+
 
 } // namespace Testing
 } // namespace Kratos
