@@ -204,7 +204,7 @@ public:
     /**
      * Access Data:
      */
-    DataValueContainer& Data()
+    DataValueContainer& GetData()
     {
         return pGetGeometry()->GetData();
     }
@@ -234,7 +234,7 @@ public:
         const TVariableType& rThisVariable,
         typename TVariableType::Type const& rValue)
     {
-        Data().SetValue(rThisVariable, rValue);
+        GetData().SetValue(rThisVariable, rValue);
     }
 
     /**
@@ -243,7 +243,7 @@ public:
     template<class TVariableType> typename TVariableType::Type& GetValue(
         const TVariableType& rThisVariable)
     {
-        return Data().GetValue(rThisVariable);
+        return GetData().GetValue(rThisVariable);
     }
 
     template<class TVariableType> typename TVariableType::Type const& GetValue(
