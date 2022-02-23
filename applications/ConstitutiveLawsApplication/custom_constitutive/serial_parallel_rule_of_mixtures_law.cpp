@@ -9,7 +9,7 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Alejandro Cornejo
-//                   Vicente Mataix
+//                   Vicente Mataix Ferrandiz
 //                   Fernando Rastellini
 //  Collaborator:    Lucia Barbu
 //
@@ -751,8 +751,6 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
         mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else {
-        rValue;
     }
 }
 
@@ -770,8 +768,6 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
         mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else {
-        rValue;
     }
 }
 
@@ -789,8 +785,6 @@ void SerialParallelRuleOfMixturesLaw::SetValue(
         mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-    } else {
-        rValue;
     }
 }
 
