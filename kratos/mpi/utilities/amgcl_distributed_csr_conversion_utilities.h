@@ -135,7 +135,7 @@ public:
         // mOffDiagonalGlobalIds
         // mfem_assemble_colors
 
-		return pAconverted;
+        return pAconverted;
     }	
 
     template< class TDataType, class TIndexType >
