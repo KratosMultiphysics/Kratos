@@ -47,57 +47,61 @@ class ModelPartsController:
                     raise RuntimeError("ModelPartsController: Required setting '{}' missing in 'model_import_settings' of 'model_part Nr.{}' !".format(key,itr+1))             
             self.model_parts_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"]) 
   
-        self.model_parts_name=[]
-        self.model_parts_input_filename=[]
+        self.root_model_part_name_filename_map={}
+        self.name_root_model_part_map={}
         for model_part_settings in self.model_parts_settings:
             model_part_name = model_part_settings["name"].GetString()
             input_filename = model_part_settings["settings"]["input_filename"].GetString()
             input_type = model_part_settings["type"].GetString()
             if input_type != "mdpa":
                 raise RuntimeError("The model part "+format(model_part_name)+" for the optimization has to be read from the mdpa file!")
-            if model_part_name in self.model_parts_name:
+            if model_part_name in self.root_model_part_name_filename_map.keys():
                 raise RuntimeError("ModelPartsController: there are duplicated model parts !") 
-            if input_filename in self.model_parts_input_filename:
+            if input_filename in self.root_model_part_name_filename_map.values():
                 raise RuntimeError("ModelPartsController: there are duplicated input files !")                
             optimization_model_part = self.model.CreateModelPart(model_part_name)
-            optimization_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, model_part_settings["settings"]["domain_size"].GetInt())   
-            self.model_parts_name.append(model_part_name) 
-            self.model_parts_input_filename.append(input_filename)              
+            optimization_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, model_part_settings["settings"]["domain_size"].GetInt())
+            self.root_model_part_name_filename_map[model_part_name] = input_filename
+            self.name_root_model_part_map[model_part_name] = optimization_model_part             
 
     # --------------------------------------------------------------------------
     def Initialize(self):
-        self.__ImportModelParts()
+        self.__ImportRootModelParts()
 
     # --------------------------------------------------------------------------
-    def CheckIfModelPartExists(self,model_part_name):
-        exists = False
-        for model_part_settings in self.model_parts_settings:
-            if model_part_name == model_part_settings["name"].GetString():
-                exists = True
-                break
-        return exists
-
+    def CheckIfRootModelPartExists(self,root_model_part_name):
+        if root_model_part_name in self.name_root_model_part_map.keys():
+            return True
+        else:
+            False
     # --------------------------------------------------------------------------
     def GetModelPart(self, model_part_name):
         if not model_part_name in self.model.GetModelPartNames():
             raise RuntimeError("AnalyzersController: Try to get model part {} which does not exist.".format(model_part_name))
         else:
             return self.model.GetModelPart(model_part_name)
-
+    # --------------------------------------------------------------------------
+    def GetRootModelPart(self, root_model_part_name):
+        if not root_model_part_name in self.name_root_model_part_map.keys():
+            raise RuntimeError("AnalyzersController: Try to get root model part {} which does not exist.".format(root_model_part_name))
+        else:
+            return self.name_root_model_part_map[root_model_part_name]
+    # --------------------------------------------------------------------------
+    def UpdateTimeStep(self, step):
+        for root_model_part in self.name_root_model_part_map.values():
+            root_model_part.CloneTimeStep(step)
+            root_model_part.ProcessInfo.SetValue(KM.STEP, step)            
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
-        for model_part_name in self.model.GetModelPartNames():
-            optimization_model_part = self.model.GetModelPart(model_part_name)
-            if optimization_model_part.GetBufferSize() < buffer_size:
-                optimization_model_part.SetBufferSize(buffer_size)
+        for root_model in self.name_root_model_part_map.values():
+            if root_model.GetBufferSize() < buffer_size:
+                root_model.SetBufferSize(buffer_size)
     # --------------------------------------------------------------------------
-    def __ImportModelParts(self):
+    def __ImportRootModelParts(self):
 
-        for model_part_settings in self.model_parts_settings:
-            model_part_name = model_part_settings["name"].GetString()
-            optimization_model_part = self.model.GetModelPart(model_part_name)
-            input_filename = model_part_settings["settings"]["input_filename"].GetString()
-            KM.ModelPartIO(input_filename).ReadModelPart(optimization_model_part)
+        for name,root_model in self.name_root_model_part_map.items():
+            input_filename = self.root_model_part_name_filename_map[name]
+            KM.ModelPartIO(input_filename).ReadModelPart(root_model)
 
         self.SetMinimalBufferSize(1)
 

@@ -39,7 +39,7 @@ class ControlsController:
             "settings"       : {
                 "technique"  : "CONTROL_TECHNIQUE",
                 "technique_settings"       : {},
-                "variables_names"  : []                
+                "variables_name"  : []                
             }
         }""")
 
@@ -64,7 +64,7 @@ class ControlsController:
             control_name = control_settings["name"].GetString()            
             control_type = control_settings["type"].GetString()
             control_technique = control_settings["settings"]["technique"].GetString()
-            control_variables_name_list = control_settings["settings"]["variables_names"].GetStringArray()
+            control_variables_name_list = control_settings["settings"]["variables_name"].GetStringArray()
             # check control type
             if not control_type in self.supported_control_types:
                 raise RuntimeError("ControlsController: control type '{}' is not supported!".format(control_type))

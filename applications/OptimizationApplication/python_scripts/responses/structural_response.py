@@ -1,5 +1,5 @@
 # importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -33,36 +33,27 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
 
-    def __init__(self, response_settings,response_analyzer,model):
+    def __init__(self, response_settings,response_analyzer,response_analyzer_model_part,model):
 
-        self.settings = response_settings
+        self.response_settings = response_settings
+        default_gradient_settings = KM.Parameters("""
+        {
+            "gradient_mode" : "semi_analytic",
+            "step_size" : 1e-6
+        }""")
+        
+        self.response_settings["gradient_settings"].ValidateAndAssignDefaults(default_gradient_settings)        
+
         self.primal_analysis = response_analyzer
         self.model = model
-        # self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, response_settings)
+        self.primal_model_part = response_analyzer_model_part
+        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, self.response_settings["gradient_settings"])
 
     def Initialize(self):
-        pass
-        # self.primal_analysis.Initialize()
-        # self.response_function_utility.Initialize()
-
-    def InitializeSolutionStep(self):
-        pass
-        # self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
-        # self.primal_analysis.InitializeSolutionStep()
+        self.response_function_utility.Initialize()
 
     def CalculateValue(self):
-        pass
-        # Logger.PrintInfo("StrainEnergyResponse", "Starting primal analysis for response", self.identifier)
-
-        # startTime = timer.time()
-        # self.primal_analysis._GetSolver().Predict()
-        # self.primal_analysis._GetSolver().SolveSolutionStep()
-        # Logger.PrintInfo("StrainEnergyResponse", "Time needed for solving the primal analysis",round(timer.time() - startTime,2),"s")
-
-        # startTime = timer.time()
-        # value = self.response_function_utility.CalculateValue()
-        # self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
-        # Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating the response value",round(timer.time() - startTime,2),"s")
+        return self.response_function_utility.CalculateValue()
 
     def CalculateGradient(self):
         pass

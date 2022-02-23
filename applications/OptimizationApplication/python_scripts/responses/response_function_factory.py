@@ -1,7 +1,7 @@
 # importing the Kratos Library
 from . import structural_response
 
-def CreateResponseFunction(response_type,response_settings, response_analyzer, model):
+def CreateResponseFunction(response_type,response_settings, response_analyzer,response_analyzer_model_part,model):
 
     structural_primal_analysis_required_responses = ["strain_energy","eigenfrequency","adjoint_nodal_displacement","adjoint_linear_strain_energy",
                                           "adjoint_local_stress","adjoint_max_stress","adjoint_nodal_reaction"]
@@ -9,9 +9,8 @@ def CreateResponseFunction(response_type,response_settings, response_analyzer, m
     if response_type in structural_primal_analysis_required_responses and (response_analyzer is None or type(response_analyzer) is not structural_response.StructuralMechanicsAnalysis):
         raise RuntimeError("CreateResponseFunction: Response {} requires analysis type of StructuralMechanicsAnalysis which is not defined !".format(response_type))  
 
-
     if response_type == "strain_energy": 
-        return structural_response.StrainEnergyResponseFunction(response_settings,response_analyzer,model)
+        return structural_response.StrainEnergyResponseFunction(response_settings,response_analyzer,response_analyzer_model_part,model)
 
     # elif response_type == "mass":
     #     return structural_response.MassResponseFunction(response_id, response_settings, model)
