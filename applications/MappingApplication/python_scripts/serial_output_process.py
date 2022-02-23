@@ -39,15 +39,13 @@ class SerialOutputProcess(KM.OutputProcess):
         if settings["mapping_settings"].size() == 0:
             raise Exception('no "mapping_settings" were specified!')
 
-        if len(settings["output_process_settings"].keys()) > 1:
-            raise Exception('Max one "output_process_settings" can be specified!')
-
         mdpa_file_name_destination = settings["mdpa_file_name_destination"].GetString()
 
         model_part_origin = model.GetModelPart(settings["model_part_name_origin"].GetString())
         self.model_part_destination = model.CreateModelPart(settings["model_part_name_destination"].GetString())
 
-        self.model_part_destination.ProcessInfo = model_part_origin.ProcessInfo # for detecting output writing
+        self.model_part_destination.GetRootModelPart().ProcessInfo = model_part_origin.ProcessInfo # for detecting output writing
+        SetProcessInfoInSubModelParts(self.model_part_destination.GetRootModelPart())
 
         for var in GenerateVariableListFromInput(settings["historical_variables_destination"]):
             self.model_part_destination.AddNodalSolutionStepVariable(var)
@@ -64,7 +62,7 @@ class SerialOutputProcess(KM.OutputProcess):
                 KM.ModelPartIO(mdpa_file_name_destination, import_flags).ReadModelPart(self.model_part_destination)
 
             self.output_process = None
-            if len(settings["output_process_settings"].keys()) == 1:
+            if len(settings["output_process_settings"].keys()) > 0:
                 output_proc_params = KM.Parameters('''{ "dummy" : [] }''')
                 output_proc_params["dummy"].Append(settings["output_process_settings"])
                 self.output_process = KratosProcessFactory(model).ConstructListOfProcesses(output_proc_params["dummy"])[0]
@@ -128,3 +126,8 @@ def GetMapperFlags(settings):
         mapper_flags |= mapper_flags_dict[flag_name]
 
     return mapper_flags
+
+def SetProcessInfoInSubModelParts(model_part):
+    for smp in model_part.SubModelParts:
+        smp.ProcessInfo = model_part.ProcessInfo
+        SetProcessInfoInSubModelParts(smp)
