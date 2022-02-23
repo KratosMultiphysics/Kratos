@@ -1125,7 +1125,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
@@ -1144,7 +1157,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
@@ -1163,7 +1189,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
@@ -1182,7 +1221,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
@@ -1201,7 +1253,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
@@ -1220,7 +1285,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
@@ -1239,7 +1317,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
@@ -1258,7 +1349,20 @@ template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
+	// Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
