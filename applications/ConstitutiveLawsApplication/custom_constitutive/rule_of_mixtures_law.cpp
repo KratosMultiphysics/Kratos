@@ -1043,7 +1043,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
+        p_law->CalculateMaterialResponseKirchhoff(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
