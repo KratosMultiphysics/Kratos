@@ -12,10 +12,8 @@ RUN mkdir -p /workspace/scripts; \
 	mkdir -p /workspace/kratos
 
 # Install Boost
-RUN mkdir /workspace/boost; \
-	wget -P /workspace/boost https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.tar.gz; \
-	tar -C /workspace/boost -xzf /workspace/boost/boost_1_71_0.tar.gz; \
-	rm /workspace/boost/boost_1_71_0.tar.gz
+RUN /workspace/boost; \
+    git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules https://github.com/boostorg/boost.git boost_1_71_0
 
 # Install CMake
 RUN mkdir /workspace/cmake; \
