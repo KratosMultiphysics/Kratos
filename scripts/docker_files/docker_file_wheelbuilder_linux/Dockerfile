@@ -5,8 +5,6 @@ ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
 RUN yum install -y git wget zip
 
-RUN yum install -y libgfortran.x86_64 blas-devel lapack-devel
-
 # Prepare File system
 RUN mkdir -p /data_swap_guest
 
