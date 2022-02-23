@@ -3,28 +3,21 @@ FROM quay.io/pypa/manylinux2014_x86_64
 ENV MMG_ROOT=/external_libraries/mmg/mmg_5_5_1
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
 
-RUN yum install -y git wget zip
+# Prepare package dependencies
+RUN yum install -y git wget zip mpich mpich-devel mpich-autoload metis metis-devel
 
-# Prepare File system
+# Prepare Shared Volumes
 RUN mkdir -p /data_swap_guest
 
+# Prepare File System
 RUN mkdir -p /workspace/scripts; \
-	mkdir -p /workspace/kratos
+	mkdir -p /workspace/kratos; \
+    mkdir -p /workspace/boost
 
 # Install Boost
-RUN /workspace/boost; \
-    git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git boost_1_71_0
+RUN git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git boost_1_71_0
 
-# Install CMake
-RUN mkdir /workspace/cmake; \
-	wget -P /workspace/cmake https://github.com/Kitware/CMake/releases/download/v3.15.3/cmake-3.15.3-Linux-x86_64.tar.gz; \
-	tar -C /workspace/cmake -xzf /workspace/cmake/cmake-3.15.3-Linux-x86_64.tar.gz; \
-	rm /workspace/cmake/cmake-3.15.3-Linux-x86_64.tar.gz
-
-# Mpi libraries
-RUN yum install -y mpich mpich-devel mpich-autoload metis metis-devel
-
-# Install MMG 5.5.3
+# Install MMG 5.5.1
 # Note ( upgraded from 5.4.1 because of https://github.com/MmgTools/mmg/issues/85)
 RUN mkdir -p /workspace/mmg_5_5_1
 RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/mmg_5_5_1 && \
@@ -35,8 +28,6 @@ RUN git clone -b 'v5.5.1' --depth 1 https://github.com/MmgTools/mmg /workspace/m
     make -j2 install && \
     rm -r /workspace/mmg_5_5_1 && \
     cd /
-
-ENV CMAKE /workspace/cmake/cmake-3.15.3-Linux-x86_64/bin/cmake
 
 COPY start.sh /workspace/scripts/start.sh
 
