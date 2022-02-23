@@ -39,8 +39,8 @@ class SerialOutputProcess(KM.OutputProcess):
         if settings["mapping_settings"].size() == 0:
             raise Exception('no "mapping_settings" were specified!')
 
-        if len(settings["output_process_settings"].keys()) == 0:
-            raise Exception('no "output_process_settings" were specified!')
+        if len(settings["output_process_settings"].keys()) > 1:
+            raise Exception('Max one "output_process_settings" can be specified!')
 
         mdpa_file_name_destination = settings["mdpa_file_name_destination"].GetString()
 
@@ -59,12 +59,15 @@ class SerialOutputProcess(KM.OutputProcess):
             raise Exception(f'Destination rank {self.destination_rank} larger than avilable size {self.data_comm.Size()}')
 
         if self.data_comm.Rank() == self.destination_rank:
-            import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
-            KM.ModelPartIO(mdpa_file_name_destination, import_flags).ReadModelPart(self.model_part_destination)
+            if mdpa_file_name_destination != "":
+                import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
+                KM.ModelPartIO(mdpa_file_name_destination, import_flags).ReadModelPart(self.model_part_destination)
 
-            output_proc_params = KM.Parameters('''{ "dummy" : [] }''')
-            output_proc_params["dummy"].Append(settings["output_process_settings"])
-            self.output_process = KratosProcessFactory(model).ConstructListOfProcesses(output_proc_params["dummy"])[0]
+            self.output_process = None
+            if len(settings["output_process_settings"].keys()) == 1:
+                output_proc_params = KM.Parameters('''{ "dummy" : [] }''')
+                output_proc_params["dummy"].Append(settings["output_process_settings"])
+                self.output_process = KratosProcessFactory(model).ConstructListOfProcesses(output_proc_params["dummy"])[0]
 
         if model_part_origin.IsDistributed():
             import KratosMultiphysics.mpi as KratosMPI
@@ -90,7 +93,8 @@ class SerialOutputProcess(KM.OutputProcess):
     def IsOutputStep(self):
         is_output_step = False
         if self.data_comm.Rank() == self.destination_rank:
-            is_output_step = self.output_process.IsOutputStep()
+            if self.output_process:
+                is_output_step = self.output_process.IsOutputStep()
         return bool(self.data_comm.Broadcast(int(is_output_step), self.destination_rank))
 
     def PrintOutput(self):
@@ -109,7 +113,7 @@ class SerialOutputProcess(KM.OutputProcess):
 
             self.mapper.Map(variable_origin, variable_destination, mapper_flags)
 
-        if self.data_comm.Rank() == self.destination_rank:
+        if self.data_comm.Rank() == self.destination_rank and self.output_process:
             self.output_process.PrintOutput()
 
 
