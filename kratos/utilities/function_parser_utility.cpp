@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <regex>
 
 // External includes
 #include "tinyexpr/tinyexpr/tinyexpr.h"
@@ -22,6 +23,30 @@
 
 namespace Kratos
 {
+
+// A check only to check that the x is not part of exp
+inline bool CheckThereIsNotx(const std::string& rString)
+{
+    const auto first_x = rString.find(std::string("x"));
+    if (first_x != std::string::npos) {
+        const std::string exp_string = "exp";
+        const char e_char = exp_string[0];
+        const char x_char = exp_string[1];
+        const char p_char = exp_string[2];
+        for(std::size_t i = first_x; i < rString.size(); ++i) {
+            if(rString[i] == x_char) {
+                if (!(rString[i - 1] == e_char && rString[i + 1] == p_char)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFunctionBody)
     : mFunctionBody(rFunctionBody)
@@ -36,7 +61,11 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
     InitializeParser();
 
     // Check if it depends on space
-    if (mFunctionBody.find(std::string("x")) == std::string::npos &&
+#if !(defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))))
+    const std::regex space_regex("\\b[xyz]\\b", std::regex_constants::icase);
+    mDependsOnSpace = std::regex_search(mFunctionBody, space_regex);
+#else
+    if (CheckThereIsNotx(mFunctionBody)                           &&
         mFunctionBody.find(std::string("y")) == std::string::npos &&
         mFunctionBody.find(std::string("z")) == std::string::npos &&
         mFunctionBody.find(std::string("X")) == std::string::npos &&
@@ -44,6 +73,7 @@ BasicGenericFunctionUtility::BasicGenericFunctionUtility(const std::string& rFun
         mFunctionBody.find(std::string("Z")) == std::string::npos) {
         mDependsOnSpace = false;
     }
+#endif
 }
 
 /***********************************************************************************/
