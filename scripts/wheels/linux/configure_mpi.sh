@@ -5,6 +5,12 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+export MPI_HOME=/usr/lib64/mpich/bin
+export PATH=${PATH}:${MPI_HOME}
+
+export MPI_C=`which mpicc`
+export MPI_CXX=`which mpicxx`
+
 # Set variables
 export KRATOS_SOURCE=${KRATOS_ROOT}
 export KRATOS_BUILD="${KRATOS_SOURCE}/build"
@@ -37,7 +43,7 @@ add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
 add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
-add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
+# add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 # add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
@@ -54,15 +60,18 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
+# -DKRATOS_ENABLE_LTO=ON                                                 \
+
 ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DCMAKE_INSTALL_PREFIX=$2                                              \
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=ON                                                           \
--DCMAKE_C_COMPILER=/usr/lib64/mpich/bin/mpicc                          \
--DCMAKE_CXX_COMPILER=/usr/lib64/mpich/bin/mpicxx                       \
+-DCMAKE_C_COMPILER=gcc                                                 \
+-DCMAKE_CXX_COMPILER=g++                                               \
 -DCMAKE_CXX_FLAGS="-msse3 -std=c++11 "                                 \
 -DCMAKE_C_FLAGS="-msse3"                                               \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_4_1"               \
+-DKRATOS_BUILD_TESTING=OFF                                             \
 -DINSTALL_RUNKRATOS=OFF
