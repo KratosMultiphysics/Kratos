@@ -159,6 +159,9 @@ void DepthIntegrationProcess<TDim>::Integrate(
             velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
         }
     }
+    if (height < 1e-4) { // Sanity check to avoid Nan
+        velocity = ZeroVector(3);
+    }
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);

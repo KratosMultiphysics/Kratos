@@ -11,21 +11,16 @@ def Factory(settings, model):
 
 
 class LineEnvelopeOutputProcess(LineGraphOutputProcess):
-    """This process writes the maximum results along a line to generate a graph.
-    """
+    """This process writes the maximum results along a line to generate a graph."""
 
     def ExecuteBeforeSolutionLoop(self):
-        """Constructor of the class."""
+        """Initialize the list of maximum values."""
         super().ExecuteBeforeSolutionLoop()
         self.values = [[-1e6] * len(self.variables) for _ in self.found_positions]
 
 
-    def PrintOutput(self):
-        """Look for the maximum value. The output file will be generated at the end of the simulation.
-        This task is executed at the PrintOutput for two reasons:
-        - some output values might be computed at the ExecuteBeforeOutputStep
-        - this task can be skipped and executed fewer times
-        """
+    def ExecuteFinalizeSolutionStep(self):
+        """Look for the maximum value."""
         i = 0
         for entity, area_coords in zip(self.entities, self.area_coords):
             for v, var in enumerate(self.variables):
@@ -34,8 +29,12 @@ class LineEnvelopeOutputProcess(LineGraphOutputProcess):
             i += 1
 
 
-    def ExecuteFinalize(self):
-        """The output file is created, filled and closed."""
+    def PrintOutput(self):
+        """The output file is created, filled and closed.
+
+        The previous output files are overwitten. If the simulation
+        does not reach the end, an envelope will be kept.
+        """
         self.file_settings["file_name"].SetString(self.file_name)
         file = TimeBasedAsciiFileWriterUtility(self.model_part, self.file_settings, self._GetHeader()).file
         for point, var_values in zip(self.found_positions, self.values):
