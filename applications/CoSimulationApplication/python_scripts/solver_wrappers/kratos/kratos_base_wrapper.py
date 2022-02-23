@@ -14,15 +14,15 @@ class ThreadManager:
     def __init__(self, num_threads=None):
         self.num_threads = num_threads
         if self.num_threads:
-            self.num_threads_orig = KM.OpenMPUtils().GetNumThreads()
+            self.num_threads_orig = KM.ParallelUtilities.GetNumThreads()
 
     def __enter__(self):
         if self.num_threads:
-            KM.OpenMPUtils().SetNumThreads(min(self.num_threads, self.num_threads_orig))
+            KM.ParallelUtilities.SetNumThreads(min(self.num_threads, self.num_threads_orig))
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.num_threads:
-            KM.OpenMPUtils().SetNumThreads(self.num_threads_orig)
+            KM.ParallelUtilities.SetNumThreads(self.num_threads_orig)
 
 
 def Create(settings, model, solver_name):
@@ -42,14 +42,15 @@ class KratosBaseWrapper(CoSimulationSolverWrapper):
 
         super().__init__(settings, model, solver_name)
 
-        # this creates the AnalysisStage, creates the MainModelParts and allocates the historial Variables on the MainModelParts:
-        self._analysis_stage = self.__GetAnalysisStage()
-
         if self.settings["solver_wrapper_settings"].Has("num_threads"):
             omp_num_threads = self.settings["solver_wrapper_settings"]["num_threads"].GetInt()
             self.thread_manager = ThreadManager(omp_num_threads)
         else:
             self.thread_manager = ThreadManager()
+
+        # this creates the AnalysisStage, creates the MainModelParts and allocates the historial Variables on the MainModelParts:
+        with self.thread_manager:
+            self._analysis_stage = self.__GetAnalysisStage()
 
     def Initialize(self):
         with self.thread_manager:
