@@ -12,9 +12,7 @@
 //
 
 // System includes
-#if !(defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 9))))
-    #include <regex>
-#endif
+#include <regex>
 
 // External includes
 #include "tinyexpr/tinyexpr/tinyexpr.h"
@@ -26,9 +24,6 @@
 namespace Kratos
 {
 
-#ifdef KRATOS_MODERN_REGEX
-
-#else
 // A check only to check that the x is not part of exp
 inline bool CheckThereIsNotx(const std::string& rString)
 {
@@ -49,7 +44,6 @@ inline bool CheckThereIsNotx(const std::string& rString)
 
     return true;
 }
-#endif
 
 /***********************************************************************************/
 /***********************************************************************************/
