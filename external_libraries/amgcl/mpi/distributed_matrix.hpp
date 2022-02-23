@@ -522,6 +522,8 @@ class distributed_matrix {
 
         template <class A, class VecX, class B, class VecY>
         void mul(A alpha, const VecX &x, B beta, VecY &y) const {
+            const auto one = math::identity<scalar_type>();
+
             C->start_exchange(x);
 
             // Compute local part of the product.
@@ -531,18 +533,20 @@ class distributed_matrix {
             C->finish_exchange();
 
             if (C->needs_remote())
-                backend::spmv(alpha, *A_rem, *C->x_rem, 1, y);
+                backend::spmv(alpha, *A_rem, *C->x_rem, one, y);
         }
 
         template <class Vec1, class Vec2, class Vec3>
         void residual(const Vec1 &f, const Vec2 &x, Vec3 &r) const {
+            const auto one = math::identity<scalar_type>();
+
             C->start_exchange(x);
             backend::residual(f, *A_loc, x, r);
 
             C->finish_exchange();
 
             if (C->needs_remote())
-                backend::spmv(-1, *A_rem, *C->x_rem, 1, r);
+                backend::spmv(-one, *A_rem, *C->x_rem, one, r);
         }
 
     private:

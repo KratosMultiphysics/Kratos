@@ -46,19 +46,24 @@ template <template <class> class Coarsening>
 struct as_scalar {
     template <class Backend>
     struct type {
-        typedef typename math::scalar_of<typename Backend::value_type>::type Scalar;
-        typedef Coarsening< backend::builtin<Scalar> > Base;
+        typedef typename math::element_of<typename Backend::value_type>::type Scalar;
+        typedef backend::builtin<Scalar, typename Backend::col_type, typename Backend::ptr_type> BaseBackend;
+        typedef Coarsening<BaseBackend> Base;
 
         typedef typename Base::params params;
         Base base;
 
         type(const params &prm = params()) : base(prm) {};
-        
+
         template <class Matrix>
-        std::tuple<
-            std::shared_ptr<Matrix>,
-            std::shared_ptr<Matrix>
-            >
+        typename std::enable_if<
+            backend::coarsening_is_supported<BaseBackend, Coarsening>::value &&
+            (math::static_rows<typename backend::value_type<Matrix>::type>::value > 1),
+            std::tuple<
+                std::shared_ptr<Matrix>,
+                std::shared_ptr<Matrix>
+                >
+            >::type
         transfer_operators(const Matrix &B) {
             typedef typename backend::value_type<Matrix>::type Block;
             auto T = base.transfer_operators(*adapter::unblock_matrix(B));
@@ -73,7 +78,32 @@ struct as_scalar {
                     std::make_shared<Matrix>(adapter::block_matrix<Block>(P)),
                     std::make_shared<Matrix>(adapter::block_matrix<Block>(R))
                     );
-        }       
+        }
+
+        template <class Matrix>
+        typename std::enable_if<
+            backend::coarsening_is_supported<BaseBackend, Coarsening>::value &&
+            (math::static_rows<typename backend::value_type<Matrix>::type>::value == 1),
+            std::tuple<
+                std::shared_ptr<Matrix>,
+                std::shared_ptr<Matrix>
+                >
+            >::type
+        transfer_operators(const Matrix &A) {
+            return base.transfer_operators(A);
+        }
+
+        template <class Matrix>
+        typename std::enable_if<
+            !backend::coarsening_is_supported<BaseBackend, Coarsening>::value,
+            std::tuple<
+                std::shared_ptr<Matrix>,
+                std::shared_ptr<Matrix>
+                >
+            >::type
+        transfer_operators(const Matrix&) {
+            throw std::logic_error("The coarsening is not supported by the backend");
+        }
 
         template <class Matrix>
         std::shared_ptr<Matrix>
