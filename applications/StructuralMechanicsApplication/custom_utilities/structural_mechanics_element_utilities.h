@@ -124,11 +124,14 @@ void CalculateB(
             rB(2, initial_index    ) = rDN_DX(i, 1);
             rB(2, initial_index + 1) = rDN_DX(i, 0);
         }
-    } else if(strain_size = 4) {
+    } else if(strain_size == 4) {
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            const IndexType initial_index = i*2;
             rB(0, initial_index    ) = rDN_DX(i, 0);
             rB(1, initial_index + 1) = rDN_DX(i, 1);
             rB(3, initial_index    ) = rDN_DX(i, 1);
             rB(3, initial_index + 1) = rDN_DX(i, 0);
+        }
 
     } else if(strain_size == 6) {
         for ( IndexType i = 0; i < number_of_nodes; ++i ) {
