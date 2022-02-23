@@ -1135,16 +1135,22 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& 
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
+        p_law->CalculateMaterialResponsePK1(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponsePK1(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1171,12 +1177,18 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& 
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1199,16 +1211,22 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parame
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
+        p_law->CalculateMaterialResponseKirchhoff(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponseKirchhoff(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1231,16 +1249,22 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameter
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
+        p_law->CalculateMaterialResponseCauchy(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->InitializeMaterialResponseCauchy(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1263,16 +1287,22 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rV
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
+        p_law->CalculateMaterialResponsePK1(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponsePK1(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1299,12 +1329,18 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1327,16 +1363,22 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Paramete
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
+        p_law->CalculateMaterialResponseKirchhoff(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponseKirchhoff(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
@@ -1359,16 +1401,22 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters&
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
-        p_law->CalculateMaterialResponsePK2(rValues);
+        p_law->CalculateMaterialResponseCauchy(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
+    // The rotation matrix
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+    const Vector strain_vector = rValues.GetStrainVector();
     // We perform the reset in each layer
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         Properties& r_prop             = *(it_prop_begin + i_layer);
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
         rValues.SetMaterialProperties(r_prop);
+        // We rotate to local axes the strain
+        noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
         p_law->FinalizeMaterialResponseCauchy(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
