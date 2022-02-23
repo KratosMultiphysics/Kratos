@@ -41,6 +41,49 @@ ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Paramet
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    this->InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    this->InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    this->InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    auto& r_material_properties = rValues.GetMaterialProperties();
+    const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+    const auto& r_props_matrix_cl = *(it_cl_begin);
+    const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+
+    ConstitutiveLaw::Parameters values_fiber  = rValues;
+    ConstitutiveLaw::Parameters values_matrix = rValues;
+
+    values_matrix.SetMaterialProperties(r_props_matrix_cl);
+    mpMatrixConstitutiveLaw->InitializeMaterialResponseCauchy(values_matrix);
+
+    values_fiber.SetMaterialProperties(r_props_fiber_cl);
+    mpFiberConstitutiveLaw->InitializeMaterialResponseCauchy(values_fiber);
+}
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->CalculateMaterialResponseCauchy(rValues);
@@ -591,6 +634,40 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool& SerialParallelRuleOfMixturesLaw::GetValue(
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else {
+        return rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int& SerialParallelRuleOfMixturesLaw::GetValue(
+    const Variable<int>& rThisVariable,
+    int& rValue
+    )
+{
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else {
+        return rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 double& SerialParallelRuleOfMixturesLaw::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
@@ -600,22 +677,27 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
         return mpMatrixConstitutiveLaw->GetValue(DAMAGE, rValue);
     } else if (rThisVariable == DAMAGE_FIBER) {
          return mpFiberConstitutiveLaw->GetValue(DAMAGE, rValue);
+    } else if (rThisVariable == DAMAGE && mpFiberConstitutiveLaw->Has(rThisVariable) && mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        double damage_fiber, damage_matrix;
+        mpFiberConstitutiveLaw->GetValue(DAMAGE, damage_fiber);
+        mpMatrixConstitutiveLaw->GetValue(DAMAGE, damage_matrix);
+        rValue = std::max(damage_fiber, damage_matrix);
+        return rValue;
     }
     if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
         return mpFiberConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
     } else if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
         return mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
     } else if (rThisVariable == UNIAXIAL_STRESS) {
-        double uniaxial_stress_fiber;
-        double uniaxial_stress_matrix;
+        double uniaxial_stress_fiber, uniaxial_stress_matrix;
         mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_fiber);
         mpMatrixConstitutiveLaw->GetValue(UNIAXIAL_STRESS, uniaxial_stress_matrix);
         rValue = mFiberVolumetricParticipation * uniaxial_stress_fiber + (1.0 - mFiberVolumetricParticipation) * uniaxial_stress_matrix;
         return rValue;
-    } else if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
         return rValue;
     }
@@ -652,6 +734,25 @@ Matrix& SerialParallelRuleOfMixturesLaw::GetValue(
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     } else {
         return rValue;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::SetValue(
+    const Variable<bool>& rThisVariable,
+    const bool& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // We set the value in all layers
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        mpMatrixConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        mpFiberConstitutiveLaw->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    } else {
+        rValue;
     }
 }
 
@@ -710,6 +811,20 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool SerialParallelRuleOfMixturesLaw::Has(const Variable<int>& rThisVariable)
+{
+    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 {
     if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
@@ -747,6 +862,28 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
     } else {
         return false;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool& SerialParallelRuleOfMixturesLaw::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<bool>& rThisVariable,
+    bool& rValue)
+{
+    return this->GetValue(rThisVariable, rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int& SerialParallelRuleOfMixturesLaw::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<int>& rThisVariable,
+    int& rValue)
+{
+    return this->GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
