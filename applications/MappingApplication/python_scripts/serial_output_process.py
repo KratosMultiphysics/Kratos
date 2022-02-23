@@ -21,8 +21,8 @@ class SerialOutputProcess(KM.OutputProcess):
         self.settings = settings
 
         default_settings = KM.Parameters('''{
-            "model_part_name_origin"      : "UNSPECIFIED",
-            "model_part_name_destination" : "UNSPECIFIED",
+            "main_model_part_name_origin"      : "UNSPECIFIED",
+            "main_model_part_name_destination" : "UNSPECIFIED",
             "mdpa_file_name_destination"  : "UNSPECIFIED",
             "historical_variables_destination" : [],
             "destination_rank" : 0,
@@ -41,11 +41,15 @@ class SerialOutputProcess(KM.OutputProcess):
 
         mdpa_file_name_destination = settings["mdpa_file_name_destination"].GetString()
 
-        model_part_origin = model.GetModelPart(settings["model_part_name_origin"].GetString())
-        self.model_part_destination = model.CreateModelPart(settings["model_part_name_destination"].GetString())
+        model_part_origin = model.GetModelPart(settings["main_model_part_name_origin"].GetString())
+        if model_part_origin.IsSubModelPart():
+            raise Exception('Origin ModelPart cannot be a SubModelPart!')
 
-        self.model_part_destination.GetRootModelPart().ProcessInfo = model_part_origin.ProcessInfo # for detecting output writing
-        SetProcessInfoInSubModelParts(self.model_part_destination.GetRootModelPart())
+        self.model_part_destination = model.CreateModelPart(settings["main_model_part_name_destination"].GetString())
+        if self.model_part_destination.IsSubModelPart():
+            raise Exception('Destination ModelPart cannot be a SubModelPart!')
+
+        self.model_part_destination.ProcessInfo = model_part_origin.ProcessInfo # for detecting output writing
 
         for var in GenerateVariableListFromInput(settings["historical_variables_destination"]):
             self.model_part_destination.AddNodalSolutionStepVariable(var)
@@ -126,8 +130,3 @@ def GetMapperFlags(settings):
         mapper_flags |= mapper_flags_dict[flag_name]
 
     return mapper_flags
-
-def SetProcessInfoInSubModelParts(model_part):
-    for smp in model_part.SubModelParts:
-        smp.ProcessInfo = model_part.ProcessInfo
-        SetProcessInfoInSubModelParts(smp)
