@@ -27,19 +27,6 @@ class CompressibleNavierStokesSymbolicGenerator:
     -----------
     Bayona (2017). Adaptive Mesh Simulations of Compressible Flows using Stabilized
     Formulations. Chapter 3.
-
-
-    Testing
-    -------
-    If you modify this file without intending to modify its output, run test
-    >> compressible_navier_stokes_symbolic_generator_test.py
-    in order to ensure that the output stays the same.
-
-    If you intend to modify the output, then run the aforementioned test and update
-    the test checksum.
-
-    The test is quite slow so it is only run in nightly CI, not raising any
-    alarms in your pull request, so make sure to check manually.
     """
 
     def __init__(self, settings):
