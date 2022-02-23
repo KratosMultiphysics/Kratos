@@ -246,12 +246,12 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     // Compute the tangent tensor of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
     mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
-    matrix_tangent_tensor = values_matrix.GetConstitutiveMatrix();
+    noalias(matrix_tangent_tensor) = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
-    fiber_tangent_tensor = values_fiber.GetConstitutiveMatrix();
+    noalias(fiber_tangent_tensor) = values_fiber.GetConstitutiveMatrix();
 
     noalias(matrix_tangent_tensor_ss) = prod(rSerialProjector, Matrix(prod(matrix_tangent_tensor,trans(rSerialProjector))));
     noalias(fiber_tangent_tensor_ss)  = prod(rSerialProjector, Matrix(prod(fiber_tangent_tensor, trans(rSerialProjector))));
