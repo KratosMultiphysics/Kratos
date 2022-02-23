@@ -129,6 +129,13 @@ public:
     }
 
     /**
+     * @brief This function will be executed at every time step after every coupling iteration during the solve phase
+     */
+    virtual void ExecuteFinalizeCouplingStep()
+    {
+    }
+
+    /**
      * @brief This function will be executed at every time step AFTER performing the solve phase
      */
     virtual void ExecuteFinalizeSolutionStep()
@@ -167,7 +174,7 @@ public:
     {
         return 0;
     }
-    
+
     /**
      * @brief This method clears the assignation of the conditions
      */

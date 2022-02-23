@@ -139,6 +139,14 @@ class AnalysisStage(object):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "STEP: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self.time)
 
+    def FinalizeCouplingStep(self):
+        """This function performs all required operations that should be executed after
+        each coupling iteration.
+        """
+        for process in self._GetListOfProcesses():
+            process.ExecuteFinalizeCouplingStep()
+
+
     def FinalizeSolutionStep(self):
         """This function performs all the required operations that should be executed
         (for each step) AFTER solving the solution step.
