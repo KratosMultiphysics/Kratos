@@ -131,17 +131,20 @@ class cpr {
 
         template <class Vec1, class Vec2>
         void apply(const Vec1 &rhs, Vec2 &&x) const {
+            const auto one = math::identity<scalar_type>();
+            const auto zero = math::zero<scalar_type>();
+
             AMGCL_TIC("sprecond");
             S->apply(rhs, x);
             AMGCL_TOC("sprecond");
             backend::residual(rhs, S->system_matrix(), x, *rs);
 
-            backend::spmv(1, *Fpp, *rs, 0, *rp);
+            backend::spmv(one, *Fpp, *rs, zero, *rp);
             AMGCL_TIC("pprecond");
             P->apply(*rp, *xp);
             AMGCL_TOC("pprecond");
 
-            backend::spmv(1, *Scatter, *xp, 1, x);
+            backend::spmv(one, *Scatter, *xp, one, x);
         }
 
         std::shared_ptr<matrix> system_matrix_ptr() const {
