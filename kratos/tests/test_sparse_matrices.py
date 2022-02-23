@@ -109,6 +109,18 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
             for i in range(len(validation_index1)):
                 self.assertEqual(B_scipy.indptr[i], validation_index1[i])
 
+        #test transpose and TransposeSpMV
+        x.SetValue(1.0)
+        y.SetValue(0.0)
+        A.TransposeSpMV(x,y) 
+
+        At = A.Transpose()
+        y2 =  KratosMultiphysics.SystemVector(y.size())
+        y2.SetValue(0.0)  
+        At.SpMV(x,y2)
+        for i in range(y.Size()):
+            self.assertEqual(y[i], y2[i], 1e-14)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

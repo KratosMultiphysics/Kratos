@@ -138,20 +138,21 @@ public:
 		return pAconverted;
 	}	
 
-    //Note that we deliberately return a unique_ptr as it can be moved to a shared_ptr as needed
     template< class TDataType, class TIndexType >
-	static typename DistributedCsrMatrix<TDataType, TIndexType>::UniquePointer Transpose(
+	static typename DistributedCsrMatrix<TDataType, TIndexType>::Pointer Transpose(
 			const DistributedCsrMatrix<TDataType, TIndexType>& rA
 			)	
     {
+		bool move_to_backend=false; //important!
 		auto offdiag_global_index2 = rA.GetOffDiagonalIndex2DataInGlobalNumbering();
-        auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA, offdiag_global_index2);
+        auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA, offdiag_global_index2, move_to_backend);
 
         auto pAamgcl_transpose = transpose(*pAamgcl);
 
-        return ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, rA.GetComm());
-	}
+        auto pAt = ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, rA.GetComm());
 
+		return pAt;
+	}
 };
 
 }

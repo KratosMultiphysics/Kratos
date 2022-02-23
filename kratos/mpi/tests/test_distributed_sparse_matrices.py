@@ -156,18 +156,16 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         if(my_rank == 0):
             self.assertEqual(dotprod, np.dot(reference_spmv_res,reference_spmv_res), 1e-14)
 
-        print("aaaa")
         #test transpose and TransposeSpMV
         b.SetValue(1.0)
         y.SetValue(0.0)
         A.TransposeSpMV(b,y) 
-        print("bbb")
+
 
         At = A.Transpose()
-        print("ccc")
         y2 =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)
         y2.SetValue(0.0)  
-        At.TransposeSpMV(b,y2)
+        At.SpMV(b,y2)
         for i in range(y.LocalSize()):
             self.assertEqual(y[i], y2[i], 1e-14)
   
