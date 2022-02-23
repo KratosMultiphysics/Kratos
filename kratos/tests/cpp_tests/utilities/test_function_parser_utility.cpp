@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility1, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(function6.FunctionBody(), "(1.0)*(50*(exp(t)-2))");
     KRATOS_CHECK_DOUBLE_EQUAL(function6.CallFunction(0.0,0.0,0.0,0.0), -50);
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(GenericFunctionUtility("A quien le importa lo que yo haga A quien le importa lo que yo diga  Yo soy asi, y asi seguire, nunca cambiare"), "Error: Parsing error in function: A quien le importa lo que yo haga A quien le importa lo que yo diga  Yo soy asi, y asi seguire, nunca cambiare");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(GenericFunctionUtility("A quien"), "Error: \nParsing error in function: A quien\nError occurred near here : ^ (char [0])\nCheck your locale (e.g. if \".\" or \",\" is used as decimal point)");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility2, KratosCoreFastSuite)
