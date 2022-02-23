@@ -76,7 +76,14 @@ class ModelPartsController:
                 exists = True
                 break
         return exists
-        
+
+    # --------------------------------------------------------------------------
+    def GetModelPart(self, model_part_name):
+        if not model_part_name in self.model.GetModelPartNames():
+            raise RuntimeError("AnalyzersController: Try to get model part {} which does not exist.".format(model_part_name))
+        else:
+            return self.model.GetModelPart(model_part_name)
+
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
         for model_part_name in self.model.GetModelPartNames():

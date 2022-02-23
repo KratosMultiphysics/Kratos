@@ -76,7 +76,7 @@ class AnalyzersController:
 
             # check types
             if  not analyzer_type in self.analyzers_types_model_parts_dict.keys():  
-                raise RuntimeError("AnalyzersController: Analysis {} is not supported.".format(analyzer_type))
+                raise RuntimeError("AnalyzersController: Analysis {} is not supported, \n supported types are {}.".format(analyzer_type,self.analyzers_types_model_parts_dict.keys()))
             # check names
             if  analyzer_name in self.analyzers.keys():  
                 raise RuntimeError("AnalyzersController: Analysis name {} already exists.".format(analyzer_name))
@@ -87,12 +87,23 @@ class AnalyzersController:
             if  model_part_name in self.analyzers_types_model_parts_dict[analyzer_type]:
                 raise RuntimeError("AnalyzersController: Analysis {} for model part {} already exists.".format(analyzer_type,model_part_name))
 
+            analyzer = None
             if  analyzer_type == "StructuralMechanicsAnalysis":
                 if StructuralMechanicsAnalysis is None:
                     raise RuntimeError("AnalyzersController: Analysis {} requires StructuralMechanicsApplication.".format(analyzer_name))                 
                 analyzer = StructuralMechanicsAnalysis(self.model, AnalysisProjectParameters)
                 self.analyzers_types_model_parts_dict[analyzer_type] = model_part_name 
-
+            elif  analyzer_type == "ConvectionDiffusionAnalysis":
+                if ConvectionDiffusionAnalysis is None:
+                    raise RuntimeError("AnalyzersController: Analysis {} requires ConvectionDiffusionAnalysis.".format(analyzer_name))                 
+                analyzer = ConvectionDiffusionAnalysis(self.model, AnalysisProjectParameters)
+                self.analyzers_types_model_parts_dict[analyzer_type] = model_part_name       
+            elif  analyzer_type == "PotentialFlowAnalysis":
+                if PotentialFlowAnalysis is None:
+                    raise RuntimeError("AnalyzersController: Analysis {} requires PotentialFlowAnalysis.".format(analyzer_name))                 
+                analyzer = PotentialFlowAnalysis(self.model, AnalysisProjectParameters)
+                self.analyzers_types_model_parts_dict[analyzer_type] = model_part_name
+                
             self.analyzers[analyzer_name] = analyzer
                    
 
@@ -108,7 +119,20 @@ class AnalyzersController:
             if analysis_name == analyzer_settings["name"].GetString():
                 exists = True
                 break
-        return exists            
+        return exists      
+
+    # --------------------------------------------------------------------------
+    def GetAnalysis(self,analysis_name):
+        if not analysis_name in self.analyzers.keys():
+            raise RuntimeError("AnalyzersController: Try to get an analysis {} which does not exist.".format(analysis_name))
+        else:
+            return self.analyzers[analysis_name]
+    # --------------------------------------------------------------------------
+    def GetAnalysisModelPart(self,analysis_name):
+        if not analysis_name in self.analyzers.keys():
+            raise RuntimeError("AnalyzersController: Try to get an analysis {} which does not exist.".format(analysis_name))
+        else:
+            return self.analyzers[analysis_name]            
 
                
 
