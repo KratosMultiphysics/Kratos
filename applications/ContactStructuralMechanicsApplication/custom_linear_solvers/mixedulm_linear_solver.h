@@ -703,11 +703,13 @@ public:
         KRATOS_DEBUG_ERROR_IF(lm_inactive_counter != n_lm_inactive_dofs) << "The number of inactive LM dofs counter : " << lm_inactive_counter << "is higher than the expected: " << n_lm_inactive_dofs << std::endl;
         KRATOS_DEBUG_ERROR_IF(other_counter != n_other_dofs) << "The number of other dofs counter : " << other_counter << "is higher than the expected: " << n_other_dofs << std::endl;
 
-        // TODO: Refactor rDofSet with 
+        // Refactor rDofSet with the new indices
+        // Ordering of the dofs is important
         // BlockType::OTHER
         // BlockType::MASTER
         // BlockType::SLAVE_INACTIVE
         // BlockType::SLAVE_ACTIVE
+        const DofsArrayType copy_dof_set(rDofSet);
     }
 
     ///@}
