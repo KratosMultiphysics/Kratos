@@ -1,5 +1,4 @@
 # Importing the Kratos Library
-from ssl import SSL_ERROR_SSL
 import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
