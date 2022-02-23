@@ -23,7 +23,7 @@ class SerialOutputProcess(KM.OutputProcess):
         default_settings = KM.Parameters('''{
             "main_model_part_name_origin"      : "UNSPECIFIED",
             "main_model_part_name_destination" : "UNSPECIFIED",
-            "mdpa_file_name_destination"  : "UNSPECIFIED",
+            "mdpa_file_name_destination"  : "",
             "historical_variables_destination" : [],
             "destination_rank" : 0,
             "mapper_settings" :  {},
