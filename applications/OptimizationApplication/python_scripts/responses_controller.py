@@ -24,16 +24,16 @@ import KratosMultiphysics.OptimizationApplication.responses.response_function_fa
 import time as timer
 
 # ==============================================================================
-def CreateController(reponses_settings,model,analyzers_controller):
-    return ResponsesController(reponses_settings,model,analyzers_controller)
+def CreateController(reponses_settings,model,analyses_controller):
+    return ResponsesController(reponses_settings,model,analyses_controller)
 
 # ==============================================================================
 class ResponsesController:
     # --------------------------------------------------------------------------
-    def __init__(self,reponses_settings,model,analyzers_controller):
+    def __init__(self,reponses_settings,model,analyses_controller):
         
         self.reponses_settings = reponses_settings
-        self.analyzers_controller = analyzers_controller
+        self.analyses_controller = analyses_controller
         self.model = model
 
         default_settings = KM.Parameters("""
@@ -41,8 +41,10 @@ class ResponsesController:
             "name"                : "REPONSE_NAME",
             "type"                : "RESPONSE_TYPE",
             "settings"                : {
-                "analyzer_name"   : "RESPONSE_ANALYZER_NAME",
-                "variables_name": [],
+                "analysis_name"   : "RESPONSE_ANALYZER_NAME",
+                "evaluate_model_parts": [],
+                "design_types": [],
+                "design_model_parts": [],
                 "gradient_settings" : {}
             }
         }""")
@@ -50,25 +52,34 @@ class ResponsesController:
         for itr in range(self.reponses_settings.size()):
             for key in default_settings.keys():
                 if not self.reponses_settings[itr].Has(key):
-                    raise RuntimeError("ResponsesController: Required setting '{}' missing in 'response Nr.{}'!".format(key,itr+1))  
-            self.reponses_settings[itr].ValidateAndAssignDefaults(default_settings)          
-            self.reponses_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])         
+                    raise RuntimeError("ResponsesController: Required entry '{}' missing in 'response Nr.{}'!".format(key,itr+1))  
+            self.reponses_settings[itr].ValidateAndAssignDefaults(default_settings)
+
+            for key in default_settings["settings"].keys():
+                if key == "gradient_settings" or key == "analysis_name":
+                    continue
+                if not self.reponses_settings[itr]["settings"].Has(key):
+                    raise RuntimeError("ResponsesController: Required entry '{}' missing in settings of 'response Nr.{}' !".format(key,itr+1))             
+            self.reponses_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
+
 
         self.responses = {}
-
 
         for itr in range(self.reponses_settings.size()):
             response_settings = self.reponses_settings[itr]
             response_name = response_settings["name"].GetString()            
             response_type = response_settings["type"].GetString()
-            response_analyzer = None
-            response_analyzer_model_part = None
-            if response_settings["settings"].Has("analyzer_name"):
-                response_analyzer_name = response_settings["settings"]["analyzer_name"].GetString()
-                response_analyzer = analyzers_controller.GetAnalysis(response_analyzer_name)
-                response_analyzer_model_part = analyzers_controller.GetAnalysisModelPart(response_analyzer_name)                        
+            response_analysis = None
+            response_analysis_model_part = None
+            # check for analysis
+            if response_settings["settings"].Has("analysis_name"):
+                response_analysis_name = response_settings["settings"]["analysis_name"].GetString()
+                response_analysis = analyses_controller.GetAnalysis(response_analysis_name)
+                response_analysis_model_part = analyses_controller.GetAnalysisModelPart(response_analysis_name)  
 
-            response = response_function_factory.CreateResponseFunction(response_type,response_settings["settings"],response_analyzer,response_analyzer_model_part,model)
+            # check for analysis                      
+
+            response = response_function_factory.CreateResponseFunction(response_type,response_settings["settings"],response_analysis,response_analysis_model_part,model)
             self.responses[response_name] = response
 
 

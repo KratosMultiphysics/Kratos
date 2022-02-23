@@ -15,7 +15,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KO
 from KratosMultiphysics.OptimizationApplication import model_parts_controller
-from KratosMultiphysics.OptimizationApplication import analyzers_controller
+from KratosMultiphysics.OptimizationApplication import analyses_controller
 from KratosMultiphysics.OptimizationApplication import responses_controller
 from KratosMultiphysics.OptimizationApplication import controls_controller
 
@@ -36,8 +36,8 @@ class Optimizer:
         self._ValidateSettings(optimization_settings)
         self.optimization_settings = optimization_settings
         self.model_parts_controller = model_parts_controller.CreateController(optimization_settings["model_parts"],model)
-        self.analyzers_controller = analyzers_controller.CreateController(optimization_settings["analyzers"],model,self.model_parts_controller)
-        self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.analyzers_controller)
+        self.analyses_controller = analyses_controller.CreateController(optimization_settings["analyses"],model,self.model_parts_controller)
+        self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.analyses_controller)
         self.controls_controller = controls_controller.CreateController(optimization_settings["controls"],model,self.model_parts_controller)
 
 
@@ -48,7 +48,7 @@ class Optimizer:
         default_settings = KM.Parameters("""
         {
             "model_parts" : [ ],
-            "analyzers" : [ ],
+            "analyses" : [ ],
             "responses" : [ ],            
             "controls" : [ ],
             "algorithms" : [ ]

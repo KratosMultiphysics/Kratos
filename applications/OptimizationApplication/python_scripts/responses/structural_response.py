@@ -33,7 +33,7 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
     response_function_utility: Cpp utilities object doing the actual computation of response value and gradient.
     """
 
-    def __init__(self, response_settings,response_analyzer,response_analyzer_model_part,model):
+    def __init__(self, response_settings,response_analysis,response_analysis_model_part,model):
 
         self.response_settings = response_settings
         default_gradient_settings = KM.Parameters("""
@@ -44,9 +44,9 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         
         self.response_settings["gradient_settings"].ValidateAndAssignDefaults(default_gradient_settings)        
 
-        self.primal_analysis = response_analyzer
+        self.primal_analysis = response_analysis
         self.model = model
-        self.primal_model_part = response_analyzer_model_part
+        self.primal_model_part = response_analysis_model_part
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, self.response_settings["gradient_settings"])
 
     def Initialize(self):
