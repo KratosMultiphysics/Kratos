@@ -1,4 +1,4 @@
-FROM quay.io/pypa/manylinux2010_x86_64
+FROM quay.io/pypa/manylinux2014_x86_64
 
 ENV MMG_ROOT=/external_libraries/mmg/mmg_5_4_1
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:{MMG_ROOT}/lib
