@@ -27,8 +27,6 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
-        """ImportCouplingInterface()= Imports coupling interface from an external solver
-        External solver sends, CoSimulation receives = load values"""
         for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
             interface_config = {"model_part_name" : model_part_name}
             self.ImportCouplingInterface(interface_config)
