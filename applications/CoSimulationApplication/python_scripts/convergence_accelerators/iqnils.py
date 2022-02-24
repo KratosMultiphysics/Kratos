@@ -10,7 +10,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_convergence_accelerator import CoSimulationConvergenceAccelerator
 
 # CoSimulation imports
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info, SettingsTypeCheck
+from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import cs_print_info, cs_print_warning, SettingsTypeCheck
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # Other imports

@@ -29,6 +29,7 @@ typedef std::size_t SizeType;
 void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, false);
+    mNumSearchResults++;
 }
 
 void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
@@ -156,9 +157,23 @@ void NearestElementLocalSystem::PairingInfo(std::ostream& rOStream, const int Ec
 
 void NearestElementLocalSystem::SetPairingStatusForPrinting()
 {
-        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
-        }
+    if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+        mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
+    }
+}
+
+bool NearestElementLocalSystem::IsDoneSearching() const
+{
+    if (HasInterfaceInfoThatIsNotAnApproximation()) {return true;};
+
+    std::size_t sum_search_results = 0;
+
+    for (const auto& rp_info : mInterfaceInfos) {
+        const NearestElementInterfaceInfo& r_info = static_cast<const NearestElementInterfaceInfo&>(*rp_info);
+        sum_search_results += r_info.GetNumSearchResults();
+    }
+
+    return sum_search_results > 20;
 }
 
 }  // namespace Kratos.

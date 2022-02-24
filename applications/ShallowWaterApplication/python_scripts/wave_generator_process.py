@@ -1,6 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
-from KratosMultiphysics.ShallowWaterApplication.utilities import wave_theory_utilities
+from KratosMultiphysics.ShallowWaterApplication.utilities.wave_factory import WaveTheoryFactory
 
 
 def Factory(settings, Model):
@@ -8,7 +8,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return WaveGeneratorProcess(Model, settings["Parameters"])
 
-## All the processes python should be derived from "Process"
+
 class WaveGeneratorProcess(KM.Process):
 
     __formulation = {
@@ -16,27 +16,29 @@ class WaveGeneratorProcess(KM.Process):
         "conserved_variables" : SW.Formulation.ConservativeVariables
     }
 
-    __wave_theory = {
-        "boussinesq"     : wave_theory_utilities.BoussinesqTheory,
-        "linear_theory"  : wave_theory_utilities.LinearTheory,
-        "shallow_theory" : wave_theory_utilities.ShallowTheory
-    }
 
     @staticmethod
     def GetDefaultParameters():
-        """The wave specifications can be in the project parameters or in the process info."""
+        """Default parameters for wave generator process.
 
-        return KM.Parameters("""
-        {
-            "model_part_name"     : "model_part",
-            "formulation"         : "primitive_variables",
-            "interval"            : [0.0, 1e30],
-            "direction"           : [0.0, 0.0, 0.0],
-            "smooth_time"         : 0.0,
-            "wave_theory"         : "boussinesq",
-            "wave_specifications" : {}
-        }
-        """)
+        A zero value in the wave specifications will be ignored.
+        The direction can be specified with a vector or the 'normal' keyword.
+        """
+        return KM.Parameters("""{
+            "model_part_name"          : "model_part",
+            "formulation"              : "primitive_variables",
+            "interval"                 : [0.0, "End"],
+            "direction"                : [0.0, 0.0, 0.0],
+            "normal_positive_outwards" : true,
+            "smooth_time"              : 0.0,
+            "wave_specifications"      : {
+                "wave_theory"               : "boussinesq",
+                "period"                    : 0.0,
+                "wavelength"                : 0.0,
+                "amplitude"                 : 0.0,
+                "get_depth_from_model_part" : true
+            }
+        }""")
 
 
     def __init__(self, model, settings ):
@@ -69,31 +71,30 @@ class WaveGeneratorProcess(KM.Process):
 
         # Check the direction
         if self.direction_by_normal:
-            normal = self._CalculateUnitNormal()
-            self.settings["direction"].SetVector(-1 * normal)
+            direction = self._CalculateUnitNormal()
+            if self.settings["normal_positive_outwards"].GetBool():
+                direction *= -1
+            self.settings["direction"].SetVector(direction)
 
         # Setup the wave theory
-        wave_theory_class = self.__wave_theory[self.settings["wave_theory"].GetString()]
-        depth = self._CalculateMeanDepth()
-        gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
-        wave_theory = wave_theory_class(depth, gravity)
-        wave_theory.SetWaveSpecifications(self.settings["wave_specifications"], self.model_part.ProcessInfo)
+        wave_settings = self.settings["wave_specifications"]
+        wave_theory = WaveTheoryFactory(self.model_part, wave_settings)
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
         velocity_parameters.AddEmptyValue("amplitude").SetDouble(wave_theory.horizontal_velocity)
         velocity_parameters.AddEmptyValue("wavelength").SetDouble(wave_theory.wavelength)
         velocity_parameters.AddEmptyValue("period").SetDouble(wave_theory.period)
-        velocity_parameters.AddEmptyValue("phase").SetDouble(0.0)
-        velocity_parameters.AddEmptyValue("shift").SetDouble(0.0)
+        velocity_parameters.AddValue("phase", self.settings["wave_specifications"]["t_shift"])
+        velocity_parameters.AddValue("shift", self.settings["wave_specifications"]["x_shift"])
         velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
         velocity_parameters.AddValue("direction", self.settings["direction"])
 
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
 
 
-    def ExecuteBeforeSolutionLoop(self):
-        self.ExecuteInitializeSolutionStep()
+    def Check(self):
+        self.velocity_process.Check()
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -114,12 +115,6 @@ class WaveGeneratorProcess(KM.Process):
         """Returns if we are inside the time interval or not."""
         current_time = self.model_part.ProcessInfo[KM.TIME]
         return self.interval.IsInInterval(current_time)
-
-
-    def _CalculateMeanDepth(self):
-        sum_depths = -KM.VariableUtils().SumHistoricalNodeScalarVariable(SW.TOPOGRAPHY, self.model_part, 0)
-        mean_depth = sum_depths / self.model_part.NumberOfNodes()
-        return mean_depth
 
 
     def _CalculateUnitNormal(self):

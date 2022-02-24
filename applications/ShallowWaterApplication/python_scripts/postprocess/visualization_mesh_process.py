@@ -53,7 +53,7 @@ class VisualizationMeshProcess(KM.Process):
         if settings["create_topographic_model_part"].GetBool():
             self.topographic_model_part = model.CreateModelPart(settings["topographic_model_part_name"].GetString())
         else:
-            if model.Has(settings["topographic_model_part_name"].GetString()):
+            if model.HasModelPart(settings["topographic_model_part_name"].GetString()):
                 self.topographic_model_part = model.GetModelPart(settings["topographic_model_part_name"].GetString())
 
         # Creating the variables list
@@ -111,6 +111,7 @@ class VisualizationMeshProcess(KM.Process):
 
     def _DuplicateModelPart(self):
         KM.MergeVariableListsUtility().Merge(self.computing_model_part, self.topographic_model_part)
+        self.topographic_model_part.ProcessInfo = self.computing_model_part.ProcessInfo
         element_num_nodes = len(self.computing_model_part.Elements.__iter__().__next__().GetNodes())
         condition_num_nodes = len(self.computing_model_part.Conditions.__iter__().__next__().GetNodes())
         reference_element = "Element2D{}N".format(element_num_nodes)
