@@ -41,7 +41,10 @@ class CompressibleNavierStokesSymbolicGenerator:
         self.is_explicit = settings["explicit"].GetBool()
         self.simplify = settings["do_simplifications"].GetBool()
         self.shock_capturing = settings["shock_capturing"].GetBool()
-        self.echo_level = settings["echo_level"].GetInt()
+
+        echo_level = settings["echo_level"].GetInt()
+        severity = KratosMultiphysics.Logger.Severity(echo_level)
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(severity)
 
         self._ReadPrimitiveInterpolation(settings)
 
@@ -55,7 +58,8 @@ class CompressibleNavierStokesSymbolicGenerator:
         self.outstring = None
         self._GenerateFiles()
 
-        self._print(2, settings)
+        if int(severity) >= int(KratosMultiphysics.Logger.Severity.DETAIL):
+            KratosMultiphysics.Logger.PrintInfo(settings)
 
     def _ReadPrimitiveInterpolation(self, settings):
         valid_modes = ["nodal", "gaussian"]
@@ -114,10 +118,6 @@ class CompressibleNavierStokesSymbolicGenerator:
             "echo_level" : 1,
             "primitive_interpolation" : "gaussian"
         }""")
-
-    def _print(self, lvl, *text):
-        if self.echo_level >= lvl:
-            print(*text)
 
     def _GenerateFiles(self):
         with open(self.template_filename, "r") as template:
@@ -191,7 +191,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         n5 = L_adj.transpose() * subscales
 
         # Variational formulation (Galerkin functional)
-        self._print(1, " - Compute variational formulation")
+        KratosMultiphysics.Logger.Print(" - Compute variational formulation")
         rv = n1 + n2 + n3 + n4 + n5  # Implicit case with inertial term n1
 
         return (rv, subscales)
@@ -268,7 +268,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         return rv_gauss
 
     def _ComputeResidualAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, primitives, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w):
-        self._print(1, "    Gauss point: " + str(i_gauss))
+        KratosMultiphysics.Logger.Print("    Gauss point: {}".format(i_gauss))
 
         # Get Gauss point geometry data
         Ng = self.geometry.N_gauss(i_gauss)
@@ -298,7 +298,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             acc_gauss = dUdt.transpose()*Ng
 
         # Gauss pt. stabilization matrix calculation
-        self._print(1, "    - Compute stabilization matrix on Gauss pt.")
+        KratosMultiphysics.Logger.Print("    - Compute stabilization matrix on Gauss pt.")
         if self.shock_capturing:
             tau_gauss = generate_stabilization_matrix.ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, primitives, mu_sc_gauss, lamb_sc_gauss)
         else:
@@ -311,7 +311,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         grad_U = KratosSympy.DfiDxj(self.geometry.DN(), U)
         grad_w = KratosSympy.DfiDxj(self.geometry.DN(), w)
 
-        self._print(1, "    - Substitution in the variational formulation")
+        KratosMultiphysics.Logger.Print("    - Substitution in the variational formulation")
 
         # Primitive interpolation
         KratosSympy.SubstituteMatrixValue(rv_gauss, Tau, tau_gauss)
@@ -343,11 +343,11 @@ class CompressibleNavierStokesSymbolicGenerator:
                 testfunc[i*self.geometry.blocksize + j] = w[i, j]
 
         # Compute LHS and RHS
-        self._print(1, "    Compute RHS")
+        KratosMultiphysics.Logger.Print("    Compute RHS")
         rhs = KratosSympy.Compute_RHS(rv_tot.copy(), testfunc, self.simplify)
 
         if not self.is_explicit:
-            self._print(1, "    Compute LHS")
+            KratosMultiphysics.Logger.Print("    Compute LHS")
             lhs = KratosSympy.Compute_LHS(rhs, testfunc, dofs, self.simplify)
         else:
             lhs = None
@@ -356,7 +356,7 @@ class CompressibleNavierStokesSymbolicGenerator:
 
     def _OutputLHSandRHS(self, lhs, rhs, subscales_type):
         # Reading and filling the template file
-        self._print(1, "    Substituting outstring from {}".format(self.template_filename))
+        KratosMultiphysics.Logger.Print("    Substituting outstring from {}".format(self.template_filename))
 
         if self.geometry.symbolic_integration:
             rhs_name = "rRightHandSideBoundedVector"
@@ -398,7 +398,7 @@ class CompressibleNavierStokesSymbolicGenerator:
     def Generate(self):
         self._ReplaceWarningMessage()
 
-        self._print(1, "Computing geometry: {}".format(self.geometry))
+        KratosMultiphysics.Logger.Print("Computing geometry: {}".format(self.geometry))
 
         dim = self.geometry.ndims
         n_nodes = self.geometry.nnodes
@@ -459,26 +459,26 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Calculate the Gauss point residual
         # Matrix Computation
-        self._print(1, " - Compute Source Matrix")
+        KratosMultiphysics.Logger.Print(" - Compute Source Matrix")
         S = generate_source_term.ComputeSourceMatrix(primitives, mg, f, rg, params)
 
-        self._print(1, " - Compute Euler Jacobian matrix")
+        KratosMultiphysics.Logger.Print(" - Compute Euler Jacobian matrix")
         A = generate_convective_flux.ComputeEulerJacobianMatrix(U, primitives, params)
 
         if self.shock_capturing:
             sc_params = ShockCapturingParameters()
-            self._print(1, " - Compute diffusive flux (shock capturing ON)")
+            KratosMultiphysics.Logger.Print(" - Compute diffusive flux (shock capturing ON)")
             G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(primitives, params, sc_params)
         else:
             sc_params = None
-            self._print(1, " - Compute diffusive flux (shock capturing OFF)")
+            KratosMultiphysics.Logger.Print(" - Compute diffusive flux (shock capturing OFF)")
             G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, params)
 
-        self._print(1, " - Compute stabilization matrix")
+        KratosMultiphysics.Logger.Print(" - Compute stabilization matrix")
         Tau = generate_stabilization_matrix.ComputeStabilizationMatrix(params)
 
         # Non-linear operator definition
-        self._print(1, " - Compute non-linear operator")
+        KratosMultiphysics.Logger.Print(" - Compute non-linear operator")
         L = self._ComputeNonLinearOperator(A, H, S, Ug)
 
         # FE residuals definition
@@ -489,14 +489,14 @@ class CompressibleNavierStokesSymbolicGenerator:
         # linearised by using the values already stored in the database.
         res = - acc - L
 
-        self._print(1, " - Compute non-linear adjoint operator")
+        KratosMultiphysics.Logger.Print(" - Compute non-linear adjoint operator")
         L_adj = self._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
 
         (rv, subscales) = self._ComputeVariationalFormulation(A, acc, G, H, L_adj, Q, S, Ug, V)
 
         # OSS Residual projections calculation
         # Calculate the residuals projection
-        self._print(1, " - Calculate the projections of the residuals")
+        KratosMultiphysics.Logger.Print(" - Calculate the projections of the residuals")
         projections = {
             "rho"      : defs.ZeroVector(n_nodes),
             "momentum" : defs.ZeroVector(n_nodes*dim),
@@ -508,7 +508,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             QuantityConverter.SubstitutePrimitivesWithConservatives(rv, primitives, Ug, H, params)
 
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
-            self._print(1, "   - Gauss point: " + str(i_gauss))
+            KratosMultiphysics.Logger.Print("   - Gauss point: {}".format(i_gauss))
             self._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
 
         # Output the projections
@@ -520,8 +520,8 @@ class CompressibleNavierStokesSymbolicGenerator:
             # Loop and accumulate the residual in each Gauss point
             rv_tot = defs.ZeroMatrix(1, 1)
 
-            self._print(1, " - Subscales type: " + subscales_type)
-            self._print(1, " - Substitution of the discretized values at the gauss points")
+            KratosMultiphysics.Logger.Print(" - Subscales type: " + subscales_type)
+            KratosMultiphysics.Logger.Print(" - Substitution of the discretized values at the gauss points")
             for i_gauss in self.geometry.SymbolicIntegrationPoints():
                 # Substitute the subscales model
                 rv_gauss = self._SubstituteSubscales(res, res_proj, rv, subscales, subscales_type, Tau)
@@ -531,10 +531,10 @@ class CompressibleNavierStokesSymbolicGenerator:
             self._OutputLHSandRHS(lhs, rhs, subscales_type)
 
     def Write(self):
-        self._print(1, " - Writing {}".format(self.output_filename))
+        KratosMultiphysics.Logger.Print(" - Writing {}".format(self.output_filename))
 
         with open(self.output_filename, "w") as outputfile:
             outputfile.write(self.outstring)
             outputfile.close()
 
-        self._print(1, "Geometry {} done".format(self.geometry))
+        KratosMultiphysics.Logger.Print("Geometry {} done".format(self.geometry))
