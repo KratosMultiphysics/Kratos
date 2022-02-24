@@ -69,23 +69,57 @@ class ModelPartsController:
         self.__ImportRootModelParts()
 
     # --------------------------------------------------------------------------
-    def CheckIfRootModelPartExists(self,root_model_part_name):
-        if root_model_part_name in self.name_root_model_part_map.keys():
+    def CheckIfRootModelPartExists(self,root_model_part_name,raise_error=False):
+        extracted_root_model_part_name = root_model_part_name.split(".")[0]
+        if extracted_root_model_part_name in self.name_root_model_part_map.keys():
             return True
         else:
-            False
+            if raise_error:
+                raise RuntimeError("ModelPartsController: CheckIfRootModelPartExists: Root model part {} does not exist!".format(extracted_root_model_part_name))
+            else:
+                return False
+    # --------------------------------------------------------------------------
+    def CheckIfRootModelPartsExist(self,root_model_parts_name,raise_error=False):
+        if type(root_model_parts_name) is not list:
+            raise RuntimeError("ModelPartsController: CheckIfRootModelPartsExist requires list of model parts")
+        
+        if_exist = True
+        for root_model_part_name in root_model_parts_name:
+            extracted_root_model_part_name = root_model_part_name.split(".")[0]
+            if not extracted_root_model_part_name in self.name_root_model_part_map.keys():
+                if raise_error:
+                    raise RuntimeError("ModelPartsController: CheckIfRootModelPartsExist: Root model part {} does not exist!".format(extracted_root_model_part_name))
+                else:
+                    if_exist = False
+                    break
+
+        return if_exist
     # --------------------------------------------------------------------------
     def GetModelPart(self, model_part_name):
         if not model_part_name in self.model.GetModelPartNames():
-            raise RuntimeError("AnalyzersController: Try to get model part {} which does not exist.".format(model_part_name))
+            raise RuntimeError("ModelPartsController: Try to get model part {} which does not exist.".format(model_part_name))
         else:
             return self.model.GetModelPart(model_part_name)
     # --------------------------------------------------------------------------
     def GetRootModelPart(self, root_model_part_name):
         if not root_model_part_name in self.name_root_model_part_map.keys():
-            raise RuntimeError("AnalyzersController: Try to get root model part {} which does not exist.".format(root_model_part_name))
+            raise RuntimeError("ModelPartsController: Try to get root model part {} which does not exist.".format(root_model_part_name))
         else:
             return self.name_root_model_part_map[root_model_part_name]
+    # --------------------------------------------------------------------------
+    def GetRootModelParts(self, root_model_parts_name):
+        if type(root_model_parts_name) is not list:
+            raise RuntimeError("ModelPartsController: GetRootModelParts requires list of model parts name")
+        list_root_model_parts = []
+        for root_model_part_name in root_model_parts_name:
+            extracted_root_model_part_name = root_model_part_name.split(".")[0]
+            if not extracted_root_model_part_name in self.name_root_model_part_map.keys():
+                raise RuntimeError("ModelPartsController: GetRootModelParts: Root model part {} does not exist!".format(extracted_root_model_part_name))
+            else:
+                list_root_model_parts.append(self.name_root_model_part_map[extracted_root_model_part_name])
+
+        return list_root_model_parts
+            
     # --------------------------------------------------------------------------
     def UpdateTimeStep(self, step):
         for root_model_part in self.name_root_model_part_map.values():

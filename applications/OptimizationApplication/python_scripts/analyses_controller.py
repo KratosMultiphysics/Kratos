@@ -34,10 +34,10 @@ import time as timer
 
 # ==============================================================================
 def CreateController(analyses_settings,model,model_parts_controller):
-    return AnalyzersController(analyses_settings,model,model_parts_controller)
+    return AnalysesController(analyses_settings,model,model_parts_controller)
 
 # ==============================================================================
-class AnalyzersController:
+class AnalysesController:
     # --------------------------------------------------------------------------
     def __init__(self,analyses_settings,model,model_parts_controller):
         
@@ -51,18 +51,18 @@ class AnalyzersController:
             "type"       : "ANALYSIS_TYPE",            
             "settings"              : {
                 "input_filename" : "ANALYSIS_SETTINGS_FILENAME",
-                "model_part_name"       : "MODEL_PART_NAME"
+                "model_parts"       : []
             }
         }""")
 
         for itr in range(self.analyses_settings.size()):
             for key in default_settings.keys():
                 if not self.analyses_settings[itr].Has(key):
-                    raise RuntimeError("AnalyzersController: Required setting '{}' missing in 'analysis Nr.{}'!".format(key,itr+1))  
+                    raise RuntimeError("AnalysesController: Required setting '{}' missing in 'analysis Nr.{}'!".format(key,itr+1))  
             self.analyses_settings[itr].ValidateAndAssignDefaults(default_settings)
             for key in default_settings["settings"].keys():
                 if not self.analyses_settings[itr]["settings"].Has(key):
-                    raise RuntimeError("AnalyzersController: Required setting '{}' missing in 'analysis_settings' of 'analysis Nr.{}' !".format(key,itr+1))             
+                    raise RuntimeError("AnalysesController: Required setting '{}' missing in 'analysis_settings' of 'analysis Nr.{}' !".format(key,itr+1))             
             self.analyses_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])   
 
         self.analyses = {}
@@ -71,43 +71,37 @@ class AnalyzersController:
         for analysis_settings in self.analyses_settings:
             analysis_name = analysis_settings["name"].GetString()            
             analysis_type = analysis_settings["type"].GetString()
-            model_part_name = analysis_settings["settings"]["model_part_name"].GetString()
+            model_parts_name_list = analysis_settings["settings"]["model_parts"].GetStringArray()
             input_file_name = analysis_settings["settings"]["input_filename"].GetString() 
             with open(input_file_name) as parameters_file:
                 AnalysisProjectParameters = KM.Parameters(parameters_file.read())
 
             # check types
             if  not analysis_type in self.analyses_types_model_parts_dict.keys():  
-                raise RuntimeError("AnalyzersController: Analysis {} is not supported, \n supported types are {}.".format(analysis_type,self.analyses_types_model_parts_dict.keys()))
+                raise RuntimeError("AnalysesController: Analysis {} is not supported, \n supported types are {}.".format(analysis_type,self.analyses_types_model_parts_dict.keys()))
             # check names
             if  analysis_name in self.analyses.keys():  
-                raise RuntimeError("AnalyzersController: Analysis name {} already exists.".format(analysis_name))
+                raise RuntimeError("AnalysesController: Analysis name {} already exists.".format(analysis_name))
             # check if root model part exists
-            if not self.model_parts_controller.CheckIfRootModelPartExists(model_part_name):
-                raise RuntimeError("AnalyzersController: Analysis {} requires model_part {} which does not exist!".format(analysis_name,model_part_name))
-            # check for duplicated analysis for the same model part
-            if  model_part_name in self.analyses_types_model_parts_dict[analysis_type]:
-                raise RuntimeError("AnalyzersController: Analysis {} for model part {} already exists.".format(analysis_type,model_part_name))
+            self.model_parts_controller.CheckIfRootModelPartsExist(model_parts_name_list,True)
 
             analysis = None
             if  analysis_type == "StructuralMechanicsAnalysis":
                 if StructuralMechanicsAnalysis is None:
-                    raise RuntimeError("AnalyzersController: Analysis {} requires StructuralMechanicsApplication.".format(analysis_name))                 
-                analysis = StructuralMechanicsAnalysis(self.model, AnalysisProjectParameters)
-                self.analyses_types_model_parts_dict[analysis_type] = model_part_name 
+                    raise RuntimeError("AnalysesController: Analysis {} requires StructuralMechanicsApplication.".format(analysis_name))                 
+                analysis = StructuralMechanicsAnalysis(self.model, AnalysisProjectParameters)                
             elif  analysis_type == "ConvectionDiffusionAnalysis":
                 if ConvectionDiffusionAnalysis is None:
-                    raise RuntimeError("AnalyzersController: Analysis {} requires ConvectionDiffusionAnalysis.".format(analysis_name))                 
-                analysis = ConvectionDiffusionAnalysis(self.model, AnalysisProjectParameters)
-                self.analyses_types_model_parts_dict[analysis_type] = model_part_name       
+                    raise RuntimeError("AnalysesController: Analysis {} requires ConvectionDiffusionAnalysis.".format(analysis_name))                 
+                analysis = ConvectionDiffusionAnalysis(self.model, AnalysisProjectParameters)    
             elif  analysis_type == "PotentialFlowAnalysis":
                 if PotentialFlowAnalysis is None:
-                    raise RuntimeError("AnalyzersController: Analysis {} requires PotentialFlowAnalysis.".format(analysis_name))                 
+                    raise RuntimeError("AnalysesController: Analysis {} requires PotentialFlowAnalysis.".format(analysis_name))                 
                 analysis = PotentialFlowAnalysis(self.model, AnalysisProjectParameters)
-                self.analyses_types_model_parts_dict[analysis_type] = model_part_name
                 
             self.analyses[analysis_name] = analysis
-            self.analyses_root_model_parts[analysis_name] = self.model_parts_controller.GetRootModelPart(model_part_name)
+            self.analyses_types_model_parts_dict[analysis_type] = model_parts_name_list 
+            self.analyses_root_model_parts[analysis_name] = self.model_parts_controller.GetRootModelParts(model_parts_name_list)
                    
 
     # --------------------------------------------------------------------------
@@ -127,46 +121,48 @@ class AnalyzersController:
     # --------------------------------------------------------------------------
     def GetAnalysis(self,analysis_name):
         if not analysis_name in self.analyses.keys():
-            raise RuntimeError("AnalyzersController: Try to get an analysis {} which does not exist.".format(analysis_name))
+            raise RuntimeError("AnalysesController: Try to get an analysis {} which does not exist.".format(analysis_name))
         else:
             return self.analyses[analysis_name]
     # --------------------------------------------------------------------------
-    def GetAnalysisModelPartName(self,analysis_name):
+    def GetAnalysisModelPartsName(self,analysis_name):
         if not analysis_name in self.analyses.keys():
-            raise RuntimeError("AnalyzersController: Try to get an analysis {} which does not exist.".format(analysis_name))
+            raise RuntimeError("AnalysesController: Try to get an analysis {} which does not exist.".format(analysis_name))
         else:
             for analysis_settings in self.analyses_settings:
                 if analysis_settings["name"].GetString() == analysis_name:
-                    model_part_name = analysis_settings["settings"]["model_part_name"].GetString() 
-                    return model_part_name        
+                    return analysis_settings["settings"]["model_parts"].GetStringArray()       
 
     # --------------------------------------------------------------------------
-    def GetAnalysisModelPart(self,analysis_name):
+    def GetAnalysisModelParts(self,analysis_name):
         if not analysis_name in self.analyses.keys():
-            raise RuntimeError("AnalyzersController: Try to get an analysis {} which does not exist.".format(analysis_name))
+            raise RuntimeError("AnalysesController: Try to get an analysis {} which does not exist.".format(analysis_name))
         else:
-            for analysis_settings in self.analyses_settings:
-                if analysis_settings["name"].GetString() == analysis_name:
-                    model_part_name = analysis_settings["settings"]["model_part_name"].GetString() 
-                    return self.model.GetModelPart(model_part_name) 
+            return self.analyses_root_model_parts[analysis_name]
 
     # --------------------------------------------------------------------------
     def RunAnalysis(self,analysis_name):
         if not analysis_name in self.analyses.keys():
-            raise RuntimeError("AnalyzersController: Try to run an analysis {} which does not exist.".format(analysis_name))
+            raise RuntimeError("AnalysesController: Try to run an analysis {} which does not exist.".format(analysis_name))
         else:
-            Logger.PrintInfo("AnalyzersController", "Starting analysis ", analysis_name)
+            Logger.PrintInfo("AnalysesController", "Starting analysis ", analysis_name)
             startTime = timer.time()
             analysis = self.analyses[analysis_name]
-            root_model_part = self.analyses_root_model_parts[analysis_name]
-            time_before_analysis = root_model_part.ProcessInfo.GetValue(KM.TIME)
-            step_before_analysis = root_model_part.ProcessInfo.GetValue(KM.STEP)
-            delta_time_before_analysis = root_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
+            root_model_parts = self.analyses_root_model_parts[analysis_name]
+            time_before_analysis = []
+            step_before_analysis = []
+            delta_time_before_analysis = []
+            for root_model_part in root_model_parts:
+                time_before_analysis.append(root_model_part.ProcessInfo.GetValue(KM.TIME))
+                step_before_analysis.append(root_model_part.ProcessInfo.GetValue(KM.STEP))
+                delta_time_before_analysis.append(root_model_part.ProcessInfo.GetValue(KM.DELTA_TIME))
 
             # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
-            root_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis-1)
-            root_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis-1)
-            root_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
+            for index in range(len(root_model_parts)):
+                root_model_part = root_model_parts[index]            
+                root_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis[index]-1)
+                root_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis[index]-1)
+                root_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
             analysis.time = analysis._GetSolver().AdvanceInTime(analysis.time)
             analysis.InitializeSolutionStep()            
@@ -176,41 +172,19 @@ class AnalyzersController:
             analysis.FinalizeSolutionStep()
             analysis.OutputSolutionStep()            
 
-            # Clear results or modifications on model part
-            root_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis)
-            root_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis)
-            root_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_analysis)
-            Logger.PrintInfo("AnalyzersController", "Time needed for solving the analysis",round(timer.time() - startTime,2),"s")                   
+            # Clear results or modifications on model parts
+            for index in range(len(root_model_parts)):
+                root_model_part = root_model_parts[index]    
+                root_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis[index])
+                root_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis[index])
+                root_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_analysis[index])
+            Logger.PrintInfo("AnalysesController", "Time needed for solving the analysis",round(timer.time() - startTime,2),"s")                   
 
     # --------------------------------------------------------------------------
     def RunAll(self):
-
-        for name,analysis in self.analyses.items():
-            Logger.PrintInfo("AnalyzersController", "Starting analysis ", name)
-            startTime = timer.time()            
-            root_model_part = self.analyses_root_model_parts[name]
-            time_before_analysis = root_model_part.ProcessInfo.GetValue(KM.TIME)
-            step_before_analysis = root_model_part.ProcessInfo.GetValue(KM.STEP)
-            delta_time_before_analysis = root_model_part.ProcessInfo.GetValue(KM.DELTA_TIME)
-
-            # Reset step/time iterators such that they match the optimization iteration after calling CalculateValue (which internally calls CloneTimeStep)
-            root_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis-1)
-            root_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis-1)
-            root_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
-
-            analysis.time = analysis._GetSolver().AdvanceInTime(analysis.time)
-            analysis.InitializeSolutionStep()            
-            analysis._GetSolver().Predict()
-            analysis._GetSolver().SolveSolutionStep()
-
-            analysis.FinalizeSolutionStep()
-            analysis.OutputSolutionStep()            
-
-            # Clear results or modifications on model part
-            root_model_part.ProcessInfo.SetValue(KM.STEP, step_before_analysis)
-            root_model_part.ProcessInfo.SetValue(KM.TIME, time_before_analysis)
-            root_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, delta_time_before_analysis)
-            Logger.PrintInfo("AnalyzersController", "Time needed for solving the analysis",round(timer.time() - startTime,2),"s")                        
+        for name in self.analyses.keys():
+            self.RunAnalysis(name)
+                        
 
                
 

@@ -37,7 +37,7 @@ class Optimizer:
         self.optimization_settings = optimization_settings
         self.model_parts_controller = model_parts_controller.CreateController(optimization_settings["model_parts"],model)
         self.analyses_controller = analyses_controller.CreateController(optimization_settings["analyses"],model,self.model_parts_controller)
-        self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.analyses_controller)
+        self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.model_parts_controller,self.analyses_controller)
         self.controls_controller = controls_controller.CreateController(optimization_settings["controls"],model,self.model_parts_controller)
 
 
