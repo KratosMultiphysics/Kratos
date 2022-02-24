@@ -420,6 +420,12 @@ public:
         return mNodalData.GetSolutionStepData();
     }
 
+    DataValueContainer& Data()
+    {
+        #warning "Calling 'Data()' is deprecated. It will be removed by 01.06.2022. Use 'GetData()' instead."
+        return mData;
+    }
+
     DataValueContainer& GetData()
     {
         return mData;

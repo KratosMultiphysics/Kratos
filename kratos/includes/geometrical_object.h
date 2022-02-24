@@ -204,6 +204,12 @@ public:
     /**
      * Access Data:
      */
+    DataValueContainer& Data()
+    {
+        #warning "Calling 'Data()' is deprecated. It will be removed by 01.06.2022. Use 'GetData()' instead."
+        return pGetGeometry()->GetData();
+    }
+
     DataValueContainer& GetData()
     {
         return pGetGeometry()->GetData();
