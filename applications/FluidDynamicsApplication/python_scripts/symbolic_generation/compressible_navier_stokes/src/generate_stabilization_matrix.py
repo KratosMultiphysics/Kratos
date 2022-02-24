@@ -1,6 +1,10 @@
 import sympy
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
-    import CompressibleNavierStokesDefines as defs
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .defines import CompressibleNavierStokesDefines as defs
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .quantity_converter import QuantityConverter
 
 
 def ComputeStabilizationMatrix(params):
@@ -46,6 +50,8 @@ def ComputeStabilizationMatrixOnGaussPoint(params, U_gauss, f_gauss, r_gauss, pr
     for i in range(params.dim):
         Tau[i + 1, i + 1] = 1.0 / tau2_inv
     Tau[params.dim + 1, params.dim + 1] = 1.0 / tau3_inv
+
+    QuantityConverter.SubstitutePrimitivesWithConservatives(Tau, primitives, U_gauss, None, params, False)
 
     return(Tau)
 
