@@ -173,35 +173,40 @@ public:
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] = rOtherVector[i];
         });
+        return *this;
     }
 
 
-    void operator+=(const SystemVector& rOtherVector)
+    SystemVector& operator+=(const SystemVector& rOtherVector)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] += rOtherVector[i];
         });
+        return *this;
     }
 
-    void operator-=(const SystemVector& rOtherVector)
+    SystemVector& operator-=(const SystemVector& rOtherVector)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] -= rOtherVector[i];
         });
+        return *this;
     }
 
-    void operator*=(const TDataType multiplier_factor)
+    SystemVector& operator*=(const TDataType multiplier_factor)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] *= multiplier_factor;
         });
+        return *this;
     }
 
-    void operator/=(const TDataType divide_factor)
+    SystemVector& operator/=(const TDataType divide_factor)
     {
         IndexPartition<IndexType>(size()).for_each([&](IndexType i){
             (*this)[i] /= divide_factor;
         });
+        return *this;
     }
 
     TDataType Dot(const SystemVector& rOtherVector, IndexType gather_on_rank=0)
@@ -238,6 +243,7 @@ public:
             AtomicAdd(mData[global_i] , rVectorInput[i]);
         }
     }
+
 
     ///@}
     ///@name Access

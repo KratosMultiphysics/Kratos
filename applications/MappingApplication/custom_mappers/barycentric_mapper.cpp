@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "barycentric_mapper.h"
@@ -53,7 +53,7 @@ Kratos::unique_ptr<GeometryType> ReconstructLine(const ClosestPointsContainer& r
         new_node->SetValue(INTERFACE_EQUATION_ID, r_point.GetId());
         geom_points.push_back(new_node);
     }
-    return Kratos::make_unique<Line2D2<NodeType>>(geom_points);
+    return Kratos::make_unique<Line3D2<NodeType>>(geom_points);
 
     KRATOS_CATCH("")
 }
@@ -214,6 +214,8 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
 {
     KRATOS_TRY
 
+    mNumSearchResults++;
+
     const Node<3>& r_node = *rInterfaceObject.pGetBaseNode();
 
     PointWithId point(
@@ -238,6 +240,7 @@ void BarycentricInterfaceInfo::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MapperInterfaceInfo );
     rSerializer.save("InterpolationType", static_cast<int>(mInterpolationType));
     rSerializer.save("ClosestPoints", mClosestPoints);
+    rSerializer.save("NumSearchResults", mNumSearchResults);
 }
 
 void BarycentricInterfaceInfo::load(Serializer& rSerializer)
@@ -247,6 +250,7 @@ void BarycentricInterfaceInfo::load(Serializer& rSerializer)
     rSerializer.load("InterpolationType", temp);
     mInterpolationType = static_cast<BarycentricInterpolationType>(temp);
     rSerializer.load("ClosestPoints", mClosestPoints);
+    rSerializer.load("NumSearchResults", mNumSearchResults);
 }
 
 
@@ -340,6 +344,20 @@ void BarycentricLocalSystem::SetPairingStatusForPrinting()
     if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
         mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
     }
+}
+
+bool BarycentricLocalSystem::IsDoneSearching() const
+{
+    if (HasInterfaceInfoThatIsNotAnApproximation()) {return true;};
+
+    if (mInterfaceInfos.empty()) {return false;}
+
+    // collect the results from all partitions and check if enough points were found
+    const BarycentricInterfaceInfo& r_first_info = static_cast<const BarycentricInterfaceInfo&>(*mInterfaceInfos[0]);
+    const std::size_t num_approx = GetNumPointsApprox(r_first_info.GetInterpolationType());
+    std::size_t sum_search_results = r_first_info.GetNumSearchResults();
+
+    return sum_search_results > num_approx*2;
 }
 
 }  // namespace Kratos.
