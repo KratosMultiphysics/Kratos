@@ -35,22 +35,23 @@ HRomVisualizationMeshModeler::HRomVisualizationMeshModeler(
     , mpVisualizationModelPart(&(rModel.GetModelPart(rParameters["hrom_visualization_model_part_name"].GetString())))
 {
     // Check default settings
-    this->CheckDefaultSettings(rParameters);
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     // Set the file name of the input ROM settings
     mRomSettingsFilename = rParameters["rom_settings_filename"].GetString();
 }
 
-void HRomVisualizationMeshModeler::CheckDefaultSettings(Parameters &rParameters)
+const Parameters HRomVisualizationMeshModeler::GetDefaultParameters() const
 {
-    Parameters default_parameters( R"(
+    const Parameters default_parameters( R"(
     {
         "echo_level" : 0,
         "hrom_model_part_name" : "",
         "hrom_visualization_model_part_name" : "",
         "rom_settings_filename" : "RomParameters"
     })" );
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+
+    return default_parameters;
 }
 
 void HRomVisualizationMeshModeler::SetupModelPart()
@@ -61,14 +62,13 @@ void HRomVisualizationMeshModeler::SetupModelPart()
 
     // Create an array with pointers to the ROM variables from the provided names
     // Note that these are assumed to be provided in the same order that was used to create the basis
-    IndexType i_var = 0;
     const auto& r_rom_var_names = rom_parameters["rom_settings"]["nodal_unknowns"].GetStringArray();
     const SizeType n_nodal_dofs = r_rom_var_names.size();
-    mRomVariablesList.resize(n_nodal_dofs);
+    mRomVariablesList.reserve(n_nodal_dofs);
     for (const auto& r_var_name : r_rom_var_names) {
         KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(r_var_name))
             << "Provided variable '" << r_var_name << "' is not in KratosComponents. Note that array-like variables need to be provided componentwise (e.g. DISPLACEMENT_X, DISPLACEMENT_Y)." << std::endl;
-        mRomVariablesList[i_var++] = &(KratosComponents<Variable<double>>::Get(r_var_name));
+        mRomVariablesList.push_back(&(KratosComponents<Variable<double>>::Get(r_var_name)));
     }
 
     // Set the visualization model part nodal data

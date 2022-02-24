@@ -120,6 +120,8 @@ public:
 
     void SetupModelPart() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -179,7 +181,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckDefaultSettings(Parameters &rParameters);
 
     ///@}
     ///@name Private  Access
