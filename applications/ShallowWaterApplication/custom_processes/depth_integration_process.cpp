@@ -35,9 +35,7 @@ const Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
         "interface_model_part_name" : "",
         "store_historical_database" : false,
         "extrapolate_boundaries"    : false,
-        "print_velocity_profile"    : false,
-        "velocity_depth_integration": true,
-        "velocity_relative_depth"   : -0.531
+        "print_velocity_profile"    : false
     })");
     return default_parameters;
 }
@@ -56,8 +54,6 @@ DepthIntegrationProcess<TDim>::DepthIntegrationProcess(
     mDirection = -mrVolumeModelPart.GetProcessInfo()[GRAVITY];
     mDirection /= norm_2(mDirection);
     mPrintVelocityProfile = ThisParameters["print_velocity_profile"].GetBool();
-    mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
-    mVelocityRelativeDepth = ThisParameters["velocity_relative_depth"].GetDouble();
 
     if (!mStoreHistorical) {
         VariableUtils().SetNonHistoricalVariableToZero(MOMENTUM, mrInterfaceModelPart.Nodes());
