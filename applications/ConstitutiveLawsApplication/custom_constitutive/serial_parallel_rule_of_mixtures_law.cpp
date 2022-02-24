@@ -136,15 +136,14 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
         noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector 
                                      + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
-
         // Previous flags restored
-        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
 
-        if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues);
         }
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -179,22 +178,16 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     while (!is_converged && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: rSerialStrainMatrix
-            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector,  
-                                                                  rMaterialProperties,  parallel_projector,  serial_projector,
-                                                                  constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss,
-                                                                  rSerialStrainMatrix);
+            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix);
         }
         // This method computes the strain vector for the matrix & fiber
-        this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, 
-                                              rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
 
         // This method integrates the stress according to each simple material CL
         this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector);
 
         // Here we check the convergence of the loop -> serial stresses equilibrium
-        this->CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, 
-                                     stress_residual, is_converged, constitutive_tensor_matrix_ss, 
-                                     constitutive_tensor_fiber_ss);
+        this->CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, stress_residual, is_converged, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss);
         if (is_converged) {
             break;
         } else {
