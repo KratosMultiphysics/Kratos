@@ -8,6 +8,7 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics import Tester
 
 # Import the tests o test_classes to create the suits
 from generalTests import KratosGeoMechanicsGeneralTests
@@ -26,7 +27,7 @@ from test_soil_weight import KratosGeoMechanicsSoilWeightTests
 from test_settlement import KratosGeoMechanicsSettlementTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_piping_elements import TestPipingElements
-from test_piping_element_unit import TestUnitPipingElements
+# from test_piping_element_unit import TestUnitPipingElements
 
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.
@@ -61,7 +62,7 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsSettlementTests,
         KratosGeoMechanicsCurvedBeamElementTests,
         TestPipingElements,
-        TestUnitPipingElements
+        # TestUnitPipingElements
         ]
 
     # Create an array with the selected tests
@@ -114,7 +115,6 @@ def AssambleTestSuites(is_team_city):
 
 if __name__ == '__main__':
     is_team_city = False
-
     try:
         from teamcity import is_running_under_teamcity
         from teamcity.unittestpy import TeamcityTestRunner
@@ -127,5 +127,7 @@ if __name__ == '__main__':
         import unittest
         runner = TeamcityTestRunner()
         runner.run(AssambleTestSuites(is_team_city))
+        Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
     else:
         KratosUnittest.runTests(AssambleTestSuites(is_team_city))
+        Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
