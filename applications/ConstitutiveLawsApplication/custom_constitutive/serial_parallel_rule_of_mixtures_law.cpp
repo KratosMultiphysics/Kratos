@@ -333,6 +333,8 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     Vector& rFiberStressVector
 )
 {
+    rMatrixStressVector.resize(GetStrainSize(), false);
+    rFiberStressVector.resize(GetStrainSize(), false);
     auto& r_material_properties = rValues.GetMaterialProperties();
     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
     const auto& r_props_matrix_cl = *(it_cl_begin);
@@ -347,12 +349,12 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     // Integrate Stress of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
     mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
-    rMatrixStressVector = values_matrix.GetStressVector();
+    noalias(rMatrixStressVector) = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
     mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
-    rFiberStressVector = values_fiber.GetStressVector();
+    noalias(rFiberStressVector) = values_fiber.GetStressVector();
 }
 
 /***********************************************************************************/
@@ -562,7 +564,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
     }
     const Vector& r_strain_vector = rValues.GetStrainVector();
-    mPreviousStrainVector = r_strain_vector;
+    noalias(mPreviousStrainVector) = r_strain_vector;
 
     // Previous flags saved
     const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -585,10 +587,6 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
                                                     r_material_properties,
                                                     rValues,
                                                     mPreviousSerialStrainMatrix);
-        // Previous flags restored
-        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
 
         // We call the FinalizeMaterialResponse of the matrix and fiber CL
         auto& r_material_properties = rValues.GetMaterialProperties();
@@ -614,6 +612,11 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 
         mpMatrixConstitutiveLaw->FinalizeMaterialResponseCauchy(values_matrix);
         mpFiberConstitutiveLaw ->FinalizeMaterialResponseCauchy(values_fiber);
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     }
 }
 
