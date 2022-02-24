@@ -229,7 +229,7 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
         SetSpecificVariables(Variables);
 
         // Compute stabilization parameters
-        CalculateTaus(Variables);
+        CalculateTaus(rCurrentProcessInfo.GetValue(STABILIZATION_OPTION),Variables);
 
         //Variables.tau1=0;
         //Variables.tau2=0;
@@ -600,7 +600,7 @@ void UpdatedLagrangianUPVMS::ComputeElementSize(double& ElemSize){
 
 // Calculate stabilization parameters
 
-void UpdatedLagrangianUPVMS::CalculateTaus(
+void UpdatedLagrangianUPVMS::CalculateTaus(const int& stabilization_type,
     GeneralVariables& rVariables)
 {
     KRATOS_TRY
@@ -614,6 +614,13 @@ void UpdatedLagrangianUPVMS::CalculateTaus(
 
     rVariables.tau1 = constant1 *  pow(characteristic_element_size,2) / (2 * rVariables.ShearModulus);
     rVariables.tau2 = 2 * constant2 * rVariables.ShearModulus;
+
+
+    if ( stabilization_type == 1)
+     {
+         rVariables.tau1 = 0;
+         rVariables.tau2 = 0;
+     }
 
     KRATOS_CATCH( "" )
 }
@@ -876,12 +883,19 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
-    Vector aux = rVariables.PressureGradient+ rVolumeForce;
-    Vector Stab1 = prod(rVariables.DN_DX,aux); //
+    Vector aux_vector;
+
+    aux_vector = rVariables.PressureGradient + rVolumeForce;
+
+
+    Vector Stab1 = prod(rVariables.DN_DX,aux_vector);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         rRightHandSideVector[index_p] += rVariables.tau1  *  Stab1(i) * rIntegrationWeight;
+        //for ( unsigned int idime = 0; idime < dimension; idime++ ) {
+        //    rRightHandSideVector[index_p] += rVariables.tau1  *  rVariables.DN_DX(i,idime)*(rVariables.PressureGradient[idime] + rVolumeForce[idime]) * rIntegrationWeight;
+        //}
         
         
         rRightHandSideVector[index_p] -= rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)-(1.0 - 1.0 / rVariables.detFT)) * r_N(0, i) * (1/rVariables.BulkModulus) * rIntegrationWeight;

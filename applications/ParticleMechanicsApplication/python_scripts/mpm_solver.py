@@ -219,6 +219,8 @@ class MPMSolver(PythonSolver):
         if pressure_dofs:
             if stabilization_type == "PPP":
                 stabilization_option = 0 ## To redefine in the future
+            elif stabilization_type == "NONE": 
+                stabilization_option = 1        
             elif stabilization_type == "ASGS":
                 stabilization_option = 2
             elif stabilization_type == "OSGS":

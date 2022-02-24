@@ -277,7 +277,7 @@ protected:
      * Calculation of stabilization parameters 
      */
 
-    void CalculateTaus(GeneralVariables& rVariables);
+    void CalculateTaus(const int& stabilization_type, GeneralVariables& rVariables);
 
      /*
      * To compute identity tensor 
