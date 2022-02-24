@@ -31,4 +31,6 @@ class TestUnitPipingElements(KratosUnittest.TestCase):
 
 
 if __name__ == '__main__':
+    # Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
+    # Tester.RunAllTestCases()
     KratosUnittest.main()

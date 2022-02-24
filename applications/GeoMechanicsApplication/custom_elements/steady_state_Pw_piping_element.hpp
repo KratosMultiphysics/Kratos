@@ -97,6 +97,8 @@ public:
 
     double CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom);
 
+    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom);
+
 protected:
     
      void CalculateAll( MatrixType& rLeftHandSideMatrix,
@@ -109,7 +111,7 @@ protected:
 
     
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom);
+    
     
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
