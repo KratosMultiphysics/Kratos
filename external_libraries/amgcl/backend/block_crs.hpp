@@ -300,8 +300,10 @@ struct residual_impl< bcrs<V, C, P>, Vec1, Vec2, Vec3 >
 
     static void apply(const Vec1 &rhs, const matrix &A, const Vec2 &x, Vec3 &r)
     {
+        typedef typename math::scalar_of<V>::type S;
+        const auto one = math::identity<S>();
         backend::copy(rhs, r);
-        backend::spmv(-1, A, x, 1, r);
+        backend::spmv(-one, A, x, one, r);
     }
 };
 
