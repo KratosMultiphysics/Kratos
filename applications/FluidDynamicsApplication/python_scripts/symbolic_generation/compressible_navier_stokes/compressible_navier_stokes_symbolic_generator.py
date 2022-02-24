@@ -263,7 +263,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         return rv_gauss
 
     def _ComputeResidualAtGaussPoint(self, acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, params, Q, res_proj, ResProj, rg, rv_gauss, sc_nodes, sc_params, subscales_type, Tau, U, Ug, Un, Unn, V, w):
-        KratosMultiphysics.Logger.Print("    Gauss point: " + str(i_gauss))
+        KratosMultiphysics.Logger.Print("    Gauss point: {}".format(i_gauss))
 
         # Get Gauss point geometry data
         Ng = self.geometry.N_gauss(i_gauss)
@@ -494,7 +494,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         }
 
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
-            KratosMultiphysics.Logger.Print("   - Gauss point: " + str(i_gauss))
+            KratosMultiphysics.Logger.Print("   - Gauss point: {}".format(i_gauss))
             self._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
 
         # Output the projections
