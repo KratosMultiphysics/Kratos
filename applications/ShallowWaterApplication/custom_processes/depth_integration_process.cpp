@@ -132,10 +132,13 @@ void DepthIntegrationProcess<TDim>::Integrate(
     bool prev_is_found = false;
     std::size_t last_found_id = 0;
     std::size_t num_found = 0;
-    for (int i = 1; i < num_steps; ++i) {
+    for (int i = 0; i < num_steps; ++i) {
         bool is_found = rLocator.FindPointOnMesh(point, rShapeFunctionsValues, p_elem, rResults.begin());
-        if (is_found && p_elem->Id() != last_found_id) {
-            num_found++;
+        if (is_found) {
+            if (p_elem->Id() != last_found_id) {
+                last_found_id = p_elem->Id();
+                num_found++;
+            }
         }
         if (!prev_is_found && is_found) { // this is the first element
             bottom_depth = inner_prod(point, mDirection);
@@ -150,16 +153,19 @@ void DepthIntegrationProcess<TDim>::Integrate(
     height = top_depth - bottom_depth;
 
     // perform the custom quadrature
-    double average_weight = 1.0 / (num_found -1.0);
+    double average_weight = 1.0 / double(num_found);
     array_1d<double,3> integration_step = average_weight * height * mDirection;
     array_1d<double,3> integration_point = rNode + (bottom_depth -inner_prod(rNode, mDirection)) * mDirection;
-    for (std::size_t i = 1; i < num_found; ++i) { // the custom quadrature
+    for (std::size_t i = 0; i < num_found; ++i) { // the custom quadrature
         integration_point += integration_step;
         bool is_found = rLocator.FindPointOnMesh(integration_point, rShapeFunctionsValues, p_elem, rResults.begin());
         if (is_found) {
             array_1d<double,3> point_velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
             momentum += average_weight * height * point_velocity;
             velocity += average_weight * point_velocity;
+        }
+        else {
+            KRATOS_WARNING("Depth integration") << "Point not found inside the fluid domain!!!" << std::endl;
         }
     }
 
