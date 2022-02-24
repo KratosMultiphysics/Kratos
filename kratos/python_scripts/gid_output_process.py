@@ -355,14 +355,16 @@ class GiDOutputProcess(KM.Process):
                                     self.post_mode,
                                     self.multifile_flag,
                                     self.write_deformed_mesh,
-                                    self.write_conditions)
+                                    self.write_conditions,
+                                    self.param["result_file_configuration"]["gauss_point_results"].size()>0)
 
         if self.skin_output or self.num_planes > 0:
             self.cut_io = GidIO(self.cut_file_name,
                                 self.post_mode,
                                 self.multifile_flag,
                                 self.write_deformed_mesh,
-                                WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
+                                WriteConditionsFlag.WriteConditionsOnly,
+                                self.param["result_file_configuration"]["gauss_point_results"].size()>0) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
     def __get_pretty_time(self,time):
         pretty_time = self.time_label_format.format(time)

@@ -559,7 +559,7 @@ public:
         return *mpVariablesList;
     }
 
-    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList() const
     {
         return mpVariablesList;
     }
