@@ -710,6 +710,7 @@ public:
         // BlockType::SLAVE_INACTIVE
         // BlockType::SLAVE_ACTIVE
         const DofsArrayType copy_dof_set(rDofSet);
+        rDofSet.clear();
     }
 
     ///@}
