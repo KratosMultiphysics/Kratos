@@ -35,6 +35,7 @@ const Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
         "interface_model_part_name" : "",
         "store_historical_database" : false,
         "extrapolate_boundaries"    : false,
+        "print_velocity_profile"    : false,
         "velocity_depth_integration": true,
         "velocity_relative_depth"   : -0.531
     })");
@@ -54,6 +55,7 @@ DepthIntegrationProcess<TDim>::DepthIntegrationProcess(
     mExtrapolateBoundaries = ThisParameters["extrapolate_boundaries"].GetBool();
     mDirection = -mrVolumeModelPart.GetProcessInfo()[GRAVITY];
     mDirection /= norm_2(mDirection);
+    mPrintVelocityProfile = ThisParameters["print_velocity_profile"].GetBool();
     mVelocityDepthIntegration = ThisParameters["velocity_depth_integration"].GetBool();
     mVelocityRelativeDepth = ThisParameters["velocity_relative_depth"].GetDouble();
 
@@ -116,55 +118,110 @@ void DepthIntegrationProcess<TDim>::Integrate(
     Vector& rShapeFunctionsValues)
 {
     // Integrate the velocity over the water column
-    const int num_steps = 50; // This number could be user defined, 20 steps produce good results for velocity but not for height
+    const int num_steps = 50;
     const double step = (Top - Bottom) / double(num_steps-1);
     const array_1d<double,3> start = rNode + mDirection * (Bottom -inner_prod(rNode, mDirection));
-    array_1d<double,3> point(start);
 
+    // initialize the integration variables
     Element::Pointer p_elem;
     array_1d<double,3> velocity = ZeroVector(3);
     array_1d<double,3> momentum = ZeroVector(3);
     array_1d<double,3> elem_velocity;
     double height = 0.0;
     double bottom_depth = 0.0;
+    double top_depth = 0.0;
 
+    // perform the first search to identify the bounds
+    array_1d<double,3> point(start);
     bool prev_is_found = false;
+    std::size_t last_found_id = 0;
+    std::size_t num_found = 0;
     for (int i = 1; i < num_steps; ++i) {
-        point += step * mDirection;
         bool is_found = rLocator.FindPointOnMesh(point, rShapeFunctionsValues, p_elem, rResults.begin());
-        if (is_found) {
-            height += step;
-            elem_velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
-            momentum += step * elem_velocity;
+        if (is_found && p_elem->Id() != last_found_id) {
+            num_found++;
         }
         if (!prev_is_found && is_found) { // this is the first element
             bottom_depth = inner_prod(point, mDirection);
-            momentum -= 0.5 * step * elem_velocity;
         }
         if (prev_is_found && !is_found) { // the previous element is the last
-            momentum -= 0.5 * step * elem_velocity;
+            top_depth = inner_prod(point, mDirection) -step;
+            break;
         }
         prev_is_found = is_found;
+        point += step * mDirection;
     }
+    height = top_depth - bottom_depth;
 
-    if (mVelocityDepthIntegration) { // Get the mean velocity
-        velocity = momentum / height;
-    }
-    else { // Evaluate the velocity at a certain depth
-        const double target_depth = bottom_depth + (1.0 + mVelocityRelativeDepth) * height;
-        const double target_distance = target_depth - inner_prod(mDirection, rNode);
-        const Point target_point(rNode + mDirection * target_distance);
-        bool is_found = rLocator.FindPointOnMesh(target_point, rShapeFunctionsValues, p_elem, rResults.begin());
+    // perform the custom quadrature
+    double average_weight = 1.0 / (num_found -1.0);
+    array_1d<double,3> integration_step = average_weight * height * mDirection;
+    array_1d<double,3> integration_point = rNode + (bottom_depth -inner_prod(rNode, mDirection)) * mDirection;
+    for (std::size_t i = 1; i < num_found; ++i) { // the custom quadrature
+        integration_point += integration_step;
+        bool is_found = rLocator.FindPointOnMesh(integration_point, rShapeFunctionsValues, p_elem, rResults.begin());
         if (is_found) {
-            velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
+            array_1d<double,3> point_velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
+            momentum += average_weight * height * point_velocity;
+            velocity += average_weight * point_velocity;
         }
     }
-    if (height < 1e-4) { // Sanity check to avoid Nan
-        velocity = ZeroVector(3);
-    }
+
     SetValue(rNode, MOMENTUM, momentum);
     SetValue(rNode, VELOCITY, velocity);
     SetValue(rNode, HEIGHT, height);
+
+    // print the debug log if specified
+    if (mPrintVelocityProfile)
+    {
+        // initialize the file
+        const double time = mrVolumeModelPart.GetProcessInfo()[TIME];
+        std::ostringstream file_name;
+        file_name << std::fixed;
+        file_name << std::setprecision(2);
+        file_name << "depth_integration/vel_" << rNode.X() << "_" << time << ".dat";
+        std::ofstream log_file(file_name.str());
+        KRATOS_ERROR_IF_NOT(log_file.is_open()) << "Unable to open the log file. Make sure the \"depth_integration\" folder exists" << std::endl;
+
+        // store the mean velocity
+        std::stringstream vel_mean;
+        vel_mean << bottom_depth << '\t' << velocity[0] << std::endl;
+        vel_mean << top_depth    << '\t' << velocity[0] << std::endl;
+
+        // compute the beta velocity
+        std::stringstream vel_beta;
+        array_1d<double,3> v_beta = ZeroVector(3);
+        const double beta_depth = top_depth -0.531 * height;
+        const array_1d<double,3> beta_point(rNode + mDirection * (beta_depth - inner_prod(mDirection, rNode)));
+        bool is_found = rLocator.FindPointOnMesh(beta_point, rShapeFunctionsValues, p_elem, rResults.begin());
+        if (is_found) {
+            v_beta = InterpolateVelocity(p_elem, rShapeFunctionsValues);
+        }
+        vel_beta << beta_depth << '\t' << v_beta[0] << std::endl;
+
+        // compute the velocity profile
+        std::stringstream vel_profile;
+        point = start;
+        for (int i = 1; i < num_steps; ++i) {
+            is_found = rLocator.FindPointOnMesh(point, rShapeFunctionsValues, p_elem, rResults.begin());
+            if (is_found) {
+                elem_velocity = InterpolateVelocity(p_elem, rShapeFunctionsValues);
+                vel_profile << inner_prod(point, mDirection) << '\t' << elem_velocity[0] << std::endl;
+            }
+            else {
+                vel_profile << inner_prod(point, mDirection) << '\t' << 0.0 << std::endl;
+            }
+            point += step * mDirection;
+        }
+
+        // print to file
+        log_file << "First two lines: mean velocity  |  Third line: beta velocity  |  Other: velocity profile" << std::endl;
+        log_file << "# z \t u" << std::endl;
+        log_file << vel_mean.str();
+        log_file << vel_beta.str();
+        log_file << vel_profile.str();
+        log_file.close();
+    }
 }
 
 template<std::size_t TDim>
