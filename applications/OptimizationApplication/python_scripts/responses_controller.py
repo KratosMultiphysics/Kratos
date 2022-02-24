@@ -77,10 +77,7 @@ class ResponsesController:
 
             # check that  design_types & design_model_parts havce the same size
             evaluate_model_parts_name_list = response_settings["settings"]["evaluate_model_parts"].GetStringArray()
-            design_types_list = response_settings["settings"]["design_types"].GetStringArray()
             design_model_parts_name_list = response_settings["settings"]["design_model_parts"].GetStringArray()
-            if  not (len(design_model_parts_name_list) == len(design_types_list)):
-                raise RuntimeError("ResponsesController:  design_types & design_model_parts should have the same size in settings of 'response Nr.{}' !".format(response_name))
 
             # check for evaluate_model_parts     
             if len(evaluate_model_parts_name_list)>0:
@@ -99,27 +96,58 @@ class ResponsesController:
             response.Initialize()
 
     # --------------------------------------------------------------------------
-    def CalculateResponse(self,response_name):
+    def CalculateResponseValue(self,response_name):
         if not response_name in self.responses.keys():
-            raise RuntimeError("ResponsesController: Try to calculate response {} which does not exist.".format(response_name))
+            raise RuntimeError("ResponsesController:CalculateResponseValue: Try to calculate response {} which does not exist.".format(response_name))
         else:
-            Logger.PrintInfo("ResponsesController", " Starting calculate response ", response_name)
-            startTime = timer.time()
             response_value = self.responses[response_name].CalculateValue()
-            Logger.PrintInfo("ResponsesController", "Time needed for response calculation ",round(timer.time() - startTime,2),"s") 
         return response_value
 
     # --------------------------------------------------------------------------
-    def CalculateAll(self):
+    def CalculateResponsesValues(self):
         responses_values = []
-        for name,response in self.responses.items():
-            Logger.PrintInfo("ResponsesController", " Starting calculate response ", name)
-            startTime = timer.time()            
+        Logger.PrintInfo("ResponsesController:CalculateResponsesValues: Starting calculation of values of responses ")
+        startTime = timer.time()          
+        for name,response in self.responses.items():          
             response_value = response.CalculateValue()
             responses_values.append(response_value)
-            Logger.PrintInfo("ResponsesController", "Time needed for response calculation ",round(timer.time() - startTime,2),"s")
+        Logger.PrintInfo("ResponsesController:CalculateResponsesValues: Time needed for all response values calculation ",round(timer.time() - startTime,2),"s")            
         return responses_values
+    # --------------------------------------------------------------------------
+    def CalculateResponseGradients(self,response_name):
+        if not response_name in self.responses.keys():
+            raise RuntimeError("ResponsesController:CalculateResponseGradient: Try to calculate all gradients of response {} which does not exist ".format(response_name))
+        else:
+            self.responses[response_name].CalculateGradients()
 
+    # --------------------------------------------------------------------------
+    def CalculateResponseGradient(self,response_name,response_var_type_var_name_dict):
+
+        if not response_name in self.responses.keys():
+            raise RuntimeError("ResponsesController:CalculateResponseGradient: Try to calculate {} gradient of response {} which does not exist ".format(response_var_type_var_name_dict,response_name))
+
+        if type(response_var_type_var_name_dict) is not dict or not bool(response_var_type_var_name_dict):
+            raise RuntimeError("ResponsesController:CalculateResponseGradient: the inputs should be response name and a dict of a pair of design variable type and name ")
+        
+        self.responses[response_name].CalculateGradient(response_var_type_var_name_dict)
+
+    # --------------------------------------------------------------------------
+    def GetResponseGradients(self,response_name):
+        if not response_name in self.responses.keys():
+            raise RuntimeError("ResponsesController:GetResponseGradients: Try to calculate all gradients of response {} which does not exist ".format(response_name))
+        else:
+            return self.responses[response_name].GetGradients()
+
+    # --------------------------------------------------------------------------
+    def GetResponseGradient(self,response_name,response_var_type_var_name_dict):
+
+        if not response_name in self.responses.keys():
+            raise RuntimeError("ResponsesController:GetResponseGradient: Try to calculate {} gradient of response {} which does not exist ".format(response_var_type_var_name_dict,response_name))
+
+        if type(response_var_type_var_name_dict) is not dict or not bool(response_var_type_var_name_dict):
+            raise RuntimeError("ResponsesController:GetResponseGradient: the inputs should be response name and a dict of a pair of design variable type and name ")
+        
+        return self.responses[response_name].GetGradient(response_var_type_var_name_dict) 
 
 
 
