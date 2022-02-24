@@ -77,7 +77,7 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                     domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
                 else:
                     domain_size = 3
-                    warn_msg = f"DOMAIN_SIZE is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers. Defaulting to 3."
+                    warn_msg = "DOMAIN_SIZE is found neither in '{}' nor in root model part '{}' ProcessInfo containers. Defaulting to 3.".format(self.model_part.Name, self.model_part.GetRootModelPart().Name)
                     KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionProcess", warn_msg)
         else:
             root_model_part = self.model_part.GetRootModelPart()
@@ -85,15 +85,15 @@ class AssignVectorVariableProcess(KratosMultiphysics.Process):
                 domain_size = root_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
             else:
                 domain_size = 3
-                warn_msg = f"DOMAIN_SIZE is found neither in '{self.model_part.Name}' nor in root model part '{self.model_part.GetRootModelPart().Name}' ProcessInfo containers. Defaulting to 3."
+                warn_msg = "DOMAIN_SIZE is found neither in '{}' nor in root model part '{}' ProcessInfo containers. Defaulting to 3.".format(self.model_part.Name, self.model_part.GetRootModelPart().Name)
                 KratosMultiphysics.Logger.PrintWarning("AssignVectorByDirectionProcess", warn_msg)
 
         # Check the obtained domain size value
         if domain_size not in [2,3]:
             if domain_size == 1:
-                raise Exception(f"Domain size equals 1. Use 'AssignScalarVariableProcess' to assign values of 1D problem variables.")
+                raise Exception("Domain size equals 1. Use 'AssignScalarVariableProcess' to assign values of 1D problem variables.")
             else:
-                raise ValueError(f"Domain size must be either 2 or 3. Found value {domain_size} in model part '{self.model_part.FullName()}'.")
+                raise ValueError("Domain size must be either 2 or 3. Found value {} in model part '{}'.".format(domain_size, self.model_part.FullName()))
 
         # Loop over components X, Y and Z
         self.aux_processes = []
