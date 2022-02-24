@@ -191,7 +191,6 @@ class CompressibleNavierStokesSymbolicGenerator:
         n5 = L_adj.transpose() * subscales
 
         # Variational formulation (Galerkin functional)
-        KratosMultiphysics.Logger.Print(" - Compute variational formulation")
         rv = n1 + n2 + n3 + n4 + n5  # Implicit case with inertial term n1
 
         return (rv, subscales)
@@ -492,6 +491,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosMultiphysics.Logger.Print(" - Compute non-linear adjoint operator")
         L_adj = self._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
 
+        KratosMultiphysics.Logger.Print(" - Compute variational formulation")
         (rv, subscales) = self._ComputeVariationalFormulation(A, acc, G, H, L_adj, Q, S, Ug, V)
 
         # OSS Residual projections calculation
