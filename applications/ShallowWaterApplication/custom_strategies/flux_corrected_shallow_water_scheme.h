@@ -245,9 +245,9 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToLHS(rLHS_Contribution, mrD[t], mMl[t]);
+        AddMonotonicDynamicsToLHS(rLHS_Contribution, mrD[t], mMl[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mMl[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mMl[t], mrUn0[t], mrDotUn0[t]);
     
         AddFluxCorrection(
             rCurrentElement,
@@ -297,7 +297,7 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection(
             rCurrentElement,
@@ -348,9 +348,9 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToLHS(rLHS_Contribution, mrD[t], mrMc[t]);
+        AddMonotonicDynamicsToLHS(rLHS_Contribution, mrD[t], mrMc[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection(
             rCurrentCondition,
@@ -400,7 +400,7 @@ public:
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
-        AddDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
+        AddMonotonicDynamicsToRHS(rRHS_Contribution, mrD[t], mrMc[t], mrUn0[t], mrDotUn0[t]);
 
         AddFluxCorrection(
             rCurrentCondition,
@@ -471,7 +471,7 @@ protected:
      * @param rD The diffusion matrix
      * @param rM The mass matrix
      */
-    void AddDynamicsToLHS(
+    void AddMonotonicDynamicsToLHS(
         LocalSystemMatrixType& rLHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM
@@ -496,7 +496,7 @@ protected:
      * @param rU The current unknowns vector
      * @param rDotU The fisrst derivatives vector
      */
-    void AddDynamicsToRHS(
+    void AddMonotonicDynamicsToRHS(
         LocalSystemVectorType& rRHS_Contribution,
         LocalSystemMatrixType& rD,
         LocalSystemMatrixType& rM,

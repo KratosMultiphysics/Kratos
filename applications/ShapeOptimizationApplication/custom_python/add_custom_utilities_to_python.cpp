@@ -15,6 +15,7 @@
 // // ------------------------------------------------------------------------------
 // // External includes
 // // ------------------------------------------------------------------------------
+#include <pybind11/stl.h>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -86,6 +87,7 @@ inline void AssembleMatrixForVariableList(
     }
     return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
 }
+
 
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
@@ -199,9 +201,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ProjectNodalVariableOnDirection", &GeometryUtilities::ProjectNodalVariableOnDirection)
         .def("ProjectNodalVariableOnTangentPlane", &GeometryUtilities::ProjectNodalVariableOnTangentPlane)
         .def("ExtractBoundaryNodes", &GeometryUtilities::ExtractBoundaryNodes)
+        .def("ExtractEdgeNodes", &GeometryUtilities::ExtractEdgeNodes)
         .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ElementsContainerType>)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ConditionsContainerType>)
+        .def("ComputeVolume", &GeometryUtilities::ComputeVolume)
+        .def("ComputeVolumeShapeDerivatives", &GeometryUtilities::ComputeVolumeShapeDerivatives)
         ;
 
     // ========================================================================

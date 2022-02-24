@@ -135,7 +135,7 @@ namespace Kratos
     void LoggerOutput::ResetMessageColor(LoggerMessage::Severity MessageSeverity)
     {
         #if defined(KRATOS_COLORED_OUTPUT)
-        GetStream() << RST;
+        if (MessageSeverity == LoggerMessage::Severity::WARNING) GetStream() << RST;
         #endif
     }
 
