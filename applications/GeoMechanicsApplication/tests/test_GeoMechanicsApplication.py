@@ -26,6 +26,7 @@ from test_soil_weight import KratosGeoMechanicsSoilWeightTests
 from test_settlement import KratosGeoMechanicsSettlementTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_piping_elements import TestPipingElements
+from test_piping_element_unit import TestUnitPipingElements
 
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.
@@ -59,7 +60,8 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsSoilWeightTests,
         KratosGeoMechanicsSettlementTests,
         KratosGeoMechanicsCurvedBeamElementTests,
-        TestPipingElements
+        TestPipingElements,
+        TestUnitPipingElements
         ]
 
     # Create an array with the selected tests
@@ -127,4 +129,3 @@ if __name__ == '__main__':
         runner.run(AssambleTestSuites(is_team_city))
     else:
         KratosUnittest.runTests(AssambleTestSuites(is_team_city))
-

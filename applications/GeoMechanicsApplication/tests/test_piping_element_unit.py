@@ -6,14 +6,29 @@ import os
 # sys.path.append(r"D:\software_development\Kratos\bin\Debug")
 
 from KratosMultiphysics import Tester
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication
 
-# If you want to run tests defined in an application, import it here.
+class TestUnitPipingElements(KratosUnittest.TestCase):
 
-Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS) # Set the verbosity level
+    # Tester.RunAllTestCases() #Test all cases
+    def setUp(self):
+        Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS) # Set the verbosity level
+        pass
 
-#Tester.RunAllTestCases() #Test all cases
+    def tearDown(self):
+        # Code here will be placed AFTER every test in this TestCase.
+        pass
 
-Tester.RunTestSuite("KratosGeoMechanicsFastSuite") #Test a whole suite
+    def test_water_pressure_gradient(self):
+        exitcode = Tester.RunTestCases("TestCalculateWaterPressureGradient")
+        self.assertTrue(exitcode == 0)
 
-#Tester.RunTestCases("Test_name_here") #Test a specific case
+    def test_equilibrium_pipe_height(self):
+        exitcode = Tester.RunTestCases("TestCalculateEquilibriumPipeHeight")
+        self.assertTrue(exitcode == 0)
+
+
+
+if __name__ == '__main__':
+    KratosUnittest.main()
