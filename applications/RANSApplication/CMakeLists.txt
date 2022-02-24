@@ -87,7 +87,11 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosRANSCore DESTINATION libs )
 install(TARGETS KratosRANSApplication DESTINATION libs )
 
-if(${USE_MPI})
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling trilinos extension for KratosRANSApplication")
   add_subdirectory(trilinos_extension)
-endif(${USE_MPI})
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosRANSCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosRANSApplication" PARENT_SCOPE)

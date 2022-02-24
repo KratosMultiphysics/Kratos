@@ -138,7 +138,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 6;
     };
@@ -214,6 +214,22 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
     /**
+     * @brief Returns the value of a specified variable (bool)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (integer)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
+
+    /**
      * @brief Returns the value of a specified variable (double)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -229,11 +245,54 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
 
     /**
+     * @brief Sets the value of a specified variable (bool)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<bool>& rThisVariable,
+        const bool& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Sets the value of a specified variable (integer)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<int>& rThisVariable,
+        const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+     void SetValue(
+        const Variable<double>& rThisVariable,
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (boolean)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (integer)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<int>& rThisVariable) override;
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (double)
@@ -255,6 +314,30 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<Matrix>& rThisVariable) override;
+
+    /**
+     * @brief Calculates the value of a specified variable (bool)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    bool& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<bool>& rThisVariable,
+        bool& rValue) override;
+
+    /**
+     * @brief Calculates the value of a specified variable (integer)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    int& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<int>& rThisVariable,
+        int& rValue) override;
 
     /**
      * @brief Calculates the value of a specified variable (double)
@@ -336,7 +419,27 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      * Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
      * @see Parameters
      */
-    void InitializeMaterialResponsePK2(Parameters& rValues) override;
+    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @see Parameters
+     */
+
+    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * Initialize the material response in terms of Kirchhoff stresses
+     * @see Parameters
+     */
+
+    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * This method computes the strain vector in the fiber and matrix according to the total

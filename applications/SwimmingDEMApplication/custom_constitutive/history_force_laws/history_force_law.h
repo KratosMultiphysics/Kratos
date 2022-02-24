@@ -21,7 +21,7 @@ namespace Kratos {
 
         HistoryForceLaw(): mLastHistoryForceAddedMass(0.0){}
 
-        HistoryForceLaw(Parameters& r_parameters): mLastHistoryForceAddedMass(0.0){}
+        HistoryForceLaw(Parameters r_parameters): mLastHistoryForceAddedMass(0.0){}
 
         ~HistoryForceLaw(){}
 

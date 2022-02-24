@@ -6,13 +6,6 @@ include_directories(
   ${KRATOS_SOURCE_DIR}/applications/TrilinosApplication
 )
 
-if (NOT TRILINOS_FOUND)
-  find_package(TRILINOS REQUIRED)
-endif()
-
-include_directories(SYSTEM ${TRILINOS_INCLUDE_DIR})
-link_directories(${TRILINOS_LIBRARIES})
-
 file(
   GLOB_RECURSE
   KRATOS_MESH_MOVING_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES
@@ -22,7 +15,7 @@ file(
 ## Python module
 pybind11_add_module( KratosMeshMovingTrilinosExtension MODULE THIN_LTO ${KRATOS_MESH_MOVING_TRILINOS_EXTENSION_PYTHON_INTERFACE_SOURCES} )
 
-target_link_libraries( KratosMeshMovingTrilinosExtension PRIVATE KratosMeshMovingCore KratosTrilinosCore KratosMPICore ${TRILINOS_LIBRARIES})
+target_link_libraries( KratosMeshMovingTrilinosExtension PRIVATE KratosMeshMovingCore KratosTrilinosCore KratosMPICore )
 set_target_properties( KratosMeshMovingTrilinosExtension PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -41,6 +34,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshMovingTrilinosExtension PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMeshMovingTrilinosExtension" PARENT_SCOPE)
+
 ###############################################################################
 ## installing the resulting libraries
 install(TARGETS KratosMeshMovingTrilinosExtension DESTINATION libs )
@@ -48,3 +44,5 @@ install(TARGETS KratosMeshMovingTrilinosExtension DESTINATION libs )
 ###############################################################################
 ## install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosExtension.py" DESTINATION "KratosMultiphysics/MeshMovingApplication")
+
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMeshMovingTrilinosExtension" PARENT_SCOPE)

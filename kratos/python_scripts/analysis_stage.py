@@ -330,6 +330,16 @@ class AnalysisStage(object):
         """
         return []
 
+    def _CheckDeprecatedOutputProcesses(self, list_of_processes):
+        deprecated_output_processes = []
+        for process in list_of_processes:
+            if issubclass(type(process), KratosMultiphysics.OutputProcess):
+                deprecated_output_processes.append(process)
+                msg  = "{} is an OutputProcess. However, it has been constructed as a regular process.\n"
+                msg += "Please, define it as an 'output_processes' in the ProjectParameters."
+                IssueDeprecationWarning("AnalysisStage", msg.format(process.__class__.__name__))
+        return deprecated_output_processes
+
     def _GetSimulationName(self):
         """Returns the name of the Simulation
         """
@@ -340,13 +350,16 @@ class AnalysisStage(object):
         """
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+        self._list_of_output_processes.extend(deprecated_output_processes)
 
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence
         (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+
         """
         if is_converged is None:
             if not hasattr(self, '_map_ret_val_depr_warnings'):

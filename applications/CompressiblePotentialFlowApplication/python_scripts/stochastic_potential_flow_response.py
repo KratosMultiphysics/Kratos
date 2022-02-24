@@ -1,15 +1,16 @@
+import json, os, math, time
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis as potential_flow_analysis
+import KratosMultiphysics.MappingApplication
 
 # Import Kratos, XMC, PyCOMPSs API
 import KratosMultiphysics.MultilevelMonteCarloApplication
 import xmc
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
 from exaqute import get_value_from_remote
-import json, os
 
 def _GetModelPart(model, solver_settings):
     model_part_name = solver_settings["model_part_name"].GetString()
@@ -37,6 +38,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 "design_surface_sub_model_part_name": "",
                 "auxiliary_mdpa_path": "auxiliary_mdpa",
                 "primal_data_transfer_with_python": true,
+                "output_dict_results_file_name": "",
                 "output_pressure_file_path": ""
             }  """ )
         response_settings.ValidateAndAssignDefaults(default_parameters)
@@ -67,6 +69,12 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
         self.risk_measure = response_settings["risk_measure"].GetString()
 
+        if response_settings.Has("output_dict_results_file_name"):
+            self.output_dict_results_file_name = response_settings["output_dict_results_file_name"].GetString()
+            self.results_dict = {}
+        else:
+            self.output_dict_results_file_name = ""
+
         if response_settings.Has("output_pressure_file_path"):
             self.output_pressure_file_path = response_settings["output_pressure_file_path"].GetString()
         else:
@@ -84,6 +92,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             primal_parameters["design_surface_sub_model_part_name"].SetString(self.design_surface_sub_model_part_name)
         else:
             primal_parameters.AddString("design_surface_sub_model_part_name", self.design_surface_sub_model_part_name)
+        if primal_parameters.Has("auxiliary_mdpa_path"):
+            primal_parameters["auxiliary_mdpa_path"].SetString(self.auxiliary_mdpa_path)
+        else:
+            primal_parameters.AddString("auxiliary_mdpa_path", self.auxiliary_mdpa_path)
         open(self.response_settings["primal_settings"].GetString(), 'w').write(primal_parameters.PrettyPrintJsonString())
 
         # Store current design
@@ -99,23 +111,43 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.step = self.current_model_part.ProcessInfo[KratosMultiphysics.STEP]
         KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.current_model_part)
 
+        initial_time = time.time()
         self._RunXMC()
+        elapsed_time = time.time() - initial_time
 
         if self.risk_measure == "expected_value":
             order = 1 ; is_central = False
         elif self.risk_measure == "variance":
             order = 2 ; is_central = True
 
+        if not self.output_dict_results_file_name == "":
+            self.results_dict[self.step] = {}
+
         # save lift coefficient
         qoi_counter = 0
-        estimator_container = [] # here we append contribution for each index/level
+        estimator_container = [] # here we append the estimator for each index/level
+        error_container = [] # here we append the variance of the estimator for each index/level
+        n_samples_container = []
         for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
             self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
             estimator_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central))))
+            error_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central, isErrorEstimationRequested=True)[1])))
+            n_samples_container.append(int(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter)))
         qoi_counter += 1
         # linearly sum estimators: this summation operation is valid for expected value and central moments
         # we refer to equation 4 of Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
         self._value = sum(estimator_container)
+        # compute statistical error as in section 2.2 of
+        # Pisaroni, M., Nobile, F., & Leyland, P. (2017). A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics. Computer Methods in Applied Mechanics and Engineering, 326, 20–50. https://doi.org/10.1016/j.cma.2017.07.030
+        statistical_error = math.sqrt(sum(error_container))
+
+        if not self.output_dict_results_file_name == "":
+            self.results_dict[self.step]["run_time"]=elapsed_time
+            self.results_dict[self.step]["number_of_samples"]=n_samples_container
+            self.results_dict[self.step]["lift_coefficient"]={}
+            self.results_dict[self.step]["lift_coefficient"]["risk_measure"]=self.risk_measure
+            self.results_dict[self.step]["lift_coefficient"]["value"]=self._value
+            self.results_dict[self.step]["lift_coefficient"]["statistical_error"]=statistical_error
 
         # save pressure coefficient
         pressure_dict = {}
@@ -172,7 +204,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         return gradient
 
     def Finalize(self):
-        pass
+        if not self.output_dict_results_file_name == "":
+            with open(self.output_dict_results_file_name, 'w') as fp:
+                json.dump(self.results_dict, fp,indent=4, sort_keys=True)
 
     def _GetLabel(self):
         type_labels = {
@@ -263,7 +297,10 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         self.mapping = False
         self.adjoint_parameters_path =input_parameters["adjoint_parameters_path"].GetString()
         self.design_surface_sub_model_part_name = input_parameters["design_surface_sub_model_part_name"].GetString()
-        super(SimulationScenario,self).__init__(input_model,input_parameters)
+        self.main_model_part_name = input_parameters["solver_settings"]["model_part_name"].GetString()
+        self.auxiliary_mdpa_path = input_parameters["auxiliary_mdpa_path"].GetString()
+
+        super().__init__(input_model,input_parameters)
 
     def Finalize(self):
 
@@ -271,6 +308,13 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         aoa = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].GetDouble()
         mach = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].GetDouble()
         self.primal_model_part = self._GetSolver().main_model_part
+        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY"])
+        nodal_velocity_process.Execute()
+
+        # Store mesh to solve with adjoint after remeshing
+        self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
+        self.primal_model_part.RemoveSubModelPart("wake_sub_model_part")
+        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path+"_"+str(self.sample[0]), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.primal_model_part)
 
         with open(self.adjoint_parameters_path,'r') as parameter_file:
             adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
@@ -280,6 +324,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(aoa)
+        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.auxiliary_mdpa_path+"_"+str(self.sample[0]))
         self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
 
         self.primal_state_variables = [KCPFApp.VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL]
@@ -287,23 +332,22 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         self.adjoint_analysis.Initialize()
         self.adjoint_model_part = self.adjoint_analysis._GetSolver().main_model_part
 
+        # synchronize the modelparts
         self._SynchronizeAdjointFromPrimal()
 
-        self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
-        self.response_function.InitializeSolutionStep()
-        # synchronize the modelparts
         self.adjoint_analysis.RunSolutionLoop()
         self.adjoint_analysis.Finalize()
+        self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
 
     def ModifyInitialProperties(self):
         """
         Method introducing the stochasticity in the right hand side. Mach number and angle of attack are random varaibles.
         """
-        mach = self.sample[1]
-        alpha =  self.sample[2]
+        mach = abs(self.sample[1])
+        alpha = self.sample[2]
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
-        super(SimulationScenario,self).ModifyInitialProperties()
+        super().ModifyInitialProperties()
 
 
     def EvaluateQuantityOfInterest(self):
@@ -322,7 +366,11 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
                 pressure_coefficient.append(this_pressure)
 
         elif (self.mapping is True):
-            raise(Exception(("Mapping not contemplated yet for pressure coefficient!")))
+            for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+                this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+                pressure_coefficient.append(this_pressure)
+            # Fill the rest of the list to match SHAPE_SENSITIVITY data structure length
+            pressure_coefficient.extend([0.0]*self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).NumberOfNodes()*2)
         qoi_list.append(pressure_coefficient)
 
         shape_sensitivity = []
@@ -332,11 +380,38 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
                 shape_sensitivity.extend(this_shape)
 
         elif (self.mapping is True):
-            raise(Exception(("Mapping not contemplated yet for shape sensitivity")))
+            for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+                this_shape = node.GetValue(KratosMultiphysics.SHAPE_SENSITIVITY)
+                shape_sensitivity.extend(this_shape)
         qoi_list.append(shape_sensitivity)
         Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
-        Logger.PrintInfo("StochasticAdjointResponse", "Total number of shape:",len(qoi_list[1]))
-        Logger.PrintInfo("StochasticAdjointResponse", "Total number of exampleshape:",qoi_list[1][0])
+        return qoi_list
+
+    def MappingAndEvaluateQuantityOfInterest(self):
+
+        nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+        nodal_value_process.Execute()
+
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.PRESSURE_COEFFICIENT, self.mapping_reference_model.GetModelPart(self.main_model_part_name).Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.SHAPE_SENSITIVITY, self.mapping_reference_model.GetModelPart(self.main_model_part_name).Nodes)
+
+        # map from current model part of interest to reference model part
+        mapping_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+            }""")
+        mapping_parameters.AddString("interface_submodel_part_origin", self.design_surface_sub_model_part_name)
+        mapping_parameters.AddString("interface_submodel_part_destination", self.design_surface_sub_model_part_name)
+        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.adjoint_analysis._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart(self.main_model_part_name),mapping_parameters)
+        mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
+            KratosMultiphysics.PRESSURE_COEFFICIENT,        \
+            KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
+            KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+        mapper.Map(KratosMultiphysics.SHAPE_SENSITIVITY, \
+            KratosMultiphysics.SHAPE_SENSITIVITY,
+            KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+        # evaluate qoi
+        qoi_list = self.EvaluateQuantityOfInterest()
         return qoi_list
 
     def _SynchronizeAdjointFromPrimal(self):

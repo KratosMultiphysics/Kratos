@@ -30,6 +30,9 @@
 
 #include "geometries/brep_surface.h"
 #include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_curve.h"
+
+#include "geometries/point_on_geometry.h"
 
 namespace Kratos
 {
@@ -70,6 +73,9 @@ class CadJsonInput : public IO
 
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
+    typedef PointOnGeometry<ContainerNodeType, 3, 2> PointOnGeometryOnSurfaceType;
+    typedef PointOnGeometry<ContainerNodeType, 3, 1> PointOnGeometryOnCurveType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -160,6 +166,18 @@ private:
                 ReadBrepCurveOnSurfaces(rParameters[brep_index]["edges"], rModelPart, EchoLevel);
             }
         }
+
+        for (IndexType brep_index = 0; brep_index < rParameters.size(); brep_index++)
+        {
+            KRATOS_INFO_IF("ReadBreps", (EchoLevel > 0))
+                << "Reading Brep \"" << GetIdOrName(rParameters[brep_index])
+                << "\" - points." << std::endl;
+
+            if (rParameters[brep_index].Has("vertices"))
+            {
+                ReadPointsOnGeometries(rParameters[brep_index]["vertices"], rModelPart, EchoLevel);
+            }
+        }
     }
 
     ///@}
@@ -220,6 +238,9 @@ private:
                     outer_loops,
                     inner_loops,
                     is_trimmed);
+
+            /// Sets the brep as geometry parent of the nurbs surface.
+            p_surface->SetGeometryParent(p_brep_surface.get());
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
@@ -398,7 +419,7 @@ private:
         {
             if (rParameters["topology"].size() == 0)
             {
-                KRATOS_ERROR << "BrepCurves are not yet enabled." << std::endl;
+                ReadBrepCurve(rParameters, rModelPart, EchoLevel);
             }
             else if (rParameters["topology"].size() == 1)
             {
@@ -409,6 +430,31 @@ private:
             }
         }
     }
+
+    static void ReadBrepCurve(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
+            << "Missing 'brep_id' or 'brep_name' in brep curve." << std::endl;
+
+        KRATOS_INFO_IF("ReadBrepCurve", (EchoLevel > 3))
+            << "Reading BrepCurve \"" << GetIdOrName(rParameters) << "\"" << std::endl;
+
+        KRATOS_ERROR_IF_NOT(rParameters.Has("3d_curve"))
+            << "Missing '3d_curve' in brep curve." << std::endl;
+
+        auto p_curve = ReadNurbsCurve<3, TNodeType>(
+            rParameters["3d_curve"], rModelPart, EchoLevel);
+
+        auto p_brep_curve = Kratos::make_shared<BrepCurveType>(p_curve);
+
+        SetIdOrName<BrepCurveType>(rParameters, p_brep_curve);
+
+        rModelPart.AddGeometry(p_brep_curve);
+    }
+
 
     static void ReadBrepEdgeBrepCurveOnSurface(
         const Parameters & rParameters,
@@ -486,6 +532,82 @@ private:
         SetIdOrName<CouplingGeometryType>(rParameters, p_coupling_geometry);
 
         rModelPart.AddGeometry(p_coupling_geometry);
+    }
+
+    static void ReadPointsOnGeometries(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(rParameters.IsArray())
+            << "\"vertices\" section needs to be an array of PointsOnGeometries." << std::endl;
+
+        KRATOS_INFO_IF("ReadPointsOnGeometries", EchoLevel > 2)
+            << "Reading " << rParameters.size() << " PointsOnGeometries..." << std::endl;
+
+        for (IndexType brep_point_i = 0; brep_point_i < rParameters.size(); ++brep_point_i)
+        {
+            KRATOS_INFO_IF("ReadPointsOnGeometries", (EchoLevel > 3))
+                << "Reading PointOnGeometry \"" << GetIdOrName(rParameters[brep_point_i]) << "\"" << std::endl;
+
+            if (rParameters[brep_point_i]["topology"].size() == 1) {
+                if (rParameters[brep_point_i]["topology"][0].Has("local_coordinates"))
+                {
+                    auto p_geometry = GetGeometry(rParameters[brep_point_i]["topology"][0], rModelPart);
+
+                    GeometryPointerType p_point_on_geometry = ReadPointOnGeometry(rParameters[brep_point_i]["topology"][0], rModelPart, p_geometry, EchoLevel);
+
+                    SetIdOrName(rParameters[brep_point_i], p_point_on_geometry);
+                    rModelPart.AddGeometry(p_point_on_geometry);
+                }
+                else {
+                    KRATOS_ERROR << "Topology of brep point: " << GetIdOrName(rParameters[brep_point_i])
+                        << " does not provide local coordinates. No other import option provided. Topology as following: "
+                        << rParameters[brep_point_i] << std::endl;
+                }
+            }
+            else if (rParameters[brep_point_i]["topology"].size() > 1) {
+                std::vector<GeometryPointerType> coupling_point_geometries(rParameters[brep_point_i]["topology"].size());
+
+                for (IndexType i = 0; i < rParameters[brep_point_i]["topology"].size(); ++i) {
+                    auto p_geometry = GetGeometry(rParameters[brep_point_i]["topology"][i], rModelPart);
+
+                    coupling_point_geometries[i] = ReadPointOnGeometry(rParameters[brep_point_i]["topology"][i], rModelPart, p_geometry, EchoLevel);
+                }
+
+                auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
+                    coupling_point_geometries);
+
+                SetIdOrName<CouplingGeometryType>(rParameters[brep_point_i], p_coupling_geometry);
+                rModelPart.AddGeometry(p_coupling_geometry);
+            }
+            else {
+                KRATOS_ERROR << "PointOnGeometry did not provide any topology, which is not allowed.\n Parameters are read as following: \n"
+                    << rParameters[brep_point_i] << std::endl;
+            }
+        }
+    }
+
+    static GeometryPointerType ReadPointOnGeometry(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        GeometryPointerType pBackgroundGeometry,
+        SizeType EchoLevel = 0)
+    {
+        auto coordinates_vector = rParameters["local_coordinates"].GetVector();
+        array_1d<double, 3> local_coordinates;
+        local_coordinates[0] = coordinates_vector[0];
+        local_coordinates[1] = coordinates_vector[1];
+        local_coordinates[2] = coordinates_vector[2];
+
+        if (pBackgroundGeometry->LocalSpaceDimension() == 2)
+            return Kratos::make_shared<PointOnGeometryOnSurfaceType>(local_coordinates, pBackgroundGeometry);
+        else if (pBackgroundGeometry->LocalSpaceDimension() == 1)
+            return Kratos::make_shared<PointOnGeometryOnCurveType>(local_coordinates, pBackgroundGeometry);
+        else {
+            KRATOS_ERROR << "Local space dimension of: " << pBackgroundGeometry->LocalSpaceDimension()
+                << " is not supported for point on geometry." << std::endl;
+        }
     }
 
     ///@}
@@ -752,6 +874,19 @@ private:
     static void SetIdOrName(
         const Parameters rParameters,
         typename TGeometry::Pointer pGeometry)
+    {
+        if (rParameters.Has("brep_id")) {
+            pGeometry->SetId(rParameters["brep_id"].GetInt());
+        }
+        else if (rParameters.Has("brep_name")) {
+            pGeometry->SetId(rParameters["brep_name"].GetString());
+        }
+    }
+
+    /// Sets the geometry Id with either the 'brep_id' or the 'brep_name'.
+    static void SetIdOrName(
+        const Parameters rParameters,
+        GeometryPointerType pGeometry)
     {
         if (rParameters.Has("brep_id")) {
             pGeometry->SetId(rParameters["brep_id"].GetInt());

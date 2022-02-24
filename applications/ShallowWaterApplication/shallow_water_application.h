@@ -33,9 +33,13 @@
 // Shallow water includes
 #include "custom_elements/swe.h"
 #include "custom_elements/wave_element.h"
+#include "custom_elements/crank_nicolson_wave_element.h"
+#include "custom_elements/boussinesq_element.h"
+#include "custom_elements/conservative_element.h"
 #include "custom_elements/shallow_water_2d_3.h"
-#include "custom_conditions/nothing_condition.hpp"
 #include "custom_conditions/wave_condition.h"
+#include "custom_conditions/boussinesq_condition.h"
+#include "custom_conditions/conservative_condition.h"
 #include "custom_modelers/mesh_moving_modeler.h"
 
 
@@ -165,10 +169,16 @@ namespace Kratos
         const WaveElement<4> mWaveElement2D4N;
         const WaveElement<8> mWaveElement2D8N;
         const WaveElement<9> mWaveElement2D9N;
+        const CrankNicolsonWaveElement<3> mCrankNicolsonWaveElement2D3N;
+        const BoussinesqElement<3> mBoussinesqElement2D3N;
+        const BoussinesqElement<4> mBoussinesqElement2D4N;
+        const ConservativeElement<3> mConservativeElement2D3N;
         const ShallowWater2D3 mShallowWater2D3N;
         // Conditions
-        const NothingCondition<2> mNothingCondition2D2N;
         const WaveCondition<2> mWaveCondition2D2N;
+        const WaveCondition<3> mWaveCondition2D3N;
+        const BoussinesqCondition<2> mBoussinesqCondition2D2N;
+        const ConservativeCondition<2> mConservativeCondition2D2N;
 
         // Modelers
         const MeshMovingModeler mMeshMovingModeler;

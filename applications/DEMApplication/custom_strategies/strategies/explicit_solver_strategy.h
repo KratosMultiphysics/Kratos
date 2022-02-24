@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_utilities/create_and_destroy.h"
@@ -44,6 +44,7 @@
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/discrete_particle_configure.h"
+#include "custom_utilities/node_configure.h"
 #include "custom_utilities/rigid_face_geometrical_object_configure.h"
 
 #ifdef USING_CGAL
@@ -97,6 +98,7 @@ namespace Kratos {
         typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
         typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
+        typedef NodeConfigure<3> NodeConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
         typedef Variable<double> ComponentOf3ComponentsVariableType;
 
@@ -121,9 +123,16 @@ namespace Kratos {
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
             mpSpSearch = pSpSearch;
-            if(mParameters["do_search_neighbours"].GetBool()) mDoSearchNeighbourElements = true;
-            else mDoSearchNeighbourElements = false;
+
+            //Also checks old flag name for backward compatibility issues.
+            if(mParameters["do_search_dem_neighbours"].GetBool()) {
+                mDoSearchNeighbourElements = true;
+            } else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
+
+            if(mParameters["do_search_fem_neighbours"].GetBool()) mDoSearchNeighbourFEMElements = true;
+            else mDoSearchNeighbourFEMElements = false;
+
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
@@ -204,7 +213,6 @@ namespace Kratos {
         virtual void Initialize();
         virtual void AttachSpheresToStickyWalls();
         virtual void DisplayThreadInfo();
-        virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
@@ -213,7 +221,6 @@ namespace Kratos {
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);
         void SearchFEMOperations(ModelPart& r_model_part, bool has_mpi = true) ;
         virtual void ForceOperations(ModelPart& r_model_part);
-        void InitialTimeStepCalculation(); //TODO: remove this one
         void GetForce();
         void FastGetForce();
         virtual void PerformTimeIntegrationOfMotion(int StepFlag = 0);
@@ -255,6 +262,7 @@ namespace Kratos {
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
+        void Check_MPI(bool& has_mpi);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
@@ -299,6 +307,7 @@ namespace Kratos {
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
+        bool mDoSearchNeighbourFEMElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
         ModelPart *mpFem_model_part;
