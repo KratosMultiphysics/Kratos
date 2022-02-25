@@ -472,7 +472,9 @@ namespace Kratos
 
                     // // to control that the element has a good shape
                     if (dimension == 3 && accepted && numrigid < 3 &&
-                        (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
+                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
+                    // // to control that the element has a good shape
+                    //if (dimension == 3 && accepted)
                     {
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
                         double Volume = tetrahedron->Volume();
@@ -514,11 +516,13 @@ namespace Kratos
                         {
                             accepted = false;
                             number_of_slivers++;
+                            std::cout << "sliver for angle criterion" << std::endl;
                         }
                         else if (Volume <= CriticalVolume)
                         {
                             accepted = false;
                             number_of_slivers++;
+                            std::cout << "sliver for volume criterion" << std::endl;
                         }
                         delete tetrahedron;
                     }
@@ -594,6 +598,7 @@ namespace Kratos
                 }
                 mrRemesh.Info->NumberOfElements = number;
             }
+            std::cout << "Slivers detected: " << number_of_slivers << std::endl;
 
             if (mEchoLevel > 1)
             {

@@ -95,6 +95,7 @@ namespace Kratos
         void Execute() override
         {
             KRATOS_TRY
+            
             if (mEchoLevel > 1)
             {
                 std::cout << " [ SELECT MESH ELEMENTS in PfemFluid: (" << mrRemesh.OutMesh.GetNumberOfElements() << ") " << std::endl;
@@ -334,11 +335,7 @@ namespace Kratos
                         {
                             Alpha *= 0.95;
                         }
-                        // else if (numfreesurf < nds && numisolated < nds && previouslyIsolatedNodes < 3 && previouslyFreeSurfaceNodes < nds && sumPreviouslyIsolatedFreeSurf < nds && sumIsolatedFreeSurf < nds)
-                        // {
-                        //     Alpha *= 1.05;
-                        // }
-
+     
                         if (numrigid == nds)
                         {
                             Alpha *= 0.95;
@@ -374,216 +371,6 @@ namespace Kratos
                         accepted = false;
                     }
 
-                    if (accepted == true && (numfreesurf == nds || sumIsolatedFreeSurf == nds || sumPreviouslyIsolatedFreeSurf == nds) && firstMesh == false)
-                    {
-                        if (dimension == 2)
-                        {
-                            // this is to avoid the formation of isolated elements with different velocity fields. They can give convergence problems
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds) && numrigid == 0)
-                            {
-                                if (checkedNodes == nds)
-                                {
-                                    const double maxValue = 1.5;
-                                    const double minValue = 1.0 / maxValue;
-                                    if (normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[1] < minValue ||
-                                        normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[2] < minValue ||
-                                        normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[2] < minValue)
-                                    {
-                                        accepted = false;
-                                    }
-                                    else
-                                    {
-                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)));
-                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
-                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2)));
-
-                                        if (fabs(cosAngle01) < 0.95 || fabs(cosAngle02) < 0.95 || fabs(cosAngle12) < 0.95)
-                                        {
-                                            accepted = false;
-                                            // std::cout << isolatedNodesInTheElement << " isolatedNodesInTheElement The angle between the velocity vectors is too big" << std::endl;
-                                        }
-                                    }
-                                }
-                            }
-                            Geometry<Node<3>> *triangle = new Triangle2D3<Node<3>>(vertices);
-                            double elementArea = triangle->Area();
-                            if (elementArea < CriticalVolume)
-                            {
-                                accepted = false;
-                                // std::cout << "ATTENTION!!! ELEMENT WITH AREA = " << elementArea << " versus critical area " << CriticalVolume << std::endl;
-                            }
-                            delete triangle;
-                        }
-                        else if (dimension == 3)
-                        {
-                            if ((numfreesurf == nds || sumIsolatedFreeSurf == nds || previouslyIsolatedNodes == nds || previouslyFreeSurfaceNodes == nds) && numrigid == 0 && isolatedNodesInTheElement > 0)
-                            {
-                                if (checkedNodes == nds)
-                                {
-                                    const double maxValue = 2.5;
-                                    const double minValue = 1.0 / maxValue;
-                                    if (normVelocityP[0] / normVelocityP[1] < minValue || normVelocityP[0] / normVelocityP[2] < minValue || normVelocityP[0] / normVelocityP[3] < minValue ||
-                                        normVelocityP[0] / normVelocityP[1] > maxValue || normVelocityP[0] / normVelocityP[2] > maxValue || normVelocityP[0] / normVelocityP[3] > maxValue ||
-                                        normVelocityP[1] / normVelocityP[2] < minValue || normVelocityP[1] / normVelocityP[3] < minValue ||
-                                        normVelocityP[1] / normVelocityP[2] > maxValue || normVelocityP[1] / normVelocityP[3] > maxValue ||
-                                        normVelocityP[2] / normVelocityP[3] < minValue ||
-                                        normVelocityP[2] / normVelocityP[3] > maxValue)
-                                    {
-                                        accepted = false;
-                                    }
-                                    else
-                                    {
-                                        double cosAngle01 = (nodesVelocities[0][0] * nodesVelocities[1][0] + nodesVelocities[0][1] * nodesVelocities[1][1] + nodesVelocities[0][1] * nodesVelocities[1][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)));
-                                        double cosAngle02 = (nodesVelocities[0][0] * nodesVelocities[2][0] + nodesVelocities[0][1] * nodesVelocities[2][1] + nodesVelocities[0][1] * nodesVelocities[2][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
-                                        double cosAngle03 = (nodesVelocities[0][0] * nodesVelocities[3][0] + nodesVelocities[0][1] * nodesVelocities[3][1] + nodesVelocities[0][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[0][0], 2) + pow(nodesVelocities[0][1], 2) + pow(nodesVelocities[0][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-                                        double cosAngle12 = (nodesVelocities[1][0] * nodesVelocities[2][0] + nodesVelocities[1][1] * nodesVelocities[2][1] + nodesVelocities[1][1] * nodesVelocities[2][2]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)));
-                                        double cosAngle13 = (nodesVelocities[1][0] * nodesVelocities[3][0] + nodesVelocities[1][1] * nodesVelocities[3][1] + nodesVelocities[1][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[1][0], 2) + pow(nodesVelocities[1][1], 2) + pow(nodesVelocities[1][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-                                        double cosAngle23 = (nodesVelocities[2][0] * nodesVelocities[3][0] + nodesVelocities[2][1] * nodesVelocities[3][1] + nodesVelocities[2][1] * nodesVelocities[3][2]) /
-                                                            (sqrt(pow(nodesVelocities[2][0], 2) + pow(nodesVelocities[2][1], 2) + pow(nodesVelocities[2][2], 2)) *
-                                                             sqrt(pow(nodesVelocities[3][0], 2) + pow(nodesVelocities[3][1], 2) + pow(nodesVelocities[3][2], 2)));
-
-                                        if (fabs(cosAngle01) < 0.85 || fabs(cosAngle02) < 0.85 || fabs(cosAngle03) < 0.85 || fabs(cosAngle12) < 0.85 || fabs(cosAngle13) < 0.85 || fabs(cosAngle23) < 0.85)
-                                        {
-                                            accepted = false;
-                                            // std::cout << "The angle between the velocity vectors is too big" << std::endl;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // // to control that the element has a good shape
-                    if (dimension == 3 && accepted && numrigid < 3 &&
-                        (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
-                    {
-                        Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-                        double Volume = tetrahedron->Volume();
-
-                        double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
-                        a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-                        b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-                        c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
-                        a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
-                        b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
-                        c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
-                        double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
-                        a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
-                        b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
-                        c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
-                        double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
-                        a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
-                        b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
-                        c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
-
-                        double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-                        double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
-                        double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
-                        double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
-
-                        if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
-                        {
-                            accepted = false;
-                            number_of_slivers++;
-                        }
-                        else if (Volume <= CriticalVolume)
-                        {
-                            accepted = false;
-                            number_of_slivers++;
-                        }
-                        delete tetrahedron;
-                    }
-
-                    // // to control that the element has a good shape
-                    // if (accepted && (numfreesurf > 0 || numrigid == nds))
-                    //     {
-                    //         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
-
-                    //         double Volume = tetrahedron->Volume();
-                    //         double CriticalVolume = 0.01 * mrRemesh.Refine->MeanVolume;
-                    //         if(Volume==0){
-                    //             std::cout<<" !!!!! Volume==0 ";
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             Volume = pow(meanLength, 3) * sqrt(2) / 12.0;
-                    //             std::cout<<" now volume is  "<<Volume<<std::endl;
-                    //         }
-                    //         if (CriticalVolume == 0)
-                    //         {
-                    //             array_1d<double, 3> CoorDifference = vertices[0].Coordinates() - vertices[1].Coordinates();
-                    //             double SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             double meanLength = sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[0].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[2].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[1].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             CoorDifference = vertices[2].Coordinates() - vertices[3].Coordinates();
-                    //             SquaredLength = CoorDifference[0] * CoorDifference[0] + CoorDifference[1] * CoorDifference[1] + CoorDifference[2] * CoorDifference[2];
-                    //             meanLength += sqrt(SquaredLength) / 6.0;
-                    //             double regularTetrahedronVolume = pow(meanLength, 3) * sqrt(2) / 12.0;
-                    //             CriticalVolume = 0.00001 * regularTetrahedronVolume;
-                    //         }
-
-                    //         if (fabs(Volume) < CriticalVolume)
-                    //         {
-                    //             accepted = false;
-                    //             number_of_slivers++;
-                    //         }
-                    //         delete tetrahedron;
-                    //     }
-                    //}
-
                     if (accepted)
                     {
                         number += 1;
@@ -592,6 +379,7 @@ namespace Kratos
                 }
                 mrRemesh.Info->NumberOfElements = number;
             }
+            std::cout << "Slivers detected: " << number_of_slivers << std::endl;
 
             if (mEchoLevel > 1)
             {

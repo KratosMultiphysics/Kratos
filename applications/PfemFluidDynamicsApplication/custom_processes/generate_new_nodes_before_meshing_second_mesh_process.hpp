@@ -116,32 +116,10 @@ namespace Kratos
 				refiningBox = false;
 			}
 
-			if (currentTime < 2 * timeInterval)
-			{
-				mrRemesh.Info->RemovedNodes = 0;
-				if (mEchoLevel > 1)
-					std::cout << " First meshes: I repare the mesh without adding new nodes" << std::endl;
-				mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
-			}
-
 			int ElementsToRefine = mrRemesh.Info->RemovedNodes;
+			std::cout << " I will look for " << ElementsToRefine << " new nodes" << std::endl;
 
-			int initialNumberOfNodes = mrRemesh.Info->InitialNumberOfNodes;
-			int numberOfNodes = mrRemesh.Info->NumberOfNodes;
-			int extraNodes = numberOfNodes - initialNumberOfNodes;
-			int toleredExtraNodes = int(0.05 * mrRemesh.Info->InitialNumberOfNodes);
-
-			if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
-			{
-				if ((extraNodes + ElementsToRefine) > toleredExtraNodes && refiningBox == false)
-				{
-					ElementsToRefine = toleredExtraNodes - extraNodes;
-					if (ElementsToRefine < 0)
-					{
-						ElementsToRefine = 0;
-					}
-				}
-			}
+			bool findedSliver = SelectElementCloseSliver();
 
 			if (ElementsToRefine > 0 && mEchoLevel > 1)
 				std::cout << " I will look for " << ElementsToRefine << " new nodes" << std::endl;
@@ -154,31 +132,17 @@ namespace Kratos
 					std::vector<array_1d<double, 3>> NewPositions;
 					std::vector<double> BiggestVolumes;
 					std::vector<array_1d<unsigned int, 4>> NodesIDToInterpolate;
-					// std::vector<Node<3>::DofsContainerType> NewDofs;
 
 					int CountNodes = 0;
 
 					NewPositions.resize(ElementsToRefine);
 					BiggestVolumes.resize(ElementsToRefine, false);
 					NodesIDToInterpolate.resize(ElementsToRefine);
-					// NewDofs.resize(ElementsToRefine, false);
 
 					for (int nn = 0; nn < ElementsToRefine; nn++)
 					{
 						BiggestVolumes[nn] = -1.0;
 					}
-
-					// std::vector<array_1d<double, 3>> CornerWallNewPositions;
-					// std::vector<array_1d<unsigned int, 4>> CornerWallNodesIDToInterpolate;
-					// std::vector<Node<3>::DofsContainerType> CornerWallNewDofs;
-					// int cornerWallNewNodes = 0;
-					// int maxOfNewWallNodes = toleredExtraNodes;
-					// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
-					// {
-					// 	CornerWallNewPositions.resize(maxOfNewWallNodes, false);
-					// 	CornerWallNodesIDToInterpolate.resize(maxOfNewWallNodes, false);
-					// 	CornerWallNewDofs.resize(maxOfNewWallNodes, false);
-					// }
 
 					ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
 					for (ModelPart::ElementsContainerType::const_iterator ie = element_begin; ie != mrModelPart.ElementsEnd(); ie++)
@@ -188,20 +152,10 @@ namespace Kratos
 						if (dimension == 2)
 						{
 							SelectEdgeToRefine2D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, CountNodes, ElementsToRefine);
-
-							// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
-							// {
-							// 	InsertNodeInCornerElement2D(ie->GetGeometry(), CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes);
-							// }
 						}
 						else if (dimension == 3)
 						{
 							SelectEdgeToRefine3D(ie->GetGeometry(), NewPositions, BiggestVolumes, NodesIDToInterpolate, CountNodes, ElementsToRefine);
-
-							// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER) && cornerWallNewNodes < maxOfNewWallNodes)
-							// {
-							// 	InsertNodeInCornerElement3D(ie->GetGeometry(), CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes);
-							// }
 						}
 
 					} // elements loop
@@ -213,21 +167,9 @@ namespace Kratos
 						NewPositions.resize(CountNodes);
 						BiggestVolumes.resize(CountNodes, false);
 						NodesIDToInterpolate.resize(CountNodes);
-						// NewDofs.resize(CountNodes, false);
 					}
 					unsigned int maxId = 0;
 					CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
-
-					// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
-					// {
-					// 	if (cornerWallNewNodes < maxOfNewWallNodes)
-					// 	{
-					// 		CornerWallNewPositions.resize(cornerWallNewNodes, false);
-					// 		CornerWallNewDofs.resize(cornerWallNewNodes, false);
-					// 		CornerWallNodesIDToInterpolate.resize(cornerWallNewNodes, false);
-					// 	}
-					// 	CreateAndAddNewNodesInCornerWall(CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes, maxId);
-					// }
 				}
 			}
 			else
@@ -986,6 +928,10 @@ namespace Kratos
 				{
 					inletNodes++;
 				}
+				if (Element[pn].Is(TO_ERASE))
+				{
+					std::cout << "this node is to erase " << Element[pn].X() << " " << Element[pn].Y() << " " << Element[pn].Z() << std::endl;
+				}
 			}
 
 			double limitEdgeLength = 1.25 * mrRemesh.Refine->CriticalRadius;
@@ -1211,6 +1157,37 @@ namespace Kratos
 			}
 
 			KRATOS_CATCH("")
+		}
+
+		bool SelectElementCloseSliver()
+		{
+			KRATOS_TRY
+			std::cout << "SelectElementCloseSliver()!" << std::endl;
+
+			bool any_node_removed = false;
+
+			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
+			{
+				if (in->Is(TO_ERASE))
+				{
+					std::cout << "    entender porque no se entra aqui!" << std::endl;
+					std::cout << "Node founded!" << std::endl;
+					ElementWeakPtrVectorType &neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
+					for (ElementWeakPtrVectorType::iterator ne = neighb_elems.begin(); ne != neighb_elems.end(); ne++)
+					{
+						double element_volume = (ne)->GetGeometry().Volume();
+						std::cout << "element_volume " << element_volume << std::endl; // cercare l'elemento migliore dove aggiugere il nuovo nodo e non metterlo nel/i lato/i sbagliati
+					}
+				}
+				else
+				{
+					std::cout << "    entender porque no se entra aqui!" << std::endl;
+				}
+			}
+
+			return any_node_removed;
+
+			KRATOS_CATCH(" ")
 		}
 
 		void SelectEdgeToRefine2DWithRefinement(Element::GeometryType &Element,

@@ -121,7 +121,7 @@ void TetrahedralMesh3DMesher::GenerateTwice(ModelPart& rModelPart,
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
-    this->ExecutePreMeshingProcesses();
+    this->ExecutePreMeshingProcessesFirstMesh();
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -169,7 +169,7 @@ void TetrahedralMesh3DMesher::GenerateTwice(ModelPart& rModelPart,
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses();
+    this->ExecutePostMeshingProcessesFirstMesh();
     ////////////////////////////////////////////////////////////
 
 
@@ -189,7 +189,7 @@ void TetrahedralMesh3DMesher::GenerateTwice(ModelPart& rModelPart,
 
 
     ////////////////////////////////////////////////////////////
-    this->ExecutePreMeshingProcesses();
+    this->ExecutePreMeshingProcessesSecondMesh();
     ////////////////////////////////////////////////////////////
 
     //*********************************************************************
@@ -233,7 +233,7 @@ void TetrahedralMesh3DMesher::GenerateTwice(ModelPart& rModelPart,
     //*********************************************************************
 
     ////////////////////////////////////////////////////////////
-    this->ExecutePostMeshingProcesses();
+    this->ExecutePostMeshingProcessesSecondMesh();
     ////////////////////////////////////////////////////////////
 
 

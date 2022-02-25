@@ -66,8 +66,8 @@ namespace Kratos
 
         /// Default constructor.
         SelectMeshElementsForFluidsSecondMeshProcess(ModelPart &rModelPart,
-                                           MesherUtilities::MeshingParameters &rRemeshingParameters,
-                                           int EchoLevel)
+                                                     MesherUtilities::MeshingParameters &rRemeshingParameters,
+                                                     int EchoLevel)
             : mrModelPart(rModelPart),
               mrRemesh(rRemeshingParameters)
         {
@@ -470,9 +470,11 @@ namespace Kratos
                         }
                     }
 
-                    // // to control that the element has a good shape
+                    // to control that the element has a good shape
                     if (dimension == 3 && accepted && numrigid < 3 &&
                         (previouslyIsolatedNodes == 4 || previouslyFreeSurfaceNodes == 4 || sumIsolatedFreeSurf == 4 || numfreesurf == 4 || numisolated == 4 || (numrigid == 2 && isolatedNodesInTheElement > 1)))
+                    // // // to control that the element has a good shape
+                    // if (dimension == 3 && accepted)
                     {
                         Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
                         double Volume = tetrahedron->Volume();
@@ -509,15 +511,73 @@ namespace Kratos
                         double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
                         double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
 
-                        if (fabs(cosAngle12) > 0.999 || fabs(cosAngle13) > 0.999 || fabs(cosAngle14) > 0.999 || fabs(cosAngle23) > 0.999 || fabs(cosAngle24) > 0.999 || fabs(cosAngle34) > 0.999) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+                        double tolerance = 0.999;
+                        if (fabs(cosAngle12) > tolerance || fabs(cosAngle13) > tolerance || fabs(cosAngle14) > tolerance || fabs(cosAngle23) > tolerance || fabs(cosAngle24) > tolerance || fabs(cosAngle34) > tolerance) // if two faces are coplanar, I will erase the element (which is probably a sliver)
                         {
                             accepted = false;
                             number_of_slivers++;
+                            std::cout << "sliver for angle criterion" << std::endl;
                         }
                         else if (Volume <= CriticalVolume)
                         {
                             accepted = false;
                             number_of_slivers++;
+                            std::cout << "sliver for volume criterion" << std::endl;
+                        }
+                        delete tetrahedron;
+                    }
+                    else if (dimension == 3 && accepted){
+                        Geometry<Node<3>> *tetrahedron = new Tetrahedra3D4<Node<3>>(vertices);
+                        double Volume = tetrahedron->Volume();
+
+                        double a1 = 0; //slope x for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        double b1 = 0; //slope y for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        double c1 = 0; //slope z for plane on the first triangular face of the tetrahedra (nodes A,B,C)
+                        a1 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[2][2] - nodesCoordinates[0][2]) - (nodesCoordinates[2][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+                        b1 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[2][0] - nodesCoordinates[0][0]) - (nodesCoordinates[2][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+                        c1 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[2][1] - nodesCoordinates[0][1]) - (nodesCoordinates[2][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+                        double a2 = 0; //slope x for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        double b2 = 0; //slope y for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        double c2 = 0; //slope z for plane on the second triangular face of the tetrahedra (nodes A,B,D)
+                        a2 = (nodesCoordinates[1][1] - nodesCoordinates[0][1]) * (nodesCoordinates[3][2] - nodesCoordinates[0][2]) - (nodesCoordinates[3][1] - nodesCoordinates[0][1]) * (nodesCoordinates[1][2] - nodesCoordinates[0][2]);
+                        b2 = (nodesCoordinates[1][2] - nodesCoordinates[0][2]) * (nodesCoordinates[3][0] - nodesCoordinates[0][0]) - (nodesCoordinates[3][2] - nodesCoordinates[0][2]) * (nodesCoordinates[1][0] - nodesCoordinates[0][0]);
+                        c2 = (nodesCoordinates[1][0] - nodesCoordinates[0][0]) * (nodesCoordinates[3][1] - nodesCoordinates[0][1]) - (nodesCoordinates[3][0] - nodesCoordinates[0][0]) * (nodesCoordinates[1][1] - nodesCoordinates[0][1]);
+                        double a3 = 0; //slope x for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        double b3 = 0; //slope y for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        double c3 = 0; //slope z for plane on the third triangular face of the tetrahedra (nodes B,C,D)
+                        a3 = (nodesCoordinates[1][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[1][2] - nodesCoordinates[2][2]);
+                        b3 = (nodesCoordinates[1][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[1][0] - nodesCoordinates[2][0]);
+                        c3 = (nodesCoordinates[1][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[1][1] - nodesCoordinates[2][1]);
+                        double a4 = 0; //slope x for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        double b4 = 0; //slope y for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        double c4 = 0; //slope z for plane on the fourth triangular face of the tetrahedra (nodes A,C,D)
+                        a4 = (nodesCoordinates[0][1] - nodesCoordinates[2][1]) * (nodesCoordinates[3][2] - nodesCoordinates[2][2]) - (nodesCoordinates[3][1] - nodesCoordinates[2][1]) * (nodesCoordinates[0][2] - nodesCoordinates[2][2]);
+                        b4 = (nodesCoordinates[0][2] - nodesCoordinates[2][2]) * (nodesCoordinates[3][0] - nodesCoordinates[2][0]) - (nodesCoordinates[3][2] - nodesCoordinates[2][2]) * (nodesCoordinates[0][0] - nodesCoordinates[2][0]);
+                        c4 = (nodesCoordinates[0][0] - nodesCoordinates[2][0]) * (nodesCoordinates[3][1] - nodesCoordinates[2][1]) - (nodesCoordinates[3][0] - nodesCoordinates[2][0]) * (nodesCoordinates[0][1] - nodesCoordinates[2][1]);
+
+                        double cosAngle12 = (a1 * a2 + b1 * b2 + c1 * c2) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        double cosAngle13 = (a1 * a3 + b1 * b3 + c1 * c3) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+                        double cosAngle14 = (a1 * a4 + b1 * b4 + c1 * c4) / (sqrt(pow(a1, 2) + pow(b1, 2) + pow(c1, 2)) * sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)));
+                        double cosAngle23 = (a3 * a2 + b3 * b2 + c3 * c2) / (sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        double cosAngle24 = (a4 * a2 + b4 * b2 + c4 * c2) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a2, 2) + pow(b2, 2) + pow(c2, 2)));
+                        double cosAngle34 = (a4 * a3 + b4 * b3 + c4 * c3) / (sqrt(pow(a4, 2) + pow(b4, 2) + pow(c4, 2)) * sqrt(pow(a3, 2) + pow(b3, 2) + pow(c3, 2)));
+
+                        double tolerance = 0.999;
+                        if (fabs(cosAngle12) > tolerance || fabs(cosAngle13) > tolerance || fabs(cosAngle14) > tolerance || fabs(cosAngle23) > tolerance || fabs(cosAngle24) > tolerance || fabs(cosAngle34) > tolerance) // if two faces are coplanar, I will erase the element (which is probably a sliver)
+                        {
+                            accepted = false;
+                            number_of_slivers++;
+                            std::cout << "second criterion sliver for angle criterion" << std::endl;
+                            std::cout<<"  nodesCoordinates[0][0]:"<<nodesCoordinates[0][0]<<"  [0][1]:"<<nodesCoordinates[0][1]<<"  [0][2]:"<<nodesCoordinates[0][2]<<std::endl;
+                            std::cout<<"  nodesCoordinates[1][0]:"<<nodesCoordinates[1][0]<<"  [1][1]:"<<nodesCoordinates[1][1]<<"  [1][2]:"<<nodesCoordinates[1][2]<<std::endl;
+                            std::cout<<"  nodesCoordinates[2][0]:"<<nodesCoordinates[2][0]<<"  [2][1]:"<<nodesCoordinates[2][1]<<"  [2][2]:"<<nodesCoordinates[2][2]<<std::endl;
+                            std::cout<<"  nodesCoordinates[3][0]:"<<nodesCoordinates[3][0]<<"  [3][1]:"<<nodesCoordinates[3][1]<<"  [3][2]:"<<nodesCoordinates[3][2]<<std::endl;
+                        }
+                        else if (Volume <= CriticalVolume)
+                        {
+                            accepted = false;
+                            number_of_slivers++;
+                            std::cout << "second criterion sliver for volume criterion" << std::endl;
                         }
                         delete tetrahedron;
                     }
@@ -593,6 +653,7 @@ namespace Kratos
                 }
                 mrRemesh.Info->NumberOfElements = number;
             }
+            std::cout << "Slivers detected: " << number_of_slivers << std::endl;
 
             if (mEchoLevel > 1)
             {
@@ -668,7 +729,6 @@ namespace Kratos
 
             KRATOS_CATCH("")
         }
-
         ///@}
         ///@name Access
         ///@{
@@ -682,7 +742,8 @@ namespace Kratos
         ///@{
 
         /// Turn back information as a string.
-        std::string Info() const override
+        std::string
+        Info() const override
         {
             return "SelectMeshElementsForFluidsSecondMeshProcess";
         }
