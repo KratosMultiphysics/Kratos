@@ -139,11 +139,11 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues);
         }
-        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
     }
 
 } // End CalculateMaterialResponseCauchy
@@ -178,7 +178,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     while (!is_converged && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: rSerialStrainMatrix
-            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix);
+            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix, rValues);
         }
         // This method computes the strain vector for the matrix & fiber
         this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
@@ -360,7 +360,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     const Matrix& rSerialProjector,
     Matrix& rConstitutiveTensorMatrixSS,
     Matrix& rConstitutiveTensorFiberSS,
-    Vector& rInitialApproximationSerialStrainMatrix
+    Vector& rInitialApproximationSerialStrainMatrix,
+    ConstitutiveLaw::Parameters& rValues
 )
 {
     const std::size_t voigt_size = this->GetStrainSize();
@@ -378,8 +379,32 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     const auto& r_props_matrix_cl = *(it_cl_begin);
     const auto& r_props_fiber_cl  = *(it_cl_begin + 1);
 
-    this->CalculateElasticMatrix(constitutive_tensor_matrix, r_props_matrix_cl);
-    this->CalculateElasticMatrix(constitutive_tensor_fiber, r_props_fiber_cl);
+    // Let's compute the tangent tensors of the components in the previous time step
+    Flags& r_flags = rValues.GetOptions();
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+    ConstitutiveLaw::Parameters values_fiber  = rValues;
+    ConstitutiveLaw::Parameters values_matrix = rValues;
+    // Compute the tangent tensor of the matrix
+    values_matrix.SetMaterialProperties(r_props_matrix_cl);
+    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
+    noalias(constitutive_tensor_matrix) = values_matrix.GetConstitutiveMatrix();
+
+    // Compute the tangent tensor of the fiber
+    values_fiber.SetMaterialProperties(r_props_fiber_cl);
+    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
+    noalias(constitutive_tensor_fiber) = values_fiber.GetConstitutiveMatrix();
+
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
 
     noalias(rConstitutiveTensorMatrixSS) = prod(rSerialProjector, Matrix(prod(constitutive_tensor_matrix, trans(rSerialProjector))));
     noalias(rConstitutiveTensorFiberSS)  = prod(rSerialProjector, Matrix(prod(constitutive_tensor_fiber, trans(rSerialProjector))));

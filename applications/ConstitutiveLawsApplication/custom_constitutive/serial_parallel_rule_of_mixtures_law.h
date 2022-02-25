@@ -396,7 +396,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         const Matrix& rSerialProjector,
         Matrix& rConstitutiveTensorMatrixSS,
         Matrix& rConstitutiveTensorFiberSS,
-        Vector& rInitialApproximationSerialStrainMatrix);
+        Vector& rInitialApproximationSerialStrainMatrix,
+        ConstitutiveLaw::Parameters& rValues);
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
