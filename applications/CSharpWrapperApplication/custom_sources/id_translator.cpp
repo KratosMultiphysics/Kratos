@@ -32,7 +32,7 @@ void IdTranslator::init(std::vector<int> &nodes) {
     for (int i = 0; i < nodesSize; i++) {
         pmKratosIds[i] = nodes.at(i);
     }
-    pmSurfaceIds = new int[pmKratosIds[nodesSize - 1]];
+    pmSurfaceIds = new int[pmKratosIds[nodesSize - 1] + 1];
     for (int i = 0; i < pmKratosIds[nodesSize - 1]; i++) pmSurfaceIds[i] = -1;
 
     for (int i = 0; i < nodesSize; i++) {
