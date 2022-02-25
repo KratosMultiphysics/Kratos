@@ -1287,6 +1287,8 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rV
     // Previous flags saved
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    (ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -1295,6 +1297,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rV
         p_law->CalculateMaterialResponsePK1(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1311,6 +1314,10 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rV
         p_law->FinalizeMaterialResponsePK1(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 template<unsigned int TDim>
@@ -1325,6 +1332,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
     // Previous flags saved
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -1333,6 +1341,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         p_law->CalculateMaterialResponsePK2(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1349,6 +1358,10 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         p_law->FinalizeMaterialResponsePK2(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1363,6 +1376,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Paramete
     // Previous flags saved
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -1371,6 +1385,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Paramete
         p_law->CalculateMaterialResponseKirchhoff(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1387,6 +1402,10 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Paramete
         p_law->FinalizeMaterialResponseKirchhoff(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
@@ -1401,6 +1420,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters&
     // Previous flags saved
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+    const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
@@ -1409,6 +1429,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters&
         p_law->CalculateMaterialResponseCauchy(rValues);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1425,6 +1446,10 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters&
         p_law->FinalizeMaterialResponseCauchy(rValues);
     }
     rValues.SetMaterialProperties(r_material_properties);
+    // Previous flags restored
+    r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+    r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
 /***********************************************************************************/
