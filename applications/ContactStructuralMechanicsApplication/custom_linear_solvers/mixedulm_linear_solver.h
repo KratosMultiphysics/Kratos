@@ -705,12 +705,29 @@ public:
 
         // Refactor rDofSet with the new indices
         // Ordering of the dofs is important
-        // BlockType::OTHER
-        // BlockType::MASTER
-        // BlockType::SLAVE_INACTIVE
-        // BlockType::SLAVE_ACTIVE
         const DofsArrayType copy_dof_set(rDofSet);
         rDofSet.clear();
+        global_pos = 0;
+        for (auto& i_dof : copy_dof_set) {
+            if (mWhichBlockType[global_pos] == BlockType::OTHER) {
+
+            } else if (mWhichBlockType[global_pos] == BlockType::MASTER) {
+
+            } else if (mWhichBlockType[global_pos] == BlockType::SLAVE_INACTIVE) {
+
+            } else if (mWhichBlockType[global_pos] == BlockType::SLAVE_ACTIVE) {
+
+            }
+            ++global_pos;
+        }
+
+        // Reorder the dofs
+        const auto it_dof_begin = rDofSet.begin();
+        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](std::size_t Index){
+            auto it_dof = it_dof_begin + Index;
+            it_dof->SetEquationId(Index);
+        });
+        
     }
 
     ///@}
