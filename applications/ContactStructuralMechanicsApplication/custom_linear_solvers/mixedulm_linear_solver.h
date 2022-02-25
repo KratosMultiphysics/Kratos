@@ -708,6 +708,7 @@ public:
         const DofsArrayType copy_dof_set(rDofSet);
         const auto it_dof_begin = copy_dof_set.begin();
         rDofSet.clear();
+        rDofSet.reserve(mOtherIndices.size() + mMasterIndices.size() + mSlaveActiveIndices.size() + mSlaveInactiveIndices.size() + mLMInactiveIndices.size() + mLMActiveIndices.size() );
 
         // Copy dofs
         for (auto& r_index : mOtherIndices) {
