@@ -143,11 +143,15 @@ class CompressibleNavierStokesSymbolicGenerator:
         L -= S * Ug
         return L
 
-    def _ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
+    def _ComputeNonLinearAdjointOperator(self, A, primitives, Q, S, test_fun):
         L_adj = defs.ZeroVector(self.geometry.blocksize)
+
+        V = primitives.AsVector()
+        gradV = primitives.GradientsAsVector()
+
         for j in range(self.geometry.ndims):
             Q_j = Q.col(j)
-            H_j = H.col(j)
+            gradV_j = gradV.col(j)
             # Convective operator product
             A_j_trans = A[j].transpose()
             L_adj += A_j_trans * Q_j
@@ -156,14 +160,14 @@ class CompressibleNavierStokesSymbolicGenerator:
                 for n in range(self.geometry.blocksize):
                     A_j_trans_mn = A_j_trans[m, n]
                     for p in range(self.geometry.blocksize):
-                        aux_conv[m, n] += sympy.diff(A_j_trans_mn, Ug[p]) * H_j[p]
-            L_adj += aux_conv * V
+                        aux_conv[m, n] += sympy.diff(A_j_trans_mn, V[p]) * gradV_j[p]
+            L_adj += aux_conv * test_fun
             # Diffusive operator product
             # Note that the adjoint diffusive flux is not added as it will
             # involve 2nd order derivatives that vanish when introducing
             # the linear FE discretization
         # Source term addition
-        L_adj += S.transpose() * V
+        L_adj += S.transpose() * test_fun
 
         return L_adj
 
@@ -489,7 +493,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         res = - acc - L
 
         KratosMultiphysics.Logger.Print(" - Compute non-linear adjoint operator")
-        L_adj = self._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
+        L_adj = self._ComputeNonLinearAdjointOperator(A, primitives, Q, S, V)
 
         KratosMultiphysics.Logger.Print(" - Compute variational formulation")
         (rv, subscales) = self._ComputeVariationalFormulation(A, acc, G, H, L_adj, Q, S, Ug, V)

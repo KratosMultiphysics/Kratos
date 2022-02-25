@@ -277,8 +277,8 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         def ComputeNonLinearOperator(self, A, H, S, Ug):
             return super()._ComputeNonLinearOperator(A, H, S, Ug)
 
-        def ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
-            return super()._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
+        def ComputeNonLinearAdjointOperator(self,A, primitives, Q, S, V):
+            return super()._ComputeNonLinearAdjointOperator(A, primitives, Q, S, V)
 
         def ComputeVariationalFormulation(self, A, acc, G, H, L_adj, Q, S, Ug, V):
             return super()._ComputeVariationalFormulation(A, acc, G, H, L_adj, Q, S, Ug, V)
@@ -310,6 +310,11 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
     def testComputeNonLinearAdjointOperator(self):
         dim = 2
         blocksize = dim+2
+
+        geometry = self._DummyGeometry()
+        primitives = PrimitiveMagnitudes(geometry)
+        params = FormulationParameters(geometry, 'python')
+
         A = [defs.Matrix('A[{}]'.format(d), blocksize, blocksize) for d in range(dim)]
         H = defs.Matrix('H', blocksize, dim)
         Q = defs.Matrix('Q', blocksize, dim)
@@ -318,7 +323,9 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         V = defs.Vector('V', blocksize)
 
         dummy_geneator = self._DummyGenerator(self._DummyGeometry)
-        Ladj = dummy_geneator.ComputeNonLinearAdjointOperator(A, H, Q, S, U, V)
+        Ladj = dummy_geneator.ComputeNonLinearAdjointOperator(A, primitives, Q, S, V)
+
+        QuantityConverter.SubstitutePrimitivesWithConservatives(Ladj, primitives, U, H, params)
 
         Ladj_expected = sympy.Matrix([
             [A[0][0,0]*Q[0,0] + A[0][1,0]*Q[1,0] + A[0][2,0]*Q[2,0] + A[0][3,0]*Q[3,0] + A[1][0,0]*Q[0,1] + A[1][1,0]*Q[1,1] + A[1][2,0]*Q[2,1] + A[1][3,0]*Q[3,1] + S[0,0]*V[0] + S[1,0]*V[1] + S[2,0]*V[2] + S[3,0]*V[3]],

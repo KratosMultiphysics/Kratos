@@ -71,6 +71,7 @@ class PrimitiveMagnitudes:
 
         self.nnodes = geometry.nnodes
         self.ndims = geometry.ndims
+        self.blocksize = geometry.blocksize
 
     def AsVector(self):
         V = [[self.P]]
@@ -78,3 +79,12 @@ class PrimitiveMagnitudes:
             V.append([v])
         V.append([self.T])
         return sympy.Matrix(V)
+
+    def GradientsAsVector(self):
+        grad = defs.ZeroMatrix(self.blocksize, self.ndims)
+
+        grad[0, :] = self.grad_P.transpose()
+        grad[1:-1, :] = self.grad_V
+        grad[-1, :] = self.grad_T.transpose()
+
+        return grad
