@@ -50,12 +50,14 @@ class ControlsController:
                     raise RuntimeError("ControlsController: Required setting '{}' missing in 'control Nr.{}'!".format(key,itr+1))  
             self.controls_settings[itr].ValidateAndAssignDefaults(default_settings)
             for key in default_settings["settings"].keys():
+                if key == "technique_settings":
+                    continue
                 if not self.controls_settings[itr]["settings"].Has(key):
                     raise RuntimeError("ControlsController: Required setting '{}' missing in 'settings' of 'control Nr.{}' !".format(key,itr+1))             
             self.controls_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
 
 
-        self.supported_control_types = ["shape","topology","thickness"]
+        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing"],"topology":[],"thickness":[]}
         # sanity checks
         self.controls_types_vars_dict = {"shape":[],"topology":[],"thickness":[]}
         self.controls = {}
@@ -66,8 +68,12 @@ class ControlsController:
             control_technique = control_settings["settings"]["technique"].GetString()
             control_variables_name_list = control_settings["settings"]["variables_name"].GetStringArray()
             # check control type
-            if not control_type in self.supported_control_types:
-                raise RuntimeError("ControlsController: control type '{}' is not supported!".format(control_type))
+            if not control_type in self.supported_control_types_techniques.keys():
+                raise RuntimeError("ControlsController: control type '{}' in control {} is not supported!, we support {} ".format(control_type,control_name,self.supported_control_types_techniques))
+            # check control technique
+            if not control_technique in self.supported_control_types_techniques[control_type]:
+                raise RuntimeError("ControlsController: control technique '{}' for control type {} in control {} is not supported!, we support {}".format(control_technique,control_type,control_name,self.supported_control_types_techniques))
+
             # check for repetitious control over variables
             control_variables_name_list_set = set(control_variables_name_list)
             if len(control_variables_name_list_set) != len(control_variables_name_list):
@@ -75,15 +81,14 @@ class ControlsController:
             if control_variables_name_list_set.issubset(set(self.controls_types_vars_dict[control_type])):
                 raise RuntimeError("ControlsController: there are duplicated {} control over {}!".format(control_type,control_variables_name_list))
             if control_name in self.controls.keys():
-                raise RuntimeError("ControlsController: there are duplicated control names") 
+                raise RuntimeError("ControlsController: control name {} is duplicated !",control_name) 
 
             # now checks passed and create the control
-            for control_var_name in control_variables_name_list:
-                root_model_part_name = control_var_name.split(".")[0]
-                if not self.model.HasModelPart(root_model_part_name):
-                    raise RuntimeError("ControlsController: model part {} in 'control Nr.{}' does not exist in model_parts list!".format(root_model_part_name,itr+1)) 
-            if control_technique == "explicit_vertex_morphing":
-                control = evm.ExplicitVertexMorphing(control_name,model,control_variables_name_list,control_settings["settings"]["technique_settings"])                          
+            if control_type == "shape":
+                # check if root model parts exist
+                self.model_parts_controller.CheckIfRootModelPartsExist(control_variables_name_list,True)
+                if control_technique == "explicit_vertex_morphing":
+                    control = evm.ExplicitVertexMorphing(control_name,model,control_variables_name_list,control_settings["settings"]["technique_settings"])                          
 
             self.controls[control_name] = control
             self.controls_types_vars_dict[control_type].extend(control_variables_name_list)
@@ -94,15 +99,7 @@ class ControlsController:
     def Initialize(self):
         for key,value in self.controls.items():
             value.Initialize()
-
-    # --------------------------------------------------------------------------
-    def CheckIfControlExists(self,control_name):
-        exists = False
-        for control_settings in self.controls_settings:
-            if control_name == control_settings["name"].GetString():
-                exists = True
-                break
-        return exists            
+           
 
                
 
