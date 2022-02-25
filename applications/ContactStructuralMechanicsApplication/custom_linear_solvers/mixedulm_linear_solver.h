@@ -711,28 +711,35 @@ public:
         rDofSet.reserve(mOtherIndices.size() + mMasterIndices.size() + mSlaveActiveIndices.size() + mSlaveInactiveIndices.size() + mLMInactiveIndices.size() + mLMActiveIndices.size());
 
         // Copy dofs
+        std::size_t counter = 0;
         for (auto& r_index : mOtherIndices) {
             auto it_dof = it_dof_begin + r_index;
-            rDofSet.push_back(*(it_dof.base()));
+            auto* p_dof = *(it_dof.base());
+            p_dof->SetEquationId(counter);
+            rDofSet.push_back(p_dof);
+            ++counter;
         }
         for (auto& r_index : mMasterIndices) {
             auto it_dof = it_dof_begin + r_index;
-            rDofSet.push_back(*(it_dof.base()));
+            auto* p_dof = *(it_dof.base());
+            p_dof->SetEquationId(counter);
+            rDofSet.push_back(p_dof);
+            ++counter;
         }
         for (auto& r_index : mSlaveInactiveIndices) {
             auto it_dof = it_dof_begin + r_index;
-            rDofSet.push_back(*(it_dof.base()));
+            auto* p_dof = *(it_dof.base());
+            p_dof->SetEquationId(counter);
+            rDofSet.push_back(p_dof);
+            ++counter;
         }
         for (auto& r_index : mSlaveActiveIndices) {
             auto it_dof = it_dof_begin + r_index;
-            rDofSet.push_back(*(it_dof.base()));
+            auto* p_dof = *(it_dof.base());
+            p_dof->SetEquationId(counter);
+            rDofSet.push_back(p_dof);
+            ++counter;
         }
-
-        // Reorder the dofs
-        IndexPartition<std::size_t>(rDofSet.size()).for_each([&](std::size_t Index){
-            auto it_dof = it_dof_begin + Index;
-            it_dof->SetEquationId(Index);
-        });    
     }
 
     ///@}
