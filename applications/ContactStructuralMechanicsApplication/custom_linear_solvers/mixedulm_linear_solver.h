@@ -706,24 +706,28 @@ public:
         // Refactor rDofSet with the new indices
         // Ordering of the dofs is important
         const DofsArrayType copy_dof_set(rDofSet);
+        const auto it_dof_begin = copy_dof_set.begin();
         rDofSet.clear();
 
         // Copy dofs
         for (auto& r_index : mOtherIndices) {
-            rDofSet.push_back(copy_dof_set[r_index]);
+            auto it_dof = it_dof_begin + r_index;
+            rDofSet.push_back(*(it_dof.base()));
         }
         for (auto& r_index : mMasterIndices) {
-            rDofSet.push_back(copy_dof_set[r_index]);
+            auto it_dof = it_dof_begin + r_index;
+            rDofSet.push_back(*(it_dof.base()));
         }
         for (auto& r_index : mSlaveInactiveIndices) {
-            rDofSet.push_back(copy_dof_set[r_index]);
+            auto it_dof = it_dof_begin + r_index;
+            rDofSet.push_back(*(it_dof.base()));
         }
         for (auto& r_index : mSlaveActiveIndices) {
-            rDofSet.push_back(copy_dof_set[r_index]);
+            auto it_dof = it_dof_begin + r_index;
+            rDofSet.push_back(*(it_dof.base()));
         }
 
         // Reorder the dofs
-        const auto it_dof_begin = rDofSet.begin();
         IndexPartition<std::size_t>(rDofSet.size()).for_each([&](std::size_t Index){
             auto it_dof = it_dof_begin + Index;
             it_dof->SetEquationId(Index);
