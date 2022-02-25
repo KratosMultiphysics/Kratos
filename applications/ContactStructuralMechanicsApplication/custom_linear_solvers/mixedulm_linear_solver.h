@@ -498,7 +498,7 @@ public:
         ModelPart& rModelPart
         ) override
     {
-        // Allocating auxiliar parameters
+        // Allocating auxiliary parameters
         IndexType node_id;
 
         // Count LM dofs
@@ -807,7 +807,7 @@ protected:
         const IndexType* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
 
-        // Allocate the auxiliar blocks by push_back
+        // Allocate the auxiliary blocks by push_back
         SparseMatrixType KMLMA(master_size, lm_active_size);            /// The master-active LM block (this is the big block of M)
         SparseMatrixType KLMALMA(lm_active_size, lm_active_size);       /// The active LM-active LM block
         SparseMatrixType KSALMA(slave_active_size, lm_active_size);     /// The active slave-active LM block (this is the big block of D, diagonal)
@@ -1060,7 +1060,7 @@ protected:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(KLMALMA, mKLMAModified, mCOperator);
         }
 
-        // We proceed with the auxiliar products for the master blocks
+        // We proceed with the auxiliary products for the master blocks
         SparseMatrixType master_auxKSAN(master_size, other_dof_size);
         SparseMatrixType master_auxKSAM(master_size, master_size);
         SparseMatrixType master_auxKSASI(master_size, slave_inactive_size);
@@ -1074,7 +1074,7 @@ protected:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(mPOperator, mKSASA, master_auxKSASA);
         }
 
-        // We proceed with the auxiliar products for the active slave blocks
+        // We proceed with the auxiliary products for the active slave blocks
         SparseMatrixType aslave_auxKSAN(slave_active_size, other_dof_size);
         SparseMatrixType aslave_auxKSAM(slave_active_size, master_size);
         SparseMatrixType aslave_auxKSASI(slave_active_size, slave_inactive_size);
@@ -1094,7 +1094,7 @@ protected:
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
         const SizeType assembling_slave_dof_initial_index = slave_inactive_dof_initial_index + slave_inactive_size;
 
-        // The auxiliar index structure
+        // The auxiliary index structure
         const SizeType nrows = mKDispModified.size1();
         const SizeType ncols = mKDispModified.size2();
         IndexType* K_disp_modified_ptr_aux1 = new IndexType[nrows + 1];
@@ -1130,7 +1130,7 @@ protected:
             }
         });
 
-        // Create the first auxiliar matrix
+        // Create the first auxiliary matrix
         CreateMatrix(mKDispModified, nrows, ncols, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1);
 
         // Now we create the second matrix block to sum
@@ -1229,11 +1229,11 @@ protected:
             }
         });
 
-        // Create the second auxiliar matrix
+        // Create the second auxiliary matrix
         SparseMatrixType K_disp_modified_aux2(nrows, ncols);
         CreateMatrix(K_disp_modified_aux2, nrows, ncols, K_disp_modified_ptr_aux2, aux_index2_K_disp_modified_aux2, aux_val_K_disp_modified_aux2);
 
-        // We sum the auxiliar matrices
+        // We sum the auxiliary matrices
         SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(mKDispModified, K_disp_modified_aux2, - 1.0);
 
         // Finally we ensure that the matrix is structurally symmetric
@@ -1797,7 +1797,7 @@ private:
 
         SparseMatrixMultiplicationUtility::TransposeMatrix<SparseMatrixType, SparseMatrixType>(transpose, rA, 0.0);
 
-        // Finally we sum the auxiliar matrices
+        // Finally we sum the auxiliary matrices
         SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(rA, transpose, 1.0);
     }
 
@@ -1828,8 +1828,8 @@ private:
     }
 
     /**
-     * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
-     * @detail Before create it reorder the columns. It deletes the auxiliar values after compute the matrix
+     * @brief This method is designed to create the final solution sparse matrix from the auxiliary values
+     * @detail Before create it reorder the columns. It deletes the auxiliary values after compute the matrix
      * @param AuxK The matrix solution
      * @param NRows The number of rows of the matrix
      * @param NCols The number of columns of the matrix
