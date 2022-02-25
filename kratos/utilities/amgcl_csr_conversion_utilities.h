@@ -80,6 +80,19 @@ public:
         pAconverted->AssignValueData((TDataType*)(rA.val), rA.nnz);
         return pAconverted;
 	}
+
+    //Note that we deliberately return a unique_ptr as it can be moved to a shared_ptr as needed
+    template< class TDataType, class TIndexType >
+    static typename CsrMatrix<TDataType, TIndexType>::Pointer Transpose(
+        CsrMatrix<TDataType, TIndexType>& rA
+        )	
+    {
+        const auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA);
+
+        const auto pAamgcl_transpose = amgcl::backend::transpose(*pAamgcl);
+
+        return ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose);
+	}
 	
 };
 
