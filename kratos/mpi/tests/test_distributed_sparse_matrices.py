@@ -167,7 +167,19 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         At.SpMV(b,y2)
         for i in range(y.LocalSize()):
             self.assertEqual(y[i], y2[i], 1e-14)
-  
+
+        #test moving material to serial
+        target_rank = 0
+        Aserial = A.ToSerialCSR(target_rank)
+        if(my_rank == 0):
+            y_serial = KratosMultiphysics.Vector(Aserial.Size1())
+            y_serial.fill(1.0)
+            b_serial = KratosMultiphysics.Vector(Aserial.Size1())
+            b_serial.fill(0.0)
+            Aserial.SpMV(y_serial, b_serial)
+            
+            for i in range(y_serial.Size()):
+                self.assertEqual(b_serial[i], reference_spmv_res[i], 1e-14)
 
 if __name__ == '__main__':
     KratosUnittest.main()
