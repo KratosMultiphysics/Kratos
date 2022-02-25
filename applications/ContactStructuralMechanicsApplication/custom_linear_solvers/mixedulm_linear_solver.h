@@ -707,18 +707,19 @@ public:
         // Ordering of the dofs is important
         const DofsArrayType copy_dof_set(rDofSet);
         rDofSet.clear();
-        global_pos = 0;
-        for (auto& i_dof : copy_dof_set) {
-            if (mWhichBlockType[global_pos] == BlockType::OTHER) {
 
-            } else if (mWhichBlockType[global_pos] == BlockType::MASTER) {
-
-            } else if (mWhichBlockType[global_pos] == BlockType::SLAVE_INACTIVE) {
-
-            } else if (mWhichBlockType[global_pos] == BlockType::SLAVE_ACTIVE) {
-
-            }
-            ++global_pos;
+        // Copy dofs
+        for (auto& r_index : mOtherIndices) {
+            rDofSet.push_back(copy_dof_set[r_index]);
+        }
+        for (auto& r_index : mMasterIndices) {
+            rDofSet.push_back(copy_dof_set[r_index]);
+        }
+        for (auto& r_index : mSlaveInactiveIndices) {
+            rDofSet.push_back(copy_dof_set[r_index]);
+        }
+        for (auto& r_index : mSlaveActiveIndices) {
+            rDofSet.push_back(copy_dof_set[r_index]);
         }
 
         // Reorder the dofs
@@ -726,8 +727,7 @@ public:
         IndexPartition<std::size_t>(rDofSet.size()).for_each([&](std::size_t Index){
             auto it_dof = it_dof_begin + Index;
             it_dof->SetEquationId(Index);
-        });
-        
+        });    
     }
 
     ///@}
