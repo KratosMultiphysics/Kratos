@@ -1,4 +1,4 @@
-from sympy import *
+import sympy
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
@@ -84,17 +84,18 @@ for dim in dim_vector:
     stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    dt  = Symbol('dt', positive = True)
-    rho = Symbol('rho', positive = True)
-    nu  = Symbol('nu', positive = True)
-    mu  = Symbol('mu', positive = True)
-    tau1 = Symbol('tau1', positive = True)
-    tau2 = Symbol('tau2', positive = True)
-    h = Symbol('h', positive = True)
-    dyn_tau = Symbol('dyn_tau', positive = True)
-    stab_c1 = Symbol('stab_c1', positive = True)
-    stab_c2 = Symbol('stab_c2', positive = True)
-    volume_error_ratio = Symbol('volume_error_ratio')
+    dt  = sympy.Symbol('dt', positive = True)
+    rho = sympy.Symbol('rho', positive = True)
+    nu  = sympy.Symbol('nu', positive = True)
+    mu  = sympy.Symbol('mu', positive = True)
+    tau1 = sympy.Symbol('tau1', positive = True)
+    tau2 = sympy.Symbol('tau2', positive = True)
+    h = sympy.Symbol('h', positive = True)
+    dyn_tau = sympy.Symbol('dyn_tau', positive = True)
+    stab_c1 = sympy.Symbol('stab_c1', positive = True)
+    stab_c2 = sympy.Symbol('stab_c2', positive = True)
+    volume_error_ratio = sympy.Symbol('volume_error_ratio')
+
     ## Convective velocity definition
     if (linearisation == "Picard"):
         vconv = DefineMatrix('vconv',nnodes,dim)    # Convective velocity defined a symbol
@@ -108,20 +109,20 @@ for dim in dim_vector:
     vconv_gauss_norm = 0.0
     for i in range(0, dim):
         vconv_gauss_norm += vconv_gauss[i]**2
-    vconv_gauss_norm = sqrt(vconv_gauss_norm)
+    vconv_gauss_norm = sympy.sqrt(vconv_gauss_norm)
 
     ## Data interpolation to the Gauss points
     if time_integration=="bdf2":
-        K_darcy = Symbol('K_darcy', positive = True)
+        K_darcy = sympy.Symbol('K_darcy', positive = True)
         ## Backward differences coefficients
-        bdf0 = Symbol('bdf0')
-        bdf1 = Symbol('bdf1')
-        bdf2 = Symbol('bdf2')
+        bdf0 = sympy.Symbol('bdf0')
+        bdf1 = sympy.Symbol('bdf1')
+        bdf2 = sympy.Symbol('bdf2')
         acceleration = (bdf0*v +bdf1*vn + bdf2*vnn)
         v_gauss = v.transpose()*N
         f_gauss = f.transpose()*N
     elif time_integration=="alpha_method":
-        max_sprectral_radius=Symbol('max_spectral_radius', positive = True)
+        max_sprectral_radius=sympy.Symbol('max_spectral_radius', positive = True)
         acceleration_alpha_method=DefineMatrix('acceleration_alpha_method',nnodes,dim)
         # alpha method parameters
         alpha_m= 0.5*((3-max_sprectral_radius)/(1+max_sprectral_radius))
@@ -236,8 +237,8 @@ for dim in dim_vector:
         rv = rv_galerkin
 
     ## Define DOFs and test function vectors
-    dofs = Matrix( zeros(nnodes*(dim+1), 1) )
-    testfunc = Matrix( zeros(nnodes*(dim+1), 1) )
+    dofs = sympy.zeros(nnodes*(dim+1), 1)
+    testfunc = sympy.zeros(nnodes*(dim+1), 1)
 
     for i in range(0,nnodes):
         for k in range(0,dim):
@@ -291,8 +292,8 @@ for dim in dim_vector:
     if (ASGS_stabilization):
         rv_enriched += rv_stab_enriched
 
-    dofs_enr=Matrix( zeros(nnodes,1) )
-    testfunc_enr = Matrix( zeros(nnodes,1) )
+    dofs_enr=sympy.zeros(nnodes,1)
+    testfunc_enr = sympy.zeros(nnodes,1)
 
     for i in range(0,nnodes):
         dofs_enr[i]=penr[i,0]
@@ -338,4 +339,3 @@ for dim in dim_vector:
 out = open(output_filename,'w')
 out.write(outstring)
 out.close()
-
