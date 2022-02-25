@@ -314,7 +314,7 @@ def _ReplaceIndices(language, expression):
 
     # Vectors
     pattern = r"_(\d+)"
-    replacement = r"[\1]" if language == 'python' else r"(\1)"
+    replacement = r"[\1]"
     expression = re.sub(pattern, replacement, expression)
 
     return expression
