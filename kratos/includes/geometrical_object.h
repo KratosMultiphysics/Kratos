@@ -204,9 +204,9 @@ public:
     /**
      * Access Data:
      */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
     {
-        #warning "Calling 'Data()' is deprecated. It will be removed by 01.06.2022. Use 'GetData()' instead."
         return pGetGeometry()->GetData();
     }
 
