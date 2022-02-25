@@ -370,6 +370,12 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            // std::size_t counter = 0;
+            // for (auto& r_dof : Doftemp) {
+            //     KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+            //     KRATOS_CHECK_EQUAL(r_dof.GetVariable(), DISPLACEMENT_X);
+            //     ++counter;
+            // }
             pmixed_solver->Solve(A, Dx, b);
 
             KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
@@ -602,6 +608,12 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            // std::size_t counter = 0;
+            // for (auto& r_dof : Doftemp) {
+            //     KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+            //     KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+            //     ++counter;
+            // }
             pmixed_solver->Solve(A, Dx, b);
 
             KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
@@ -703,6 +715,12 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            std::size_t counter = 0;
+            for (auto& r_dof : Doftemp) {
+                KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
+                ++counter;
+            }
             pmixed_solver->Solve(A, Dx, b);
 
             KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
@@ -861,6 +879,12 @@ namespace Kratos
 
             // We solve the block system
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+            // std::size_t counter = 0;
+            // for (auto& r_dof : Doftemp) {
+            //     KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+            //     KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
+            //     ++counter;
+            // }
             pmixed_solver->Solve(A, Dx, b);
 
             KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
@@ -977,6 +1001,12 @@ namespace Kratos
 
                 // We solve the block system
                 pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
+                // std::size_t counter = 0; // TODO
+                // for (auto& r_dof : Doftemp) {
+                //     KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
+                //     KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+                //     ++counter;
+                // }
                 pmixed_solver->Solve(A, Dx, b);
 
                 KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
