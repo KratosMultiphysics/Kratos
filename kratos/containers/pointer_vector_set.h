@@ -386,8 +386,8 @@ public:
 
     iterator erase(iterator pos)
     {
-	if (pos.base() == mData.end())
-	    return mData.end();
+        if (pos.base() == mData.end())
+            return mData.end();
         iterator new_end = iterator( mData.erase( pos.base() ) );
         mSortedPartSize = mData.size();
         return new_end;
