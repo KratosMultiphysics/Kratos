@@ -15,7 +15,7 @@ RUN mkdir -p /workspace/scripts; \
     mkdir -p /workspace/boost
 
 # Install Boost (from source)
-RUN git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git /workspace/boost/boost_1_71_0
+# RUN git clone -b 'boost-1.71.0' --depth 1 --recurse-submodules -j24 https://github.com/boostorg/boost.git /workspace/boost/boost_1_71_0
 
 # Install Boost (form zip)
 RUN wget -P /workspace/boost https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.tar.gz; \
