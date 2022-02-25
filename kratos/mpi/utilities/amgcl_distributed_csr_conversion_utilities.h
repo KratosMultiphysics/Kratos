@@ -135,11 +135,24 @@ public:
         // mOffDiagonalGlobalIds
         // mfem_assemble_colors
 
-		return pAconverted;
+        return pAconverted;
+    }	
 
+    template< class TDataType, class TIndexType >
+    static typename DistributedCsrMatrix<TDataType, TIndexType>::Pointer Transpose(
+        const DistributedCsrMatrix<TDataType, TIndexType>& rA
+        )	
+    {
+		bool move_to_backend=false; //important!
+		auto offdiag_global_index2 = rA.GetOffDiagonalIndex2DataInGlobalNumbering();
+        const auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA, offdiag_global_index2, move_to_backend);
 
-	}	
+        const auto pAamgcl_transpose = transpose(*pAamgcl);
 
+        auto pAt = ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, rA.GetComm());
+
+        return pAt;
+    }
 };
 
 }

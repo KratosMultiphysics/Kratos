@@ -51,10 +51,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-//TODO: ADD THIS DOCUMENTATION
 /**
- * @brief Construct a new kratos api object
- *
+ * @brief Modeler for setting up HROM visualization meshes
+ * This modeler is intended to be used for setting up HROM visualization meshes
+ * From a parent HROM model part (the model part on which the HROM problem is solved)
+ * this modeler fills up the required data in the provided visualization model part.
+ * The process info, variable list and buffer size are taken from the provided HROM
+ * model part while the ROM_BASIS and DOFs are retrieved from the RomParameters.json.
  */
 class KRATOS_API(ROM_APPLICATION) HRomVisualizationMeshModeler : public Modeler
 {
@@ -117,6 +120,8 @@ public:
 
     void SetupModelPart() override;
 
+    const Parameters GetDefaultParameters() const override;
+
     ///@}
     ///@name Access
     ///@{
@@ -176,7 +181,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckDefaultSettings(Parameters &rParameters);
 
     ///@}
     ///@name Private  Access
