@@ -517,17 +517,17 @@ public:
                     tot_active_dofs++;
                     if (IsLMDof(i_dof)) {
                         if (node.Is(ACTIVE))
-                            n_lm_active_dofs++;
+                            ++n_lm_active_dofs;
                         else
-                            n_lm_inactive_dofs++;
+                            ++n_lm_inactive_dofs;
                     } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
                         if (node.Is(MASTER)) {
-                            n_master_dofs++;
+                            ++n_master_dofs;
                         } else if (node.Is(SLAVE)) {
                             if (node.Is(ACTIVE))
-                                n_slave_active_dofs++;
+                                ++n_slave_active_dofs;
                             else
-                                n_slave_inactive_dofs++;
+                                ++n_slave_inactive_dofs;
                         }
                     }
                 }
@@ -540,17 +540,17 @@ public:
                 tot_active_dofs++;
                 if (IsLMDof(i_dof)) {
                     if (node.Is(ACTIVE))
-                        n_lm_active_dofs++;
+                        ++n_lm_active_dofs;
                     else
-                        n_lm_inactive_dofs++;
+                        ++n_lm_inactive_dofs;
                 } else if (node.Is(INTERFACE) && IsDisplacementDof(i_dof)) {
                     if (node.Is(MASTER)) {
-                        n_master_dofs++;
+                        ++n_master_dofs;
                     } else if (node.Is(SLAVE)) {
                         if (node.Is(ACTIVE))
-                            n_slave_active_dofs++;
+                            ++n_slave_active_dofs;
                         else
-                            n_slave_inactive_dofs++;
+                            ++n_slave_inactive_dofs;
                     }
                 }
             }
