@@ -476,8 +476,9 @@ void HyperElasticIsotropicKirchhoff3D::CalculateKirchhoffStress(
     )
 {
     CalculatePK2Stress( rStrainVector, rStressVector, YoungModulus, PoissonCoefficient );
-    Matrix stress_matrix = MathUtils<double>::StressVectorToTensor( rStressVector );
-    ContraVariantPushForward (stress_matrix,rDeformationGradientF); //Kirchhoff
+    Matrix stress_matrix(3, 3);
+    noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor( rStressVector );
+    ContraVariantPushForward (stress_matrix, rDeformationGradientF); //Kirchhoff
     noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 }
 
@@ -493,13 +494,16 @@ void HyperElasticIsotropicKirchhoff3D::CalculatePK2Stress(
 {
     const double lame_lambda = (YoungModulus * PoissonCoefficient)/((1.0 + PoissonCoefficient)*(1.0 - 2.0 * PoissonCoefficient));
     const double lame_mu = YoungModulus/(2.0 * (1.0 + PoissonCoefficient));
-    const Matrix E_tensor=MathUtils<double>::StrainVectorToTensor(rStrainVector);
-    double E_trace = 0.0;
-    for (unsigned int i = 0; i < E_tensor.size1();i++) {
-      E_trace += E_tensor (i,i);
-    }
     const SizeType dimension = WorkingSpaceDimension();
-    Matrix stress_matrix = lame_lambda*E_trace*IdentityMatrix(dimension) + 2.0 * lame_mu * E_tensor;
+
+    Matrix E_tensor(dimension, dimension), stress_matrix(dimension, dimension);
+    noalias(E_tensor) = MathUtils<double>::StrainVectorToTensor(rStrainVector);
+    double E_trace = 0.0;
+    for (unsigned int i = 0; i < E_tensor.size1(); ++i) {
+        E_trace += E_tensor(i, i);
+    }
+    
+    noalias(stress_matrix) = lame_lambda*E_trace*IdentityMatrix(dimension) + 2.0 * lame_mu * E_tensor;
     noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
 
 //     // Other possibility
