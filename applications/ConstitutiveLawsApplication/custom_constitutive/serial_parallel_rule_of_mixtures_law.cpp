@@ -383,8 +383,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     MathUtils<double>::InvertMatrix(aux, A, det_aux);
 
     Vector auxiliar(rInitialApproximationSerialStrainMatrix.size());
-    auxiliar = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) +
-        k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
+    auxiliar = prod(rConstitutiveTensorFiberSS, r_total_strain_increment_serial) + k_f * prod(trans(Matrix(r_constitutive_tensor_fiber_sp - r_constitutive_tensor_matrix_sp)), r_total_strain_increment_parallel);
 
     noalias(rInitialApproximationSerialStrainMatrix) = prod(A, auxiliar) + mPreviousSerialStrainMatrix;
 }
@@ -408,8 +407,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateStrainsOnEachComponent(
 
     // We project the serial and parallel strains in order to add them and obtain the total strain for the fib/matrix
     noalias(rStrainVectorMatrix) = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), rSerialStrainMatrix);
-    noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), 
-                               (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
+    noalias(rStrainVectorFiber)  = prod(rParallelProjector, r_total_parallel_strain_vector) + prod(trans(rSerialProjector), (1.0 / kf * r_total_serial_strain_vector) - (km / kf * rSerialStrainMatrix));
 }
 
 /***********************************************************************************/
