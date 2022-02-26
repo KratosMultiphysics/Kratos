@@ -423,6 +423,13 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
     const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
     KRATOS_ERROR_IF(num_parallel_components == 0) << "There is no parallel direction!" << std::endl;
     const int num_serial_components = voigt_size - num_parallel_components;
+
+    if (rParallelProjector.size1() != voigt_size)
+        rParallelProjector.resize(voigt_size, num_parallel_components, false);
+
+    if (rSerialProjector.size1() != voigt_size)
+        rSerialProjector.resize(num_serial_components, voigt_size, false);
+
     noalias(rParallelProjector) = ZeroMatrix(voigt_size, num_parallel_components);
     noalias(rSerialProjector)   = ZeroMatrix(num_serial_components, voigt_size);
 
