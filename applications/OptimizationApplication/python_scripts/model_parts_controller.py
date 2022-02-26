@@ -69,7 +69,7 @@ class ModelPartsController:
         self.__ImportRootModelParts()
 
     # --------------------------------------------------------------------------
-    def CheckIfRootModelPartExists(self,root_model_part_name,raise_error=False):
+    def CheckIfRootModelPartExists(self,root_model_part_name,raise_error=True):
         extracted_root_model_part_name = root_model_part_name.split(".")[0]
         if extracted_root_model_part_name in self.name_root_model_part_map.keys():
             return True
@@ -79,7 +79,7 @@ class ModelPartsController:
             else:
                 return False
     # --------------------------------------------------------------------------
-    def CheckIfRootModelPartsExist(self,root_model_parts_name,raise_error=False):
+    def CheckIfRootModelPartsExist(self,root_model_parts_name,raise_error=True):
         if type(root_model_parts_name) is not list:
             raise RuntimeError("ModelPartsController: CheckIfRootModelPartsExist requires list of model parts")
         

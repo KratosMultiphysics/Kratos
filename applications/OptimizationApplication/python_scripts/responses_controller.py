@@ -54,13 +54,7 @@ class ResponsesController:
             for key in default_settings.keys():
                 if not self.reponses_settings[itr].Has(key):
                     raise RuntimeError("ResponsesController: Required entry '{}' missing in 'response Nr.{}'!".format(key,itr+1))  
-            self.reponses_settings[itr].ValidateAndAssignDefaults(default_settings)
-
-            # for key in default_settings["settings"].keys():
-            #     if key == "gradient_settings" or key == "analysis_name":
-            #         continue
-            #     if not self.reponses_settings[itr]["settings"].Has(key):
-            #         raise RuntimeError("ResponsesController: Required entry '{}' missing in settings of 'response Nr.{}' !".format(key,itr+1))             
+            self.reponses_settings[itr].ValidateAndAssignDefaults(default_settings)            
             self.reponses_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
 
 
@@ -69,6 +63,11 @@ class ResponsesController:
             response_settings = self.reponses_settings[itr]
             response_name = response_settings["name"].GetString()            
             response_type = response_settings["type"].GetString()
+
+            # check for name
+            if  response_name in self.responses.keys():  
+                raise RuntimeError("ResponsesController: Response name {} already exists.".format(response_name))
+
             response_analysis_name = response_settings["settings"]["analysis_name"].GetString()
             response_analysis = None
             # check for analysis
@@ -94,6 +93,32 @@ class ResponsesController:
     def Initialize(self):
         for response in self.responses.values():
             response.Initialize()
+
+    # --------------------------------------------------------------------------
+    def CheckIfResponseExists(self,response_name,raise_error=True):
+        if not response_name in self.responses.keys():
+            if raise_error:
+                raise RuntimeError("ResponsesController:CheckIfResponseExists: Response name {} does not exist.".format(response_name))
+            else: 
+                return False
+        else:
+            return True
+
+    # --------------------------------------------------------------------------
+    def CheckIfResponsesExist(self,responses_name,raise_error=True):
+        if type(responses_name) is not list:
+            raise RuntimeError("ResponsesController:CheckIfResponsesExist requires list of response names")
+        
+        if_exist = True
+        for response_name in responses_name:
+            if not response_name in self.responses.keys():
+                if raise_error:
+                    raise RuntimeError("ResponsesController:CheckIfResponsesExist: Response {} does not exist!".format(response_name))
+                else:
+                    if_exist = False
+                    break
+
+        return if_exist                    
 
     # --------------------------------------------------------------------------
     def CalculateResponseValue(self,response_name):

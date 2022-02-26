@@ -18,6 +18,7 @@ from KratosMultiphysics.OptimizationApplication import model_parts_controller
 from KratosMultiphysics.OptimizationApplication import analyses_controller
 from KratosMultiphysics.OptimizationApplication import responses_controller
 from KratosMultiphysics.OptimizationApplication import controls_controller
+from KratosMultiphysics.OptimizationApplication import optimizations_controller
 
 # additional imports
 
@@ -39,6 +40,7 @@ class Optimizer:
         self.analyses_controller = analyses_controller.CreateController(optimization_settings["analyses"],model,self.model_parts_controller)
         self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.model_parts_controller,self.analyses_controller)
         self.controls_controller = controls_controller.CreateController(optimization_settings["controls"],model,self.model_parts_controller)
+        self.optimizations_controller = optimizations_controller.CreateController(optimization_settings["optimizations"],model,self.controls_controller,self.responses_controller)
 
 
     def _ValidateSettings(self, optimization_settings):
@@ -51,12 +53,12 @@ class Optimizer:
             "analyses" : [ ],
             "responses" : [ ],            
             "controls" : [ ],
-            "algorithms" : [ ]
+            "optimizations" : [ ]
         }""")
 
         for key in default_settings.keys():
             if not optimization_settings.Has(key):
-                raise RuntimeError("Optimizer: Required setting '{}' missing in 'optimization_settings'!".format(key))
+                raise RuntimeError("Optimizer: Required setting '{}' missing in optimizer's input parameters !".format(key))
 
         optimization_settings.ValidateAndAssignDefaults(default_settings)
 

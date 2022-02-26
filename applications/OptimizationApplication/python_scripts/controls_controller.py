@@ -67,6 +67,9 @@ class ControlsController:
             control_type = control_settings["type"].GetString()
             control_technique = control_settings["settings"]["technique"].GetString()
             control_variables_name_list = control_settings["settings"]["variables_name"].GetStringArray()
+            # check for name
+            if  control_name in self.controls.keys():  
+                raise RuntimeError("ControlsController: Control name {} already exists.".format(control_name))            
             # check control type
             if not control_type in self.supported_control_types_techniques.keys():
                 raise RuntimeError("ControlsController: control type '{}' in control {} is not supported!, we support {} ".format(control_type,control_name,self.supported_control_types_techniques))
@@ -99,7 +102,26 @@ class ControlsController:
     def Initialize(self):
         for key,value in self.controls.items():
             value.Initialize()
-           
-
-               
-
+    # --------------------------------------------------------------------------
+    def CheckIfControlExists(self,control_name,raise_error=True):
+        if not control_name in self.controls.keys():
+            if raise_error:
+                raise RuntimeError("ControlsController:CheckIfControlExists: Control {} does not exist.".format(control_name))
+            else: 
+                return False
+        else:
+            return True
+    # --------------------------------------------------------------------------
+    def CheckIfControlsExist(self,controls_name,raise_error=True):
+        if type(controls_name) is not list:
+            raise RuntimeError("ControlsController:CheckIfControlsExist requires list of control names")
+        
+        if_exist = True
+        for control_name in controls_name:
+            if not control_name in self.controls.keys():
+                if raise_error:
+                    raise RuntimeError("ControlsController:CheckIfControlsExist: Control {} does not exist!".format(control_name))
+                else:
+                    if_exist = False
+                    break
+        return if_exist      
