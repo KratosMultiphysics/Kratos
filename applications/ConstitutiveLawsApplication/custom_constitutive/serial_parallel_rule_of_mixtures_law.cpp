@@ -222,7 +222,7 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 
     MathUtils<double>::InvertMatrix(jacobian_matrix, inv_jacobian, det_jacobian);
 
-    rSerialStrainMatrix = rSerialStrainMatrix - prod(inv_jacobian, rResidualStresses);
+    noalias(rSerialStrainMatrix) -= prod(inv_jacobian, rResidualStresses);
 
     // Previous flags restored
     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
