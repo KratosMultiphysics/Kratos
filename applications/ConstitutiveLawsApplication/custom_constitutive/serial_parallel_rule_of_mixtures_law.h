@@ -348,15 +348,19 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      * Initialize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
-
     void InitializeMaterialResponsePK1 (Parameters& rValues) override {};
 
     /**
      * Initialize the material response in terms of Kirchhoff stresses
      * @see Parameters
      */
-
     void InitializeMaterialResponseKirchhoff (Parameters& rValues) override {};
+
+    /**
+     * This mthod computes the Almansi strain
+     * @see Parameters
+     */
+    void CalculateAlmansiStrain (Parameters& rValues);
 
     /**
      * This method computes the strain vector in the fiber and matrix according to the total

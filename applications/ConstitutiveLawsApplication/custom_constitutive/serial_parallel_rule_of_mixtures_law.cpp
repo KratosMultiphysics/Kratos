@@ -67,10 +67,6 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
 
 void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // Some auxiliar values
-    const SizeType dimension = WorkingSpaceDimension();
-    const SizeType voigt_size = GetStrainSize();
-
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
 
@@ -88,33 +84,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
     }
     // In case the element has not computed the Strain
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
-
-        Matrix F_deformation_gradient(dimension, dimension);
-        this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-        const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-        // Doing resize in case is needed
-        if (r_strain_vector.size() != voigt_size)
-            r_strain_vector.resize(voigt_size);
-
-         // Identity matrix
-        Matrix identity_matrix(dimension, dimension);
-        for (IndexType i = 0; i < dimension; ++i) {
-            for (IndexType j = 0; j < dimension; ++j) {
-                if (i == j) identity_matrix(i, j) = 1.0;
-                else identity_matrix(i, j) = 0.0;
-            }
-        }
-
-        // Calculating the inverse of the left Cauchy tensor
-        Matrix inverse_B_tensor(dimension, dimension);
-        double aux_det_b = 0;
-        MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
-
-        // Calculate E matrix
-        const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-        // Almansi Strain Calculation
-        r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+        CalculateAlmansiStrain(rValues);
     }
 
     if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
@@ -127,15 +97,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         Vector& r_strain_vector = rValues.GetStrainVector();
         Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
         Vector fiber_stress_vector, matrix_stress_vector;
-        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-                                                    fiber_stress_vector,
-                                                    matrix_stress_vector,
-                                                    r_material_properties,
-                                                    rValues,
-                                                    serial_strain_matrix_old);
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, serial_strain_matrix_old);
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector 
-                                     + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
+        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
+
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
@@ -458,8 +423,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateSerialParallelProjectionMatrices(
     const int num_parallel_components = inner_prod(mParallelDirections, mParallelDirections);
     KRATOS_ERROR_IF(num_parallel_components == 0) << "There is no parallel direction!" << std::endl;
     const int num_serial_components = voigt_size - num_parallel_components;
-    rParallelProjector = ZeroMatrix(voigt_size, num_parallel_components);
-    rSerialProjector = ZeroMatrix(num_serial_components, voigt_size);
+    noalias(rParallelProjector) = ZeroMatrix(voigt_size, num_parallel_components);
+    noalias(rSerialProjector)   = ZeroMatrix(num_serial_components, voigt_size);
 
     int parallel_counter = 0, serial_counter = 0;
     for (IndexType i_comp = 0; i_comp < voigt_size; ++i_comp) {
@@ -519,6 +484,38 @@ void SerialParallelRuleOfMixturesLaw::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
+{
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    Matrix F_deformation_gradient(dimension, dimension), B_matrix(dimension, dimension), E_matrix(dimension, dimension);
+    noalias(F_deformation_gradient) = rValues.GetDeformationGradientF();
+    noalias(B_matrix) = prod(F_deformation_gradient, trans(F_deformation_gradient));
+    // Doing resize in case is needed
+    if (r_strain_vector.size() != voigt_size)
+        r_strain_vector.resize(voigt_size, false);
+
+        // Identity matrix
+    Matrix identity_matrix(dimension, dimension);
+    noalias(identity_matrix) = IdentityMatrix(dimension);
+
+    // Calculating the inverse of the left Cauchy tensor
+    Matrix inverse_B_tensor(dimension, dimension);
+    double aux_det_b = 0;
+    MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
+
+    // Calculate E matrix
+    noalias(E_matrix) = 0.5 * (identity_matrix - inverse_B_tensor);
+    // Almansi Strain Calculation
+    noalias(r_strain_vector) = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponseCauchy(rValues);
@@ -547,39 +544,11 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 {
     Flags& r_flags = rValues.GetOptions();
     // Some auxiliar values
-    const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
 
     // In case the element has not computed the Strain
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-
-        Vector& r_strain_vector = rValues.GetStrainVector();
-
-        Matrix F_deformation_gradient(dimension, dimension);
-        this->CalculateValue(rValues, DEFORMATION_GRADIENT, F_deformation_gradient);
-        const Matrix B_matrix = prod(F_deformation_gradient, trans(F_deformation_gradient));
-        // Doing resize in case is needed
-        if (r_strain_vector.size() != voigt_size)
-            r_strain_vector.resize(voigt_size);
-
-         // Identity matrix
-        Matrix identity_matrix(dimension, dimension);
-        for (IndexType i = 0; i < dimension; ++i) {
-            for (IndexType j = 0; j < dimension; ++j) {
-                if (i == j) identity_matrix(i, j) = 1.0;
-                else identity_matrix(i, j) = 0.0;
-            }
-        }
-
-        // Calculating the inverse of the left Cauchy tensor
-        Matrix inverse_B_tensor(dimension, dimension);
-        double aux_det_b = 0;
-        MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
-
-        // Calculate E matrix
-        const Matrix E_matrix = 0.5 * (identity_matrix - inverse_B_tensor);
-        // Almansi Strain Calculation
-        r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+        CalculateAlmansiStrain(rValues);
     }
     const Vector& r_strain_vector = rValues.GetStrainVector();
     noalias(mPreviousStrainVector) = r_strain_vector;
@@ -599,12 +568,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 
         // Total strain vector
         Vector fiber_stress_vector, matrix_stress_vector;
-        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector,
-                                                    fiber_stress_vector,
-                                                    matrix_stress_vector,
-                                                    r_material_properties,
-                                                    rValues,
-                                                    mPreviousSerialStrainMatrix);
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, mPreviousSerialStrainMatrix);
 
         // We call the FinalizeMaterialResponse of the matrix and fiber CL
         auto& r_material_properties = rValues.GetMaterialProperties();
@@ -622,8 +586,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
         Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
 
-        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, 
-                                              mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
 
         values_fiber.SetStrainVector(fiber_strain_vector);
         values_matrix.SetStrainVector(matrix_strain_vector);
