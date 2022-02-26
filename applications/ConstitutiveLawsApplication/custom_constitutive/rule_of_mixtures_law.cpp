@@ -1288,7 +1288,6 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rV
     // Previous flags saved
     const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-    (ConstitutiveLaw::COMPUTE_STRESS);
     const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -1321,10 +1320,11 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rV
     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 
-template<unsigned int TDim>
+
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<unsigned int TDim>
 void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -1531,19 +1531,15 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateRotationMatrix(
 
     if (rMaterialProperties.Has(LAYER_EULER_ANGLES)) {
         const Vector layers_euler_angles = rMaterialProperties[LAYER_EULER_ANGLES];
-        const double euler_angle_phi     = layers_euler_angles(3*Layer);
-        const double euler_angle_theta   = layers_euler_angles(3*Layer + 1);
-        const double euler_angle_hi      = layers_euler_angles(3*Layer + 2);
+        const double euler_angle_phi     = layers_euler_angles[3*Layer];
+        const double euler_angle_theta   = layers_euler_angles[3*Layer + 1];
+        const double euler_angle_hi      = layers_euler_angles[3*Layer + 2];
 
         BoundedMatrix<double, 3, 3>  rotation_matrix;
 
         if (std::abs(euler_angle_phi) + std::abs(euler_angle_theta) + std::abs(euler_angle_hi) > machine_tolerance) {
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi,
-                                                                           euler_angle_theta,
-                                                                           euler_angle_hi,
-                                                                           rotation_matrix);
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix,
-                                                                                rRotationMatrix);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(euler_angle_phi, euler_angle_theta, euler_angle_hi, rotation_matrix);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(rotation_matrix, rRotationMatrix);
         } else {
             noalias(rRotationMatrix) = IdentityMatrix(VoigtSize, VoigtSize);
         }
