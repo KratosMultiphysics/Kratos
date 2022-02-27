@@ -43,6 +43,7 @@ class OptimizationsController:
                 "constraints_types": [],
                 "constraints_ref_values": [],
                 "controls": [],
+                "controls_maximum_updates": [],
                 "controls_lower_bounds": [],
                 "controls_lower_bounds_values": [],
                 "controls_upper_bounds": [],
@@ -75,7 +76,11 @@ class OptimizationsController:
         self.optimizations_constraints_type={}
         self.optimizations_constraints_ref_values={}
         self.optimizations_controls={}
-        self.optimizations_controls_bounds={}
+        self.optimizations_controls_maximum_updates={}
+        self.optimizations_controls_lower_bounds={}
+        self.optimizations_controls_lower_bounds_values={}
+        self.optimizations_controls_upper_bounds={}
+        self.optimizations_controls_upper_bounds_values={}
         self.optimizations_algorithm={}
         self.supported_opt_types = ["gradient_based"]
         for itr in range(self.optimizations_settings.size()):
@@ -96,6 +101,17 @@ class OptimizationsController:
             if len(set(objectives_names)) != len(objectives_names):
                 raise RuntimeError("OptimizationsController: Objectives list of optimization '{}' has duplicate response names .".format(opt_name))
             self.responses_controller.CheckIfResponsesExist(objectives_names)
+
+            # for key,values in self.optimizations_objectives.items():
+            #     compare_results = set(objectives_names) & set(values)
+            #     if len(compare_results):
+            #         raise RuntimeError("OptimizationsController: Responses {} can not be shared between optimizations '{}' and '{}' .".format(compare_results,key,opt_name))
+
+            # for key,values in self.optimizations_constraints.items():
+            #     compare_results = set(objectives_names) & set(values)
+            #     if len(compare_results):
+            #         raise RuntimeError("OptimizationsController: Responses {} can not be shared between optimizations '{}' and '{}' .".format(compare_results,key,opt_name))
+
             self.optimizations_objectives[opt_name]=objectives_names
             # check for objectives weights
             if not opt_settings["settings"]["objectives_weights"].IsVector():  
@@ -105,12 +121,26 @@ class OptimizationsController:
                 raise RuntimeError("OptimizationsController:'objectives_weights' of optimization '{}' should be of the same size of objectives list.".format(opt_name))
             self.optimizations_objectives_weights[opt_name]=objectives_weights
 
+
+
             # check for constraints
-            constraints_names = opt_settings["settings"]["constraints"].GetStringArray()
-            if len(constraints_names)>0:
+            if opt_settings["settings"]["constraints"].size()>0:
+                constraints_names = opt_settings["settings"]["constraints"].GetStringArray()
                 if len(set(constraints_names)) != len(constraints_names):
                     raise RuntimeError("OptimizationsController: Constraint list of optimization '{}' has duplicate response names .".format(opt_name))
                 self.responses_controller.CheckIfResponsesExist(constraints_names)
+
+                # for key,values in self.optimizations_objectives.items():
+                #     compare_results = set(constraints_names) & set(values)
+                #     if len(compare_results):
+                #         raise RuntimeError("OptimizationsController: Responses {} can not be shared between optimizations '{}' and '{}' .".format(compare_results,key,opt_name))
+
+                # for key,values in self.optimizations_constraints.items():
+                #     compare_results = set(constraints_names) & set(values)
+                #     if len(compare_results):
+                #         raise RuntimeError("OptimizationsController: Responses {} can not be shared between optimizations '{}' and '{}' .".format(compare_results,key,opt_name))
+
+
                 for constraints_name in constraints_names:
                     if constraints_name in objectives_names:
                         raise RuntimeError("OptimizationsController: Response {} in optimization {} is used as both objective and constraint.".format(constraints_name,opt_name))
@@ -138,16 +168,74 @@ class OptimizationsController:
             if len(set(controls_names)) != len(controls_names):
                 raise RuntimeError("OptimizationsController: Controls list of optimization '{}' has duplicate control names .".format(opt_name))
             self.controls_controller.CheckIfControlsExist(controls_names)
+
+
+            for key,values in self.optimizations_controls.items():
+                compare_results = set(controls_names) & set(values)
+                if len(compare_results):
+                    raise RuntimeError("OptimizationsController: Controls {} can not be shared between optimizations '{}' and '{}' .".format(compare_results,key,opt_name))
+            
             self.optimizations_controls[opt_name]=controls_names
 
-            # if not opt_settings["settings"]["controls_bounds"].IsMatrix():  
-            #     raise RuntimeError("OptimizationsController:'controls_bounds' of optimization '{}' should be matrix of lower and upper bounds.".format(opt_name)) 
-            # controls_bounds = opt_settings["settings"]["controls_bounds"].GetMatrix()
-            # print(len(controls_bounds))
-            # gjhgjg
-            # if len(controls_bounds)!=len(controls_names):
-            #     raise RuntimeError("OptimizationsController:'controls_bounds' of optimization '{}' should be of the same size of control list.".format(opt_name))
+            if opt_settings["settings"]["controls_maximum_updates"].size() != len(controls_names):
+                raise RuntimeError("OptimizationsController: 'controls_maximum_updates' of optimization '{}' should be of the same size of control list .".format(opt_name))            
 
+            controls_maximum_updates=[]
+            for i in range(opt_settings["settings"]["controls_maximum_updates"].size()):
+                if not opt_settings["settings"]["controls_maximum_updates"][i].IsNumber():
+                    raise RuntimeError("OptimizationsController: entry {} of 'controls_maximum_updates' of optimization '{}' should be a number .".format(i+1,opt_name))
+                else:
+                    controls_maximum_updates.append(opt_settings["settings"]["controls_maximum_updates"][i].GetDouble())
+
+            self.optimizations_controls_maximum_updates[opt_name] = controls_maximum_updates
+
+            if opt_settings["settings"]["controls_lower_bounds"].size() != len(controls_names):
+                raise RuntimeError("OptimizationsController: 'controls_lower_bounds' of optimization '{}' should be of the same size of control list .".format(opt_name))
+
+            controls_lower_bounds=[]
+            for i in range(opt_settings["settings"]["controls_lower_bounds"].size()):
+                if not opt_settings["settings"]["controls_lower_bounds"][i].IsBool():
+                    raise RuntimeError("OptimizationsController: entry {} of 'controls_lower_bounds' of optimization '{}' should be a bool type .".format(i+1,opt_name))
+                else:
+                    controls_lower_bounds.append(opt_settings["settings"]["controls_lower_bounds"][i].GetBool())
+
+            self.optimizations_controls_lower_bounds[opt_name] = controls_lower_bounds
+
+            if opt_settings["settings"]["controls_lower_bounds_values"].size() != len(controls_names):
+                raise RuntimeError("OptimizationsController: 'controls_lower_bounds_values' of optimization '{}' should be of the same size of control list .".format(opt_name))
+
+            controls_lower_bounds_values=[]
+            for i in range(opt_settings["settings"]["controls_lower_bounds_values"].size()):
+                if not opt_settings["settings"]["controls_lower_bounds_values"][i].IsNumber():
+                    raise RuntimeError("OptimizationsController: entry {} of 'controls_lower_bounds_values' of optimization '{}' should be a number .".format(i+1,opt_name))
+                else:
+                    controls_lower_bounds_values.append(opt_settings["settings"]["controls_lower_bounds_values"][i].GetDouble())
+
+            self.optimizations_controls_lower_bounds_values[opt_name] = controls_lower_bounds_values
+
+            if opt_settings["settings"]["controls_upper_bounds"].size() != len(controls_names):
+                raise RuntimeError("OptimizationsController: 'controls_upper_bounds' of optimization '{}' should be of the same size of control list .".format(opt_name))
+
+            controls_upper_bounds=[]
+            for i in range(opt_settings["settings"]["controls_upper_bounds"].size()):
+                if not opt_settings["settings"]["controls_upper_bounds"][i].IsBool():
+                    raise RuntimeError("OptimizationsController: entry {} of 'controls_upper_bounds' of optimization '{}' should be a bool type .".format(i+1,opt_name))
+                else:
+                    controls_upper_bounds.append(opt_settings["settings"]["controls_upper_bounds"][i].GetBool())
+            
+            self.optimizations_controls_upper_bounds[opt_name] = controls_upper_bounds
+
+            if opt_settings["settings"]["controls_upper_bounds_values"].size() != len(controls_names):
+                raise RuntimeError("OptimizationsController: 'controls_upper_bounds_values' of optimization '{}' should be of the same size of control list .".format(opt_name))
+
+            controls_upper_bounds_values=[]
+            for i in range(opt_settings["settings"]["controls_upper_bounds_values"].size()):
+                if not opt_settings["settings"]["controls_upper_bounds_values"][i].IsNumber():
+                    raise RuntimeError("OptimizationsController: entry {} of 'controls_upper_bounds_values' of optimization '{}' should be a number .".format(i+1,opt_name))
+                else:
+                    controls_upper_bounds_values.append(opt_settings["settings"]["controls_upper_bounds_values"][i].GetDouble())
+
+            self.optimizations_controls_upper_bounds_values[opt_name] = controls_upper_bounds_values
 
     # --------------------------------------------------------------------------
     def Initialize(self):
