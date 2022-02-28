@@ -538,6 +538,25 @@ void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveL
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
+{
+    // Some auxiliar values
+    const SizeType dimension = WorkingSpaceDimension();
+    const SizeType voigt_size = GetStrainSize();
+    Vector& r_strain_vector = rValues.GetStrainVector();
+
+    Matrix F(dimension, dimension);
+    noalias(F) = rValues.GetDeformationGradientF();
+    Matrix B_tensor;
+    B_tensor.resize(dimension, dimension, false);
+    noalias(B_tensor) = prod(F, trans(F));
+
+    AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(B_tensor, r_strain_vector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     this->FinalizeMaterialResponseCauchy(rValues);

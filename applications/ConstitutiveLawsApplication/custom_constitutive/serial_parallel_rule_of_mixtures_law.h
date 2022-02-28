@@ -358,10 +358,16 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     void InitializeMaterialResponseKirchhoff (Parameters& rValues) override {};
 
     /**
-     * This mthod computes the Almansi strain
+     * This method computes the Green-Lagrange strain
      * @see Parameters
      */
     void CalculateGreenLagrangeStrain(Parameters &rValues);
+
+    /**
+     * This method computes the Almansi strain
+     * @see Parameters
+     */
+    void CalculateAlmansiStrain(Parameters &rValues);
 
     /**
      * This method computes the strain vector in the fiber and matrix according to the total
