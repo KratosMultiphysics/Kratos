@@ -150,7 +150,8 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     Vector& rMatrixStressVector,
     const Properties& rMaterialProperties,
     ConstitutiveLaw::Parameters& rValues,
-    Vector& rSerialStrainMatrix
+    Vector& rSerialStrainMatrix,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure
 )
 {
     const std::size_t voigt_size = this->GetStrainSize();

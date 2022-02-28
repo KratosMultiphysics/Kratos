@@ -321,7 +321,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         Vector& MatrixStressVector,
         const Properties& rMaterialProperties,
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rSerialStrainMatrix);
+        Vector& rSerialStrainMatrix,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy);
 
     /**
      * This method computes the projection tensors that divide the serial & paralle behaviours of the Strain/Stress
