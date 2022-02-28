@@ -138,6 +138,9 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,CsrMatrix<double,IndexType>& rB){
         return AmgclCSRSpMMUtilities::SparseMultiply(rA,rB);
     })
+    .def("Transpose", [](CsrMatrix<double,IndexType>& rA){
+        return AmgclCSRConversionUtilities::Transpose<double,IndexType>(rA);
+    })
     .def("BeginAssemble", &CsrMatrix<double,IndexType>::BeginAssemble)
     .def("FinalizeAssemble", &CsrMatrix<double,IndexType>::FinalizeAssemble)
     .def("Assemble", [](CsrMatrix<double,IndexType>& rA, 

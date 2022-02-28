@@ -377,7 +377,7 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
-        (self.cplusplus_strategy).SolveSolutionStep()
+        self.cplusplus_strategy.SolveSolutionStep()
         return True
 
     def AdvanceInTime(self, time):
@@ -421,7 +421,7 @@ class ExplicitStrategy():
         # model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
-        (self.cplusplus_strategy).FinalizeSolutionStep()
+        self.cplusplus_strategy.FinalizeSolutionStep()
 
     def Finalize(self):
         pass
@@ -429,22 +429,23 @@ class ExplicitStrategy():
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
+        self.cplusplus_strategy.ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
 
-        (self.cplusplus_strategy).InitializeSolutionStep()
+        self.cplusplus_strategy.InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
+        self.cplusplus_strategy.SetNormalRadiiOnAllParticles(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
+
+        self.cplusplus_strategy.SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
 
     def RebuildListOfDiscontinuumSphericParticles(self):
-        (self.cplusplus_strategy).RebuildListOfDiscontinuumSphericParticles()
+        self.cplusplus_strategy.RebuildListOfDiscontinuumSphericParticles()
 
     def Compute_RigidFace_Movement(self):
-        (self.cplusplus_strategy).Compute_RigidFace_Movement()
+        self.cplusplus_strategy.Compute_RigidFace_Movement()
 
 
     def FixDOFsManually(self, time):
@@ -477,13 +478,13 @@ class ExplicitStrategy():
             self.Procedures.KratosPrintInfo("DOFs for the DEM solution added correctly")
 
     def PrepareElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareElementsForPrinting()
+        self.cplusplus_strategy.PrepareElementsForPrinting()
 
     def PrepareContactElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
+        self.cplusplus_strategy.PrepareContactElementsForPrinting()
 
     def AttachSpheresToStickyWalls(self):
-        (self.cplusplus_strategy).AttachSpheresToStickyWalls()
+        self.cplusplus_strategy.AttachSpheresToStickyWalls()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 
