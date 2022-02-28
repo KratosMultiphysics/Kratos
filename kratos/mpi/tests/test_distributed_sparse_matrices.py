@@ -178,8 +178,8 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
             b_serial.fill(0.0)
             Aserial.SpMV(y_serial, b_serial)
             
-            for i in range(y_serial.Size()):
-                self.assertEqual(b_serial[i], reference_spmv_res[i], 1e-14)
+            self.assertVectorAlmostEqual(b_serial, reference_spmv_res)
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
