@@ -186,7 +186,7 @@ for dim in dim_vector:
     convective_term = (vconv_gauss.transpose()*grad_v)
 
     ## Galerkin Functional
-    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss
+    rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - rho*w_gauss.transpose()*convective_term.transpose() - grad_sym_w_voigt.transpose()*stress + div_w*p_gauss-rho*w_gauss.transpose()*v_gauss*volume_error_ratio
     if time_integration=="bdf2":
         rv_galerkin -= w_gauss.transpose()*K_darcy*v_gauss #Darcy Term
 
@@ -198,7 +198,7 @@ for dim in dim_vector:
     # Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p
+    vel_residual = rho*f_gauss - rho*accel_gauss - rho*convective_term.transpose() - grad_p-rho*v_gauss*volume_error_ratio
     if time_integration=="bdf2":
         vel_residual-= K_darcy*v_gauss
     # Mass conservation residual
@@ -266,7 +266,7 @@ for dim in dim_vector:
     ##  K V   x    =  b + rhs_eV
     ##  H Kee penr =  rhs_ee
 
-    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p  - grad_penr
+    vel_residual_enr = rho*f_gauss - rho*(accel_gauss + convective_term.transpose()) - grad_p  - grad_penr-v_gauss*volume_error_ratio*rho
     if time_integration == "bdf2":
         vel_residual_enr-= K_darcy*v_gauss
     vel_subscale_enr = vel_residual_enr * tau1

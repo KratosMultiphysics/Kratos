@@ -127,7 +127,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &vmeshn = rData.MeshVelocityOldStep;
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
     const BoundedMatrix<double,3,2> vconv =(vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
-
+    const double volume_error_ratio = rData.VolumeError;
     // Get constitutive matrix
     const Matrix &C = rData.C;
 
@@ -166,7 +166,7 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vmeshn = rData.MeshVelocityOldStep;
-
+    const double volume_error_ratio = rData.VolumeError;
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get constitutive matrix
@@ -367,7 +367,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
-
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get shape function values
@@ -420,7 +419,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
 
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
     Matrix enr_pos_interp = ZeroMatrix(NumNodes, NumNodes);
-
+    const double volume_error_ratio = rData.VolumeError;
     double positive_density = 0.0;
     double negative_density = 0.0;
     double positive_viscosity = 0.0;

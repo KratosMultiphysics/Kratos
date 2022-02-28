@@ -493,7 +493,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSC
     const double K_darcy = rData.DarcyTerm;
 
     const auto vconv = rData.Velocity - rData.MeshVelocity;
-
+    const double volume_error_ratio = rData.VolumeError;
     // Get constitutive matrix
     const Matrix &C = rData.C;
 
@@ -531,7 +531,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSC
     const double dyn_tau = rData.DynamicTau;
 
     const auto vconv = rData.Velocity - rData.MeshVelocity;
-
+    const double volume_error_ratio = rData.VolumeError;
     // Get constitutive matrix
     const Matrix &C = rData.C;
 
@@ -588,11 +588,8 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+
+    const double volume_error_ratio = rData.VolumeError;
 
     auto &rhs = rData.rhs;
 
@@ -638,11 +635,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+    const double volume_error_ratio = rData.VolumeError;
 
     auto &rhs = rData.rhs;
 
@@ -692,11 +685,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error = -rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+    const double volume_error_ratio = rData.VolumeError;
 
     auto &V = rData.V;
     auto &H = rData.H;
@@ -748,7 +737,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
     const auto &p = rData.Pressure;
-
+    const double volume_error_ratio = rData.VolumeError;
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
@@ -760,11 +749,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     constexpr double stab_c2 = 2.0;
 
     // Mass correction term
-    double volume_error_ratio = 0.0;
-    if (rData.IsCut()) {
-        const double volume_error =-rData.VolumeError;
-        volume_error_ratio = volume_error / dt;
-    }
+    const double volume_error_ratio = rData.VolumeError;
 
     auto &V = rData.V;
     auto &H = rData.H;
