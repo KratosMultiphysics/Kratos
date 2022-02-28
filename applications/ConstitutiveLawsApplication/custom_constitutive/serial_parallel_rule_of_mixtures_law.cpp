@@ -502,15 +502,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveL
     C_tensor.resize(dimension, dimension, false);
     noalias(C_tensor) = prod(trans(F),F);
 
-    // Identity matrix
-    Matrix identity_matrix(dimension, dimension);
-    noalias(identity_matrix) = IdentityMatrix(dimension, dimension);
-
-    // Calculate E matrix
-    const Matrix E_matrix = 0.5 * (C_tensor - identity_matrix);
-
-    // Green-Lagrangian Strain Calculation
-    r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+    ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, r_strain_vector);
 }
 
 /***********************************************************************************/
