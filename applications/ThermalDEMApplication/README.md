@@ -9,6 +9,8 @@ This application is an extension of the [DEM Application](https://github.com/Kra
 
 Theoretical information on thermal DEM analysis can be found [here](./ThermalDEMTheory.pdf).
 
+A [Matlab version](https://gitlab.com/rafaelrangel/demlab) of this application is also available.
+
 ## Authorship
 
 - **Rafael Rangel** - (<rrangel@cimne.upc.edu>)
