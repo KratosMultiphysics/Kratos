@@ -694,7 +694,7 @@ public:
 
     typename CsrMatrix<TDataType,TIndexType>::Pointer ToSerialCSR(MpiIndexType target_rank=0) const
     {
-        //flatten all data (both indices and values) into a single vector of doubles
+        // Flatten all data (both indices and values) into a single vector of doubles
         std::vector<double> tmp_data;
         tmp_data.reserve(GetDiagonalBlock().nnz()*3 + GetOffDiagonalBlock().nnz()*3);
         for(unsigned int i=0; i<GetDiagonalBlock().size1(); ++i){
