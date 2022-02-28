@@ -73,12 +73,12 @@ class TestSympyFEUtilities(KratosUnittest.TestCase):
 
         self.maxDiff = 2048
         expected_code = "\n".join([
-            "    const double cmyvariable0 = 2*y(0);",
-            "    const double cmyvariable1 = 2*y(1);",
-            "    const double cmyvariable2 = 2*y(2);",
-            "    const double cmyvariable3 = 2*y(3);",
-            "    const double cmyvariable4 = 2*y(4);",
-            "    myvariable=3*cmyvariable0*x(0) + 3*cmyvariable1*x(1) + 3*cmyvariable2*x(2) + 3*cmyvariable3*x(3) + 3*cmyvariable4*x(4) + 3*(pow(y(0), 2) + pow(y(1), 2) + pow(y(2), 2) + pow(y(3), 2) + pow(y(4), 2))*(x(0)*(cmyvariable0 + 3*x(0)) + x(1)*(cmyvariable1 + 3*x(1)) + x(2)*(cmyvariable2 + 3*x(2)) + x(3)*(cmyvariable3 + 3*x(3)) + x(4)*(cmyvariable4 + 3*x(4)));",
+            "    const double cmyvariable0 = 2*y[0];",
+            "    const double cmyvariable1 = 2*y[1];",
+            "    const double cmyvariable2 = 2*y[2];",
+            "    const double cmyvariable3 = 2*y[3];",
+            "    const double cmyvariable4 = 2*y[4];",
+            "    myvariable=3*cmyvariable0*x[0] + 3*cmyvariable1*x[1] + 3*cmyvariable2*x[2] + 3*cmyvariable3*x[3] + 3*cmyvariable4*x[4] + 3*(pow(y[0], 2) + pow(y[1], 2) + pow(y[2], 2) + pow(y[3], 2) + pow(y[4], 2))*(x[0]*(cmyvariable0 + 3*x[0]) + x[1]*(cmyvariable1 + 3*x[1]) + x[2]*(cmyvariable2 + 3*x[2]) + x[3]*(cmyvariable3 + 3*x[3]) + x[4]*(cmyvariable4 + 3*x[4]));",
             ""
         ])
         self.assertEqual(code, expected_code)
