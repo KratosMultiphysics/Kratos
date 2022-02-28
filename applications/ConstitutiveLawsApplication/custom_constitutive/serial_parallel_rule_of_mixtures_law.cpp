@@ -90,7 +90,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveL
         Vector& r_strain_vector = rValues.GetStrainVector();
         Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
         Vector fiber_stress_vector, matrix_stress_vector;
-        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, serial_strain_matrix_old);
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, serial_strain_matrix_old, ConstitutiveLaw::StressMeasure_PK2);
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
         noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
 
@@ -110,17 +110,48 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveL
 
 void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponsePK2(rValues);
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
 
+    // Previous flags saved
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS );
+
+    const Properties& r_material_properties  = rValues.GetMaterialProperties();
+
+    // The deformation gradient
     if (rValues.IsSetDeterminantF()) {
-        Matrix &r_constitutive_matrix  = rValues.GetConstitutiveMatrix();
-        const Matrix &r_deformation_gradient = rValues.GetDeformationGradientF();
-        PushForwardConstitutiveMatrix(r_constitutive_matrix, r_deformation_gradient);
-        Matrix stress_matrix(3, 3);
-        Vector &r_stress_vector = rValues.GetStressVector();
-        noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
-        ContraVariantPushForward(stress_matrix, r_deformation_gradient); // Kirchhoff
-        noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector(stress_matrix, r_stress_vector.size());
+        const double determinant_f = rValues.GetDeterminantF();
+        KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+    }
+    // In case the element has not computed the Strain
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateAlmansiStrain(rValues);
+    }
+
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // Total strain vector
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        Vector serial_strain_matrix_old = mPreviousSerialStrainMatrix;
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, serial_strain_matrix_old, ConstitutiveLaw::StressMeasure_Kirchhoff);
+        Vector& r_integrated_stress_vector = rValues.GetStressVector();
+        noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+
+        if (flag_const_tensor) {
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
+        }
     }
 }
 
@@ -173,13 +204,13 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
     while (!is_converged && iteration <= max_iterations) {
         if (iteration == 0) {
             // Computes an initial approximation of the independent var: rSerialStrainMatrix
-            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix, rValues);
+            this->CalculateInitialApproximationSerialStrainMatrix(rStrainVector, mPreviousStrainVector, rMaterialProperties,  parallel_projector,  serial_projector, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss, rSerialStrainMatrix, rValues, rStressMeasure);
         }
         // This method computes the strain vector for the matrix & fiber
         this->CalculateStrainsOnEachComponent(rStrainVector, parallel_projector, serial_projector, rSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
 
         // This method integrates the stress according to each simple material CL
-        this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector);
+        this->IntegrateStressesOfFiberAndMatrix(rValues, matrix_strain_vector, fiber_strain_vector, rMatrixStressVector, rFiberStressVector, rStressMeasure);
 
         // Here we check the convergence of the loop -> serial stresses equilibrium
         this->CheckStressEquilibrium(rValues, rStrainVector, serial_projector, rMatrixStressVector, rFiberStressVector, stress_residual, is_converged, constitutive_tensor_matrix_ss, constitutive_tensor_fiber_ss);
@@ -187,7 +218,7 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStrainSerialParallelBehaviour(
             break;
         } else {
             // We correct the independent var: serial_strain_matrix
-            this->CorrectSerialStrainMatrix(rValues, stress_residual, rSerialStrainMatrix, serial_projector);
+            this->CorrectSerialStrainMatrix(rValues, stress_residual, rSerialStrainMatrix, serial_projector, rStressMeasure);
             iteration++;
         }
     }
@@ -200,7 +231,8 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
     ConstitutiveLaw::Parameters& rValues,
     const Vector& rResidualStresses,
     Vector& rSerialStrainMatrix,
-    const Matrix& rSerialProjector
+    const Matrix& rSerialProjector,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure
 )
 {
     const std::size_t voigt_size = this->GetStrainSize();
@@ -233,12 +265,12 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 
     // Compute the tangent tensor of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponsePK2(values_matrix);
+    mpMatrixConstitutiveLaw->CalculateMaterialResponse(values_matrix, rStressMeasure);
     noalias(matrix_tangent_tensor) = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponsePK2(values_fiber);
+    mpFiberConstitutiveLaw->CalculateMaterialResponse(values_fiber, rStressMeasure);
     noalias(fiber_tangent_tensor) = values_fiber.GetConstitutiveMatrix();
 
     noalias(matrix_tangent_tensor_ss) = prod(rSerialProjector, Matrix(prod(matrix_tangent_tensor,trans(rSerialProjector))));
@@ -318,7 +350,8 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
     Vector rMatrixStrainVector,
     Vector rFiberStrainVector,
     Vector& rMatrixStressVector,
-    Vector& rFiberStressVector
+    Vector& rFiberStressVector,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure
 )
 {
     rMatrixStressVector.resize(GetStrainSize(), false);
@@ -336,12 +369,12 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
 
     // Integrate Stress of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponsePK2(values_matrix);
+    mpMatrixConstitutiveLaw->CalculateMaterialResponse(values_matrix, rStressMeasure);
     noalias(rMatrixStressVector) = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponsePK2(values_fiber);
+    mpFiberConstitutiveLaw->CalculateMaterialResponse(values_fiber, rStressMeasure);
     noalias(rFiberStressVector) = values_fiber.GetStressVector();
 }
 
@@ -356,7 +389,8 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     Matrix& rConstitutiveTensorMatrixSS,
     Matrix& rConstitutiveTensorFiberSS,
     Vector& rInitialApproximationSerialStrainMatrix,
-    ConstitutiveLaw::Parameters& rValues
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure
 )
 {
     const std::size_t voigt_size = this->GetStrainSize();
@@ -388,12 +422,12 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     ConstitutiveLaw::Parameters values_matrix = rValues;
     // Compute the tangent tensor of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponsePK2(values_matrix);
+    mpMatrixConstitutiveLaw->CalculateMaterialResponse(values_matrix, rStressMeasure);
     noalias(constitutive_tensor_matrix) = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponsePK2(values_fiber);
+    mpFiberConstitutiveLaw->CalculateMaterialResponse(values_fiber, rStressMeasure);
     noalias(constitutive_tensor_fiber) = values_fiber.GetConstitutiveMatrix();
 
     // Previous flags restored
@@ -559,29 +593,69 @@ void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    this->FinalizeMaterialResponseCauchy(rValues);
+    Flags& r_flags = rValues.GetOptions();
+    // Some auxiliar values
+    const SizeType voigt_size = GetStrainSize();
+
+    // In case the element has not computed the Strain
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+    }
+    const Vector& r_strain_vector = rValues.GetStrainVector();
+    noalias(mPreviousStrainVector) = r_strain_vector;
+
+    // Previous flags saved
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // Total strain vector
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, mPreviousSerialStrainMatrix, ConstitutiveLaw::StressMeasure_PK1);
+
+        // We call the FinalizeMaterialResponse of the matrix and fiber CL
+        auto& r_material_properties = rValues.GetMaterialProperties();
+        const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+        const auto& r_props_matrix_cl = *(it_cl_begin);
+        const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+        
+        ConstitutiveLaw::Parameters values_fiber  = rValues;
+        ConstitutiveLaw::Parameters values_matrix = rValues;
+
+        values_matrix.SetMaterialProperties(r_props_matrix_cl);
+        values_fiber.SetMaterialProperties(r_props_fiber_cl);
+
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+
+        values_fiber.SetStrainVector(fiber_strain_vector);
+        values_matrix.SetStrainVector(matrix_strain_vector);
+
+        mpMatrixConstitutiveLaw->FinalizeMaterialResponse(values_matrix, ConstitutiveLaw::StressMeasure_PK1);
+        mpFiberConstitutiveLaw ->FinalizeMaterialResponse(values_fiber, ConstitutiveLaw::StressMeasure_PK1);
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    this->FinalizeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-{
-    this->FinalizeMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     Flags& r_flags = rValues.GetOptions();
     // Some auxiliar values
@@ -609,7 +683,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 
         // Total strain vector
         Vector fiber_stress_vector, matrix_stress_vector;
-        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, mPreviousSerialStrainMatrix);
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, mPreviousSerialStrainMatrix, ConstitutiveLaw::StressMeasure_PK2);
 
         // We call the FinalizeMaterialResponse of the matrix and fiber CL
         auto& r_material_properties = rValues.GetMaterialProperties();
@@ -632,8 +706,136 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         values_fiber.SetStrainVector(fiber_strain_vector);
         values_matrix.SetStrainVector(matrix_strain_vector);
 
-        mpMatrixConstitutiveLaw->FinalizeMaterialResponsePK2(values_matrix);
-        mpFiberConstitutiveLaw ->FinalizeMaterialResponsePK2(values_fiber);
+        mpMatrixConstitutiveLaw->FinalizeMaterialResponse(values_matrix, ConstitutiveLaw::StressMeasure_PK2);
+        mpFiberConstitutiveLaw ->FinalizeMaterialResponse(values_fiber, ConstitutiveLaw::StressMeasure_PK2);
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    Flags& r_flags = rValues.GetOptions();
+    // Some auxiliar values
+    const SizeType voigt_size = GetStrainSize();
+
+    // In case the element has not computed the Strain
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateAlmansiStrain(rValues);
+    }
+    const Vector& r_strain_vector = rValues.GetStrainVector();
+    noalias(mPreviousStrainVector) = r_strain_vector;
+
+    // Previous flags saved
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // Total strain vector
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, mPreviousSerialStrainMatrix, ConstitutiveLaw::StressMeasure_Kirchhoff);
+
+        // We call the FinalizeMaterialResponse of the matrix and fiber CL
+        auto& r_material_properties = rValues.GetMaterialProperties();
+        const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+        const auto& r_props_matrix_cl = *(it_cl_begin);
+        const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+        
+        ConstitutiveLaw::Parameters values_fiber  = rValues;
+        ConstitutiveLaw::Parameters values_matrix = rValues;
+
+        values_matrix.SetMaterialProperties(r_props_matrix_cl);
+        values_fiber.SetMaterialProperties(r_props_fiber_cl);
+
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+
+        values_fiber.SetStrainVector(fiber_strain_vector);
+        values_matrix.SetStrainVector(matrix_strain_vector);
+
+        mpMatrixConstitutiveLaw->FinalizeMaterialResponse(values_matrix, ConstitutiveLaw::StressMeasure_Kirchhoff);
+        mpFiberConstitutiveLaw ->FinalizeMaterialResponse(values_fiber, ConstitutiveLaw::StressMeasure_Kirchhoff);
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    Flags& r_flags = rValues.GetOptions();
+    // Some auxiliar values
+    const SizeType voigt_size = GetStrainSize();
+
+    // In case the element has not computed the Strain
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateAlmansiStrain(rValues);
+    }
+    const Vector& r_strain_vector = rValues.GetStrainVector();
+    noalias(mPreviousStrainVector) = r_strain_vector;
+
+    // Previous flags saved
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // Total strain vector
+        Vector fiber_stress_vector, matrix_stress_vector;
+        this->IntegrateStrainSerialParallelBehaviour(r_strain_vector, fiber_stress_vector, matrix_stress_vector, r_material_properties, rValues, mPreviousSerialStrainMatrix, ConstitutiveLaw::StressMeasure_Cauchy);
+
+        // We call the FinalizeMaterialResponse of the matrix and fiber CL
+        auto& r_material_properties = rValues.GetMaterialProperties();
+        const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
+        const auto& r_props_matrix_cl = *(it_cl_begin);
+        const auto& r_props_fiber_cl = *(it_cl_begin + 1);
+        
+        ConstitutiveLaw::Parameters values_fiber  = rValues;
+        ConstitutiveLaw::Parameters values_matrix = rValues;
+
+        values_matrix.SetMaterialProperties(r_props_matrix_cl);
+        values_fiber.SetMaterialProperties(r_props_fiber_cl);
+
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+
+        this->CalculateStrainsOnEachComponent(r_strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector);
+
+        values_fiber.SetStrainVector(fiber_strain_vector);
+        values_matrix.SetStrainVector(matrix_strain_vector);
+
+        mpMatrixConstitutiveLaw->FinalizeMaterialResponse(values_matrix, ConstitutiveLaw::StressMeasure_Cauchy);
+        mpFiberConstitutiveLaw ->FinalizeMaterialResponse(values_fiber, ConstitutiveLaw::StressMeasure_Cauchy);
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
@@ -828,7 +1030,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_PK2) {
             this->CalculateMaterialResponsePK2(rParameterValues);
         } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-            this->CalculateMaterialResponsePK2(rParameterValues);
+            this->CalculateMaterialResponseKirchhoff(rParameterValues);
         }
 
         noalias(rValue) = rParameterValues.GetConstitutiveMatrix();

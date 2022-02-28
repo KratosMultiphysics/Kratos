@@ -408,7 +408,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         Matrix& rConstitutiveTensorMatrixSS,
         Matrix& rConstitutiveTensorFiberSS,
         Vector& rInitialApproximationSerialStrainMatrix,
-        ConstitutiveLaw::Parameters& rValues);
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
@@ -422,7 +423,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         Vector rMatrixStrainVector,
         Vector rFiberStrainVector,
         Vector& rMatrixStressVector,
-        Vector& rFiberStressVector);
+        Vector& rFiberStressVector,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
      * This method checks wether the serial stresses are in equilibrium
@@ -457,7 +459,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         ConstitutiveLaw::Parameters& rValues,
         const Vector& rResidualStresses,
         Vector& rSerialStrainMatrix,
-        const Matrix& rSerialProjector);
+        const Matrix& rSerialProjector,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
      * @brief This method computes the tangent tensor
