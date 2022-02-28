@@ -111,7 +111,7 @@ public:
     CsrMatrix(const MatrixMapType& matrix_map)
     {
         SparseGraph<TIndexType> Agraph;
-        for(const auto item : matrix_map){
+        for(const auto& item : matrix_map){
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             Agraph.AddEntry(I,J);
