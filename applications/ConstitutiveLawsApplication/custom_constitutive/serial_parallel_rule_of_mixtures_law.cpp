@@ -23,6 +23,8 @@
 #include "constitutive_laws_application_variables.h"
 #include "serial_parallel_rule_of_mixtures_law.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 
 namespace Kratos
@@ -43,29 +45,20 @@ ConstitutiveLaw::Pointer SerialParallelRuleOfMixturesLaw::Create(Kratos::Paramet
 
 void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    this->CalculateMaterialResponseCauchy(rValues);
+    this->CalculateMaterialResponsePK2(rValues);
+
+    if (rValues.IsSetDeterminantF()) {
+        Vector& stress_vector                = rValues.GetStressVector();
+        const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
+        const double determinant_f           = rValues.GetDeterminantF();
+        TransformStresses(stress_vector, deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-{
-    this->CalculateMaterialResponseCauchy(rValues);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
@@ -107,11 +100,47 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 
         if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues);
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
         }
     }
+}
 
-} // End CalculateMaterialResponseCauchy
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    this->CalculateMaterialResponsePK2(rValues);
+
+    if (rValues.IsSetDeterminantF()) {
+        Matrix &r_constitutive_matrix  = rValues.GetConstitutiveMatrix();
+        const Matrix &r_deformation_gradient = rValues.GetDeformationGradientF();
+        PushForwardConstitutiveMatrix(r_constitutive_matrix, r_deformation_gradient);
+        Matrix stress_matrix(3, 3);
+        Vector &r_stress_vector = rValues.GetStressVector();
+        noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
+        ContraVariantPushForward(stress_matrix, r_deformation_gradient); // Kirchhoff
+        noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector(stress_matrix, r_stress_vector.size());
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    this->CalculateMaterialResponseKirchhoff(rValues);
+
+    if (rValues.IsSetDeterminantF()) {
+        Vector& stress_vector       = rValues.GetStressVector();
+        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+        const double determinant_f = rValues.GetDeterminantF();
+
+        // Set to Cauchy Stress:
+        stress_vector       /= determinant_f;
+        constitutive_matrix /= determinant_f;
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
