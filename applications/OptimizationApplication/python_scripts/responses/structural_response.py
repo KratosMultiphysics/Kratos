@@ -24,59 +24,42 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
     def __init__(self,response_name, response_settings,response_analysis,model):
 
         self.response_settings = response_settings
-        default_gradient_settings = KM.Parameters("""
-        {
-            "gradient_mode" : "semi_analytic",
-            "step_size" : 1e-6
-        }""")
-        
-        self.response_settings["gradient_settings"].ValidateAndAssignDefaults(default_gradient_settings)        
 
-        self.supported_design_types = ["shape"]
+        if not self.response_settings.Has("gradient_settings"):
+            self.gradient_settings = KM.Parameters()
+            self.gradient_settings.AddString("gradient_mode","semi_analytic")
+            self.gradient_settings.AddDouble("step_size",1e-6)
+        else:
+            self.gradient_settings = self.response_settings["gradient_settings"]     
+
+        self.supported_control_types = ["shape"]
         self.name = response_name
         self.primal_analysis = response_analysis
         self.model = model
         self.primal_model_part = self.primal_analysis._GetSolver().GetComputingModelPart()
+        self.primal_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
 
-        design_model_parts = self.response_settings["design_model_parts"].GetStringArray()
+        self.evaluated_model_parts = response_settings["evaluated_model_parts"].GetStringArray()
+        self.controlled_model_parts = response_settings["controlled_model_parts"].GetStringArray()
+        self.control_types = response_settings["control_types"].GetStringArray()  
 
-        for design_model_part in design_model_parts:
-            design_model_part_splitted = design_model_part.split(".")
-            if not design_model_part_splitted[0] == self.primal_model_part.Name:
-                raise RuntimeError("StrainEnergyResponseFunction:init: root design_model_part {} of response '{}' is not the analysis model!".format(design_model_part_splitted[0],self.name))
-                
-            self.primal_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
+        if len(self.evaluated_model_parts) != 1:
+            raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_model_parts' of response '{}' must have only one entry !".format(self.name)) 
 
-        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, self.response_settings["gradient_settings"])
+        for control_type in self.control_types:
+            if not control_type in self.supported_control_types:
+                raise RuntimeError("StrainEnergyResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+        
+        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, self.gradient_settings)
 
     def Initialize(self):
 
-        self.evaluate_model_parts = self.response_settings["evaluate_model_parts"].GetStringArray()
-        self.design_model_parts = self.response_settings["design_model_parts"].GetStringArray()
-        self.design_types = self.response_settings["design_types"].GetStringArray()
-
-        if not len(self.design_model_parts)>0 :
-            raise RuntimeError("StrainEnergyResponseFunction:Initialize: 'design_model_parts' of response '{}' can not be empty !".format(self.name))
-
-        if not len(self.design_types)>0 :
-            raise RuntimeError("StrainEnergyResponseFunction:Initialize: 'design_types' of response '{}' can not be empty !".format(self.name))            
-
-        if not len(self.evaluate_model_parts)>0:
-            raise RuntimeError("StrainEnergyResponseFunction:Initialize: 'evaluate_model_parts' of response '{}' can not be empty !".format(self.name))
-
-        if len(self.design_types) != len(self.design_model_parts):
-            raise RuntimeError("StrainEnergyResponseFunction:Initialize: 'design_types' and 'design_model_parts' of response '{}' should be of the same size !".format(self.name))
-
-        for evaluate_model_part in self.evaluate_model_parts:
-            evaluate_model_part_splitted = evaluate_model_part.split(".")
-            if not evaluate_model_part_splitted[0] == self.primal_model_part.Name:
-                raise RuntimeError("StrainEnergyResponseFunction:Initialize: root evaluate_model_part {} of response '{}' is not the analysis model!".format(evaluate_model_part_splitted[0],self.name))
-            if not self.model.HasModelPart(evaluate_model_part): 
-                raise RuntimeError("StrainEnergyResponseFunction:Initialize: evaluate_model_part {} of response '{}' does not exist!".format(evaluate_model_part,self.name))
-
-        for design_type in self.design_types:
-            if not design_type in self.supported_design_types:
-                raise RuntimeError("StrainEnergyResponseFunction: design type {} of response '{}' is not supported !".format(design_type,self.name))
+        for evaluated_model_part in self.evaluated_model_parts:
+            evaluated_model_part_splitted = evaluated_model_part.split(".")
+            if not evaluated_model_part_splitted[0] == self.primal_model_part.Name:
+                raise RuntimeError("StrainEnergyResponseFunction:Initialize: root evaluated_model_part {} of response '{}' is not the analysis model!".format(evaluated_model_part_splitted[0],self.name))
+            if not self.model.HasModelPart(evaluated_model_part): 
+                raise RuntimeError("StrainEnergyResponseFunction:Initialize: evaluated_model_part {} of response '{}' does not exist!".format(evaluated_model_part,self.name))
 
         self.response_function_utility.Initialize()
 
@@ -93,22 +76,6 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
 
     def CalculateGradients(self):
         Logger.PrintInfo("StrainEnergyResponse", "Starting gradient calculation for response ", self.name)
-        startTime = timer.time()
-        self.response_function_utility.CalculateGradient()
-        Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
-
-    def CalculateGradient(self,design_type_model_part_dict):
-
-        if type(design_type_model_part_dict) is not dict or not bool(design_type_model_part_dict):
-            raise RuntimeError("StrainEnergyResponseFunction:CalculateGradient: the input entry should be a dict of a pair of design type and model part ")
-
-        design_type = design_type_model_part_dict.keys()[0]
-        design_model_part_name = design_type_model_part_dict.values()[0]
-
-        if self.design_types[design_type] != design_model_part_name or not design_type in self.design_types or not design_model_part_name in self.design_model_parts :
-            raise RuntimeError("StrainEnergyResponseFunction:CalculateGradient: requested gradient pair {} does not match with {} of response {}".format(design_type_model_part_dict,dict(design_type,self.design_types_model_part_dict[design_type])),self.name)
-        
-        Logger.PrintInfo("StrainEnergyResponse", "Starting gradient calculation for response ", self.name, " over model part ",design_model_part_name)
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")

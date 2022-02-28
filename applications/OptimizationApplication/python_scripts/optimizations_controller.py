@@ -11,21 +11,23 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# additional imports
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 
+# Additional imports
+import KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent as steepest_descent
+
 import time as timer
 
 # ==============================================================================
-def CreateController(optimizations_settings,model,controls_controller,responses_controller):
-    return OptimizationsController(optimizations_settings,model,controls_controller,responses_controller)
+def CreateController(optimizations_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
+    return OptimizationsController(optimizations_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
 
 # ==============================================================================
 class OptimizationsController:
     # --------------------------------------------------------------------------
-    def __init__(self,optimizations_settings,model,controls_controller,responses_controller):
+    def __init__(self,optimizations_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
         
         self.optimizations_settings = optimizations_settings
         self.controls_controller = controls_controller
@@ -83,6 +85,7 @@ class OptimizationsController:
         self.optimizations_controls_upper_bounds_values={}
         self.optimizations_algorithm={}
         self.supported_opt_types = ["gradient_based"]
+        self.supported_algorithms = ["steepest_descent"]
         for itr in range(self.optimizations_settings.size()):
             opt_settings = self.optimizations_settings[itr]
             opt_name = opt_settings["name"].GetString()
@@ -94,7 +97,7 @@ class OptimizationsController:
             if not opt_type in self.supported_opt_types:  
                 raise RuntimeError("OptimizationsController: Optimization type '{}' is not supported, supprted types {}.".format(opt_type,self.supported_opt_types))                  
             self.optimizations_types[opt_name]=opt_type
-            # check for objectives
+            # checks for objectives
             objectives_names = opt_settings["settings"]["objectives"].GetStringArray()
             if not len(objectives_names)>0:  
                 raise RuntimeError("OptimizationsController: Objectives list of optimization '{}' can not be empty.".format(opt_name))   
@@ -123,7 +126,7 @@ class OptimizationsController:
 
 
 
-            # check for constraints
+            # checks for constraints
             if opt_settings["settings"]["constraints"].size()>0:
                 constraints_names = opt_settings["settings"]["constraints"].GetStringArray()
                 if len(set(constraints_names)) != len(constraints_names):
@@ -161,7 +164,7 @@ class OptimizationsController:
                     raise RuntimeError("OptimizationsController:'constraints_ref_values' of optimization '{}' should be of the same size of constraint list.".format(opt_name))
                 self.optimizations_constraints_ref_values[opt_name]=constraints_ref_values
             
-            # check for controls
+            # checks for controls
             controls_names = opt_settings["settings"]["controls"].GetStringArray()
             if not len(controls_names)>0:  
                 raise RuntimeError("OptimizationsController: Controls list of optimization '{}' can not be empty.".format(opt_name))   
@@ -237,10 +240,28 @@ class OptimizationsController:
 
             self.optimizations_controls_upper_bounds_values[opt_name] = controls_upper_bounds_values
 
+            algorithm = opt_settings["settings"]["algorithm"].GetString()
+            if not algorithm in self.supported_algorithms:
+                raise RuntimeError("OptimizationsController: Optimization algorithm '{}' is not supported, supprted types {}.".format(algorithm,self.supported_algorithms))                  
+
+            if algorithm == "steepest_descent":
+                self.optimizations[opt_name] = steepest_descent.AlgorithmSteepestDescent(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
+
     # --------------------------------------------------------------------------
     def Initialize(self):
-        pass
+        for opt in self.optimizations.values():
+            opt.InitializeOptimizationLoop()
 
+    # --------------------------------------------------------------------------
+    def Optimize(self,opt_name):
+        if not opt_name in self.optimizations.keys():
+            raise RuntimeError("OptimizationsController:Optimize: Optimization {} doesn not exist !.".format(opt_name))
+        
+        self.optimizations[opt_name].RunOptimizationLoop()
+    # --------------------------------------------------------------------------
+    def OptimizeAll(self):
+        for opt in self.optimizations.values():
+            opt.RunOptimizationLoop()
 
 
 

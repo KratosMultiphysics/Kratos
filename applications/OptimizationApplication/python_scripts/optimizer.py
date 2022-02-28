@@ -40,7 +40,7 @@ class Optimizer:
         self.analyses_controller = analyses_controller.CreateController(optimization_settings["analyses"],model,self.model_parts_controller)
         self.responses_controller = responses_controller.CreateController(optimization_settings["responses"],model,self.model_parts_controller,self.analyses_controller)
         self.controls_controller = controls_controller.CreateController(optimization_settings["controls"],model,self.model_parts_controller)
-        self.optimizations_controller = optimizations_controller.CreateController(optimization_settings["optimizations"],model,self.controls_controller,self.responses_controller)
+        self.optimizations_controller = optimizations_controller.CreateController(optimization_settings["optimizations"],model,self.model_parts_controller,self.analyses_controller,self.responses_controller,self.controls_controller)
 
 
     def _ValidateSettings(self, optimization_settings):

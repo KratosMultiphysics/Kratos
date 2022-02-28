@@ -185,6 +185,12 @@ class AnalysesController:
         for name in self.analyses.keys():
             self.RunAnalysis(name)
                         
+    # --------------------------------------------------------------------------
+    def RunAnalyses(self,analyses_name):
+        if type(analyses_name) is not list:
+            raise RuntimeError("AnalysesController:RunAnalyses requires list of analysis names")  
+        for analysis_name in analyses_name:
+            self.RunAnalysis(analysis_name)                       
 
                
 

@@ -95,9 +95,7 @@ class ControlsController:
 
             self.controls[control_name] = control
             self.controls_types_vars_dict[control_type].extend(control_variables_name_list)
-
-                             
-
+                            
     # --------------------------------------------------------------------------
     def Initialize(self):
         for key,value in self.controls.items():
