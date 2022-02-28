@@ -26,6 +26,7 @@ class MaterialsAssignationUtility:
             properties_of_model_part_with_this_id = self.spheres_model_part.GetProperties()[material_id]
             properties = material["Variables"]
             self.read_materials_utility.AssignVariablesToProperty(material, properties_of_model_part_with_this_id)
+            self.read_materials_utility.AssignTablesToProperty(material, properties_of_model_part_with_this_id)
 
             for material_relation in list_of_material_relations:
                 subprops = None
