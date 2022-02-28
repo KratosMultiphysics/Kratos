@@ -725,7 +725,7 @@ public:
         auto collected_data = GetComm().Gatherv(tmp_data,target_rank);
 
         const MpiIndexType num_processors = GetComm().Size();
-        MpiIndexType my_rank = GetComm().Rank();
+        const MpiIndexType my_rank = GetComm().Rank();
 
         typename SparseContiguousRowGraph<TIndexType>::UniquePointer p_csr_graph;
         typename CsrMatrix<TDataType,TIndexType>::Pointer p_csr_output;
