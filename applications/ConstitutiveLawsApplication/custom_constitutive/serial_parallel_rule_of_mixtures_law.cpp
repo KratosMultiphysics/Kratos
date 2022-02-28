@@ -84,7 +84,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseCauchy(Constituti
     }
     // In case the element has not computed the Strain
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateAlmansiStrain(rValues);
+        CalculateGreenLagrangeStrain(rValues);
     }
 
     if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
@@ -203,12 +203,12 @@ void SerialParallelRuleOfMixturesLaw::CorrectSerialStrainMatrix(
 
     // Compute the tangent tensor of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
+    mpMatrixConstitutiveLaw->CalculateMaterialResponsePK2(values_matrix);
     noalias(matrix_tangent_tensor) = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
+    mpFiberConstitutiveLaw->CalculateMaterialResponsePK2(values_fiber);
     noalias(fiber_tangent_tensor) = values_fiber.GetConstitutiveMatrix();
 
     noalias(matrix_tangent_tensor_ss) = prod(rSerialProjector, Matrix(prod(matrix_tangent_tensor,trans(rSerialProjector))));
@@ -306,12 +306,12 @@ void SerialParallelRuleOfMixturesLaw::IntegrateStressesOfFiberAndMatrix(
 
     // Integrate Stress of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
+    mpMatrixConstitutiveLaw->CalculateMaterialResponsePK2(values_matrix);
     noalias(rMatrixStressVector) = values_matrix.GetStressVector();
 
     // Integrate Stress of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
+    mpFiberConstitutiveLaw->CalculateMaterialResponsePK2(values_fiber);
     noalias(rFiberStressVector) = values_fiber.GetStressVector();
 }
 
@@ -358,12 +358,12 @@ void SerialParallelRuleOfMixturesLaw::CalculateInitialApproximationSerialStrainM
     ConstitutiveLaw::Parameters values_matrix = rValues;
     // Compute the tangent tensor of the matrix
     values_matrix.SetMaterialProperties(r_props_matrix_cl);
-    mpMatrixConstitutiveLaw->CalculateMaterialResponseCauchy(values_matrix);
+    mpMatrixConstitutiveLaw->CalculateMaterialResponsePK2(values_matrix);
     noalias(constitutive_tensor_matrix) = values_matrix.GetConstitutiveMatrix();
 
     // Compute the tangent tensor of the fiber
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
-    mpFiberConstitutiveLaw->CalculateMaterialResponseCauchy(values_fiber);
+    mpFiberConstitutiveLaw->CalculateMaterialResponsePK2(values_fiber);
     noalias(constitutive_tensor_fiber) = values_fiber.GetConstitutiveMatrix();
 
     // Previous flags restored
@@ -489,33 +489,28 @@ void SerialParallelRuleOfMixturesLaw::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Parameters& rValues)
+void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveLaw::Parameters& rValues)
 {
     // Some auxiliar values
     const SizeType dimension = WorkingSpaceDimension();
     const SizeType voigt_size = GetStrainSize();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    Matrix F_deformation_gradient(dimension, dimension), B_matrix(dimension, dimension), E_matrix(dimension, dimension);
-    noalias(F_deformation_gradient) = rValues.GetDeformationGradientF();
-    noalias(B_matrix) = prod(F_deformation_gradient, trans(F_deformation_gradient));
-    // Doing resize in case is needed
-    if (r_strain_vector.size() != voigt_size)
-        r_strain_vector.resize(voigt_size, false);
+    Matrix F(dimension, dimension);
+    noalias(F) = rValues.GetDeformationGradientF();
+    Matrix C_tensor;
+    C_tensor.resize(dimension, dimension, false);
+    noalias(C_tensor) = prod(trans(F),F);
 
-        // Identity matrix
+    // Identity matrix
     Matrix identity_matrix(dimension, dimension);
-    noalias(identity_matrix) = IdentityMatrix(dimension);
-
-    // Calculating the inverse of the left Cauchy tensor
-    Matrix inverse_B_tensor(dimension, dimension);
-    double aux_det_b = 0;
-    MathUtils<double>::InvertMatrix(B_matrix, inverse_B_tensor, aux_det_b);
+    noalias(identity_matrix) = IdentityMatrix(dimension, dimension);
 
     // Calculate E matrix
-    noalias(E_matrix) = 0.5 * (identity_matrix - inverse_B_tensor);
-    // Almansi Strain Calculation
-    noalias(r_strain_vector) = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
+    const Matrix E_matrix = 0.5 * (C_tensor - identity_matrix);
+
+    // Green-Lagrangian Strain Calculation
+    r_strain_vector = MathUtils<double>::StrainTensorToVector(E_matrix, voigt_size);
 }
 
 /***********************************************************************************/
@@ -553,7 +548,7 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
 
     // In case the element has not computed the Strain
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        CalculateAlmansiStrain(rValues);
+        CalculateGreenLagrangeStrain(rValues);
     }
     const Vector& r_strain_vector = rValues.GetStrainVector();
     noalias(mPreviousStrainVector) = r_strain_vector;
@@ -596,8 +591,8 @@ void SerialParallelRuleOfMixturesLaw::FinalizeMaterialResponseCauchy(Constitutiv
         values_fiber.SetStrainVector(fiber_strain_vector);
         values_matrix.SetStrainVector(matrix_strain_vector);
 
-        mpMatrixConstitutiveLaw->FinalizeMaterialResponseCauchy(values_matrix);
-        mpFiberConstitutiveLaw ->FinalizeMaterialResponseCauchy(values_fiber);
+        mpMatrixConstitutiveLaw->FinalizeMaterialResponsePK2(values_matrix);
+        mpFiberConstitutiveLaw ->FinalizeMaterialResponsePK2(values_fiber);
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
@@ -963,7 +958,7 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
-        this->CalculateMaterialResponseCauchy(rParameterValues);
+        this->CalculateMaterialResponsePK2(rParameterValues);
         rValue = MathUtils<double>::StressVectorToTensor(rParameterValues.GetStressVector());
 
         // Previous flags restored
@@ -1029,10 +1024,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Pa
         KRATOS_ERROR << "Analytic solution not available" << std::endl;
     } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (first order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_PK2, consider_perturbation_threshold, 1);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_PK2, consider_perturbation_threshold, 2);
     }
 }
 /***********************************************************************************/

@@ -360,7 +360,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      * This mthod computes the Almansi strain
      * @see Parameters
      */
-    void CalculateAlmansiStrain (Parameters& rValues);
+    void CalculateGreenLagrangeStrain(Parameters &rValues);
 
     /**
      * This method computes the strain vector in the fiber and matrix according to the total
