@@ -1013,7 +1013,9 @@ Matrix& SerialParallelRuleOfMixturesLaw::CalculateValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues)
+void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(
+    ConstitutiveLaw::Parameters& rValues,
+    const ConstitutiveLaw::StressMeasure& rStressMeasure)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
@@ -1024,10 +1026,10 @@ void SerialParallelRuleOfMixturesLaw::CalculateTangentTensor(ConstitutiveLaw::Pa
         KRATOS_ERROR << "Analytic solution not available" << std::endl;
     } else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (first order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_PK2, consider_perturbation_threshold, 1);
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 1);
     } else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
         // Calculates the Tangent Constitutive Tensor by perturbation (second order)
-        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_PK2, consider_perturbation_threshold, 2);
+        TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, rStressMeasure, consider_perturbation_threshold, 2);
     }
 }
 /***********************************************************************************/
