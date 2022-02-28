@@ -476,6 +476,8 @@ public:
         else
             norm_b = 0.00;
 
+        TSparseSpace::SetToZero(Dx);
+
         if (norm_b != 0.00) {
             //provide physical data as needed
             if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
@@ -484,7 +486,6 @@ public:
             //do solve
             BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
         } else {
-            TSparseSpace::SetToZero(Dx);
             KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
