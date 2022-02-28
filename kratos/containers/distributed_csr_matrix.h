@@ -752,7 +752,7 @@ public:
                 for(IndexType i=0; i<data.size(); i+=3){
                     IndexType I = static_cast<IndexType>(data[i]);
                     IndexType J = static_cast<IndexType>(data[i+1]);
-                    double    v = data[i+2];
+                    const double    v = data[i+2];
                     p_csr_output->AssembleEntry(v,I,J);
                 }
             }
