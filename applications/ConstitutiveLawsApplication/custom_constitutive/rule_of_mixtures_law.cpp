@@ -960,6 +960,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // The global strain vector, constant
@@ -1041,6 +1042,7 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
     // All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateAlmansiStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
 
     // The global strain vector, constant
@@ -1129,6 +1131,7 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& 
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1162,6 +1165,7 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& 
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1195,6 +1199,7 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parame
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateAlmansiStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1228,6 +1233,7 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameter
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateAlmansiStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1262,6 +1268,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK1(Parameters& rV
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1301,6 +1308,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1339,6 +1347,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseKirchhoff(Paramete
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateAlmansiStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -1377,6 +1386,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponseCauchy(Parameters&
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateAlmansiStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     }
     // The rotation matrix
     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
