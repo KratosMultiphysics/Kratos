@@ -191,20 +191,36 @@ double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const Pr
     return 0;
 }
 
+/// <summary>
+///  Calculate the particle diameter for the particles in the pipe. The particle diameter equals d70, 
+/// when the unmodified sellmeijer piping rule is used. 
+/// </summary>
+/// <param name="Prop"></param>
+/// <param name="Geom"></param>
+/// <returns></returns>
+template< unsigned int TDim, unsigned int TNumNodes >
+double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(const PropertiesType& Prop)
+{
+    double diameter;
+
+    if (Prop[PIPE_MODIFIED_D])
+        diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
+    else
+        diameter = Prop[PIPE_D_70];
+    return diameter;
+}
+
 
 /// <summary>
 /// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
 /// </summary>
-/// <param name="rVariables"></param>
+/// <param name="Prop"></param>
 /// <param name="Geom"></param>
 /// <returns></returns>
 template< unsigned int TDim, unsigned int TNumNodes >
 double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom)
 {
-    // todo add modelFactor input and calculate slope of pipe
-    const double modelFactor = 1;
-    const double pipeSlope = 0;
-    const double d70 = Prop[PIPE_D_70];
+    const double modelFactor = Prop[PIPE_MODEL_FACTOR];
     const double eta = Prop[PIPE_ETA];
     const double theta = Prop[PIPE_THETA];
     const double SolidDensity = Prop[DENSITY_SOLID];
@@ -212,7 +228,13 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
  
     // calculate pressure gradient over element
     double dpdx = CalculateWaterPressureGradient(Prop, Geom);
+
+    // calculate particle diameter
+    double particle_d = CalculateParticleDiameter(Prop);
     
+    // todo calculate slope of pipe, currently pipe is assumed to be horizontal
+    const double pipeSlope = 0;
+
     // return infinite when dpdx is 0
     if (dpdx < DBL_EPSILON)
     { 
@@ -223,7 +245,7 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     array_1d<double, 3> gravity_array= Geom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     const double gravity = norm_2(gravity_array);
 	
-    return modelFactor * M_PI / 3.0 * d70 * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdx;
+    return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity - FluidDensity) * gravity * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dpdx;
 
 }
 

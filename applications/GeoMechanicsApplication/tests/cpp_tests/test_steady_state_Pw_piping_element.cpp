@@ -50,8 +50,6 @@ namespace Kratos
             r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
             r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
 
-
-            // Set the element properties
             // Set the element properties
             auto p_elem_prop = r_model_part.CreateNewProperties(0);
             p_elem_prop->SetValue(PIPE_D_70, 2e-4);
@@ -61,6 +59,8 @@ namespace Kratos
             p_elem_prop->SetValue(DENSITY_WATER, 1000);
 
             p_elem_prop->SetValue(PIPE_ELEMENT_LENGTH, 0.5);
+            p_elem_prop->SetValue(PIPE_MODIFIED_D, false);
+            p_elem_prop->SetValue(PIPE_MODEL_FACTOR, 1);
 
 
             // set constitutive law
