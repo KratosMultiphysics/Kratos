@@ -175,8 +175,10 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     const double local_mach_number_squared_lower = PotentialFlowUtilities::ComputeLocalMachNumberSquared<TDim, TNumNodes>(lower_velocity, rCurrentProcessInfo);
     const double density_lower = PotentialFlowUtilities::ComputeDensity<TDim, TNumNodes>(local_mach_number_squared_lower, rCurrentProcessInfo);
 
-    const BoundedVector<double, TNumNodes> upper_rhs = - data.vol * density_upper * prod(data.DN_DX, upper_velocity);
-    const BoundedVector<double, TNumNodes> lower_rhs = - data.vol * density_lower * prod(data.DN_DX, lower_velocity);
+    BoundedVector<double, TNumNodes> upper_rhs;
+    BoundedVector<double, TNumNodes> lower_rhs;
+    CalculateRightHandSideContribution(upper_rhs, density_upper, upper_velocity);
+    CalculateRightHandSideContribution(lower_rhs, density_lower, lower_velocity);
 
     for (unsigned int i = 0; i < TNumNodes; ++i)
     {
