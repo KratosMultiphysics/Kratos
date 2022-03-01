@@ -445,6 +445,9 @@ public:
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             TSystemVectorType Dxmodified(rb.size());
 
+            // Initialize the solution vector
+            TSparseSpace::SetToZero(Dxmodified);
+
             InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
 
             //recover solution of the original problem
@@ -475,10 +478,6 @@ public:
             norm_b = TSparseSpace::TwoNorm(b);
         else
             norm_b = 0.00;
-
-        // Initialize the solution vector
-        TSparseSpace::SetToZero(Dx);
-
 
         if (norm_b != 0.00) {
             //provide physical data as needed
