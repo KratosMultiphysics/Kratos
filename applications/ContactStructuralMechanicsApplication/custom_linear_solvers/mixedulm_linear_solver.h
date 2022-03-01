@@ -764,6 +764,15 @@ public:
         return mDisplacementDofs;
     }
 
+    /**
+     * @brief This method retrieves the displacement DoFs of the system ordered according to the resolution order
+     * @return The displacement DoFs of the system
+     */
+    const DofsArrayType& GetDisplacementDofs() const 
+    {
+        return mDisplacementDofs;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
