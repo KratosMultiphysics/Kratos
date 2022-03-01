@@ -711,9 +711,9 @@ public:
 
         // Refactor rDofSet with the new indices
         // Ordering of the dofs is important
-        mBackupDofs.clear();
-        mBackupDofs.swap(rDofSet);
-        const auto it_dof_begin = mBackupDofs.begin();
+        mDisplacementDofs.clear();
+        mDisplacementDofs.swap(rDofSet);
+        const auto it_dof_begin = mDisplacementDofs.begin();
         rDofSet.reserve(mOtherIndices.size() + mMasterIndices.size() + mSlaveActiveIndices.size() + mSlaveInactiveIndices.size() + mLMInactiveIndices.size() + mLMActiveIndices.size());
 
         // Copy dofs
