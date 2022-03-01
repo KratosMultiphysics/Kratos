@@ -161,7 +161,7 @@ namespace Kratos
         m_acceleration = MPC_acceleration;
         // total displacement of boundary particle
         m_displacement += delta_xg;
-        
+        KRATOS_WATCH(m_displacement)
 
         
     }
