@@ -466,7 +466,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         S = generate_source_term.ComputeSourceMatrix(primitives, mg, f, rg, params)
 
         KratosMultiphysics.Logger.Print(" - Compute Euler Jacobian matrix")
-        A = generate_convective_flux.ComputeEulerJacobianMatrix(U, primitives, params)
+        A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, primitives, params)
 
         if self.shock_capturing:
             sc_params = ShockCapturingParameters()
