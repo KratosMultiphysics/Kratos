@@ -190,7 +190,7 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
             rA.AssembleEntry(value,I,J);
             })
         .def("ApplyHomogeneousDirichlet", &DistributedCsrMatrix<double,IndexType>::ApplyHomogeneousDirichlet )
-
+        .def("ToSerialCSR", &DistributedCsrMatrix<double,IndexType>::ToSerialCSR )
         .def("__str__", PrintObject<DistributedCsrMatrix<double,IndexType>>);
 }
 
