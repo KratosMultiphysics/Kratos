@@ -42,8 +42,8 @@ class ResponsesController:
             "name"                : "REPONSE_NAME",
             "type"                : "RESPONSE_TYPE",
             "settings"                : {
-                "evaluated_model_parts": [],
-                "controlled_model_parts": [],
+                "evaluated_objects": [],
+                "controlled_objects": [],
                 "control_types": []                
             }
         }""")
@@ -75,8 +75,8 @@ class ResponsesController:
 
         self.responses = {}
         self.responses_analyses = {}
-        self.responses_evaluated_model_parts = {}
-        self.responses_controlled_model_parts = {}
+        self.responses_evaluated_objects = {}
+        self.responses_controlled_objects = {}
         self.responses_control_types = {}
         for itr in range(self.reponses_settings.size()):
             response_settings = self.reponses_settings[itr]
@@ -87,42 +87,42 @@ class ResponsesController:
             if  response_name in self.responses.keys():  
                 raise RuntimeError("ResponsesController: Response name {} already exists.".format(response_name))
 
-            # check for evaluated_model_parts
-            evaluated_model_parts = response_settings["settings"]["evaluated_model_parts"].GetStringArray()                  
-            if len(evaluated_model_parts)>0:
-                self.model_parts_controller.CheckIfRootModelPartsExist(evaluated_model_parts,True)
+            # check for evaluated_objects
+            evaluated_objects = response_settings["settings"]["evaluated_objects"].GetStringArray()                  
+            if len(evaluated_objects)>0:
+                self.model_parts_controller.CheckIfRootModelPartsExist(evaluated_objects,True)
             else:
-                raise RuntimeError("ResponsesController: 'evaluated_model_parts' of response {} can not be empty.".format(response_name))
+                raise RuntimeError("ResponsesController: 'evaluated_objects' of response {} can not be empty.".format(response_name))
 
-            self.responses_evaluated_model_parts[response_name] = evaluated_model_parts
+            self.responses_evaluated_objects[response_name] = evaluated_objects
             
-            # check for controlled_model_parts   
-            controlled_model_parts = response_settings["settings"]["controlled_model_parts"].GetStringArray()                      
-            if len(controlled_model_parts)>0:
-                self.model_parts_controller.CheckIfRootModelPartsExist(controlled_model_parts,True)
+            # check for controlled_objects   
+            controlled_objects = response_settings["settings"]["controlled_objects"].GetStringArray()                      
+            if len(controlled_objects)>0:
+                self.model_parts_controller.CheckIfRootModelPartsExist(controlled_objects,True)
             else:
-                raise RuntimeError("ResponsesController: 'controlled_model_parts' of response {} can not be empty.".format(response_name))                
-            self.responses_controlled_model_parts[response_name] = controlled_model_parts
+                raise RuntimeError("ResponsesController: 'controlled_objects' of response {} can not be empty.".format(response_name))                
+            self.responses_controlled_objects[response_name] = controlled_objects
 
-            # check if controlled_model_parts and evaluated_model_parts have the same root model parts
-            first_root_evaluated_model_part = evaluated_model_parts[0].split(".")[0]
+            # check if controlled_objects and evaluated_objects have the same root model parts
+            first_root_evaluated_model_part = evaluated_objects[0].split(".")[0]
 
-            for model_part in evaluated_model_parts:
+            for model_part in evaluated_objects:
                 if model_part.split(".")[0] != first_root_evaluated_model_part:
-                    raise RuntimeError("ResponsesController: 'evaluated_model_parts' of response {} must have the same root model part.".format(response_name))                     
+                    raise RuntimeError("ResponsesController: 'evaluated_objects' of response {} must have the same root model part.".format(response_name))                     
 
-            first_root_controlled_model_part = controlled_model_parts[0].split(".")[0]
-            for model_part in controlled_model_parts:
+            first_root_controlled_model_part = controlled_objects[0].split(".")[0]
+            for model_part in controlled_objects:
                 if model_part.split(".")[0] != first_root_controlled_model_part:
-                    raise RuntimeError("ResponsesController: 'controlled_model_parts' of response {} must have the same root model part.".format(response_name))  
+                    raise RuntimeError("ResponsesController: 'controlled_objects' of response {} must have the same root model part.".format(response_name))  
 
             if first_root_controlled_model_part != first_root_evaluated_model_part:
-                raise RuntimeError("ResponsesController: 'controlled_model_parts' and 'evaluated_model_parts' of response {} must have the same root model parts.".format(response_name))                  
+                raise RuntimeError("ResponsesController: 'controlled_objects' and 'evaluated_objects' of response {} must have the same root model parts.".format(response_name))                  
 
             # check for control_types
             control_types = response_settings["settings"]["control_types"].GetStringArray()
-            if len(control_types) != len(controlled_model_parts):
-                raise RuntimeError("ResponsesController: 'control_types' of response {} must be of the same size as controlled_model_parts .".format(response_name)) 
+            if len(control_types) != len(controlled_objects):
+                raise RuntimeError("ResponsesController: 'control_types' of response {} must be of the same size as controlled_objects .".format(response_name)) 
             self.responses_control_types[response_name] = control_types              
 
             response = None
@@ -249,6 +249,40 @@ class ResponsesController:
             analyses_list.append(self.responses_analyses[response_name])
         
         return analyses_list     
+    # --------------------------------------------------------------------------
+    def GetResponses(self,control_types,controlled_objects):
+
+        if type(control_types) is not list:
+            raise RuntimeError("ResponsesController:GetResponse requires list of control types") 
+        if type(controlled_objects) is not list:
+            raise RuntimeError("ResponsesController:GetResponse requires list of controlled objects")    
+
+        found_responses = []
+        for response_name,response_controlled_objects in self.responses_controlled_objects.items():
+            response_control_type = self.responses_control_types[response_name]
+            if set(controlled_objects) <= set(response_controlled_objects) and set(control_types)<=set(response_control_type):
+                found_responses.append(response_name)
+
+        return found_responses
+
+    # --------------------------------------------------------------------------
+    def CalculateResponseGradientsForTypeAndObjects(self,response_name,control_type,controlled_objects,raise_error=True):
+
+        if type(controlled_objects) is not list:
+            raise RuntimeError("ResponsesController:GetResponse requires list of controlled objects")   
+
+        if raise_error:
+            if response_name not in self.responses.keys():
+                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not exist".format(response_name))
+            if control_type not in self.responses_control_types[response_name]:
+                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not have control type {}".format(response_name,control_type))   
+            if not set(controlled_objects) <= set(self.responses_controlled_objects[response_name]):
+                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not have controlled objects {}".format(response_name,controlled_objects))   
+
+        self.responses[response_name].CalculateGradientsForTypeAndObjects(control_type,controlled_objects,raise_error)
+      
+                
+
 
 
             

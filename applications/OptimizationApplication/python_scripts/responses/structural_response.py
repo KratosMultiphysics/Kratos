@@ -39,12 +39,12 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         self.primal_model_part = self.primal_analysis._GetSolver().GetComputingModelPart()
         self.primal_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
 
-        self.evaluated_model_parts = response_settings["evaluated_model_parts"].GetStringArray()
-        self.controlled_model_parts = response_settings["controlled_model_parts"].GetStringArray()
+        self.evaluated_model_parts = response_settings["evaluated_objects"].GetStringArray()
+        self.controlled_model_parts = response_settings["controlled_objects"].GetStringArray()
         self.control_types = response_settings["control_types"].GetStringArray()  
 
         if len(self.evaluated_model_parts) != 1:
-            raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_model_parts' of response '{}' must have only one entry !".format(self.name)) 
+            raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
 
         for control_type in self.control_types:
             if not control_type in self.supported_control_types:
@@ -79,6 +79,20 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
+
+    def CalculateGradientsForTypeAndObjects(self,control_type,controlled_objects,raise_error=True):
+
+        if raise_error:
+            if not control_type in self.control_types:
+                raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypeAndObjects: control type ",control_type," is not supported ")
+            if not set(controlled_objects) <=set(self.controlled_model_parts):
+                raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypeAndObjects: controlled_objects ",controlled_objects," do not belong to response ",self.name)
+
+        Logger.PrintInfo("StrainEnergyResponse", "Starting ",control_type," gradient calculation of response ", self.name," for ",controlled_objects)
+        startTime = timer.time()
+        self.response_function_utility.CalculateGradient()
+        Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
+
 
     def GetGradient(self, design_type_model_part_dict):
 

@@ -43,6 +43,18 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.objectives = self.opt_settings["objectives"].GetStringArray()
         self.objectives_weights = self.opt_settings["objectives_weights"].GetVector()
+        self.controls = opt_settings["controls"].GetStringArray()
+
+        self.controls_reponses = {}
+        for control in self.controls:
+            control_type = self.controls_controller.GetControlType(control)
+            control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
+            responses = self.responses_controller.GetResponses([control_type],control_controlling_objects)
+            if not len(responses)>0:
+                raise RuntimeError("OptimizationAlgorithm: control {} is not associated to any of responses".format(control))
+            if not set(responses) <= set(self.objectives):
+                raise RuntimeError("OptimizationAlgorithm: control {} is associated to responses {} which are not part of objectives lists".format(control,responses))
+            self.controls_reponses[control] = responses        
 
 
     # --------------------------------------------------------------------------
@@ -67,7 +79,14 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.analyses_controller.RunAnalyses(self.analyses)
 
             self.responses_controller.CalculateResponsesValue(self.objectives)
-            self.responses_controller.CalculateResponsesGradients(self.objectives)
+
+            for control,reponses in self.controls_reponses.items():
+                control_type = self.controls_controller.GetControlType(control)
+                control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
+                for response in reponses:
+                    self.responses_controller.CalculateResponseGradientsForTypeAndObjects(response,control_type,control_controlling_objects,False)
+
+
 
 
         #     timer.StartNewLap()
