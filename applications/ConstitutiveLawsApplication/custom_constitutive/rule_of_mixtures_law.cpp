@@ -1135,9 +1135,6 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK1(Parameters& 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 	// Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
@@ -1169,9 +1166,6 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponsePK2(Parameters& 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 	// Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
@@ -1203,9 +1197,6 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseKirchhoff(Parame
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 	// Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
@@ -1237,9 +1228,6 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterialResponseCauchy(Parameter
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 	// Get Values to compute the constitutive law:
     Flags& r_flags = rValues.GetOptions();
-    // Previous flags saved
-    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 	// All the strains must be the same, therefore we can just simply compute the strain in the first layer
     if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         CalculateGreenLagrangeStrain(rValues);
@@ -1544,7 +1532,6 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 {
     // Some auxiliar values
     const SizeType dimension = WorkingSpaceDimension();
-    const SizeType voigt_size = GetStrainSize();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     Matrix F(dimension, dimension);
@@ -1564,7 +1551,6 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateGreenLagrangeStrain(ConstitutiveL
 {
     // Some auxiliar values
     const SizeType dimension = WorkingSpaceDimension();
-    const SizeType voigt_size = GetStrainSize();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     Matrix F(dimension, dimension);

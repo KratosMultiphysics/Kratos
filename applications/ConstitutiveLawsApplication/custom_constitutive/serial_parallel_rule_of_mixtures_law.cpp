@@ -565,7 +565,6 @@ void SerialParallelRuleOfMixturesLaw::CalculateGreenLagrangeStrain(ConstitutiveL
 {
     // Some auxiliar values
     const SizeType dimension = WorkingSpaceDimension();
-    const SizeType voigt_size = GetStrainSize();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     Matrix F(dimension, dimension);
@@ -584,7 +583,6 @@ void SerialParallelRuleOfMixturesLaw::CalculateAlmansiStrain(ConstitutiveLaw::Pa
 {
     // Some auxiliar values
     const SizeType dimension = WorkingSpaceDimension();
-    const SizeType voigt_size = GetStrainSize();
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     Matrix F(dimension, dimension);
