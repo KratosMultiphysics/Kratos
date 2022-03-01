@@ -33,7 +33,7 @@ class GeometryData:
     # True if the integration loop is to be performed in the generator (only valid for simplex geometries)
     # False if the integration loop is in the template
 
-    name = None
+    name = "base geometry"
 
     def __init__(self, ngauss):
         self.ngauss = ngauss
