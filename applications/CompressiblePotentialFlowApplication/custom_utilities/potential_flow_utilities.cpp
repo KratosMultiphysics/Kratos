@@ -1131,7 +1131,7 @@ void AddKuttaConditionPenaltyRightHandSideTerm(const Element& rElement,
     BoundedMatrix<double, NumNodes, NumNodes>  n_matrix = outer_prod(n_angle, n_angle);
 
     if (wake == 0) {
-        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(rElement);
+        array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputePerturbedVelocity<Dim,NumNodes>(rElement, rCurrentProcessInfo);
         BoundedVector<double, NumNodes> velvector = prod(n_matrix,  velocity);
         BoundedVector<double, NumNodes> rhs_penalty = -penalty*data.vol*free_stream_density*prod(data.DN_DX,  velvector);
         for (unsigned int i = 0; i < NumNodes; ++i) {
