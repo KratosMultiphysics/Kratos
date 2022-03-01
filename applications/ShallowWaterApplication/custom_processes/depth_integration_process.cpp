@@ -245,7 +245,7 @@ int DepthIntegrationProcess<TDim>::Check()
 {
     const auto dimension = mrVolumeModelPart.GetProcessInfo()[DOMAIN_SIZE];
     KRATOS_ERROR_IF(dimension != 2 && dimension != 3) << Info() << ": Wrong DOMAIN_SIZE equal to " << dimension << "in model part " << mrVolumeModelPart.Name() << std::endl;
-    KRATOS_ERROR_IF(dimension == 2 and mExtrapolateBoundaries) << Info() << ": Is not possible to extrapolate the boundaries in a 2D simulation." << std::endl;
+    KRATOS_ERROR_IF(dimension == 2 && mExtrapolateBoundaries) << Info() << ": Is not possible to extrapolate the boundaries in a 2D simulation." << std::endl;
     KRATOS_ERROR_IF(mrVolumeModelPart.NumberOfNodes() == 0) << Info() << ": The volume model part is empty. Not possible to construct the search structure." << std::endl;
     return 0;
 }
