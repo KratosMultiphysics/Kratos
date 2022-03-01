@@ -199,16 +199,19 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
         noalias(r_integrated_stress_vector) = mFiberVolumetricParticipation * fiber_stress_vector + (1.0 - mFiberVolumetricParticipation) * matrix_stress_vector;
 
-        // we push forward the stress
-        Matrix stress_matrix(3, 3);
-        noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_integrated_stress_vector);
-        ContraVariantPushForward (stress_matrix, rValues.GetDeformationGradientF()); //Kirchhoff
-        noalias(r_integrated_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_integrated_stress_vector.size() );
+        if (rValues.IsSetDeterminantF()) {
+            // we push forward the stress
+            Matrix stress_matrix(3, 3);
+            noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_integrated_stress_vector);
+            ContraVariantPushForward (stress_matrix, rValues.GetDeformationGradientF()); //Kirchhoff
+            noalias(r_integrated_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_integrated_stress_vector.size() );
+        }
 
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
             // push forward Constitutive tangent tensor
-            PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
+            if (rValues.IsSetDeterminantF())
+                PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
         }
 
         // Previous flags restored

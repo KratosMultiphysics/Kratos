@@ -1085,17 +1085,19 @@ void ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponseKirchhoff(Constit
         Vector &r_stress_vector = rValues.GetStressVector();
         noalias(r_stress_vector) = auxiliar_stress_vector;
 
-        // we push forward the stress
-        Matrix stress_matrix(Dimension, Dimension);
-        noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
-        ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
-        noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_stress_vector.size() );
-
+        if (rValues.IsSetDeterminantF()) {
+            // we push forward the stress
+            Matrix stress_matrix(Dimension, Dimension);
+            noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_stress_vector);
+            ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
+            noalias(r_stress_vector) = MathUtils<double>::StressTensorToVector( stress_matrix, r_stress_vector.size() );
+        }
 
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
             // push forward Constitutive tangent tensor
-            PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
+            if (rValues.IsSetDeterminantF())
+                PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
         }
 
         // Previous flags restored
