@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess2D, ShallowWaterApplicationFast
     DepthIntegrationProcess<2>(model, process_parameters).Execute();
 
     std::vector<std::vector<double>> reference;
-    reference.push_back({0.509996, 0.0, 0.0});
+    reference.push_back({0.55, 0.0, 0.0});
 
     for(std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;
@@ -151,11 +151,11 @@ KRATOS_TEST_CASE_IN_SUITE(DepthIntegrationProcess3D, ShallowWaterApplicationFast
     DepthIntegrationProcess<3>(model, process_parameters).Execute();
 
     std::vector<std::vector<double>> reference;
-    reference.push_back({0.362048, 0.0, 0.0});
-    reference.push_back({0.609497, 0.0, 0.0});
-    reference.push_back({0.856946, 0.0, 0.0});
-    reference.push_back({1.104395, 0.0, 0.0});
-    reference.push_back({1.351844, 0.0, 0.0});
+    reference.push_back({0.426304, 0.0, 0.0});
+    reference.push_back({0.657407, 0.0, 0.0});
+    reference.push_back({0.935185, 0.0, 0.0});
+    reference.push_back({1.157407, 0.0, 0.0});
+    reference.push_back({1.435185, 0.0, 0.0});
 
     for (std::size_t i = 0; i < r_interface_model_part.NumberOfNodes(); ++i) {
         auto i_node = r_interface_model_part.NodesBegin() + i;

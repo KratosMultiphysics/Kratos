@@ -139,12 +139,12 @@ void DepthIntegrationProcess<TDim>::Integrate(
                 last_found_id = p_elem->Id();
                 num_found++;
             }
+            top_depth = inner_prod(point, mDirection);
         }
         if (!prev_is_found && is_found) { // this is the first element
             bottom_depth = inner_prod(point, mDirection);
         }
         if (prev_is_found && !is_found) { // the previous element is the last
-            top_depth = inner_prod(point, mDirection) -step;
             break;
         }
         prev_is_found = is_found;
