@@ -140,6 +140,9 @@ void HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff (Const
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
+        if (rValues.IsSetDeformationGradientF()) {
+            this->CalculateGreenLagrangianStrain(rValues, strain_vector);
+        }
         this->CalculateKirchhoffStress(strain_vector, stress_vector, deformation_gradient_f ,young_modulus, poisson_coefficient);
     }
 }
