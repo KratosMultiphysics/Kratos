@@ -14,6 +14,9 @@ class GeoBuilding( GeoProcessor ):
         self.HasBuildingHull = False
         self.HasDistanceField = False
 
+        self.coord_base_building = []   # coordinates at the base of the buildings after the shift procedure
+        self.coord_top_building = []    # coordinates at the top of the buildings after the shift procedure
+
 
     def ImportBuildingHullSTL( self, file_name ):
 
@@ -599,7 +602,7 @@ class GeoBuilding( GeoProcessor ):
     
 
     # def ShiftBuildingOnTerrain(self, buildings_model_part, terrain_model_part):       # OLD CODE
-    def ShiftBuildingOnTerrain(self, terrain_model_part):       # [TEST] we pass the ModelPart instead of the "building_model_part"
+    def ShiftBuildingOnTerrain(self, terrain_model_part, shift_base=True):       # [TEST] we pass the ModelPart instead of the "building_model_part"
         """ function to shift Buildings on terrain
 
         Note:
@@ -608,7 +611,8 @@ class GeoBuilding( GeoProcessor ):
             - buildings that do not need to be shifted have already been deleted
 
         Args:
-            terrain_model_part: central portion of terrain on which the buildings will be placed    # TODO: check it
+            - terrain_model_part: central portion of terrain on which the buildings will be placed    # TODO: check it
+            - shift_base: if True, the base of the buildings will be shifted on the terrain. If False, the base will be at Z=0.0
 
         Returns:
             - the SubModelPart of the buildings is updated with the new position of the buildings
@@ -617,41 +621,43 @@ class GeoBuilding( GeoProcessor ):
         
         # TODO: remove numpy
         # TODO: [OK] we can pass buildings_model_part with "SetGeoModelPart(buildings_model_part)" in the main script instead of as a parameter
-        # TODO: move only buildings with all nodes in center_model_part
-        # TODO: move buildings on terrain; delete buildings that are not moved
+        # TODO: [OK] move only buildings with all nodes in center_model_part
+        # TODO: [] move buildings on terrain; delete buildings that are not moved
 
         import numpy as np
+        import sys
 
         # N = KratosMultiphysics.Vector(3)      # OLD CODE
         coords = KratosMultiphysics.Array3()
 
-        # OLD CODE
-        # locate_on_background = KratosMultiphysics.BinBasedFastPointLocator2D(terrain_model_part)
-        # locate_on_background.UpdateSearchDatabase()
-
         BU = KratosGeo.BuildingUtilities(terrain_model_part)
-
-
-        already_moved = []            # list with all nodes already moved
-
-        # ID_vertex = self._find_max_node_id() + 1
-
-        # # we set all nodes as not visited
-        # for node in self.ModelPart.Nodes:
-        #     node.Set(KratosMultiphysics.VISITED, False)
         
         # list of SubModelPart to delete
         building_to_delete = []
 
+        n_buildings = self.ModelPart.NumberOfSubModelParts()
+        n_th = 1            # n-th building
+        bar_length = 30     # length of progress bar
+
         for current_sub_model in self.ModelPart.SubModelParts:
-            print("[DEBUG][geo_building][ShiftBuildingOnTerrain] Building name: ", current_sub_model.Name)
             # each Building is in a different sub_model_part
+
+            # progress bar. Reference: https://gist.github.com/sibosutd/c1d9ef01d38630750a1d1fe05c367eb8
+            percent = 100.0*n_th/n_buildings
+            sys.stdout.write("\r")
+            sys.stdout.write("ShiftBuildingOnTerrain: {:{}} {:>3}%".format("█"*int(percent/(100.0/bar_length)),
+                                                                               bar_length,
+                                                                               int(percent)))
+            sys.stdout.flush()
+            n_th += 1
             
-            displacement = []        # the vector where we save the Z coordinate to evaluate the minimum for each building
+            # print("[DEBUG][geo_building][ShiftBuildingOnTerrain] Building name: ", current_sub_model.Name)
+            
+            # displacement = []        # the vector where we save the Z coordinate to evaluate the minimum for each building
             shift = 0.0
             for node_building in current_sub_model.Nodes:
                 # take only nodes with z = 0.0 which are the nodes at the base of the Building
-                if node_building.Z != 0.0:
+                if node_building.Z >= 1e-5:     # if (Z >= 0.0) with a tolerance of 1e-5
                     continue
 
                 # fill coords array
@@ -659,13 +665,8 @@ class GeoBuilding( GeoProcessor ):
                 coords[1] = node_building.Y
                 coords[2] = node_building.Z
 
-                # OLD CODE
-                # "found" is a boolean variable (True if "node" is inside the mesh element)
-                # "pelem" is a pointer to element that contain the node of the Building
-                # [found, N, pelem] = locate_on_background.FindPointOnMesh(coords)        # here we have the terrain element (but it is on xy plane)
-
                 # return the ID of the element containing the located point (from coords)
-                # if (id_elem = 0) the point is outside from the elements
+                # if (id_elem = 0) the point is outside from the elements (of the terrain_model_part)
                 id_elem = BU.CheckIfInternal(coords)
 
                 # we check if all the nodes are inside terrain_model_part. If at least one node is outside, the whole building must be outside (and deleted)
@@ -673,12 +674,8 @@ class GeoBuilding( GeoProcessor ):
                     # displacement.append(0.0)        # adding 0.0, the minimum of the dispacement (in this building) will be 0.0
                     # continue
                     building_to_delete.append(current_sub_model.Name)
+                    KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Buildings outside of \"r_buildings\" must be delete with \"DeleteBuildingsOutsideBoundary\" function!")
                     break
-
-                # OLD CODE
-                # if not isinstance(pelem, KratosMultiphysics.Element):            # if "pelem" is not a "Kratos.Element", we go to the next node
-                #     KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "\"pelem\" is not a KratosMultiphysics Element.")
-                #     continue
 
                 # we extract the element with the id_elem
                 pelem = terrain_model_part.GetElement(id_elem)
@@ -700,53 +697,285 @@ class GeoBuilding( GeoProcessor ):
                 si = -planeNormal.dot(w) / ndotu
                 Psi = w + si *rayDirection + planePoint
                 
-                displacement.append(Psi[2])                # append just coordinate Z
+                # displacement.append(Psi[2])                # append just coordinate Z
+
+                if shift_base:
+                    node_building.Z += Psi[2]   # we shift the i-th node of the building (the nodes on the perimeter can have different heights)
+                node_building.Set(KratosMultiphysics.VISITED)   # we set the node at the base of the building as VISITED
+
+                if (Psi[2] > shift):
+                    shift = Psi[2]  # update the value
 
             else:
-                # we check if "displacement" is empty
-                if displacement:
-                    shift = min(displacement)
-                    # shift = max(displacement)
+                # we shift the building only if all nodes are inside terrain_model_part
 
-            # ###################################################################################################################
-            # # WITH FLAGS
-            # for node in current_sub_model.Nodes:
-            #     # we check if the node is already visited
-            #     if (node.Is(KratosMultiphysics.VISITED)):
-            #         # TODO: we must clone the node and split the geometries
-            #         print("*** node {} already visited. We will clone the node and split the geometry. ***".format(node.Id))
-                    
-            #     else:
-            #         node.Set(KratosMultiphysics.VISITED, True)
-            #         node.Z = node.Z + shift    # we move current node of the quantity in "shift"
-            # ###################################################################################################################
+                # if displacement:    # check if displacement is not empty
+                #     # shift = min(displacement)
+                #     shift = max(displacement)
 
+                # we only shift building roof nodes
+                for node in current_sub_model.Nodes:
+                    if (node.Z > 1e-5) and (node.IsNot(KratosMultiphysics.VISITED)):
+                        # coordinate at the top of the building
+                        node.Z += shift
+                        self.coord_top_building.append([node.X, node.Y, node.Z])
+                    else:
+                        # coordinate at the base of the building
+                        self.coord_base_building.append([node.X, node.Y, node.Z])
+        sys.stdout.write("\n")
 
-            """ THERE IS NO LONGER A NEED FOR THIS PIECE OF CODE BECAUSE THE PROBLEM OF SURFACES SHARED
-                BETWEEN MULTIPLE BUILDINGS HAS BEEN SOLVED WHEN CONVERTING THE OSM FILE TO OBJ """
-            # # TODO: CHECK IT! DOES NOT WORK WELL...
-            # # check on the nodes shared by multiple elements
-            # node_mod = {}    # dictionary where the key is the old node Id and the "value" is the new node Id
-            # for node in current_sub_model.Nodes:
-            #     if node.Id in already_moved:                    # if it is one of the already moved nodes
-            #         print("*** node {} already visited. We will clone the node and split the geometry. ***".format(node.Id))
-            #         self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + shift))    # a new node with different Id and Z coordinate shifted
-            #         node_mod[node.Id] = ID_vertex                # fill the dictionary with the node to be removed (the key) and the node to be added (the value) in this current_sub_model
-            #         node.Id = ID_vertex                          # update the Id node of the element
-            #         ID_vertex += 1
-            #     else:
-            #         already_moved.append(node.Id)                # fill "already_moved" with current Id node
-            #         node.Z = node.Z + shift
-            # for old_node, new_node in node_mod.items():
-            #     current_sub_model.AddNodes([new_node])          # add the new nodes in the current sub model part
-            #     current_sub_model.RemoveNode(old_node)          # remove the old nodes that are now replaced
-            
-            for node in current_sub_model.Nodes:
-                if (node.Z > 0.0):  # extrusion
-                    node.Z += shift
+        # we remove all buildings outside r_building;
+        # even if they must be deleted using the appropriate funtion! (DeleteBuildingsOutsideBoundary)
+        for buildig_name in building_to_delete:
+            self.ModelPart.RemoveSubModelPart(buildig_name)
 
         """ CHECK THIS """
         self.HasBuildingHull = True
+
+
+    # #############################################################################################################################
+    # # BACKUP 27 AUG 2021 # #
+    # def ShiftBuildingOnTerrain(self, terrain_model_part):       # [TEST] we pass the ModelPart instead of the "building_model_part"
+    #     """ function to shift Buildings on terrain
+
+    #     Note:
+    #         - at the beginning the buildings are all positioned at quota z=0
+    #         - each building must be in a SubModelPart
+    #         - buildings that do not need to be shifted have already been deleted
+
+    #     Args:
+    #         terrain_model_part: central portion of terrain on which the buildings will be placed    # TODO: check it
+
+    #     Returns:
+    #         - the SubModelPart of the buildings is updated with the new position of the buildings
+    #         - buildings outside of center_model_part are deleted
+    #     """
+        
+    #     # TODO: remove numpy
+    #     # TODO: [OK] we can pass buildings_model_part with "SetGeoModelPart(buildings_model_part)" in the main script instead of as a parameter
+    #     # TODO: move only buildings with all nodes in center_model_part
+    #     # TODO: move buildings on terrain; delete buildings that are not moved
+
+    #     import numpy as np
+
+    #     # N = KratosMultiphysics.Vector(3)      # OLD CODE
+    #     coords = KratosMultiphysics.Array3()
+
+    #     # OLD CODE
+    #     # locate_on_background = KratosMultiphysics.BinBasedFastPointLocator2D(terrain_model_part)
+    #     # locate_on_background.UpdateSearchDatabase()
+
+    #     BU = KratosGeo.BuildingUtilities(terrain_model_part)
+
+
+    #     # already_moved = []            # list with all nodes already moved
+
+    #     # ID_vertex = self._find_max_node_id() + 1
+
+    #     # # we set all nodes as not visited
+    #     # for node in self.ModelPart.Nodes:
+    #     #     node.Set(KratosMultiphysics.VISITED, False)
+        
+    #     # # list of SubModelPart to delete
+    #     # building_to_delete = []
+
+    #     for current_sub_model in self.ModelPart.SubModelParts:
+    #         # each Building is in a different sub_model_part
+    #         print("[DEBUG][geo_building][ShiftBuildingOnTerrain] Building name: ", current_sub_model.Name)
+            
+    #         displacement = []        # the vector where we save the Z coordinate to evaluate the minimum for each building
+    #         shift = 0.0
+    #         for node_building in current_sub_model.Nodes:
+    #             # take only nodes with z = 0.0 which are the nodes at the base of the Building
+    #             # if node_building.Z != 0.0:
+    #             if node_building.Z >= 1e-5:     # if (Z >= 0.0) with a tolerance of 1e-5
+    #                 continue
+
+    #             # fill coords array
+    #             coords[0] = node_building.X
+    #             coords[1] = node_building.Y
+    #             coords[2] = node_building.Z
+
+    #             # OLD CODE
+    #             # "found" is a boolean variable (True if "node" is inside the mesh element)
+    #             # "pelem" is a pointer to element that contain the node of the Building
+    #             # [found, N, pelem] = locate_on_background.FindPointOnMesh(coords)        # here we have the terrain element (but it is on xy plane)
+
+    #             # return the ID of the element containing the located point (from coords)
+    #             # if (id_elem = 0) the point is outside from the elements
+    #             id_elem = BU.CheckIfInternal(coords)
+
+    #             # we check if all the nodes are inside terrain_model_part. If at least one node is outside, the whole building must be outside (and deleted)
+    #             if (id_elem == 0):
+    #                 # displacement.append(0.0)        # adding 0.0, the minimum of the dispacement (in this building) will be 0.0
+    #                 # continue
+    #                 # building_to_delete.append(current_sub_model.Name)
+    #                 KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Buildings outside of \"r_buildings\" must be delete first!")
+    #                 break
+
+    #             # OLD CODE
+    #             # if not isinstance(pelem, KratosMultiphysics.Element):            # if "pelem" is not a "Kratos.Element", we go to the next node
+    #             #     KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "\"pelem\" is not a KratosMultiphysics Element.")
+    #             #     continue
+
+    #             # we extract the element with the id_elem
+    #             pelem = terrain_model_part.GetElement(id_elem)
+                
+    #             # calculation of the intersection point between Building and terrain
+    #             Norm = self._normal_triangle(pelem)
+
+    #             # define plane
+    #             planeNormal = np.array(Norm)
+    #             planePoint = np.array(pelem.GetNode(0))
+
+    #             # define ray
+    #             rayDirection = np.array([0, 0, 1])
+    #             rayPoint = np.array(coords)
+
+    #             ndotu = planeNormal.dot(rayDirection)
+
+    #             w = rayPoint - planePoint
+    #             si = -planeNormal.dot(w) / ndotu
+    #             Psi = w + si *rayDirection + planePoint
+                
+    #             displacement.append(Psi[2])                # append just coordinate Z
+
+    #         else:
+    #             # we shift the building only if all nodes are inside terrain_model_part
+
+    #             if displacement:    # check if displacement is not empty
+    #                 # shift = min(displacement)
+    #                 shift = max(displacement)
+
+    #             """ DEVO SPOSTARE OGNI NODO ALLA BASE MAN MANO CHE ESEGUO CheckIfInternal.
+    #                 PER I NODI IN COPERTURA, INVECE, VA BENE COSÌ (CON LA VARIABILE shift) """
+    #             for node in current_sub_model.Nodes:
+    #                 if (node.Z > 0.0):  # extrusion
+    #                     node.Z += shift
+
+    #         # ###################################################################################################################
+    #         # # WITH FLAGS
+    #         # for node in current_sub_model.Nodes:
+    #         #     # we check if the node is already visited
+    #         #     if (node.Is(KratosMultiphysics.VISITED)):
+    #         #         # TODO: we must clone the node and split the geometries
+    #         #         print("*** node {} already visited. We will clone the node and split the geometry. ***".format(node.Id))
+                    
+    #         #     else:
+    #         #         node.Set(KratosMultiphysics.VISITED, True)
+    #         #         node.Z = node.Z + shift    # we move current node of the quantity in "shift"
+    #         # ###################################################################################################################
+
+
+    #         """ THERE IS NO LONGER A NEED FOR THIS PIECE OF CODE BECAUSE THE PROBLEM OF SURFACES SHARED
+    #             BETWEEN MULTIPLE BUILDINGS HAS BEEN SOLVED WHEN CONVERTING THE OSM FILE TO OBJ """
+    #         # # TODO: CHECK IT! DOES NOT WORK WELL...
+    #         # # check on the nodes shared by multiple elements
+    #         # node_mod = {}    # dictionary where the key is the old node Id and the "value" is the new node Id
+    #         # for node in current_sub_model.Nodes:
+    #         #     if node.Id in already_moved:                    # if it is one of the already moved nodes
+    #         #         print("*** node {} already visited. We will clone the node and split the geometry. ***".format(node.Id))
+    #         #         self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + shift))    # a new node with different Id and Z coordinate shifted
+    #         #         node_mod[node.Id] = ID_vertex                # fill the dictionary with the node to be removed (the key) and the node to be added (the value) in this current_sub_model
+    #         #         node.Id = ID_vertex                          # update the Id node of the element
+    #         #         ID_vertex += 1
+    #         #     else:
+    #         #         already_moved.append(node.Id)                # fill "already_moved" with current Id node
+    #         #         node.Z = node.Z + shift
+    #         # for old_node, new_node in node_mod.items():
+    #         #     current_sub_model.AddNodes([new_node])          # add the new nodes in the current sub model part
+    #         #     current_sub_model.RemoveNode(old_node)          # remove the old nodes that are now replaced
+            
+    #         """ MOVED ABOVE """
+    #         # for node in current_sub_model.Nodes:
+    #         #     if (node.Z > 0.0):  # extrusion
+    #         #         node.Z += shift
+
+    #     """ CHECK THIS """
+    #     self.HasBuildingHull = True
+    # #############################################################################################################################
+
+
+    def FindDistanceFromTerrain(self, terrain_model_part):
+        """ function to find the distance from the terrain (in Z direction)
+
+        Args:
+            terrain_model_part: terrain on which the buildings will be placed
+
+        Returns:
+            - a list with coordinates at the base of the buildings
+            - a list with coordinates at the top of the buildings
+        """
+        import numpy as np
+
+        # dist_buildings = dict()     # key: smp name of the i-th building; value: distance for each node of the i-th building
+        coords = KratosMultiphysics.Array3()
+        coord_base_building = []    # coordinates at the base of the buildings
+        coord_top_building = []     # coordinates at the top of the buildings
+
+        BU = KratosGeo.BuildingUtilities(terrain_model_part)
+
+        # each Building is in a different SubModelPart
+        for current_sub_model in self.ModelPart.SubModelParts:
+            print("[DEBUG][geo_building][FindDistanceFromTerrain] Building name: ", current_sub_model.Name)
+            
+            displacement = []        # the vector where we save the Z coordinate to evaluate the minimum for each building
+            shift = 0.0
+            for node_building in current_sub_model.Nodes:
+                # we take only nodes with z = 0.0 which are the nodes at the base of the Building
+                if node_building.Z >= 1e-5:     # means if (Z != 0.0) with a tolerance of 1e-5
+                    continue
+
+                # fill coords array
+                coords[0] = node_building.X
+                coords[1] = node_building.Y
+                coords[2] = node_building.Z
+
+                # return the ID of the element containing the located point (from coords)
+                # if (id_elem = 0) the point is outside from the elements
+                id_elem = BU.CheckIfInternal(coords)
+
+                # we check if all the nodes are inside terrain_model_part. If at least one node is outside, the whole building must be outside
+                if (id_elem == 0):
+                    KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "Buildings outside of \"r_buildings\" must be delete first!")
+                    break
+
+                # we extract the element with the id_elem
+                pelem = terrain_model_part.GetElement(id_elem)
+                
+                # calculation of the intersection point between Building and terrain
+                Norm = self._normal_triangle(pelem)
+
+                # define plane
+                planeNormal = np.array(Norm)
+                planePoint = np.array(pelem.GetNode(0))
+
+                # define ray
+                rayDirection = np.array([0, 0, 1])
+                rayPoint = np.array(coords)
+
+                ndotu = planeNormal.dot(rayDirection)
+
+                w = rayPoint - planePoint
+                si = -planeNormal.dot(w) / ndotu
+                Psi = w + si *rayDirection + planePoint
+
+                # print("[DEBUG] distance: ", Psi)
+                
+                displacement.append(Psi[2])                # append just coordinate Z
+
+            else:
+                if displacement:    # we check if "displacement" is empty
+                    # shift = min(displacement)
+                    shift = max(displacement)
+
+            for node in current_sub_model.Nodes:
+                if (node.Z > 1e-5):  # means Z > 0.0 with a tolerance of 1e-5
+                    coord_top_building.append([node.X, node.Y, node.Z+shift])
+                else:
+                    coord_base_building.append([node.X, node.Y, node.Z+shift])
+        
+        return (coord_base_building, coord_top_building)
 
 
     def DeleteBuildingsOutsideBoundary(self, x_center, y_center, radius):
@@ -755,7 +984,7 @@ class GeoBuilding( GeoProcessor ):
         Args:
             x_center: X coordinate of the center of the boundary
             y_center: Y coordinate of the center of the boundary
-            radius: radius of cylindrical domain
+            radius: radius of cylindrical domain [in km]
 
         Returns:
             the updated ModelPart without the buildings outside the boundary

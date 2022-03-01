@@ -2743,6 +2743,13 @@ void MmgUtilities<MMGLibrary::MMG3D>::MMGLibCallMetric(Parameters ConfigurationP
             KRATOS_ERROR << "Unable to set the angle detection on" << std::endl;
     }
 
+    // Avoid/allow preserve an open boundary inside a volume mesh
+    if ( MMG3D_Set_iparameter(mMmgMesh,mMmgMet,MMG3D_IPARAM_opnbdy, static_cast<int>(ConfigurationParameters["advanced_parameters"]["opnbdy"].GetBool())) != 1 )
+        KRATOS_ERROR << "Unable to preserve triangles at the interface between tetra of same references" << std::endl;
+    else 
+        std::cout << "***************** KRATOS opnbdy niente errore" << std::endl;
+
+
     // Set the gradation
     if (ConfigurationParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
         if ( MMG3D_Set_dparameter(mMmgMesh,mMmgMet,MMG3D_DPARAM_hgrad, ConfigurationParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )

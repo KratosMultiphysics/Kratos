@@ -5,6 +5,12 @@ from KratosMultiphysics.GeodataProcessingApplication.geo_processor import GeoPro
 
 class GeoImporter( GeoProcessor ):
 
+    def __init__( self ):
+        super(GeoImporter, self).__init__()
+
+        self.x_center = float()     # X coordinate of the center of the domain
+        self.y_center = float()     # Y coordinate of the center of the domain
+
     ### --- overwriting the import function --- ###
 
     def SetGeoModelPart( self, modelPartIn ):
@@ -313,12 +319,17 @@ class GeoImporter( GeoProcessor ):
                         coord_x, coord_y, coord_z = [float(coord) for coord in row[1:]]
                         self.ModelPart.CreateNewNode(node_id, coord_x, coord_y, coord_z)
                         node_id += 1
+
+                        self.x_center += coord_x
+                        self.y_center += coord_y
                     
                     elif (row[0] == "f"):
                         node_1, node_2, node_3 = [int(nodes) for nodes in row[1:]]
                         self.ModelPart.CreateNewElement("Element2D3N", elem_id, [node_1, node_2, node_3], self.ModelPart.GetProperties()[1])
                         elem_id += 1
             
+            self.x_center /= node_id-1      # node_id-1 is the number of nodes
+            self.y_center /= node_id-1      # node_id-1 is the number of nodes
             self.HasModelPart = True
 
 

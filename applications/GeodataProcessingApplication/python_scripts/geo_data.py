@@ -25,7 +25,7 @@ class GeoData(GeoProcessor):
         self.r_domain = r_domain    # TODO: just for a test. evaluate it
 
 
-    def DownloadAsterGDEM(self, file_out, latitude, longitude, radius=1000, username="user", password="password"):
+    def DownloadAsterGDEM(self, file_out, latitude, longitude, radius=1000, username="n.germano", password="NicolA1990"):
         """ function to download the ASTER GDEM file from a couple of coordinates
 
         Note:
@@ -45,6 +45,10 @@ class GeoData(GeoProcessor):
             - at least one file .TIF
             - a string with the DEM file (a single file or the merged one)
         """
+
+        if (username == "user") and (password == "password"):
+            KratosMultiphysics.Logger.PrintWarning("GeoData", "Error with username and password")
+            return
 
         # NOTE: The bounding box parameters must be 4 comma-separated numbers: lower left longitude, lower left latitude, upper right longitude, upper right latitude.
         # req = requests.get('https://cmr.earthdata.nasa.gov/search/granules.json?short_name=ASTGTM&version=003&page_size=2000&pageNum=1&bounding_box=13.6,42.2,13.7,42.3').json()['feed']['entry'] 
@@ -279,31 +283,39 @@ class GeoData(GeoProcessor):
         # OSM bounding-box: (south, west, north, east)
         bbox = (self.south_lat, self.west_lon, self.north_lat, self.east_lon)
 
-        # download only Way and Relations with the tag "building" in a bounding-box
-        # also Nodes are downloaded: is useful for the coordinates
-        overpass_url = "http://overpass-api.de/api/interpreter"
-        overpass_query = """
-                        [out:json];
-                        (
-                            node""" + str(bbox) + """;
-                            way["building"]""" + str(bbox) + """;
-                            rel["building"]""" + str(bbox) + """;
-                        );
-                        out geom;
-        """
+        for i in range(10):
+            KratosMultiphysics.Logger.PrintWarning("GeoData", "Overpass API attempt ", i+1)
+            try:
+                # download only Way and Relations with the tag "building" in a bounding-box
+                # also Nodes are downloaded: is useful for the coordinates
+                overpass_url = "http://overpass-api.de/api/interpreter"
+                overpass_query = """
+                                [out:json];
+                                (
+                                    node""" + str(bbox) + """;
+                                    way["building"]""" + str(bbox) + """;
+                                    rel["building"]""" + str(bbox) + """;
+                                );
+                                out geom;
+                """
 
-        response = requests.get(overpass_url, 
-                                params={'data':overpass_query})
-        
-        name_file, extension = os.path.splitext(file_out)
-        if not (extension.lower().endswith(".json")):
-            file_out = name_file + ".json"
+                response = requests.get(overpass_url, 
+                                        params={'data':overpass_query})
+                
+                name_file, extension = os.path.splitext(file_out)
+                if not (extension.lower().endswith(".json")):
+                    file_out = name_file + ".json"
 
-        # save JSON file
-        with open (file_out, "w") as fo:
-            fo.write(response.text)
-        
-        return json.loads(response.text)
+                # save JSON file
+                with open (file_out, "w") as fo:
+                    fo.write(response.text)
+                
+                return json.loads(response.text)
+            
+            except json.decoder.JSONDecodeError:
+                KratosMultiphysics.Logger.PrintWarning("GeoData", "Error with JSON decorder. {} attempt/s left".format(9-i))
+                continue
+
 
 
     def GeoJSONtoOBJ(self, geojson, file_out):
@@ -512,10 +524,18 @@ class GeoData(GeoProcessor):
 
                 # elif (poly_jth.intersects(poly_ith)):
                 if (poly_jth.intersects(poly_ith)):
+                    # if not (poly_jth.overlaps(poly_ith)) and (poly_jth.intersection(poly_ith).type == "Point"):
+                    #     # TODO: SOLVE IT!
+                    #     # problem with generating polygons with a shared point
+                    #     print(poly_jth.intersection(poly_ith))
                     # print("Building{} intersects Building{}".format(j_poly, i_poly))    # TODO: delete it
                     u = unary_union([poly_ith, poly_jth])
                     if (u.geometryType() == "MultiPolygon"):
-                        continue
+                        # continue
+                        if (poly_jth.intersection(poly_ith).type == "Point"):
+                            u = u.convex_hull
+                        else:
+                            continue
                     
                     # we store (x,y) in coord_xy and later in the dictionary
                     coord_xy = [(x,y) for x, y in zip(u.exterior.coords.xy[0], u.exterior.coords.xy[1])]

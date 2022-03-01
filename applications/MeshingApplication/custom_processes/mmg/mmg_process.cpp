@@ -1247,7 +1247,8 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "deactivate_detect_angle"             : false,
             "force_gradation_value"               : false,
             "mesh_optimization_only"              : false,
-            "gradation_value"                     : 1.3
+            "gradation_value"                     : 1.3,
+            "opnbdy"                              : false
         },
         "collapse_prisms_elements"             : false,
         "save_external_files"                  : false,

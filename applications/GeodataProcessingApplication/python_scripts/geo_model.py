@@ -6,14 +6,17 @@ from KratosMultiphysics.GeodataProcessingApplication.geo_processor import GeoPro
 
 class GeoModel( GeoProcessor ):
 
-    def __init__( self ):
+    def __init__( self, json_parameter=None ):
         super(GeoModel, self).__init__()
 
         # self.HasModelPart = False
         self.HasCfdModelPart = False
 
-        # we initialize json file
-        self._parameter_initialization()
+        if json_parameter:
+            self.cfd_param = json_parameter
+        else:
+            # we initialize json file
+            self._parameter_initialization()
 
 
     def GenerateCfdModelPart(self):
@@ -196,7 +199,7 @@ class GeoModel( GeoProcessor ):
         self.cfd_param["processes"]["boundary_conditions_process_list"].Append(slip_param)
 
     
-    def Inlet_Outlet(self, n_sectors=12, dir_in=1):
+    def Inlet_Outlet(self, n_sectors=12, dir_in=1, v_in=6.0, base_smp="LateralSector_"):
         """ function to set the boundary conditions "inlet" and "outlet"
 
         Note:
@@ -210,6 +213,8 @@ class GeoModel( GeoProcessor ):
         Args:
             n_sectors: number of all sectors
             dir_in: incoming wind direction
+            v_in: velocity inlet (in m/s)
+            base_smp: base name of the SubModelPart. Each lateral SubModelPart must have the same base name and sector number (e.g. LateralSector_1)
 
         Returns:
             update the ModelPart with the boundary conditions
@@ -235,8 +240,8 @@ class GeoModel( GeoProcessor ):
                 n_sect += n_sectors
             elif (n_sect > n_sectors):
                 n_sect -= n_sectors
-            print("\tLateralSector_{}".format(n_sect))
-            sub_model_name = "LateralSector_{}".format(n_sect)
+            print("\t{}{}".format(base_smp, n_sect))
+            sub_model_name = "{}{}".format(base_smp, n_sect)
             
             theta = (360.0 / n_sectors) * (dir_in - 1)  # angle with the X axis
             dir_x = math.cos(math.radians(theta))
@@ -244,7 +249,7 @@ class GeoModel( GeoProcessor ):
             dir_z = 0
             direction = [-dir_x, -dir_y, dir_z] # the minus to consider the incoming direction of the wind
 
-            self.Inlet(sub_model_name, direction)
+            self.Inlet(sub_model_name, direction, v_in)
         print()
 
         print("outlet direzione: ", dir_in + int(n_sectors/2))
@@ -254,13 +259,13 @@ class GeoModel( GeoProcessor ):
                 n_sect += n_sectors
             elif (n_sect > n_sectors):
                 n_sect -= n_sectors
-            print("\tLateralSector_{}".format(n_sect))
-            sub_model_name = "LateralSector_{}".format(n_sect)
+            print("\t{}{}".format(base_smp, n_sect))
+            sub_model_name = "{}{}".format(base_smp, n_sect)
             self.Outlet(sub_model_name)
         print()
 
 
-    def Inlet(self, sub_model_name, direction="automatic_inwards_normal"):
+    def Inlet(self, sub_model_name, direction="automatic_inwards_normal", v_in=6.0):
         self.cfd_param["solver_settings"]["skin_parts"].Append(sub_model_name)
 
         # TODO:
@@ -274,7 +279,7 @@ class GeoModel( GeoProcessor ):
                 "model_part_name" : "FluidModelPart."""+ sub_model_name +"""",
                 "variable_name"   : "VELOCITY",
                 "interval"        : [0,"End"],
-                "modulus"         : "6",
+                "modulus"         : """ + str(v_in) + """,
                 "direction"       : """ + str(direction) + """
             }
         }""")
