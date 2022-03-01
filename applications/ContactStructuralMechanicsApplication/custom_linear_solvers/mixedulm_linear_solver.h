@@ -488,7 +488,9 @@ public:
      * @details To make an example when solving a mixed u-p problem, it is important to identify the row associated to v and p. Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers which require knowledge on the spatial position of the nodes associated to a given dof. This function is the place to eventually provide such data
      * @param rA System matrix
      * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
+     * @param rB Right hand side vector.     
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
      */
     void ProvideAdditionalData (
         SparseMatrixType& rA,
