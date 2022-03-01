@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef SHAPE_H
-#define SHAPE_H
+#ifndef SHAPE_CONTROL_H
+#define SHAPE_CONTROL_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -20,6 +20,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "custom_controls/control.h"
 
@@ -57,14 +58,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // Type definitions for better reading later
-    typedef Node < 3 > NodeType;
-    typedef Node < 3 > ::Pointer NodeTypePointer;
-    typedef std::vector<NodeType::Pointer> NodeVector;
-    typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
-    typedef std::vector<double>::iterator DoubleVectorIterator;
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    typedef array_1d<double,3> array_3d;
 
     /// Pointer definition of ShapeControl
     KRATOS_CLASS_POINTER_DEFINITION(ShapeControl);
@@ -74,11 +67,8 @@ public:
     ///@{
 
     /// Default constructor.
-    ShapeControl( ModelPart& rModelPart, Parameters ControlSettings )
-        : mrModelPart(rModelPart),
-          mControlSettings(ControlSettings)
-    {
-    }
+    ShapeControl(std::string ControlName, Model& rModel, Parameters ControlSettings )
+        : Control(ControlName,"shape",ControlSettings),mrModel(rModel){}
 
     /// Destructor.
     virtual ~ShapeControl()
@@ -94,6 +84,10 @@ public:
     ///@name Operations
     ///@{
 
+    // --------------------------------------------------------------------------
+    void Initialize() override {};
+    // --------------------------------------------------------------------------
+    void Update() override {};    
 
     ///@}
     ///@name Access
@@ -144,10 +138,8 @@ protected:
     ///@{
 
     // Initialized by class constructor
-    ModelPart& mrModelPart;
-    Parameters mControlSettings;
-    bool mIsControlInitialized = false;
-
+    Model& mrModel;
+    
     ///@}
     ///@name Protected Operators
     ///@{
@@ -236,4 +228,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // SHAPE_H
+#endif // SHAPE_CONTROL_H

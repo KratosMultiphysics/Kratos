@@ -13,8 +13,8 @@ from __future__ import print_function, absolute_import, division
 
 # additional imports
 import KratosMultiphysics as KM 
-import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
-
+# import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
+import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
 import copy
@@ -96,7 +96,8 @@ class ControlsController:
                 # check if root model parts exist
                 self.model_parts_controller.CheckIfRootModelPartsExist(control_controlling_objects_list,True)
                 if control_technique == "explicit_vertex_morphing":
-                    control = evm.ExplicitVertexMorphing(control_name,model,control_controlling_objects_list,control_settings["settings"]["technique_settings"])                          
+                    control = KOA.ExplicitVertexMorphing(control_name,self.model,control_settings["settings"]) 
+                    # control = evm.ExplicitVertexMorphing(control_name,model,control_controlling_objects_list,control_settings["settings"]["technique_settings"])                          
 
             self.controls[control_name] = control
             self.controls_types_vars_dict[control_type].extend(control_controlling_objects_list)
@@ -105,6 +106,15 @@ class ControlsController:
     def Initialize(self):
         for key,value in self.controls.items():
             value.Initialize()
+
+    # --------------------------------------------------------------------------
+    def ControlMapFirstDerivative(self,control_name,derivative_name,mapped_derivative_name,raise_error=True):
+        if raise_error:
+            if not control_name in self.controls.keys():
+                raise RuntimeError("ControlsController:ControlMapFirstDerivative: Control {} does not exist.".format(control_name))
+
+        self.controls[control_name].MapFirstDerivative(derivative_name,mapped_derivative_name)
+
     # --------------------------------------------------------------------------
     def CheckIfControlExists(self,control_name,raise_error=True):
         if not control_name in self.controls.keys():
@@ -143,3 +153,7 @@ class ControlsController:
                 raise RuntimeError("ControlsController:GetControlControllingObjects: Control {} does not exist.".format(control_name))
         else:
             return self.controls_controlling_objects[control_name]                   
+
+    # --------------------------------------------------------------------------
+    def GetSupportedControlTypes(self):
+        return self.supported_control_types_techniques.keys()

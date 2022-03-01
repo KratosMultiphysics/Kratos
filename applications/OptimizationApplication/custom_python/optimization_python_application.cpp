@@ -25,6 +25,7 @@
 #include "includes/define_python.h"
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
+#include "custom_python/add_custom_controls_to_python.h"
 
 // ==============================================================================
 
@@ -40,6 +41,8 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
         KratosApplication >(m, "KratosOptimizationApplication")
         .def(py::init<>())
         ;
+
+    AddCustomControlsToPython(m);
 
     //registering variables in python
 

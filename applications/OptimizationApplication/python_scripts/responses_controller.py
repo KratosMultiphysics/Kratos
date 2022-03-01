@@ -68,12 +68,13 @@ class ResponsesController:
                                "airfoil_perimeter","total_volume"]                                
         analysis_free_responses.extend(shape_opt_responses)
 
-        supported_responses = []
-        supported_responses.extend(analysis_based_responses) 
-        supported_responses.extend(analysis_free_responses)
+        self.supported_responses = []
+        self.supported_responses.extend(analysis_based_responses) 
+        self.supported_responses.extend(analysis_free_responses)
 
 
         self.responses = {}
+        self.responses_type = {}
         self.responses_analyses = {}
         self.responses_evaluated_objects = {}
         self.responses_controlled_objects = {}
@@ -141,6 +142,7 @@ class ResponsesController:
             
             self.responses[response_name] = response
 
+            self.responses_type[response_name] = response_type
 
 
 
@@ -280,6 +282,16 @@ class ResponsesController:
                 raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not have controlled objects {}".format(response_name,controlled_objects))   
 
         self.responses[response_name].CalculateGradientsForTypeAndObjects(control_type,controlled_objects,raise_error)
+    # --------------------------------------------------------------------------
+    def GetResponseType(self,response_name,raise_error=True): 
+        if raise_error:
+            if response_name not in self.responses.keys():
+                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not exist".format(response_name))   
+
+        return self.responses_type[response_name]
+    # --------------------------------------------------------------------------
+    def GetSupportedResponseTypes(self): 
+        return self.supported_responses
       
                 
 

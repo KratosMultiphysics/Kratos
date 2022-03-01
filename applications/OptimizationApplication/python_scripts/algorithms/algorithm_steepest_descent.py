@@ -41,6 +41,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.responses_controller = responses_controller
         self.controls_controller = controls_controller
 
+        
+
         self.objectives = self.opt_settings["objectives"].GetStringArray()
         self.objectives_weights = self.opt_settings["objectives_weights"].GetVector()
         self.controls = opt_settings["controls"].GetStringArray()
@@ -85,6 +87,11 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
                 for response in reponses:
                     self.responses_controller.CalculateResponseGradientsForTypeAndObjects(response,control_type,control_controlling_objects,False)
+                    response_type = self.controls_controller.GetResponseType(response,False)
+
+            
+
+            
 
 
 
@@ -116,5 +123,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         pass
         # self.data_logger.FinalizeDataLogging()
         # self.analyzer.FinalizeAfterOptimizationLoop()
+
+    # --------------------------------------------------------------------------
+    def GetGradientVariablesName(self,response_type,control_type): 
+        if       
 
 # ==============================================================================

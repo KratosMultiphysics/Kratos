@@ -68,14 +68,10 @@ public:
   ///@{
 
   /// Default constructor.
-  Control()
-  {
-  }
+  Control(std::string ControlName, std::string ControlType, Parameters ControlSettings): mControlName(ControlName), mControlType(ControlType), mControlSettings(ControlSettings){}
 
   /// Destructor.
-  virtual ~Control()
-  {
-  }
+  virtual ~Control(){}
 
   ///@}
   ///@name Operators
@@ -147,6 +143,9 @@ protected:
   ///@}
   ///@name Protected member Variables
   ///@{
+    std::string mControlName;
+    std::string mControlType;
+    Parameters mControlSettings;
 
   ///@}
   ///@name Protected Operators

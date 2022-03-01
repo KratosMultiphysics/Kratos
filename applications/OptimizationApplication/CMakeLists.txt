@@ -5,7 +5,10 @@ message("**** configuring KratosOptimizationApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ShapeOptimizationApplication)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ShapeOptimizationApplication/)
+include_directories( ${KRATOS_SOURCE_DIR}/applications/ShapeOptimizationApplication/custom_utilities/mapping )
 
 ## Optimization core sources
 file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
@@ -17,6 +20,7 @@ file( GLOB_RECURSE KRATOS_OPTIMIZATION_APPLICATION_CORE
 ## Optimization python interface sources
 set( KRATOS_OPTIMIZATION_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/optimization_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_controls_to_python.cpp
 )
 
 add_library(KratosOptimizationCore SHARED ${KRATOS_OPTIMIZATION_APPLICATION_CORE})

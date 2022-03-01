@@ -3,8 +3,8 @@ from numpy import gradient
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
+import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 import time as timer
 import numpy as np
@@ -33,11 +33,10 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
         self.supported_control_types = ["shape"]
+        self.model = model
         self.name = response_name
         self.primal_analysis = response_analysis
-        self.model = model
         self.primal_model_part = self.primal_analysis._GetSolver().GetComputingModelPart()
-        self.primal_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
 
         self.evaluated_model_parts = response_settings["evaluated_objects"].GetStringArray()
         self.controlled_model_parts = response_settings["controlled_objects"].GetStringArray()
@@ -50,6 +49,14 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
             if not control_type in self.supported_control_types:
                 raise RuntimeError("StrainEnergyResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
         
+        # add vars
+        for control_type in self.control_types:
+            if control_type == "shape":
+                self.primal_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
+                self.primal_model_part.AddNodalSolutionStepVariable(KOA.D_STRAIN_ENERGY_D_X)
+                self.primal_model_part.AddNodalSolutionStepVariable(KOA.D_STRAIN_ENERGY_D_CX)
+
+        # create response
         self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, self.gradient_settings)
 
     def Initialize(self):
