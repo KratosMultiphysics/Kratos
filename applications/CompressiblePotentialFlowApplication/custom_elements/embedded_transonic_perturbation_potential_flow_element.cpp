@@ -399,7 +399,8 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectU
     const ProcessInfo& rCurrentProcessInfo)
 {
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    double minimum_edge_flux = 0.0;
+    double minimum_edge_flux = std::numeric_limits<double>::max();
+    bool any_flux_negative = false;
     const auto& element_boundary_geometry = this->GetGeometry().GenerateBoundariesEntities();
 
     for (SizeType i = 0; i < rUpwindElementCandidates.size(); i++)
@@ -412,7 +413,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectU
         // but is not the current element
         // extra check if its active
 
-        if (rUpwindElementCandidates[i].Is(ACTIVE) && rUpwindElementCandidates[i].Id()!=this->Id()) {
+        if (rUpwindElementCandidates[i].Id()!=this->Id()) {
             for (auto& r_geom_boundary : element_boundary_geometry) {
                 std::vector<size_t> this_sorted_ids;
                 PotentialFlowUtilities::GetSortedIds<TDim, TNumNodes>(this_sorted_ids, r_geom_boundary);
@@ -425,7 +426,11 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectU
 
                     const double edge_flux = inner_prod(edge_normal, free_stream_velocity);
 
-                    if(edge_flux < minimum_edge_flux) {
+                    if (edge_flux < 0) {
+                        any_flux_negative = true;
+                    }
+
+                    if(edge_flux < minimum_edge_flux && rUpwindElementCandidates[i].Is(ACTIVE)) {
                         minimum_edge_flux = edge_flux;
                         this->pSetUpwindElement(rUpwindElementCandidates(i));
                     }
@@ -436,7 +441,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::SelectU
 
     // If no upwind element is found, the element is an INLET element and the
     // upwind element pointer points to itself
-    if (this->CheckUpwindElement())
+    if (this->CheckUpwindElement() || !any_flux_negative)
     {
         this->pSetUpwindElement(this);
         this->SetFlags(INLET);
