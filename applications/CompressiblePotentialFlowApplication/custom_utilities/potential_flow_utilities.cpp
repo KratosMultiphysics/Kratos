@@ -1067,7 +1067,7 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 }
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyLeftHandSideTerm(const Element& rElement,
+void AddKuttaConditionPenaltyPerturbationLHS(const Element& rElement,
         Matrix& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1111,7 +1111,7 @@ void AddKuttaConditionPenaltyLeftHandSideTerm(const Element& rElement,
 
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyRightHandSideTerm(const Element& rElement,
+void AddKuttaConditionPenaltyPerturbationRHS(const Element& rElement,
         Vector& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1358,10 +1358,10 @@ template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateAre
 template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
 template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void AddKuttaConditionPenaltyRightHandSideTerm<2, 3>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void AddKuttaConditionPenaltyRightHandSideTerm<3, 4>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
-template void AddKuttaConditionPenaltyLeftHandSideTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
-template void AddKuttaConditionPenaltyLeftHandSideTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationRHS<2, 3>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationRHS<3, 4>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationLHS<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyPerturbationLHS<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);

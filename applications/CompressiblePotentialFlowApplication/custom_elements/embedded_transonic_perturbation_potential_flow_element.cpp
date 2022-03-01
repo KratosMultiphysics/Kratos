@@ -96,7 +96,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     }
 
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
-        PotentialFlowUtilities::AddKuttaConditionPenaltyRightHandSideTerm<TDim,TNumNodes>(r_this,rRightHandSideVector,rCurrentProcessInfo);
+        PotentialFlowUtilities::AddKuttaConditionPenaltyPerturbationRHS<TDim,TNumNodes>(r_this,rRightHandSideVector,rCurrentProcessInfo);
     }
 }
 
@@ -137,7 +137,7 @@ void EmbeddedTransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::Calcula
     }
 
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
-        PotentialFlowUtilities::AddKuttaConditionPenaltyLeftHandSideTerm<TDim,TNumNodes>(r_this,rLeftHandSideMatrix,rCurrentProcessInfo);
+        PotentialFlowUtilities::AddKuttaConditionPenaltyPerturbationLHS<TDim,TNumNodes>(r_this,rLeftHandSideMatrix,rCurrentProcessInfo);
     }
 }
 
