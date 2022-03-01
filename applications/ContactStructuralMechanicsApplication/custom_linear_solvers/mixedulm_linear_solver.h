@@ -709,12 +709,10 @@ public:
         KRATOS_DEBUG_ERROR_IF(lm_inactive_counter != n_lm_inactive_dofs) << "The number of inactive LM dofs counter : " << lm_inactive_counter << "is higher than the expected: " << n_lm_inactive_dofs << std::endl;
         KRATOS_DEBUG_ERROR_IF(other_counter != n_other_dofs) << "The number of other dofs counter : " << other_counter << "is higher than the expected: " << n_other_dofs << std::endl;
 
-        // Refactor rDofSet with the new indices
+        // Refactor mDisplacementDofs with the new indices
         // Ordering of the dofs is important
-        mDisplacementDofs.clear();
-        mDisplacementDofs.swap(rDofSet);
-        const auto it_dof_begin = mDisplacementDofs.begin();
-        rDofSet.reserve(mOtherIndices.size() + mMasterIndices.size() + mSlaveActiveIndices.size() + mSlaveInactiveIndices.size() + mLMInactiveIndices.size() + mLMActiveIndices.size());
+        const auto it_dof_begin = rDofSet.begin();
+        mDisplacementDofs.reserve(mOtherIndices.size() + mMasterIndices.size() + mSlaveActiveIndices.size() + mSlaveInactiveIndices.size() + mLMInactiveIndices.size() + mLMActiveIndices.size());
 
         // Copy dofs
         std::size_t counter = 0;
@@ -722,28 +720,28 @@ public:
             auto it_dof = it_dof_begin + r_index;
             auto* p_dof = *(it_dof.base());
             p_dof->SetEquationId(counter);
-            rDofSet.push_back(p_dof);
+            mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
         for (auto& r_index : mMasterIndices) {
             auto it_dof = it_dof_begin + r_index;
             auto* p_dof = *(it_dof.base());
             p_dof->SetEquationId(counter);
-            rDofSet.push_back(p_dof);
+            mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
         for (auto& r_index : mSlaveInactiveIndices) {
             auto it_dof = it_dof_begin + r_index;
             auto* p_dof = *(it_dof.base());
             p_dof->SetEquationId(counter);
-            rDofSet.push_back(p_dof);
+            mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
         for (auto& r_index : mSlaveActiveIndices) {
             auto it_dof = it_dof_begin + r_index;
             auto* p_dof = *(it_dof.base());
             p_dof->SetEquationId(counter);
-            rDofSet.push_back(p_dof);
+            mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
     }
