@@ -61,6 +61,12 @@ namespace Kratos
     MPMLagrangianMovingParticle::~MPMLagrangianMovingParticle()
     {
     }
+    void MPMLagrangianMovingParticle::Initialize(const ProcessInfo& rCurrentProcessInfo)
+    {
+        m_acceleration = ZeroVector(3);
+        m_velocity = ZeroVector(3);
+
+    }
     
 
  
@@ -113,8 +119,10 @@ namespace Kratos
         const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         GeneralVariables Variables;
-
+        
         Variables.CurrentDisp = CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
+        array_1d<double,3> MP_PreviousAcceleration = m_acceleration;
+        array_1d<double,3> MP_PreviousVelocity = m_velocity;
 
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double, 3 > MPC_velocity = ZeroVector(3);
@@ -123,7 +131,7 @@ namespace Kratos
         const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
         MPMShapeFunctionPointValues(Variables.N);
-
+        
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
@@ -133,10 +141,11 @@ namespace Kratos
                 array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
                 if (r_geometry[i].SolutionStepsDataHas(VELOCITY))
                     nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+                    nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
                 for ( unsigned int j = 0; j < dimension; j++ )
                 {
                     delta_xg[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
-                    MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
+                    // MPC_velocity[j] += Variables.N[i] * nodal_velocity[j];
                     MPC_acceleration[j] += Variables.N[i] * nodal_acceleration[j];
                 }
             }
@@ -145,13 +154,14 @@ namespace Kratos
     
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
-        KRATOS_WATCH(m_xg)
+        m_velocity = MP_PreviousVelocity + 0.5 * delta_time * (MPC_acceleration + MP_PreviousAcceleration);
+        
         // m_velocity = MPC_PreviousVelocity + 0.5 * delta_time * (MPC_acceleration + MPC_PreviousAcceleration);
-        m_velocity = MPC_velocity;
+        // m_velocity = MPC_velocity;
         m_acceleration = MPC_acceleration;
         // total displacement of boundary particle
         m_displacement += delta_xg;
-        KRATOS_WATCH(m_displacement)
+        
 
         
     }
@@ -171,6 +181,9 @@ namespace Kratos
         }
         else if (rVariable == MPC_DISPLACEMENT) {
             rValues[0] = m_displacement;
+        }
+        else if (rVariable == MPC_ACCELERATION) {
+            rValues[0] = m_acceleration;
         }
         else if (rVariable == MPC_CONTACT_FORCE) {
         rValues[0] = m_contact_force;
@@ -200,6 +213,9 @@ namespace Kratos
         }
         else if (rVariable == MPC_DISPLACEMENT) {
             m_displacement = rValues[0];
+        }
+        else if (rVariable == MPC_ACCELERATION) {
+            m_acceleration = rValues[0];
         }
         else {
             MPMParticleBaseLoadCondition::SetValuesOnIntegrationPoints(

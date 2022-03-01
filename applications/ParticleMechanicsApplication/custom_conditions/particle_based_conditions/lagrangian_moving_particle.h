@@ -183,6 +183,8 @@ protected:
      */
     void FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo)override;
+
 
     ///@}
     ///@name Protected  Access
@@ -213,6 +215,7 @@ private:
     array_1d<double, 3> m_point_load;
     array_1d<double, 3> m_velocity;
     array_1d<double, 3> m_displacement;
+    array_1d<double, 3> m_acceleration;
     array_1d<double, 3> m_contact_force=ZeroVector(3);
 
     ///@}
