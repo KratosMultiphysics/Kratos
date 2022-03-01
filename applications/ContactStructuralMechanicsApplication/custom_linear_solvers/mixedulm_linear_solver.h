@@ -196,6 +196,7 @@ public:
         : BaseType(rOther),
           mpSolverDispBlock(rOther.mpSolverDispBlock),
           mOptions(rOther.mOptions),
+          mDisplacementDofs(rOther.mDisplacementDofs),
           mMasterIndices(rOther.mMasterIndices),
           mSlaveInactiveIndices(rOther.mSlaveInactiveIndices),
           mSlaveActiveIndices(rOther.mSlaveActiveIndices),
@@ -374,6 +375,9 @@ public:
     {
         mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
         mpSolverDispBlock->Clear();
+
+        // Clear DoFs backup
+        mDisplacementDofs.clear();
 
         // We clear the matrixes and vectors
         mKDispModified.clear(); /// The modified displacement block
@@ -747,6 +751,15 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+     * @brief This method retrieves the displacement DoFs of the system ordered according to the resolution order
+     * @return The displacement DoFs of the system
+     */
+    DofsArrayType& GetDisplacementDofs()
+    {
+        return mDisplacementDofs;
+    }
 
     ///@}
     ///@name Inquiry
@@ -1302,7 +1315,7 @@ private:
 
     Flags mOptions; /// This stores the flags
 
-    DofsArrayType mBackupDofs; /// A backup of the DoFs
+    DofsArrayType mDisplacementDofs; /// The displacement DoFs
 
     IndexVectorType mMasterIndices;         /// The vector storing the indices of the master nodes in contact
     IndexVectorType mSlaveInactiveIndices;  /// The vector storing the indices of the slave nodes in contact (Inactive)
@@ -1555,7 +1568,7 @@ private:
     inline void AllocateBlocks()
     {
         // Clear backup dofs
-        mBackupDofs.clear();
+        mDisplacementDofs.clear();
 
         // We clear the matrices
         mKDispModified.clear(); /// The modified displacement block
