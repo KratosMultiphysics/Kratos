@@ -445,7 +445,7 @@ public:
         if(rModelPart.MasterSlaveConstraints().size() != 0) {
             TSystemVectorType Dxmodified(rb.size());
 
-            // Initialize the solution vector
+            // Initialize the vector
             TSparseSpace::SetToZero(Dxmodified);
 
             InternalSystemSolveWithPhysics(rA, Dxmodified, rb, rModelPart);
