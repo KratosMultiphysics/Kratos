@@ -150,7 +150,7 @@ def AssembleTestSuites():
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     if sympy_available:
-        validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTetrahedron'))
+        validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorValidationTest('testSymbolicTetrahedron'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
