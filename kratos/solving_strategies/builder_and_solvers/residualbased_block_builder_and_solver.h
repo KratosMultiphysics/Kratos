@@ -476,7 +476,9 @@ public:
         else
             norm_b = 0.00;
 
+        // Initialize the solution vector
         TSparseSpace::SetToZero(Dx);
+
 
         if (norm_b != 0.00) {
             //provide physical data as needed
