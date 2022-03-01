@@ -718,28 +718,28 @@ public:
         std::size_t counter = 0;
         for (auto& r_index : mOtherIndices) {
             auto it_dof = it_dof_begin + r_index;
-            auto* p_dof = *(it_dof.base());
+            auto* p_dof = new DofType(*it_dof);
             p_dof->SetEquationId(counter);
             mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
         for (auto& r_index : mMasterIndices) {
             auto it_dof = it_dof_begin + r_index;
-            auto* p_dof = *(it_dof.base());
+            auto* p_dof = new DofType(*it_dof);
             p_dof->SetEquationId(counter);
             mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
         for (auto& r_index : mSlaveInactiveIndices) {
             auto it_dof = it_dof_begin + r_index;
-            auto* p_dof = *(it_dof.base());
+            auto* p_dof = new DofType(*it_dof);
             p_dof->SetEquationId(counter);
             mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
         for (auto& r_index : mSlaveActiveIndices) {
             auto it_dof = it_dof_begin + r_index;
-            auto* p_dof = *(it_dof.base());
+            auto* p_dof = new DofType(*it_dof);
             p_dof->SetEquationId(counter);
             mDisplacementDofs.push_back(p_dof);
             ++counter;
