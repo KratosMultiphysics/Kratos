@@ -74,6 +74,16 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseCauchy(Constitut
     const auto& r_props_matrix_cl = *(it_cl_begin);
     const auto& r_props_fiber_cl = *(it_cl_begin + 1);
 
+
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+    const bool flag_strain = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+    // In case the element has not computed the Strain
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        CalculateGreenLagrangeStrain(rValues);
+        r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    }
+
     ConstitutiveLaw::Parameters values_fiber  = rValues;
     ConstitutiveLaw::Parameters values_matrix = rValues;
 
@@ -82,6 +92,8 @@ void SerialParallelRuleOfMixturesLaw::InitializeMaterialResponseCauchy(Constitut
 
     values_fiber.SetMaterialProperties(r_props_fiber_cl);
     mpFiberConstitutiveLaw->InitializeMaterialResponseCauchy(values_fiber);
+
+    r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
 }
 /***********************************************************************************/
 /***********************************************************************************/
