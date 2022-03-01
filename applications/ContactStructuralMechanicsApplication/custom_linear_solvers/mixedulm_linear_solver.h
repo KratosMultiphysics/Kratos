@@ -707,9 +707,9 @@ public:
 
         // Refactor rDofSet with the new indices
         // Ordering of the dofs is important
-        const DofsArrayType copy_dof_set(rDofSet);
-        const auto it_dof_begin = copy_dof_set.begin();
-        rDofSet.clear();
+        mBackupDofs.clear();
+        mBackupDofs.swap(rDofSet);
+        const auto it_dof_begin = mBackupDofs.begin();
         rDofSet.reserve(mOtherIndices.size() + mMasterIndices.size() + mSlaveActiveIndices.size() + mSlaveInactiveIndices.size() + mLMInactiveIndices.size() + mLMActiveIndices.size());
 
         // Copy dofs
@@ -1302,6 +1302,8 @@ private:
 
     Flags mOptions; /// This stores the flags
 
+    DofsArrayType mBackupDofs; /// A backup of the DoFs
+
     IndexVectorType mMasterIndices;         /// The vector storing the indices of the master nodes in contact
     IndexVectorType mSlaveInactiveIndices;  /// The vector storing the indices of the slave nodes in contact (Inactive)
     IndexVectorType mSlaveActiveIndices;    /// The vector storing the indices of the slave nodes in contact (Active)
@@ -1552,7 +1554,10 @@ private:
      */
     inline void AllocateBlocks()
     {
-        // We clear the matrixes
+        // Clear backup dofs
+        mBackupDofs.clear();
+
+        // We clear the matrices
         mKDispModified.clear(); /// The modified displacement block
         mKLMAModified.clear();  /// The modified active LM block (diagonal)
         mKLMIModified.clear();  /// The modified inaactive LM block (diagonal)
