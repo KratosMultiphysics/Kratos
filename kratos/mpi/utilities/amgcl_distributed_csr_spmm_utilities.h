@@ -44,8 +44,7 @@ public:
         const DistributedCsrMatrix<TDataType, TIndexType>& rA,
         const DistributedCsrMatrix<TDataType, TIndexType>& rB
         )
-	{
-                
+	{                
         bool move_to_backend=false;
 
         auto Aoffdiag_global_index2 = rA.GetOffDiagonalIndex2DataInGlobalNumbering();

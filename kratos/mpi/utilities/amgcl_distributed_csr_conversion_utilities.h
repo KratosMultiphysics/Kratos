@@ -50,7 +50,6 @@ public:
 			bool MoveToBackend=true)
 	{
 		IndexType chunk = rA.local_size1();
-
     	auto loc_a = amgcl::adapter::zero_copy(chunk, 
                 rA.GetDiagonalBlock().index1_data().begin(),
                 rA.GetDiagonalBlock().index2_data().begin(),
@@ -63,6 +62,7 @@ public:
 			global_index2.data().begin(),
 			rA.GetOffDiagonalBlock().value_data().begin()
 		);
+
 		rem_a->ncols = rA.GetOffDiagonalBlock().size2(); //important if the matrix is not square
 
 		auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator( rA.GetComm());
@@ -85,7 +85,7 @@ public:
 		if(!rA.local())
 			KRATOS_ERROR << "matrix A was moved to backend, so it is impossible to convert it back to CSR matrix" << std::endl;
 
-		auto pAconverted = Kratos::make_unique<DistributedCsrMatrix<TDataType, TIndexType>>();
+		auto pAconverted = Kratos::make_unique<DistributedCsrMatrix<TDataType, TIndexType>>(kratos_comm);
 
 		MPI_Comm amgcl_raw_comm = rA.comm();
 		if(amgcl_raw_comm != MPIDataCommunicator::GetMPICommunicator( kratos_comm) )
@@ -143,14 +143,15 @@ public:
         const DistributedCsrMatrix<TDataType, TIndexType>& rA
         )	
     {
+		auto& comm = rA.GetComm();
+
 		bool move_to_backend=false; //important!
 		auto offdiag_global_index2 = rA.GetOffDiagonalIndex2DataInGlobalNumbering();
         const auto pAamgcl = ConvertToAmgcl<TDataType,TIndexType>(rA, offdiag_global_index2, move_to_backend);
 
         const auto pAamgcl_transpose = transpose(*pAamgcl);
 
-        auto pAt = ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, rA.GetComm());
-
+        auto pAt = ConvertToCsrMatrix<TDataType,TIndexType>(*pAamgcl_transpose, comm);
         return pAt;
     }
 };
