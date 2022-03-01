@@ -745,10 +745,10 @@ public:
             ++counter;
         }
 
-        // // Provide physical data as needed in the displacement solver
-        // if(mpSolverDispBlock->AdditionalPhysicalDataIsNeeded() ) {
-        //     mpSolverDispBlock->ProvideAdditionalData(rA, rDx, rb, mDisplacementDofs, rModelPart);
-        // }
+        // Provide physical data as needed in the displacement solver
+        if(mpSolverDispBlock->AdditionalPhysicalDataIsNeeded() ) {
+            mpSolverDispBlock->ProvideAdditionalData(rA, rX, rB, mDisplacementDofs, rModelPart);
+        }
     }
 
     ///@}
