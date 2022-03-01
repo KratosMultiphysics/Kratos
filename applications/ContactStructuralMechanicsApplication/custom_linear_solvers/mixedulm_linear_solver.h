@@ -744,6 +744,11 @@ public:
             mDisplacementDofs.push_back(p_dof);
             ++counter;
         }
+
+        // // Provide physical data as needed in the displacement solver
+        // if(mpSolverDispBlock->AdditionalPhysicalDataIsNeeded() ) {
+        //     mpSolverDispBlock->ProvideAdditionalData(rA, rDx, rb, mDisplacementDofs, rModelPart);
+        // }
     }
 
     ///@}
