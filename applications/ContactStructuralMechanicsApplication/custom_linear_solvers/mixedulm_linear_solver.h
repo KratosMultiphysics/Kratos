@@ -376,8 +376,12 @@ public:
         mOptions.Set(BLOCKS_ARE_ALLOCATED, false);
         mpSolverDispBlock->Clear();
 
-        // Clear DoFs backup
-        mDisplacementDofs.clear();
+        // Clear displacement DoFs
+        auto& r_data_dofs = mDisplacementDofs.GetContainer(); 
+        for (IndexType i=0; i<r_data_dofs.size(); ++i) {
+            delete r_data_dofs[i];
+        }
+        r_data_dofs.clear();
 
         // We clear the matrixes and vectors
         mKDispModified.clear(); /// The modified displacement block
@@ -1579,8 +1583,12 @@ private:
      */
     inline void AllocateBlocks()
     {
-        // Clear backup dofs
-        mDisplacementDofs.clear();
+        // Clear displacement DoFs
+        auto& r_data_dofs = mDisplacementDofs.GetContainer(); 
+        for (IndexType i=0; i<r_data_dofs.size(); ++i) {
+            delete r_data_dofs[i];
+        }
+        r_data_dofs.clear();
 
         // We clear the matrices
         mKDispModified.clear(); /// The modified displacement block
