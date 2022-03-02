@@ -3,6 +3,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${PYTHON_LIBRARIES})
 
+message("WARNING: Deprecation: runkratos will be deleted by the end of 2022, please consider disabling it")
+
 ############ module to include sys libs #############
 include(InstallRequiredSystemLibraries)
 

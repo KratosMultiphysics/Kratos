@@ -45,6 +45,7 @@
 //this shall allow avoiding the explicit casting of argv to wchar_argv
 int main(int argc, char *argv[])
 {
+    std::cout << "WARNING: Runkratos will be deleted by the end of 2022, please consider disabling it." << std::endl;
     if ( argc < 2)
     {
         std::cout << "MISSING SCRIPT NAME! Usage: " << argv[ 0] << " filename_in.py " <<std::endl;
