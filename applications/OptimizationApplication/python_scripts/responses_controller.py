@@ -138,7 +138,7 @@ class ResponsesController:
                 response = analysis_free_response_function_factory.CreateResponseFunction(response_name,response_type,response_settings["settings"],model)
                 self.responses_analyses[response_name] = None
             else:
-                raise RuntimeError("ResponsesController: Response {} of type {} is not supported, supported responses are {}".format(response_name,response_type,supported_responses)) 
+                raise RuntimeError("ResponsesController: Response {} of type {} is not supported, supported responses are {}".format(response_name,response_type,self.supported_responses)) 
             
             self.responses[response_name] = response
 
@@ -290,9 +290,24 @@ class ResponsesController:
 
         return self.responses_type[response_name]
     # --------------------------------------------------------------------------
-    def GetSupportedResponseTypes(self): 
-        return self.supported_responses
-      
+    def GetResponseVariableName(self, response_name, raise_error=True): 
+        if raise_error:
+            if response_name not in self.responses.keys():
+                raise RuntimeError("ResponsesController:GetResponseVariableName: response {} does not exist".format(response_name))           
+        return self.responses[response_name].GetVariableName()
+    # --------------------------------------------------------------------------
+    def GetResponseGradientsVariablesName(self, response_name, raise_error=True): 
+        if raise_error:
+            if response_name not in self.responses.keys():
+                raise RuntimeError("ResponsesController:GetResponseGradientsVariablesName: response {} does not exist".format(response_name))           
+        return self.responses[response_name].GetGradientsVariablesName() 
+
+    # --------------------------------------------------------------------------
+    def GetResponseGradientVariableNameForType(self, response_name, control_type, raise_error=True): 
+        if raise_error:
+            if response_name not in self.responses.keys():
+                raise RuntimeError("ResponsesController:GetGradientsVariablesName: response {} does not exist".format(response_name))           
+        return self.responses[response_name].GetGradientVariableNameForType(control_type)      
                 
 
 

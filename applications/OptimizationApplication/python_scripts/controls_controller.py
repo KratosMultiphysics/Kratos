@@ -58,6 +58,7 @@ class ControlsController:
 
 
         self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing"],"topology":[],"thickness":[]}
+        self.supported_control_types_variable_names = {"shape":"CX","thickness":"CT","topology":"CP"}
         # sanity checks
         self.controls_types_vars_dict = {"shape":[],"topology":[],"thickness":[]}
         self.controls = {}
@@ -148,12 +149,20 @@ class ControlsController:
             return self.controls_type[control_name]           
     # --------------------------------------------------------------------------
     def GetControlControllingObjects(self,control_name,raise_error=True):
-        if not control_name in self.controls_controlling_objects.keys():
-            if raise_error:
+        if raise_error:
+            if not control_name in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:GetControlControllingObjects: Control {} does not exist.".format(control_name))
-        else:
-            return self.controls_controlling_objects[control_name]                   
+       
+        return self.controls_controlling_objects[control_name]                   
 
     # --------------------------------------------------------------------------
-    def GetSupportedControlTypes(self):
-        return self.supported_control_types_techniques.keys()
+    def GetSupportedControlTypesVariablesName(self):
+        return self.supported_control_types_variable_names
+
+    # --------------------------------------------------------------------------
+    def MapControlFirstDerivative(self, control_name, derivative_variable_name, mapped_derivative_variable_name, raise_error=True):   
+        if raise_error:
+            if not control_name in self.controls_controlling_objects.keys():
+                raise RuntimeError("ControlsController:MapControlFirstDerivative: Control {} does not exist.".format(control_name)) 
+
+        return self.controls[control_name].MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)       

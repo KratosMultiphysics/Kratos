@@ -1,16 +1,16 @@
 # importing the Kratos Library
-from numpy import gradient
+from . import base_response
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
-from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.OptimizationApplication as KOA
+from KratosMultiphysics.OptimizationApplication.responses.base_response import BaseResponseFunction
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 import time as timer
 import numpy as np
 
 # ==============================================================================
-class StrainEnergyResponseFunction(ResponseFunctionInterface):
+class StrainEnergyResponseFunction(BaseResponseFunction):
     """Linear strain energy response function. It triggers the primal analysis and
     uses the primal analysis results to calculate response value and gradient.
 
@@ -23,7 +23,9 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
 
     def __init__(self,response_name, response_settings,response_analysis,model):
 
-        self.response_settings = response_settings
+        self.type = "strain_energy"
+        self.variable = "STRAIN_ENERGY"
+        super().__init__(response_name, response_settings, model, response_analysis)
 
         if not self.response_settings.Has("gradient_settings"):
             self.gradient_settings = KM.Parameters()
@@ -33,14 +35,7 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
         self.supported_control_types = ["shape"]
-        self.model = model
-        self.name = response_name
-        self.primal_analysis = response_analysis
-        self.primal_model_part = self.primal_analysis._GetSolver().GetComputingModelPart()
-
-        self.evaluated_model_parts = response_settings["evaluated_objects"].GetStringArray()
-        self.controlled_model_parts = response_settings["controlled_objects"].GetStringArray()
-        self.control_types = response_settings["control_types"].GetStringArray()  
+        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X"}
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -52,22 +47,27 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         # add vars
         for control_type in self.control_types:
             if control_type == "shape":
-                self.primal_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
-                self.primal_model_part.AddNodalSolutionStepVariable(KOA.D_STRAIN_ENERGY_D_X)
-                self.primal_model_part.AddNodalSolutionStepVariable(KOA.D_STRAIN_ENERGY_D_CX)
+                self.analysis_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
+                self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
 
         # create response
-        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.primal_model_part, self.gradient_settings)
+        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.analysis_model_part, self.gradient_settings)
+
+    def GetVariableName(self):
+        return  self.variable
+
+    def GetGradientsVariablesName(self):
+        return self.gradients_variables
+
+    def GetGradientVariableNameForType(self,control_type, raise_error=True):
+        if raise_error:
+            if not control_type in self.supported_control_types:
+                raise RuntimeError("StrainEnergyResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types)) 
+
+        return self.gradients_variables[control_type]
 
     def Initialize(self):
-
-        for evaluated_model_part in self.evaluated_model_parts:
-            evaluated_model_part_splitted = evaluated_model_part.split(".")
-            if not evaluated_model_part_splitted[0] == self.primal_model_part.Name:
-                raise RuntimeError("StrainEnergyResponseFunction:Initialize: root evaluated_model_part {} of response '{}' is not the analysis model!".format(evaluated_model_part_splitted[0],self.name))
-            if not self.model.HasModelPart(evaluated_model_part): 
-                raise RuntimeError("StrainEnergyResponseFunction:Initialize: evaluated_model_part {} of response '{}' does not exist!".format(evaluated_model_part,self.name))
-
+        super().Initialize()
         self.response_function_utility.Initialize()
 
     def CalculateValue(self):
@@ -99,30 +99,6 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
-
-
-    def GetGradient(self, design_type_model_part_dict):
-
-        if type(design_type_model_part_dict) is not dict or not bool(design_type_model_part_dict):
-            raise RuntimeError("StrainEnergyResponseFunction:GetGradient: the input entry should be a dict of a pair of design type and model part ")
-
-        design_type = design_type_model_part_dict.keys()[0]
-        design_model_part_name = design_type_model_part_dict.values()[0]
-
-        if self.design_types[design_type] != design_model_part_name or not design_type in self.design_types or not design_model_part_name in self.design_model_parts :
-            raise RuntimeError("StrainEnergyResponseFunction:GetGradient: requested gradient pair {} does not match with {} of response {}".format(design_type_model_part_dict,dict(design_type,self.design_types_model_part_dict[design_type])),self.name)
-
-        
-        model_part = self.model.GetModelPart(design_model_part_name)
-        gradients = np.zeros(3*model_part.NumberOfNodes())
-        index = 0
-        for node in model_part.Nodes:
-            gradients[index] = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY_X)
-            gradients[index+1] = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY_Y)
-            gradients[index+2] = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY_Z)
-            index +=3
-        
-        return gradients
 
     def GetGradients(self):
       

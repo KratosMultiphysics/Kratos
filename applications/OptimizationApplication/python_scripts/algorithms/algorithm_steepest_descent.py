@@ -14,56 +14,36 @@ from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
-import KratosMultiphysics.OptimizationApplication as KOPT
+import KratosMultiphysics.OptimizationApplication as KOA
+from KratosMultiphysics import Parameters, Logger
 
 # Additional imports
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 
 
+
 # ==============================================================================
 class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self,name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
-        default_algorithm_settings = KM.Parameters("""
+        super().__init__(name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
+        default_algorithm_settings = Parameters("""
         {
             "max_iterations"     : 100,
             "relative_tolerance" : 1e-3
         }""")
 
-        self.name = name
-        self.opt_settings =  opt_settings
         self.opt_settings["algorithm_settings"].RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
         self.algorithm_settings = self.opt_settings["algorithm_settings"]
-        self.model=model
-        self.model_parts_controller = model_parts_controller
-        self.analyses_controller = analyses_controller
-        self.responses_controller = responses_controller
-        self.controls_controller = controls_controller
+        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
 
-        
-
-        self.objectives = self.opt_settings["objectives"].GetStringArray()
-        self.objectives_weights = self.opt_settings["objectives_weights"].GetVector()
-        self.controls = opt_settings["controls"].GetStringArray()
-
-        self.controls_reponses = {}
-        for control in self.controls:
-            control_type = self.controls_controller.GetControlType(control)
-            control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
-            responses = self.responses_controller.GetResponses([control_type],control_controlling_objects)
-            if not len(responses)>0:
-                raise RuntimeError("OptimizationAlgorithm: control {} is not associated to any of responses".format(control))
-            if not set(responses) <= set(self.objectives):
-                raise RuntimeError("OptimizationAlgorithm: control {} is associated to responses {} which are not part of objectives lists".format(control,responses))
-            self.controls_reponses[control] = responses        
+        Logger.PrintInfo("::[AlgorithmSteepestDescent]:: ", "Construction finished")
 
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
-        # now extract analyses belong to the objectives
-        self.analyses = self.responses_controller.GetResponsesAnalyses(self.objectives)        
+        pass 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
 
@@ -71,10 +51,10 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         timer.StartTimer()        
 
         for self.optimization_iteration in range(1,self.max_iterations+1):
-            KM.Logger.Print("")
-            KM.Logger.Print("===============================================================================")
-            KM.Logger.PrintInfo("Opt", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
-            KM.Logger.Print("===============================================================================\n")
+            Logger.Print("")
+            Logger.Print("===============================================================================")
+            Logger.PrintInfo("AlgorithmSteepestDescent", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
+            Logger.Print("===============================================================================\n")
 
             self.model_parts_controller.UpdateTimeStep(self.optimization_iteration)
 
@@ -83,35 +63,24 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.responses_controller.CalculateResponsesValue(self.objectives)
 
             for control,reponses in self.controls_reponses.items():
-                control_type = self.controls_controller.GetControlType(control)
-                control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
+                control_type = self.controls_types[control]
+                control_variable_name =  self.supported_control_types_variables_name[control_type]
+                control_controlling_objects = self.controls_controlling_objects[control]
                 for response in reponses:
+                    response_variable_name = self.responses_variables[response]
                     self.responses_controller.CalculateResponseGradientsForTypeAndObjects(response,control_type,control_controlling_objects,False)
-                    response_type = self.controls_controller.GetResponseType(response,False)
-
+                    reponse_gradient_variable_name = self.responses_controller.GetResponseGradientVariableNameForType(response,control_type,False)
+                    response_control_gradient_variable_name = "D_"+response_variable_name+"_D_"+control_variable_name
+                    self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(reponse_gradient_variable_name), KM.KratosGlobals.GetVariable(response_control_gradient_variable_name), False)
             
-
-            
-
-
-
-
-        #     timer.StartNewLap()
-
-        #     self.__initializeNewShape()
-
-        #     self.__analyzeShape()
-
-        #     if self.line_search_type == "adaptive_stepping" and self.optimization_iteration > 1:
-        #         self.__adjustStepSize()
 
         #     self.__computeShapeUpdate()
 
         #     self.__logCurrentOptimizationStep()
 
-            KM.Logger.Print("")
-            KM.Logger.PrintInfo("Opt", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            KM.Logger.PrintInfo("Opt", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            Logger.Print("")
+            Logger.PrintInfo("AlgorithmSteepestDescent", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            Logger.PrintInfo("AlgorithmSteepestDescent", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
         #     if self.__isAlgorithmConverged():
         #         break
@@ -125,7 +94,21 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         # self.analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def GetGradientVariablesName(self,response_type,control_type): 
-        if       
+    def GetResponseTypeGradientVariablesName(self,response_type,control_type): 
+        gradient_name = "D_"
+        gradient_mapped_name = "D_"
+        if response_type == "strain_energy":
+            gradient_name+="STRAIN_ENERGY"
+            gradient_mapped_name+="STRAIN_ENERGY"
+        else:
+            raise RuntimeError("AlgorithmSteepestDescent::GetResponseTypeGradientVariablesName response type {} is not implemented".format(response_type))
+        
+        if control_type == "shape":
+            gradient_name+="_D_X"
+            gradient_mapped_name+="_D_CX"
+        else:
+            raise RuntimeError("AlgorithmSteepestDescent::GetResponseTypeGradientVariablesName control type {} is not implemented".format(control_type))
+        
+        return gradient_name, gradient_mapped_name
 
 # ==============================================================================
