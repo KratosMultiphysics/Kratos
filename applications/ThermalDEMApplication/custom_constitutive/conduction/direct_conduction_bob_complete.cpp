@@ -24,7 +24,7 @@ namespace Kratos {
 
   //------------------------------------------------------------------------------------------------------------
   double DirectConductionBOBComplete::GetSearchDistance(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
-    return particle->ComputeEffectiveRadius() * r_process_info[MAX_CONDUCTION_DISTANCE];
+    return particle->GetParticleRadius() * r_process_info[MAX_CONDUCTION_DISTANCE];
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ namespace Kratos {
     // Heat transfer coefficient for direct and/or indirect conduction
     if (particle->mNeighborInContact)
       return ContactCoeff(r_process_info, particle);
-    else if (particle->mNeighborSeparation < GetSearchDistance(r_process_info, particle))
+    else if (particle->mNeighborSeparation < r_process_info[MAX_CONDUCTION_DISTANCE] * particle->ComputeEffectiveRadius())
       return SeparatedCoeff(r_process_info, particle);
     else
       return 0.0;

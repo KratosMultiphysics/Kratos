@@ -393,9 +393,9 @@ class ExplicitStrategy(BaseStrategy):
         # Direct conduction
         if self.direct_conduction_model == "batchelor_obrien_simple":
             class_name = "DirectConductionBOBSimple"
-        if self.direct_conduction_model == "batchelor_obrien_complete":
+        elif self.direct_conduction_model == "batchelor_obrien_complete":
             class_name = "DirectConductionBOBComplete"
-        if self.direct_conduction_model == "batchelor_obrien_modified":
+        elif self.direct_conduction_model == "batchelor_obrien_modified":
             class_name = "DirectConductionBOBModified"
         elif self.direct_conduction_model == "thermal_pipe":
             class_name = "DirectConductionPipe"
