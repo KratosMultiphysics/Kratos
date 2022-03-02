@@ -260,7 +260,7 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
     if "ALMContactFrictional" in mortar_type or mortar_type == "ALMContactFrictionlessComponents":
         if contact_settings["use_mixed_ulm_solver"].GetBool():
             KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
-           name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
+            name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
             if name_mixed_solver == "mixed_ulm_linear_solver":
                 if settings.Has("linear_solver_settings"):
                     if settings["linear_solver_settings"].Has("solver_type"):
