@@ -834,7 +834,15 @@ class GenericConstitutiveLawIntegratorPlasticity
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const Vector& equivalent_stress_vector = r_material_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE];
-        const Vector& plastic_strain_vector = r_material_properties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+        const bool has_plastic_strain_vector = r_material_properties.Has(PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE);
+        Vector plastic_strain_vector;
+        if (has_plastic_strain_vector) { // Strain input is equivalent plastic strain
+            plastic_strain_vector = r_material_properties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+        } else {
+            const double young_modulus = r_material_properties[YOUNG_MODULUS];
+            const Vector& total_strain_vector = r_material_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+            plastic_strain_vector = 1.0 / young_modulus * equivalent_stress_vector;
+        }
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         const double volumetric_fracture_energy = fracture_energy / CharacteristicLength;
         const SizeType points_hardening_curve = equivalent_stress_vector.size();
