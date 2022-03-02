@@ -302,19 +302,19 @@ def _Suffix(language):
 def _ReplaceIndices(language, expression):
     """Replaces array access with underscored variable.
 
-    For matrices: `variable[3,7]` becomes `variable_3_7`
-    For vectors:  `variable[3]` becomes `variable_3`
+    For matrices: `variable_3_7` becomes `variable[3,7]`
+    For vectors:  `variable_3`   becomes `variable[3]`
 
     The accessor for matrices is chosen according to the language (`[]` vs. `()`)
     """
     #Matrices
-    pattern = r"\[(\d+),(\d+)\]" if language == 'python' else r"\((\d+),(\d+)\)"
-    replacement = r"_\1_\2"
+    pattern = r"_(\d+)_(\d+)"
+    replacement = r"[\1,\2]" if language == 'python' else r"(\1,\2)"
     expression = re.sub(pattern, replacement, expression)
 
     # Vectors
-    pattern = r"\[(\d+)\]"
-    replacement = r"_\1"
+    pattern = r"_(\d+)"
+    replacement = r"[\1]"
     expression = re.sub(pattern, replacement, expression)
 
     return expression
@@ -353,7 +353,7 @@ def OutputVector(vector_expression, name, language, indentation_level=0, replace
     - name -- The name of the variables
     - language -- The language of output
     - indentation_level -- The number of tabulations considered
-    - replace_indices -- Set to `True` to replace matrix[i,j] with matrix_i_j (And similarly for vectors)
+    - replace_indices -- Set to `True` to replace matrix_i_j with matrix[i,j] (And similarly for vectors)
     - assignment_op -- The assignment operation
     """
     prefix = _Indentation(indentation_level)
@@ -380,7 +380,7 @@ def OutputMatrix(matrix_expression, name, language, indentation_level=0, replace
     - name -- The name of the variables
     - language -- The language of output
     - indentation_level -- The number of tabulations considered
-    - replace_indices -- Set to `True` to replace `matrix[i,j]` with `matrix_i_j` (And similarly for vectors)
+    - replace_indices -- Set to `True` to replace `matrix_i_j` with `matrix[i,j]` (And similarly for vectors)
     - assignment_op -- The assignment operation
     """
     prefix = _Indentation(indentation_level)
@@ -444,7 +444,7 @@ def OutputSymbolicVariableDeclaration(expression, name, language, indentation_le
     outstring = prefix + expr + suffix
 
     if replace_indices:
-        _ReplaceIndices(language, outstring)
+        outstring = _ReplaceIndices(language, outstring)
 
     return outstring
 
