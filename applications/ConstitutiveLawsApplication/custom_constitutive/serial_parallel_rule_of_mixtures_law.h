@@ -404,7 +404,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         Vector& MatrixStressVector,
         const Properties& rMaterialProperties,
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rSerialStrainMatrix);
+        Vector& rSerialStrainMatrix,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy);
 
     /**
      * This method computes the projection tensors that divide the serial & paralle behaviours of the Strain/Stress
@@ -440,6 +441,18 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
      */
 
     void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * This method computes the Green-Lagrange strain
+     * @see Parameters
+     */
+    void CalculateGreenLagrangeStrain(Parameters &rValues);
+
+    /**
+     * This method computes the Almansi strain
+     * @see Parameters
+     */
+    void CalculateAlmansiStrain(Parameters &rValues);
 
     /**
      * This method computes the strain vector in the fiber and matrix according to the total
@@ -479,7 +492,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         const Matrix& rSerialProjector,
         Matrix& rConstitutiveTensorMatrixSS,
         Matrix& rConstitutiveTensorFiberSS,
-        Vector& rInitialApproximationSerialStrainMatrix);
+        Vector& rInitialApproximationSerialStrainMatrix,
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
@@ -493,7 +508,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         Vector rMatrixStrainVector,
         Vector rFiberStrainVector,
         Vector& rMatrixStressVector,
-        Vector& rFiberStressVector);
+        Vector& rFiberStressVector,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
      * This method checks wether the serial stresses are in equilibrium
@@ -528,13 +544,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
         ConstitutiveLaw::Parameters& rValues,
         const Vector& rResidualStresses,
         Vector& rSerialStrainMatrix,
-        const Matrix& rSerialProjector);
+        const Matrix& rSerialProjector,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
     /**
      * @brief This method computes the tangent tensor
      * @param rValues The constitutive law parameters and flags
      */
-    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues);
+    void CalculateTangentTensor(ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy);
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
