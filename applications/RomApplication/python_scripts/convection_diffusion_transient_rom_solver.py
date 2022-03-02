@@ -32,7 +32,8 @@ class ROMSolver(ConvectionDiffusionTransientSolver):
         {
             "rom_settings": {
             "nodal_unknowns": [ "TEMPERATURE" ],
-            "number_of_rom_dofs": 3
+            "number_of_rom_dofs": 3,
+            "solve_with_qr" : false
             }
         }
         """)

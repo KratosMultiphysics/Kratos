@@ -21,7 +21,8 @@ def CreateSolver(cls, model, custom_settings):
             default_settings = KratosMultiphysics.Parameters("""{
                 "rom_settings": {
                     "nodal_unknowns": [],
-                    "number_of_rom_dofs": 0
+                    "number_of_rom_dofs": 0,
+                    "solve_with_qr" : false
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())

@@ -24,6 +24,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/qr_utility.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -407,8 +408,24 @@ public:
         TSystemVectorType &b) override
     {
         // Define a dense matrix to hold the reduced problem
-        Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-        Vector brom = ZeroVector(mNumberOfRomModes);
+        // Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+        // Vector brom = ZeroVector(mNumberOfRomModes);
+        // if (mSolveWithQR){
+        //     Arom.resize(BaseType::GetEquationSystemSize(), mNumberOfRomModes);
+        //     brom.resize(BaseType::GetEquationSystemSize());
+        // }
+        
+        Matrix Arom;
+        Vector brom;
+        if (mSolveWithQR){// QR POD
+            Arom = ZeroMatrix(BaseType::GetEquationSystemSize(), mNumberOfRomModes);
+            brom = ZeroVector(BaseType::GetEquationSystemSize());
+        }
+        else {// Galerkin POD
+            Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+            brom = ZeroVector(mNumberOfRomModes);
+        }
+        
         // TSystemVectorType x(Dx.size());
 
         // const auto forward_projection_timer = BuiltinTimer();
@@ -438,80 +455,164 @@ public:
 
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
-        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
-        {
-            Matrix PhiElemental;
-            Matrix tempA = ZeroMatrix(mNumberOfRomModes,mNumberOfRomModes);
-            Vector tempb = ZeroVector(mNumberOfRomModes);
-            Matrix aux;
-
-            #pragma omp for nowait
-            for (int k = 0; k < static_cast<int>(nelements); k++) {
-                auto it_el = el_begin + k;
-
-                // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if ((it_el)->IsDefined(ACTIVE)) {
-                    element_is_active = (it_el)->Is(ACTIVE);
-                }
-
-                // Calculate elemental contribution
-                if (element_is_active){
-                    pScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
-                    Element::DofsVectorType dofs;
-                    it_el->GetDofList(dofs, r_current_process_info);
-                    const auto &geom = it_el->GetGeometry();
-                    if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
-                        PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
-                    }
-                    if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
-                        aux.resize(dofs.size(), mNumberOfRomModes,false);
-                    }
-                    RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
-                    noalias(aux) = prod(LHS_Contribution, PhiElemental);
-                    double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
-                    noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
-                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
-                }
-            }
-
-            #pragma omp for nowait
-            for (int k = 0; k < static_cast<int>(nconditions); k++){
-                auto it = cond_begin + k;
-
-                // Detect if the element is active or not. If the user did not make any choice the condition is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE)) {
-                    condition_is_active = (it)->Is(ACTIVE);
-                }
-
-                // Calculate condition contribution
-                if (condition_is_active) {
-                    Condition::DofsVectorType dofs;
-                    it->GetDofList(dofs, r_current_process_info);
-                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
-                    const auto &geom = it->GetGeometry();
-                    if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
-                        PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
-                    }
-                    if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
-                        aux.resize(dofs.size(), mNumberOfRomModes,false);
-                    }
-                    RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
-                    noalias(aux) = prod(LHS_Contribution, PhiElemental);
-                    double h_rom_weight = it->GetValue(HROM_WEIGHT);
-                    noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
-                    noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
-                }
-            }
-
-            #pragma omp critical
+        if (mSolveWithQR){// QR POD: This is used to build Petrov-Galerkin POD.
+            #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
             {
-                noalias(Arom) += tempA;
-                noalias(brom) += tempb;
-            }
+                Matrix PhiElemental;
+                Matrix tempA = ZeroMatrix(BaseType::GetEquationSystemSize(),mNumberOfRomModes);
+                Vector tempb = ZeroVector(BaseType::GetEquationSystemSize());
+                Matrix aux;
 
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nelements); k++) {
+                    auto it_el = el_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                    bool element_is_active = true;
+                    if ((it_el)->IsDefined(ACTIVE)) {
+                        element_is_active = (it_el)->Is(ACTIVE);
+                    }
+
+                    // Calculate elemental contribution
+                    if (element_is_active){
+                        pScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
+                        Element::DofsVectorType dofs;
+                        it_el->GetDofList(dofs, r_current_process_info);
+                        const auto &geom = it_el->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
+                            PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
+                            aux.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        for(int d = 0; d < static_cast<int>(dofs.size()); ++d){
+                            if (dofs[d]->IsFixed()==false){
+                                row(tempA,dofs[d]->EquationId()) += row(aux,d);// Add contributions to global system for free dofs.
+                            }
+                            tempb[dofs[d]->EquationId()] += RHS_Contribution(d);
+                        }
+                    }
+                }
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nconditions); k++){
+                    auto it = cond_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the condition is active by default
+                    bool condition_is_active = true;
+                    if ((it)->IsDefined(ACTIVE)) {
+                        condition_is_active = (it)->Is(ACTIVE);
+                    }
+
+                    // Calculate condition contribution
+                    if (condition_is_active) {
+                        Condition::DofsVectorType dofs;
+                        it->GetDofList(dofs, r_current_process_info);
+                        pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
+                        const auto &geom = it->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
+                            PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
+                            aux.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        for(int d = 0; d < static_cast<int>(dofs.size()); ++d){
+                            if (dofs[d]->IsFixed()==false)
+                                row(tempA,dofs[d]->EquationId()) += row(aux,d);
+                            tempb[dofs[d]->EquationId()] += RHS_Contribution(d);
+                        }
+                    }
+                }
+
+                #pragma omp critical
+                {
+                    noalias(Arom) += tempA;
+                    noalias(brom) += tempb;
+                }
+
+            }
         }
+        else {// Galerkin POD
+            #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
+            {
+                Matrix PhiElemental;
+                Matrix tempA = ZeroMatrix(mNumberOfRomModes,mNumberOfRomModes);
+                Vector tempb = ZeroVector(mNumberOfRomModes);
+                Matrix aux;
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nelements); k++) {
+                    auto it_el = el_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                    bool element_is_active = true;
+                    if ((it_el)->IsDefined(ACTIVE)) {
+                        element_is_active = (it_el)->Is(ACTIVE);
+                    }
+
+                    // Calculate elemental contribution
+                    if (element_is_active){
+                        pScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
+                        Element::DofsVectorType dofs;
+                        it_el->GetDofList(dofs, r_current_process_info);
+                        const auto &geom = it_el->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
+                            PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
+                            aux.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
+                        noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                        noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+                    }
+                }
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nconditions); k++){
+                    auto it = cond_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the condition is active by default
+                    bool condition_is_active = true;
+                    if ((it)->IsDefined(ACTIVE)) {
+                        condition_is_active = (it)->Is(ACTIVE);
+                    }
+
+                    // Calculate condition contribution
+                    if (condition_is_active) {
+                        Condition::DofsVectorType dofs;
+                        it->GetDofList(dofs, r_current_process_info);
+                        pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
+                        const auto &geom = it->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
+                            PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
+                            aux.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        double h_rom_weight = it->GetValue(HROM_WEIGHT);
+                        noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                        noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+                    }
+                }
+
+                #pragma omp critical
+                {
+                    noalias(Arom) += tempA;
+                    noalias(brom) += tempb;
+                }
+
+            }
+        }
+        
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
@@ -519,7 +620,14 @@ public:
         //solve for the rom unkowns dunk = Arom^-1 * brom
         Vector dxrom(mNumberOfRomModes);
         const auto solving_timer = BuiltinTimer();
-        MathUtils<double>::Solve(Arom, dxrom, brom);
+        if (mSolveWithQR){
+            QR<double, row_major> qr_util;
+            qr_util.compute(BaseType::GetEquationSystemSize(),mNumberOfRomModes,&(Arom)(0,0));
+            qr_util.solve(&(brom)(0),&(dxrom)(0));
+        }
+        else{
+            MathUtils<double>::Solve(Arom, dxrom, brom);
+        }
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
@@ -577,7 +685,8 @@ public:
         {
             "name" : "rom_builder_and_solver",
             "nodal_unknowns" : [],
-            "number_of_rom_dofs" : 10
+            "number_of_rom_dofs" : 10,
+            "solve_with_qr" : false
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
@@ -647,6 +756,8 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
 
+    bool mSolveWithQR = false;
+
     ///@}
     ///@name Protected operators
     ///@{
@@ -663,6 +774,7 @@ protected:
         // Set member variables
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
+        mSolveWithQR = ThisParameters["solve_with_qr"].GetBool();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;

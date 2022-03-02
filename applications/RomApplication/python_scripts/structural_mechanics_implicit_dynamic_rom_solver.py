@@ -35,7 +35,8 @@ class ROMSolver(ImplicitMechanicalSolver):
         {
             "rom_settings": {
             "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
-            "number_of_rom_dofs": 10
+            "number_of_rom_dofs": 10,
+            "solve_with_qr" : false
             }
         }
         """)
