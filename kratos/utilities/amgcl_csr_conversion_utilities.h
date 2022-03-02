@@ -65,12 +65,10 @@ public:
     {
         auto pAconverted = Kratos::make_unique<CsrMatrix<TDataType, TIndexType>>();
 
-        if(rA.own_data == false)  //if rA is not the owner, Aconverted cannot be
-        {
+        if(rA.own_data == false){  //if rA is not the owner, Aconverted cannot be
             pAconverted->SetIsOwnerOfData(false);
         }
-        else  //if rA is the owner, transfer ownership to the csr_matrix
-        {
+        else{  //if rA is the owner, transfer ownership to the csr_matrix
             rA.own_data = false;
             pAconverted->SetIsOwnerOfData(true);
         }
