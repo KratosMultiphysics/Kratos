@@ -261,7 +261,7 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
         if contact_settings["use_mixed_ulm_solver"].GetBool():
             KM.Logger.PrintInfo("::[Contact Mechanical Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
             mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
-            return mixed_ulm_solver
+            return linear_solver
         else:
             return linear_solver
     else:
