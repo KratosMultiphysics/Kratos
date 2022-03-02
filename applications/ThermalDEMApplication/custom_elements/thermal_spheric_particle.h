@@ -117,6 +117,7 @@ namespace Kratos
       double ComputeEffectiveYoungReal           (void);
       double ComputeEffectiveConductivity        (void);
       double ComputeAverageConductivity          (void);
+      double ComputeMeanConductivity             (void);
 
       // Get/Set methods
       ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);

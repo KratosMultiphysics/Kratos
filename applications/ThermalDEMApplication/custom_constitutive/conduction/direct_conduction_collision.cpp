@@ -40,7 +40,7 @@ namespace Kratos {
     if (impact_normal_velocity != 0.0)
       col_time_max = particle->ComputeMaxCollisionTime();
     
-    // Check if collision time is smaller than max value, otherwise use static model (batchelor_obrien)
+    // Check if collision time is smaller than max value, otherwise use static model (simple BOB)
     if (col_time < col_time_max) {
       const double temp_grad = particle->GetNeighborTemperature() - particle->GetParticleTemperature();
       const double Rc_max    = particle->ComputeMaxContactRadius(); // TODO: This should be multiplied by the correction coefficient (and not computed with real Young modulus)
@@ -61,7 +61,7 @@ namespace Kratos {
       return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-0.5) * temp_grad / (pow(b1,-0.5) + pow(b2,-0.5));
     }
     else {
-      // Assumption: Use BOB model for static contact
+      // Assumption: Use simple BOB model for static contact
       const double Rc        = particle->mContactRadiusAdjusted;
       const double keff      = particle->ComputeEffectiveConductivity();
       const double temp_grad = particle->GetNeighborTemperature() - particle->GetParticleTemperature();

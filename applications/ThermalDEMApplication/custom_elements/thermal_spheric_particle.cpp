@@ -522,6 +522,12 @@ namespace Kratos
   void ThermalSphericParticle::ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) {
     KRATOS_TRY
 
+    if (r_process_info[DIRECT_CONDUCTION_OPTION] && mpDirectConductionModel) {
+      const double model_search_distance  = GetDirectConductionModel().GetSearchDistance(r_process_info, this);
+      const double current_added_distance = added_search_distance;
+      added_search_distance = std::max(current_added_distance, model_search_distance);
+    }
+
     if (r_process_info[INDIRECT_CONDUCTION_OPTION] && mpIndirectConductionModel) {
       const double model_search_distance  = GetIndirectConductionModel().GetSearchDistance(r_process_info, this);
       const double current_added_distance = added_search_distance;
@@ -938,6 +944,15 @@ namespace Kratos
     const double k2 = GetNeighborConductivity();
 
     return (r1 + r2) / (r1 / k1 + r2 / k2);
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMeanConductivity(void) {
+    KRATOS_TRY
+
+    return (GetParticleConductivity() + GetNeighborConductivity()) / 2.0;
 
     KRATOS_CATCH("")
   }

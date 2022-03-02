@@ -34,8 +34,7 @@ namespace Kratos
       virtual ~IndirectConductionVargas();
 
       // Public methods
-      double GetSearchDistance (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
-      double ComputeHeatFlux   (const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
+      double ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {

@@ -50,6 +50,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double,                               HEATSOURCE)
   KRATOS_CREATE_VARIABLE(double,                               MIN_CONDUCTION_DISTANCE)
   KRATOS_CREATE_VARIABLE(double,                               MAX_CONDUCTION_DISTANCE)
+  KRATOS_CREATE_VARIABLE(double,                               CONDUCTION_RADIUS)
   KRATOS_CREATE_VARIABLE(double,                               ISOTHERMAL_CORE_RADIUS)
   KRATOS_CREATE_VARIABLE(double,                               MAX_RADIATION_DISTANCE)
   KRATOS_CREATE_VARIABLE(double,                               FRICTION_HEAT_CONVERSION)
