@@ -150,7 +150,7 @@ namespace Kratos
                         const BoundedMatrix<double, 3, 2> BLA_masterJ = r_geometry_master[j].GetValue(DIRECTORTANGENTSPACE);
                         const BoundedMatrix<double, 3, 3> tmp2 = prod(Pd_slave, Pd_master); //useless temp due to nonworking ublas prod(prod())
                         const BoundedMatrix<double, 3, 2> tmp3 = prod(tmp2, BLA_masterJ); //useless temp due to nonworking ublas prod(prod())
-                        const BoundedMatrix<double, 2, 2> tmp = N_master(j) * N_slave(i) * prod(trans(BLA_slaveI), tmp3);
+                        const BoundedMatrix<double, 2, 2> tmp = N_master(j) * (-N_slave(i)) * prod(trans(BLA_slaveI), tmp3);
 
                         coupleStiffness(indexI, indexJ) = tmp(0, 0);
                         coupleStiffness(indexI + 1, indexJ) = tmp(1, 0);
@@ -171,7 +171,7 @@ namespace Kratos
                         const BoundedMatrix<double, 3, 2> BLA_slaveJ = r_geometry_slave[j].GetValue(DIRECTORTANGENTSPACE);
                         const BoundedMatrix<double, 3, 3> tmp2 = prod(Pd_master, Pd_slave); //useless temp due to nonworking ublas prod(prod())
                         const BoundedMatrix<double, 3, 2> tmp3 = prod(tmp2, BLA_slaveJ); //useless temp due to nonworking ublas prod(prod())
-                        const BoundedMatrix<double, 2, 2> tmp = N_slave(j) * N_master(i) * (prod(trans(BLA_masterI), tmp3));
+                        const BoundedMatrix<double, 2, 2> tmp = -N_slave(j) * N_master(i) * (prod(trans(BLA_masterI), tmp3));
 
                         coupleStiffness(indexI, indexJ) = tmp(0, 0);
                         coupleStiffness(indexI + 1, indexJ) = tmp(1, 0);
