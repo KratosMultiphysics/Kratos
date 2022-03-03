@@ -183,7 +183,7 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
             rA.SpMV(x,y);
         })
         .def("__matmul__", [](const DistributedCsrMatrix<double,IndexType>& rA,const DistributedSystemVector<double,IndexType>& x){
-            auto py  = std::make_shared<DistributedSystemVector<double,IndexType>>(x.GetNumbering());
+            auto py  = std::make_shared<DistributedSystemVector<double,IndexType>>(rA.GetRowNumbering());
             py->SetValue(0.0); 
             rA.SpMV(x,*py);
             return py;
