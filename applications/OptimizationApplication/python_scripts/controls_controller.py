@@ -13,7 +13,7 @@ from __future__ import print_function, absolute_import, division
 
 # additional imports
 import KratosMultiphysics as KM 
-# import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
+import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
 import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
@@ -50,8 +50,6 @@ class ControlsController:
                     raise RuntimeError("ControlsController: Required setting '{}' missing in 'control Nr.{}'!".format(key,itr+1))  
             self.controls_settings[itr].ValidateAndAssignDefaults(default_settings)
             for key in default_settings["settings"].keys():
-                if key == "technique_settings":
-                    continue
                 if not self.controls_settings[itr]["settings"].Has(key):
                     raise RuntimeError("ControlsController: Required setting '{}' missing in 'settings' of 'control Nr.{}' !".format(key,itr+1))             
             self.controls_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
@@ -97,8 +95,8 @@ class ControlsController:
                 # check if root model parts exist
                 self.model_parts_controller.CheckIfRootModelPartsExist(control_controlling_objects_list,True)
                 if control_technique == "explicit_vertex_morphing":
-                    control = KOA.ExplicitVertexMorphing(control_name,self.model,control_settings["settings"]) 
-                    # control = evm.ExplicitVertexMorphing(control_name,model,control_controlling_objects_list,control_settings["settings"]["technique_settings"])                          
+                    # control = KOA.ExplicitVertexMorphing(control_name,self.model,control_settings["settings"]) 
+                    control = evm.ExplicitVertexMorphing(control_name,model,control_settings["settings"])                          
 
             self.controls[control_name] = control
             self.controls_types_vars_dict[control_type].extend(control_controlling_objects_list)

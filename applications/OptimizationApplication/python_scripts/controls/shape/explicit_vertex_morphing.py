@@ -14,24 +14,26 @@ from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 
 class ExplicitVertexMorphing():
 
-    def __init__(self, name, model, model_parts_names_list, settings):
+    def __init__(self, name, model, settings):
         
         self.name = name
         self.model = model
-        self.model_parts_names = model_parts_names_list
         self.settings = settings
-
-        if not isinstance(model_parts_names_list, list):
-            raise RuntimeError("ExplicitVertexMorphing: Requires list of model part names")
-        
+        self.technique_settings = self.settings["technique_settings"]
+        self.controlling_objects = self.settings["controlling_objects"].GetStringArray()        
 
     def Initialize(self):
         self.ex_vm_mapper = {}
-        for model_part_name in self.model_parts_names:
+        for model_part_name in self.controlling_objects:
             if not self.model.HasModelPart(model_part_name):
                 raise RuntimeError("ExplicitVertexMorphing: Model part {} from control {} does not exist in the input model parts".format(model_part_name,self.name))
-            ex_mapper = mapper_factory.CreateMapper(self.model.GetModelPart(model_part_name), self.model.GetModelPart(model_part_name), self.settings)
+            ex_mapper = mapper_factory.CreateMapper(self.model.GetModelPart(model_part_name), self.model.GetModelPart(model_part_name), self.technique_settings)
             ex_mapper.Initialize()
             self.ex_vm_mapper[model_part_name] = ex_mapper
+
+    def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
+        pass
+        # for mapper in self.ex_vm_mapper.values():
+        #     mapper.InverseMap(mapped_derivative_variable_name,derivative_variable_name)
 
 

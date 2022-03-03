@@ -20,6 +20,7 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
+#include "shape_optimization_application.h"
 #include "mapper_vertex_morphing.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
@@ -87,7 +88,15 @@ public:
 
     // --------------------------------------------------------------------------
     void Initialize() override {
-        // KRATOS_ERROR <<" HI REZA YOU CALLED ME"<<std::endl;
+         const std::vector<std::string>& controlling_objects = mControlSettings["controlling_objects"].GetStringArray();
+        //  mMappers.resize(controlling_objects.size());
+         int index = 0;
+         for(auto const& control_object: controlling_objects) {
+            ModelPart& r_control_object_model_part = mrModel.GetModelPart(control_object);
+            // mMappers[index] = Kratos::make_unique<MapperVertexMorphing>(r_control_object_model_part,r_control_object_model_part,mControlSettings["technique_settings"]);
+            // mMappers[index]->Initialize();
+            index++;
+         }
 
     };
     // --------------------------------------------------------------------------
@@ -183,6 +192,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    // std::vector<Kratos::unique_ptr<MapperVertexMorphing>> mMappers;
 
 
     ///@}
