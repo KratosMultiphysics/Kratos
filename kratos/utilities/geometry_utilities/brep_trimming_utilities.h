@@ -186,7 +186,9 @@ namespace Kratos
                     triangles.push_back(triangle);
                 else
                 {
-                    std::cout << "triangle with zero area" << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
+                    #ifdef KRATOS_DEBUG
+                        std::cout << "triangle with zero area" << BrepTrimmingUtilities::GetAreaOfTriangle(triangle) << std::endl;
+                    #endif
                 }
                 if (bestvertex > (diagonal.index1 + 1)) {
                     newdiagonal.index1 = diagonal.index1;

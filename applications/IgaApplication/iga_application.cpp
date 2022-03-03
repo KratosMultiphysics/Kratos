@@ -24,9 +24,13 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShell3pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mShell3pStressBasedElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pHierarchicElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+    , mShell5pStressBasedElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
@@ -64,8 +68,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
+    KRATOS_REGISTER_ELEMENT("Shell3pStressBasedElement", mShell3pStressBasedElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
+    KRATOS_REGISTER_ELEMENT("Shell5pStressBasedElement", mShell5pStressBasedElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -112,6 +118,11 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_ALPHA)
     KRATOS_REGISTER_VARIABLE(RAYLEIGH_BETA)
 
+    KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION_VECTOR)
+    KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)
+    KRATOS_REGISTER_VARIABLE(DAMAGE_COMPRESSION_VECTOR)
+    KRATOS_REGISTER_VARIABLE(DAMAGE_COMPRESSION)
+
     /// 5p Director Shell Variables
     KRATOS_REGISTER_VARIABLE(DIRECTOR_COMPUTED)
     KRATOS_REGISTER_VARIABLE(DIRECTOR)
@@ -139,6 +150,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(SHEAR_FORCE_2)
 
     KRATOS_REGISTER_VARIABLE(INTEGRATE_CONSERVATIVE)
+    KRATOS_REGISTER_VARIABLE(NUMBER_OF_THICKNESS_INTEGRATION_POINTS)
 
     KRATOS_REGISTER_VARIABLE(PENALTY_FACTOR)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PENALTY_REACTION)
