@@ -107,15 +107,15 @@ namespace Kratos
                     for (IndexType j = 0; j < number_of_nodes_master; ++j)
                     {
                         IndexType indexJ = 2 * j;
-                    const BoundedMatrix<double, 3, 2> BLA_masterI = r_geometry_master[i].GetValue(DIRECTORTANGENTSPACE);
-                    const BoundedMatrix<double, 3, 2> BLA_masterJ = r_geometry_master[j].GetValue(DIRECTORTANGENTSPACE);
-                    const BoundedMatrix<double, 3, 2> tmp3 = prod(Pd_master + S_master, BLA_masterJ); //useless temp due to nonworking ublas prod(prod())
-                    const BoundedMatrix<double, 2, 2> tmp = N_master(j) * N_master(i) *  (prod(trans(BLA_masterI), tmp3) );
+                        const BoundedMatrix<double, 3, 2> BLA_masterI = r_geometry_master[i].GetValue(DIRECTORTANGENTSPACE);
+                        const BoundedMatrix<double, 3, 2> BLA_masterJ = r_geometry_master[j].GetValue(DIRECTORTANGENTSPACE);
+                        const BoundedMatrix<double, 3, 2> tmp3 = prod(Pd_master + S_master, BLA_masterJ); //useless temp due to nonworking ublas prod(prod())
+                        const BoundedMatrix<double, 2, 2> tmp = N_master(j) * N_master(i) *  (prod(trans(BLA_masterI), tmp3) );
 
-                    coupleStiffness(indexI,     indexJ   ) = tmp(0,0);
-                    coupleStiffness(indexI + 1, indexJ   ) = tmp(1,0);
-                    coupleStiffness(indexI,     indexJ +1) = tmp(0,1);
-                    coupleStiffness(indexI + 1, indexJ +1) = tmp(1,1);
+                        coupleStiffness(indexI,     indexJ   ) = tmp(0,0);
+                        coupleStiffness(indexI + 1, indexJ   ) = tmp(1,0);
+                        coupleStiffness(indexI,     indexJ +1) = tmp(0,1);
+                        coupleStiffness(indexI + 1, indexJ +1) = tmp(1,1);
                     }
                 }
 
@@ -131,9 +131,9 @@ namespace Kratos
                         const BoundedMatrix<double, 3, 2> tmp3 = prod(Pd_slave + S_slave, BLA_slaveJ); //useless temp due to nonworking ublas prod(prod())
                         const BoundedMatrix<double, 2, 2> tmp = N_slave(j) * N_slave(i) * (prod(trans(BLA_slaveI), tmp3));
 
-                        coupleStiffness(indexI, indexJ) = tmp(0, 0);
-                        coupleStiffness(indexI + 1, indexJ) = tmp(1, 0);
-                        coupleStiffness(indexI, indexJ + 1) = tmp(0, 1);
+                        coupleStiffness(indexI    , indexJ    ) = tmp(0, 0);
+                        coupleStiffness(indexI + 1, indexJ    ) = tmp(1, 0);
+                        coupleStiffness(indexI,     indexJ + 1) = tmp(0, 1);
                         coupleStiffness(indexI + 1, indexJ + 1) = tmp(1, 1);
                     }
                 }
@@ -152,9 +152,9 @@ namespace Kratos
                         const BoundedMatrix<double, 3, 2> tmp3 = prod(tmp2, BLA_masterJ); //useless temp due to nonworking ublas prod(prod())
                         const BoundedMatrix<double, 2, 2> tmp = N_master(j) * (-N_slave(i)) * prod(trans(BLA_slaveI), tmp3);
 
-                        coupleStiffness(indexI, indexJ) = tmp(0, 0);
-                        coupleStiffness(indexI + 1, indexJ) = tmp(1, 0);
-                        coupleStiffness(indexI, indexJ + 1) = tmp(0, 1);
+                        coupleStiffness(indexI,     indexJ    ) = tmp(0, 0);
+                        coupleStiffness(indexI + 1, indexJ    ) = tmp(1, 0);
+                        coupleStiffness(indexI,     indexJ + 1) = tmp(0, 1);
                         coupleStiffness(indexI + 1, indexJ + 1) = tmp(1, 1);
                     }
                 }
@@ -173,12 +173,13 @@ namespace Kratos
                         const BoundedMatrix<double, 3, 2> tmp3 = prod(tmp2, BLA_slaveJ); //useless temp due to nonworking ublas prod(prod())
                         const BoundedMatrix<double, 2, 2> tmp = -N_slave(j) * N_master(i) * (prod(trans(BLA_masterI), tmp3));
 
-                        coupleStiffness(indexI, indexJ) = tmp(0, 0);
-                        coupleStiffness(indexI + 1, indexJ) = tmp(1, 0);
-                        coupleStiffness(indexI, indexJ + 1) = tmp(0, 1);
+                        coupleStiffness(indexI,     indexJ    ) = tmp(0, 0);
+                        coupleStiffness(indexI + 1, indexJ    ) = tmp(1, 0);
+                        coupleStiffness(indexI,     indexJ + 1) = tmp(0, 1);
                         coupleStiffness(indexI + 1, indexJ + 1) = tmp(1, 1);
                     }
                 }
+                //std::cout << coupleStiffness << std::endl;
                 noalias(rLeftHandSideMatrix) += coupleStiffness * penalty_integration;
             }
             if (CalculateResidualVectorFlag) {
@@ -203,7 +204,7 @@ namespace Kratos
                     coupleForce(index + 1) = tmpVec(1);
                 }
 
-                noalias(rRightHandSideVector) += coupleForce * penalty_integration;
+                noalias(rRightHandSideVector) -= coupleForce * penalty_integration;
             }
         }
 
