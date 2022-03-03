@@ -18,15 +18,17 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/heat_exchange_mechanism.h"
 #include "custom_constitutive/heat_generation_mechanism.h"
-#include "custom_constitutive/conduction_direct/direct_conduction_model.h"
-#include "custom_constitutive/conduction_direct/direct_conduction_bob.h"
-#include "custom_constitutive/conduction_direct/direct_conduction_collision.h"
-#include "custom_constitutive/conduction_direct/direct_conduction_pipe.h"
-#include "custom_constitutive/conduction_indirect/indirect_conduction_model.h"
-#include "custom_constitutive/conduction_indirect/indirect_conduction_surround_layer.h"
-#include "custom_constitutive/conduction_indirect/indirect_conduction_vargas.h"
-#include "custom_constitutive/conduction_indirect/indirect_conduction_voronoi_a.h"
-#include "custom_constitutive/conduction_indirect/indirect_conduction_voronoi_b.h"
+#include "custom_constitutive/conduction/direct_conduction_model.h"
+#include "custom_constitutive/conduction/direct_conduction_bob_complete.h"
+#include "custom_constitutive/conduction/direct_conduction_bob_modified.h"
+#include "custom_constitutive/conduction/direct_conduction_bob_simple.h"
+#include "custom_constitutive/conduction/direct_conduction_collision.h"
+#include "custom_constitutive/conduction/direct_conduction_pipe.h"
+#include "custom_constitutive/conduction/indirect_conduction_model.h"
+#include "custom_constitutive/conduction/indirect_conduction_surround_layer.h"
+#include "custom_constitutive/conduction/indirect_conduction_vargas.h"
+#include "custom_constitutive/conduction/indirect_conduction_voronoi_a.h"
+#include "custom_constitutive/conduction/indirect_conduction_voronoi_b.h"
 #include "custom_constitutive/convection/convection_model.h"
 #include "custom_constitutive/convection/nusselt_gunn.h"
 #include "custom_constitutive/convection/nusselt_hanz_marshall.h"
@@ -85,11 +87,17 @@ namespace Kratos
         .def("__str__", &Variable<RealContactModel*>::Info);
 
 
-      // Direct conduction ----------------------------------------------------------------------------------------------------------
+      // Conduction -----------------------------------------------------------------------------------------------------------------
       py::class_<DirectConductionModel, DirectConductionModel::Pointer, HeatExchangeMechanism>(m, "DirectConductionModel")
         .def(py::init<>());
 
-      py::class_<DirectConductionBOB, DirectConductionBOB::Pointer, DirectConductionModel>(m, "DirectConductionBOB")
+      py::class_<DirectConductionBOBComplete, DirectConductionBOBComplete::Pointer, DirectConductionModel>(m, "DirectConductionBOBComplete")
+        .def(py::init<>());
+
+      py::class_<DirectConductionBOBModified, DirectConductionBOBModified::Pointer, DirectConductionBOBComplete>(m, "DirectConductionBOBModified")
+        .def(py::init<>());
+
+      py::class_<DirectConductionBOBSimple, DirectConductionBOBSimple::Pointer, DirectConductionModel>(m, "DirectConductionBOBSimple")
         .def(py::init<>());
 
       py::class_<DirectConductionCollision, DirectConductionCollision::Pointer, DirectConductionModel>(m, "DirectConductionCollision")
@@ -98,8 +106,6 @@ namespace Kratos
       py::class_<DirectConductionPipe, DirectConductionPipe::Pointer, DirectConductionModel>(m, "DirectConductionPipe")
         .def(py::init<>());
 
-
-      // Indirect conduction --------------------------------------------------------------------------------------------------------
       py::class_<IndirectConductionModel, IndirectConductionModel::Pointer, HeatExchangeMechanism>(m, "IndirectConductionModel")
         .def(py::init<>());
 
