@@ -35,7 +35,7 @@ CalculateWaveHeightUtility::CalculateWaveHeightUtility(
     Parameters default_parameters(R"({
         "model_part_name"        : "",
         "mean_water_level"       : 0.0,
-        "relative_search_radius" : 1.0,
+        "relative_search_radius" : 2.0,
         "search_tolerance"       : 1e-6
     })");
 

@@ -73,7 +73,7 @@ Communicator::Pointer Communicator::Create(const DataCommunicator& rDataCommunic
 
 Communicator::Pointer Communicator::Create() const
 {
-    return Kratos::make_shared<Communicator>();
+    return Create(mrDataCommunicator);
 }
 
 // Public Access //////////////////////////////////////////////////////////////
