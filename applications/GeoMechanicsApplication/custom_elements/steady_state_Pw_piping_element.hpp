@@ -95,9 +95,15 @@ public:
 
     bool InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom);
 
-    double CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom);
+    double CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
 
-    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom);
+    double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
+
+    void CalculateLength(const GeometryType& Geom);
+
+    double pipe_height;
+
+    double pipe_length;
 
 protected:
     
@@ -107,7 +113,7 @@ protected:
                         const bool CalculateStiffnessMatrixFlag,
                         const bool CalculateResidualVectorFlag) override;
 
-    void CalculateLength(const GeometryType& Geom);
+   
 
     
 

@@ -55,7 +55,12 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     SteadyStatePwInterfaceElement<TDim, TNumNodes>::Initialize(rCurrentProcessInfo);
+    const PropertiesType& Prop = this->GetProperties();
+
     this->CalculateLength(this->GetGeometry());
+    this->SetValue(PIPE_EROSION, false);
+    this->SetValue(PIPE_HEIGHT, Prop[MINIMUM_JOINT_WIDTH]);
+
     this->Set(ACTIVE, false);
 
     KRATOS_CATCH("");
@@ -66,6 +71,7 @@ template< >
 void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
 {
     KRATOS_TRY
+        //this->pipe_length = abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
         this->SetValue(PIPE_ELEMENT_LENGTH, abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]));
 	KRATOS_CATCH("")
 }
@@ -117,7 +123,8 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
 	
     // VG: TODO
     // Perhaps a new parameter to get join width and not minimum joint width
-    Variables.JointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    //Variables.JointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    Variables.JointWidth = this->GetValue(PIPE_HEIGHT);
 	
     //Auxiliary variables
     array_1d<double,TDim> RelDispVector;
@@ -174,18 +181,18 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
 }
 
 template< >
-double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<2, 4>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
-	return abs(Geom[1].FastGetSolutionStepValue(WATER_PRESSURE) - Geom[0].FastGetSolutionStepValue(WATER_PRESSURE)) / Prop[PIPE_ELEMENT_LENGTH];
+	return abs(Geom[1].FastGetSolutionStepValue(WATER_PRESSURE) - Geom[0].FastGetSolutionStepValue(WATER_PRESSURE)) / dx;
 }
 template< >
-double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<3, 6>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
     KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D6N element is not implemented" << std::endl;
     return 0;
 }
 template< >
-double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<3, 8>::CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double dx)
 {
     KRATOS_ERROR << " pressure gradient calculation of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
     return 0;
@@ -218,7 +225,7 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(co
 /// <param name="Geom"></param>
 /// <returns></returns>
 template< unsigned int TDim, unsigned int TNumNodes >
-double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom)
+double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length)
 {
     const double modelFactor = Prop[PIPE_MODEL_FACTOR];
     const double eta = Prop[PIPE_ETA];
@@ -227,7 +234,7 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
     const double FluidDensity = Prop[DENSITY_WATER];
  
     // calculate pressure gradient over element
-    double dpdx = CalculateWaterPressureGradient(Prop, Geom);
+    double dpdx = CalculateWaterPressureGradient(Prop, Geom, pipe_length);
 
     // calculate particle diameter
     double particle_d = CalculateParticleDiameter(Prop);
@@ -253,7 +260,7 @@ template< unsigned int TDim, unsigned int TNumNodes >
 bool SteadyStatePwPipingElement<TDim, TNumNodes>:: InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom)
 {
 	// Calculation if Element in Equilibrium
-    double pipeEquilibriumPipeHeight = CalculateEquilibriumPipeHeight(Prop, Geom);
+    //double pipeEquilibriumPipeHeight = CalculateEquilibriumPipeHeight(Prop, Geom);
 
 	// Logic if in equilibrium
 	
