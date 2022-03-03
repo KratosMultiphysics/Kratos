@@ -1,4 +1,5 @@
 # importing the Kratos Library
+from numpy import gradient
 from . import base_response
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
@@ -98,6 +99,12 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         Logger.PrintInfo("StrainEnergyResponse", "Starting ",control_type," gradient calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
+        # copy values from SHAPE_SENSITIVITY to D_STRAIN_ENERGY_D_X
+        for controlle_object in controlled_objects:
+            model_part = self.model.GetModelPart(controlle_object)           
+            for node in model_part.Nodes:
+                gradient = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY)
+                node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_X, gradient)
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
 
     def GetGradients(self):

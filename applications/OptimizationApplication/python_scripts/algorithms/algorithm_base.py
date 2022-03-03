@@ -44,15 +44,14 @@ class OptimizationAlgorithm:
         self.controls = opt_settings["controls"].GetStringArray()
         self.supported_control_types_variables_name = self.controls_controller.GetSupportedControlTypesVariablesName()
         self.controls_type = {}
-        self.controls_controling_objects = {}
-        self.controls_controling_objects = {}
-        self.controls_responses = {}
         self.controls_responses_model_parts = {}
+        self.controlling_model_parts = []
         for control in self.controls:
             control_type = self.controls_controller.GetControlType(control)
             self.controls_type[control] = control_type
             control_variable_name =  self.supported_control_types_variables_name[control_type]
             controls_controlling_parts = self.controls_controller.GetControlControllingObjects(control)
+            self.controlling_model_parts.extend(controls_controlling_parts)
             responses_dict = self.responses_controller.GetResponsesForControl(control_type,controls_controlling_parts)
             # now we need to do the checks
             if not len(responses_dict)>0:
@@ -92,7 +91,40 @@ class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> InitializeOptimizationLoop << .")
+
+        # create vtkIO for every controlled object
+        self.controlling_model_parts = list(set(self.controlling_model_parts)) # remove dependencies
+        self.controlling_model_parts_vtkIOs = {}
+        for controlling_model_part in self.controlling_model_parts:
+            vtk_parameters = Parameters()
+            root_controlling_model_part = self.model_parts_controller.GetRootModelPart(controlling_model_part)
+            vtk_parameters.AddString("model_part_name",root_controlling_model_part.Name)
+            vtk_parameters.AddBool("write_ids",False)
+            vtk_parameters.AddString("file_format","ascii")
+            vtk_parameters.AddBool("output_sub_model_parts",False)
+            vtk_parameters.AddString("output_path","Optimization_Results")
+            nodal_results = []
+            for control,responses_model_parts_dict in self.controls_responses_model_parts.items():
+                control_type = self.controls_type[control]
+                control_variable_name =  self.supported_control_types_variables_name[control_type]
+                for response,model_parts in responses_model_parts_dict.items():
+                    reponse_gradient_variable_name = self.responses_controller.GetResponseGradientVariableNameForType(response,control_type,False)
+                    response_variable_name = self.responses_controller.GetResponseVariableName(response)
+                    response_control_gradient_variable_name = "D_"+response_variable_name+"_D_"+control_variable_name
+                    
+                    if controlling_model_part in model_parts:
+                        nodal_results.append(reponse_gradient_variable_name)
+                        nodal_results.append(response_control_gradient_variable_name)
+
+            nodal_results = list(set(nodal_results))
+            vtk_parameters.AddEmptyArray("nodal_solution_step_data_variables")
+            for nodal_result in nodal_results:
+                vtk_parameters["nodal_solution_step_data_variables"].Append(nodal_result)
+            
+            controlling_model_part_vtkIO = VtkOutputProcess(self.model, vtk_parameters)
+            controlling_model_part_vtkIO.ExecuteInitialize()
+            controlling_model_part_vtkIO.ExecuteBeforeSolutionLoop()
+            self.controlling_model_parts_vtkIOs[controlling_model_part] = controlling_model_part_vtkIO
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
@@ -100,11 +132,7 @@ class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> FinalizeOptimizationLoop << .")
-
-    def __CreateVTKIOs(self):
-        self.controls_IOs={}
-        for control,controlling_objects in self.controls_controlling_objects:
-            vtk_parameters = Parameters()        
+        for vtkIO in self.controlling_model_parts_vtkIOs.values():
+            vtkIO.ExecuteFinalize()     
 
 # ==============================================================================
