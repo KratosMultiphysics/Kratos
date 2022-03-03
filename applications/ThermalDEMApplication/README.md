@@ -57,6 +57,7 @@ Add **thermal settings** with desired options:
 		"thermal_solve_frequency"        : 1,
 		"voronoi_tesselation_frequency"  : 1000,
 		"porosity_update_frequency"      : 1000,
+		"automatic_solve_frequency"      : true or false,
 		"compute_motion"                 : true or false,
 		"compute_direct_conduction"      : true or false,
 		"compute_indirect_conduction"    : true or false,
@@ -194,6 +195,10 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"porosity_update_frequency"*:\
   Number of steps in which porosity is computed, in case it is required.\
   Default: 1000
+
+- *"automatic_solve_frequency"*:\
+  Boolean for automatically setting the thermal solve frequency based on the maximum allowed time step (it overrides the value set for thermal_solve_frequency).\
+  Default: false
   
 - *"compute_motion"*:\
   Boolean for solving mechanical problem.\

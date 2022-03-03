@@ -49,6 +49,21 @@ namespace Kratos {
   // Derived methods
 
   //------------------------------------------------------------------------------------------------------------
+  void ThermalExplicitSolverStrategy::Initialize(void) {
+    KRATOS_TRY
+
+    // Initialize base strategy
+    ExplicitSolverStrategy::Initialize();
+
+    // Set automatic solve frequency
+    // ATTENTION: Not updated during analysis (in case of varaible properties, new particles, etc)
+    if (GetModelPart().GetProcessInfo()[AUTO_SOLVE_FREQUENCY_OPTION])
+      SetSolveFrequency();
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   void ThermalExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, double added_search_distance, double amplification) {
     SetSearchRadii(r_model_part, added_search_distance, amplification);
   }
@@ -69,6 +84,50 @@ namespace Kratos {
     ExplicitSolverStrategy::GetForce();
     PerformThermalTimeIntegration();
     return 0.0;
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  void ThermalExplicitSolverStrategy::SetSolveFrequency(void) {
+    KRATOS_TRY
+    
+    // Parameters
+    ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+    const double safety_factor  = 0.1;
+    const int    max_freq       = 10000;
+
+    // Get minimum diffusivity time between all particles
+    const int number_of_particles = (int)mListOfSphericParticles.size();
+    double min_diff_time = DBL_MAX;
+
+    #pragma omp parallel for
+    for (int i = 0; i < number_of_particles; i++) {
+      ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(mListOfSphericParticles[i]);
+      const double diff_time = particle->GetParticleRadius() * particle->GetParticleRadius() / particle->GetParticleDiffusivity();
+      #pragma omp critical
+      {
+        if (diff_time < min_diff_time) min_diff_time = diff_time;
+      }
+    }
+    
+    // Apply safety factor
+    min_diff_time *= safety_factor;
+
+    // Check for time step size
+    const double time_step = r_process_info[DELTA_TIME];
+    if (min_diff_time < time_step)
+      KRATOS_ERROR << "Time step is too large for the thermal analysis!" << std::endl;
+
+    // Compute solve frequency
+    int solve_freq = floor(min_diff_time / time_step);
+
+    // Apply a maximum allowed value
+    if (solve_freq > max_freq)
+      solve_freq = max_freq;
+
+    // Set solve frequency
+    r_process_info[THERMAL_FREQUENCY] = solve_freq;
 
     KRATOS_CATCH("")
   }

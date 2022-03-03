@@ -133,7 +133,8 @@ class ExplicitStrategy(BaseStrategy):
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
         # General options
-        self.compute_motion_option = self.thermal_settings["compute_motion"].GetBool()
+        self.compute_motion_option       = self.thermal_settings["compute_motion"].GetBool()
+        self.auto_solve_frequency_option = self.thermal_settings["automatic_solve_frequency"].GetBool()
 
         # Frequencies
         self.thermal_solve_frequency       = self.thermal_settings["thermal_solve_frequency"].GetInt()
@@ -485,7 +486,8 @@ class ExplicitStrategy(BaseStrategy):
     #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
-        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION, self.compute_motion_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION,               self.compute_motion_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, AUTO_SOLVE_FREQUENCY_OPTION, self.auto_solve_frequency_option)
         self.spheres_model_part.ProcessInfo.SetValue(THERMAL_FREQUENCY, self.thermal_solve_frequency)
 
         # Models for heat transfer

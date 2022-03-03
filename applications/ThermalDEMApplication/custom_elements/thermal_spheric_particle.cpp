@@ -1111,6 +1111,11 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::GetParticleDiffusivity(void) {
+    return GetParticleConductivity() / (GetParticleDensity() * GetParticleHeatCapacity());
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double ThermalSphericParticle::GetParticleEmissivity(void) {
     if (GetProperties().HasTable(TEMPERATURE, EMISSIVITY)) {
       const auto& r_table = GetProperties().GetTable(TEMPERATURE, EMISSIVITY);

@@ -146,6 +146,7 @@ namespace Kratos
       double             GetParticleMass                      (void);
       double             GetParticleHeatCapacity              (void);
       double             GetParticleConductivity              (void);
+      double             GetParticleDiffusivity               (void);
       double             GetParticleEmissivity                (void);
       double             GetParticleExpansionCoefficient      (void);
   
