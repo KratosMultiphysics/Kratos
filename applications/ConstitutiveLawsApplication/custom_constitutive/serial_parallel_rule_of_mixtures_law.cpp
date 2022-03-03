@@ -398,9 +398,7 @@ void SerialParallelRuleOfMixturesLaw::CheckStressEquilibrium(
             const double norm_product_fiber  = MathUtils<double>::Norm(prod(rConstitutiveTensorFiberSS, serial_total_strain));
             ref = std::min(norm_product_matrix, norm_product_fiber);
         }
-        tolerance = 1e-4 * ref;
-        if (tolerance < 1.0e-9)
-            tolerance = 1.0e-9;
+        tolerance = std::max(1e-4 * ref, 1.0e-9);
     }
 
     noalias(rStressSerialResidual) = serial_stress_matrix - serial_stress_fiber;
