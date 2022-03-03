@@ -92,25 +92,32 @@ namespace Kratos {
   void ThermalExplicitSolverStrategy::SetSolveFrequency(void) {
     KRATOS_TRY
     
+    ModelPart&         r_model_part   = GetModelPart();
+    ProcessInfo&       r_process_info = r_model_part.GetProcessInfo();
+    ElementsArrayType& r_elements     = r_model_part.GetCommunicator().LocalMesh().Elements();
+
     // Parameters
-    ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
     const double safety_factor  = 0.1;
     const int    max_freq       = 10000;
 
     // Get minimum diffusivity time between all particles
-    const int number_of_particles = (int)mListOfSphericParticles.size();
     double min_diff_time = DBL_MAX;
 
-    #pragma omp parallel for
-    for (int i = 0; i < number_of_particles; i++) {
-      ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(mListOfSphericParticles[i]);
-      const double diff_time = particle->GetParticleRadius() * particle->GetParticleRadius() / particle->GetParticleDiffusivity();
+    block_for_each(r_elements, [&](ModelPart::ElementType& r_element) {
+      Element* p_element = &(r_element);
+      ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(p_element);
+
+      // Check for minimum diffusivity time
+      const double radius    = particle->GetParticleRadius();
+      const double diff_time = radius * radius / particle->GetParticleDiffusivity();
+
       #pragma omp critical
       {
         if (diff_time < min_diff_time) min_diff_time = diff_time;
       }
-    }
-    
+      
+    });
+
     // Apply safety factor
     min_diff_time *= safety_factor;
 
@@ -136,14 +143,17 @@ namespace Kratos {
   void ThermalExplicitSolverStrategy::PerformThermalTimeIntegration(void) {
     KRATOS_TRY
     
-    ProcessInfo& r_process_info   = GetModelPart().GetProcessInfo();
-    const int number_of_particles = (int)mListOfSphericParticles.size();
+    ModelPart&         r_model_part   = GetModelPart();
+    ProcessInfo&       r_process_info = r_model_part.GetProcessInfo();
+    ElementsArrayType& r_elements     = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-    #pragma omp parallel for
-    for (int i = 0; i < number_of_particles; i++) {
-      ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(mListOfSphericParticles[i]);
+    block_for_each(r_elements, [&](ModelPart::ElementType& r_element) {
+      Element* p_element = &(r_element);
+      ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(p_element);
+
+      // Perform time integration of motion and temperature
       particle->Move(r_process_info[DELTA_TIME], false, 0.0, 0);
-    }
+    });
 
     KRATOS_CATCH("")
   }
@@ -158,6 +168,7 @@ namespace Kratos {
     IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
       ThermalSphericParticle* particle = dynamic_cast<ThermalSphericParticle*>(mListOfSphericParticles[i]);
 
+      // Get search distance of current thermal models and set it to particle
       particle->ComputeAddedSearchDistance(r_model_part.GetProcessInfo(), added_search_distance);
       particle->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
     });
