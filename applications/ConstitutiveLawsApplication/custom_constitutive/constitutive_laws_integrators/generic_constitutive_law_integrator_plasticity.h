@@ -841,7 +841,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         } else {
             const double young_modulus = r_material_properties[YOUNG_MODULUS];
             const Vector& total_strain_vector = r_material_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
-            plastic_strain_vector = 1.0 / young_modulus * equivalent_stress_vector;
+            plastic_strain_vector = total_strain_vector - 1.0 / young_modulus * equivalent_stress_vector;
         }
         const double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         const double volumetric_fracture_energy = fracture_energy / CharacteristicLength;
