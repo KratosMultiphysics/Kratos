@@ -143,7 +143,44 @@ class ResponsesController:
             self.responses[response_name] = response
 
             self.responses_type[response_name] = response_type
+            
+        # here we do dependency checks
+        for itr1 in range(self.reponses_settings.size()):
+            response_settings1 = self.reponses_settings[itr1]
+            response_name1 = response_settings1["name"].GetString()            
+            response_type1 = response_settings1["type"].GetString()
+            response_analysis1 = None
+            if response_settings1["settings"].Has("analysis_name"):
+                response_analysis1 = response_settings1["settings"]["analysis_name"].GetString()
+            evaluated_objects1 = response_settings1["settings"]["evaluated_objects"].GetStringArray()
+            controlled_objects1 = response_settings1["settings"]["controlled_objects"].GetStringArray() 
+            control_types1 = response_settings1["settings"]["control_types"].GetStringArray()
 
+            for itr2 in range(self.reponses_settings.size()):
+                if itr1 != itr2:
+                    response_settings2 = self.reponses_settings[itr2]
+                    response_name2 = response_settings2["name"].GetString()            
+                    response_type2 = response_settings2["type"].GetString()    
+                    response_analysis2 = None
+                    if response_settings2["settings"].Has("analysis_name"):
+                        response_analysis2 = response_settings2["settings"]["analysis_name"].GetString()                                    
+                    evaluated_objects2 = response_settings2["settings"]["evaluated_objects"].GetStringArray()
+                    controlled_objects2 = response_settings2["settings"]["controlled_objects"].GetStringArray() 
+                    control_types2 = response_settings2["settings"]["control_types"].GetStringArray()
+                    if response_name1 == response_name2:
+                        raise RuntimeError("ResponsesController: Response name {} is duplicated.".format(response_name1))
+                    if response_type1 == response_type2 and response_analysis1 == response_analysis2:
+                        overlap_evaluated_objects =  list(set(evaluated_objects1) & set(evaluated_objects2))
+                        if len(overlap_evaluated_objects)>0:
+                            overlap_controlled_objects =  list(set(controlled_objects1) & set(controlled_objects2))
+                            if len(overlap_controlled_objects)>0:
+                                for control_obj in overlap_controlled_objects:
+                                    index_1 = controlled_objects1.index(control_obj)
+                                    index_2 = controlled_objects2.index(control_obj)
+                                    type_1 = control_types1[index_1]
+                                    type_2 = control_types2[index_2]
+                                    if type_1 == type_2:
+                                        raise RuntimeError("ResponsesController: found dependencies between Response {} and Response {}".format(response_name1,response_name2))
 
 
     # --------------------------------------------------------------------------
@@ -250,22 +287,32 @@ class ResponsesController:
         for response_name in responses_name:
             analyses_list.append(self.responses_analyses[response_name])
         
-        return analyses_list     
+        return list(set(analyses_list)) # here we remove duplicates     
     # --------------------------------------------------------------------------
-    def GetResponses(self,control_types,controlled_objects):
+    def GetResponsesForControl(self,control_type,controlled_objects):
+   
 
-        if type(control_types) is not list:
-            raise RuntimeError("ResponsesController:GetResponse requires list of control types") 
         if type(controlled_objects) is not list:
-            raise RuntimeError("ResponsesController:GetResponse requires list of controlled objects")    
+            raise RuntimeError("ResponsesController:GetResponsesForControl requires a control type and list of controlled objects")  
 
-        found_responses = []
-        for response_name,response_controlled_objects in self.responses_controlled_objects.items():
-            response_control_type = self.responses_control_types[response_name]
-            if set(controlled_objects) <= set(response_controlled_objects) and set(control_types)<=set(response_control_type):
-                found_responses.append(response_name)
+        response_dict = {}
+        for response_name in self.responses_controlled_objects.keys():
+            response_control_types = self.responses_control_types[response_name]
+            response_controlled_objects = self.responses_controlled_objects[response_name]
+            overlap_objects =  list(set(controlled_objects) & set(response_controlled_objects))
+            if len(overlap_objects)>0:
+                for object in overlap_objects:
+                    index = response_controlled_objects.index(object)
+                    object_control_type = response_control_types[index]
+                    if object_control_type == control_type:
+                        if response_name in response_dict.keys():
+                            response_dict[response_name].append(object)
+                        else:
+                            response_dict[response_name] = [object]
 
-        return found_responses
+
+        return response_dict
+
 
     # --------------------------------------------------------------------------
     def CalculateResponseGradientsForTypeAndObjects(self,response_name,control_type,controlled_objects,raise_error=True):

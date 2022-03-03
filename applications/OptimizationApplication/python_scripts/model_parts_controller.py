@@ -102,10 +102,11 @@ class ModelPartsController:
             return self.model.GetModelPart(model_part_name)
     # --------------------------------------------------------------------------
     def GetRootModelPart(self, root_model_part_name):
-        if not root_model_part_name in self.name_root_model_part_map.keys():
+        extracted_root_model_part_name = root_model_part_name.split(".")[0]
+        if not extracted_root_model_part_name in self.name_root_model_part_map.keys():
             raise RuntimeError("ModelPartsController: Try to get root model part {} which does not exist.".format(root_model_part_name))
         else:
-            return self.name_root_model_part_map[root_model_part_name]
+            return self.name_root_model_part_map[extracted_root_model_part_name]
     # --------------------------------------------------------------------------
     def GetRootModelParts(self, root_model_parts_name):
         if type(root_model_parts_name) is not list:

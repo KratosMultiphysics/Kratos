@@ -62,6 +62,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.responses_controller.CalculateResponsesValue(self.objectives)
 
+            for control,responses_model_parts_dict in self.controls_responses_model_parts.items():
+                control_type = self.controls_type[control]
+                for response,model_parts in responses_model_parts_dict.items():
+                    self.responses_controller.CalculateResponseGradientsForTypeAndObjects(response,control_type,model_parts,False)
+                
+
+
             for control,reponses in self.controls_reponses.items():
                 control_type = self.controls_types[control]
                 control_variable_name =  self.supported_control_types_variables_name[control_type]
@@ -92,23 +99,5 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         pass
         # self.data_logger.FinalizeDataLogging()
         # self.analyzer.FinalizeAfterOptimizationLoop()
-
-    # --------------------------------------------------------------------------
-    def GetResponseTypeGradientVariablesName(self,response_type,control_type): 
-        gradient_name = "D_"
-        gradient_mapped_name = "D_"
-        if response_type == "strain_energy":
-            gradient_name+="STRAIN_ENERGY"
-            gradient_mapped_name+="STRAIN_ENERGY"
-        else:
-            raise RuntimeError("AlgorithmSteepestDescent::GetResponseTypeGradientVariablesName response type {} is not implemented".format(response_type))
-        
-        if control_type == "shape":
-            gradient_name+="_D_X"
-            gradient_mapped_name+="_D_CX"
-        else:
-            raise RuntimeError("AlgorithmSteepestDescent::GetResponseTypeGradientVariablesName control type {} is not implemented".format(control_type))
-        
-        return gradient_name, gradient_mapped_name
 
 # ==============================================================================
