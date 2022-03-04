@@ -26,6 +26,7 @@
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
 #include "custom_python/add_custom_controls_to_python.h"
+#include "custom_python/add_custom_optimization_algorithm_to_python.h"
 
 // ==============================================================================
 
@@ -43,6 +44,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
         ;
 
     AddCustomControlsToPython(m);
+    AddCustomOptimizationAlgorithmToPython(m);
 
     //registering variables in python
 

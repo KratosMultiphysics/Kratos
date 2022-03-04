@@ -38,12 +38,15 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.algorithm_settings = self.opt_settings["algorithm_settings"]
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
 
+        self.opt_algorithm = KOA.AlgorithmSteepestDescent(self.name,self.model,self.opt_parameters)
+
         Logger.PrintInfo("::[AlgorithmSteepestDescent]:: ", "Construction finished")
 
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        super().InitializeOptimizationLoop() 
+        super().InitializeOptimizationLoop()
+        self.opt_algorithm.Initialize()
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
 

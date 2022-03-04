@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef ALGORITHM_BASE_H
-#define ALGORITHM_BASE_H
+#ifndef STEEPEST_DESCENT_H
+#define STEEPEST_DESCENT_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -24,35 +24,36 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
+#include "algorithm_base.h"
 
 // ==============================================================================
 
 namespace Kratos
 {
 
-class OptimizationAlgorithm
+class KRATOS_API(OPTIMIZATION_APPLICATION) AlgorithmSteepestDescent : public OptimizationAlgorithm
 {
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(OptimizationAlgorithm);
+    KRATOS_CLASS_POINTER_DEFINITION(AlgorithmSteepestDescent);
 
-    OptimizationAlgorithm(std::string OptName, std::string OptType, Model& rModel, Parameters& OptSettings)
-    : mOptName(OptName), mOptType(OptType), mrModel(rModel), mrSettings(OptSettings)
+    AlgorithmSteepestDescent(std::string OptName, Model& rModel, Parameters& rOptSettings)
+    : OptimizationAlgorithm(OptName,"steepest_desceent",rModel,rOptSettings)
     {
     }
 
-    virtual ~OptimizationAlgorithm() {};
+    virtual ~AlgorithmSteepestDescent() {};
 
     // --------------------------------------------------------------------------
-    virtual void Initialize(){};
+    void Initialize() override {
 
-    std::string mOptName;
-    std::string mOptType;
-    Model& mrModel;
-    Parameters& mrSettings;
+        std::cout<<"Hi rEza you called me "<<std::endl;
+        std::cout<<mrSettings<<std::endl;
+    };
+
 
 }; // Class OptimizationAlgorithm
 
 }  // namespace Kratos.
 
-#endif // ALGORITHM_BASE_H
+#endif // STEEPEST_DESCENT_H
