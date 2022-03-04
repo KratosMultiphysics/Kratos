@@ -435,22 +435,26 @@ class PFEM2Solver:
 
         full_reset=True;
         bfecc_utility.ResetBoundaryConditions(self.model_part,full_reset)
-        bfecc_utility.CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
+        #bfecc_utility.CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
         print("first BFECC END")
         
         for node in self.model_part.Nodes:        
-         node.SetSolutionStepValue(VELOCITY_X,0,-(node.Y)*cos(self.time))
-         node.SetSolutionStepValue(VELOCITY_Y,0,node.X*cos(self.time))
-         node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
- 		#if (node.X) < (-0.4999999) or (node.X) > (1.4999999) or (node.Y) < (-0.4999999) or (node.Y) > (1.4999999):
-  		#	node.SetSolutionStepValue(VELOCITY_X,0,-node.Y)
-  		#	node.SetSolutionStepValue(VELOCITY_Y,0,node.X)
+         #node.SetSolutionStepValue(VELOCITY_X,0,-(node.Y)*cos(self.time))
+         #node.SetSolutionStepValue(VELOCITY_Y,0,node.X*cos(self.time))
+         #node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
+         node.SetSolutionStepValue(ACCELERATION_AUX_X,0,node.Y*sin(self.time)-node.X*cos(self.time)*cos(self.time))
+         node.SetSolutionStepValue(ACCELERATION_AUX_Y,0,node.X*sin(self.time)-node.Y*cos(self.time)*cos(self.time))
+         node.SetSolutionStepValue(ACCELERATION_AUX_Z,0,0.0)
+         if (node.X) < (-0.4999999) or (node.X) > (1.4999999) or (node.Y) < (-0.4999999) or (node.Y) > (1.4999999):
+          node.SetSolutionStepValue(VELOCITY_X,0,-(node.Y)*cos(self.time))
+          node.SetSolutionStepValue(VELOCITY_Y,0,node.X*cos(self.time))
+          node.SetSolutionStepValue(VELOCITY_Z,0,0.0)
   		#	node.SetSolutionStepValue(SCALARPROJECTEDVEL_X,0,-node.Y)
   		#	node.SetSolutionStepValue(SCALARPROJECTEDVEL_Y,0,node.X)
 
 
         #bfecc_utility.CalculateAccelerationOnTheMeshFirstOrder(self.model_part)
-        bfecc_utility.CalculateAccelerationOnTheMeshSecondOrder(self.model_part)
+        #bfecc_utility.CalculateAccelerationOnTheMeshSecondOrder(self.model_part)
         
         #for node in self.model_part.Nodes:        
         # if (node.X)**2 + (node.Y)**2 < (0.5+0.00001)**2:
