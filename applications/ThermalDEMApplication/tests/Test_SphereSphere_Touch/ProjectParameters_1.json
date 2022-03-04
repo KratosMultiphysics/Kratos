@@ -34,7 +34,7 @@
 		"compute_radiation"              : true,
 		"compute_friction_heat"          : true,
 		"compute_adjusted_contact"       : true,
-		"direct_conduction_model"        : "batchelor_obrien",
+		"direct_conduction_model"        : "batchelor_obrien_simple",
 		"indirect_conduction_model"      : "surrounding_layer",
 		"nusselt_correlation"            : "sphere_hanz_marshall",
 		"radiation_model"                : "continuum_zhou",

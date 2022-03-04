@@ -9,6 +9,8 @@ This application is an extension of the [DEM Application](https://github.com/Kra
 
 Theoretical information on thermal DEM analysis can be found [here](./ThermalDEMTheory.pdf).
 
+A [Matlab version](https://gitlab.com/rafaelrangel/demlab) of this application is also available.
+
 ## Authorship
 
 - **Rafael Rangel** - (<rrangel@cimne.upc.edu>)
@@ -55,6 +57,7 @@ Add **thermal settings** with desired options:
 		"thermal_solve_frequency"        : 1,
 		"voronoi_tesselation_frequency"  : 1000,
 		"porosity_update_frequency"      : 1000,
+		"automatic_solve_frequency"      : true or false,
 		"compute_motion"                 : true or false,
 		"compute_direct_conduction"      : true or false,
 		"compute_indirect_conduction"    : true or false,
@@ -62,7 +65,7 @@ Add **thermal settings** with desired options:
 		"compute_radiation"              : true or false,
 		"compute_friction_heat"          : true or false,
 		"compute_adjusted_contact"       : true or false,
-		"direct_conduction_model"        : "batchelor_obrien" or "thermal_pipe" or "collisional",
+		"direct_conduction_model"        : "batchelor_obrien_simple" or "batchelor_obrien_complete" or "batchelor_obrien_modified" or "thermal_pipe" or "collisional",
 		"indirect_conduction_model"      : "surrounding_layer" or "voronoi_a" or "voronoi_b" or "vargas_mccarthy",
 		"nusselt_correlation"            : "sphere_hanz_marshall" or "sphere_whitaker" or "sphere_gunn" or "sphere_li_mason",
 		"radiation_model"                : "continuum_zhou" or "continuum_krause",
@@ -72,6 +75,7 @@ Add **thermal settings** with desired options:
 		"porosity_method"                : "global" or "average_convex_hull" or "average_alpha_shape",
 		"min_conduction_distance"        : 0.0000000275,
 		"max_conduction_distance"        : 1.0,
+		"conduction_radius"              : 1.0,
 		"fluid_layer_thickness"          : 0.4,
 		"isothermal_core_radius"         : 0.5,
 		"max_radiation_distance"         : 2.0,
@@ -191,6 +195,10 @@ Add **SubModelPartData** to sub model parts with desired options:
 - *"porosity_update_frequency"*:\
   Number of steps in which porosity is computed, in case it is required.\
   Default: 1000
+
+- *"automatic_solve_frequency"*:\
+  Boolean for automatically setting the thermal solve frequency based on the maximum allowed time step (it overrides the value set for thermal_solve_frequency).\
+  Default: false
   
 - *"compute_motion"*:\
   Boolean for solving mechanical problem.\
@@ -222,7 +230,7 @@ Add **SubModelPartData** to sub model parts with desired options:
 
 - *"direct_conduction_model"*:\
   Selected model for simulating heat transfer by direct conduction.\
-  Default: "batchelor_obrien"
+  Default: "batchelor_obrien_simple"
 
 - *"indirect_conduction_model"*:\
   Selected model for simulating heat transfer by indirect conduction.\
@@ -257,19 +265,23 @@ Add **SubModelPartData** to sub model parts with desired options:
   Default: 0.0000000275
 
 - *"max_conduction_distance"*:\
-  Maximum distance for heat conduction (ratio of particle radius) required for indirect conduction model "voronoi_a" and "voronoi_b".\
+  Maximum distance for heat conduction (ratio of particles radii) required for conduction model "batchelor_obrien_complete", "batchelor_obrien_modified", "voronoi_a" and "voronoi_b".\
   Default: 1.0
 
+- *"conduction_radius"*:\
+  Radius of cylindrical conductive region (ratio of particles radii) required for conduction model "batchelor_obrien_complete" and "batchelor_obrien_modified".\
+  Default: 1.0
+  
 - *"fluid_layer_thickness"*:\
-  Thickness of particle fluid layer (ratio of particle radius) required for indirect conduction model "surrounding_layer".\
+  Thickness of particle fluid layer (ratio of particles radii) required for conduction model "surrounding_layer".\
   Default: 0.4
 
 - *"isothermal_core_radius"*:\
-  Radius of particle isothermal core (ratio of particle radius) required for indirect conduction model "voronoi_b".\
+  Radius of particle isothermal core (ratio of particles radii) required for conduction model "voronoi_b".\
   Default: 0.5
 
 - *"max_radiation_distance"*:\
-  Maximum distance for heat radiation (ratio of particle radius) required by all radiation models.\
+  Maximum distance for heat radiation (ratio of particles radii) required for all radiation models.\
   Default: 2.0
 
 - *"friction_heat_conversion_ratio"*:\
