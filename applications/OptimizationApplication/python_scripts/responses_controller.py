@@ -342,6 +342,21 @@ class ResponsesController:
             if response_name not in self.responses.keys():
                 raise RuntimeError("ResponsesController:GetResponseVariableName: response {} does not exist".format(response_name))           
         return self.responses[response_name].GetVariableName()
+
+    # --------------------------------------------------------------------------
+    def GetResponseControlledObjects(self, response_name, raise_error=True): 
+        if raise_error:
+            if response_name not in self.responses.keys():
+                raise RuntimeError("ResponsesController:GetResponseControlledObjects: response {} does not exist".format(response_name)) 
+
+        return self.responses_controlled_objects[response_name]
+    # --------------------------------------------------------------------------
+    def GetResponseControlTypes(self, response_name, raise_error=True): 
+        if raise_error:
+            if response_name not in self.responses.keys():
+                raise RuntimeError("ResponsesController:GetResponseControlTypes: response {} does not exist".format(response_name)) 
+
+        return self.responses_control_types[response_name]
     # --------------------------------------------------------------------------
     def GetResponseGradientsVariablesName(self, response_name, raise_error=True): 
         if raise_error:

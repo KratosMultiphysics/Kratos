@@ -10,6 +10,7 @@
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 
 class ExplicitVertexMorphing():
@@ -20,7 +21,16 @@ class ExplicitVertexMorphing():
         self.model = model
         self.settings = settings
         self.technique_settings = self.settings["technique_settings"]
-        self.controlling_objects = self.settings["controlling_objects"].GetStringArray()        
+        self.controlling_objects = self.settings["controlling_objects"].GetStringArray() 
+
+        # add vars
+        for model_part_name in self.controlling_objects:
+            root_model = model_part_name.split(".")[0]
+            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.SHAPE_CONTROL)
+            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.SHAPE_CONTROL_UPDATE)
+            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.SHAPE_UPDATE)
+
+
 
     def Initialize(self):
         self.ex_vm_mapper = {}
@@ -32,8 +42,7 @@ class ExplicitVertexMorphing():
             self.ex_vm_mapper[model_part_name] = ex_mapper
 
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
-        pass
-        # for mapper in self.ex_vm_mapper.values():
-        #     mapper.InverseMap(mapped_derivative_variable_name,derivative_variable_name)
+        for mapper in self.ex_vm_mapper.values():
+            mapper.InverseMap(derivative_variable_name,mapped_derivative_variable_name)
 
 

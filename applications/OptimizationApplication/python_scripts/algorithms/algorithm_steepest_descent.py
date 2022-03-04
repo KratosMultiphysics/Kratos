@@ -82,6 +82,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                     response_variable_name = responses_variable_names[i]
                     reponse_gradient_variable_name = responses_gradient_variable_names[i]
                     response_control_gradient_variable_name = "D_"+response_variable_name+"_D_"+control_variable_name
+                    print("control : ",control,", reponse_gradient_variable_name : ",reponse_gradient_variable_name,", response_control_gradient_variable_name : ",response_control_gradient_variable_name)
                     self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(reponse_gradient_variable_name), KM.KratosGlobals.GetVariable(response_control_gradient_variable_name), False)
             
 
