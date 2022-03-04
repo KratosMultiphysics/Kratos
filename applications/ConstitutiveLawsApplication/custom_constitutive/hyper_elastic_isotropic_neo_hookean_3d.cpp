@@ -98,13 +98,12 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
-    double aux_det;
     Matrix C_tensor(dimension, dimension), inverse_C_tensor(dimension, dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateGreenLagrangianStrain(rValues, strain_vector);
         Matrix strain_tensor(dimension, dimension);
-        noalias(strain_tensor) = MathUtils<double> StrainVectorToTensor(strain_vector);
+        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
         noalias(C_tensor) = 2.0 * strain_tensor + IdentityMatrix(dimension);
     } else {
         noalias(C_tensor) = prod(trans(deformation_gradient_f), deformation_gradient_f);
