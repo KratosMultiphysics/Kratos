@@ -164,86 +164,9 @@ public:
         DofSetType dof_global_set;
         dof_global_set.reserve(number_of_elements * 20);
 
-        if (mHromWeightsInitialized == false){
-            int number_of_hrom_entities = 0;
-            #pragma omp parallel firstprivate(dof_list, second_dof_list) reduction(+:number_of_hrom_entities)
-            {
-                // We create the temporal set and we reserve some space on them
-                DofSetType dofs_tmp_set;
-                dofs_tmp_set.reserve(20000);
-
-                // Loop the array of elements
-                ElementsArrayType selected_elements_private;
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i = 0; i < number_of_elements; ++i) {
-                    auto it_elem = r_elements_array.begin() + i;
-
-                    // Detect whether the element has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
-                    if ((it_elem)->Has(HROM_WEIGHT)){
-                        selected_elements_private.push_back(*it_elem.base());
-                        number_of_hrom_entities++;
-                    } else {
-                        it_elem->SetValue(HROM_WEIGHT, 1.0);
-                    }
-
-                    // Gets list of DOF involved on every element
-                    pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
-                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                }
-
-                // Loop the array of conditions
-                ConditionsArrayType selected_conditions_private;
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i = 0; i < number_of_conditions; ++i) {
-                    auto it_cond = r_conditions_array.begin() + i;
-
-                    // Detect whether the condition has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
-                    // Note that those conditions used for displaying results are to be ignored as they will not be assembled
-                    if (it_cond->Has(HROM_WEIGHT)){
-                        selected_conditions_private.push_back(*it_cond.base());
-                        number_of_hrom_entities++;
-                    } else {
-                        it_cond->SetValue(HROM_WEIGHT, 1.0);
-                    }
-
-                    // Gets list of DOF involved on every condition
-                    pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
-                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                }
-
-                // Loop the array of constraints
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i = 0; i < number_of_constraints; ++i) {
-                    auto it_const = r_constraints_array.begin() + i;
-
-                    // Gets list of Dof involved on every constraint
-                    it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                    dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
-                }
-
-                #pragma omp critical
-                {
-                    // Collect the elements and conditions belonging to the H-ROM mesh
-                    // These are those that feature a weight and are to be assembled
-                    for (auto &r_cond : selected_conditions_private){
-                        mSelectedConditions.push_back(&r_cond);
-                    }
-                    for (auto &r_elem : selected_elements_private){
-                        mSelectedElements.push_back(&r_elem);
-                    }
-
-                    // We merge all the sets in one thread
-                    dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
-                }
-            }
-
-            // Update H-ROM flags
-            if (number_of_hrom_entities) {
-                mHromSimulation = true;
-            }
-            mHromWeightsInitialized = true;
-
+        if (mHromWeightsInitialized == false)
+        {
+            InitializeHROMWeights(pScheme, rModelPart, dof_global_set);
         } else {
             #pragma omp parallel firstprivate(dof_list, second_dof_list)
             {
@@ -252,7 +175,7 @@ public:
                 dofs_tmp_set.reserve(20000);
 
                 // Loop the array of elements
-                ElementsArrayType selected_elements_private;
+                ElementsArrayType selected_elements;
                 #pragma omp for schedule(guided, 512) nowait
                 for (int i = 0; i < number_of_elements; ++i) {
                     auto it_elem = r_elements_array.begin() + i;
@@ -663,6 +586,87 @@ protected:
                 KRATOS_ERROR << "Variable \""<< r_var_name << "\" not valid" << std::endl;
             }
         }
+    }
+
+    void InitializeHROMWeights(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        DofSetType& rDofGlobalSet)
+    {
+        DofsVectorType dof_list;
+        DofsVectorType second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
+
+        #pragma omp parallel firstprivate(dof_list, second_dof_list)
+        {
+            // We create the temporal et and we reserve some space on them
+            DofSetType dofs_tmp_set;
+            dofs_tmp_set.reserve(20000);
+
+            // Loop the array of elements
+            ElementsArrayType selected_elements;
+            #pragma omp for schedule(guided, 512) nowait
+            for (Element::Pointer p_element: rModelPart.Elements().GetContainer()) {
+
+                // Detect whether the element has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
+                if (p_element->Has(HROM_WEIGHT)){
+                    selected_elements.push_back(p_element);
+                    mHromSimulation = true;
+                } else {
+                    p_element->SetValue(HROM_WEIGHT, 1.0);
+                }
+
+                // Gets list of DOF involved on every element
+                pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+            }
+
+            // Loop the array of conditions
+            ConditionsArrayType selected_conditions_private;
+            #pragma omp for schedule(guided, 512) nowait
+            for (Condition::Pointer p_condition: rModelPart.Conditions().GetContainer()) {
+
+                // Detect whether the condition has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
+                // Note that those conditions used for displaying results are to be ignored as they will not be assembled
+                if (p_condition->Has(HROM_WEIGHT)){
+                    selected_conditions_private.push_back(p_condition);
+                    mHromSimulation = true;
+                } else {
+                    p_condition->SetValue(HROM_WEIGHT, 1.0);
+                }
+
+                // Gets list of DOF involved on every condition
+                pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+            }
+
+            // Loop the array of constraints
+            #pragma omp for schedule(guided, 512) nowait
+            for (auto& r_constraint: rModelPart.MasterSlaveConstraints()) {
+
+                // Gets list of Dof involved on every constraint
+                r_constraint.GetDofList(dof_list, second_dof_list, rModelPart.GetProcessInfo());
+
+                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
+                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+            }
+
+            #pragma omp critical
+            {
+                // Collect the elements and conditions belonging to the H-ROM mesh
+                // These are those that feature a weight and are to be assembled
+                for (auto &r_cond : selected_conditions_private){
+                    mSelectedConditions.push_back(&r_cond);
+                }
+                for (auto &r_elem : selected_elements){
+                    mSelectedElements.push_back(&r_elem);
+                }
+
+                // We merge all the sets in one thread
+                rDofGlobalSet.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+            }
+        }
+
+        mHromWeightsInitialized = true;
     }
 
     ///@}
