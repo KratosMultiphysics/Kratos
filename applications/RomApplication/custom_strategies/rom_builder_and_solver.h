@@ -312,12 +312,14 @@ public:
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
-        if (BaseType::GetCalculateReactionsFlag()) {
-            for (auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator) {
-                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction())
-                    << "Reaction variable not set for the following : " << std::endl
-                    << "Node : " << dof_iterator->Id() << std::endl
-                    << "Dof : " << (*dof_iterator) << std::endl
+        if (BaseType::GetCalculateReactionsFlag())
+        {
+            for (const auto& r_dof: BaseType::mDofSet)
+            {
+                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
+                    << "Reaction variable not set for the following :\n"
+                    << "Node : " << r_dof.Id() << '\n'
+                    << "Dof  : " << r_dof      << '\n'
                     << "Not possible to calculate reactions." << std::endl;
             }
         }
