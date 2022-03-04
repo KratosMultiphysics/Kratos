@@ -97,7 +97,9 @@ class OptimizationAlgorithm:
         self.controls_responses={}
         self.controls_response_var_names = {}
         self.controls_response_gradient_names = {}
+        self.controls_response_control_gradient_names = {}
         self.supported_control_types_variables_name = self.controls_controller.GetSupportedControlTypesVariablesName()
+        self.root_model_part_data_field_names = {}
         for response in self.responses:
             response_type = self.responses_controller.GetResponseType(response)
             response_controlled_objects = self.responses_controller.GetResponseControlledObjects(response)
@@ -128,58 +130,53 @@ class OptimizationAlgorithm:
                             else:
                                 self.responses_controls[response]=[control]
 
+                            response_control_gradient_field = "D_"+response_variable_name+"_D_"+control_variable_name
+                            control_controlling_root_model_part = self.model_parts_controller.GetRootModelPart(control_controlling_object)
+                            extracted_root_model_part_name = control_controlling_object.split(".")[0]
+                            
+                            if extracted_root_model_part_name in self.root_model_part_data_field_names.keys():
+                                if not response_control_gradient_field in self.root_model_part_data_field_names[extracted_root_model_part_name]:
+                                    self.root_model_part_data_field_names[extracted_root_model_part_name].append(response_control_gradient_field)
+                                    self.root_model_part_data_field_names[extracted_root_model_part_name].append(response_gradient_name)
+                            else:
+                                self.root_model_part_data_field_names[extracted_root_model_part_name] = [response_control_gradient_field,response_gradient_name]
+                                control_controlling_root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(response_control_gradient_field))
+
                             if control in self.controls_responses.keys():
                                 if not response in self.controls_responses[control]:
                                     self.controls_responses[control].append(response)
                                     self.controls_response_var_names[control].append(response_variable_name)
                                     self.controls_response_gradient_names[control].append(response_gradient_name)
+                                    self.controls_response_control_gradient_names[control].append(response_control_gradient_field)                                   
                             else:
                                 self.controls_responses[control] = [response]
                                 self.controls_response_var_names[control] = [response_variable_name]
                                 self.controls_response_gradient_names[control]= [response_gradient_name]
-
-
-
-
+                                self.controls_response_control_gradient_names[control] = [response_control_gradient_field]                            
 
         Logger.PrintInfo("::[OptimizationAlgorithm]:: ", "Variables ADDED")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop( self ):
 
-        # create vtkIO for every controlled object
-        self.controlling_model_parts = list(set(self.controlling_model_parts)) # remove dependencies
-        self.controlling_model_parts_vtkIOs = {}
-        for controlling_model_part in self.controlling_model_parts:
+        # create vtkIOs
+        self.root_model_parts_vtkIOs = {}
+        for root_model_part,data_fields in self.root_model_part_data_field_names.items():
             vtk_parameters = Parameters()
-            root_controlling_model_part = self.model_parts_controller.GetRootModelPart(controlling_model_part)
+            root_controlling_model_part = self.model_parts_controller.GetRootModelPart(root_model_part)
             vtk_parameters.AddString("model_part_name",root_controlling_model_part.Name)
             vtk_parameters.AddBool("write_ids",False)
             vtk_parameters.AddString("file_format","ascii")
             vtk_parameters.AddBool("output_sub_model_parts",False)
             vtk_parameters.AddString("output_path","Optimization_Results")
-            nodal_results = []
-            for control,responses_model_parts_dict in self.controls_responses_model_parts.items():
-                control_type = self.controls_type[control]
-                control_variable_name =  self.supported_control_types_variables_name[control_type]
-                for response,model_parts in responses_model_parts_dict.items():
-                    reponse_gradient_variable_name = self.responses_controller.GetResponseGradientVariableNameForType(response,control_type,False)
-                    response_variable_name = self.responses_controller.GetResponseVariableName(response)
-                    response_control_gradient_variable_name = "D_"+response_variable_name+"_D_"+control_variable_name
-                    
-                    if controlling_model_part in model_parts:
-                        nodal_results.append(reponse_gradient_variable_name)
-                        nodal_results.append(response_control_gradient_variable_name)
-
-            nodal_results = list(set(nodal_results))
             vtk_parameters.AddEmptyArray("nodal_solution_step_data_variables")
-            for nodal_result in nodal_results:
+            for nodal_result in data_fields:
                 vtk_parameters["nodal_solution_step_data_variables"].Append(nodal_result)
             
             controlling_model_part_vtkIO = VtkOutputProcess(self.model, vtk_parameters)
             controlling_model_part_vtkIO.ExecuteInitialize()
             controlling_model_part_vtkIO.ExecuteBeforeSolutionLoop()
-            self.controlling_model_parts_vtkIOs[controlling_model_part] = controlling_model_part_vtkIO
+            self.root_model_parts_vtkIOs[root_model_part] = controlling_model_part_vtkIO
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
@@ -187,7 +184,7 @@ class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop( self ):
-        for vtkIO in self.controlling_model_parts_vtkIOs.values():
+        for vtkIO in self.root_model_parts_vtkIOs.values():
             vtkIO.ExecuteFinalize()     
 
 # ==============================================================================

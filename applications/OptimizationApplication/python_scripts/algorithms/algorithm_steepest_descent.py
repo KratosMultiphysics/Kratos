@@ -62,32 +62,19 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.responses_controller.CalculateResponsesValue(self.objectives)
 
-            for control,responses_model_parts_dict in self.controls_responses_model_parts.items():
-                control_type = self.controls_type[control]
-                control_variable_name =  self.supported_control_types_variables_name[control_type]
-                responses_variable_names = []
-                responses_gradient_variable_names = []
-                for response,model_parts in responses_model_parts_dict.items():
-                    self.responses_controller.CalculateResponseGradientsForTypeAndObjects(response,control_type,model_parts,False)
-                    reponse_gradient_variable_name = self.responses_controller.GetResponseGradientVariableNameForType(response,control_type,False)
-                    response_variable_name = self.responses_controller.GetResponseVariableName(response)
-                    responses_variable_names.append(response_variable_name)
-                    responses_gradient_variable_names.append(reponse_gradient_variable_name)
-                
-                responses_variable_names = list(set(responses_variable_names))
-                responses_gradient_variable_names = list(set(responses_gradient_variable_names))
-                if not len(responses_variable_names) == len(responses_gradient_variable_names):
-                    raise RuntimeError("AlgorithmSteepestDescent:RunOptimizationLoop: something went wrong !")
-                for i in range(len(responses_variable_names)):
-                    response_variable_name = responses_variable_names[i]
-                    reponse_gradient_variable_name = responses_gradient_variable_names[i]
-                    response_control_gradient_variable_name = "D_"+response_variable_name+"_D_"+control_variable_name
-                    print("control : ",control,", reponse_gradient_variable_name : ",reponse_gradient_variable_name,", response_control_gradient_variable_name : ",response_control_gradient_variable_name)
-                    self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(reponse_gradient_variable_name), KM.KratosGlobals.GetVariable(response_control_gradient_variable_name), False)
+            # calculate gradients
+            for response in self.responses_controlled_objects.keys():
+                self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
+
+            # calculate control gradients
+            for control in self.controls_response_gradient_names.keys():
+                for itr in range(len(self.controls_response_gradient_names[control])):
+                    self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
+
             
 
             # now output 
-            for control_model_part,vtkIO in self.controlling_model_parts_vtkIOs.items():
+            for control_model_part,vtkIO in self.root_model_parts_vtkIOs.items():
                 root_control_model_part = self.model_parts_controller.GetRootModelPart(control_model_part)
                 OriginalTime = root_control_model_part.ProcessInfo[KM.TIME]
                 root_control_model_part.ProcessInfo[KM.TIME] = self.optimization_iteration

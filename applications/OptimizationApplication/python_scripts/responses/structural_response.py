@@ -88,15 +88,16 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         self.response_function_utility.CalculateGradient()
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
-    def CalculateGradientsForTypeAndObjects(self,control_type,controlled_objects,raise_error=True):
+    def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
 
         if raise_error:
-            if not control_type in self.control_types:
-                raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypeAndObjects: control type ",control_type," is not supported ")
-            if not set(controlled_objects) <=set(self.controlled_model_parts):
-                raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypeAndObjects: controlled_objects ",controlled_objects," do not belong to response ",self.name)
+            for itr in range(len(controlled_objects)):
+                controlled_object = controlled_objects[itr]
+                controlled_object_index = self.controlled_model_parts.index(controlled_object)
+                if not control_types[itr] == self.control_types[controlled_object_index]:
+                    raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
 
-        Logger.PrintInfo("StrainEnergyResponse", "Starting ",control_type," gradient calculation of response ", self.name," for ",controlled_objects)
+        Logger.PrintInfo("StrainEnergyResponse", "Starting shape gradient calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
         # copy values from SHAPE_SENSITIVITY to D_STRAIN_ENERGY_D_X

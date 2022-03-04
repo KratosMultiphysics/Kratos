@@ -315,20 +315,24 @@ class ResponsesController:
 
 
     # --------------------------------------------------------------------------
-    def CalculateResponseGradientsForTypeAndObjects(self,response_name,control_type,controlled_objects,raise_error=True):
+    def CalculateResponseGradientsForTypesAndObjects(self,response_name,control_types,controlled_objects,raise_error=True):
 
         if type(controlled_objects) is not list:
-            raise RuntimeError("ResponsesController:GetResponse requires list of controlled objects")   
+            raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypesAndObjects requires list of controlled objects") 
+
+        if type(control_types) is not list:
+            raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypesAndObjects requires list of control types")
+
+        if len(control_types) != len(controlled_objects):
+            raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypesAndObjects control types and control object lists should have the same size !")
 
         if raise_error:
             if response_name not in self.responses.keys():
-                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not exist".format(response_name))
-            if control_type not in self.responses_control_types[response_name]:
-                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not have control type {}".format(response_name,control_type))   
+                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypesAndObjects: response {} does not exist".format(response_name))
             if not set(controlled_objects) <= set(self.responses_controlled_objects[response_name]):
-                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypeAndObjects: response {} does not have controlled objects {}".format(response_name,controlled_objects))   
+                raise RuntimeError("ResponsesController:CalculateResponseGradientsForTypesAndObjects: response {} does not have controlled objects {}".format(response_name,controlled_objects))   
 
-        self.responses[response_name].CalculateGradientsForTypeAndObjects(control_type,controlled_objects,raise_error)
+        self.responses[response_name].CalculateGradientsForTypesAndObjects(control_types,controlled_objects,raise_error)
     # --------------------------------------------------------------------------
     def GetResponseType(self,response_name,raise_error=True): 
         if raise_error:
