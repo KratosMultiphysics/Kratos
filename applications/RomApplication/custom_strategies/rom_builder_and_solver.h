@@ -359,30 +359,17 @@ public:
 
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
-        ModelPart& rModelPart,
-        TSystemVectorType& rDx)
+        const ModelPart& rModelPart,
+        TSystemVectorType& rDx) const
     {
-        auto& r_dof_set = BaseType::GetDofSet();
-        const int dofs_number = r_dof_set.size();
-        const auto dofs_begin = r_dof_set.begin();
-
-        #pragma omp parallel firstprivate(dofs_begin, dofs_number)
+        const auto& r_dof_set = BaseType::mDofSet;
+        block_for_each(r_dof_set, [&](const DofType& r_dof)
         {
-            const Matrix *pcurrent_rom_nodal_basis = nullptr;
-            unsigned int old_dof_id;
-            #pragma omp for nowait
-            for (int k = 0; k < dofs_number; k++) {
-                auto dof = dofs_begin + k;
-                if (pcurrent_rom_nodal_basis == nullptr) {
-                    pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-                    old_dof_id = dof->Id();
-                } else if (dof->Id() != old_dof_id ) {
-                    pcurrent_rom_nodal_basis = &(rModelPart.pGetNode(dof->Id())->GetValue(ROM_BASIS));
-                    old_dof_id = dof->Id();
-                }
-                rDx[dof->EquationId()] = inner_prod(row(*pcurrent_rom_nodal_basis, mMapPhi[dof->GetVariable().Key()]), rRomUnkowns);
-            }
-        }
+            const NodeType& node = rModelPart.GetNode(r_dof.Id());
+            const Matrix& rom_nodal_basis = node.GetValue(ROM_BASIS);
+            const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
+            rDx[r_dof.EquationId()] = inner_prod(row(rom_nodal_basis, row_id), rRomUnkowns);
+        });
     }
 
     virtual void InitializeSolutionStep(
