@@ -17,18 +17,13 @@
 /* Project includes */
 #include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
-#include "includes/element.h"
 #include "includes/kratos_parameters.h"
-#include "containers/model.h"
-#include "includes/shared_pointers.h"
-#include "includes/ublas_interface.h"
 #include "testing/testing.h"
 #include "spaces/ublas_space.h"
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_strategies/rom_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "rom_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos {
