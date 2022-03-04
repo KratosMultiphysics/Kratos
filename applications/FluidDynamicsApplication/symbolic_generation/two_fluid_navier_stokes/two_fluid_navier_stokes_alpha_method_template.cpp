@@ -127,7 +127,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &vmeshn = rData.MeshVelocityOldStep;
     const double alpha_f=1/(1+rData.MaxSprectraRadius);
     const BoundedMatrix<double,3,2> vconv =(vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
-
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     // Get constitutive matrix
     const Matrix &C = rData.C;
 
@@ -166,7 +167,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vmeshn = rData.MeshVelocityOldStep;
-
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     const BoundedMatrix<double,4,3> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get constitutive matrix
@@ -213,7 +215,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p = rData.Pressure;
     const auto &stress = rData.ShearStress;
-
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get shape function values
@@ -226,7 +229,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     // Mass correction term
     const double volume_error_ratio = rData.VolumeError;
-
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     auto &rhs = rData.rhs;
 
     //substitute_rhs_2D
@@ -269,7 +273,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 
     // Mass correction term
     const double volume_error_ratio = rData.VolumeError;
-
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     auto &rhs = rData.rhs;
 
     //substitute_rhs_3D
@@ -303,7 +308,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
     const auto &f = rData.BodyForce;
     const auto &fn = rData.BodyForce_OldStep1;
     const auto &p=rData.Pressure;
-
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     const BoundedMatrix<double,3,2> vconv = (vn-vmeshn)+ alpha_f*((v-vmesh)-(vn-vmeshn));
 
     // Get shape function values
@@ -318,7 +324,8 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>:
 
     // Mass correction term
     const double volume_error_ratio = rData.VolumeError;
-
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
     auto &V = rData.V;
     auto &H = rData.H;
     auto &Kee = rData.Kee;
@@ -359,7 +366,6 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
     const double alpha_f=1/(1-max_spectral_radius);
 
     const double dyn_tau = rData.DynamicTau;
-
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
@@ -382,6 +388,9 @@ void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>:
 
     // Mass correction term
     const double volume_error_ratio = rData.VolumeError;
+    const double not_stabilization_cut_elements_momentum=rData.NotStabilizationCutElementsMomentum;
+    const double not_stabilization_cut_elements_mass=rData.NotStabilizationCutElementsMass;
+
 
     auto &V = rData.V;
     auto &H = rData.H;

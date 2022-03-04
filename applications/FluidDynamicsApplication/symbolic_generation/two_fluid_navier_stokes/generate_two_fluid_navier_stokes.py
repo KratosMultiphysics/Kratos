@@ -20,7 +20,7 @@ linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR
 divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
-time_integration="bdf2"
+time_integration="alpha_method"
 
 if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes.cpp"
@@ -96,6 +96,8 @@ for dim in dim_vector:
     stab_c1 = sympy.Symbol('stab_c1', positive = True)
     stab_c2 = sympy.Symbol('stab_c2', positive = True)
     volume_error_ratio = sympy.Symbol('volume_error_ratio')
+    not_stabilization_cut_elements_mass=sympy.Symbol('not_stabilization_cut_elements_mass')
+    not_stabilization_cut_elements_momentum=sympy.Symbol('not_stabilization_cut_elements_momentum')
 
     ## Convective velocity definition
     if (linearisation == "Picard"):
@@ -141,10 +143,13 @@ for dim in dim_vector:
         raise Exception(err_msg)
 
     if time_integration=="bdf2":
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)   # Stabilization parameter 1
+        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)
+        tau1 *= not_stabilization_cut_elements_momentum  # Stabilization parameter 1
     else:
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))  # Stabilization parameter 1
+        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))
+        tau1 *= not_stabilization_cut_elements_momentum  # Stabilization parameter 1
     tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1
+    tau2 *= not_stabilization_cut_elements_mass
 
     ## Data interpolation to the Gauss points
     p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes

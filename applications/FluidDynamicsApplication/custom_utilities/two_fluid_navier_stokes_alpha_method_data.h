@@ -75,6 +75,9 @@ double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double VolumeError; //TODO: RENAME TO VolumeErrorTimeRatio
+ double NotStabilizationCutElementsMass;
+double NotStabilizationCutElementsMomentum;
+
 double MaxSprectraRadius;
 
 // Auxiliary containers for the symbolically-generated matrices
@@ -164,9 +167,13 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
         this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
         // double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
+        NotStabilizationCutElementsMomentum=0.1 ;
+        NotStabilizationCutElementsMass=1.0;
         VolumeError /= -previous_dt;
     } else {
         VolumeError = 0.0;
+        NotStabilizationCutElementsMass=1.0;
+        NotStabilizationCutElementsMomentum=1.0;
     }
 
 }
