@@ -42,6 +42,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) //
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
+    .def("GetProjectedGlobalLHS", &RomResidualsUtility::GetProjectedGlobalLHS)//
     ;
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
@@ -50,6 +51,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
         .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
+        .def("GetAssembledResiduals", &RomAuxiliaryUtilities::GetAssembledResiduals)
         ;
 }
 

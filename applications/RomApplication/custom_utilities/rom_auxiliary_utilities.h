@@ -26,6 +26,10 @@
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include "solving_strategies/schemes/scheme.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
 // Application includes
 #include "rom_application_variables.h"
@@ -62,6 +66,16 @@ public:
         std::pair<bool, GeometryPointerType>,
         KeyHasherRange<std::vector<IndexType>>,
         KeyComparorRange<std::vector<IndexType>>>;
+
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
+    using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    // typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    // typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    
 
     ///@}
     ///@name Static Operations
@@ -144,7 +158,16 @@ public:
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
-    ///@}
+    /**
+     * @brief Write the assembled residuals for current iteration for a given rModelPart. (This is to be read by calculate_rom_residual_basis_ouput_process.py to build a Petrov-Galerkin ROM)
+     * @param rModelPart Model Part from which the assembled residuals will be obtained.
+     * @param pScheme Current scheme.
+     * @param systemSize Size of global system.
+     */
+    void GetAssembledResiduals(
+        ModelPart& rModelPart,
+        BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>::TSchemeType::Pointer pScheme,
+        const int systemSize);
 
     private:
 

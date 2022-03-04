@@ -408,13 +408,6 @@ public:
         TSystemVectorType &b) override
     {
         // Define a dense matrix to hold the reduced problem
-        // Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-        // Vector brom = ZeroVector(mNumberOfRomModes);
-        // if (mSolveWithQR){
-        //     Arom.resize(BaseType::GetEquationSystemSize(), mNumberOfRomModes);
-        //     brom.resize(BaseType::GetEquationSystemSize());
-        // }
-        
         Matrix Arom;
         Vector brom;
         if (mSolveWithQR){// QR POD
@@ -642,6 +635,13 @@ public:
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, Dx);
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+
+        // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
+        Kratos::Vector AssembledResiduals;
+        RomAuxiliaryUtilities RomAuxiliaryUtility;
+        if (mSolveWithQR){
+            RomAuxiliaryUtility.GetAssembledResiduals(rModelPart, pScheme, BaseType::GetEquationSystemSize());
+        }
     }
 
     void ResizeAndInitializeVectors(

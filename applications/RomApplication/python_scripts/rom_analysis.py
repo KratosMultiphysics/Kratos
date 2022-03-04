@@ -4,7 +4,9 @@ import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication import new_python_solvers_wrapper_rom
 from KratosMultiphysics.RomApplication.hrom_training_utility import HRomTrainingUtility
+from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import PetrovGalerkinTrainingUtility
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
 def CreateRomAnalysisInstance(cls, global_model, parameters):
     class RomAnalysis(cls):
@@ -31,6 +33,16 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
                 raise Exception(err_msg)
+            
+            #########Added Petrov
+            self.train_petrov_galerkin = self.rom_parameters["train_petrov_galerkin"]["train"].GetBool() if self.rom_parameters.Has("train_petrov_galerkin") else False
+            if self.train_hrom and self.train_petrov_galerkin:
+                err_msg = "\'train_petrov_galerkin\' and \'train_hrom\' are both \'true\'. Select training strategy."
+                raise Exception(err_msg)
+            if self.run_hrom and self.train_petrov_galerkin:
+                err_msg = "\'train_petrov_galerkin\' and \'run_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
+                raise Exception(err_msg)
+            #########
 
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
@@ -66,6 +78,22 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 self.rom_basis_output_process_check = False
 
             return list_of_output_processes
+        
+        def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
+            """In case the solver does not return the state of convergence
+            (same as the SolvingStrategy does) then issue ONCE a deprecation-warning
+
+            """
+            if is_converged is None:
+                if not hasattr(self, '_map_ret_val_depr_warnings'):
+                    self._map_ret_val_depr_warnings = []
+                solver_class_name = self._GetSolver().__class__.__name__
+                # used to only print the deprecation-warning once
+                if not solver_class_name in self._map_ret_val_depr_warnings:
+                    self._map_ret_val_depr_warnings.append(solver_class_name)
+                    warn_msg  = 'Solver "{}" does not return '.format(solver_class_name)
+                    warn_msg += 'the state of convergence from "SolveSolutionStep"'
+                    IssueDeprecationWarning("AnalysisStage", warn_msg)
 
         def _GetSimulationName(self):
             return "::[ROM Simulation]:: "
@@ -108,7 +136,32 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
                     computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
 
+            ########Added Petrov
+            if self.train_petrov_galerkin:
+                self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
+                    self._GetSolver(),
+                    self.rom_parameters)
+            ########
+
+        def RunSolutionLoop(self):
+            """This function executes the solution loop of the AnalysisStage
+            It can be overridden by derived classes
+            """
+            while self.KeepAdvancingSolutionLoop():
+                self.time = self._GetSolver().AdvanceInTime(self.time)
+                self.InitializeSolutionStep()
+                # self._GetSolver().Predict()
+                is_converged = self._GetSolver().SolveSolutionStep()
+                self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+                self.FinalizeSolutionStep()
+                self.OutputSolutionStep()
+
         def FinalizeSolutionStep(self):
+            #####Added Petrov
+            if self.train_petrov_galerkin:
+                self.__petrov_galerkin_training_utility.AppendCurrentStepProjectedSystem()
+            #####
+
             # Call the HROM training utility to append the current step residuals
             # Note that this needs to be done prior to the other processes to avoid unfixing the BCs
             if self.train_hrom:
@@ -129,6 +182,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
         def Finalize(self):
             # This calls the physics Finalize
             super().Finalize()
+
+            #####Added Petrov
+            if self.train_petrov_galerkin:
+                self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
+            #####
 
             # Once simulation is completed, calculate and save the HROM weights
             if self.train_hrom:

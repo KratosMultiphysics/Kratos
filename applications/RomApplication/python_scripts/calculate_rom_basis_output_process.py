@@ -120,6 +120,11 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict = {
             "train_hrom": False,
             "run_hrom": False,
+            "train_petrov_galerkin": {
+                "train": False,
+                "basis_strategy": "Projected_System"
+            },
+            "petrov_galerkin_rom_settings": {},
             "rom_settings": {},
             "hrom_settings": {},
             "nodal_modes": {},

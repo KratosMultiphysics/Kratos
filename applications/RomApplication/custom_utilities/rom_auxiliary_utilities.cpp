@@ -467,6 +467,85 @@ void RomAuxiliaryUtilities::GetPhiElemental(
                 noalias(row(rPhiElemental, i)) = row(nodal_rom_basis, row_id);
             }
         }
-    }
+    } 
 
-} // namespace Kratos
+void RomAuxiliaryUtilities::GetAssembledResiduals(
+    ModelPart& rModelPart,
+    BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>::TSchemeType::Pointer pScheme,
+    const int systemSize)
+    {
+        const int nElements = static_cast<int>(rModelPart.Elements().size());
+        const int nConditions = static_cast<int>(rModelPart.Conditions().size());
+
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto el_begin = rModelPart.ElementsBegin();
+        const auto cond_begin = rModelPart.ConditionsBegin();
+
+        //contributions to the system
+        Vector RHS_Contribution = ZeroVector(0);
+
+        //vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType EquationId;
+        Vector AssembledResiduals = ZeroVector(systemSize);
+
+        #pragma omp parallel firstprivate(nElements, nConditions, RHS_Contribution, EquationId, el_begin, cond_begin)
+        {
+            Vector tempAssembledResiduals = ZeroVector(systemSize);
+
+            #pragma omp for nowait
+            for (int k = 0; k < static_cast<int>(nElements); k++) {
+                auto it_el = el_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if ((it_el)->IsDefined(ACTIVE)) {
+                    element_is_active = (it_el)->Is(ACTIVE);
+                }
+                // Calculate elemental RHS contribution
+                if (element_is_active){
+                    pScheme->CalculateRHSContribution(*it_el, RHS_Contribution, EquationId, r_current_process_info);
+                    Element::DofsVectorType dofs;
+                    it_el->GetDofList(dofs, r_current_process_info);
+                    for(int d = 0; d < static_cast<int>(dofs.size()); ++d){
+                        if (dofs[d]->IsFixed()==false){
+                            tempAssembledResiduals[dofs[d]->EquationId()] += RHS_Contribution(d);
+                        }
+                    }
+                }
+            }
+
+            #pragma omp for nowait
+            for (int k = 0; k < static_cast<int>(nConditions); k++){
+                auto it = cond_begin + k;
+
+                // Detect if the element is active or not. If the user did not make any choice the condition is active by default
+                bool condition_is_active = true;
+                if ((it)->IsDefined(ACTIVE)) {
+                    condition_is_active = (it)->Is(ACTIVE);
+                }
+
+                // Calculate condition contribution
+                if (condition_is_active) {
+                    Condition::DofsVectorType dofs;
+                    it->GetDofList(dofs, r_current_process_info);
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, r_current_process_info);
+                    for(int d = 0; d < static_cast<int>(dofs.size()); ++d){
+                        if (dofs[d]->IsFixed()==false){
+                            tempAssembledResiduals[dofs[d]->EquationId()] += RHS_Contribution(d);
+                        }
+                    }
+                }
+            }
+
+            #pragma omp critical
+            {
+                noalias(AssembledResiduals) += tempAssembledResiduals;
+            }
+        }
+
+        // Matrix will be written to disk and then readed in python using calculate_rom_residual_basis_output_process.py
+        std::stringstream matrix_market_vector_name;
+        matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".mm";
+        SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), AssembledResiduals);
+    }
+}// namespace Kratos

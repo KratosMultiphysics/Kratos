@@ -45,7 +45,8 @@ namespace Kratos
         Parameters default_parameters = Parameters(R"(
         {
             "nodal_unknowns" : [],
-            "number_of_rom_dofs" : 10
+            "number_of_rom_dofs" : 10,
+            "solve_with_qr" : false
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -136,6 +137,105 @@ namespace Kratos
                 }
             }
         return MatrixResiduals;
+        }
+
+        Matrix GetProjectedGlobalLHS()
+        {
+            const int nElements = static_cast<int>(mpModelPart.Elements().size());
+            const int nConditions = static_cast<int>(mpModelPart.Conditions().size());
+            const auto& nNodes = mpModelPart.NumberOfNodes();
+
+            const auto& r_current_process_info = mpModelPart.GetProcessInfo();
+            
+            const int systemSize = nNodes*mNodalDofs;
+
+            const auto el_begin = mpModelPart.ElementsBegin();
+            const auto cond_begin = mpModelPart.ConditionsBegin();
+
+            //contributions to the system
+            Matrix LHS_Contribution = ZeroMatrix(0,0);
+
+            //vector containing the localization in the system of the different terms
+            Element::EquationIdVectorType EquationId;
+            Matrix APhi = ZeroMatrix(systemSize, mRomDofs);
+
+            #pragma omp parallel firstprivate(nElements, nConditions, LHS_Contribution, EquationId, el_begin, cond_begin)
+            {
+                Matrix PhiElemental;
+                Matrix tempAPhi = ZeroMatrix(systemSize,mRomDofs);
+                Matrix aux;
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nElements); k++) {
+                    auto it_el = el_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                    bool element_is_active = true;
+                    if ((it_el)->IsDefined(ACTIVE)) {
+                        element_is_active = (it_el)->Is(ACTIVE);
+                    }
+
+                    // Calculate elemental contribution
+                    if (element_is_active){
+                        mpScheme->CalculateLHSContribution(*it_el, LHS_Contribution, EquationId, r_current_process_info);
+                        Element::DofsVectorType dofs;
+                        it_el->GetDofList(dofs, r_current_process_info);
+                        const auto &geom = it_el->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs) {
+                            PhiElemental.resize(dofs.size(), mRomDofs,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mRomDofs) {
+                            aux.resize(dofs.size(), mRomDofs,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        for(int d = 0; d < static_cast<int>(dofs.size()); ++d){
+                            if (dofs[d]->IsFixed()==false){
+                                row(tempAPhi,dofs[d]->EquationId()) += row(aux,d);// Add contributions to global system for free dofs.
+                            }
+                        }
+                    }
+                }
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nConditions); k++){
+                    auto it = cond_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the condition is active by default
+                    bool condition_is_active = true;
+                    if ((it)->IsDefined(ACTIVE)) {
+                        condition_is_active = (it)->Is(ACTIVE);
+                    }
+
+                    // Calculate condition contribution
+                    if (condition_is_active) {
+                        Condition::DofsVectorType dofs;
+                        it->GetDofList(dofs, r_current_process_info);
+                        mpScheme->CalculateLHSContribution(*it, LHS_Contribution, EquationId, r_current_process_info);
+                        const auto &geom = it->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs) {
+                            PhiElemental.resize(dofs.size(), mRomDofs,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mRomDofs) {
+                            aux.resize(dofs.size(), mRomDofs,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        for(int d = 0; d < static_cast<int>(dofs.size()); ++d){
+                            if (dofs[d]->IsFixed()==false){
+                                row(tempAPhi,dofs[d]->EquationId()) += row(aux,d);
+                            }
+                        }
+                    }
+                }
+
+                #pragma omp critical
+                {
+                    noalias(APhi) += tempAPhi;
+                }
+
+            }
+            return APhi;
         }
 
     protected:
