@@ -22,7 +22,7 @@ def Usage():
         '\t -l, --level: Minimum level of detail of the tests: \'all\'(Default) \'(nightly)\' \'(small)\'',  # noqa
         '\t -a, --applications: List of applications to run separated by \':\'. All compiled applications will be run by default',  # noqa
         '\t -v, --verbose: Verbosity level: 0, 1 (Default), 2',
-        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'runkratos\' executable is used',
+        '\t -c, --command: Use the provided command to launch test cases. If not provided, the default \'python\' executable is used',
         '\t --using-mpi: If running in MPI and executing the MPI-tests'
     ]
     for l in lines:
@@ -53,7 +53,7 @@ class Commander(object):
             detail will be.
 
         command: string
-            command to be used to call the tests. Ex: Python, Python3, Runkratos
+            command to be used to call the tests. Ex: Python, Python3
 
         '''
 
@@ -177,7 +177,7 @@ def print_summary(exit_codes):
 
 def main():
     # Define the command
-    cmd = os.path.join(os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()), 'runkratos')
+    cmd = sys.executable
 
     verbose_values = [0, 1, 2]
     level_values = ['all', 'nightly', 'small', 'validation']
