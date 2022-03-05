@@ -150,7 +150,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
-    Matrix B_tensor(Dimension, Dimension), inverse_B_tensor(Dimension, Dimension);
+    Matrix B_tensor(Dimension, Dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateAlmansiStrain(rValues, strain_vector);
@@ -158,6 +158,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     } else {
         Matrix strain_tensor(Dimension, Dimension);
         noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        Matrix inverse_B_tensor(Dimension, Dimension);
         noalias(inverse_B_tensor) = IdentityMatrix(Dimension) - 2.0 * strain_tensor;
         double aux_det;
         MathUtils<double>::InvertMatrix(inverse_B_tensor, B_tensor, aux_det);
