@@ -136,7 +136,6 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
-    Vector& stress_vector                  = rValues.GetStressVector();
 
     // The material properties
     const double young_modulus = material_properties[YOUNG_MODULUS];
@@ -144,15 +143,25 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
 
     // The deformation gradient
     const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f = rValues.GetDeterminantF();
+    double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
     // The LAME parameters
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
+    Matrix B_tensor(Dimension, Dimension), inverse_B_tensor(Dimension, Dimension);
+
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateAlmansiStrain(rValues, strain_vector);
+        noalias(B_tensor) = prod(deformation_gradient_f, trans( deformation_gradient_f));
+    } else {
+        Matrix strain_tensor(Dimension, Dimension);
+        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        noalias(inverse_B_tensor) = IdentityMatrix(Dimension) - 2.0 * strain_tensor;
+        double aux_det;
+        MathUtils<double>::InvertMatrix(inverse_B_tensor, B_tensor, aux_det);
+        determinant_f = std::sqrt(MathUtils<double>::Det(B_tensor));
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
@@ -162,7 +171,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // We compute the left Cauchy-Green tensor (B):
-        const Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
+        Vector& stress_vector = rValues.GetStressVector();
         CalculateKirchhoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
 }
