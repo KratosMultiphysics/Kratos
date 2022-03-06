@@ -45,6 +45,7 @@ void  AddCustomOptimizationAlgorithmToPython(pybind11::module& m)
     py::class_<AlgorithmSteepestDescent >(m, "AlgorithmSteepestDescent")
         .def(py::init<std::string, Model&, Parameters& >())
         .def("Initialize", &AlgorithmSteepestDescent::Initialize)
+        .def("CalculateSolutionStep", &AlgorithmSteepestDescent::CalculateSolutionStep)
         ;
  
 }

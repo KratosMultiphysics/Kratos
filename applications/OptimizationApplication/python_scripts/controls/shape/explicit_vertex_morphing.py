@@ -41,6 +41,17 @@ class ExplicitVertexMorphing():
             ex_mapper.Initialize()
             self.ex_vm_mapper[model_part_name] = ex_mapper
 
+        # initialize control fields
+        zero_vec = Vector(3); 
+        for model_part_name in self.controlling_objects:
+            model_part = self.model.GetModelPart(model_part_name)         
+            for node in model_part.Nodes:
+                node.SetSolutionStepValue(KOA.SHAPE_CONTROL, zero_vec)        
+
+
+        dwdw
+
+
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         for mapper in self.ex_vm_mapper.values():
             mapper.InverseMap(derivative_variable_name,mapped_derivative_variable_name)

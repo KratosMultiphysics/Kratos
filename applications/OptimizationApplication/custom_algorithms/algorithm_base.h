@@ -45,6 +45,8 @@ public:
 
     // --------------------------------------------------------------------------
     virtual void Initialize(){};
+    // --------------------------------------------------------------------------
+    virtual void CalculateSolutionStep(){};    
 
     std::string mOptName;
     std::string mOptType;

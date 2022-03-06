@@ -47,6 +47,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def InitializeOptimizationLoop(self):
         super().InitializeOptimizationLoop()
         self.opt_algorithm.Initialize()
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
 
@@ -74,7 +75,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 for itr in range(len(self.controls_response_gradient_names[control])):
                     self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
 
-            
+            # calcuate
+            self.opt_algorithm.CalculateSolutionStep()             
 
             # now output 
             for control_model_part,vtkIO in self.root_model_parts_vtkIOs.items():
