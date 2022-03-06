@@ -63,6 +63,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("WrinklingLinear2DLaw", mWrinklingLinear2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("MultiLinearElastic1DLaw", mMultiLinearElastic1DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("MultiLinearIsotropicPlaneStress2D", mMultiLinearIsotropicPlaneStress2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("CohesiveLaw", mCohesiveLaw);
 
     // Custom Constitutive laws
     // Serial-Parallel Rule Of Mixtures

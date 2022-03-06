@@ -92,6 +92,7 @@
 #include "custom_constitutive/rule_of_mixtures_law.h"
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
+#include "custom_constitutive/cohesive_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -110,6 +111,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< WrinklingLinear2DLaw, typename WrinklingLinear2DLaw::Pointer, ConstitutiveLaw >
     (m, "WrinklingLinear2DLaw").def(py::init<>() )
+    ;
+
+    py::class_< CohesiveLaw, typename CohesiveLaw::Pointer, ConstitutiveLaw >
+    (m, "CohesiveLaw").def(py::init<>() )
     ;
 
     py::class_< TrussPlasticityConstitutiveLaw, typename TrussPlasticityConstitutiveLaw::Pointer, ConstitutiveLaw >

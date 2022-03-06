@@ -98,6 +98,7 @@
 #include "custom_constitutive/rule_of_mixtures_law.h"
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
+#include "custom_constitutive/cohesive_law.h"
 
 namespace Kratos {
 
@@ -608,6 +609,7 @@ private:
 
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
+    const CohesiveLaw mCohesiveLaw;
 
     const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMisesVonMises;
     const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager;
