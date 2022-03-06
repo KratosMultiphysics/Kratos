@@ -80,8 +80,6 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     // Get Values to compute the constitutive law:
     Flags& r_flags=rValues.GetOptions();
 
-    const SizeType dimension = WorkingSpaceDimension();
-
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
 
@@ -98,15 +96,15 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
-    Matrix C_tensor(dimension, dimension), inverse_C_tensor(dimension, dimension);
+    Matrix C_tensor(Dimension, Dimension), inverse_C_tensor(Dimension, Dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateGreenLagrangianStrain(rValues, strain_vector);
         noalias(C_tensor) = prod(trans(deformation_gradient_f), deformation_gradient_f);
     } else {
-        Matrix strain_tensor(dimension, dimension);
+        Matrix strain_tensor(Dimension, Dimension);
         noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
-        noalias(C_tensor) = 2.0 * strain_tensor + IdentityMatrix(dimension);
+        noalias(C_tensor) = 2.0 * strain_tensor + IdentityMatrix(Dimension);
         determinant_f = std::sqrt(MathUtils<double>::Det(C_tensor));
     }
 
@@ -441,7 +439,7 @@ void HyperElasticIsotropicNeoHookean3D::GetLawFeatures(Features& rFeatures)
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
     //Set the strain size
-    rFeatures.mStrainSize = GetStrainSize();
+    rFeatures.mStrainSize = VoigtSize;
 
     //Set the spacedimension
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
@@ -539,7 +537,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
     Matrix stress_matrix(Dimension, Dimension);
     const Matrix Id = IdentityMatrix(Dimension);
     noalias(stress_matrix) = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( Id - rInvCTensor );
-    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize() );
+    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, VoigtSize );
 }
 
 /***********************************************************************************/
