@@ -18,6 +18,8 @@
 
 #include "constitutive_laws_application_variables.h"
 
+#include "utilities/math_utils.h"
+
 namespace Kratos
 {
 
@@ -85,12 +87,34 @@ void  CohesiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rVa
     r_constitutive_matrix( 4, 4 ) = c4;
     r_constitutive_matrix( 5, 5 ) = c4;
 
-    r_stress_vector[0] = c2 * r_strain_vector[0] + c3 * r_strain_vector[1] + c3 * r_strain_vector[2];
-    r_stress_vector[1] = c3 * r_strain_vector[0] + c2 * r_strain_vector[1] + c3 * r_strain_vector[2];
-    r_stress_vector[2] = c3 * r_strain_vector[0] + c3 * r_strain_vector[1] + c2 * r_strain_vector[2];
-    r_stress_vector[3] = c4 * r_strain_vector[3];
-    r_stress_vector[4] = c4 * r_strain_vector[4];
-    r_stress_vector[5] = c4 * r_strain_vector[5];
+    double H_variable = mH;
+    double rD_variable  = mrD;
+    double D_variable = mD;
+    double Hmax_variable = mHmax;
+   
+    
+    // We compute H
+    H_variable = std::min(((r_strain_vector[2]-0.02) / (0.042-0.02)),1.0);
+    
+    // We store the maximum amount of H over time
+    if(H_variable > Hmax_variable){
+        Hmax_variable = H_variable;
+    }
+    
+    // We compute rD
+    rD_variable = std::max(0.0,Hmax_variable);
+
+    // We compute damage
+    D_variable = (rD_variable*0.042) / ((rD_variable*0.042)+((1-rD_variable)*0.042));
+    
+
+    
+    r_stress_vector[0] = (c2 * r_strain_vector[0] + c3 * r_strain_vector[1] + c3 * r_strain_vector[2]);
+    r_stress_vector[1] = (c3 * r_strain_vector[0] + c2 * r_strain_vector[1] + c3 * r_strain_vector[2]);
+    r_stress_vector[2] = (-1)*D_variable*(c3 * r_strain_vector[0] + c3 * r_strain_vector[1] + c2 * r_strain_vector[2]);
+    r_stress_vector[3] = (c4 * r_strain_vector[3]);
+    r_stress_vector[4] = (c4 * r_strain_vector[4]);
+    r_stress_vector[5] = (c4 * r_strain_vector[5]);
 
     // rStressVector[0] = c2 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2];
     // rStressVector[1] = c3 * rStrainVector[0] + c2 * rStrainVector[1] + c3 * rStrainVector[2];
@@ -99,6 +123,13 @@ void  CohesiveLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rVa
     // rStressVector[4] = c4 * rStrainVector[4];
     // rStressVector[5] = c4 * rStrainVector[5];
 
+    mH = H_variable;
+    mrD = rD_variable;
+    mD = D_variable;
+    mHmax = Hmax_variable;
+
+    KRATOS_WATCH(mD);
+    
     KRATOS_CATCH("");
 }
 

@@ -147,6 +147,13 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
+    // Converged values
+    double mH = 0;
+    double mrD = 0;
+    double mD = 0;
+    double mHmax = 0;
+
 
     ///@}
     ///@name Private Operators
