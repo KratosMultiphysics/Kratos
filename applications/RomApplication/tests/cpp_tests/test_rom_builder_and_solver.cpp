@@ -53,10 +53,8 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override
     {
-        if (rResult.size() != NumNodes) {
-            rResult.clear();
-            rResult.reserve(NumNodes);
-        }
+        rResult.clear();
+        rResult.reserve(NumNodes);
 
         for (const auto& r_node : GetGeometry()) {
             rResult.push_back(r_node.GetDof(TEMPERATURE).EquationId());
@@ -66,10 +64,8 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override
     {
-        if (rElementalDofList.size() != NumNodes) {
-            rElementalDofList.clear();
-            rElementalDofList.reserve(NumNodes);
-        }
+        rElementalDofList.clear();
+        rElementalDofList.reserve(NumNodes);
 
         for (const auto& r_node : GetGeometry()) {
             rElementalDofList.push_back(r_node.pGetDof(TEMPERATURE));
