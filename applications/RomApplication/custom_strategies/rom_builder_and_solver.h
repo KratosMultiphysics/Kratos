@@ -163,7 +163,7 @@ public:
         auto dof_array = SortAndRemoveDuplicateDofs(dof_queue);
 
         // Update base builder and solver DOFs array and set corresponding flag
-        BaseType::GetDofSet() = dof_array;
+        BaseType::GetDofSet().swap(dof_array);
         BaseType::SetDofSetIsInitializedFlag(true);
 
         // Throw an exception if there are no DOFs involved in the analysis
