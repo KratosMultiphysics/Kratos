@@ -17,6 +17,7 @@
 /* System includes */
 
 /* External includes */
+#include "concurrentqueue/concurrentqueue.h"
 
 /* Project includes */
 #include "includes/define.h"
@@ -96,6 +97,7 @@ public:
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
     /// Additional definitions
+    typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
     typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
@@ -588,142 +590,90 @@ protected:
         }
     }
 
-    /**
-     * This reducer helps parallelize the loops in InitializeHROMWeights
-     */
-    template<typename TEntity, typename TEntityArray>
-    struct DofAndEntityReducer
-    {
-        using value_type = std::tuple<DofsVectorType, typename TEntity::Pointer>;
-        using return_type = std::tuple<DofSetType, TEntityArray>;
-
-        DofSetType mDofs {};
-        TEntityArray mEntities {};
-
-        /// access to reduced value
-        return_type GetValue()
-        {
-            return std::tie(mDofs, mEntities);
-        }
-
-        /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
-        void LocalReduce(value_type value)
-        {
-            auto& new_dofs = std::get<0>(value);
-            auto& new_entity_ptr = std::get<1>(value);
-
-            mDofs.insert(new_dofs.begin(), new_dofs.end());
-            if(new_entity_ptr)
-            {
-                mEntities.push_back(new_entity_ptr);
-            }
-        }
-
-        /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
-        void ThreadSafeReduce(DofAndEntityReducer<TEntity, TEntityArray>& rOther)
-        {
-            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-
-            mDofs.insert(rOther.mDofs.begin(), rOther.mDofs.end()); // C++17: Update to mDofs.merge(rOther)
-
-            mEntities.reserve(mEntities.size() + rOther.mEntities.size());
-            mEntities.insert(rOther.mEntities.GetContainer().begin(), rOther.mEntities.GetContainer().end());
-        }
-    };
 
     void InitializeHROMWeights(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         DofSetType& rDofGlobalSet)
     {
+        using ElementQueue = moodycamel::ConcurrentQueue<Element::Pointer>;
+        using ConditionQueue = moodycamel::ConcurrentQueue<Condition::Pointer>;
+        using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
+
+        ElementQueue element_queue;
+        DofQueue dof_queue;
+
+        DofsVectorType tmp_dof_list; // Preallocation
+        block_for_each(rModelPart.Elements().GetContainer(), tmp_dof_list,
+            [&](Element::Pointer p_element, DofsVectorType& dof_list)
         {
-            using ElementLoopReducer = DofAndEntityReducer<Element, ElementsArrayType>;
-            using ConditionLoopReducer = DofAndEntityReducer<Condition, ConditionsArrayType>;
-            using ConstraintLoopReducer = DofAndEntityReducer<DummyEntity, std::vector<DummyEntity>>
+            pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
+            dof_queue.enqueue_bulk(dof_list.begin(), dof_list.size());
 
-            DofSetType temp_dof_set {};
-            ElementsArrayType temp_selected_elements {};
-
-            std::tie(temp_dof_set, temp_selected_elements) =
-            block_for_each<ElementLoopReducer>(rModelPart.Elements().GetContainer(),
-                [&](Element::Pointer p_element) -> typename ElementLoopReducer::value_type
-            {
-                DofsVectorType dof_list;
-
-                pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
-                
-                // Detect whether the element has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
-                if (p_element->Has(HROM_WEIGHT))
-                {
-                    return std::tie(dof_list, p_element);
-                }
-                else
-                {
-                    p_element->SetValue(HROM_WEIGHT, 1.0);
-                    Element::Pointer null_ptr = nullptr;
-                    return std::tie(dof_list, null_ptr);
-                }
-            });
-
-            rDofGlobalSet.swap(temp_dof_set);
-            mSelectedElements.swap(temp_selected_elements);
-
-            // Loop the array of conditions
-            temp_dof_set.clear();
-
-            ConditionsArrayType temp_selected_conditions {};
-
-            std::tie(temp_dof_set, temp_selected_conditions) =
-            block_for_each<ConditionLoopReducer>(rModelPart.Conditions().GetContainer(), 
-                [&](Condition::Pointer p_condition) -> typename ConditionLoopReducer::value_type
-            {
-                DofsVectorType dof_list;
-                pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
-
-                // Detect whether the condition has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
-                // Note that those conditions used for displaying results are to be ignored as they will not be assembled
-                if (p_condition->Has(HROM_WEIGHT))
-                {
-                    return std::tie(dof_list, p_condition);
-                }
-                else
-                {
-                    p_condition->SetValue(HROM_WEIGHT, 1.0);
-                    Condition::Pointer null_ptr = nullptr;
-                    return std::tie(dof_list, null_ptr);
-                }
-            });
-
-            rDofGlobalSet.insert(temp_dof_set.begin(), temp_dof_set.end()); // C++17: Update to rDofGlobalSet.merge(temp_dof_set)
-            mSelectedConditions.swap(temp_selected_conditions);
-
-            // Loop the array of constraints
-            #pragma omp for schedule(guided, 512) nowait
-            for (auto& r_constraint: rModelPart.MasterSlaveConstraints()) {
-
-                // Gets list of Dof involved on every constraint
-                r_constraint.GetDofList(dof_list, second_dof_list, rModelPart.GetProcessInfo());
-
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
+            if (p_element->Has(HROM_WEIGHT)) {
+                element_queue.enqueue(std::move(p_element));
             }
-
-            #pragma omp critical
-            {
-                // Collect the elements and conditions belonging to the H-ROM mesh
-                // These are those that feature a weight and are to be assembled
-                for (auto &r_cond : selected_conditions_private){
-                    mSelectedConditions.push_back(&r_cond);
-                }
-                for (auto &r_elem : selected_elements){
-                    mSelectedElements.push_back(&r_elem);
-                }
-
-                // We merge all the sets in one thread
-                rDofGlobalSet.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
+            else {
+                p_element->SetValue(HROM_WEIGHT, 1.0);
             }
+        });
+
+        // Loop the array of conditions
+        ConditionQueue condition_queue;
+
+        block_for_each(rModelPart.Conditions().GetContainer(), tmp_dof_list,
+            [&](Condition::Pointer p_condition, DofsVectorType& dof_list)
+        {
+            pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
+            dof_queue.enqueue_bulk(dof_list.begin(), dof_list.size());
+
+            // Detect whether the condition has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
+            // Note that those conditions used for displaying results are to be ignored as they will not be assembled
+            if (p_condition->Has(HROM_WEIGHT))
+            {
+                condition_queue.enqueue(std::move(p_condition));
+            }
+            else
+            {
+                p_condition->SetValue(HROM_WEIGHT, 1.0);
+            }
+        });
+
+        // Loop the array of constraints
+        std::pair<DofsVectorType, DofsVectorType> tmp_ms_dof_lists; // Preallocation
+
+        block_for_each(rModelPart.MasterSlaveConstraints(), tmp_ms_dof_lists,
+            [&](MasterSlaveConstraint& r_constraint, std::pair<DofsVectorType, DofsVectorType>& dof_lists)
+        {
+
+            // Gets list of Dof involved on every constraint
+            r_constraint.GetDofList(dof_lists.first, dof_lists.second, rModelPart.GetProcessInfo());
+
+            dof_queue.enqueue_bulk(dof_lists.first.begin(), dof_lists.first.size());
+            dof_queue.enqueue_bulk(dof_lists.second.begin(), dof_lists.second.size());
+        });
+
+
+        // Dequeueing
+        std::size_t err_id;
+        mSelectedElements.reserve(element_queue.size_approx());
+        Element::Pointer p_element;
+        while ( (err_id = element_queue.try_dequeue(p_element)) != 0) {
+            mSelectedElements.push_back(std::move(p_element));
         }
 
+        mSelectedConditions.reserve(condition_queue.size_approx());
+        Condition::Pointer p_condition;
+        while ( (err_id = condition_queue.try_dequeue(p_condition)) != 0) {
+            mSelectedConditions.push_back(std::move(p_condition));
+        }
+
+        DofType::Pointer p_dof;
+        while ( (err_id = dof_queue.try_dequeue(p_dof)) != 0) {
+            rDofGlobalSet.insert(std::move(p_dof));
+        }
+
+        mHromSimulation = !(mSelectedElements.empty() && mSelectedConditions.empty());
         mHromWeightsInitialized = true;
     }
 
