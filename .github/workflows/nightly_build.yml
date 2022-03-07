@@ -99,16 +99,16 @@ jobs:
 
 
   windows-nightly:
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
     - uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2
       with:
-        python-version: '3.6'
+        python-version: '3.8'
 
     - name: Download boost
       run: |
@@ -122,6 +122,7 @@ jobs:
       run: |
         pip install numpy
         pip install h5py
+        pip install sympy
 
     - name: Build
       shell: cmd

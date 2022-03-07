@@ -290,6 +290,7 @@ public:
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
+            "BFECC_limiter_acuteness" : 2.0,
             "element_type" : "levelset_convection_supg",
             "element_settings" : {}
         })");
@@ -360,6 +361,10 @@ protected:
 
     bool mEvaluateLimiter;
 
+    double mPowerBfeccLimiter = 2.0;
+
+    double mPowerElementalLimiter = 4.0;
+
     Vector mError;
 
     Vector mOldDistance;
@@ -387,6 +392,7 @@ protected:
     Parameters mLevelSetConvectionSettings;
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
+
 
     ///@}
     ///@name Protected Operators
@@ -439,7 +445,9 @@ protected:
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
-            p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            if (mpLevelSetGradientVar) {
+                p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            }
         }
 
         // This call returns a function pointer with the ProcessInfo filling directives
@@ -591,9 +599,7 @@ protected:
      */
     void EvaluateLimiter()
     {
-        const double epsilon = 1.0e-15;
-        const double power_bfecc = 2.0;
-        const double power_elemental_limiter = 4.0;
+        const double epsilon = 1.0e-12;
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
@@ -690,11 +696,11 @@ protected:
             const double fraction = std::abs(numerator) / (denominator + epsilon);
 
             if (mIsBfecc){
-                mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+                mLimiter[i_node] = 1.0 - std::pow(fraction, mPowerBfeccLimiter);
             }
 
             if (mElementRequiresLimiter){
-                it_node->GetValue(LIMITER_COEFFICIENT) = (1.0 - std::pow(fraction, power_elemental_limiter));
+                it_node->GetValue(LIMITER_COEFFICIENT) = (1.0 - std::pow(fraction, mPowerElementalLimiter));
             }
         }
         );
@@ -801,15 +807,25 @@ private:
         std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
         mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
         mElementRequiresLimiter =  ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
+
+        if (ThisParameters["element_settings"].Has("elemental_limiter_acuteness") && mElementRequiresLimiter) {
+            mPowerElementalLimiter = ThisParameters["element_settings"]["elemental_limiter_acuteness"].GetDouble();
+        }
+
         if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization"){
             ThisParameters["element_settings"]["requires_distance_gradient"].SetBool(mElementRequiresLimiter);
         }
+
         mElementRequiresLevelSetGradient = ThisParameters["element_settings"]["requires_distance_gradient"].GetBool();;
 
         // Convection related settings
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
+        if (mIsBfecc) {
+            mPowerBfeccLimiter = ThisParameters["BFECC_limiter_acuteness"].GetDouble();
+        }
+
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
@@ -872,6 +888,7 @@ private:
         } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({
                 "include_anti_diffusivity_terms" : false,
+                "elemental_limiter_acuteness" : 4.0,
                 "requires_distance_gradient" : false,
                 "time_integration_theta" : 0.5
             })");
