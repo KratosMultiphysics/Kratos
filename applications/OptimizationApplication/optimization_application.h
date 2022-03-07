@@ -27,6 +27,8 @@
 // ------------------------------------------------------------------------------
 #include "includes/kratos_application.h"
 
+/* ELEMENTS */
+#include "custom_elements/helmholtz_surf_shape_element.h"
 
 // ==============================================================================
 
@@ -187,7 +189,9 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
+		/* ELEMENTS */
 
+		const HelmholtzSurfShapeElement mHelmholtzSurfShape3D3N;
 
 		///@}
 		///@name Private Operators

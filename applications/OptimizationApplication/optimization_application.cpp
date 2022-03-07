@@ -33,7 +33,9 @@
 namespace Kratos
 {
     KratosOptimizationApplication::KratosOptimizationApplication() :
-        KratosApplication("OptimizationApplication")        
+        KratosApplication("OptimizationApplication"),  
+        /* ELEMENTS */
+        mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3))))                
     {}
 
  	void KratosOptimizationApplication::Register()
@@ -85,7 +87,18 @@ namespace Kratos
         // shape control
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CX);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_CX);  
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_X);      
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_X);   
+
+        // For implicit vertex-morphing with Helmholtz PDE
+        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_MASS_MATRIX_SHAPE );
+        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_RADIUS_SHAPE );
+        KRATOS_REGISTER_VARIABLE( COMPUTE_CONTROL_POINTS_SHAPE );
+        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_POISSON_RATIO_SHAPE );
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_VARS_SHAPE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_SOURCE_SHAPE);  
+
+        // Shape optimization elements
+        KRATOS_REGISTER_ELEMENT("HelmholtzSurfShape3D3N", mHelmholtzSurfShape3D3N);  
 
         // KRATOS_REGISTER_VARIABLE(TEST_MAP);
  	}

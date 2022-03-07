@@ -14,6 +14,7 @@ from __future__ import print_function, absolute_import, division
 # additional imports
 import KratosMultiphysics as KM 
 import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
+import KratosMultiphysics.OptimizationApplication.controls.shape.implicit_vertex_morphing as ivm
 import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
@@ -55,7 +56,7 @@ class ControlsController:
             self.controls_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
 
 
-        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing"],"topology":[],"thickness":[]}
+        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing","implicit_vertex_morphing"],"topology":[],"thickness":[]}
         self.supported_control_types_variable_names = {"shape":"CX","thickness":"CT","topology":"CP"}
         # sanity checks
         self.controls_types_vars_dict = {"shape":[],"topology":[],"thickness":[]}
@@ -96,7 +97,10 @@ class ControlsController:
                 self.model_parts_controller.CheckIfRootModelPartsExist(control_controlling_objects_list,True)
                 if control_technique == "explicit_vertex_morphing":
                     # control = KOA.ExplicitVertexMorphing(control_name,self.model,control_settings["settings"]) 
-                    control = evm.ExplicitVertexMorphing(control_name,model,control_settings["settings"])                          
+                    control = evm.ExplicitVertexMorphing(control_name,model,control_settings["settings"])   
+                elif control_technique == "implicit_vertex_morphing":
+                    # control = KOA.ExplicitVertexMorphing(control_name,self.model,control_settings["settings"]) 
+                    control = ivm.ImplicitVertexMorphing(control_name,model,control_settings["settings"])                        
 
             self.controls[control_name] = control
             self.controls_types_vars_dict[control_type].extend(control_controlling_objects_list)
