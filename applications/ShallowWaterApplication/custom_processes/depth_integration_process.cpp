@@ -230,6 +230,7 @@ array_1d<double,3> DepthIntegrationProcess<TDim>::InterpolateVelocity(
     const Element::Pointer pElement,
     const Vector& rShapeFunctionValues) const
 {
+    KRATOS_DEBUG_ERROR_IF(pElement->GetGeometry().size() != rShapeFunctionValues.size()) << "DepthIntegrationProcess: check the found element!" << std::endl;
     array_1d<double,3> velocity = ZeroVector(3);
     int n = 0;
     for (auto& r_node : pElement->GetGeometry()) {
@@ -253,7 +254,7 @@ template<std::size_t TDim>
 void DepthIntegrationProcess<TDim>::FindBoundaryNeighbors()
 {
     // Step 1, find the center of the nodes
-    const std::size_t num_nodes = mrInterfaceModelPart.NumberOfNodes();
+    const int num_nodes = mrInterfaceModelPart.NumberOfNodes();
     array_1d<double,3> center = block_for_each<SumReduction<array_1d<double,3>>>(
         mrInterfaceModelPart.Nodes(), [&](NodeType& rNode){return rNode.Coordinates();}
     );
