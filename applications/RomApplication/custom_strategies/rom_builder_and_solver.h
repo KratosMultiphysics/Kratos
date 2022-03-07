@@ -588,37 +588,85 @@ protected:
         }
     }
 
+    /**
+     * This reducer helps parallelize the loops in InitializeHROMWeights
+     */
+    template<typename TEntity, typename TEntityArray>
+    struct DofAndEntityReducer
+    {
+        using value_type = std::tuple<DofsVectorType, typename TEntity::Pointer>;
+        using return_type = std::tuple<DofSetType, TEntityArray>;
+
+        DofSetType mDofs {};
+        TEntityArray mEntities {};
+
+        /// access to reduced value
+        return_type GetValue()
+        {
+            return std::tie(mDofs, mEntities);
+        }
+
+        /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+        void LocalReduce(value_type value)
+        {
+            auto& new_dofs = std::get<0>(value);
+            auto& new_entity_ptr = std::get<1>(value);
+
+            mDofs.insert(new_dofs.begin(), new_dofs.end());
+            if(new_entity_ptr)
+            {
+                mEntities.push_back(new_entity_ptr);
+            }
+        }
+
+        /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+        void ThreadSafeReduce(DofAndEntityReducer<TEntity, TEntityArray>& rOther)
+        {
+            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+
+            mDofs.insert(rOther.mDofs.begin(), rOther.mDofs.end()); // C++17: Update to mDofs.merge(rOther)
+
+            mEntities.reserve(mEntities.size() + rOther.mEntities.size());
+            mEntities.insert(rOther.mEntities.GetContainer().begin(), rOther.mEntities.GetContainer().end());
+        }
+    };
+
     void InitializeHROMWeights(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         DofSetType& rDofGlobalSet)
     {
-        DofsVectorType dof_list;
-        DofsVectorType second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
-
-        #pragma omp parallel firstprivate(dof_list, second_dof_list)
         {
-            // We create the temporal et and we reserve some space on them
-            DofSetType dofs_tmp_set;
-            dofs_tmp_set.reserve(20000);
 
-            // Loop the array of elements
-            ElementsArrayType selected_elements;
-            #pragma omp for schedule(guided, 512) nowait
-            for (Element::Pointer p_element: rModelPart.Elements().GetContainer()) {
+            DofSetType dofs_tmp_set {};
+            ElementsArrayType selected_elements {};
 
-                // Detect whether the element has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
-                if (p_element->Has(HROM_WEIGHT)){
-                    selected_elements.push_back(p_element);
-                    mHromSimulation = true;
-                } else {
-                    p_element->SetValue(HROM_WEIGHT, 1.0);
-                }
+            using ElementLoopReducer = DofAndEntityReducer<Element, ElementsArrayType>;
 
-                // Gets list of DOF involved on every element
+            std::tie(dofs_tmp_set, selected_elements) =
+            block_for_each<ElementLoopReducer>(rModelPart.Elements().GetContainer(),
+                [&](Element::Pointer p_element) -> typename ElementLoopReducer::value_type
+            {
+                DofsVectorType dof_list;
+
                 pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-            }
+                
+                // Detect whether the element has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
+                if (p_element->Has(HROM_WEIGHT))
+                {
+                    return std::tie(dof_list, p_element);
+                }
+                else
+                {
+                    p_element->SetValue(HROM_WEIGHT, 1.0);
+                    Element::Pointer null_ptr = nullptr;
+                    return std::tie(dof_list, null_ptr);
+                }
+            });
+
+            mHromSimulation = selected_elements.size() > 0;
+            DofsVectorType dof_list;
+            DofsVectorType second_dof_list;
 
             // Loop the array of conditions
             ConditionsArrayType selected_conditions_private;
