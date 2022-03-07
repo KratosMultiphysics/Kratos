@@ -152,70 +152,11 @@ public:
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         // Get model part data
-        const auto& r_elements_array = rModelPart.Elements();
-        const auto& r_conditions_array = rModelPart.Conditions();
-        const auto& r_constraints_array = rModelPart.MasterSlaveConstraints();
-        const int number_of_elements = static_cast<int>(r_elements_array.size());
-        const int number_of_conditions = static_cast<int>(r_conditions_array.size());
-        const int number_of_constraints = static_cast<int>(r_constraints_array.size());
-        const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-        DofsVectorType dof_list;
-        DofsVectorType second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
-
-        DofSetType dof_global_set;
-        dof_global_set.reserve(number_of_elements * 20);
-
-        if (mHromWeightsInitialized == false)
-        {
-            InitializeHROMWeights(pScheme, rModelPart, dof_global_set);
-        } else {
-            #pragma omp parallel firstprivate(dof_list, second_dof_list)
-            {
-                // We create the temporal set and we reserve some space on them
-                DofSetType dofs_tmp_set;
-                dofs_tmp_set.reserve(20000);
-
-                // Loop the array of elements
-                ElementsArrayType selected_elements;
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i = 0; i < number_of_elements; ++i) {
-                    auto it_elem = r_elements_array.begin() + i;
-
-                    // Gets list of DOF involved on every element
-                    pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
-                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                }
-
-                // Loop the array of conditions
-                ConditionsArrayType temp_selected_conditions;
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i = 0; i < number_of_conditions; ++i) {
-                    auto it_cond = r_conditions_array.begin() + i;
-
-                    // Gets list of DOF involved on every condition
-                    pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
-                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                }
-
-                // Loop the array of constraints
-                #pragma omp for schedule(guided, 512) nowait
-                for (int i = 0; i < number_of_constraints; ++i) {
-                    auto it_const = r_constraints_array.begin() + i;
-
-                    // Gets list of Dof involved on every constraint
-                    it_const->GetDofList(dof_list, second_dof_list, r_current_process_info);
-                    dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-                    dofs_tmp_set.insert(second_dof_list.begin(), second_dof_list.end());
-                }
-
-                #pragma omp critical
-                {
-                    // We merge all the sets in one thread
-                    dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
-                }
-            }
+        if (mHromWeightsInitialized == false) {
+            InitializeHROMWeights(rModelPart);
         }
+
+        DofSetType dof_global_set = ExtractDofSet(pScheme, rModelPart);
 
         // Fill a sorted auxiliary array of with the DOFs set
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
@@ -591,24 +532,10 @@ protected:
     }
 
 
-    void InitializeHROMWeights(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart,
-        DofSetType& rDofGlobalSet)
+    void InitializeHROMWeights(ModelPart& rModelPart)
     {
         using ElementQueue = moodycamel::ConcurrentQueue<Element::Pointer>;
         using ConditionQueue = moodycamel::ConcurrentQueue<Condition::Pointer>;
-        using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
-
-        DofQueue dof_queue;
-
-        // Emulates ConcurrentQueue::enqueue_bulk adding move semantics to avoid atomic ops
-        const auto enqueue_bulk_move = [](DofQueue& queue, DofsVectorType& dof_list) {
-            for(auto& p_dof: dof_list) {
-                queue.enqueue(std::move(p_dof));
-            }
-            dof_list.clear();
-        };
 
         // Inspecting elements
         ElementQueue element_queue;
@@ -616,13 +543,9 @@ protected:
         block_for_each(rModelPart.Elements().GetContainer(), tmp_dof_list,
             [&](Element::Pointer p_element, DofsVectorType& dof_list)
         {
-            pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
-            enqueue_bulk_move(dof_queue, dof_list);
-
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
-            }
-            else {
+            } else {
                 p_element->SetValue(HROM_WEIGHT, 1.0);
             }
         });
@@ -632,28 +555,12 @@ protected:
         block_for_each(rModelPart.Conditions().GetContainer(), tmp_dof_list,
             [&](Condition::Pointer p_condition, DofsVectorType& dof_list)
         {
-            pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
-            enqueue_bulk_move(dof_queue, dof_list);
-
             if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
-            } else
-            {
+            } else {
                 p_condition->SetValue(HROM_WEIGHT, 1.0);
             }
         });
-
-        // Inspecting master-slave constraints
-        std::pair<DofsVectorType, DofsVectorType> tmp_ms_dof_lists; // Preallocation
-        block_for_each(rModelPart.MasterSlaveConstraints(), tmp_ms_dof_lists,
-            [&](MasterSlaveConstraint& r_constraint, std::pair<DofsVectorType, DofsVectorType>& dof_lists)
-        {
-            r_constraint.GetDofList(dof_lists.first, dof_lists.second, rModelPart.GetProcessInfo());
-
-            enqueue_bulk_move(dof_queue, dof_lists.first);
-            enqueue_bulk_move(dof_queue, dof_lists.second);
-        });
-
 
         // Dequeueing
         std::size_t err_id;
@@ -669,14 +576,62 @@ protected:
             mSelectedConditions.push_back(std::move(p_condition));
         }
 
-        rDofGlobalSet.reserve(dof_queue.size_approx());
-        DofType::Pointer p_dof;
-        while ( (err_id = dof_queue.try_dequeue(p_dof)) != 0) {
-            rDofGlobalSet.insert(std::move(p_dof));
-        }
-
         mHromSimulation = !(mSelectedElements.empty() && mSelectedConditions.empty());
         mHromWeightsInitialized = true;
+    }
+    
+    DofSetType ExtractDofSet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart)
+    {
+        using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
+        DofQueue dof_queue;
+
+        // Emulates ConcurrentQueue::enqueue_bulk adding move semantics to avoid atomic ops
+        const auto enqueue_bulk_move = [](DofQueue& queue, DofsVectorType& dof_list) {
+            for(auto& p_dof: dof_list) {
+                queue.enqueue(std::move(p_dof));
+            }
+            dof_list.clear();
+        };
+
+        // Inspecting elements
+        DofsVectorType tmp_dof_list; // Preallocation
+        block_for_each(rModelPart.Elements().GetContainer(), tmp_dof_list,
+            [&](Element::Pointer p_element, DofsVectorType& dof_list)
+        {
+            pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
+            enqueue_bulk_move(dof_queue, dof_list);
+        });
+
+        // Inspecting conditions
+        block_for_each(rModelPart.Conditions().GetContainer(), tmp_dof_list,
+            [&](Condition::Pointer p_condition, DofsVectorType& dof_list)
+        {
+            pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
+            enqueue_bulk_move(dof_queue, dof_list);
+        });
+
+        // Inspecting master-slave constraints
+        std::pair<DofsVectorType, DofsVectorType> tmp_ms_dof_lists; // Preallocation
+        block_for_each(rModelPart.MasterSlaveConstraints(), tmp_ms_dof_lists,
+            [&](MasterSlaveConstraint& r_constraint, std::pair<DofsVectorType, DofsVectorType>& dof_lists)
+        {
+            r_constraint.GetDofList(dof_lists.first, dof_lists.second, rModelPart.GetProcessInfo());
+
+            enqueue_bulk_move(dof_queue, dof_lists.first);
+            enqueue_bulk_move(dof_queue, dof_lists.second);
+        });
+
+        DofSetType dof_set;
+        dof_set.reserve(dof_queue.size_approx());
+        DofType::Pointer p_dof;
+        std::size_t err_id;
+        while ( (err_id = dof_queue.try_dequeue(p_dof)) != 0) {
+            dof_set.insert(std::move(p_dof));
+        }
+
+        return dof_set;
     }
 
     ///@}
