@@ -249,6 +249,7 @@ public:
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(mNumberOfRomModes);
     }
 
+    
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -280,72 +281,30 @@ public:
         const auto assembling_timer = BuiltinTimer();
 
         // Preallocating
-        Element::EquationIdVectorType EquationId;
-        Matrix PhiElemental;
-        Matrix tempA = ZeroMatrix(mNumberOfRomModes,mNumberOfRomModes);
-        Vector tempb = ZeroVector(mNumberOfRomModes);
-        Matrix aux;
+        AssemblyPrealocation prealloc(mNumberOfRomModes);
 
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
         for (auto& r_element: elements)
         {
             // Detect if the element is active or not. If the user did not make any choice the element is active by default
-            bool element_is_active = true;
-            if (r_element.IsDefined(ACTIVE)) {
-                element_is_active = r_element.Is(ACTIVE);
-            }
+            if (r_element.IsDefined(ACTIVE) && r_element.IsNot(ACTIVE)) continue;
 
             // Calculate elemental contribution
-            if (element_is_active){
-                pScheme->CalculateSystemContributions(r_element, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
-                Element::DofsVectorType dofs;
-                r_element.GetDofList(dofs, r_current_process_info);
-                const auto &geom = r_element.GetGeometry();
-                if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
-                    PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
-                }
-                if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
-                    aux.resize(dofs.size(), mNumberOfRomModes,false);
-                }
-                RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
-                noalias(aux) = prod(LHS_Contribution, PhiElemental);
-                double h_rom_weight = r_element.GetValue(HROM_WEIGHT);
-                noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
-                noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
-            }
+            GetLocalContribution(r_element, prealloc, *pScheme, r_current_process_info);
         }
 
         auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
         for (auto& r_condition: conditions){
 
             // Detect if the element is active or not. If the user did not make any choice the condition is active by default
-            bool condition_is_active = true;
-            if (r_condition.IsDefined(ACTIVE)) {
-                condition_is_active = r_condition.Is(ACTIVE);
-            }
+            if (r_condition.IsDefined(ACTIVE) && r_condition.IsNot(ACTIVE)) continue;
 
             // Calculate condition contribution
-            if (condition_is_active) {
-                Condition::DofsVectorType dofs;
-                r_condition.GetDofList(dofs, r_current_process_info);
-                pScheme->CalculateSystemContributions(r_condition, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
-                const auto &geom = r_condition.GetGeometry();
-                if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
-                    PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
-                }
-                if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
-                    aux.resize(dofs.size(), mNumberOfRomModes,false);
-                }
-                RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
-                noalias(aux) = prod(LHS_Contribution, PhiElemental);
-                double h_rom_weight = r_condition.GetValue(HROM_WEIGHT);
-                noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
-                noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
-            }
+            GetLocalContribution(r_condition, prealloc, *pScheme, r_current_process_info);
         }
 
-        noalias(Arom) += tempA;
-        noalias(brom) += tempb;
+        noalias(Arom) += prealloc.romA;
+        noalias(brom) += prealloc.romB;
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
@@ -631,6 +590,61 @@ protected:
         return dof_array;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+    * Contains dynamically allocated structures to avoid reallocating each iteration.
+    */
+    struct AssemblyPrealocation
+    {
+        AssemblyPrealocation(std::size_t NRomModes)
+            : romA(ZeroMatrix(NRomModes, NRomModes)),
+              romB(ZeroVector(NRomModes))
+        { }
+        AssemblyPrealocation() = delete;
+
+        Matrix romA;                     // reduced LHS
+        Vector romB;                     // reduced RHS
+        Matrix phiE = {};                // Elemental Phi
+        LocalSystemMatrixType lhs = {};  // Elemental LHS
+        LocalSystemVectorType rhs = {};  // Elemental RHS
+        Matrix aux = {};                 // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
+        EquationIdVectorType eq_id = {}; // Elemental equation ID vector
+        DofsVectorType dofs = {};        // Elemental dof vector
+    };
+
+    /**
+     * Computes the local contribution of an element or condition
+     */
+    template<typename TEntity>
+    void GetLocalContribution(
+        TEntity& rEntity,
+        AssemblyPrealocation& rPreAlloc,
+        TSchemeType& rScheme,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        // Calculate elemental contribution
+        rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.rhs, rPreAlloc.eq_id, rCurrentProcessInfo);
+        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
+
+        std::size_t ndofs = rPreAlloc.dofs.size();
+
+        static const auto alloc_if_needed_mat = [](Matrix& mat, const std::size_t rows, const std::size_t cols)
+        {
+            if(mat.size1() != rows || mat.size2() != cols) {
+                mat.resize(rows, cols, false);
+            }
+        };
+
+        alloc_if_needed_mat(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
+        alloc_if_needed_mat(rPreAlloc.aux, ndofs, mNumberOfRomModes);
+
+        const auto &geom = rEntity.GetGeometry();
+        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, geom, mMapPhi);
+        noalias(rPreAlloc.aux) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
+        double h_rom_weight = rEntity.GetValue(HROM_WEIGHT);
+        noalias(rPreAlloc.romA) += prod(trans(rPreAlloc.phiE), rPreAlloc.aux) * h_rom_weight;
+        noalias(rPreAlloc.romB) += prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
     }
 
     ///@}
