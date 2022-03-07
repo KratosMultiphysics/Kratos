@@ -82,6 +82,16 @@ public:
      */
     ~CohesiveLaw() override;
 
+
+    /**
+     * @brief Computes the material response:
+     * @details PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues The internal values of the law
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
+
+
     ///@}
     ///@name Operators
     ///@{
