@@ -38,6 +38,7 @@
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
 #include "custom_utilities/acceleration_limitation_utilities.h"
+#include "custom_utilities/two_fluid_history_projection_utility.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -178,6 +179,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
+        ;
+
+    // Two fluid velocity history projection utilities
+    py::class_<TwoFluidHistoryProjectionUtility>(m, "TwoFluidHistoryProjectionUtility")
+        .def_static("CalculateHistoryProjection", [&](ModelPart& rModelPart){TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(rModelPart);})
+        .def_static("CalculateHistoryProjection", [&](ModelPart& rModelPart, const bool ComputeNodalH){TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(rModelPart, ComputeNodalH);})
         ;
 
 }
