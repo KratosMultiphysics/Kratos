@@ -240,7 +240,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         return C
 
-    def _MatrixOutput(self, C, filename="rve_elasticity_tensor.txt"):
+    def _MatrixOutput(self, C, filename=None):
+        if filename == None:
+            filename = "rve_elasticity_tensor_{}D.txt".format(self.domain_size)
         f = open(filename, 'w')
 
         if(self.strain_size == 3):  # 2D

@@ -7,7 +7,7 @@
         "end_time"      : 1.0
     },
     "rve_settings"     : {
-        "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
+        "boundary_mp_name"  : "Structure.Boundaries",
         "averaging_mp_name" : "Structure",
         "print_rve_post"    : false,
         "perturbation"      : 1e-6
@@ -16,7 +16,7 @@
         "solver_type"                        : "static",
         "model_part_name"                    : "Structure",
         "multi_point_constraints_used"       : true,
-        "domain_size"                        : 3,
+        "domain_size"                        : 0,
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
         "builder_and_solver_settings"        : {
@@ -24,10 +24,10 @@
         },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "rve_test/smallest_rve_test"
+            "input_filename" : "TO_BE_SET_IN_TEST"
         },
         "material_import_settings"           : {
-            "materials_filename" : "rve_test/smallest_rve_test_materials.json"
+            "materials_filename" : "TO_BE_SET_IN_TEST"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
