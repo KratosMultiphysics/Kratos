@@ -289,7 +289,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NodeSearchUtility
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                 //Set slave nodes' slip condition to false
-                nodes_array[i]->Set(SLIP,false);
+                // nodes_array[i]->Set(SLIP,false);
 
                 // Search cloud of nodes for slave node
                 ResultNodesContainerType  Results;
