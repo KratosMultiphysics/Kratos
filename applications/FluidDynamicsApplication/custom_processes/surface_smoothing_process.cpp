@@ -137,7 +137,7 @@ void SurfaceSmoothingProcess::Execute()
     Model& current_model = mrModelPart.GetModel();
     auto& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName );
 
-    const double scale = 1.0e3;
+    const double scale = 1.0e0;
     r_smoothing_model_part.GetProcessInfo().SetValue(NODAL_AREA,scale);
 
     #pragma omp parallel for

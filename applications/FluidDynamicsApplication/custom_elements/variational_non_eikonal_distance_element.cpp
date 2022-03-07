@@ -331,19 +331,21 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     mean_distance /= static_cast<double>(num_nodes);
     mean_curvature /= static_cast<double>(num_nodes);
 
+    const double scale = 1.0e0;
+
     const double element_size = ElementSizeCalculator<3,4>::MinimumElementSize(this->GetGeometry());
     //KRATOS_WATCH(element_size)
 
     //const double tau = 0.5;
     //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 1.0e6/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
+    const double penalty_phi0 = scale*1.0e7/element_size; // <-- For Nitsche's method //1.0e9;//0.0;//
 
     // double source_coeff = 2.0/(0.1*element_size); //3.0/(8.0*element_size);//1.0e0;
     // const double radius = /* 1.339358195e-4/1.25 *//* 1.339358195e-3/1.3 */5.0*element_size + mean_distance; //20.0*element_size //Usually we have ~10 elements across a Radius, so, this is the expected minimum radius.
     // if ( radius > (0.1*element_size) ) source_coeff = 2.0/radius;
     // //const double dissipative_coefficient = 1.0e-8;
 
-    double source_coeff = 1.0*mean_curvature;
+    double source_coeff = 1.1*scale*mean_curvature;
 
     // num_dof = 4*num_nodes
     if(rLeftHandSideMatrix.size1() != num_dof)
@@ -382,12 +384,15 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         } */
 
         const double tolerance = 1.0e-3*element_size;
-        if (norm_grad_phi_avg > 1.0){
+        //if (norm_grad_phi_avg > 1.0){
+        if (norm_grad_phi_avg > tolerance){
             diffusion = 1.0/norm_grad_phi_avg;
             diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg);
         } else{
-            diffusion = 2.0-norm_grad_phi_avg;
-            diffusion_prime_to_s = -1.0/(norm_grad_phi_avg+tolerance);
+            diffusion = 1.0/(norm_grad_phi_avg+tolerance);
+            //diffusion = 2.0-norm_grad_phi_avg;
+            diffusion_prime_to_s = -1.0/(norm_grad_phi_avg*norm_grad_phi_avg*norm_grad_phi_avg+tolerance);
+            //diffusion_prime_to_s = -1.0/(norm_grad_phi_avg+tolerance);
         }
 
         // //KRATOS_WATCH(norm_grad_phi)
@@ -441,13 +446,15 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     // tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + 0) -=
                     //     weights(gp) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
 
-                    lhs(i_node, j_node) += weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     grad_Nj_dot_grad_phi += (DN_DX[gp])(j_node, k_dim) * grad_phi_avg[k_dim];//grad_phi[k_dim];//
 
                     if (step > 1){
                         // move to the LHS for Newton-Raphson strategy:
                         rhs[i_node] += diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * N(gp, j_node) * grad_phi_avg[k_dim];//grad_phi[k_dim];//
+                        lhs(i_node, j_node) += 1.0/scale * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                         // lhs(i_node, j_node) += - diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
+                    } else{
+                        lhs(i_node, j_node) += weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
                     }
                 }
                 /* if (step > 1){
@@ -510,7 +517,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
                 for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
                     //rhs(i_node*(num_dim + 1) + 0) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
-                    rhs(i_node) -= 2.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                    rhs(i_node) -= 1.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
                 }
             }
         } //else{
@@ -598,7 +605,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                                 normal_dot_grad_contact_Nj += ( (contact_DN_DX[i_cl] )[contact_gp])(j_node, k_dim) * normal0[k_dim];
                             }
 
-                            lhs(i_node, j_node) += 1.0e0 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
+                            lhs(i_node, j_node) += 1.0e2 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
                                 - (contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*normal_dot_grad_contact_Nj
                                 - (contact_weights[i_cl])(contact_gp)*normal_dot_grad_contact_Ni*(contact_N[i_cl])(contact_gp, j_node);
                         }
@@ -613,7 +620,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         if (npos != 0)
             source = -1.0e0;//0.0;//1.0; // There is no need to add positive source term
         else
-            source = -2.0e0;
+            source = -1.0e0;
 
         for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
@@ -702,7 +709,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                         }
 
                         if (step == 0){
-                            rhs(i_node) += 1.0 * minus_cos_contact_angle * face_weight * face_shape_func(i_node);
+                            rhs(i_node) += scale * minus_cos_contact_angle * face_weight * face_shape_func(i_node);
                         } else{ // if (step == 1)
                             const double norm_grad_phi_avg_i = norm_2( GetGeometry()[i_node].GetValue(DISTANCE_GRADIENT) );
                             rhs(i_node) += norm_grad_phi_avg_i * minus_cos_contact_angle * face_weight * face_shape_func(i_node);

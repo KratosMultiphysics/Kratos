@@ -386,8 +386,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
             print("Contact Angle Evaluator: End")
 
+            print("Smoothing Started")
+            print(time.time())
+
+            if (TimeStep % 1 == 0):
+                (self.distance_gradient_process).Execute() # Always check if calculated above
+                (self.surface_smoothing_process).Execute()
+                for node in self.main_model_part.Nodes:
+                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+
+            print(time.time())
+            print("Smoothing Finished")
+
             # Recompute the distance field according to the new level-set position
-            # if (TimeStep % 50 == 0):
+            # if (TimeStep % 1 == 0):
             #     print("Redistancing")
             #     print(time.time())
 
@@ -405,6 +418,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #         #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
             #     print(time.time())
+
+            if (TimeStep % 1 == 0):
+                (self.distance_gradient_process).Execute() # Always check if calculated above
+                (self.curvature_calculation_process).Execute()
+                (self.variational_non_eikonal_distance).Execute()
+                for node in self.main_model_part.Nodes:
+                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
             #########################################
             ##
@@ -464,27 +485,37 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ##
             ####################################
             # Smoothing the surface to filter oscillatory surface
-            print("Smoothing Started")
-            print(time.time())
+            # print("Smoothing Started")
+            # print(time.time())
             #(self.variational_distance_process).Execute()
 
-            if (TimeStep % 1 == 0):
-                (self.distance_gradient_process).Execute() # Always check if calculated above
-                (self.curvature_calculation_process).Execute()
-                (self.variational_non_eikonal_distance).Execute()
-                for node in self.main_model_part.Nodes:
-                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            # if (TimeStep % 1 == 0):
+            #     (self.distance_gradient_process).Execute() # Always check if calculated above
+            #     (self.curvature_calculation_process).Execute()
+            #     (self.variational_non_eikonal_distance).Execute()
+            #     for node in self.main_model_part.Nodes:
+            #         smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-            if (TimeStep % 1 == 0):
-                (self.distance_gradient_process).Execute() # Always check if calculated above
-                (self.surface_smoothing_process).Execute()
-                for node in self.main_model_part.Nodes:
-                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            # if (TimeStep % 1 == 0):
+            #     layers = 300#int(4000/100000*self.main_model_part.NumberOfElements())
+            #     (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
+            #         self.main_model_part,
+            #         KratosMultiphysics.DISTANCE,
+            #         KratosCFD.AREA_VARIABLE_AUX,
+            #         layers,
+            #         1.0e0)#,
+            #         #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-            print(time.time())
-            print("Smoothing Finished")
+            # if (TimeStep % 1 == 0):
+            #     (self.distance_gradient_process).Execute() # Always check if calculated above
+            #     (self.surface_smoothing_process).Execute()
+            #     for node in self.main_model_part.Nodes:
+            #         smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
+            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+
+            # print(time.time())
+            # print("Smoothing Finished")
 
             # Compute the DISTANCE_GRADIENT on nodes
             (self.distance_gradient_process).Execute()
@@ -555,14 +586,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             (self.level_set_convection_process).Execute()
 
-            TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            if (TimeStep % 1 == 0):
-                (self.distance_gradient_process).Execute() # Always check if calculated above
-                (self.curvature_calculation_process).Execute()
-                (self.variational_non_eikonal_distance).Execute()
-                for node in self.main_model_part.Nodes:
-                    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+            # TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+            # if (TimeStep % 1 == 0):
+            #     (self.distance_gradient_process).Execute() # Always check if calculated above
+            #     (self.curvature_calculation_process).Execute()
+            #     (self.variational_non_eikonal_distance).Execute()
+            #     for node in self.main_model_part.Nodes:
+            #         smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
+            #         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
         # # Smoothing the surface to filter oscillatory surface
         # (self.distance_gradient_process).Execute() # Always check if calculated above

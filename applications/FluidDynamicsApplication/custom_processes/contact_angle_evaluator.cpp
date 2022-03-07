@@ -124,7 +124,7 @@ void ContactAngleEvaluator::Execute()
 
             for (std::size_t i_node = 0; i_node < number_of_nodes_first_element; ++i_node){
                 auto& node = r_geometry[i_node];
-                if (node.GetValue(IS_STRUCTURE)){
+                if (node.GetValue(IS_STRUCTURE) == 1.0){
                     gradient += node.FastGetSolutionStepValue(DISTANCE_GRADIENT);
                 }
             }
