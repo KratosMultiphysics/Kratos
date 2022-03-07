@@ -106,7 +106,7 @@ public:
     typedef Node<3> NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
-    typedef typename std::unordered_set<DofPointerType, DofPointerHasher> DofSetType;
+    typedef moodycamel::ConcurrentQueue<DofType::Pointer> DofQueue;
 
     ///@}
     ///@name Life cycle
@@ -156,19 +156,14 @@ public:
             InitializeHROMWeights(rModelPart);
         }
 
-        DofSetType dof_global_set = ExtractDofSet(pScheme, rModelPart);
+        auto dof_queue = ExtractDofSet(pScheme, rModelPart);
 
         // Fill a sorted auxiliary array of with the DOFs set
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-        DofsArrayType Doftemp;
-        Doftemp.reserve(dof_global_set.size());
-        for (auto it = dof_global_set.begin(); it != dof_global_set.end(); it++) {
-            Doftemp.push_back(*it);
-        }
-        Doftemp.Sort();
+        auto dof_array = SortAndRemoveDuplicateDofs(dof_queue);
 
         // Update base builder and solver DOFs array and set corresponding flag
-        BaseType::GetDofSet() = Doftemp;
+        BaseType::GetDofSet() = dof_array;
         BaseType::SetDofSetIsInitializedFlag(true);
 
         // Throw an exception if there are no DOFs involved in the analysis
@@ -534,6 +529,8 @@ protected:
 
     void InitializeHROMWeights(ModelPart& rModelPart)
     {
+        KRATOS_TRY
+
         using ElementQueue = moodycamel::ConcurrentQueue<Element::Pointer>;
         using ConditionQueue = moodycamel::ConcurrentQueue<Condition::Pointer>;
 
@@ -562,7 +559,7 @@ protected:
             }
         });
 
-        // Dequeueing
+        // Dequeueing elements
         std::size_t err_id;
         mSelectedElements.reserve(element_queue.size_approx());
         Element::Pointer p_element;
@@ -570,21 +567,26 @@ protected:
             mSelectedElements.push_back(std::move(p_element));
         }
 
+        // Dequeueing conditions
         mSelectedConditions.reserve(condition_queue.size_approx());
         Condition::Pointer p_condition;
         while ( (err_id = condition_queue.try_dequeue(p_condition)) != 0) {
             mSelectedConditions.push_back(std::move(p_condition));
         }
 
+        // Wrap-up
         mHromSimulation = !(mSelectedElements.empty() && mSelectedConditions.empty());
         mHromWeightsInitialized = true;
+
+        KRATOS_CATCH("")
     }
     
-    DofSetType ExtractDofSet(
+    static DofQueue ExtractDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart)
     {
-        using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
+        KRATOS_TRY
+
         DofQueue dof_queue;
 
         // Emulates ConcurrentQueue::enqueue_bulk adding move semantics to avoid atomic ops
@@ -623,15 +625,28 @@ protected:
             enqueue_bulk_move(dof_queue, dof_lists.second);
         });
 
-        DofSetType dof_set;
-        dof_set.reserve(dof_queue.size_approx());
+        return dof_queue;
+
+        KRATOS_CATCH("")
+    }
+
+    static DofsArrayType SortAndRemoveDuplicateDofs(DofQueue& dof_queue)
+    {
+        KRATOS_TRY
+
+        DofsArrayType dof_array;
+        dof_array.reserve(dof_queue.size_approx());
         DofType::Pointer p_dof;
         std::size_t err_id;
         while ( (err_id = dof_queue.try_dequeue(p_dof)) != 0) {
-            dof_set.insert(std::move(p_dof));
+            dof_array.push_back(std::move(p_dof));
         }
 
-        return dof_set;
+        dof_array.Unique(); // Sorts internally
+
+        return dof_array;
+
+        KRATOS_CATCH("")
     }
 
     ///@}
