@@ -24,6 +24,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/acceleration_limitation_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_slip_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/two_fluid_history_projection_utility.cpp
 
   # elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
