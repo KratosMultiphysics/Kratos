@@ -600,15 +600,24 @@ protected:
         using ConditionQueue = moodycamel::ConcurrentQueue<Condition::Pointer>;
         using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
 
-        ElementQueue element_queue;
         DofQueue dof_queue;
 
+        // Emulates ConcurrentQueue::enqueue_bulk adding move semantics to avoid atomic ops
+        const auto enqueue_bulk_move = [](DofQueue& queue, DofsVectorType& dof_list) {
+            for(auto& p_dof: dof_list) {
+                queue.enqueue(std::move(p_dof));
+            }
+            dof_list.clear();
+        };
+
+        // Inspecting elements
+        ElementQueue element_queue;
         DofsVectorType tmp_dof_list; // Preallocation
         block_for_each(rModelPart.Elements().GetContainer(), tmp_dof_list,
             [&](Element::Pointer p_element, DofsVectorType& dof_list)
         {
             pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
-            dof_queue.enqueue_bulk(dof_list.begin(), dof_list.size());
+            enqueue_bulk_move(dof_queue, dof_list);
 
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
@@ -618,39 +627,31 @@ protected:
             }
         });
 
-        // Loop the array of conditions
+        // Inspecting conditions
         ConditionQueue condition_queue;
-
         block_for_each(rModelPart.Conditions().GetContainer(), tmp_dof_list,
             [&](Condition::Pointer p_condition, DofsVectorType& dof_list)
         {
             pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
-            dof_queue.enqueue_bulk(dof_list.begin(), dof_list.size());
+            enqueue_bulk_move(dof_queue, dof_list);
 
-            // Detect whether the condition has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
-            // Note that those conditions used for displaying results are to be ignored as they will not be assembled
-            if (p_condition->Has(HROM_WEIGHT))
-            {
+            if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
-            }
-            else
+            } else
             {
                 p_condition->SetValue(HROM_WEIGHT, 1.0);
             }
         });
 
-        // Loop the array of constraints
+        // Inspecting master-slave constraints
         std::pair<DofsVectorType, DofsVectorType> tmp_ms_dof_lists; // Preallocation
-
         block_for_each(rModelPart.MasterSlaveConstraints(), tmp_ms_dof_lists,
             [&](MasterSlaveConstraint& r_constraint, std::pair<DofsVectorType, DofsVectorType>& dof_lists)
         {
-
-            // Gets list of Dof involved on every constraint
             r_constraint.GetDofList(dof_lists.first, dof_lists.second, rModelPart.GetProcessInfo());
 
-            dof_queue.enqueue_bulk(dof_lists.first.begin(), dof_lists.first.size());
-            dof_queue.enqueue_bulk(dof_lists.second.begin(), dof_lists.second.size());
+            enqueue_bulk_move(dof_queue, dof_lists.first);
+            enqueue_bulk_move(dof_queue, dof_lists.second);
         });
 
 
