@@ -15,11 +15,13 @@
     "solver_settings"  : {
         "solver_type"                        : "static",
         "model_part_name"                    : "Structure",
-        "block_builder"                      : true,
         "multi_point_constraints_used"       : true,
         "domain_size"                        : 3,
         "echo_level"                         : 0,
         "analysis_type"                      : "linear",
+        "builder_and_solver_settings"        : {
+            "use_block_builder" : true
+        },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "rve_test/smallest_rve_test"

@@ -14,7 +14,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
             with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            parameters["solver_settings"]["block_builder"].SetBool(True)
+            parameters["solver_settings"]["builder_and_solver_settings"]["use_block_builder"].SetBool(True)
             parameters["solver_settings"]["multi_point_constraints_used"].SetBool(True)
 
             self._aux_rve_computation(parameters)
@@ -52,7 +52,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
                             },
                             "file_label"          : "step",
                             "output_control_type" : "step",
-                            "output_frequency"    : 1,
+                            "output_interval"     : 1,
                             "body_output"         : true,
                             "node_output"         : false,
                             "skin_output"         : false,
