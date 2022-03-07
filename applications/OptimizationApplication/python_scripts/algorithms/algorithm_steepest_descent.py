@@ -62,9 +62,17 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.model_parts_controller.UpdateTimeStep(self.optimization_iteration)
 
+            # update controls
+            for control in self.controls:
+                self.controls_controller.UpdateControl(control,False)            
+
+            # do all analyses
             self.analyses_controller.RunAnalyses(self.analyses)
 
-            self.responses_controller.CalculateResponsesValue(self.objectives)
+            # compute objective values
+            responses_value = self.responses_controller.CalculateResponsesValue(self.objectives)
+            for response,value in responses_value.items():
+                Logger.Print("  ========================= objective ",response,": ",value," =========================  ")
 
             # calculate gradients
             for response in self.responses_controlled_objects.keys():
@@ -75,8 +83,12 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 for itr in range(len(self.controls_response_gradient_names[control])):
                     self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
 
-            # calcuate
-            self.opt_algorithm.CalculateSolutionStep()             
+            # calcuate 
+            self.opt_algorithm.CalculateSolutionStep() 
+
+            # compute controls
+            for control in self.controls:
+                self.controls_controller.ComputeControl(control,False)
 
             # now output 
             for control_model_part,vtkIO in self.root_model_parts_vtkIOs.items():
@@ -90,8 +102,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 vtkIO.ExecuteFinalizeSolutionStep()
 
                 root_control_model_part.ProcessInfo[KM.TIME] = OriginalTime
-
-
+                            
             Logger.Print("")
             Logger.PrintInfo("AlgorithmSteepestDescent", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
             Logger.PrintInfo("AlgorithmSteepestDescent", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")

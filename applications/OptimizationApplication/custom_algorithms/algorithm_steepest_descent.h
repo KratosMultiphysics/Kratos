@@ -100,9 +100,9 @@ public:
     // --------------------------------------------------------------------------
     void CalculateSolutionStep() override {
 
-        mObjectiveGradients = ZeroVector(mTotalNumControlVars);
-        mControlVarsUpdate = ZeroVector(mTotalNumControlVars);
-        mSearchDirection = ZeroVector(mTotalNumControlVars);
+        mObjectiveGradients.clear();
+        mControlVarsUpdate.clear();
+        mSearchDirection.clear();
 
         for(auto& objetive : mrSettings["objectives"]){
             double weight = objetive["objective_weight"].GetDouble();
@@ -138,27 +138,62 @@ public:
                 ModelPart& objective_controlled_obj_model_part = mrModel.GetModelPart(objective_controlled_object_name);
                 int objective_controlled_object_size = objetive["controlled_objects_size"][objective_control_i].GetInt();
                 for (int i=0;i<objective_controlled_object_size*objective_controlled_obj_model_part.Nodes().size();i++)
-                    mObjectiveGradients[objective_controlled_object_start_index+i*objective_controlled_object_size] /= weight*L2_norm;
+                    mObjectiveGradients[objective_controlled_object_start_index+i] /= weight*L2_norm;
             }
         }
 
         // compute search direction
         mSearchDirection = -mObjectiveGradients;
 
-        // compute control variables update
-        mControlVarsUpdate = 0.2 * mSearchDirection;
+        // // compute control variables update
+        // mControlVarsUpdate = 20 * mSearchDirection;
 
+        // compute and set the updates
         int index = 0;
         for(auto& control : mrSettings["controls"]){
             int control_size = control["size"].GetInt();
+            auto control_update_name = control["update_name"].GetString();
+            auto control_max_update = control["max_update"].GetDouble();
+
+            double control_max_abs_value = 0.0;
+            int control_begin_index = index;
+
             for(auto& control_obj : control["controlling_objects"]){
                 ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
                 for(auto& node : r_controlling_object.Nodes()){
                     if (control_size==3){
-                        // auto & nodal_gradient = node.FastGetSolutionStepValue(SHAPE_CONTROL_UPDATE);
-                        // nodal_gradient(0) += mControlVarsUpdate[index];
-                        // nodal_gradient(1) += mControlVarsUpdate[index++];
-                        // nodal_gradient(2) += mControlVarsUpdate[index++];
+                        if (std::abs(mSearchDirection[control_begin_index])>control_max_abs_value)
+                            control_max_abs_value = std::abs(mSearchDirection[control_begin_index]);
+                        if (std::abs(mSearchDirection[control_begin_index+1])>control_max_abs_value)
+                            control_max_abs_value = std::abs(mSearchDirection[control_begin_index+1]);
+                        if (std::abs(mSearchDirection[control_begin_index+2])>control_max_abs_value)
+                            control_max_abs_value = std::abs(mSearchDirection[control_begin_index+2]);
+                        control_begin_index += control_size;
+                    }
+                    else if(control_size==1){
+                        if (std::abs(mSearchDirection[control_begin_index])>control_max_abs_value)
+                            control_max_abs_value = std::abs(mSearchDirection[control_begin_index]);
+                        control_begin_index +=1;
+                    }
+                }
+            }
+
+            double control_scaling_factor = control_max_update/control_max_abs_value;
+
+            for(auto& control_obj : control["controlling_objects"]){
+                ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+                for(auto& node : r_controlling_object.Nodes()){
+                    if (control_size==3){
+                        auto & nodal_update = node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(control_update_name));
+                        nodal_update(0) = control_scaling_factor * mSearchDirection[index];
+                        nodal_update(1) = control_scaling_factor * mSearchDirection[index+1];
+                        nodal_update(2) = control_scaling_factor * mSearchDirection[index+2];
+                        index += 3;
+                    }
+                    else if (control_size==1){
+                        auto & nodal_update = node.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(control_update_name));
+                        nodal_update = control_scaling_factor * mSearchDirection[index];
+                        index += 1;
                     }
                 }
             }

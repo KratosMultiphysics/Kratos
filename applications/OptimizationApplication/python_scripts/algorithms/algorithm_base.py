@@ -43,6 +43,7 @@ class OptimizationAlgorithm:
 
         # controls
         self.controls = opt_settings["controls"].GetStringArray()
+        self.controls_maximum_updates = opt_settings["controls_maximum_updates"].GetVector()
 
         # compile settings for responses
         self.responses_controls = {}
@@ -56,7 +57,6 @@ class OptimizationAlgorithm:
         self.controls_response_var_names = {}
         self.controls_response_gradient_names = {}
         self.controls_response_control_gradient_names = {}
-        self.supported_control_types_variables_name = self.controls_controller.GetSupportedControlTypesVariablesName()
         self.root_model_part_data_field_names = {}
         for response in self.responses:
             response_type = self.responses_controller.GetResponseType(response)
@@ -67,7 +67,9 @@ class OptimizationAlgorithm:
             self.responses_var_names[response] = response_variable_name
             for control in self.controls:
                 control_type = self.controls_controller.GetControlType(control)
-                control_variable_name =  self.supported_control_types_variables_name[control_type]
+                control_variable_name = self.controls_controller.GetControlVariableName(control)
+                control_update_name = self.controls_controller.GetControlUpdateName(control)
+                control_output_names = self.controls_controller.GetControlOutputNames(control)
                 control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
                 for control_controlling_object in control_controlling_objects:
                     if control_controlling_object in response_controlled_objects:
@@ -96,8 +98,10 @@ class OptimizationAlgorithm:
                                 if not response_control_gradient_field in self.root_model_part_data_field_names[extracted_root_model_part_name]:
                                     self.root_model_part_data_field_names[extracted_root_model_part_name].append(response_control_gradient_field)
                                     self.root_model_part_data_field_names[extracted_root_model_part_name].append(response_gradient_name)
+                                    self.root_model_part_data_field_names[extracted_root_model_part_name].extend(control_output_names)
                             else:
                                 self.root_model_part_data_field_names[extracted_root_model_part_name] = [response_control_gradient_field,response_gradient_name]
+                                self.root_model_part_data_field_names[extracted_root_model_part_name].extend(control_output_names)
                                 control_controlling_root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(response_control_gradient_field))
 
                             if control in self.controls_responses.keys():
@@ -157,10 +161,15 @@ class OptimizationAlgorithm:
 
         self.opt_parameters.AddEmptyArray("controls")
         for control in self.controls:
-            control_type = self.controls_controller.GetControlType(control)    
+            control_index = self.controls.index(control)
+            control_max_update = self.controls_maximum_updates[control_index]
+            control_type = self.controls_controller.GetControlType(control)
+            control_update_name = self.controls_controller.GetControlUpdateName(control)
             control_settings = Parameters()
             control_settings.AddString("name",control)
             control_settings.AddString("type",control_type)
+            control_settings.AddString("update_name",control_update_name)
+            control_settings.AddDouble("max_update",control_max_update)
             if control_type == "shape":
                 control_settings.AddInt("size",3)
             else:

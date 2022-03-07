@@ -137,7 +137,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
-        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.SHAPE_UPDATE)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(KSO.D_X)
         self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
@@ -196,8 +196,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         self.__computeControlPointUpdate()
 
-        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
-        self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)
+        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.D_X)
+        self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.D_X)
 
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
@@ -307,6 +307,6 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
         self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
-        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.D_X, KSO.SHAPE_CHANGE)
 
 # ==============================================================================

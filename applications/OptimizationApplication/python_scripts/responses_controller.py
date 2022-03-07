@@ -227,12 +227,11 @@ class ResponsesController:
         if type(responses_name) is not list:
             raise RuntimeError("ResponsesController:CalculateResponsesValue requires list of response names")
 
-        responses_value = []
+        responses_value = {}
         for response_name in responses_name:
             if not response_name in self.responses.keys():
                 raise RuntimeError("ResponsesController:CalculateResponsesValue: Try to calculate response {} which does not exist.".format(response_name))            
-            response_value = self.responses[response_name].CalculateValue()
-            responses_value.append(response_value)
+            responses_value[response_name] = self.responses[response_name].CalculateValue()
 
         return responses_value        
 
@@ -257,7 +256,7 @@ class ResponsesController:
     def CalculateResponsesGradients(self,responses_name):
 
         if type(responses_name) is not list:
-            raise RuntimeError("ResponsesController:CalculateResponsesValue requires list of response names")
+            raise RuntimeError("ResponsesController:CalculateResponsesGradients requires list of response names")
 
         for response_name in responses_name:
             if not response_name in self.responses.keys():

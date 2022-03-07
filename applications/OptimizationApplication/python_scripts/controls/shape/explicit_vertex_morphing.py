@@ -12,27 +12,18 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
+from KratosMultiphysics.OptimizationApplication.controls.shape.shape_control import ShapeControl
 
-class ExplicitVertexMorphing():
+class ExplicitVertexMorphing(ShapeControl):
 
     def __init__(self, name, model, settings):
-        
-        self.name = name
-        self.model = model
-        self.settings = settings
+        super().__init__(name,model,settings)
         self.technique_settings = self.settings["technique_settings"]
-        self.controlling_objects = self.settings["controlling_objects"].GetStringArray() 
-
-        # add vars
-        for model_part_name in self.controlling_objects:
-            root_model = model_part_name.split(".")[0]
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.SHAPE_CONTROL)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.SHAPE_CONTROL_UPDATE)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.SHAPE_UPDATE)
-
-
 
     def Initialize(self):
+
+        super().Initialize()
+
         self.ex_vm_mapper = {}
         for model_part_name in self.controlling_objects:
             if not self.model.HasModelPart(model_part_name):
@@ -40,21 +31,30 @@ class ExplicitVertexMorphing():
             ex_mapper = mapper_factory.CreateMapper(self.model.GetModelPart(model_part_name), self.model.GetModelPart(model_part_name), self.technique_settings)
             ex_mapper.Initialize()
             self.ex_vm_mapper[model_part_name] = ex_mapper
-
-        # initialize control fields
-        zero_vec = Vector(3); 
-        for model_part_name in self.controlling_objects:
-            model_part = self.model.GetModelPart(model_part_name)         
-            for node in model_part.Nodes:
-                node.SetSolutionStepValue(KOA.SHAPE_CONTROL, zero_vec)        
-
-
-        dwdw
-
+    
 
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         for mapper in self.ex_vm_mapper.values():
             mapper.InverseMap(derivative_variable_name,mapped_derivative_variable_name)
+
+    def Compute(self):
+        for mapper in self.ex_vm_mapper.values():
+            mapper.Map(KOA.D_CX,KOA.D_X)   
+
+    def Update(self):
+        for model_part_name in self.controlling_objects:
+            model_part = self.model.GetModelPart(model_part_name)
+            for node in model_part.Nodes:
+                shape_update = node.GetSolutionStepValue(KOA.D_X)
+                node.X0 += shape_update[0]
+                node.Y0 += shape_update[1]
+                node.Z0 += shape_update[2]
+                node.X += shape_update[0]
+                node.Y += shape_update[1]
+                node.Z += shape_update[2]   
+
+        for mapper in self.ex_vm_mapper.values():
+            mapper.Update()               
             
 
 

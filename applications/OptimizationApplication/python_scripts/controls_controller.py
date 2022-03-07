@@ -146,6 +146,27 @@ class ControlsController:
         else:
             return self.controls_type[control_name]           
     # --------------------------------------------------------------------------
+    def GetControlVariableName(self,control_name,raise_error=True):
+        if not control_name in self.controls_type.keys():
+            if raise_error:
+                raise RuntimeError("ControlsController:GetControlVariableName: Control {} does not exist.".format(control_name))
+        else:
+            return self.controls[control_name].GetVariableName() 
+    # --------------------------------------------------------------------------
+    def GetControlUpdateName(self,control_name,raise_error=True):
+        if not control_name in self.controls_type.keys():
+            if raise_error:
+                raise RuntimeError("ControlsController:GetControlUpdateName: Control {} does not exist.".format(control_name))
+        else:
+            return self.controls[control_name].GetUpdateName()  
+    # --------------------------------------------------------------------------
+    def GetControlOutputNames(self,control_name,raise_error=True):
+        if not control_name in self.controls_type.keys():
+            if raise_error:
+                raise RuntimeError("ControlsController:GetControlOutputNames: Control {} does not exist.".format(control_name))
+        else:
+            return self.controls[control_name].GetOutputNames() 
+    # --------------------------------------------------------------------------
     def GetControlControllingObjects(self,control_name,raise_error=True):
         if raise_error:
             if not control_name in self.controls_controlling_objects.keys():
@@ -163,4 +184,20 @@ class ControlsController:
             if not control_name in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:MapControlFirstDerivative: Control {} does not exist.".format(control_name)) 
 
-        return self.controls[control_name].MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)       
+        self.controls[control_name].MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)       
+
+    # --------------------------------------------------------------------------
+    def UpdateControl(self, control_name, raise_error=True):   
+        if raise_error:
+            if not control_name in self.controls_controlling_objects.keys():
+                raise RuntimeError("ControlsController:UpdateControl: Control {} does not exist.".format(control_name)) 
+
+        self.controls[control_name].Update()  
+
+    # --------------------------------------------------------------------------
+    def ComputeControl(self, control_name, raise_error=True):   
+        if raise_error:
+            if not control_name in self.controls_controlling_objects.keys():
+                raise RuntimeError("ControlsController:ComputeControl: Control {} does not exist.".format(control_name)) 
+
+        self.controls[control_name].Compute()          
