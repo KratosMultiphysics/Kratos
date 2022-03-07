@@ -17,6 +17,7 @@
 
 // Project includes
 #include "geometries/geometry_data.h"
+#include "includes/global_pointer_variables.h"
 #include "processes/find_nodal_h_process.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/variable_utils.h"
@@ -28,7 +29,7 @@ namespace Kratos
 {
     /* Public functions *******************************************************/
 
-    static void TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(
+    void TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(
         ModelPart& rModelPart,
         const bool ComputeNodalH)
     {
@@ -47,7 +48,7 @@ namespace Kratos
 
     /* Private functions *******************************************************/
 
-    static void TwoFluidHistoryProjectionUtility::FlagElementsAndNodes(
+    void TwoFluidHistoryProjectionUtility::FlagElementsAndNodes(
         ModelPart& rModelPart,
         const std::size_t NumberOfExtraLayers)
     {
@@ -72,11 +73,11 @@ namespace Kratos
         // Extra layers for seeding
         // Note that in here we are assuming that the neighbours are already computed
         for (std::size_t i_layer = 0; i_layer < NumberOfExtraLayers; ++i_layer) {
-            for (const auto& r_node : rModelPart.Nodes()) {
+            for (auto& r_node : rModelPart.Nodes()) {
                 auto& r_neighbours = r_node.GetValue(NEIGHBOUR_NODES);
                 for (auto& r_neigh : r_neighbours) {
                     if (!r_neigh.Is(SELECTED)) {
-                        r_neight.Set(SELECTED, true);
+                        r_neigh.Set(SELECTED, true);
                     }
                 }
             }
@@ -96,10 +97,10 @@ namespace Kratos
         });
     }
 
-    static ParticleDataContainerType TwoFluidHistoryProjectionUtility::SeedAndConvectParticles(ModelPart& rModelPart)
+    TwoFluidHistoryProjectionUtility::ParticleDataContainerType TwoFluidHistoryProjectionUtility::SeedAndConvectParticles(ModelPart& rModelPart)
     {
         // Initialize required data
-        const double dt = rModelPart.GetProcessInfo()[DELTA_TIME]
+        const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
         KRATOS_ERROR_IF(dt < 1.0e-12) << "Found DELTA_TIME close to zero in ProcessInfo." << std::endl;
 
         // Allocate auxiliary arrays
@@ -108,7 +109,7 @@ namespace Kratos
         // Get and allocate arrays according to 1st element
         // Note that we are assuming a unique element type in the mesh
         const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-        const auto& elem_begin_geom = rModelPart.BeginElements()->GetGeometry();
+        const auto& elem_begin_geom = rModelPart.ElementsBegin()->GetGeometry();
         const std::size_t n_nodes = elem_begin_geom.PointsNumber();
         const std::size_t n_gauss = elem_begin_geom.IntegrationPointsNumber(integration_method);
 
@@ -145,7 +146,7 @@ namespace Kratos
         return particle_data;
     }
 
-    static void TwoFluidHistoryProjectionUtility::CalculateLagrangianVelocityInterpolation(
+    void TwoFluidHistoryProjectionUtility::CalculateLagrangianVelocityInterpolation(
         ModelPart& rModelPart,
         const ParticleDataContainerType& rParticleData)
     {
