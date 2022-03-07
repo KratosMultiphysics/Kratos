@@ -53,10 +53,8 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult,
                           const ProcessInfo& rCurrentProcessInfo) const override
     {
-        if (rResult.size() != NumNodes) {
-            rResult.clear();
-            rResult.reserve(NumNodes);
-        }
+        rResult.clear();
+        rResult.reserve(NumNodes);
 
         for (const auto& r_node : GetGeometry()) {
             rResult.push_back(r_node.GetDof(TEMPERATURE).EquationId());
@@ -66,10 +64,8 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override
     {
-        if (rElementalDofList.size() != NumNodes) {
-            rElementalDofList.clear();
-            rElementalDofList.reserve(NumNodes);
-        }
+        rElementalDofList.clear();
+        rElementalDofList.reserve(NumNodes);
 
         for (const auto& r_node : GetGeometry()) {
             rElementalDofList.push_back(r_node.pGetDof(TEMPERATURE));
@@ -152,7 +148,6 @@ ModelPart& FillModel(Model& model)
 
     // Dirichlet
     mpart.GetNode(1).Fix(TEMPERATURE);
-    mpart.GetNode(1).SetValue(ROM_BASIS, ZeroMatrix(1,2));
 
     return mpart;
 };
@@ -215,8 +210,8 @@ KRATOS_TEST_CASE_IN_SUITE(ROMBuilderAndSolver, RomApplicationFastSuite)
     KRATOS_CHECK_NEAR(dq(0), 1.0 , 1e-8);
     KRATOS_CHECK_NEAR(dq(1), 0.5 , 1e-8);
 
+    // Testing free dofs
     KRATOS_CHECK_EQUAL(dx.size(), 3);
-    KRATOS_CHECK_NEAR(dx(0), 0.0 , 1e-8);
     KRATOS_CHECK_NEAR(dx(1), 1.5 , 1e-8);
     KRATOS_CHECK_NEAR(dx(2), 2.0 , 1e-8);
 }
