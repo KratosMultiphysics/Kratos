@@ -186,7 +186,7 @@ public:
                 }
 
                 // Loop the array of conditions
-                ConditionsArrayType selected_conditions_private;
+                ConditionsArrayType temp_selected_conditions;
                 #pragma omp for schedule(guided, 512) nowait
                 for (int i = 0; i < number_of_conditions; ++i) {
                     auto it_cond = r_conditions_array.begin() + i;
@@ -637,13 +637,14 @@ protected:
         DofSetType& rDofGlobalSet)
     {
         {
-
-            DofSetType dofs_tmp_set {};
-            ElementsArrayType selected_elements {};
-
             using ElementLoopReducer = DofAndEntityReducer<Element, ElementsArrayType>;
+            using ConditionLoopReducer = DofAndEntityReducer<Condition, ConditionsArrayType>;
+            using ConstraintLoopReducer = DofAndEntityReducer<DummyEntity, std::vector<DummyEntity>>
 
-            std::tie(dofs_tmp_set, selected_elements) =
+            DofSetType temp_dof_set {};
+            ElementsArrayType temp_selected_elements {};
+
+            std::tie(temp_dof_set, temp_selected_elements) =
             block_for_each<ElementLoopReducer>(rModelPart.Elements().GetContainer(),
                 [&](Element::Pointer p_element) -> typename ElementLoopReducer::value_type
             {
@@ -664,28 +665,37 @@ protected:
                 }
             });
 
-            mHromSimulation = selected_elements.size() > 0;
-            DofsVectorType dof_list;
-            DofsVectorType second_dof_list;
+            rDofGlobalSet.swap(temp_dof_set);
+            mSelectedElements.swap(temp_selected_elements);
 
             // Loop the array of conditions
-            ConditionsArrayType selected_conditions_private;
-            #pragma omp for schedule(guided, 512) nowait
-            for (Condition::Pointer p_condition: rModelPart.Conditions().GetContainer()) {
+            temp_dof_set.clear();
+
+            ConditionsArrayType temp_selected_conditions {};
+
+            std::tie(temp_dof_set, temp_selected_conditions) =
+            block_for_each<ConditionLoopReducer>(rModelPart.Conditions().GetContainer(), 
+                [&](Condition::Pointer p_condition) -> typename ConditionLoopReducer::value_type
+            {
+                DofsVectorType dof_list;
+                pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
 
                 // Detect whether the condition has an hyperreduced weight (H-ROM simulation) or not (ROM simulation)
                 // Note that those conditions used for displaying results are to be ignored as they will not be assembled
-                if (p_condition->Has(HROM_WEIGHT)){
-                    selected_conditions_private.push_back(p_condition);
-                    mHromSimulation = true;
-                } else {
-                    p_condition->SetValue(HROM_WEIGHT, 1.0);
+                if (p_condition->Has(HROM_WEIGHT))
+                {
+                    return std::tie(dof_list, p_condition);
                 }
+                else
+                {
+                    p_condition->SetValue(HROM_WEIGHT, 1.0);
+                    Condition::Pointer null_ptr = nullptr;
+                    return std::tie(dof_list, null_ptr);
+                }
+            });
 
-                // Gets list of DOF involved on every condition
-                pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
-                dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
-            }
+            rDofGlobalSet.insert(temp_dof_set.begin(), temp_dof_set.end()); // C++17: Update to rDofGlobalSet.merge(temp_dof_set)
+            mSelectedConditions.swap(temp_selected_conditions);
 
             // Loop the array of constraints
             #pragma omp for schedule(guided, 512) nowait
