@@ -24,7 +24,10 @@ for module in conf["included_modules"]:
     dst = os.path.join("KratosMultiphysics", module)
     if os.path.exists(dst):
         shutil.rmtree(dst)
-    shutil.copytree(src, dst)
+    try:
+        shutil.copytree(src, dst)
+    except Exception as e:
+        print("Warning copying {}: {}".format(src,e))
 
 for binary in conf["included_binaries"]:
     for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
