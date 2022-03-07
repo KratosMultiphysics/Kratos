@@ -669,6 +669,7 @@ protected:
             mSelectedConditions.push_back(std::move(p_condition));
         }
 
+        rDofGlobalSet.reserve(dof_queue.size_approx());
         DofType::Pointer p_dof;
         while ( (err_id = dof_queue.try_dequeue(p_dof)) != 0) {
             rDofGlobalSet.insert(std::move(p_dof));
