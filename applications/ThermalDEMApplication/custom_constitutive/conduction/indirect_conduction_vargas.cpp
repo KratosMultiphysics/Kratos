@@ -23,11 +23,6 @@ namespace Kratos {
   IndirectConductionVargas::~IndirectConductionVargas() {}
 
   //------------------------------------------------------------------------------------------------------------
-  double IndirectConductionVargas::GetSearchDistance(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
-    return 0.0;
-  }
-
-  //------------------------------------------------------------------------------------------------------------
   double IndirectConductionVargas::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 

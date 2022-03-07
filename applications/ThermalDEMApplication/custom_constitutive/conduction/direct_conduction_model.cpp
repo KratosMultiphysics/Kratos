@@ -28,6 +28,11 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
+  double DirectConductionModel::GetSearchDistance(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+    return 0.0;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
   double DirectConductionModel::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     return 0.0;
   }

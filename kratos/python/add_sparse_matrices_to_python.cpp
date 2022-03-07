@@ -127,7 +127,7 @@ void AddSparseMatricesToPython(pybind11::module& m)
         rA.SpMV(x,y);
     })
     .def("__matmul__", [](const CsrMatrix<double,IndexType>& rA,const SystemVector<double,IndexType>& x){
-        auto py  = std::make_shared<SystemVector<double,IndexType>>(x.size());
+        auto py  = std::make_shared<SystemVector<double,IndexType>>(rA.size1());
         py->SetValue(0.0); 
         rA.SpMV(x,*py);
         return py;

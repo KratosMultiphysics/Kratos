@@ -10,8 +10,8 @@
 //  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
-#if !defined(DIRECT_CONDUCTION_MODEL_BOB_H_INCLUDED)
-#define DIRECT_CONDUCTION_MODEL_BOB_H_INCLUDED
+#if !defined(DIRECT_CONDUCTION_MODEL_BOB_SIMPLE_H_INCLUDED)
+#define DIRECT_CONDUCTION_MODEL_BOB_SIMPLE_H_INCLUDED
 
 // System includes
 
@@ -22,59 +22,59 @@
 
 namespace Kratos
 {
-  class KRATOS_API(THERMAL_DEM_APPLICATION) DirectConductionBOB : public DirectConductionModel
+  class KRATOS_API(THERMAL_DEM_APPLICATION) DirectConductionBOBSimple : public DirectConductionModel
   {
     public:
 
       // Pointer definition
-      KRATOS_CLASS_POINTER_DEFINITION(DirectConductionBOB);
+      KRATOS_CLASS_POINTER_DEFINITION(DirectConductionBOBSimple);
 
       // Constructor / Destructor
-      DirectConductionBOB();
-      virtual ~DirectConductionBOB();
+      DirectConductionBOBSimple();
+      virtual ~DirectConductionBOBSimple();
 
       // Public methods
       double ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) override;
 
       // Clone
       HeatExchangeMechanism* CloneRaw() const override {
-        HeatExchangeMechanism* cloned_model(new DirectConductionBOB(*this));
+        HeatExchangeMechanism* cloned_model(new DirectConductionBOBSimple(*this));
         return cloned_model;
       }
 
       HeatExchangeMechanism::Pointer CloneShared() const override {
-        HeatExchangeMechanism::Pointer cloned_model(new DirectConductionBOB(*this));
+        HeatExchangeMechanism::Pointer cloned_model(new DirectConductionBOBSimple(*this));
         return cloned_model;
       }
 
       // Turn back information as a string
       virtual std::string Info() const override {
         std::stringstream buffer;
-        buffer << "DirectConductionBOB";
+        buffer << "DirectConductionBOBSimple";
         return buffer.str();
       }
 
       // Print object information
-      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "DirectConductionBOB"; }
+      virtual void PrintInfo(std::ostream& rOStream) const override { rOStream << "DirectConductionBOBSimple"; }
       virtual void PrintData(std::ostream& rOStream) const override {}
 
     private:
 
       // Assignment operator / Copy constructor
-      DirectConductionBOB& operator=(DirectConductionBOB const& rOther) {return *this;}
-      DirectConductionBOB(DirectConductionBOB const& rOther) {*this = rOther;}
+      DirectConductionBOBSimple& operator=(DirectConductionBOBSimple const& rOther) {return *this;}
+      DirectConductionBOBSimple(DirectConductionBOBSimple const& rOther) {*this = rOther;}
 
-  }; // Class DirectConductionBOB
+  }; // Class DirectConductionBOBSimple
 
   // input stream function
   inline std::istream& operator>>(std::istream& rIStream,
-    DirectConductionBOB& rThis) {
+    DirectConductionBOBSimple& rThis) {
     return rIStream;
   }
 
   // output stream function
   inline std::ostream& operator<<(std::ostream& rOStream,
-    const DirectConductionBOB& rThis) {
+    const DirectConductionBOBSimple& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
@@ -83,4 +83,4 @@ namespace Kratos
 
 } // namespace Kratos
 
-#endif // DIRECT_CONDUCTION_MODEL_BOB_H_INCLUDED
+#endif // DIRECT_CONDUCTION_MODEL_BOB_SIMPLE_H_INCLUDED
