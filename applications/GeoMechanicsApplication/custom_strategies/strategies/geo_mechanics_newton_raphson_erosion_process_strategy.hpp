@@ -234,20 +234,71 @@ private:
     std::vector<Kratos::Element> GetPipingElements() {
         ModelPart& CurrentModelPart = this->GetModelPart();
         std::vector<Element> PipeElements;
+        double PipeElementStartX;
         for (const Element element: CurrentModelPart.Elements())
         {
-        	if (element.GetProperties().Has(PIPE_D_70))
+        	if (element.GetProperties().Has(PIPE_START_ELEMENT))
             {
                 PipeElements.push_back(element);
+
+                auto startElement = element.GetProperties()[PIPE_START_ELEMENT];
+
+                // Debug Statement
+        		// startElement = 217;
+
+        		KRATOS_INFO("PipingLoop") << element.Id() << " " << startElement << std::endl;
+
+        		if (element.Id() == startElement)
+                {
+                    PipeElementStartX = element.GetGeometry().GetPoint(0)[0];
+                }
             }
         }
 
-        // We assume that the piping elements are provided in order.
-    
-    	// todo JDN  - Make sure elements are sorted correctly
+        // Get Maximum X Value in Pipe
+        auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element& a, const Element& b)
+            {
+                return a.GetGeometry().GetPoint(0)[0] < b.GetGeometry().GetPoint(0)[0];
+            });
+
+        // Get Minimum X Value in Pipe
+        auto leftPipe = std::min_element(PipeElements.begin(), PipeElements.end(), [](const Element& a, const Element& b)
+            {
+                return a.GetGeometry().GetPoint(0)[0] < b.GetGeometry().GetPoint(0)[0];
+            });
+
+        double minX = leftPipe[0].GetGeometry().GetPoint(0)[0];
+        double maxX = rightPipe[0].GetGeometry().GetPoint(0)[0];
+
+        KRATOS_INFO("PipingLoop") << minX << " " << maxX << " " << PipeElementStartX << std::endl;
+
+    	if ((minX != PipeElementStartX) && (maxX != PipeElementStartX))
+        {
+            KRATOS_ERROR << "Unable to determine pipe direction (multiple directions possible) -  Check PIPE_START_ELEMENT" << std::endl;
+        }
+
+        if (minX == PipeElementStartX)
+        {
+            // Pipe Left -> Right
+            sort(PipeElements.begin(), PipeElements.end(), [](const Element& lhs, const Element& rhs) {
+                return lhs.GetGeometry().GetPoint(0)[0] < rhs.GetGeometry().GetPoint(0)[0];
+                });
+        }
+        else
+        {
+            // Pipe Right -> Left
+            sort(PipeElements.begin(), PipeElements.end(), [](const Element& lhs, const Element& rhs) {
+                return lhs.GetGeometry().GetPoint(0)[0] > rhs.GetGeometry().GetPoint(0)[0];
+                });
+        }
 
         KRATOS_INFO("PipingLoop") << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
-        return PipeElements;
+        for (const Element pipeElement: PipeElements)
+        {
+            KRATOS_INFO("PipingLoop") << "PipeElementIDs (in order): " << pipeElement.Id() << std::endl;
+        }
+
+    	return PipeElements;
     }
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

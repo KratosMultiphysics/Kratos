@@ -2,8 +2,7 @@ import sys
 import os
 import math
 
-sys.path.append(os.path.join(r'D:/Kratos/Kratos/bin/Release'))
-#sys.path.append(os.path.join('..', '..', '..'))
+sys.path.append(os.path.join('..', '..', '..'))
 sys.path.append(os.path.join('..', 'python_scripts'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest

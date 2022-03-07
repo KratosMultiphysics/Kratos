@@ -83,6 +83,7 @@
 			  "PIPE_D_70"				 :  0.0002,
 			  "PIPE_ETA"				 :  0.25,
 			  "PIPE_THETA"               :  37,
+			  "PIPE_START_ELEMENT"		 :  210,
               "BIOT_COEFFICIENT"         :  1.0,
               "RETENTION_LAW"                    : "VanGenuchtenLaw",
               "SATURATED_SATURATION"             :  1.0,
