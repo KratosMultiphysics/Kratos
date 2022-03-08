@@ -1,4 +1,3 @@
-# Importing the Kratos Library
 import KratosMultiphysics as KM
 
 from KratosMultiphysics.ShallowWaterApplication.benchmarks.base_benchmark_process import BaseBenchmarkProcess
@@ -28,12 +27,13 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
 
         super().__init__(model, settings)
 
-        self.dam = self.benchmark_settings["dam_position"].GetDouble()
-        self.hl = self.benchmark_settings["left_height"].GetDouble()
-        self.hr = self.benchmark_settings["right_height"].GetDouble()
+        self.dam = self.settings["benchmark_settings"]["dam_position"].GetDouble()
+        self.hl = self.settings["benchmark_settings"]["left_height"].GetDouble()
+        self.hr = self.settings["benchmark_settings"]["right_height"].GetDouble()
         self.g = self.model_part.ProcessInfo[KM.GRAVITY_Z]
 
         self.cm = self.__cm()
+
 
     def Check(self):
         """This method checks if the input values have physical sense."""
@@ -50,6 +50,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
             msg = label + "Left height must be a positive value. Please, check the Parameters."
             raise Exception(msg)
 
+
     @classmethod
     def _GetBenchmarkDefaultSettings(cls):
         return KM.Parameters("""
@@ -61,8 +62,6 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
             """
             )
 
-    def _Topography(self, coordinates):
-        return 0.0
 
     def _Height(self, coordinates, time):
         x = coordinates.X
@@ -80,6 +79,7 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         else:
             return self.hr
 
+
     def _Velocity(self, coordinates, time):
         x = coordinates.X
 
@@ -96,19 +96,24 @@ class DamBreakBenchmark(BaseBenchmarkProcess):
         else:
             return [0.0, 0.0, 0.0]
 
+
     def __xa(self, t):
         return self.dam - t * np.sqrt(self.g * self.hl)
+
 
     def __xb(self, t):
         return self.dam + t * (2*np.sqrt(self.g * self.hl) - 3 * self.cm)
 
+
     def __xc(self, t):
         return self.dam + t * 2 * self.cm**2 * (np.sqrt(self.g*self.hl) - self.cm) / (self.cm**2 - self.g * self.hr)
+
 
     def __cm(self):
         cm0 = np.sqrt(self.g * 0.5 * (self.hl + self.hr))
         cm = opt.newton(self.__cm_residual, cm0)
         return cm
+
 
     def __cm_residual(self,cm):
         hl = self.hl

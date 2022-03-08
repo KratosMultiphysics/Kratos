@@ -120,7 +120,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
 
         self.__TestTransferMatching(data_transfer_op)
         self.__TestTransferMatchingSwapSign(data_transfer_op)
@@ -142,7 +142,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         exp_error = 'No "mapper_settings" provided!'
         with self.assertRaisesRegex(Exception, exp_error):
-            data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings_missing)
+            data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings_missing, KM.Testing.GetDefaultDataCommunicator())
 
         data_transfer_op_settings = KM.Parameters("""{
             "type" : "kratos_mapping",
@@ -151,7 +151,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             }
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
 
         self.__TestTransferMatching(data_transfer_op)
         self.__TestTransferMatchingSwapSign(data_transfer_op)
@@ -193,7 +193,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             }
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
 
         transfer_options_empty = KM.Parameters(""" [] """)
         # origin is non-hist
@@ -238,7 +238,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -263,7 +263,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["swap_sign"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -282,7 +282,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["distribute_values"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -301,7 +301,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options_empty = KM.Parameters(""" [] """)
         transfer_options_add = KM.Parameters(""" ["add_values"] """)
 
@@ -329,7 +329,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
 
         for node in self.origin_data_single_node.GetModelPart().Nodes:
@@ -348,7 +348,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
         transfer_options_with_add_vals = KM.Parameters(""" ["distribute_values", "swap_sign", "add_values"] """)
 
@@ -376,7 +376,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -401,7 +401,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["swap_sign"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -421,7 +421,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["add_values"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -443,7 +443,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" ["add_values", "swap_sign"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
@@ -465,7 +465,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "sum_distributed_to_single"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):
@@ -478,7 +478,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             "type" : "copy_single_to_distributed"
         }""")
 
-        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
         transfer_options = KM.Parameters(""" [] """)
 
         with self.assertRaisesRegex(Exception, 'Variable of interface data "default" of solver "default_solver" has to be a scalar!'):

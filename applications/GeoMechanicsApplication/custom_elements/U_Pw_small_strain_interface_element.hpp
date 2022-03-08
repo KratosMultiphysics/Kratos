@@ -68,7 +68,7 @@ public:
                                    : UPwBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
     {
         /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
     /// Destructor

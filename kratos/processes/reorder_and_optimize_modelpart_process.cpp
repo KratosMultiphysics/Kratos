@@ -190,15 +190,6 @@ namespace Kratos
                         graph[geom[k].Id()-1].insert(geom[l].Id()-1); //the -1 is because the ids of our nodes start in 1
             }
 
-
-            unsigned int nnz = 0; //number of nonzeros in the graph
-            for(unsigned int i=0; i<n; ++i)
-            {
-                //if(graph[i].size() == 0) KRATOS_ERROR << "node with Id " << i+1 << "has zero neighbours " << std::endl;
-                nnz += graph[i].size();
-            }
-
-
             CompressedMatrix graph_csr(n,n);
             for(unsigned int i=0; i<n; ++i)
                 for(const auto& k : graph[i])

@@ -1,8 +1,8 @@
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_data_transfer_operator import CoSimulationDataTransferOperator
 
-def Create(settings):
-    return CopySingleToDistributed(settings)
+def Create(*args):
+    return CopySingleToDistributed(*args)
 
 class CopySingleToDistributed(CoSimulationDataTransferOperator):
     """DataTransferOperator to take one single value and set it to all values on another interface.

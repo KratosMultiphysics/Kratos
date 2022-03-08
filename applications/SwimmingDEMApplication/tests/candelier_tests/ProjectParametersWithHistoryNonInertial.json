@@ -125,6 +125,11 @@
             "input_type" : "mdpa",
             "input_filename" : "candelier_tests/CandelierFluid"
         },
+
+        "material_import_settings"    : {
+            "materials_filename" : "interpolation_tests/FluidMaterials.json"
+        },
+
         "formulation": {
             "element_type": "vms"
         },
