@@ -258,12 +258,15 @@ public:
         TSystemVectorType &Dx,
         TSystemVectorType &b) override
     {
-        // Define a dense matrix to hold the reduced problem
+        KRATOS_TRY
+
         Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
         Vector brom = ZeroVector(mNumberOfRomModes);
 
         BuildROM(pScheme, rModelPart, Arom, brom);
         SolveROM(rModelPart, Arom, brom, Dx);
+
+        KRATOS_CATCH("")
     }
 
     void ResizeAndInitializeVectors(
@@ -274,6 +277,7 @@ public:
         ModelPart &rModelPart) override
     {
         KRATOS_TRY
+
         // If not initialized, initalize the system arrays to an empty vector/matrix
         if (!pA) {
             TSystemMatrixPointerType p_new_A = Kratos::make_shared<TSystemMatrixType>(0, 0);
@@ -597,8 +601,10 @@ protected:
 
     };
 
-    
-    static void allocate_if_needed(Matrix& mat, const SizeType rows, const SizeType cols)
+    /**
+     * Resizes a Matrix if it's not the right size
+     */
+    static void ResizeIfNeeded(Matrix& mat, const SizeType rows, const SizeType cols)
     {
         if(mat.size1() != rows || mat.size2() != cols) {
             mat.resize(rows, cols, false);
@@ -627,8 +633,8 @@ protected:
         rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
 
         const SizeType ndofs = rPreAlloc.dofs.size();
-        allocate_if_needed(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
-        allocate_if_needed(rPreAlloc.aux, ndofs, mNumberOfRomModes);
+        ResizeIfNeeded(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
+        ResizeIfNeeded(rPreAlloc.aux, ndofs, mNumberOfRomModes);
 
         const auto &r_geom = rEntity.GetGeometry();
         RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, mMapPhi);
@@ -651,6 +657,8 @@ protected:
         Matrix &A,
         Vector &b)
     {
+        KRATOS_TRY
+
         // Define a dense matrix to hold the reduced problem
         A = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
         b = ZeroVector(mNumberOfRomModes);
@@ -712,6 +720,8 @@ protected:
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -723,7 +733,8 @@ protected:
         Vector &brom,
         TSystemVectorType &rDx)
     {
-        //solve for the rom unkowns dunk = Arom^-1 * brom
+        KRATOS_TRY
+
         constexpr IndexType root_rank = 0;
         Vector dxrom(mNumberOfRomModes);
         if(rModelPart.GetCommunicator().MyPID() == root_rank)
@@ -736,7 +747,6 @@ protected:
         rModelPart.GetCommunicator().GetDataCommunicator().Broadcast(dxrom, root_rank);
 
         // Save the ROM solution increment in the root modelpart database
-        // This can be used later on to recover the solution in a visualization submodelpart
         auto& r_root_mp = rModelPart.GetRootModelPart();
         noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
 
@@ -744,6 +754,8 @@ protected:
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, rDx);
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+
+        KRATOS_CATCH("")
     }
 
     ///@}
