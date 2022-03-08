@@ -272,7 +272,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         strain[j, i] = perturbation
 
         strain_vector = KratosMultiphysics.Vector(self.strain_size)
-        if(self.strain_size == 3):
+        if self.strain_size == 3:
             strain_vector[0] = strain[0, 0]
             strain_vector[1] = strain[1, 1]
             strain_vector[2] = 2.0*strain[0, 1]
