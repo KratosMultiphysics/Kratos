@@ -169,14 +169,14 @@ public:
 
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::mDofSet.size() << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         if (BaseType::GetCalculateReactionsFlag())
         {
-            for (const auto& r_dof: BaseType::mDofSet)
+            for (const auto& r_dof: GetDofSet())
             {
                 KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
                     << "Reaction variable not set for the following :\n"
@@ -224,9 +224,9 @@ public:
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
         const ModelPart& rModelPart,
-        TSystemVectorType& rDx) const
+        TSystemVectorType& rDx) /*const*/ // Enable const once GetDofSet const is merged
     {
-        const auto& r_dof_set = BaseType::mDofSet;
+        const auto& r_dof_set = BaseType::GetDofSet();
         block_for_each(r_dof_set, [&](const DofType& r_dof)
         {
             const NodeType& node = rModelPart.GetNode(r_dof.Id());
