@@ -276,7 +276,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             strain_vector[0] = strain[0, 0]
             strain_vector[1] = strain[1, 1]
             strain_vector[2] = 2.0*strain[0, 1]
-        elif(self.strain_size == 6):
+        elif self.strain_size == 6:
             strain_vector[0] = strain[0, 0]
             strain_vector[1] = strain[1, 1]
             strain_vector[2] = strain[2, 2]
