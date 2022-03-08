@@ -268,46 +268,42 @@ public:
         // Get ProcessInfo from main model part
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
 
-        // Preallocating
+        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<Matrix>, NonTrivialSumReduction<Vector>>;
         AssemblyPrealocation prealloc(mNumberOfRomModes);
 
-        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<Matrix>, NonTrivialSumReduction<Vector>>;
-
-        // Elemental assembly
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
-        Matrix Atemp = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-        Vector btemp = ZeroVector(mNumberOfRomModes);
-
-        std::tie(Atemp, btemp) =
-        block_for_each<SystemSumReducer>(elements, prealloc, 
-            [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
-        {
-            return GetLocalContribution(r_element, thread_prealloc, *pScheme, r_current_process_info);
-        });
-
         if(!elements.empty())
         {
+            Matrix Atemp;
+            Vector btemp;
+
+            std::tie(Atemp, btemp) =
+            block_for_each<SystemSumReducer>(elements, prealloc, 
+                [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
+            {
+                return CalculateLocalContribution(r_element, thread_prealloc, *pScheme, r_current_process_info);
+            });
+
             Arom += Atemp;
             brom += btemp;
         }
 
         auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
-        std::tie(Atemp, btemp) =
-        block_for_each<SystemSumReducer>(conditions, prealloc, 
-            [&](Condition& r_condition, AssemblyPrealocation& thread_prealloc)
-        {
-            return GetLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
-        });
-
         if(!conditions.empty())
         {
+            Matrix Atemp;
+            Vector btemp;
+
+            std::tie(Atemp, btemp) =
+            block_for_each<SystemSumReducer>(conditions, prealloc, 
+                [&](Condition& r_condition, AssemblyPrealocation& thread_prealloc)
+            {
+                return CalculateLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
+            });
+
             Arom += Atemp;
             brom += btemp;
         }
@@ -668,7 +664,7 @@ protected:
      * Computes the local contribution of an element or condition
      */
     template<typename TEntity>
-    std::tuple<Matrix, Vector> GetLocalContribution(
+    std::tuple<Matrix, Vector> CalculateLocalContribution(
         TEntity& rEntity,
         AssemblyPrealocation& rPreAlloc,
         TSchemeType& rScheme,
