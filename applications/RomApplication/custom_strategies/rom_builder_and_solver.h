@@ -25,6 +25,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/reduction_utilities.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -260,12 +261,6 @@ public:
         // Define a dense matrix to hold the reduced problem
         Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
         Vector brom = ZeroVector(mNumberOfRomModes);
-        // TSystemVectorType x(Dx.size());
-
-        // const auto forward_projection_timer = BuiltinTimer();
-        // Vector xrom = ZeroVector(mNumberOfRomModes);
-        //this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
-        // KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << forward_projection_timer.ElapsedSeconds() << std::endl;
 
         // Build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -283,28 +278,39 @@ public:
         // Preallocating
         AssemblyPrealocation prealloc(mNumberOfRomModes);
 
-        auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
-        for (auto& r_element: elements)
-        {
-            // Detect if the element is active or not. If the user did not make any choice the element is active by default
-            if (r_element.IsDefined(ACTIVE) && r_element.IsNot(ACTIVE)) continue;
+        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<Matrix>, NonTrivialSumReduction<Vector>>;
 
-            // Calculate elemental contribution
-            GetLocalContribution(r_element, prealloc, *pScheme, r_current_process_info);
+        // Elemental assembly
+        auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
+        Matrix Atemp = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+        Vector btemp = ZeroVector(mNumberOfRomModes);
+
+        std::tie(Atemp, btemp) =
+        block_for_each<SystemSumReducer>(elements, prealloc, 
+            [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
+        {
+            return GetLocalContribution(r_element, thread_prealloc, *pScheme, r_current_process_info);
+        });
+
+        if(!elements.empty())
+        {
+            Arom += Atemp;
+            brom += btemp;
         }
 
         auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
-        for (auto& r_condition: conditions){
+        std::tie(Atemp, btemp) =
+        block_for_each<SystemSumReducer>(conditions, prealloc, 
+            [&](Condition& r_condition, AssemblyPrealocation& thread_prealloc)
+        {
+            return GetLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
+        });
 
-            // Detect if the element is active or not. If the user did not make any choice the condition is active by default
-            if (r_condition.IsDefined(ACTIVE) && r_condition.IsNot(ACTIVE)) continue;
-
-            // Calculate condition contribution
-            GetLocalContribution(r_condition, prealloc, *pScheme, r_current_process_info);
+        if(!conditions.empty())
+        {
+            Arom += Atemp;
+            brom += btemp;
         }
-
-        noalias(Arom) += prealloc.romA;
-        noalias(brom) += prealloc.romB;
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
@@ -613,16 +619,68 @@ protected:
         DofsVectorType dofs = {};        // Elemental dof vector
     };
 
+    
+    /**
+     * Class to Sum-reduce matrices and vectors.
+     */
+    template<typename T>
+    struct NonTrivialSumReduction : public SumReduction<T, T>
+    {
+        NonTrivialSumReduction() {
+            this->mValue = Zero<T>(); // Prevents unitialized values
+        }
+
+        SumReduction<T, T>& super() { return *static_cast<SumReduction<T, T>*>(this); }
+
+        void LocalReduce(T value)
+        {
+            if(!mInitialized) {
+                this->mValue.swap(value);
+                mInitialized = true;
+            } else {
+                super().LocalReduce(value);
+            }
+        }
+
+        void ThreadSafeReduce(const NonTrivialSumReduction& rOther)
+        {
+            if(!rOther.mInitialized) return;
+
+            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
+            LocalReduce(rOther.mValue);
+        }
+
+    private:
+        bool mInitialized = false;
+
+        template<typename U>
+        static U Zero();
+
+        template<>
+        static Vector Zero<Vector>() { return ZeroVector(0); }
+
+        template<>
+        static Matrix Zero<Matrix>() { return ZeroMatrix(0, 0); }
+
+    };
+
     /**
      * Computes the local contribution of an element or condition
      */
     template<typename TEntity>
-    void GetLocalContribution(
+    std::tuple<Matrix, Vector> GetLocalContribution(
         TEntity& rEntity,
         AssemblyPrealocation& rPreAlloc,
         TSchemeType& rScheme,
         const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE))
+        {
+            rPreAlloc.romA = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+            rPreAlloc.romB = ZeroVector(mNumberOfRomModes);
+            return std::tie(rPreAlloc.romA, rPreAlloc.romB);
+        }
+
         // Calculate elemental contribution
         rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.rhs, rPreAlloc.eq_id, rCurrentProcessInfo);
         rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
@@ -643,8 +701,10 @@ protected:
         RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, geom, mMapPhi);
         noalias(rPreAlloc.aux) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
         double h_rom_weight = rEntity.GetValue(HROM_WEIGHT);
-        noalias(rPreAlloc.romA) += prod(trans(rPreAlloc.phiE), rPreAlloc.aux) * h_rom_weight;
-        noalias(rPreAlloc.romB) += prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
+        noalias(rPreAlloc.romA) = prod(trans(rPreAlloc.phiE), rPreAlloc.aux) * h_rom_weight;
+        noalias(rPreAlloc.romB) = prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
+
+        return std::tie(rPreAlloc.romA, rPreAlloc.romB);
     }
 
     ///@}
