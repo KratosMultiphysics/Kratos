@@ -86,6 +86,8 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
 
             rom_basis_process.ExecuteFinalize()
 
+            model_part.GetCommunicator().GetDataCommunicator().Barrier()
+
     def __CheckResults(self, check_hrom_settings):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Load ROM basis output file
