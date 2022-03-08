@@ -178,7 +178,7 @@ public:
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         if (BaseType::GetCalculateReactionsFlag())
         {
-            for (const auto& r_dof: GetDofSet())
+            for (const auto& r_dof: BaseType::GetDofSet())
             {
                 KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
                     << "Reaction variable not set for the following :\n"
