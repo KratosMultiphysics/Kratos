@@ -16,7 +16,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         self.averaging_volume = -1.0  # it will be computed in initialize
         self.domain_size = project_parameters["solver_settings"]["domain_size"].GetInt()
-        if(self.domain_size == 2):
+        if self.domain_size == 2:
             self.strain_size = 3
         elif self.domain_size == 3:
             self.strain_size = 6
