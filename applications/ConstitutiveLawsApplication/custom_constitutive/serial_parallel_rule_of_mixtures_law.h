@@ -289,30 +289,31 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     /***********************************************************************************/
     /***************PRUEVA SET VALUE***************/
     /***********************************************************************************/
-    /**
-     * @brief Sets the value of a specified variable (integer)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
+    
+    /**@brief Sets the value of a specified variable (integer)*/
+    /**@param rThisVariable the variable to be returned*/
+    /**@param rValue new value of the specified variable*/
+    /**@param rCurrentProcessInfo the process info*/
+     
+    /**void SetValue(
         const Variable<int>& rThisVariable,
         const int& rValue,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) override;*/
 
-    /**
-     * @brief Sets the value of a specified variable (double)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
+    
+    /**@brief Sets the value of a specified variable (double) */
+    /**@param rThisVariable the variable to be returned */
+    /**@param rValue new value of the specified variable */
+    /**@param rCurrentProcessInfo the process info */
+    
+     /**
      void SetValue(
         const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-
+        */
 
     /***********************************************************************************/
     /***********************************************************************************/

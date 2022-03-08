@@ -174,6 +174,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
     mThresholdStress = s_th;
+
 }
 
 
@@ -385,6 +386,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
                     rValues,
                     characteristic_length);
                 this->SetDamage(damage);
+                KRATOS_WATCH(damage)
                 this->SetThreshold(uniaxial_stress);
 
                 TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);

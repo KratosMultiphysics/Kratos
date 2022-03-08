@@ -199,14 +199,20 @@ public:
         const double AUXR1 = r_fatigue_coefficients[5];
         const double AUXR2 = r_fatigue_coefficients[6];
 
-        if (std::abs(ReversionFactor) < 1.0) {
+        if (std::abs(ReversionFactor) <= 1.0) {
             rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 * ReversionFactor), STHR1);
 			rAlphat = ALFAF + (0.5 + 0.5 * ReversionFactor) * AUXR1;
+             KRATOS_WATCH ("here")
         } else {
             rSth = Se + (ultimate_stress - Se) * std::pow((0.5 + 0.5 / ReversionFactor), STHR2);
 			rAlphat = ALFAF - (0.5 + 0.5 / ReversionFactor) * AUXR2;
+             KRATOS_WATCH ("here2")
         }
-
+        KRATOS_WATCH (rSth)
+        KRATOS_WATCH (MaxStress)
+        KRATOS_WATCH (Se)
+        KRATOS_WATCH (ReversionFactor)
+         KRATOS_WATCH (STHR1)
         const double square_betaf = std::pow(BETAF, 2.0);
         if (MaxStress > rSth && MaxStress <= ultimate_stress) {
             rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
@@ -215,7 +221,9 @@ public:
             if (softening_type == curve_by_points) {
                 rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
             }
+         KRATOS_WATCH(rN_f)    
         }
+       
     }
 
     /**
