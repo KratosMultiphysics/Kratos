@@ -280,16 +280,19 @@ def  AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, lin
                                 "scaling"                        : false,
                                 "block_size"                     : 3,
                                 "use_block_matrices_if_possible" : true,
-                                "coarse_enough"                  : 500
+                                "coarse_enough"                  : 1000,
+                                "max_levels"                     : -1,
+                                "post_sweeps"                    : 1,
+                                "pre_sweeps"                     : 1,
+                                "preconditioner_type"            : "amg",
+                                "use_gpgpu"                      : false
                             }
                             """)
                             amgcl_param["block_size"].SetInt(main_model_part.ProcessInfo[KM.DOMAIN_SIZE])
                             linear_solver_settings.RecursivelyValidateAndAssignDefaults(amgcl_param)
                             linear_solver = KM.AMGCLSolver(linear_solver_settings)
-                        mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
-                        return mixed_ulm_solver
-                    else:
-                        return linear_solver
+                    mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, contact_settings["mixed_ulm_solver_parameters"])
+                    return mixed_ulm_solver
                 else:
                     return linear_solver
             else:

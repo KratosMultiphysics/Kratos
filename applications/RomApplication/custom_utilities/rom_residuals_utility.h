@@ -21,6 +21,7 @@
 
 /* Application includes */
 #include "rom_application_variables.h"
+#include "custom_utilities/rom_auxiliary_utilities.h"
 
 namespace Kratos
 {
@@ -64,34 +65,10 @@ namespace Kratos
             else
                 KRATOS_ERROR << "variable \""<< mNodalVariablesNames[k] << "\" not valid" << std::endl;
 
-        }
-    }
-
-        ~RomResidualsUtility()= default;
-
-
-        void GetPhiElemental(
-            Matrix &PhiElemental,
-            const Element::DofsVectorType &dofs,
-            const Element::GeometryType &geom)
-        {
-            const auto *pcurrent_rom_nodal_basis = &(geom[0].GetValue(ROM_BASIS));
-            int counter = 0;
-            for(unsigned int k = 0; k < dofs.size(); ++k){
-                auto variable_key = dofs[k]->GetVariable().Key();
-                if(k==0)
-                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
-                else if(dofs[k]->Id() != dofs[k-1]->Id()){
-                    counter++;
-                    pcurrent_rom_nodal_basis = &(geom[counter].GetValue(ROM_BASIS));
-                }
-                if (dofs[k]->IsFixed())
-                    noalias(row(PhiElemental, k)) = ZeroVector(PhiElemental.size2());
-                else
-                    noalias(row(PhiElemental, k)) = row(*pcurrent_rom_nodal_basis, MapPhi[variable_key]);
             }
         }
 
+        ~RomResidualsUtility()= default;
 
         Matrix Calculate()
         {
@@ -130,7 +107,7 @@ namespace Kratos
                         const auto& geom = it_el->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        GetPhiElemental(PhiElemental, dofs, geom);
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
                         noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
 
@@ -153,7 +130,7 @@ namespace Kratos
                         const auto& geom = it->GetGeometry();
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        GetPhiElemental(PhiElemental, dofs, geom);
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
                         noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
                 }
@@ -161,14 +138,14 @@ namespace Kratos
         return MatrixResiduals;
         }
 
-        protected:
-            std::vector< std::string > mNodalVariablesNames;
-            int mNodalDofs;
-            unsigned int mRomDofs;
-            ModelPart& mpModelPart;
-            BaseSchemeType::Pointer mpScheme;
-            std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
-        };
+    protected:
+        std::vector< std::string > mNodalVariablesNames;
+        int mNodalDofs;
+        unsigned int mRomDofs;
+        ModelPart& mpModelPart;
+        BaseSchemeType::Pointer mpScheme;
+        std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> MapPhi;
+    };
 
 
 
