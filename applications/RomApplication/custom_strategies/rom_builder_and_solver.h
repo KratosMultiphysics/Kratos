@@ -262,73 +262,8 @@ public:
         Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
         Vector brom = ZeroVector(mNumberOfRomModes);
 
-        // Build the system matrix by looping over elements and conditions and assembling to A
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-        // Get ProcessInfo from main model part
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Assemble all entities
-        const auto assembling_timer = BuiltinTimer();
-
-        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<Matrix>, NonTrivialSumReduction<Vector>>;
-        AssemblyPrealocation prealloc(mNumberOfRomModes);
-
-        auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
-        if(!elements.empty())
-        {
-            Matrix Atemp;
-            Vector btemp;
-
-            std::tie(Atemp, btemp) =
-            block_for_each<SystemSumReducer>(elements, prealloc, 
-                [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
-            {
-                return CalculateLocalContribution(r_element, thread_prealloc, *pScheme, r_current_process_info);
-            });
-
-            Arom += Atemp;
-            brom += btemp;
-        }
-
-        auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
-        if(!conditions.empty())
-        {
-            Matrix Atemp;
-            Vector btemp;
-
-            std::tie(Atemp, btemp) =
-            block_for_each<SystemSumReducer>(conditions, prealloc, 
-                [&](Condition& r_condition, AssemblyPrealocation& thread_prealloc)
-            {
-                return CalculateLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
-            });
-
-            Arom += Atemp;
-            brom += btemp;
-        }
-
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
-
-        //solve for the rom unkowns dunk = Arom^-1 * brom
-        Vector dxrom(mNumberOfRomModes);
-        const auto solving_timer = BuiltinTimer();
-        MathUtils<double>::Solve(Arom, dxrom, brom);
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
-
-        // Save the ROM solution increment in the root modelpart database
-        // This can be used later on to recover the solution in a visualization submodelpart
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-
-        // //update database
-        // noalias(xrom) += dxrom;
-
-        // project reduced solution back to full order model
-        const auto backward_projection_timer = BuiltinTimer();
-        ProjectToFineBasis(dxrom, rModelPart, Dx);
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+        BuildROM(pScheme, rModelPart, Arom, brom);
+        SolveROM(rModelPart, Arom, brom, Dx);
     }
 
     void ResizeAndInitializeVectors(
@@ -523,6 +458,8 @@ protected:
         mHromSimulation = !(mSelectedElements.empty() && mSelectedConditions.empty());
         mHromWeightsInitialized = true;
 
+        rModelPart.GetCommunicator().GetDataCommunicator().OrReduceAll(mHromSimulation);
+
         KRATOS_CATCH("")
     }
     
@@ -599,7 +536,7 @@ protected:
     */
     struct AssemblyPrealocation
     {
-        AssemblyPrealocation(std::size_t NRomModes)
+        AssemblyPrealocation(SizeType NRomModes)
             : romA(ZeroMatrix(NRomModes, NRomModes)),
               romB(ZeroVector(NRomModes))
         { }
@@ -617,7 +554,7 @@ protected:
 
     
     /**
-     * Class to Sum-reduce matrices and vectors.
+     * Class to sum-reduce matrices and vectors.
      */
     template<typename T>
     struct NonTrivialSumReduction : public SumReduction<T, T>
@@ -660,6 +597,14 @@ protected:
 
     };
 
+    
+    static void allocate_if_needed(Matrix& mat, const SizeType rows, const SizeType cols)
+    {
+        if(mat.size1() != rows || mat.size2() != cols) {
+            mat.resize(rows, cols, false);
+        }
+    };
+
     /**
      * Computes the local contribution of an element or condition
      */
@@ -681,26 +626,124 @@ protected:
         rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.rhs, rPreAlloc.eq_id, rCurrentProcessInfo);
         rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
 
-        std::size_t ndofs = rPreAlloc.dofs.size();
+        const SizeType ndofs = rPreAlloc.dofs.size();
+        allocate_if_needed(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
+        allocate_if_needed(rPreAlloc.aux, ndofs, mNumberOfRomModes);
 
-        static const auto alloc_if_needed_mat = [](Matrix& mat, const std::size_t rows, const std::size_t cols)
-        {
-            if(mat.size1() != rows || mat.size2() != cols) {
-                mat.resize(rows, cols, false);
-            }
-        };
+        const auto &r_geom = rEntity.GetGeometry();
+        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, mMapPhi);
 
-        alloc_if_needed_mat(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
-        alloc_if_needed_mat(rPreAlloc.aux, ndofs, mNumberOfRomModes);
+        const double h_rom_weight = mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
 
-        const auto &geom = rEntity.GetGeometry();
-        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, geom, mMapPhi);
         noalias(rPreAlloc.aux) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
-        double h_rom_weight = rEntity.GetValue(HROM_WEIGHT);
         noalias(rPreAlloc.romA) = prod(trans(rPreAlloc.phiE), rPreAlloc.aux) * h_rom_weight;
         noalias(rPreAlloc.romB) = prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
 
         return std::tie(rPreAlloc.romA, rPreAlloc.romB);
+    }
+
+    /**
+     * Builds the reduced system of equations on rank 0 
+     */
+    void BuildROM(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart &rModelPart,
+        Matrix &A,
+        Vector &b)
+    {
+        // Define a dense matrix to hold the reduced problem
+        A = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+        b = ZeroVector(mNumberOfRomModes);
+
+        // Build the system matrix by looping over elements and conditions and assembling to A
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        // Get ProcessInfo from main model part
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Assemble all entities
+        const auto assembling_timer = BuiltinTimer();
+
+        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<Matrix>, NonTrivialSumReduction<Vector>>;
+        AssemblyPrealocation prealloc(mNumberOfRomModes);
+
+        auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
+        if(!elements.empty())
+        {
+            Matrix Atemp;
+            Vector btemp;
+
+            std::tie(Atemp, btemp) =
+            block_for_each<SystemSumReducer>(elements, prealloc, 
+                [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
+            {
+                return CalculateLocalContribution(r_element, thread_prealloc, *pScheme, r_current_process_info);
+            });
+
+            A += Atemp;
+            b += btemp;
+        }
+
+        auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
+        if(!conditions.empty())
+        {
+            Matrix Atemp;
+            Vector btemp;
+
+            std::tie(Atemp, btemp) =
+            block_for_each<SystemSumReducer>(conditions, prealloc, 
+                [&](Condition& r_condition, AssemblyPrealocation& thread_prealloc)
+            {
+                return CalculateLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
+            });
+
+            A += Atemp;
+            b += btemp;
+        }
+
+        // Syncronizing
+        constexpr IndexType root_rank = 0;
+        for(IndexType i=0; i<mNumberOfRomModes; ++i) {
+            b(i) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(b(i), root_rank);
+            for(IndexType j=0; j<mNumberOfRomModes; ++j) {
+                A(i,j) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(A(i,j), root_rank);
+            }
+        }
+
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+    }
+
+    /**
+     * Solves reduced system of equations and broadcasts it
+     */
+    void SolveROM(
+        ModelPart &rModelPart,
+        Matrix &Arom,
+        Vector &brom,
+        TSystemVectorType &rDx)
+    {
+        //solve for the rom unkowns dunk = Arom^-1 * brom
+        constexpr IndexType root_rank = 0;
+        Vector dxrom(mNumberOfRomModes);
+        if(rModelPart.GetCommunicator().MyPID() == root_rank)
+        {
+            const auto solving_timer = BuiltinTimer();
+            MathUtils<double>::Solve(Arom, dxrom, brom);
+            KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
+        }
+
+        rModelPart.GetCommunicator().GetDataCommunicator().Broadcast(dxrom, root_rank);
+
+        // Save the ROM solution increment in the root modelpart database
+        // This can be used later on to recover the solution in a visualization submodelpart
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
+
+        // project reduced solution back to full order model
+        const auto backward_projection_timer = BuiltinTimer();
+        ProjectToFineBasis(dxrom, rModelPart, rDx);
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
     }
 
     ///@}
