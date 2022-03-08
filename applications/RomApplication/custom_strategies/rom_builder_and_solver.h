@@ -563,21 +563,32 @@ protected:
      * Class to sum-reduce matrices and vectors.
      */
     template<typename T>
-    struct NonTrivialSumReduction : public SumReduction<T, T>
+    struct NonTrivialSumReduction
     {
-        NonTrivialSumReduction() {
-            this->mValue = Zero<T>(); // Prevents unitialized values
+        typedef T value_type;
+        typedef T return_type;
+
+        T mValue {};
+        bool mInitialized = false;
+
+        void Init(value_type first_value)
+        {
+            mValue.swap(first_value);
+            mInitialized = true;
         }
 
-        SumReduction<T, T>& super() { return *static_cast<SumReduction<T, T>*>(this); }
+        /// access to reduced value
+        return_type GetValue() const
+        {
+            return mValue;
+        }
 
-        void LocalReduce(T value)
+        void LocalReduce(const value_type& value)
         {
             if(!mInitialized) {
-                this->mValue.swap(value);
-                mInitialized = true;
+                Init(value);
             } else {
-                super().LocalReduce(value);
+                noalias(mValue) += value;
             }
         }
 
@@ -588,19 +599,6 @@ protected:
             const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
             LocalReduce(rOther.mValue);
         }
-
-    private:
-        bool mInitialized = false;
-
-        template<typename U>
-        static U Zero();
-
-        template<>
-        static RomSystemVectorType Zero<RomSystemVectorType>() { return ZeroVector(0); }
-
-        template<>
-        static RomSystemMatrixType Zero<RomSystemMatrixType>() { return ZeroMatrix(0, 0); }
-
     };
 
     /**
