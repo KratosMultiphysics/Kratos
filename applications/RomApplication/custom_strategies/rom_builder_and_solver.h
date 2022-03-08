@@ -487,25 +487,25 @@ protected:
 
         // Inspecting elements
         DofsVectorType tmp_dof_list; // Preallocation
-        block_for_each(rModelPart.Elements().GetContainer(), tmp_dof_list,
-            [&](Element::Pointer p_element, DofsVectorType& dof_list)
+        block_for_each(rModelPart.Elements(), tmp_dof_list,
+            [&](const Element& r_element, DofsVectorType& dof_list)
         {
-            pScheme->GetDofList(*p_element, dof_list, rModelPart.GetProcessInfo());
+            pScheme->GetDofList(r_element, dof_list, rModelPart.GetProcessInfo());
             enqueue_bulk_move(dof_queue, dof_list);
         });
 
         // Inspecting conditions
-        block_for_each(rModelPart.Conditions().GetContainer(), tmp_dof_list,
-            [&](Condition::Pointer p_condition, DofsVectorType& dof_list)
+        block_for_each(rModelPart.Conditions(), tmp_dof_list,
+            [&](const Condition& r_condition, DofsVectorType& dof_list)
         {
-            pScheme->GetDofList(*p_condition, dof_list, rModelPart.GetProcessInfo());
+            pScheme->GetDofList(r_condition, dof_list, rModelPart.GetProcessInfo());
             enqueue_bulk_move(dof_queue, dof_list);
         });
 
         // Inspecting master-slave constraints
         std::pair<DofsVectorType, DofsVectorType> tmp_ms_dof_lists; // Preallocation
         block_for_each(rModelPart.MasterSlaveConstraints(), tmp_ms_dof_lists,
-            [&](MasterSlaveConstraint& r_constraint, std::pair<DofsVectorType, DofsVectorType>& dof_lists)
+            [&](const MasterSlaveConstraint& r_constraint, std::pair<DofsVectorType, DofsVectorType>& dof_lists)
         {
             r_constraint.GetDofList(dof_lists.first, dof_lists.second, rModelPart.GetProcessInfo());
 
