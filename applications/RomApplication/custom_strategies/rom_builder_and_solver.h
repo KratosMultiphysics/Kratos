@@ -224,7 +224,7 @@ public:
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
         const ModelPart& rModelPart,
-        TSystemVectorType& rDx) /*const*/ // Enable const once GetDofSet const is merged
+        TSystemVectorType& rDx) const
     {
         const auto& r_dof_set = BaseType::GetDofSet();
         block_for_each(r_dof_set, [&](const DofType& r_dof)
