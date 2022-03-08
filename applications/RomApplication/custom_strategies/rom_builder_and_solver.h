@@ -102,6 +102,8 @@ public:
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
     typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+    typedef LocalSystemMatrixType RomSystemMatrixType;
+    typedef LocalSystemVectorType RomSystemVectorType;
 
     /// DoF types definition
     typedef Node<3> NodeType;
@@ -260,8 +262,8 @@ public:
     {
         KRATOS_TRY
 
-        Matrix Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-        Vector brom = ZeroVector(mNumberOfRomModes);
+        RomSystemMatrixType Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+        RomSystemVectorType brom = ZeroVector(mNumberOfRomModes);
 
         BuildROM(pScheme, rModelPart, Arom, brom);
         SolveROM(rModelPart, Arom, brom, Dx);
@@ -546,14 +548,14 @@ protected:
         { }
         AssemblyPrealocation() = delete;
 
-        Matrix romA;                     // reduced LHS
-        Vector romB;                     // reduced RHS
         Matrix phiE = {};                // Elemental Phi
         LocalSystemMatrixType lhs = {};  // Elemental LHS
         LocalSystemVectorType rhs = {};  // Elemental RHS
-        Matrix aux = {};                 // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
         EquationIdVectorType eq_id = {}; // Elemental equation ID vector
         DofsVectorType dofs = {};        // Elemental dof vector
+        RomSystemMatrixType romA;        // reduced LHS
+        RomSystemVectorType romB;        // reduced RHS
+        RomSystemMatrixType aux = {};    // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
     };
 
     
@@ -594,17 +596,18 @@ protected:
         static U Zero();
 
         template<>
-        static Vector Zero<Vector>() { return ZeroVector(0); }
+        static RomSystemVectorType Zero<RomSystemVectorType>() { return ZeroVector(0); }
 
         template<>
-        static Matrix Zero<Matrix>() { return ZeroMatrix(0, 0); }
+        static RomSystemMatrixType Zero<RomSystemMatrixType>() { return ZeroMatrix(0, 0); }
 
     };
 
     /**
      * Resizes a Matrix if it's not the right size
      */
-    static void ResizeIfNeeded(Matrix& mat, const SizeType rows, const SizeType cols)
+    template<typename TMatrix>
+    static void ResizeIfNeeded(TMatrix& mat, const SizeType rows, const SizeType cols)
     {
         if(mat.size1() != rows || mat.size2() != cols) {
             mat.resize(rows, cols, false);
@@ -615,7 +618,7 @@ protected:
      * Computes the local contribution of an element or condition
      */
     template<typename TEntity>
-    std::tuple<Matrix, Vector> CalculateLocalContribution(
+    std::tuple<LocalSystemMatrixType, LocalSystemVectorType> CalculateLocalContribution(
         TEntity& rEntity,
         AssemblyPrealocation& rPreAlloc,
         TSchemeType& rScheme,
@@ -654,8 +657,8 @@ protected:
     void BuildROM(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
-        Matrix &A,
-        Vector &b)
+        RomSystemMatrixType &A,
+        RomSystemVectorType &b)
     {
         KRATOS_TRY
 
@@ -672,14 +675,14 @@ protected:
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
 
-        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<Matrix>, NonTrivialSumReduction<Vector>>;
+        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<RomSystemMatrixType>, NonTrivialSumReduction<RomSystemVectorType>>;
         AssemblyPrealocation prealloc(mNumberOfRomModes);
 
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
         if(!elements.empty())
         {
-            Matrix Atemp;
-            Vector btemp;
+            RomSystemMatrixType Atemp;
+            RomSystemVectorType btemp;
 
             std::tie(Atemp, btemp) =
             block_for_each<SystemSumReducer>(elements, prealloc, 
@@ -695,8 +698,8 @@ protected:
         auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
         if(!conditions.empty())
         {
-            Matrix Atemp;
-            Vector btemp;
+            RomSystemMatrixType Atemp;
+            RomSystemVectorType btemp;
 
             std::tie(Atemp, btemp) =
             block_for_each<SystemSumReducer>(conditions, prealloc, 
@@ -729,14 +732,14 @@ protected:
      */
     void SolveROM(
         ModelPart &rModelPart,
-        Matrix &Arom,
-        Vector &brom,
+        RomSystemMatrixType &Arom,
+        RomSystemVectorType &brom,
         TSystemVectorType &rDx)
     {
         KRATOS_TRY
 
         constexpr IndexType root_rank = 0;
-        Vector dxrom(mNumberOfRomModes);
+        RomSystemVectorType dxrom(mNumberOfRomModes);
         if(rModelPart.GetCommunicator().MyPID() == root_rank)
         {
             const auto solving_timer = BuiltinTimer();
