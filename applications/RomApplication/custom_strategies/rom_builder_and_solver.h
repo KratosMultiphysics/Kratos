@@ -688,18 +688,18 @@ protected:
         auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
         if(!conditions.empty())
         {
-            RomSystemMatrixType Atemp;
-            RomSystemVectorType btemp;
+            RomSystemMatrixType Aconditions;
+            RomSystemVectorType bconditions;
 
-            std::tie(Atemp, btemp) =
+            std::tie(Aconditions, bconditions) =
             block_for_each<SystemSumReducer>(conditions, prealloc, 
                 [&](Condition& r_condition, AssemblyPrealocation& thread_prealloc)
             {
                 return CalculateLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
             });
 
-            A += Atemp;
-            b += btemp;
+            A += Aconditions;
+            b += bconditions;
         }
 
         // Syncronizing
