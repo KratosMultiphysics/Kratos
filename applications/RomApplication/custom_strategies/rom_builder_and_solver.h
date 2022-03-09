@@ -680,15 +680,12 @@ protected:
             RomSystemMatrixType Atemp;
             RomSystemVectorType btemp;
 
-            std::tie(Atemp, btemp) =
+            std::tie(A, b) =
             block_for_each<SystemSumReducer>(elements, prealloc, 
                 [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
             {
                 return CalculateLocalContribution(r_element, thread_prealloc, *pScheme, r_current_process_info);
             });
-
-            A += Atemp;
-            b += btemp;
         }
 
         auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
