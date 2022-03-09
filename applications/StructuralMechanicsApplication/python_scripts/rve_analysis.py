@@ -15,11 +15,14 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         self.perturbation = project_parameters["rve_settings"]["perturbation"].GetDouble()
 
         self.averaging_volume = -1.0  # it will be computed in initialize
-        domain_size = project_parameters["solver_settings"]["domain_size"].GetInt()
-        if(domain_size == 2):
+        self.domain_size = project_parameters["solver_settings"]["domain_size"].GetInt()
+        if self.domain_size == 2:
             self.strain_size = 3
-        else:
+        elif self.domain_size == 3:
             self.strain_size = 6
+        else:
+            err_msg = "Wrong 'domain_size' value {}. Expected 2 or 3.".format(self.domain_size)
+            raise ValueError(err_msg)
 
         # Pseudo time to be used for output
         self.time = 0.0
@@ -40,7 +43,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         self.min_corner, self.max_corner = self._DetectBoundingBox(averaging_mp)
         self._ConstructFaceModelParts(self.min_corner, self.max_corner, boundary_mp)
 
-        self.averaging_volume = (self.max_corner[0]-self.min_corner[0]) * (self.max_corner[1]-self.min_corner[1]) * (self.max_corner[2]-self.min_corner[2])
+        self.averaging_volume = 1.0
+        for i in range(self.domain_size):
+            self.averaging_volume *= self.max_corner[i]-self.min_corner[i]
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "RVE undeformed averaging volume = ", self.averaging_volume)
 
     def InitializeSolutionStep(self):
@@ -157,18 +162,20 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         # Populate the slave faces
         self.max_x_face = self.__PopulateMp("max_x_face", max_corner[0], 0, eps, mp)
         self.max_y_face = self.__PopulateMp("max_y_face", max_corner[1], 1, eps, mp)
-        self.max_z_face = self.__PopulateMp("max_z_face", max_corner[2], 2, eps, mp)
+        if self.domain_size == 3:
+            self.max_z_face = self.__PopulateMp("max_z_face", max_corner[2], 2, eps, mp)
 
         # First populate the master faces (min)
         self.min_x_face = self.__PopulateMp("min_x_face", min_corner[0], 0, eps, mp)
         self.min_y_face = self.__PopulateMp("min_y_face", min_corner[1], 1, eps, mp)
-        self.min_z_face = self.__PopulateMp("min_z_face", min_corner[2], 2, eps, mp)
+        if self.domain_size == 3:
+            self.min_z_face = self.__PopulateMp("min_z_face", min_corner[2], 2, eps, mp)
 
         if self.min_x_face.NumberOfConditions() == 0:
             raise Exception("min_x_face has 0 conditions")
         if self.min_y_face.NumberOfConditions() == 0:
             raise Exception("min_y_face has 0 conditions")
-        if self.min_z_face.NumberOfConditions() == 0:
+        if self.domain_size == 3 and self.min_z_face.NumberOfConditions() == 0:
             raise Exception("min_z_face has 0 conditions")
 
     def _SelectClosestNode(self, mp, coords):
@@ -188,20 +195,22 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
     # prescribed conditions to avoid rigid body motions
     def _ApplyMinimalConstraints(self, mp, strain, min_corner, max_corner):
-        aux = KratosMultiphysics.Array3()
-
         # point coinciding with the min_corner
         node = self._SelectClosestNode(mp, min_corner)
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
         node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
         node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
 
-        coords_min_corner = KratosMultiphysics.Array3(node)
-        coords_min_corner[0] = node.X0
-        coords_min_corner[1] = node.Y0
-        coords_min_corner[2] = node.Z0
+        aux_orig_coords = [node.X0, node.Y0, node.Z0]
+        coords_min_corner = KratosMultiphysics.Vector(self.domain_size)
+        for i in range(self.domain_size):
+            coords_min_corner[i] = aux_orig_coords[i]
 
-        disp_min_corner = strain*coords_min_corner
+        aux_disp_min_corner = strain*coords_min_corner
+
+        disp_min_corner = KratosMultiphysics.Array3(0.0)
+        for i in range(self.domain_size):
+            disp_min_corner[i] = aux_disp_min_corner[i]
         node.SetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT, 0, disp_min_corner)
 
@@ -231,7 +240,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         return C
 
-    def _MatrixOutput(self, C, filename="rve_elasticity_tensor.txt"):
+    def _MatrixOutput(self, C, filename=None):
+        if filename == None:
+            filename = "rve_elasticity_tensor_{}D.txt".format(self.domain_size)
         f = open(filename, 'w')
 
         if(self.strain_size == 3):  # 2D
@@ -254,18 +265,18 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         self.time = self.time + 1.0
         averaging_mp.GetRootModelPart().CloneTimeStep(self.time)
 
-        strain = KratosMultiphysics.Matrix(3, 3)
+        strain = KratosMultiphysics.Matrix(self.domain_size, self.domain_size)
         strain.fill(0.0)
 
         strain[i, j] = perturbation
         strain[j, i] = perturbation
 
         strain_vector = KratosMultiphysics.Vector(self.strain_size)
-        if(self.strain_size == 2):
+        if self.strain_size == 3:
             strain_vector[0] = strain[0, 0]
             strain_vector[1] = strain[1, 1]
-            strain_vector[2] = 2.0*strain[1, 2]
-        elif(self.strain_size == 6):
+            strain_vector[2] = 2.0*strain[0, 1]
+        elif self.strain_size == 6:
             strain_vector[0] = strain[0, 0]
             strain_vector[1] = strain[1, 1]
             strain_vector[2] = strain[2, 2]
@@ -326,23 +337,30 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         dx = self.max_corner[0] - self.min_corner[0]
         dy = self.max_corner[1] - self.min_corner[1]
-        dz = self.max_corner[2] - self.min_corner[2]
+        if self.strain_size == 6:
+            dz = self.max_corner[2] - self.min_corner[2]
 
         periodicity_utility = KratosMultiphysics.RVEPeriodicityUtility(self._GetSolver().GetComputingModelPart())
 
         # assign periodicity to faces
-        search_tolerance = self.geometrical_search_tolerance
-        periodicity_utility.AssignPeriodicity(self.min_x_face, self.max_x_face, strain, KratosMultiphysics.Vector([dx, 0.0, 0.0]),search_tolerance)
-        periodicity_utility.AssignPeriodicity(self.min_y_face, self.max_y_face, strain, KratosMultiphysics.Vector([0.0, dy, 0.0]),search_tolerance)
-        periodicity_utility.AssignPeriodicity(self.min_z_face, self.max_z_face, strain, KratosMultiphysics.Vector([0.0, 0.0, dz]),search_tolerance)
+        direction_x = KratosMultiphysics.Vector([dx, 0.0, 0.0]) if self.strain_size == 6 else KratosMultiphysics.Vector([dx, 0.0])
+        periodicity_utility.AssignPeriodicity(self.min_x_face, self.max_x_face, strain, direction_x, self.geometrical_search_tolerance)
+        direction_y = KratosMultiphysics.Vector([0.0, dy, 0.0]) if self.strain_size == 6 else KratosMultiphysics.Vector([0.0, dy])
+        periodicity_utility.AssignPeriodicity(self.min_y_face, self.max_y_face, strain, direction_y, self.geometrical_search_tolerance)
+        if self.strain_size == 6:
+            direction_z = KratosMultiphysics.Vector([0.0, 0.0, dz])
+            periodicity_utility.AssignPeriodicity(self.min_z_face, self.max_z_face, strain, direction_z, self.geometrical_search_tolerance)
 
         periodicity_utility.Finalize(KratosMultiphysics.DISPLACEMENT)
 
         # start from the exact solution in the case of a constant strain
-        x = KratosMultiphysics.Array3()
+        d = KratosMultiphysics.Array3(0.0)
+        x = KratosMultiphysics.Vector(self.domain_size)
         for node in volume_mp.Nodes:
-            x[0] = node.X0
-            x[1] = node.Y0
-            x[2] = node.Z0
-            d = strain*x
+            orig_coords = [node.X0, node.Y0, node.Z0]
+            for i in range(self.domain_size):
+                x[i] = orig_coords[i]
+            aux_d = strain*x
+            for i in range(self.domain_size):
+                d[i] = aux_d[i]
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, d)

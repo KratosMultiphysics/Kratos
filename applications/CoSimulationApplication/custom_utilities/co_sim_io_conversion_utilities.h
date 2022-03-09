@@ -16,13 +16,14 @@
 // System includes
 
 // External includes
-#include "custom_external_libraries/co_sim_io/impl/model_part.hpp"
-#include "custom_external_libraries/co_sim_io/impl/info.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/includes/model_part.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/includes/info.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 
 namespace Kratos
 {
@@ -63,11 +64,26 @@ public:
 
     static void CoSimIOModelPartToKratosModelPart(
         const CoSimIO::ModelPart& rCoSimIOModelPart,
-        Kratos::ModelPart& rKratosModelPart);
+        Kratos::ModelPart& rKratosModelPart,
+        const DataCommunicator& rDataComm);
 
     static void KratosModelPartToCoSimIOModelPart(
         const Kratos::ModelPart& rKratosModelPart,
         CoSimIO::ModelPart& rCoSimIOModelPart);
+
+    template<typename TDataType>
+    static void GetData(
+        Kratos::ModelPart& rModelPart,
+        std::vector<double>& rData,
+        const Variable<TDataType>& rVariable,
+        const DataLocation DataLoc);
+
+    template<typename TDataType>
+    static void SetData(
+        Kratos::ModelPart& rModelPart,
+        const std::vector<double>& rData,
+        const Variable<TDataType>& rVariable,
+        const DataLocation DataLoc);
 
     static CoSimIO::Info InfoFromParameters(const Parameters rSettings);
 

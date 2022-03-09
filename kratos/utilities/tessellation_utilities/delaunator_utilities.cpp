@@ -14,7 +14,7 @@
 
 // External includes
 #define REAL double
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
 #include "triangle.h"
 #else 
 #include <delaunator.hpp>
@@ -29,7 +29,7 @@ namespace Kratos
 {
 namespace DelaunatorUtilities
 {
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
 extern "C" {
     void triangulate(char *, struct triangulateio *, struct triangulateio *,struct triangulateio *);
 }
@@ -143,7 +143,7 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
 
 std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<double>& rCoordinates)
 {
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
     // Creating the containers for the input and output
     struct triangulateio in_mid, out_mid, vorout_mid;
 
@@ -222,7 +222,7 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
     const double AreaConstraint
     )
 {
-#ifdef USE_TRIANGLE_NONFREE_TPL
+#if USE_TRIANGLE_NONFREE_TPL
     // Creating the containers for the input and output
     struct triangulateio in_mid, out_mid, vorout_mid;
 

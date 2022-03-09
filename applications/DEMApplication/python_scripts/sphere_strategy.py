@@ -57,11 +57,6 @@ class ExplicitStrategy():
         else:
             self.print_stress_tensor_option = 0
 
-        if not "AutomaticTimestep" in DEM_parameters.keys():
-            self.critical_time_option = 0
-        else:
-            self.critical_time_option = DEM_parameters["AutomaticTimestep"].GetBool() #TODO: add suffix option
-
         self.trihedron_option        = DEM_parameters["PostEulerAngles"].GetBool()
         self.rotation_option         = DEM_parameters["RotationOption"].GetBool()
         self.bounding_box_option     = DEM_parameters["BoundingBoxOption"].GetBool()
@@ -236,7 +231,6 @@ class ExplicitStrategy():
         # SIMULATION FLAGS
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
-        self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
@@ -383,7 +377,7 @@ class ExplicitStrategy():
         self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
-        (self.cplusplus_strategy).SolveSolutionStep()
+        self.cplusplus_strategy.SolveSolutionStep()
         return True
 
     def AdvanceInTime(self, time):
@@ -427,7 +421,7 @@ class ExplicitStrategy():
         # model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
-        (self.cplusplus_strategy).FinalizeSolutionStep()
+        self.cplusplus_strategy.FinalizeSolutionStep()
 
     def Finalize(self):
         pass
@@ -435,22 +429,23 @@ class ExplicitStrategy():
     def InitializeSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
-        (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
+        self.cplusplus_strategy.ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
 
-        (self.cplusplus_strategy).InitializeSolutionStep()
+        self.cplusplus_strategy.InitializeSolutionStep()
 
     def SetNormalRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
+        self.cplusplus_strategy.SetNormalRadiiOnAllParticles(self.spheres_model_part)
 
     def SetSearchRadiiOnAllParticles(self):
-        (self.cplusplus_strategy).SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
+
+        self.cplusplus_strategy.SetSearchRadiiOnAllParticles(self.spheres_model_part, self.search_increment, 1.0)
 
     def RebuildListOfDiscontinuumSphericParticles(self):
-        (self.cplusplus_strategy).RebuildListOfDiscontinuumSphericParticles()
+        self.cplusplus_strategy.RebuildListOfDiscontinuumSphericParticles()
 
     def Compute_RigidFace_Movement(self):
-        (self.cplusplus_strategy).Compute_RigidFace_Movement()
+        self.cplusplus_strategy.Compute_RigidFace_Movement()
 
 
     def FixDOFsManually(self, time):
@@ -483,13 +478,13 @@ class ExplicitStrategy():
             self.Procedures.KratosPrintInfo("DOFs for the DEM solution added correctly")
 
     def PrepareElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareElementsForPrinting()
+        self.cplusplus_strategy.PrepareElementsForPrinting()
 
     def PrepareContactElementsForPrinting(self):
-        (self.cplusplus_strategy).PrepareContactElementsForPrinting()
+        self.cplusplus_strategy.PrepareContactElementsForPrinting()
 
     def AttachSpheresToStickyWalls(self):
-        (self.cplusplus_strategy).AttachSpheresToStickyWalls()
+        self.cplusplus_strategy.AttachSpheresToStickyWalls()
 
     def coeff_of_rest_diff(self, gamma, desired_coefficient_of_restit):
 

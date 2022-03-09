@@ -175,8 +175,8 @@ namespace Testing {
         KRATOS_CHECK_EQUAL(brep_surface.WorkingSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL(brep_surface.LocalSpaceDimension(), 2);
 
-        const int geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
-        const int geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Surface;
+        const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Brep;
+        const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Brep_Surface;
         KRATOS_CHECK_EQUAL(brep_surface.GetGeometryFamily(), geometry_family);
         KRATOS_CHECK_EQUAL(brep_surface.GetGeometryType(), geometry_type);
         //array_1d<double, 3> coords(3, 0.0);

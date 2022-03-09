@@ -111,18 +111,25 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                   self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy, self.solver_settings)
 
+    def BeforeInitialize(self):
+        self.CreateCPlusPlusStrategy()
+        self.RebuildListOfDiscontinuumSphericParticles()
+        self.RebuildListOfContinuumSphericParticles()
+        self.SetNormalRadiiOnAllParticles()
+        self.SetSearchRadiiOnAllParticles()
+
     def Initialize(self):
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
 
     def SetContinuumType(self):
         self.continuum_type = True
 
-    def Initial_Critical_Time(self):        # Calls deprecated function
-        (self.cplusplus_strategy).InitialTimeStepCalculation()
-
     def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
+
+    def RebuildListOfContinuumSphericParticles(self):
+        self.cplusplus_strategy.RebuildListOfContinuumSphericParticles()
 
 
 

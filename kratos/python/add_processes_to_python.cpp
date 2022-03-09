@@ -68,6 +68,8 @@
 #include "processes/from_json_check_result_process.h"
 #include "processes/set_initial_state_process.h"
 #include "processes/split_internal_interfaces_process.h"
+#include "processes/parallel_distance_calculation_process.h"
+
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -295,6 +297,8 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double, double>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
     ;
     py::class_<VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess3D")
@@ -302,7 +306,21 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags>())
             .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double>())
+            .def(py::init<ModelPart&, LinearSolverType::Pointer, unsigned int, Flags, std::string, double, double>())
             .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
+    ;
+
+    py::class_<ParallelDistanceCalculationProcess<2>, ParallelDistanceCalculationProcess<2>::Pointer, Process>(m,"ParallelDistanceCalculationProcess2D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<2>::FindMaximumEdgeSize)
+    ;
+
+    py::class_<ParallelDistanceCalculationProcess<3>, ParallelDistanceCalculationProcess<3>::Pointer, Process>(m,"ParallelDistanceCalculationProcess3D")
+        .def(py::init<ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def("FindMaximumEdgeSize", &ParallelDistanceCalculationProcess<3>::FindMaximumEdgeSize)
     ;
 
     py::class_<LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
@@ -399,6 +417,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<2>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -409,6 +428,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<3>, CalculateDiscontinuousDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, const Flags>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinArray<3>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateDiscontinuousEmbeddedVariableFromSkinDouble<3>)
         .def_readonly_static("CALCULATE_ELEMENTAL_EDGE_DISTANCES", &CalculateDiscontinuousDistanceToSkinProcessFlags::CALCULATE_ELEMENTAL_EDGE_DISTANCES)
@@ -420,6 +440,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<2>, CalculateDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDistanceToSkinProcess2D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;
@@ -427,6 +448,7 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<CalculateDistanceToSkinProcess<3>, CalculateDistanceToSkinProcess<3>::Pointer, Process>(m,"CalculateDistanceToSkinProcess3D")
         .def(py::init<ModelPart&, ModelPart&>())
         .def(py::init<ModelPart&, ModelPart&, double>())
+        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
     ;

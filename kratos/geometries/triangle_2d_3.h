@@ -26,6 +26,7 @@
 #include "geometries/line_2d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
+#include "utilities/intersection_utilities.h"
 
 namespace Kratos
 {
@@ -289,12 +290,12 @@ public:
 
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return GeometryData::Kratos_Triangle;
+        return GeometryData::KratosGeometryFamily::Kratos_Triangle;
     }
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Triangle2D3;
+        return GeometryData::KratosGeometryType::Kratos_Triangle2D3;
     }
 
     ///@}
@@ -494,9 +495,18 @@ public:
         return 0.5*detJ;
     }
 
-    /// detect if two triangle are intersected
+    /**
+     * @brief Detect if this triangle is intersected with another geometry
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case
+     * @details We always check the intersection from the higher LocalSpaceDimension to the lower one
+     */
     bool HasIntersection( const BaseType& rThisGeometry ) const override
     {
+        if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
+            return IntersectionUtilities::TriangleLineIntersection2D(
+                *this, rThisGeometry[0], rThisGeometry[1]);
+        }  // Both geometries are 2D 
         const BaseType& geom_1 = *this;
         const BaseType& geom_2 = rThisGeometry;
         return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
@@ -1425,8 +1435,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1462,8 +1471,7 @@ private:
     {
         IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
@@ -1518,25 +1526,25 @@ private:
         {
             {
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_1 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_2 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_3 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_4 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
                 Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_EXTENDED_GAUSS_5 ),
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
             }
         };
         return shape_functions_values;
@@ -1551,16 +1559,16 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_4 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_5 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_1 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_2 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_3 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_4 ),
-                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_EXTENDED_GAUSS_5 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_1 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Triangle2D3<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 ),
             }
         };
         return shape_functions_local_gradients;
@@ -2211,7 +2219,7 @@ template<class TPointType> inline std::ostream& operator << (
 template<class TPointType> const
 GeometryData Triangle2D3<TPointType>::msGeometryData(
     &msGeometryDimension,
-    GeometryData::GI_GAUSS_1,
+    GeometryData::IntegrationMethod::GI_GAUSS_1,
     Triangle2D3<TPointType>::AllIntegrationPoints(),
     Triangle2D3<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()

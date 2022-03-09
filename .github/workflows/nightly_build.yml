@@ -20,6 +20,11 @@ on:
 
   workflow_dispatch:
 
+# for cancelling redundant runs
+concurrency:
+  group: nightly-build-${{ github.head_ref }}
+  cancel-in-progress: true
+
 
 jobs:
   ubuntu-nightly:
@@ -38,10 +43,6 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
     - uses: actions/checkout@v2
 
     - name: Build
@@ -98,16 +99,16 @@ jobs:
 
 
   windows-nightly:
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
     - uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v2
       with:
-        python-version: '3.6'
+        python-version: '3.8'
 
     - name: Download boost
       run: |
@@ -121,6 +122,7 @@ jobs:
       run: |
         pip install numpy
         pip install h5py
+        pip install sympy
 
     - name: Build
       shell: cmd

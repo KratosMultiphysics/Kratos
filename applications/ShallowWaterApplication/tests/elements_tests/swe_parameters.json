@@ -6,7 +6,7 @@
         "parallel_type"        : "OpenMP"
     },
     "solver_settings"      : {
-        "solver_type"              : "free_surface_shallow_water_solver",
+        "solver_type"              : "legacy.free_surface_shallow_water_solver",
         "model_part_name"          : "main_model_part",
         "domain_size"              : 2,
         "gravity"                  : 9.81,
