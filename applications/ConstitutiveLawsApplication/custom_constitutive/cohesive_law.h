@@ -91,6 +91,13 @@ public:
      */
     void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
+    /**
+     * @brief Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues The internal values of the law
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
 
     ///@}
     ///@name Operators
