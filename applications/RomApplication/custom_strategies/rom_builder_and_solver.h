@@ -195,13 +195,11 @@ public:
     {
         auto& r_dof_set = BaseType::GetDofSet();
         BaseType::mEquationSystemSize = r_dof_set.size();
-        int ndofs = static_cast<int>(r_dof_set.size());
-
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int i = 0; i < ndofs; i++){
-            auto dof_iterator = r_dof_set.begin() + i;
-            dof_iterator->SetEquationId(i);
-        }
+        IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index)
+        {
+            auto dof_iterator = r_dof_set.begin() + Index;
+            dof_iterator->SetEquationId(Index);
+        });
     }
 
     // Vector ProjectToReducedBasis(
