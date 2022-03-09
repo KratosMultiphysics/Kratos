@@ -23,9 +23,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
             "output_model_part_name"    : "",
             "store_historical_database" : false,
             "extrapolate_boundaries"    : false,
-            "velocity_depth_integration": true,
-            "velocity_relative_depth"   : -0.531,
-            "mean_water_level"          : 0.0,
+            "print_velocity_profile"    : false,
             "interval"                  : [0.0,"End"],
             "file_settings"             : {},
             "output_time_settings"      : {}
@@ -138,9 +136,7 @@ class DepthIntegrationOutputProcess(KM.OutputProcess):
         integration_settings.AddValue("interface_model_part_name", self.settings["interface_model_part_name"])
         integration_settings.AddValue("store_historical_database", self.settings["store_historical_database"])
         integration_settings.AddValue("extrapolate_boundaries", self.settings["extrapolate_boundaries"])
-        integration_settings.AddValue("velocity_depth_integration", self.settings["velocity_depth_integration"])
-        integration_settings.AddValue("velocity_relative_depth", self.settings["velocity_relative_depth"])
-        integration_settings.AddValue("mean_water_level", self.settings["mean_water_level"])
+        integration_settings.AddValue("print_velocity_profile", self.settings["print_velocity_profile"])
         return integration_settings
 
 
