@@ -194,7 +194,7 @@ public:
                     double a = 1 + 1;
                        
                 }
-            	Recalculate();
+            	bool converged = Recalculate();
                 PipeIter += 1;  
             }
             else
@@ -222,7 +222,7 @@ protected:
 
 private:
 
-    void Recalculate()
+    bool Recalculate()
     {
 
         KRATOS_INFO("PipingLoop") << "Recalculating" << std::endl;
@@ -237,7 +237,7 @@ private:
 
     	GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy::Predict();
-        GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
+        return GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
 
     }
 	
