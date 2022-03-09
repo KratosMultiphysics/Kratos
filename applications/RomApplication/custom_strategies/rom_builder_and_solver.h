@@ -677,9 +677,6 @@ protected:
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
         if(!elements.empty())
         {
-            RomSystemMatrixType Atemp;
-            RomSystemVectorType btemp;
-
             std::tie(A, b) =
             block_for_each<SystemSumReducer>(elements, prealloc, 
                 [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
