@@ -48,53 +48,47 @@ class ImplicitVertexMorphing(ShapeControl):
 
         self.technique_settings.RecursivelyValidateAndAssignDefaults(self.default_technique_settings)
 
+
+        # add vars
+        for model_part_name in self.controlling_objects:
+            root_model = model_part_name.split(".")[0]
+            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.HELMHOLTZ_VARS_SHAPE)
+            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.HELMHOLTZ_SOURCE_SHAPE)
+
         ## Construct the linear solver
         import KratosMultiphysics.python_linear_solver_factory as python_linear_solver_factory
-        self.linear_solver = python_linear_solver_factory.ConstructSolver(self.technique_settings["linear_solver_settings"])
-        self.implicit_vertex_morphing = KOA.ImplicitVertexMorphing(self.name,self.model,self.linear_solver,self.settings)
+        self.linear_solvers = []
+        root_model_parts = []
+        for model_part_name in self.controlling_objects:
+            extracted_root_model_part_name = model_part_name.split(".")[0]
+            if not extracted_root_model_part_name in root_model_parts:
+                root_model_parts.append(extracted_root_model_part_name)
+                self.linear_solvers.append(python_linear_solver_factory.ConstructSolver(self.technique_settings["linear_solver_settings"]))
+
+        self.implicit_vertex_morphing = KOA.ImplicitVertexMorphing(self.name,self.model,self.linear_solvers,self.settings)
 
     def Initialize(self):
-
         super().Initialize()
-
         self.implicit_vertex_morphing.Initialize()
-
-        hkhk
-
-        # self.ex_vm_mapper = {}
-        # for model_part_name in self.controlling_objects:
-        #     if not self.model.HasModelPart(model_part_name):
-        #         raise RuntimeError("ImplicitVertexMorphing: Model part {} from control {} does not exist in the input model parts".format(model_part_name,self.name))
-        #     ex_mapper = mapper_factory.CreateMapper(self.model.GetModelPart(model_part_name), self.model.GetModelPart(model_part_name), self.technique_settings)
-        #     ex_mapper.Initialize()
-        #     self.ex_vm_mapper[model_part_name] = ex_mapper
     
-
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
-        pass
-        # for mapper in self.ex_vm_mapper.values():
-        #     mapper.InverseMap(derivative_variable_name,mapped_derivative_variable_name)
+        self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):
-        pass
-        # for mapper in self.ex_vm_mapper.values():
-        #     mapper.Map(KOA.D_CX,KOA.D_X)   
+        self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X) 
 
     def Update(self):
-        pass
-        # for model_part_name in self.controlling_objects:
-        #     model_part = self.model.GetModelPart(model_part_name)
-        #     for node in model_part.Nodes:
-        #         shape_update = node.GetSolutionStepValue(KOA.D_X)
-        #         node.X0 += shape_update[0]
-        #         node.Y0 += shape_update[1]
-        #         node.Z0 += shape_update[2]
-        #         node.X += shape_update[0]
-        #         node.Y += shape_update[1]
-        #         node.Z += shape_update[2]   
-
-        # for mapper in self.ex_vm_mapper.values():
-        #     mapper.Update()               
+        for model_part_name in self.controlling_objects:
+            model_part = self.model.GetModelPart(model_part_name)
+            for node in model_part.Nodes:
+                shape_update = node.GetSolutionStepValue(KOA.D_X)
+                node.X0 += shape_update[0]
+                node.Y0 += shape_update[1]
+                node.Z0 += shape_update[2]
+                node.X += shape_update[0]
+                node.Y += shape_update[1]
+                node.Z += shape_update[2]   
+            
             
 
 

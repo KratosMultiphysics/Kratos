@@ -35,7 +35,10 @@ namespace Kratos
     KratosOptimizationApplication::KratosOptimizationApplication() :
         KratosApplication("OptimizationApplication"),  
         /* ELEMENTS */
-        mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3))))                
+        mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+        /* CONDITIONS */            
+        mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))              
     {}
 
  	void KratosOptimizationApplication::Register()
@@ -91,14 +94,20 @@ namespace Kratos
 
         // For implicit vertex-morphing with Helmholtz PDE
         KRATOS_REGISTER_VARIABLE( HELMHOLTZ_MASS_MATRIX_SHAPE );
-        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_RADIUS_SHAPE );
+        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_SURF_RADIUS_SHAPE );
+        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_BULK_RADIUS_SHAPE );
         KRATOS_REGISTER_VARIABLE( COMPUTE_CONTROL_POINTS_SHAPE );
-        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_POISSON_RATIO_SHAPE );
+        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_SURF_POISSON_RATIO_SHAPE );
+        KRATOS_REGISTER_VARIABLE( HELMHOLTZ_BULK_POISSON_RATIO_SHAPE );
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_VARS_SHAPE);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_SOURCE_SHAPE);  
 
         // Shape optimization elements
-        KRATOS_REGISTER_ELEMENT("HelmholtzSurfShape3D3N", mHelmholtzSurfShape3D3N);  
+        KRATOS_REGISTER_ELEMENT("HelmholtzSurfShape3D3N", mHelmholtzSurfShape3D3N); 
+        KRATOS_REGISTER_ELEMENT("HelmholtzBulkShape3D4N", mHelmholtzBulkShape3D4N); 
+
+        // Shape optimization conditions
+        KRATOS_REGISTER_CONDITION("HelmholtzSurfShapeCondition3D3N", mHelmholtzSurfShapeCondition3D3N); 
 
         // KRATOS_REGISTER_VARIABLE(TEST_MAP);
  	}

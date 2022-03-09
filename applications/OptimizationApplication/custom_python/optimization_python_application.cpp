@@ -27,6 +27,7 @@
 #include "optimization_application_variables.h"
 #include "custom_python/add_custom_controls_to_python.h"
 #include "custom_python/add_custom_optimization_algorithm_to_python.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 
 // ==============================================================================
 
@@ -45,6 +46,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 
     AddCustomControlsToPython(m);
     AddCustomOptimizationAlgorithmToPython(m);
+    AddCustomStrategiesToPython(m);
 
     //registering variables in python
 
@@ -98,9 +100,11 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
 
     // For implicit vertex-morphing with Helmholtz PDE
 	  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_MASS_MATRIX_SHAPE );
-	  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_RADIUS_SHAPE );
+	  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_SURF_RADIUS_SHAPE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_BULK_RADIUS_SHAPE );
 	  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COMPUTE_CONTROL_POINTS_SHAPE );
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_POISSON_RATIO_SHAPE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_SURF_POISSON_RATIO_SHAPE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HELMHOLTZ_BULK_POISSON_RATIO_SHAPE );
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_VARS_SHAPE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, HELMHOLTZ_SOURCE_SHAPE);  
        

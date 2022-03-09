@@ -408,7 +408,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
     const auto& r_prop = GetProperties();
 
     // Checking radius
-    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_RADIUS_SHAPE)) << "HELMHOLTZ_RADIUS_SHAPE has to be provided for the calculations of the HelmholtzSurfShapeElement!" << std::endl;
+    KRATOS_ERROR_IF_NOT(r_prop.Has(HELMHOLTZ_SURF_RADIUS_SHAPE)) << "HELMHOLTZ_SURF_RADIUS_SHAPE has to be provided for the calculations of the HelmholtzSurfShapeElement!" << std::endl;
 
     const auto& r_geom = GetGeometry();
     SizeType dimension = r_geom.WorkingSpaceDimension();
@@ -433,7 +433,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
     MatrixType id_matrix = IdentityMatrix(dimension,dimension);
     MatrixType tangent_projection_matrix = id_matrix - outer_prod(n_surf, n_surf);
 
-    // if(r_prop.Has(HELMHOLTZ_POISSON_RATIO_SHAPE)){
+    // if(r_prop.Has(HELMHOLTZ_SURF_POISSON_RATIO_SHAPE)){
     if(false){        
         for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
         {
@@ -447,7 +447,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
             MatrixType C;
             CalculateCMatrix(C,integration_method,i_point);
 
-            const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS_SHAPE];
+            const double r_helmholtz = r_prop[HELMHOLTZ_SURF_RADIUS_SHAPE];
             const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
 
             noalias(rStiffnessMatrix) += r_helmholtz * r_helmholtz * prod(trans(B), IntToReferenceWeight * Matrix(prod(C, B)));
@@ -464,7 +464,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
 
                 MatrixType DN_DX_t = prod(DN_DX,tangent_projection_matrix);
 
-                const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS_SHAPE];
+                const double r_helmholtz = r_prop[HELMHOLTZ_SURF_RADIUS_SHAPE];
                 noalias(A_dirc) += IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX_t, trans(DN_DX_t));
                 
             }
@@ -603,8 +603,8 @@ void HelmholtzSurfShapeElement::CalculateCMatrix(MatrixType& rCMatrix, const Int
   Vector GaussPtsJDet;
   r_geom.DeterminantOfJacobian(GaussPtsJDet, rIntegrationMethod);  
 
-  const double poisson_coefficient = this->pGetProperties()->Has(HELMHOLTZ_POISSON_RATIO_SHAPE)
-    ? this->pGetProperties()->GetValue(HELMHOLTZ_POISSON_RATIO_SHAPE) : 0.3;
+  const double poisson_coefficient = this->pGetProperties()->Has(HELMHOLTZ_SURF_POISSON_RATIO_SHAPE)
+    ? this->pGetProperties()->GetValue(HELMHOLTZ_SURF_POISSON_RATIO_SHAPE) : 0.3;
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.

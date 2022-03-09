@@ -46,7 +46,7 @@ void  AddCustomControlsToPython(pybind11::module& m)
     // 
     // ================================================================
     py::class_<ImplicitVertexMorphing >(m, "ImplicitVertexMorphing")
-        .def(py::init<std::string, Model&, LinearSolverType::Pointer, Parameters>())
+        .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
         .def("Initialize", &ImplicitVertexMorphing::Initialize)
         .def("Update", &ImplicitVertexMorphing::Update)
         .def("MapControlUpdate", &ImplicitVertexMorphing::MapControlUpdate)

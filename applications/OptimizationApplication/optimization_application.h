@@ -29,6 +29,10 @@
 
 /* ELEMENTS */
 #include "custom_elements/helmholtz_surf_shape_element.h"
+#include "custom_elements/helmholtz_bulk_shape_element.h"
+
+/* CONDITIONS */
+#include "custom_conditions/helmholtz_surf_shape_condition.h"
 
 // ==============================================================================
 
@@ -192,6 +196,11 @@ namespace Kratos
 		/* ELEMENTS */
 
 		const HelmholtzSurfShapeElement mHelmholtzSurfShape3D3N;
+		const HelmholtzBulkShapeElement mHelmholtzBulkShape3D4N;
+
+		/* CONDITIONS*/
+		// Surface conditions
+		const HelmholtzSurfShapeCondition mHelmholtzSurfShapeCondition3D3N;
 
 		///@}
 		///@name Private Operators
