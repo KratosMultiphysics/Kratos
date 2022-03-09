@@ -450,7 +450,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         res_proj = defs.Vector('res_proj', block_size, real=True)  # Residuals projection for the OSS
 
         # Primitive variables
-        primitives = PrimitiveMagnitudes(self.geometry, params, Ug, H)
+        primitives = PrimitiveMagnitudes(Ug, H, params)
 
         # Calculate the Gauss point residual
         # Matrix Computation

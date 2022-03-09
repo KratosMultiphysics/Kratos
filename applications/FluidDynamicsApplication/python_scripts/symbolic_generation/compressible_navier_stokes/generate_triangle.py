@@ -9,8 +9,7 @@ parameters = KratosMultiphysics.Parameters("""
 {
     "geometry": "triangle",
     "template_filename" : "templates/compressible_navier_stokes_explicit_template_2D3N.cpp",
-    "output_filename"   : "compressible_navier_stokes_explicit_2D3N.cpp",
-    "primitive_interpolation": "gaussian"
+    "output_filename"   : "compressible_navier_stokes_explicit_2D3N.cpp"
 }
 """)
 
