@@ -104,9 +104,6 @@ public:
         int openPipeElements = 0;
         bool Equilibrium = false;
 
-
-        
-
         double amax = 0.02; //todo calculate this value
         double da = 0.0001; // todo calculate this value
 
@@ -149,7 +146,9 @@ public:
                 }          
             }
 
-            if (!Equilibrium)
+
+
+    		if (!Equilibrium)
             {
                 // Update Piping Elements 
             	for (auto OpenPipeElement : OpenPipeElements)
@@ -225,8 +224,21 @@ private:
 
     void Recalculate()
     {
-        GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
+
+        KRATOS_INFO("PipingLoop") << "Recalculating" << std::endl;
+    	ModelPart& CurrentModelPart = this->GetModelPart();
+        this->Clear();
+
+        // Reset displacements to the initial (Assumes Water Pressure is the convergence criteria)
+        block_for_each(CurrentModelPart.Nodes(), [&](Node<3>& rNode) {
+            auto dold = rNode.GetSolutionStepValue(WATER_PRESSURE, 1);
+            rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
+            });
+
+    	GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
+        GeoMechanicsNewtonRaphsonStrategy::Predict();
         GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
+
     }
 	
     //-----------------------------Get Piping Elements--------------------------------------
