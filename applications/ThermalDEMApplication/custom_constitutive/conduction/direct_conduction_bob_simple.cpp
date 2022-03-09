@@ -15,15 +15,15 @@
 // External includes
 
 // Project includes
-#include "direct_conduction_bob.h"
+#include "direct_conduction_bob_simple.h"
 
 namespace Kratos {
   //-----------------------------------------------------------------------------------------------------------------------
-  DirectConductionBOB::DirectConductionBOB() {}
-  DirectConductionBOB::~DirectConductionBOB() {}
+  DirectConductionBOBSimple::DirectConductionBOBSimple() {}
+  DirectConductionBOBSimple::~DirectConductionBOBSimple() {}
 
   //------------------------------------------------------------------------------------------------------------
-  double DirectConductionBOB::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
+  double DirectConductionBOBSimple::ComputeHeatFlux(const ProcessInfo& r_process_info, ThermalSphericParticle* particle) {
     KRATOS_TRY
 
     // Check for contact
