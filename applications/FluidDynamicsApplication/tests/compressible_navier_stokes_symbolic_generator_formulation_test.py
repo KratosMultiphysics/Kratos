@@ -161,7 +161,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
         params = FormulationParameters(g, "python")
-        primitives = PrimitiveMagnitudes(g, params, U, DU, "gaussian")
+        primitives = PrimitiveMagnitudes(g, params, U, DU)
         A = generate_convective_flux.ComputeEulerJacobianMatrix(U, params, primitives)
 
         A0_expected = sympy.Matrix([
@@ -180,7 +180,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         params = FormulationParameters(g, "python")
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
-        primitives = PrimitiveMagnitudes(g, params, U, DU, "gaussian")
+        primitives = PrimitiveMagnitudes(g, params, U, DU)
         G = generate_diffusive_flux.ComputeDiffusiveFlux(primitives, params)
 
         G_expected = sympy.Matrix([
@@ -200,7 +200,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         sc_params = ShockCapturingParameters()
         U = defs.Vector("U", g.ndims+2)
         DU = defs.Matrix("DU", g.ndims+2, g.ndims)
-        primitives = PrimitiveMagnitudes(g, params, U, DU, "gaussian")
+        primitives = PrimitiveMagnitudes(g, params, U, DU)
         G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(DU, primitives, params, sc_params)
 
         G_expected = sympy.Matrix([
@@ -328,7 +328,7 @@ class CompressibleNavierStokesSymbolicGeneratorUnitTest(KratosUnitTest.TestCase)
         params = FormulationParameters(geometry, "python")
         H = defs.Matrix('H', blocksize, dim)
         Ug = defs.Vector('Ug', blocksize)
-        primitives = PrimitiveMagnitudes(geometry, params, Ug, H, "gaussian")
+        primitives = PrimitiveMagnitudes(geometry, params, Ug, H)
         U = defs.Matrix('U', numnodes, blocksize)
         mg  = sympy.Symbol('mg')
         f = defs.Vector('f', dim)
@@ -402,6 +402,6 @@ if __name__ == '__main__':
     suites["validation"].addTests(KratosUnitTest.TestLoader().loadTestsFromTestCases([CompressibleNavierStokesSymbolicGeneratorValidationTest]))
 
     suites["all"].addTests(suites["small"])
-    # suites["all"].addTests(suites["validation"])
+    suites["all"].addTests(suites["validation"])
 
     KratosUnitTest.runTests(suites)

@@ -56,8 +56,6 @@ class CompressibleNavierStokesSymbolicGenerator:
         severity = KratosMultiphysics.Logger.Severity(echo_level)
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(severity)
 
-        self._ReadPrimitiveInterpolation(settings)
-
         self.subscales_types = [s for (s, enabled) in settings["subscales"].items() if enabled]
 
         self.geometry = GeometryDataFactory(settings["geometry"].GetString())
@@ -70,17 +68,6 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         if int(severity) >= int(KratosMultiphysics.Logger.Severity.DETAIL):
             KratosMultiphysics.Logger.PrintInfo(settings)
-
-    def _ReadPrimitiveInterpolation(self, settings):
-        valid_modes = ["nodal", "gaussian"]
-        interp =  settings["primitive_interpolation"].GetString()
-        if interp not in valid_modes:
-            msg = "Primitive interpollation mode not recongized: {}.".format(interp)
-            msg += "Valid values are:\n"
-            for vm in valid_modes:
-                msg += " - " + vm + "\n"
-            raise ValueError(msg)
-        self.primitive_interpolation = interp
 
     def _FindAndRemoveIndentation(self, target_substring):
         end = self.outstring.find(target_substring)
@@ -125,8 +112,7 @@ class CompressibleNavierStokesSymbolicGenerator:
             },
             "template_filename" : "PLEASE PROVIDE A template_filename",
             "output_filename"   : "symbolic_generator_name_not_provided.cpp",
-            "echo_level" : 1,
-            "primitive_interpolation" : "gaussian"
+            "echo_level" : 1
         }""")
 
     def _GenerateFiles(self):
@@ -232,7 +218,6 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Substitute the symbols in the residual
         res_gauss = res.copy()
-        primitives.InterpolateAndSubstitute(res_gauss, U, Ng, self.geometry.DN(), params)
         KratosSympy.SubstituteMatrixValue(res_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(res_gauss, H, grad_U)
@@ -325,7 +310,6 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         # Primitive interpolation
         KratosSympy.SubstituteMatrixValue(rv_gauss, Tau, tau_gauss)
-        primitives.InterpolateAndSubstitute(rv_gauss, U, Ng, self.geometry.DN(), params)
         KratosSympy.SubstituteMatrixValue(rv_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, acc, acc_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, H, grad_U)
@@ -466,7 +450,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         res_proj = defs.Vector('res_proj', block_size, real=True)  # Residuals projection for the OSS
 
         # Primitive variables
-        primitives = PrimitiveMagnitudes(self.geometry, params, Ug, H, self.primitive_interpolation)
+        primitives = PrimitiveMagnitudes(self.geometry, params, Ug, H)
 
         # Calculate the Gauss point residual
         # Matrix Computation

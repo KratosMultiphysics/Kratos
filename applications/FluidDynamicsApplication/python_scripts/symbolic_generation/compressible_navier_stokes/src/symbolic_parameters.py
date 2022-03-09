@@ -40,41 +40,16 @@ class PrimitiveMagnitudes:
     ```
     grad_f[i, j] := df_j/dx_i.
     ```
-
-    There are two interpolation methods.
-
-    For a given `f:U->V`, where `U` is the
-    set of conservative variables and `V` is the set of primitive ones,
-
-    1. Nodal interpolation computes V at the nodes and then interpolates it:
-    ```
-    V(x) = Σ_i N_i(x)·f(U(x_i))     for i=1,2...nnodes
-    ```
-
-    2. Gaussian interpolation interpolates U and then computes V at the gauss points:
-    ```
-    V(x) = f(Σ_i N_i(x)·U(x_i))     for i=1,2...nnodes
-    ```
     """
 
     GAUSSIAN = 1
     NODAL = 2
 
-    def __init__(self, geometry, params, Ug, grad_Ug, mode):
-        if mode == "nodal":
-            self.mode = self.NODAL
-            self.P = sympy.Symbol('pressure', real=True)
-            self.V = defs.Vector('velocity', geometry.ndims, real=True)
-            self.T = sympy.Symbol('temperature', real=True)
-            self.grad_P = defs.Matrix('grad_pressure', 1, geometry.ndims, real=True)
-            self.grad_V = defs.Matrix('grad_velocity', geometry.ndims, geometry.ndims, real=True)
-            self.grad_T = defs.Matrix('grad_temperature', 1, geometry.ndims, real=True)
-        elif mode == "gaussian":
-            self.mode = self.GAUSSIAN
-            (self.P, self.V, self.T) = self._PrimitivesFromConservatives(Ug, params)
-            (self.grad_P, self.grad_V, self.grad_T) = self._PrimitiveGradientsFromConservatives(Ug, grad_Ug, params)
-        else:
-            raise ValueError("Unrecognized magnitude interpolation mode.")
+    def __init__(self, geometry, params, Ug, grad_Ug):
+
+        self.mode = self.GAUSSIAN
+        (self.P, self.V, self.T) = self._PrimitivesFromConservatives(Ug, params)
+        (self.grad_P, self.grad_V, self.grad_T) = self._PrimitiveGradientsFromConservatives(Ug, grad_Ug, params)
         self.nnodes = geometry.nnodes
         self.ndims = geometry.ndims
 
