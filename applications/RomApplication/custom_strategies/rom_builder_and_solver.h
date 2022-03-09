@@ -566,12 +566,12 @@ protected:
         typedef T value_type;
         typedef T return_type;
 
-        T mValue {};
+        T mValue;
         bool mInitialized = false;
 
-        void Init(value_type first_value)
+        void Init(const value_type& first_value)
         {
-            mValue.swap(first_value);
+            mValue = first_value;
             mInitialized = true;
         }
 
