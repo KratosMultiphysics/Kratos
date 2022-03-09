@@ -29,7 +29,9 @@ see https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/includes/mod
 
 // Project includes
 #include "define.hpp"
+#include "data_container.hpp"
 #include "serializer.hpp"
+#include "includes/utilities.hpp"
 
 namespace CoSimIO {
 
@@ -58,6 +60,7 @@ public:
         // pointer operator->() { return m_ptr; }
         const_iterator_adaptor& operator++() { m_ptr++; return *this; }
         const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp = *this; ++(*this); return tmp; }
+        const_iterator_adaptor operator+(difference_type n) const { const_iterator_type tmp = m_ptr; tmp+=n; return tmp; }
         friend bool operator== (const const_iterator_adaptor& a, const const_iterator_adaptor& b) { return a.m_ptr == b.m_ptr; };
         friend bool operator!= (const const_iterator_adaptor& a, const const_iterator_adaptor& b) { return a.m_ptr != b.m_ptr; };
 
@@ -69,9 +72,104 @@ public:
 
     const_iterator_adaptor begin() const {return const_iterator_adaptor(mPointerVector.begin());}
     const_iterator_adaptor end()   const {return const_iterator_adaptor(mPointerVector.end());}
+    std::size_t size()             const {return mPointerVector.size();}
 
 private:
     const ContainerType& mPointerVector;
+};
+
+
+template<class TDataType>
+class IndexedVector
+{
+public:
+
+    using ContainerType = std::vector<TDataType>;
+    using iterator = typename ContainerType::iterator;
+    using const_iterator = typename ContainerType::const_iterator;
+
+    IndexedVector() = default;
+
+    iterator begin() {return mData.begin();}
+    iterator end() {return mData.end();}
+
+    const_iterator begin() const {return mData.begin();}
+    const_iterator end() const {return mData.end();}
+
+    std::size_t size() const {return mData.size();}
+
+    void reserve(std::size_t NewCapacity)
+    {
+        mData.reserve(NewCapacity);
+        mAccessMap.reserve(NewCapacity);
+    }
+
+    const ContainerType& data() const {return mData;}
+
+    bool contains(CoSimIO::IdType Id) const {return mAccessMap.count(Id) > 0;}
+
+    iterator find(CoSimIO::IdType Id)
+    {
+        const auto it_index = mAccessMap.find(Id);
+        if (it_index == mAccessMap.end()) {
+            return mData.end();
+        } else {
+            return mData.begin()+it_index->second;
+        }
+    }
+
+    const_iterator find(CoSimIO::IdType Id) const
+    {
+        const auto it_index = mAccessMap.find(Id);
+        if (it_index == mAccessMap.end()) {
+            return mData.end();
+        } else {
+            return mData.begin()+it_index->second;
+        }
+    }
+
+    void clear()
+    {
+        mData.clear();
+        mAccessMap.clear();
+    }
+
+    void shrink_to_fit()
+    {
+        mData.shrink_to_fit();
+    }
+
+    void push_back(const TDataType& rData, CoSimIO::IdType Id)
+    {
+        mData.push_back(rData);
+        mAccessMap[Id] = mData.size()-1;
+    }
+
+private:
+    ContainerType mData;
+    std::unordered_map<CoSimIO::IdType, std::size_t> mAccessMap;
+
+    void ComputeAccessMap()
+    {
+        mAccessMap.clear();
+        mAccessMap.reserve(mData.size());
+        for (std::size_t i=0; i<mData.size(); ++i) {
+            mAccessMap[mData[i]->Id()] = i;
+        }
+    }
+
+    friend class Serializer;
+
+    void save(CoSimIO::Internals::Serializer& rSerializer) const
+    {
+        rSerializer.save("mData", mData);
+    }
+
+    void load(CoSimIO::Internals::Serializer& rSerializer)
+    {
+        rSerializer.load("mData", mData);
+        ComputeAccessMap();
+    }
 };
 
 } //namespace Internals
@@ -218,8 +316,8 @@ public:
 
     using NodePointerType = CoSimIO::intrusive_ptr<Node>;
     using ElementPointerType = CoSimIO::intrusive_ptr<Element>;
-    using NodesContainerType = std::vector<NodePointerType>;
-    using ElementsContainerType = std::vector<ElementPointerType>;
+    using NodesContainerType = Internals::IndexedVector<NodePointerType>;
+    using ElementsContainerType = Internals::IndexedVector<ElementPointerType>;
 
     using PartitionModelPartsContainerType = std::unordered_map<int, std::unique_ptr<ModelPart>>;
 
@@ -237,12 +335,22 @@ public:
 
     std::size_t NumberOfElements() const { return mElements.size(); }
 
+    // node creation interface
     Node& CreateNewNode(
         const IdType I_Id,
         const double I_X,
         const double I_Y,
         const double I_Z);
 
+    template<class TIdContainerType,
+             class TCoordsContainerType>
+    void CreateNewNodes(
+        const TIdContainerType& I_Id,
+        const TCoordsContainerType& I_X,
+        const TCoordsContainerType& I_Y,
+        const TCoordsContainerType& I_Z);
+
+    // ghost node creation interface
     Node& CreateNewGhostNode(
         const IdType I_Id,
         const double I_X,
@@ -250,16 +358,35 @@ public:
         const double I_Z,
         const int PartitionIndex);
 
+    template<class TIdContainerType,
+             class TCoordsContainerType,
+             class TPartitionIndexContainerType>
+    void CreateNewGhostNodes(
+        const TIdContainerType& I_Id,
+        const TCoordsContainerType& I_X,
+        const TCoordsContainerType& I_Y,
+        const TCoordsContainerType& I_Z,
+        const TPartitionIndexContainerType& PartitionIndex);
+
+    // element creation interface
     Element& CreateNewElement(
         const IdType I_Id,
         const ElementType I_Type,
         const ConnectivitiesType& I_Connectivities);
 
-    const Internals::PointerVector<NodePointerType> Nodes() const {return Internals::PointerVector<NodePointerType>(mNodes);}
+    template<class TIdContainerType,
+             class TTypeContainerType,
+             class TConnectivitiesContainerType>
+    void CreateNewElements(
+        const TIdContainerType& I_Id,
+        const TTypeContainerType& I_Type,
+        const TConnectivitiesContainerType& I_Connectivities);
+
+    const Internals::PointerVector<NodePointerType> Nodes() const {return Internals::PointerVector<NodePointerType>(mNodes.data());}
     const Internals::PointerVector<NodePointerType> LocalNodes() const {return Internals::PointerVector<NodePointerType>(GetLocalModelPart().Nodes());}
     const Internals::PointerVector<NodePointerType> GhostNodes() const {return Internals::PointerVector<NodePointerType>(GetGhostModelPart().Nodes());}
 
-    const Internals::PointerVector<ElementPointerType> Elements() const {return Internals::PointerVector<ElementPointerType>(mElements);}
+    const Internals::PointerVector<ElementPointerType> Elements() const {return Internals::PointerVector<ElementPointerType>(mElements.data());}
 
     const ModelPart& GetLocalModelPart() const;
     const ModelPart& GetGhostModelPart() const;
@@ -339,6 +466,106 @@ private:
 
     void load(CoSimIO::Internals::Serializer& rSerializer);
 };
+
+
+template<class TIdContainerType,
+         class TCoordsContainerType>
+inline void ModelPart::CreateNewNodes(
+    const TIdContainerType& I_Id,
+    const TCoordsContainerType& I_X,
+    const TCoordsContainerType& I_Y,
+    const TCoordsContainerType& I_Z)
+{
+    CO_SIM_IO_TRY
+
+    const std::size_t num_new_nodes = I_Id.size();
+
+    CO_SIM_IO_ERROR_IF(num_new_nodes != I_X.size()) << "Wrong number of X-Coordinates!" << std::endl;
+    CO_SIM_IO_ERROR_IF(num_new_nodes != I_Y.size()) << "Wrong number of Y-Coordinates!" << std::endl;
+    CO_SIM_IO_ERROR_IF(num_new_nodes != I_Z.size()) << "Wrong number of Z-Coordinates!" << std::endl;
+
+    mNodes.reserve(mNodes.size()+num_new_nodes);
+    GetLocalModelPart().mNodes.reserve(GetLocalModelPart().mNodes.size()+num_new_nodes);
+
+    for (std::size_t i=0; i<num_new_nodes; ++i) {
+        CreateNewNode(I_Id[i], I_X[i], I_Y[i], I_Z[i]);
+    }
+
+    CO_SIM_IO_CATCH
+}
+
+template<class TIdContainerType,
+         class TCoordsContainerType,
+         class TPartitionIndexContainerType>
+inline void ModelPart::CreateNewGhostNodes(
+    const TIdContainerType& I_Id,
+    const TCoordsContainerType& I_X,
+    const TCoordsContainerType& I_Y,
+    const TCoordsContainerType& I_Z,
+    const TPartitionIndexContainerType& PartitionIndex)
+{
+    CO_SIM_IO_TRY
+
+    const std::size_t num_new_nodes = I_Id.size();
+
+    CO_SIM_IO_ERROR_IF(num_new_nodes != I_X.size()) << "Wrong number of X-Coordinates!" << std::endl;
+    CO_SIM_IO_ERROR_IF(num_new_nodes != I_Y.size()) << "Wrong number of Y-Coordinates!" << std::endl;
+    CO_SIM_IO_ERROR_IF(num_new_nodes != I_Z.size()) << "Wrong number of Z-Coordinates!" << std::endl;
+    CO_SIM_IO_ERROR_IF(num_new_nodes != PartitionIndex.size()) << "Wrong number of partition indices!" << std::endl;
+
+    mNodes.reserve(mNodes.size()+num_new_nodes);
+    GetGhostModelPart().mNodes.reserve(GetGhostModelPart().mNodes.size()+num_new_nodes);
+    // preparing the sizes in the PartitionModelParts requires to compute how many nodes go to which partition
+    // => num_nodes_this_rank
+    // as this might be expensive, it is skipped for now
+    // GetPartitionModelPart(num_nodes_this_rank).mNodes.reserve(GetPartitionModelPart(num_nodes_this_rank).mNodes.size()+num_new_nodes);
+
+    for (std::size_t i=0; i<num_new_nodes; ++i) {
+        CreateNewGhostNode(I_Id[i], I_X[i], I_Y[i], I_Z[i], PartitionIndex[i]);
+    }
+
+    CO_SIM_IO_CATCH
+}
+
+template<class TIdContainerType,
+         class TTypeContainerType,
+         class TConnectivitiesContainerType>
+inline void ModelPart::CreateNewElements(
+    const TIdContainerType& I_Id,
+    const TTypeContainerType& I_Type,
+    const TConnectivitiesContainerType& I_Connectivities)
+{
+    CO_SIM_IO_TRY
+
+    const std::size_t num_new_elements = I_Id.size();
+
+    CO_SIM_IO_ERROR_IF(num_new_elements != I_Type.size()) << "Wrong number of Types!" << std::endl;
+
+    std::size_t exp_num_connectivities = 0;
+    for (std::size_t i=0; i<I_Type.size(); ++i) {
+        exp_num_connectivities += Utilities::GetNumberOfNodesForElementType(I_Type[i]);
+    }
+
+    CO_SIM_IO_ERROR_IF(exp_num_connectivities != I_Connectivities.size()) << "Wrong number of Connectivities! Expected: " << exp_num_connectivities << " but got " << I_Connectivities.size() << std::endl;
+
+    mElements.reserve(mElements.size()+num_new_elements);
+    GetLocalModelPart().mElements.reserve(GetLocalModelPart().mElements.size()+num_new_elements);
+
+    ConnectivitiesType conn;
+    std::size_t conn_counter = 0;
+    for (std::size_t i=0; i<num_new_elements; ++i) {
+        const int num_nodes = Utilities::GetNumberOfNodesForElementType(I_Type[i]);
+        conn.resize(num_nodes);
+        for (int j=0; j<num_nodes;++j) {
+            conn[j] = I_Connectivities[conn_counter];
+            conn_counter++;
+        }
+
+        CreateNewElement(I_Id[i], I_Type[i], conn);
+    }
+
+    CO_SIM_IO_CATCH
+}
 
 /// output stream function
 inline std::ostream & operator <<(

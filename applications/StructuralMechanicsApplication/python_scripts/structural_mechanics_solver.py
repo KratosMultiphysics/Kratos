@@ -116,6 +116,10 @@ class MechanicalSolver(PythonSolver):
             "line_search": false,
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
+            "solving_strategy_settings": {
+                "type" : "newton_raphson",
+                "advanced_settings" : { }
+            },
             "builder_and_solver_settings" : {
                 "use_block_builder" : true,
                 "use_lagrange_BS"   : false,
@@ -364,27 +368,11 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
-        """Prepare nodal solution step data containers and time step information. """
-        # Set the buffer size for the nodal solution steps data. Existing nodal
-        # solution step data may be lost.
         required_buffer_size = self.settings["buffer_size"].GetInt()
         if required_buffer_size < self.GetMinimumBufferSize():
             required_buffer_size = self.GetMinimumBufferSize()
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        buffer_size = max(current_buffer_size, required_buffer_size)
-        self.main_model_part.SetBufferSize(buffer_size)
-        # Cycle the buffer. This sets all historical nodal solution step data to
-        # the current value and initializes the time stepping in the process info.
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        step =-buffer_size
-        time = time - delta_time * buffer_size
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(0, buffer_size):
-            step = step + 1
-            time = time + delta_time
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            self.main_model_part.CloneTimeStep(time)
+        auxiliary_solver_utilities.SetAndFillBuffer(self.main_model_part, required_buffer_size, delta_time)
 
     def _add_dynamic_variables(self):
         # For being consistent for Serial and Trilinos
@@ -461,10 +449,19 @@ class MechanicalSolver(PythonSolver):
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            if(self.settings["line_search"].GetBool() == False):
+            # Deprecation checks
+            if self.settings.Has("line_search"):
+                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
+                if self.settings["line_search"].GetBool():
+                    self.settings["solving_strategy_settings"]["type"].SetString("line_search")
+            # Create strategy
+            if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                 mechanical_solution_strategy = self._create_newton_raphson_strategy()
-            else:
+            elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
                 mechanical_solution_strategy = self._create_line_search_strategy()
+            elif self.settings["solving_strategy_settings"]["type"].GetString() == "arc_length":
+                mechanical_solution_strategy = self._create_arc_length_strategy()
+
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
@@ -516,3 +513,16 @@ class MechanicalSolver(PythonSolver):
                                                      self.settings["move_mesh_flag"].GetBool())
         strategy.SetUseOldStiffnessInFirstIterationFlag(self.settings["use_old_stiffness_in_first_iteration"].GetBool())
         return strategy
+
+    def _create_arc_length_strategy(self):
+        settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+        settings.AddValue("max_iteration", self.settings["max_iteration"])
+        settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+        settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+        settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+        solving_strategy = KratosMultiphysics.ArcLengthStrategy(self.GetComputingModelPart(),
+                                                                self._GetScheme(),
+                                                                self._GetConvergenceCriterion(),
+                                                                self._GetBuilderAndSolver(),
+                                                                settings)
+        return solving_strategy

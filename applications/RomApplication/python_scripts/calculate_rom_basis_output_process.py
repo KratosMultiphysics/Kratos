@@ -37,10 +37,16 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         self.snapshots_interval = settings["snapshots_interval"].GetDouble()
 
         # Get the variables list to be used to get the snapshots matrix information
+        # Note that we sort the snapshot variables list alphabetically
+        # This is required in order to establish a consensum for the possible visualization model part projections
         nodal_unknowns = settings["nodal_unknowns"].GetStringArray()
         if len(nodal_unknowns) == 0:
             err_msg = "The snapshots matrix variables need to be specified by the user in the \'nodal_unknowns\' string array."
             raise Exception(err_msg)
+        if any(nodal_unknowns.count(var_name) > 1 for var_name in nodal_unknowns):
+            err_msg = "There are repeated variables in the \'nodal_unknowns\' string array."
+            raise Exception(err_msg)
+        nodal_unknowns.sort()
 
         self.snapshot_variables_list = []
         for var_name in nodal_unknowns:
@@ -109,6 +115,18 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                     self.next_output += self.snapshots_interval
 
     def ExecuteFinalize(self):
+        # Initialize the Python dictionary with the default settings
+        # Note that this order is kept if Python 3.6 onwards is used
+        rom_basis_dict = {
+            "train_hrom": False,
+            "run_hrom": False,
+            "rom_settings": {},
+            "hrom_settings": {},
+            "nodal_modes": {},
+            "elements_and_weights" : {}
+        }
+        #TODO: I'd rename elements_and_weights to hrom_weights
+
         # Set a NumPy array with the snapshots data
         n_nodes = self.model_part.NumberOfNodes()
         n_data_cols = len(self.snapshots_data_list)
@@ -122,10 +140,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         u,_,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
 
         # Save the nodal basis
-        rom_basis_dict = {
-            "rom_settings": {},
-            "nodal_modes": {}
-        }
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
 

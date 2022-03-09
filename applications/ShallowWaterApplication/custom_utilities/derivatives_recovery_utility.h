@@ -48,7 +48,7 @@ class ModelPart;
  *    trans(a) = a_i
  */
 template<std::size_t TDim>
-class DerivativesRecoveryUtility
+class KRATOS_API(SHALLOW_WATER_APPLICATION) DerivativesRecoveryUtility
 {
 public:
     ///@name Type Definitions
@@ -70,32 +70,79 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Check that all the required variables are present in the nodal database.
+     * @param rModelPart 
+     */
     static void Check(ModelPart& rModelPart);
 
+    /**
+     * @brief Check that all the nodes have the required number of neighbors (6 in 2D and 10 in 3D)
+     * @param rModelPart 
+     */
     static void CheckRequiredNeighborsPatch(ModelPart& rModelPart);
 
+    /**
+     * @brief Same as CheckRequiredNeighborsPatch with a custom number of required neighbors
+     * @param rModelPart 
+     * @param RequiredNeighbors 
+     */
     static void ExtendNeighborsPatch(ModelPart& rModelPart, const std::size_t RequiredNeighbors);
 
+    /**
+     * @brief Fit a polynomial of degree=2 and store its derivative coefficients in FIRST_DERIVATIVE_WEIGHTS and SECOND_DERIVATIVE_WEIGHTS
+     * @details It calls CheckRequiredNeighborsPatch
+     * @see CheckRequiredNeighborsPatch
+     * @param rModelPart 
+     */
     static void CalculatePolynomialWeights(ModelPart& rModelPart);
 
+    /**
+     * @brief Recover the divergence of a vector variable
+     * @param rModelPart 
+     * @param rOriginVariable 
+     * @param rDestinationVariable 
+     * @param BufferStep 
+     */
     static void RecoverDivergence(
         ModelPart& rModelPart,
         const Variable<array_1d<double,3>>& rOriginVariable,
         const Variable<double>& rDestinationVariable,
         const std::size_t BufferStep = 0);
 
+    /**
+     * @brief Recover the gradient of a scalar variable
+     * @param rModelPart 
+     * @param rOriginVariable 
+     * @param rDestinationVariable 
+     * @param BufferStep 
+     */
     static void RecoverGradient(
         ModelPart& rModelPart,
         const Variable<double>& rOriginVariable,
         const Variable<array_1d<double,3>>& rDestinationVariable,
         const std::size_t BufferStep = 0);
 
+    /**
+     * @brief Recover the laplacian of a scalar variable
+     * @param rModelPart 
+     * @param rOriginVariable 
+     * @param rDestinationVariable 
+     * @param BufferStep 
+     */
     static void RecoverLaplacian(
         ModelPart& rModelPart,
         const Variable<double>& rOriginVariable,
         const Variable<double>& rDestinationVariable,
         const std::size_t BufferStep = 0);
 
+    /**
+     * @brief Recover the laplacian of a vector variable as the gradient of the divergence
+     * @param rModelPart 
+     * @param rOriginVariable 
+     * @param rDestinationVariable 
+     * @param BufferStep 
+     */
     static void RecoverLaplacian(
         ModelPart& rModelPart,
         const Variable<array_1d<double,3>>& rOriginVariable,
