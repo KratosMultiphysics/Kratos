@@ -44,6 +44,6 @@ def printA(A, params):
         tmp = A[j]
         for i in range(0, dim + 2):
             for k in range(0, dim + 2):
-                print("A[{},{},{}]=[]\n".format(j, i, k, tmp[i, k]))
+                print("A[{},{},{}]={}\n".format(j, i, k, tmp[i, k]))
 
     return 0
