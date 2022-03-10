@@ -22,7 +22,7 @@
 // Application includes
 #include "geo_mechanics_application_variables.h"
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
-
+#include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "boost/range/adaptor/filtered.hpp"
 
 namespace Kratos
@@ -267,7 +267,12 @@ private:
             }
         }
 
-        // Get Maximum X Value in Pipe
+        if (PipeElements.size() == 0)
+        {
+	        return PipeElements
+        }
+
+    	// Get Maximum X Value in Pipe
         auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element& a, const Element& b)
             {
                 return a.GetGeometry().GetPoint(0)[0] < b.GetGeometry().GetPoint(0)[0];
