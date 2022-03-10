@@ -25,6 +25,7 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_controls_to_python.h"
 #include "custom_controls/shape_controls/vertex_morphing/implicit_vertex_morphing.h"
+#include "custom_controls/thickness_controls/helmholtz_thickness.h"
 
 
 // ==============================================================================
@@ -52,6 +53,14 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("MapControlUpdate", &ImplicitVertexMorphing::MapControlUpdate)
         .def("MapFirstDerivative", &ImplicitVertexMorphing::MapFirstDerivative)
         ;
+
+    py::class_<HelmholtzThickness >(m, "HelmholtzThickness")
+        .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
+        .def("Initialize", &HelmholtzThickness::Initialize)
+        .def("Update", &HelmholtzThickness::Update)
+        .def("MapControlUpdate", &HelmholtzThickness::MapControlUpdate)
+        .def("MapFirstDerivative", &HelmholtzThickness::MapFirstDerivative)
+        ;        
  
 }
 

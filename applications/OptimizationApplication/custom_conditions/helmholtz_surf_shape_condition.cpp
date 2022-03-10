@@ -198,7 +198,7 @@ void HelmholtzSurfShapeCondition::CalculateRightHandSide(
 
 void HelmholtzSurfShapeCondition::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rVariable == HELMHOLTZ_MASS_MATRIX_SHAPE)
+    if (rVariable == HELMHOLTZ_MASS_MATRIX)
         CalculateSurfaceMassMatrix(rOutput,rCurrentProcessInfo);
 
 }

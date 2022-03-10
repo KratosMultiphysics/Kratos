@@ -78,17 +78,17 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             for response in self.responses_controlled_objects.keys():
                 self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
 
-            # calculate control gradients
-            for control in self.controls_response_gradient_names.keys():
-                for itr in range(len(self.controls_response_gradient_names[control])):
-                    self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
+            # # calculate control gradients
+            # for control in self.controls_response_gradient_names.keys():
+            #     for itr in range(len(self.controls_response_gradient_names[control])):
+            #         self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
 
-            # calcuate 
-            self.opt_algorithm.CalculateSolutionStep() 
+            # # calcuate 
+            # self.opt_algorithm.CalculateSolutionStep() 
 
-            # compute controls
-            for control in self.controls:
-                self.controls_controller.ComputeControl(control,False)
+            # # compute controls
+            # for control in self.controls:
+            #     self.controls_controller.ComputeControl(control,False)
 
             # now output 
             for control_model_part,vtkIO in self.root_model_parts_vtkIOs.items():

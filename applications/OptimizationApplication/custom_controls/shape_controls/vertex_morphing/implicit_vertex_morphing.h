@@ -34,7 +34,7 @@
 #include "custom_elements/helmholtz_surf_shape_element.h"
 #include "custom_elements/helmholtz_bulk_shape_element.h"
 #include "custom_conditions/helmholtz_surf_shape_condition.h"
-#include "custom_strategies/strategies/helmholtz_vec_strategy.h"
+#include "custom_strategies/strategies/helmholtz_strategy.h"
 
 
 // ==============================================================================
@@ -85,7 +85,7 @@ public:
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
-    typedef HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
+    typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
     /// Pointer definition of ImplicitVertexMorphing
     KRATOS_CLASS_POINTER_DEFINITION(ImplicitVertexMorphing);
@@ -161,7 +161,7 @@ public:
                 VectorType origin_values;
                 GetElementVariableValuesVector(elem_i,rOriginVariable,origin_values);
                 MatrixType mass_matrix;
-                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX_SHAPE,mass_matrix,mpVMModePart->GetProcessInfo());            
+                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());            
                 VectorType int_vals = prod(mass_matrix,origin_values);
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_SHAPE,int_vals);
             }
@@ -171,7 +171,7 @@ public:
                 VectorType origin_values;
                 GetConditionVariableValuesVector(cond_i,rOriginVariable,origin_values);
                 MatrixType mass_matrix;
-                cond_i.Calculate(HELMHOLTZ_MASS_MATRIX_SHAPE,mass_matrix,mpVMModePart->GetProcessInfo());            
+                cond_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());            
                 VectorType int_vals = prod(mass_matrix,origin_values);
                 AddConditionVariableValuesVector(cond_i,HELMHOLTZ_SOURCE_SHAPE,int_vals);
             }

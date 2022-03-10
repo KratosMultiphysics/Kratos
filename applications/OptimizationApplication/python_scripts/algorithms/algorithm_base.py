@@ -172,6 +172,8 @@ class OptimizationAlgorithm:
             control_settings.AddDouble("max_update",control_max_update)
             if control_type == "shape":
                 control_settings.AddInt("size",3)
+            elif control_type == "thickness":
+                control_settings.AddInt("size",1)
             else:
                 raise RuntimeError("OptimizationAlgorithm:__init__:error in compile settings for c++ optimizer")
 

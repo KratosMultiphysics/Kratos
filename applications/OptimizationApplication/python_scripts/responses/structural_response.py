@@ -36,7 +36,7 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
         self.supported_control_types = ["shape","thickness","density"]
-        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X","thickness":"D_STRAIN_ENERGY_D_T","density":"D_STRAIN_ENERGY_D_P"}
+        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X","thickness":"D_STRAIN_ENERGY_D_PT","density":"D_STRAIN_ENERGY_D_PD"}
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -50,11 +50,11 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             if control_type == "shape":
                 self.analysis_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
                 self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
-            # if control_type == "thickness":
+            if control_type == "thickness":
                 self.analysis_model_part.AddNodalSolutionStepVariable(KSM.THICKNESS_SENSITIVITY)
-                # self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
+                self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
             # if control_type == "density":
-                self.analysis_model_part.AddNodalSolutionStepVariable(KSM.YOUNG_MODULUS_SENSITIVITY)
+                # self.analysis_model_part.AddNodalSolutionStepVariable(KSM.YOUNG_MODULUS_SENSITIVITY)
                 # self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
 
         # create response
@@ -108,10 +108,15 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         self.response_function_utility.CalculateGradient()
         # copy values from SHAPE_SENSITIVITY to D_STRAIN_ENERGY_D_X
         for controlle_object in controlled_objects:
-            model_part = self.model.GetModelPart(controlle_object)           
+            model_part = self.model.GetModelPart(controlle_object)
+            control_type = self.control_types[controlled_objects.index(controlle_object)]           
             for node in model_part.Nodes:
-                gradient = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY)
-                node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_X, gradient)
+                if control_type == "shape":
+                    shape_gradient = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY)
+                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_X, shape_gradient)
+                if control_type == "thickness":
+                    thickness_gradient = node.GetSolutionStepValue(KSM.THICKNESS_SENSITIVITY)
+                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PT, thickness_gradient)                
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
 
     def GetGradients(self):

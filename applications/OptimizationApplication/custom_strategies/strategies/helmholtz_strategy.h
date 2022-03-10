@@ -11,21 +11,20 @@
 //  Main authors:    Reza Najian Asl
 //
 
-#if !defined(KRATOS_HELMHOLTZ_STRATEGY)
-#define KRATOS_HELMHOLTZ_STRATEGY
+#if !defined(KRATOS_HELMHOLTZ_VEC_STRATEGY)
+#define KRATOS_HELMHOLTZ_VEC_STRATEGY
 
 /* System includes */
 
 /* External includes */
 
 /* Project includes */
-#include "shape_optimization_application_variables.h"
-#include "processes/find_nodal_neighbours_process.h"
-#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
+#include "containers/model.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h"
-
+#include "utilities/condition_number_utility.h"
 
 namespace Kratos {
 
@@ -55,7 +54,6 @@ namespace Kratos {
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class HelmholtzStrategy
     : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
-
 public:
   /**@name Type Definitions */
   /*@{ */
@@ -64,7 +62,9 @@ public:
   KRATOS_CLASS_POINTER_DEFINITION(HelmholtzStrategy);
 
   typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;  
+  typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
+  typedef typename BaseType::TSystemVectorType                          TSystemVectorType;  
   typedef Scheme<TSparseSpace, TDenseSpace> SchemeType;
 
   /*@} */
@@ -72,120 +72,63 @@ public:
    */
   /*@{ */
 
-  HelmholtzStrategy(ModelPart &ModelPart,
-                              typename TLinearSolver::Pointer pNewLinearSolver,
-                              bool ReformDofSetAtEachStep = false,
-                              bool ComputeReactions = false,
-                              int EchoLevel = 0)
-      : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(ModelPart) {
-
-    KRATOS_TRY;
+  /** Constructor.
+   */
+  HelmholtzStrategy(ModelPart &model_part,
+                               typename TLinearSolver::Pointer pNewLinearSolver,
+                               bool ReformDofSetAtEachStep = false,
+                               bool ComputeReactions = false,
+                               int EchoLevel = 0,
+                               const double PoissonRatio = 0.3)
+      : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part) {
+    KRATOS_TRY
 
     mreform_dof_set_at_each_step = ReformDofSetAtEachStep;
-    mecho_level = EchoLevel;
     mcompute_reactions = ComputeReactions;
+    mecho_level = EchoLevel;
     bool calculate_norm_dx_flag = false;
 
-    typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
+    mpscheme = typename SchemeType::Pointer(
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
 
+    mpbulider_and_solver = typename TBuilderAndSolverType::Pointer(
+        new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace,
+                                               TLinearSolver>(
+            pNewLinearSolver));
 
-    typedef Variable<double> VarComponent;
-
-    mpbuilder_and_solver_x = typename TBuilderAndSolverType::Pointer(
-        new ResidualBasedEliminationBuilderAndSolverComponentwise<
-            TSparseSpace, TDenseSpace, TLinearSolver, VarComponent>(
-            pNewLinearSolver, HELMHOLTZ_VARS_X));
-
-    mpbuilder_and_solver_y = typename TBuilderAndSolverType::Pointer(
-        new ResidualBasedEliminationBuilderAndSolverComponentwise<
-            TSparseSpace, TDenseSpace, TLinearSolver, VarComponent>(
-            pNewLinearSolver, HELMHOLTZ_VARS_Y));
-
-    mpbuilder_and_solver_z = typename TBuilderAndSolverType::Pointer(
-        new ResidualBasedEliminationBuilderAndSolverComponentwise<
-            TSparseSpace, TDenseSpace, TLinearSolver, VarComponent>(
-            pNewLinearSolver, HELMHOLTZ_VARS_Z));
-
-    mstrategy_x = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
+    mpstrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
         BaseType::GetModelPart(),
-        pscheme,
-        mpbuilder_and_solver_x,
-        ComputeReactions,
+        mpscheme,
+        mpbulider_and_solver,
+        mcompute_reactions,
         mreform_dof_set_at_each_step,
         calculate_norm_dx_flag));
 
-    mstrategy_x->SetEchoLevel(mecho_level);
-
-    mstrategy_y = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
-        BaseType::GetModelPart(),
-        pscheme,
-        mpbuilder_and_solver_y,
-        ComputeReactions,
-        mreform_dof_set_at_each_step,
-        calculate_norm_dx_flag));
-
-    mstrategy_y->SetEchoLevel(mecho_level);
-
-    mstrategy_z = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,TLinearSolver>(
-        BaseType::GetModelPart(),
-        pscheme,
-        mpbuilder_and_solver_z,
-        ComputeReactions,
-        mreform_dof_set_at_each_step,
-        calculate_norm_dx_flag));
-
-    mstrategy_z->SetEchoLevel(mecho_level);
+    mpstrategy->SetEchoLevel(mecho_level);
 
     KRATOS_CATCH("")
   }
 
-  virtual ~HelmholtzStrategy(){
+  virtual ~HelmholtzStrategy()
+  {
 
-  };
-
-  void Initialize() override {
-    FindNodalNeighboursProcess find_nodal_neighbours_process(BaseType::GetModelPart());
-    find_nodal_neighbours_process.Execute();
   }
+
+  void Initialize() override {}
 
   double Solve() override {
     KRATOS_TRY;
 
-    ProcessInfo &rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-
     VariableUtils().UpdateCurrentToInitialConfiguration(
         BaseType::GetModelPart().GetCommunicator().LocalMesh().Nodes());
 
-    unsigned int dimension =
-        BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE];
+    // Solve for the mesh movement
+    mpstrategy->Solve();
 
-    if (dimension == 2) {
-      // X DIRECTION
-      rCurrentProcessInfo[HELMHOLTZ_DIRECTION] = 1;
-      mstrategy_x->Solve();
-      // Y DIRECTION
-      rCurrentProcessInfo[HELMHOLTZ_DIRECTION] = 2;
-      mstrategy_y->Solve();
-    } else {
-      // X DIRECTION
-      rCurrentProcessInfo[HELMHOLTZ_DIRECTION] = 1;
-      mstrategy_x->Solve();
-      // Y DIRECTION
-      rCurrentProcessInfo[HELMHOLTZ_DIRECTION] = 2;
-      mstrategy_y->Solve();
-      // Z DIRECTION
-      rCurrentProcessInfo[HELMHOLTZ_DIRECTION] = 3;
-      mstrategy_z->Solve();
-    }
-
+    // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)
-    {
-        mstrategy_x->Clear();
-        mstrategy_y->Clear();
-        mstrategy_z->Clear();
-    }
+      mpstrategy->Clear();
 
     return 0.0;
 
@@ -208,6 +151,57 @@ public:
   /*@} */
   /**@name Inquiry */
   /*@{ */
+    TSystemMatrixType &GetSystemMatrix() override
+    {
+        return mpstrategy->GetSystemMatrix();
+    }
+
+    TSystemVectorType &GetSystemVector() override
+    {
+        return mpstrategy->GetSystemVector();
+    }
+
+    TSystemVectorType &GetSolutionVector() override
+    {
+        return mpstrategy->GetSolutionVector();
+    }   
+
+    void ExportSystem() 
+    { 
+        mpstrategy->Clear();
+        mpstrategy->Initialize();
+        mpstrategy->InitializeSolutionStep();
+        mpstrategy->Predict();         
+        mpbulider_and_solver->Build(mpscheme,BaseType::GetModelPart(),mpstrategy->GetSystemMatrix(),mpstrategy->GetSystemVector());
+
+        std::stringstream matrix_market_name;
+        matrix_market_name << "A_wo_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mpstrategy->GetSystemMatrix(), false);
+
+        std::stringstream matrix_market_vectname;
+        matrix_market_vectname << "b_wo_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mpstrategy->GetSystemVector()); 
+
+        mpstrategy->SolveSolutionStep();
+
+        matrix_market_name.str("");
+        matrix_market_name << "A_wi_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mpstrategy->GetSystemMatrix(), false);
+
+        matrix_market_vectname.str("");
+        matrix_market_vectname << "b_wi_D_BC.mm";
+        TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mpstrategy->GetSystemVector()); 
+
+        mpstrategy->FinalizeSolutionStep();
+
+        mpstrategy->Clear();
+
+    }       
+
+    typename BaseType::Pointer GetStrategy() 
+    {
+        return mpstrategy;
+    }     
 
   /*@} */
   /**@name Friends */
@@ -253,16 +247,13 @@ private:
   /**@name Member Variables */
   /*@{ */
 
-  typename BaseType::Pointer mstrategy_x;
-  typename BaseType::Pointer mstrategy_y;
-  typename BaseType::Pointer mstrategy_z;
-  typename TBuilderAndSolverType::Pointer mpbuilder_and_solver_x;
-  typename TBuilderAndSolverType::Pointer mpbuilder_and_solver_y;
-  typename TBuilderAndSolverType::Pointer mpbuilder_and_solver_z;
+  typename SchemeType::Pointer mpscheme;
+  typename BaseType::Pointer mpstrategy;
+  typename TBuilderAndSolverType::Pointer mpbulider_and_solver;
 
+  int mecho_level;
   bool mreform_dof_set_at_each_step;
   bool mcompute_reactions;
-  int mecho_level;
 
   /*@} */
   /**@name Private Operators*/
@@ -280,7 +271,7 @@ private:
   /*@{ */
 
   /*@} */
-  /**@name Unaccessible methods */
+  /**@name Un accessible methods */
   /*@{ */
 
   /** Copy constructor.
@@ -300,4 +291,4 @@ private:
 }
 /* namespace Kratos.*/
 
-#endif /* KRATOS_HELMHOLTZ_STRATEGY  defined */
+#endif /* KRATOS_HELMHOLTZ_VEC_STRATEGY  defined */

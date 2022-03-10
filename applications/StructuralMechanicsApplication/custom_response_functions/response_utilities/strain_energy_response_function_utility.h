@@ -95,6 +95,13 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
 
+		
+		for (auto& control_type : responseSettings["control_types"]){
+			if (control_type.GetString()=="thickness")
+				thickness_grad = true;
+			if (control_type.GetString()=="shape")
+				shape_grad = true;
+		}
 	}
 
 	/// Destructor.
@@ -114,13 +121,13 @@ public:
 	void Initialize()
 	{
 
-		for (auto& elem_i : mrModelPart.Elements())
-		{
-			Properties& elem_i_prop = elem_i.GetProperties();
-			Properties::Pointer model_part_new_prop = mrModelPart.CreateNewProperties(mrModelPart.NumberOfProperties()+1);
-			*model_part_new_prop = elem_i_prop;
-			elem_i.SetProperties(model_part_new_prop);
-		}
+		// for (auto& elem_i : mrModelPart.Elements())
+		// {
+		// 	Properties& elem_i_prop = elem_i.GetProperties();
+		// 	Properties::Pointer model_part_new_prop = mrModelPart.CreateNewProperties(mrModelPart.NumberOfProperties()+1);
+		// 	*model_part_new_prop = elem_i_prop;
+		// 	elem_i.SetProperties(model_part_new_prop);
+		// }
 
 	}
 
@@ -175,9 +182,11 @@ public:
 		//                 + \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} - \frac{\partial K}{\partial x} )
 
 		// First gradients are initialized
-		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
-		VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
-		VariableUtils().SetHistoricalVariableToZero(YOUNG_MODULUS_SENSITIVITY, mrModelPart.Nodes());
+		if(shape_grad)
+			VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		if(thickness_grad)
+			VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
+		// VariableUtils().SetHistoricalVariableToZero(YOUNG_MODULUS_SENSITIVITY, mrModelPart.Nodes());
 
 
 		// Gradient calculation
@@ -186,7 +195,8 @@ public:
 		// 3rd step: Calculate partial derivative of state equation w.r.t. node coordinates and multiply with adjoint field
 
 		// Semi analytic sensitivities
-		CalculateResponseDerivativePartByFiniteDifferencing();
+		if(shape_grad)
+			CalculateResponseDerivativePartByFiniteDifferencing();
 		CalculateAdjointField();
 		CalculateStateDerivativePartByFiniteDifferencing();
 
@@ -281,31 +291,34 @@ protected:
 				// Get adjoint variables (Corresponds to 1/2*u)
 				lambda = 0.5*u;
 
-				// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-				elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
-				for (auto& node_i : elem_i.GetGeometry())
+				if(shape_grad)
 				{
-					array_3d gradient_contribution(3, 0.0);
-					Vector derived_RHS = Vector(0);
+					// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
+					elem_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
+					for (auto& node_i : elem_i.GetGeometry())
+					{
+						array_3d gradient_contribution(3, 0.0);
+						Vector derived_RHS = Vector(0);
 
-					// x-direction
-					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-					gradient_contribution[0] = inner_prod(lambda, derived_RHS);
+						// x-direction
+						FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+						gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
-					// y-direction
-					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-					gradient_contribution[1] = inner_prod(lambda, derived_RHS);
+						// y-direction
+						FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+						gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
-					// z-direction
-					FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
-					gradient_contribution[2] = inner_prod(lambda, derived_RHS);
+						// z-direction
+						FiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_SENSITIVITY_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+						gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
-					// Assemble sensitivity to node
-					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+						// Assemble sensitivity to node
+						noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+					}
 				}
 				//now compute YOUNG_MODULUS_SENSITIVITY
 				Properties& elem_i_prop = elem_i.GetProperties();
-				if(elem_i_prop.Has(YOUNG_MODULUS))
+				if(elem_i_prop.Has(YOUNG_MODULUS) && false)
 				{
 					auto original_young_modul = elem_i_prop.GetValue(YOUNG_MODULUS);
 					Vector ANAL_RHS_SENS;
@@ -334,7 +347,7 @@ protected:
 					// 	}						
 					// }		
 				}
-				if(elem_i_prop.Has(THICKNESS))
+				if(elem_i_prop.Has(THICKNESS) && thickness_grad)
 				{
 					auto original_thickness = elem_i_prop.GetValue(THICKNESS);
 					Vector ANAL_RHS_SENS;
@@ -347,20 +360,23 @@ protected:
 					Vector GaussPtsJDet = ZeroVector(NumGauss);
 					r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
 					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method); 
-					for (auto& node_i : r_geom){
-						auto node_weight = node_i.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-						node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens/node_weight ;
-					}					
-					// for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-					// {
-					// 	const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-					// 	const auto& rN = row(Ncontainer,i_point);
-					// 	int node_index = 0;
-					// 	for (auto& node_i : r_geom){
-					// 		node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index];
-					// 		node_index++;
-					// 	}						
-					// }		
+					// for (auto& node_i : r_geom){
+					// 	auto node_weight = node_i.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+					// 	node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens/node_weight ;
+					// }
+					double elem_area = 0.0; 
+					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+						elem_area += integration_points[i_point].Weight() * GaussPtsJDet[i_point];			
+					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+					{
+						const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+						const auto& rN = row(Ncontainer,i_point);
+						int node_index = 0;
+						for (auto& node_i : r_geom){
+							node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index]/elem_area;
+							node_index++;
+						}						
+					}		
 				}				
 				
 				
@@ -398,58 +414,59 @@ protected:
 		}
 
 		// Computation of \frac{1}{2} u^T \cdot ( \frac{\partial f_{ext}}{\partial x} )
-		for (auto& cond_i : mrModelPart.Conditions())
-		{
-			//detect if the condition is active or not. If the user did not make any choice the element
-			//is active by default
-			const bool condition_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
-			if (condition_is_active)
+		if(shape_grad)
+			for (auto& cond_i : mrModelPart.Conditions())
 			{
-				Vector u;
-				Vector lambda;
-				Vector RHS;
-
-				// Get adjoint variables (Corresponds to 1/2*u)
-				const auto& rConstCondRef = cond_i;
-				rConstCondRef.GetValuesVector(u,0);
-				lambda = 0.5*u;
-
-				// Semi-analytic computation of partial derivative of force vector w.r.t. node coordinates
-				cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
-				for (auto& node_i : cond_i.GetGeometry())
+				//detect if the condition is active or not. If the user did not make any choice the element
+				//is active by default
+				const bool condition_is_active = cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true;
+				if (condition_is_active)
 				{
-					array_3d gradient_contribution(3, 0.0);
-					Vector perturbed_RHS = Vector(0);
+					Vector u;
+					Vector lambda;
+					Vector RHS;
 
-					// Pertubation, gradient analysis and recovery of x
-					node_i.X0() += mDelta;
-					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-					node_i.X0() -= mDelta;
+					// Get adjoint variables (Corresponds to 1/2*u)
+					const auto& rConstCondRef = cond_i;
+					rConstCondRef.GetValuesVector(u,0);
+					lambda = 0.5*u;
 
-					// Reset pertubed vector
-					perturbed_RHS = Vector(0);
+					// Semi-analytic computation of partial derivative of force vector w.r.t. node coordinates
+					cond_i.CalculateRightHandSide(RHS, CurrentProcessInfo);
+					for (auto& node_i : cond_i.GetGeometry())
+					{
+						array_3d gradient_contribution(3, 0.0);
+						Vector perturbed_RHS = Vector(0);
 
-					// Pertubation, gradient analysis and recovery of y
-					node_i.Y0() += mDelta;
-					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-					node_i.Y0() -= mDelta;
+						// Pertubation, gradient analysis and recovery of x
+						node_i.X0() += mDelta;
+						cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+						gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+						node_i.X0() -= mDelta;
 
-					// Reset pertubed vector
-					perturbed_RHS = Vector(0);
+						// Reset pertubed vector
+						perturbed_RHS = Vector(0);
 
-					// Pertubation, gradient analysis and recovery of z
-					node_i.Z0() += mDelta;
-					cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-					gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-					node_i.Z0() -= mDelta;
+						// Pertubation, gradient analysis and recovery of y
+						node_i.Y0() += mDelta;
+						cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+						gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+						node_i.Y0() -= mDelta;
 
-					// Assemble shape gradient to node
-					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+						// Reset pertubed vector
+						perturbed_RHS = Vector(0);
+
+						// Pertubation, gradient analysis and recovery of z
+						node_i.Z0() += mDelta;
+						cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
+						gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
+						node_i.Z0() -= mDelta;
+
+						// Assemble shape gradient to node
+						noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+					}
 				}
 			}
-		}
 
 		KRATOS_CATCH("");
 	}
@@ -542,6 +559,8 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
+	bool shape_grad = false;
+	bool thickness_grad = false;
 
 	///@}
 ///@name Private Operators

@@ -26,7 +26,7 @@
 
 //strategies
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
-#include "custom_strategies/strategies/helmholtz_vec_strategy.h"
+#include "custom_strategies/strategies/helmholtz_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -47,9 +47,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 
-    py::class_<HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
-        HelmholtzVecStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
-        BaseSolvingStrategyType>(m,"HelmholtzVecStrategy")
+    py::class_<HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>,
+        HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
+        BaseSolvingStrategyType>(m,"HelmholtzStrategy")
         .def(py::init<ModelPart &, LinearSolverType::Pointer, bool, bool, int, double>());        
 }
 
