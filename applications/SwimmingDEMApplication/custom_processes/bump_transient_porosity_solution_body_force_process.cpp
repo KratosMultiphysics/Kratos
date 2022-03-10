@@ -25,7 +25,7 @@
 
 // Application includes
 #include "swimming_DEM_application.h"
-#include "transient_porosity_solution_body_force_process.h"
+#include "bump_transient_porosity_solution_body_force_process.h"
 #include "swimming_dem_application_variables.h"
 
 // Other applications includes
@@ -35,13 +35,13 @@ namespace Kratos
 {
 
 /* Public functions *******************************************************/
-TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForceProcess(
+BumpTransientPorositySolutionBodyForceProcess::BumpTransientPorositySolutionBodyForceProcess(
     ModelPart& rModelPart)
     : Process(),
       mrModelPart(rModelPart)
 {}
 
-TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForceProcess(
+BumpTransientPorositySolutionBodyForceProcess::BumpTransientPorositySolutionBodyForceProcess(
     ModelPart& rModelPart,
     Parameters& rParameters)
     : Process(),
@@ -51,7 +51,7 @@ TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForcePro
     this->CheckDefaultsAndProcessSettings(rParameters);
 }
 
-TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForceProcess(
+BumpTransientPorositySolutionBodyForceProcess::BumpTransientPorositySolutionBodyForceProcess(
     Model &rModel,
     Parameters &rParameters)
     : Process(),
@@ -63,7 +63,7 @@ TransientPorositySolutionBodyForceProcess::TransientPorositySolutionBodyForcePro
 }
 
 
-void TransientPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
+void BumpTransientPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSettings(Parameters &rParameters)
 {
     const Parameters default_parameters = GetDefaultParameters();
 
@@ -92,19 +92,19 @@ void TransientPorositySolutionBodyForceProcess::CheckDefaultsAndProcessSettings(
 
 }
 
-void TransientPorositySolutionBodyForceProcess::CalculateKinematicViscosity()
+void BumpTransientPorositySolutionBodyForceProcess::CalculateKinematicViscosity()
 {
     mViscosity = mUchar * mLength / mReynoldsNumber;
 }
 
-void TransientPorositySolutionBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
+void BumpTransientPorositySolutionBodyForceProcess::CalculatePermeability(double &dynamic_viscosity)
 {
 
     mPermeability = dynamic_viscosity * mUchar / (mDamKohlerNumber * (2 * mUchar * (mUchar/std::pow(mLength,2))));
 
 }
 
-const Parameters TransientPorositySolutionBodyForceProcess::GetDefaultParameters() const
+const Parameters BumpTransientPorositySolutionBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {
@@ -138,16 +138,16 @@ const Parameters TransientPorositySolutionBodyForceProcess::GetDefaultParameters
     return default_parameters;
 }
 
-void TransientPorositySolutionBodyForceProcess::Execute()
+void BumpTransientPorositySolutionBodyForceProcess::Execute()
 {
     this->ExecuteInitialize();
     this->ExecuteInitializeSolutionStep();
 }
 
-void TransientPorositySolutionBodyForceProcess::ExecuteInitialize()
+void BumpTransientPorositySolutionBodyForceProcess::ExecuteInitialize()
 {}
 
-void TransientPorositySolutionBodyForceProcess::ExecuteBeforeSolutionLoop()
+void BumpTransientPorositySolutionBodyForceProcess::ExecuteBeforeSolutionLoop()
 {
     this->SetFluidProperties();
     if (mInitialConditions == true)
@@ -156,16 +156,16 @@ void TransientPorositySolutionBodyForceProcess::ExecuteBeforeSolutionLoop()
     }
 }
 
-void TransientPorositySolutionBodyForceProcess::ExecuteInitializeSolutionStep()
+void BumpTransientPorositySolutionBodyForceProcess::ExecuteInitializeSolutionStep()
 {
     this->SetBodyForceAndPorosityField();
 }
 
-void TransientPorositySolutionBodyForceProcess::ExecuteFinalizeSolutionStep() {}
+void BumpTransientPorositySolutionBodyForceProcess::ExecuteFinalizeSolutionStep() {}
 
 /* Protected functions ****************************************************/
 
-void TransientPorositySolutionBodyForceProcess::SetInitialBodyForceAndPorosityField()
+void BumpTransientPorositySolutionBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -356,7 +356,7 @@ void TransientPorositySolutionBodyForceProcess::SetInitialBodyForceAndPorosityFi
 
 }
 
-void TransientPorositySolutionBodyForceProcess::SetBodyForceAndPorosityField()
+void BumpTransientPorositySolutionBodyForceProcess::SetBodyForceAndPorosityField()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -553,7 +553,7 @@ void TransientPorositySolutionBodyForceProcess::SetBodyForceAndPorosityField()
 
 }
 
-void TransientPorositySolutionBodyForceProcess::SetFluidProperties()
+void BumpTransientPorositySolutionBodyForceProcess::SetFluidProperties()
 {
     (mrModelPart.pGetProperties(1))->SetValue(DENSITY, mDensity);
     (mrModelPart.pGetProperties(1))->SetValue(DYNAMIC_VISCOSITY, mViscosity * mDensity);
@@ -570,7 +570,7 @@ void TransientPorositySolutionBodyForceProcess::SetFluidProperties()
     });
 }
 
-bool TransientPorositySolutionBodyForceProcess::IsInsideEllipticalSupport(
+bool BumpTransientPorositySolutionBodyForceProcess::IsInsideEllipticalSupport(
     const double x1,
     const double x2,
     const double c,
