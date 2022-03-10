@@ -96,7 +96,7 @@ def CalculateViscousStressTensor(mu, beta, primitives, dim):
     kappa = (beta - 2/3*mu)
 
     dynamic = mu * (primitives.grad_V + primitives.grad_V.transpose())
-    bulk    = - kappa * sympy.trace(primitives.grad_V) * sympy.eye(dim)
+    bulk    = kappa * sympy.trace(primitives.grad_V) * sympy.eye(dim)
 
     return dynamic + bulk
 
