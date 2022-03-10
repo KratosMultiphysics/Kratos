@@ -5,7 +5,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.OptimizationApplication.responses.base_response import BaseResponseFunction
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication as KSM
 
 import time as timer
 import numpy as np
@@ -35,8 +35,8 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         else:
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
-        self.supported_control_types = ["shape"]
-        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X"}
+        self.supported_control_types = ["shape","thickness","density"]
+        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X","thickness":"D_STRAIN_ENERGY_D_T","density":"D_STRAIN_ENERGY_D_P"}
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -50,9 +50,15 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             if control_type == "shape":
                 self.analysis_model_part.AddNodalSolutionStepVariable(KM.SHAPE_SENSITIVITY)
                 self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
+            # if control_type == "thickness":
+                self.analysis_model_part.AddNodalSolutionStepVariable(KSM.THICKNESS_SENSITIVITY)
+                # self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
+            # if control_type == "density":
+                self.analysis_model_part.AddNodalSolutionStepVariable(KSM.YOUNG_MODULUS_SENSITIVITY)
+                # self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
 
         # create response
-        self.response_function_utility = StructuralMechanicsApplication.StrainEnergyResponseFunctionUtility(self.analysis_model_part, self.gradient_settings)
+        self.response_function_utility = KSM.StrainEnergyResponseFunctionUtility(self.analysis_model_part, self.response_settings)
 
     def GetVariableName(self):
         return  self.variable

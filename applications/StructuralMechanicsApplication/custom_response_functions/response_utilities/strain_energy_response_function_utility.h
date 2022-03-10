@@ -28,6 +28,9 @@
 // ------------------------------------------------------------------------------
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "includes/element.h"
+#include "utilities/integration_utilities.h"
+#include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
@@ -82,11 +85,11 @@ public:
 	: mrModelPart(model_part)
 	{
 		// Set gradient mode
-		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
+		std::string gradient_mode = responseSettings["gradient_settings"]["gradient_mode"].GetString();
 
 		if (gradient_mode.compare("semi_analytic") == 0)
 		{
-			double delta = responseSettings["step_size"].GetDouble();
+			double delta = responseSettings["gradient_settings"]["step_size"].GetDouble();
 			mDelta = delta;
 		}
 		else
@@ -110,6 +113,15 @@ public:
 	// ==============================================================================
 	void Initialize()
 	{
+
+		for (auto& elem_i : mrModelPart.Elements())
+		{
+			Properties& elem_i_prop = elem_i.GetProperties();
+			Properties::Pointer model_part_new_prop = mrModelPart.CreateNewProperties(mrModelPart.NumberOfProperties()+1);
+			*model_part_new_prop = elem_i_prop;
+			elem_i.SetProperties(model_part_new_prop);
+		}
+
 	}
 
 	// --------------------------------------------------------------------------
@@ -164,6 +176,8 @@ public:
 
 		// First gradients are initialized
 		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
+		VariableUtils().SetHistoricalVariableToZero(YOUNG_MODULUS_SENSITIVITY, mrModelPart.Nodes());
 
 
 		// Gradient calculation
@@ -289,6 +303,97 @@ protected:
 					// Assemble sensitivity to node
 					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 				}
+				//now compute YOUNG_MODULUS_SENSITIVITY
+				Properties& elem_i_prop = elem_i.GetProperties();
+				if(elem_i_prop.Has(YOUNG_MODULUS))
+				{
+					auto original_young_modul = elem_i_prop.GetValue(YOUNG_MODULUS);
+					Vector ANAL_RHS_SENS;
+					// elem_i_prop.SetValue(YOUNG_MODULUS,1);
+					elem_i.CalculateRightHandSide(ANAL_RHS_SENS, CurrentProcessInfo);
+					double anal_sens = inner_prod(lambda, ANAL_RHS_SENS);
+					const auto& r_geom = elem_i.GetGeometry();	
+					const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
+					const auto& integration_points = r_geom.IntegrationPoints(integration_method);
+					const unsigned int NumGauss = integration_points.size();
+					Vector GaussPtsJDet = ZeroVector(NumGauss);
+					r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
+					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method); 
+					for (auto& node_i : r_geom){
+						auto node_weight = node_i.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+						node_i.FastGetSolutionStepValue(YOUNG_MODULUS_SENSITIVITY) += anal_sens/node_weight ;
+					}					
+					// for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+					// {
+					// 	const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+					// 	const auto& rN = row(Ncontainer,i_point);
+					// 	int node_index = 0;
+					// 	for (auto& node_i : r_geom){
+					// 		node_i.FastGetSolutionStepValue(YOUNG_MODULUS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index];
+					// 		node_index++;
+					// 	}						
+					// }		
+				}
+				if(elem_i_prop.Has(THICKNESS))
+				{
+					auto original_thickness = elem_i_prop.GetValue(THICKNESS);
+					Vector ANAL_RHS_SENS;
+					elem_i.CalculateRightHandSide(ANAL_RHS_SENS, CurrentProcessInfo);
+					double anal_sens = inner_prod(lambda, ANAL_RHS_SENS);
+					const auto& r_geom = elem_i.GetGeometry();	
+					const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
+					const auto& integration_points = r_geom.IntegrationPoints(integration_method);
+					const unsigned int NumGauss = integration_points.size();
+					Vector GaussPtsJDet = ZeroVector(NumGauss);
+					r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
+					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method); 
+					for (auto& node_i : r_geom){
+						auto node_weight = node_i.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+						node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens/node_weight ;
+					}					
+					// for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+					// {
+					// 	const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+					// 	const auto& rN = row(Ncontainer,i_point);
+					// 	int node_index = 0;
+					// 	for (auto& node_i : r_geom){
+					// 		node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index];
+					// 		node_index++;
+					// 	}						
+					// }		
+				}				
+				
+				
+				
+				
+				
+				// auto thickness
+
+
+				// double pert = 1e-6*young_modul;
+
+				// //forward_pert
+				// elem_i_prop.SetValue(YOUNG_MODULUS,young_modul+pert);
+				// Vector RHS_F;
+				// elem_i.CalculateRightHandSide(RHS_F, CurrentProcessInfo);
+
+				// //backward_pert
+				// elem_i_prop.SetValue(YOUNG_MODULUS,young_modul-pert);
+				// Vector RHS_B;
+				// elem_i.CalculateRightHandSide(RHS_B, CurrentProcessInfo);
+
+				// Vector FD_RHS_SENS=(RHS_F-RHS_B)/(2*pert);
+				// double fd_sens = inner_prod(lambda, FD_RHS_SENS);
+
+
+
+				// elem_i_prop.SetValue(YOUNG_MODULUS,young_modul);
+
+				// std::cout<<"fd_sens : "<<fd_sens<<", anal_sens : "<<anal_sens<<std::endl;
+
+				// Properties& elem_i_prop = elem_i.GetProperties();
+				// std::cout<<"elem_i_prop[YOUNG_MODULUS] : "<<elem_i_prop.GetValue(YOUNG_MODULUS)<<std::endl;
+				// elem_i_prop.SetValue(YOUNG_MODULUS,1.0);
 			}
 		}
 
