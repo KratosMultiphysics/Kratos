@@ -76,7 +76,7 @@ void CopyPropertiesModeler::SetupModelPart()
 template<class TContainerType>
 void CopyPropertiesModeler::ReplaceProperties(
     TContainerType& rContainer,
-    ModelPart& rModelPart)
+    const ModelPart& rModelPart)
 {
     block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
         auto properties_id = rEntity.GetProperties().Id();

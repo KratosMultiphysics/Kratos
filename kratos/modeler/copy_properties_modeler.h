@@ -133,7 +133,7 @@ private:
     template<class TContainerType>
     void ReplaceProperties(
         TContainerType& rContainer,
-        ModelPart& rModelPart);
+        const ModelPart& rModelPart);
 
     ///@}
 };
