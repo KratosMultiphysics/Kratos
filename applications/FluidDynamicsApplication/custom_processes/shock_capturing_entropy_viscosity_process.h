@@ -250,7 +250,7 @@ private:
     void DistributeVariablesToNodes(
         Element& rElement,
         const double ArtificialDynamicViscosity,
-        const double ArtificialBulkViscosity,
+        const double ArtificialMassDiffusivity,
         const double ArtificialConductivity,
         const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const;
 
