@@ -873,7 +873,7 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
         } else {
             const double young_modulus = r_material_properties[YOUNG_MODULUS];
             const Vector& total_strain_vector = FatigueReductionFactor * r_material_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
-            plastic_strain_vector = 1.0 / young_modulus * equivalent_stress_vector;
+            plastic_strain_vector = total_strain_vector - 1.0 / young_modulus * equivalent_stress_vector;
         }
         double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         fracture_energy *= FatigueReductionFactor * FatigueReductionFactor;
@@ -1021,11 +1021,12 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
      * @param PlasticDissipation The internal variable of energy dissipation due to plasticity
      * @param FatigueReductionFactor Fatigue reduction factor
      */
-    static void CalculateEquivalentPlasticStrain(
+    static void EquivalencyPlasticDissipationUniaxialPlasticStrain(
         double& rEquivalentPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double PlasticDissipation,
-        const double FatigueReductionFactor
+        const double FatigueReductionFactor,
+        const double CharacteristicLength
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -1037,12 +1038,12 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
             {
                 case HardeningCurveType::LinearSoftening:
                     CalculateEquivalentPlasticStrainHardeningCurveLinearSoftening(
-                        rEquivalentPlasticStrain, rValues, PlasticDissipation, FatigueReductionFactor);
+                        rEquivalentPlasticStrain, rValues, PlasticDissipation, FatigueReductionFactor, CharacteristicLength);
                     break;
 
                 case HardeningCurveType::ExponentialSoftening:
                     CalculateEquivalentPlasticStrainHardeningCurveExponentialSoftening(
-                        rEquivalentPlasticStrain, rValues, PlasticDissipation, FatigueReductionFactor);
+                        rEquivalentPlasticStrain, rValues, PlasticDissipation, FatigueReductionFactor, CharacteristicLength);
                     break;
 
                 case HardeningCurveType::InitialHardeningExponentialSoftening:
@@ -1079,10 +1080,8 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
 
                 case HardeningCurveType::CurveDefinedByPoints:
                     KRATOS_ERROR << " The process to compute equivalen plastic strain has not been implemented yet, use curves 0 or 1 instead..." << curve_type << std::endl;
-                    // CalculateEquivalentPlasticStrainHardeningCurveDefinedByPoints(
-                    //     PlasticDissipation, TensileIndicatorFactor,
-                    //     CompressionIndicatorFactor, eq_thresholds[i], slopes[i],
-                    //     rValues, CharacteristicLength, FatigueReductionFactor);
+                    CalculateEquivalentPlasticStrainHardeningCurveDefinedByPoints(
+                        rEquivalentPlasticStrain, rValues, PlasticDissipation, FatigueReductionFactor, CharacteristicLength);
                     break;
 
                 // Add more cases...
@@ -1105,9 +1104,11 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
         double& rEquivalentPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double PlasticDissipation,
-        const double FatigueReductionFactor
+        const double FatigueReductionFactor,
+        const double CharacteristicLength
         )
     {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
         double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
         yield_compression *= FatigueReductionFactor;
@@ -1137,11 +1138,11 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
         double& rEquivalentPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double PlasticDissipation,
-        const double FatigueReductionFactor
+        const double FatigueReductionFactor,
+        const double CharacteristicLength
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-
         const double young_modulus = r_material_properties[YOUNG_MODULUS];
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
         double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
@@ -1187,15 +1188,21 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
         double& rEquivalentPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double PlasticDissipation,
-        const double FatigueReductionFactor
+        const double FatigueReductionFactor,
+        const double CharacteristicLength
         )
     {
-
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const Vector& equivalent_stress_vector = FatigueReductionFactor * r_material_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE];
-        // equivalent_stress_vector *= FatigueReductionFactor;
-        const Vector& plastic_strain_vector = FatigueReductionFactor * r_material_properties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
-        // plastic_strain_vector *= FatigueReductionFactor;
+        const bool has_plastic_strain_vector = r_material_properties.Has(PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE);
+        Vector plastic_strain_vector;
+        if (has_plastic_strain_vector) { // Strain input is equivalent plastic strain
+            plastic_strain_vector = FatigueReductionFactor * r_material_properties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+        } else {
+            const double young_modulus = r_material_properties[YOUNG_MODULUS];
+            const Vector& total_strain_vector = FatigueReductionFactor * r_material_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
+            plastic_strain_vector = total_strain_vector - 1.0 / young_modulus * equivalent_stress_vector;
+        }
         double fracture_energy = r_material_properties[FRACTURE_ENERGY];
         fracture_energy *= FatigueReductionFactor * FatigueReductionFactor;
         const double volumetric_fracture_energy = fracture_energy / CharacteristicLength;
@@ -1207,8 +1214,6 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
             Gt1 += 0.5 * (equivalent_stress_vector(i - 1) + equivalent_stress_vector(i)) * (plastic_strain_vector(i) - plastic_strain_vector(i - 1));
         }
         const double Gt2 = volumetric_fracture_energy - Gt1;
-
-        KRATOS_ERROR_IF(Gt2 < 0.0) << "Fracture energy too low in CurveDefinedByPoints of plasticity..."  << std::endl;
 
         // Compute segment threshold
         const double segment_threshold = (Gt1) / volumetric_fracture_energy;
@@ -1223,52 +1228,12 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
             }
             const double plastic_dissipation_next_point = gf_point_region / volumetric_fracture_energy;
 
-            //Stress is computed using an equivalent equation to the one used for the linear softening curve, i.e. f(S) = a * (1.0 - b * kp)
-            const double b = (std::pow(equivalent_stress_vector(i), 2.0) - std::pow(equivalent_stress_vector(i - 1), 2.0)) / (plastic_dissipation_previous_point * std::pow(equivalent_stress_vector(i), 2.0) - plastic_dissipation_next_point * std::pow(equivalent_stress_vector(i - 1), 2.0));
-            const double a = equivalent_stress_vector(i - 1) / std::sqrt(1.0 - b * plastic_dissipation_previous_point);
-            rEquivalentStressThreshold = a * std::sqrt(1.0 - b * PlasticDissipation);
-            rSlope = - 0.5 * std::pow(a, 2.0) * b / rEquivalentStressThreshold;
+            rEquivalentPlasticStrain =  plastic_strain_vector(i - 1) + (plastic_strain_vector(i) - plastic_strain_vector(i - 1)) / (equivalent_stress_vector(i) + equivalent_stress_vector(i - 1))
+                                        * (std::sqrt(std::pow(equivalent_stress_vector(i - 1), 2.0) + 2.0 * (equivalent_stress_vector(i) + equivalent_stress_vector(i - 1)) / (plastic_strain_vector(i) - plastic_strain_vector(i - 1))
+                                        * (PlasticDissipation - plastic_dissipation_previous_point) * volumetric_fracture_energy) - equivalent_stress_vector(i - 1));
 
-        } else { //Exponential branch included to achieve consistent results after full plasticity scenarios
-            const double b = equivalent_stress_vector(points_hardening_curve - 1) / (1.0 - segment_threshold);
-            const double a = b;
-            rEquivalentStressThreshold =  a - b * PlasticDissipation;
-            rSlope = - b;
-        }
+        // } else { //Exponential branch included to achieve consistent results after full plasticity scenarios
 
-
-        const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-        const double young_modulus = r_material_properties[YOUNG_MODULUS];
-        const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
-        double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];
-        yield_compression *= FatigueReductionFactor;
-        double yield_tension = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_TENSION];
-        yield_tension *= FatigueReductionFactor;
-        const double n = yield_compression / yield_tension;
-        double fracture_energy_compression = r_material_properties[FRACTURE_ENERGY] * std::pow(n, 2); // Frac energy in compression
-        fracture_energy_compression *= FatigueReductionFactor * FatigueReductionFactor;
-        const double characteristic_fracture_energy_compression = fracture_energy_compression / CharacteristicLength;
-
-        const double minimum_characteristic_fracture_energy_exponential_softening = (std::pow(yield_compression, 2)) / young_modulus;
-
-        const bool has_total_or_plastic_strain_space = r_material_properties.Has(TOTAL_OR_PLASTIC_STRAIN_SPACE);
-        const bool total_or_plastic_strain_space = has_total_or_plastic_strain_space ? r_material_properties[TOTAL_OR_PLASTIC_STRAIN_SPACE] : false; //Default value = plastic strain space
-
-        double initial_threshold;
-        GetInitialUniaxialThreshold(rValues, initial_threshold, FatigueReductionFactor); //already afected by fatigue
-
-        if (total_or_plastic_strain_space) { // Curve built in the total strain space
-            const double yield_strain = initial_threshold / young_modulus;
-            const double equivalent_plastic_strain_constant = std::sqrt(std::pow(0.5 * initial_threshold * yield_strain + characteristic_fracture_energy_compression, 2.0)
-                                                                - 2.0 * initial_threshold * yield_strain * characteristic_fracture_energy_compression * PlasticDissipation);
-
-            rEquivalentPlasticStrain = yield_strain + (0.5 * initial_threshold * yield_strain - characteristic_fracture_energy_compression) / initial_threshold *
-                                        (std::log(0.5 + characteristic_fracture_energy_compression / (initial_threshold * yield_strain) *
-                                        (equivalent_plastic_strain_constant / characteristic_fracture_energy_compression - 1.0)) - 1.0) -
-                                        equivalent_plastic_strain_constant / characteristic_fracture_energy_compression;
-        } else { // Curve built in the plastic strain space
-            rEquivalentPlasticStrain = - characteristic_fracture_energy_compression / initial_threshold * std::log(1.0 - PlasticDissipation);
         }
     }
 

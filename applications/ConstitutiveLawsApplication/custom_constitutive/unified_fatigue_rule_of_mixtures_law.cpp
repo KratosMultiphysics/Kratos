@@ -110,8 +110,12 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     double s_th = mFatigueLimit;
     double cycles_to_failure = mCyclesToFailure;
     bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
-    bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
-    bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
+
+    // bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+    const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
+    const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
+    const double damage = mDamage;
+    const double plastic_dissipation = mPlasticDissipation;
 
     auto& r_material_properties = rValues.GetMaterialProperties();
     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
@@ -195,17 +199,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress);
     }
-
-    //Adapting the volumetric participation to the type of load that is being applied
-    // if (!current_load_type) {       //Monotonic load being applied, i.e., no more damage is accumulated.
-    //     // mHCFVolumetricParticipation =
-    //             // mCombinationFactors[0] = damage_threshold / damage_now * mInitialCombinationFactor;
-    //             // mCombinationFactors[1] = 1.0 - damage_threshold / damage_now * mInitialCombinationFactor;
-    // } else if (current_load_type) { //Cyclic load being applied. Two cases: pure HCF transition case depending on Nf.
-
-    // }
-
-
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
     mReversionFactorRelativeError = reversion_factor_relative_error;
@@ -219,6 +212,68 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
     mFatigueLimit = s_th;
+
+
+    //Adapting the volumetric participation to the type of load that is being applied
+    if (!current_load_type) {       //Monotonic load being applied, i.e., no more damage is accumulated and plasticity is isotropic.
+        if (new_model_part) { //New load block detected.
+            mReferenceVolumetricParticipation = (damage == 0.0 && plastic_dissipation == 0.0) ? 0.0 : mHCFVolumetricParticipation; //Fully plasticity behaviour while non-linear process has not started.
+            mReferenceDamage = damage;
+            KRATOS_WATCH("New block - no damage")
+                KRATOS_WATCH(mReferenceVolumetricParticipation)
+
+        }
+        const double reference_volumetric_participation = mReferenceVolumetricParticipation;
+        const double reference_damage = mReferenceDamage;
+
+        mHCFVolumetricParticipation = (damage > 0.0) ? reference_volumetric_participation * reference_damage / damage : 0.0;
+    } else if (current_load_type) { //Cyclic load being applied. three cases depending on Nf.
+
+        // if (Nf < 1.0e3) {               // 1 - ULCF case = no more damage is accumulated and plasticity is kinematic.
+
+        // } else if (Nf < 1.0e5) {        // 2 - LCF case = intermidiate case. Volumetric participation computed through linear transition.
+
+        // } else {                        // 3 - HCF case = no more plasticity is accumulated.
+            if (new_model_part) {//New load block detected.
+                mReferenceVolumetricParticipation = (damage == 0.0 && plastic_dissipation == 0.0) ? 1.0 : mHCFVolumetricParticipation; //Fully damage behaviour while non-linear process has not started.
+                mReferenceDamage = damage;
+                mReferencePlasticDissipation = plastic_dissipation;
+                mReferenceFatigueReductionFactor = fatigue_reduction_factor;
+                KRATOS_WATCH("New block - no plasticity")
+                KRATOS_WATCH(mReferenceVolumetricParticipation)
+            }
+            if (plastic_dissipation > 0.0) {
+                double reference_equivalent_plastic_strain, equivalent_plastic_strain;
+                const double reference_volumetric_participation = mReferenceVolumetricParticipation;
+                const double reference_fatigue_reduction_factor = mReferenceFatigueReductionFactor;
+                const double reference_damage = mReferenceDamage;
+
+                const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(values_fatigue.GetElementGeometry());
+
+                GenericConstitutiveLawIntegratorUltraLowCycleFatigue<TConstLawIntegratorType::YieldSurfaceType>::EquivalencyPlasticDissipationUniaxialPlasticStrain(reference_equivalent_plastic_strain,
+                                                                                                                                                                    values_fatigue, mReferencePlasticDissipation,
+                                                                                                                                                                    reference_fatigue_reduction_factor,
+                                                                                                                                                                    characteristic_length);
+                GenericConstitutiveLawIntegratorUltraLowCycleFatigue<TConstLawIntegratorType::YieldSurfaceType>::EquivalencyPlasticDissipationUniaxialPlasticStrain(equivalent_plastic_strain,
+                                                                                                                                                                    values_fatigue, plastic_dissipation,
+                                                                                                                                                                    fatigue_reduction_factor,
+                                                                                                                                                                    characteristic_length);
+
+                // This function has an indeterminancy when
+                //      (div by 0.0 indeterminancy) reference_damage == 1.0 && reference_volumetric_participation == 1.0. When this happens, damage == 1.0. This situation is not possible because mDamage < 0.99999 as set in the damage integrator
+                //      (0.0 / 0.0) equivalent_plastic_strain == 0.0 && reference_equivalent_plastic_strain == 0.0. This occurs while plasticity is not activated and so the plastic dissipation is 0.
+                const double volumetric_participation = std::max(((1.0 - reference_volumetric_participation) * reference_equivalent_plastic_strain - (1.0 - reference_volumetric_participation * reference_damage) * equivalent_plastic_strain)
+                                                / (damage * (1.0 - reference_volumetric_participation) * reference_equivalent_plastic_strain - (1.0 - reference_volumetric_participation * reference_damage) * equivalent_plastic_strain), 0.0);
+
+                mHCFVolumetricParticipation = (volumetric_participation > 1.0) ? 1.0 : volumetric_participation;
+            } else {
+                mHCFVolumetricParticipation = 1.0;
+            }
+        // }
+    }
+    KRATOS_WATCH(mHCFVolumetricParticipation)
+
+    // KRATOS_WATCH(mHCFVolumetricParticipation)
 }
 
 /***********************************************************************************/
