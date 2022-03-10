@@ -11,7 +11,7 @@
 //
 //
 
-#ifndef KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
+#ifndef KRATOS_BUMP_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
 #define KRATOS_TRANSIENT_POROSITY_SOLUTION_BODY_FORCE_PROCESS_H
 
 // System includes
@@ -52,36 +52,36 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(SWIMMING_DEM_APPLICATION) TransientPorositySolutionBodyForceProcess : public Process
+class KRATOS_API(SWIMMING_DEM_APPLICATION) BumpTransientPorositySolutionBodyForceProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TransientPorositySolutionBodyForceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(TransientPorositySolutionBodyForceProcess);
+    /// Pointer definition of BumpTransientPorositySolutionBodyForceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(BumpTransientPorositySolutionBodyForceProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    TransientPorositySolutionBodyForceProcess();
+    BumpTransientPorositySolutionBodyForceProcess();
     /// Constructor.
-    TransientPorositySolutionBodyForceProcess(
+    BumpTransientPorositySolutionBodyForceProcess(
         ModelPart& rModelPart);
 
     /// Constructor with Kratos parameters.
-    TransientPorositySolutionBodyForceProcess(
+    BumpTransientPorositySolutionBodyForceProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
 
     /// Constructor with Kratos model
-    TransientPorositySolutionBodyForceProcess(
+    BumpTransientPorositySolutionBodyForceProcess(
         Model& rModel,
         Parameters& rParameters);
 
     /// Destructor.
-    ~TransientPorositySolutionBodyForceProcess() override {}
+    ~BumpTransientPorositySolutionBodyForceProcess() override {}
 
     ///@}
 
@@ -157,12 +157,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "TransientPorositySolutionBodyForceProcess" ;
+        buffer << "BumpBumpTransientPorositySolutionBodyForceProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "TransientPorositySolutionBodyForceProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "BumpTransientPorositySolutionBodyForceProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -210,7 +210,7 @@ private:
     /// Copy constructor.
     ///@}
 
-}; // Class TransientPorositySolutionBodyForceProcess
+}; // Class BumpBumpTransientPorositySolutionBodyForceProcess
 
 ///@}
 ///@name Type Definitions
