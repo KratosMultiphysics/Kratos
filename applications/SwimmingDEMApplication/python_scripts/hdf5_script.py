@@ -32,7 +32,7 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type, reynolds_number):
+    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type, reynolds_number, porosity_mean):
         self.error_model_part = error_model_part
 
         self.projection_type = projection_type
@@ -40,6 +40,8 @@ class ErrorProjectionPostProcessTool(object):
         self.subscale_type = subscale_type
 
         self.reynolds_number = reynolds_number
+
+        self.porosity_mean = porosity_mean
 
         for Element in self.error_model_part.Elements:
             self.element_size = Element.GetGeometry().Length()
@@ -72,6 +74,7 @@ class ErrorProjectionPostProcessTool(object):
         self.sub_group.attrs['model_type'] = str(self.model_type)
         self.sub_group.attrs['subscale_type'] = str(self.subscale_type)
         self.sub_group.attrs['reynolds_number'] = str(self.reynolds_number)
+        self.sub_group.attrs['porosity_mean'] = str(self.porosity_mean)
 
         for name, datum in zip(names, data):
             if name in file_or_group:
