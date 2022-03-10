@@ -49,10 +49,10 @@ const Parameters CopyPropertiesModeler::GetDefaultParameters() const
 
 void CopyPropertiesModeler::SetupModelPart()
 {
-    const auto origin_model_part_name = mParameters["origin_model_part_name"].GetString();
-    const auto destination_model_part_name = mParameters["destination_model_part_name"].GetString();
-    ModelPart& r_origin_model_part = mpModel->GetModelPart(origin_model_part_name);
-    ModelPart& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
+    const std::string origin_model_part_name = mParameters["origin_model_part_name"].GetString();
+    const std::string destination_model_part_name = mParameters["destination_model_part_name"].GetString();
+    const auto& r_origin_model_part = mpModel->GetModelPart(origin_model_part_name);
+    auto& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
 
     // clear the properties of the destination model part
     std::vector<std::size_t> properties_ids;
