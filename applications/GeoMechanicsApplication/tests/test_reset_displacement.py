@@ -1,9 +1,6 @@
 import sys
 import os
 
-sys.path.append(os.path.join('..', '..', '..'))
-sys.path.append(os.path.join('..', 'python_scripts'))
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_helper
@@ -126,9 +123,4 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacement_stages[stage_nr][idx][0], -eps * node[0], places=5)
 
 if __name__ == '__main__':
-    suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosGeoMechanicsResetDisplacementTests]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    KratosUnittest.runTests(suites)
+    KratosUnittest.main()

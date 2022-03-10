@@ -136,13 +136,14 @@ class SetOfModelParts():
 
 class GranulometryUtils():
 
-    def __init__(self, domain_volume, model_part):
+    def __init__(self, domain_volume, model_part, do_print_results_option=False):
 
         if domain_volume <= 0.0:
             raise ValueError(
                 "Error: The input domain volume must be strictly positive!")
 
         self.spheres_model_part = model_part
+        self.do_print_results_option = do_print_results_option
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
@@ -159,8 +160,8 @@ class GranulometryUtils():
 
         self.voids_volume = domain_volume - self.solid_volume
         self.global_porosity = self.voids_volume / domain_volume
-
-        self.PrintCurrentData()
+        if self.do_print_results_option:
+            self.PrintCurrentData()
 
     def PrintCurrentData(self):
 
@@ -506,6 +507,8 @@ class Procedures():
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_STRAIN_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_DIFFERENTIAL_STRAIN_TENSOR)
 
         if self.solver.poisson_ratio_option:
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
@@ -1330,8 +1333,6 @@ class DEMIo():
         self.PostTangentialElasticForces = self.DEM_parameters["PostTangentialElasticForces"].GetBool()
         self.PostShearStress = self.DEM_parameters["PostShearStress"].GetBool()
         self.PostNodalArea = self.DEM_parameters["PostNodalArea"].GetBool()
-        self.PostTemperature = GetBoolParameterIfItExists(self.DEM_parameters, "PostTemperature")
-        self.PostHeatFlux = GetBoolParameterIfItExists(self.DEM_parameters, "PostHeatFlux")
         self.PostNeighbourSize = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
         self.PostBrokenRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostBrokenRatio")
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
@@ -1482,8 +1483,6 @@ class DEMIo():
         self.PushPrintVar(self.PostDampForces, DAMP_FORCES, self.spheres_variables)
         self.PushPrintVar(self.PostRadius, RADIUS, self.spheres_variables)
         self.PushPrintVar(self.PostExportId, EXPORT_ID, self.spheres_variables)
-        self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.spheres_variables)
-        self.PushPrintVar(self.PostHeatFlux, HEATFLUX, self.spheres_variables)
         self.PushPrintVar(self.PostNormalImpactVelocity, NORMAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostTangentialImpactVelocity, TANGENTIAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostFaceNormalImpactVelocity, FACE_NORMAL_IMPACT_VELOCITY, self.spheres_variables)
@@ -1517,6 +1516,8 @@ class DEMIo():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_TENSOR, self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRAIN_TENSOR, self.spheres_variables)
+                self.PushPrintVar(1, DEM_DIFFERENTIAL_STRAIN_TENSOR, self.spheres_variables)
 
         if "PostReactions" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostReactions"].GetBool():

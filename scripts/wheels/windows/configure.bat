@@ -22,7 +22,6 @@ CALL :add_app %KRATOS_APP_DIR%\DamApplication;
 CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
@@ -56,8 +55,9 @@ echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
 
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
 -DCMAKE_INSTALL_PREFIX=%3                                                                   ^
--DCMAKE_C_FLAGS="/MP%4 /Gm- /Zm10"                                                                  ^
--DCMAKE_CXX_FLAGS="/MP%4 /Gm- /Zm10"                                                                ^
+-DUSE_TRIANGLE_NONFREE_TPL=ON                                                               ^
+-DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
+-DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
 -DKRATOS_BUILD_TESTING=OFF                                                                  ^
 -DINSTALL_RUNKRATOS=OFF

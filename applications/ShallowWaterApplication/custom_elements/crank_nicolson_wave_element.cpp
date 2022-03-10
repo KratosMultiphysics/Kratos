@@ -62,7 +62,7 @@ void CrankNicolsonWaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSide
 
     // Evaluate at the current time step
     GetNodalData(data, GetGeometry(), 0);
-    CalculateGaussPointData(data, N);
+    UpdateGaussPointData(data, N);
     u_0 = this->GetUnknownVector(data);
     AddMassTerms(m, data, N, DN_DX);
     AddWaveTerms(k_0, f_0, data, N, DN_DX);
@@ -70,7 +70,7 @@ void CrankNicolsonWaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSide
 
     // Evaluate at the previous time step
     GetNodalData(data, GetGeometry(), 1);
-    CalculateGaussPointData(data, N);
+    UpdateGaussPointData(data, N);
     u_1 = this->GetUnknownVector(data);
     AddWaveTerms(k_1, f_1, data, N, DN_DX);
     AddFrictionTerms(k_1, f_1, data, N, DN_DX);

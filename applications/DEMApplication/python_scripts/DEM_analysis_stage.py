@@ -80,7 +80,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.write_mdpa_from_results = False
         else:
             self.write_mdpa_from_results = self.DEM_parameters["WriteMdpaFromResults"].GetBool()
-        self.creator_destructor = self.SetParticleCreatorDestructor()
+        self.creator_destructor = self.SetParticleCreatorDestructor(DEM_parameters["creator_destructor_settings"])
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.PreUtilities = PreUtilities()
@@ -168,13 +168,13 @@ class DEMAnalysisStage(AnalysisStage):
     def GetParticleHistoryWatcher(self):
         return None
 
-    def SetParticleCreatorDestructor(self):
+    def SetParticleCreatorDestructor(self, creator_destructor_settings):
 
         self.watcher = self.GetParticleHistoryWatcher()
 
         if self.watcher is None:
-            return ParticleCreatorDestructor()
-        return ParticleCreatorDestructor(self.watcher)
+            return ParticleCreatorDestructor(creator_destructor_settings)
+        return ParticleCreatorDestructor(self.watcher, creator_destructor_settings)
 
     def SelectTranslationalScheme(self):
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler':

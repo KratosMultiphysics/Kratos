@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -145,6 +145,8 @@ template <typename real>
 struct block_crs {
     typedef real      value_type;
     typedef ptrdiff_t index_type;
+    typedef ptrdiff_t col_type;
+    typedef ptrdiff_t ptr_type;
 
     typedef bcrs<real, index_type, index_type> matrix;
     typedef typename builtin<real>::vector     vector;
@@ -298,8 +300,10 @@ struct residual_impl< bcrs<V, C, P>, Vec1, Vec2, Vec3 >
 
     static void apply(const Vec1 &rhs, const matrix &A, const Vec2 &x, Vec3 &r)
     {
+        typedef typename math::scalar_of<V>::type S;
+        const auto one = math::identity<S>();
         backend::copy(rhs, r);
-        backend::spmv(-1, A, x, 1, r);
+        backend::spmv(-one, A, x, one, r);
     }
 };
 

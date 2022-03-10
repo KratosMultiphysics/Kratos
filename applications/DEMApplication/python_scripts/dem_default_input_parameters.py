@@ -40,6 +40,7 @@ def GetDefaultInputParameters():
             "RemoveBallsInEmbeddedOption"      : false,
             "compute_reactions_on_fixed_particles" : false,
             "solver_settings" : {},
+            "creator_destructor_settings" : {},
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",

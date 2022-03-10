@@ -50,8 +50,7 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
     const SizeType NumNodes = this->GetGeometry().size();
 
-    for ( unsigned int i = 0; i < NumNodes; ++i )
-    {
+    for ( unsigned int i = 0; i < NumNodes; ++i ) {
         const unsigned int index = Dim * i;
 
         rB( INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X ) = GradNpT( i, INDEX_X );
@@ -74,8 +73,8 @@ double SmallStrainUPwDiffOrderAxisymmetricElement::
 {
     Vector N;
     N = this->GetGeometry().ShapeFunctionsValues( N, IntegrationPoints[PointNumber].Coordinates() );
-    const double radius = GeoElementUtilities::CalculateRadius(N, this->GetGeometry());
-    const double radiusWeight = 2.0 * Globals::Pi * radius;
+    const double radiusWeight = 
+        GeoElementUtilities::CalculateAxisymmetricCircumference(N, this->GetGeometry());
 
     return IntegrationPoints[PointNumber].Weight() * detJ * radiusWeight;
 }

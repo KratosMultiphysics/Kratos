@@ -204,7 +204,7 @@ namespace Kratos {
         return effectiveVolumeRadius;
     }
 
-    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer & data_buffer,
+    void SphericContinuumParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDataBuffer& data_buffer,
                                                                 const ProcessInfo& r_process_info,
                                                                 array_1d<double, 3>& rElasticForce,
                                                                 array_1d<double, 3>& rContactForce,
@@ -496,7 +496,7 @@ namespace Kratos {
 
         //Update sphere mass and inertia taking into account the real volume of the represented volume:
         SetMass(this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) * GetDensity());
-        if (this->Is(DEMFlags::HAS_ROTATION) ){
+        if (this->Is(DEMFlags::HAS_ROTATION)) {
             GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = CalculateMomentOfInertia();
         }
 

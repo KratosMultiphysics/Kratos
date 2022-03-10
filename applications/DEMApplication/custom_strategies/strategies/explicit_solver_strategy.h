@@ -44,6 +44,7 @@
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/discrete_particle_configure.h"
+#include "custom_utilities/node_configure.h"
 #include "custom_utilities/rigid_face_geometrical_object_configure.h"
 
 #ifdef USING_CGAL
@@ -97,6 +98,7 @@ namespace Kratos {
         typedef PointerVectorSet<Properties, IndexedObject> PropertiesContainerType;
         typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
+        typedef NodeConfigure<3> NodeConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
         typedef Variable<double> ComponentOf3ComponentsVariableType;
 
@@ -239,9 +241,11 @@ namespace Kratos {
         void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void ResetPrescribedMotionFlagsRespectingImposedDofs();
-        void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
+        void ApplyPrescribedBoundaryConditions();
+        void ApplyInitialConditions();
+        virtual void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         void SetNormalRadiiOnAllParticles(ModelPart& r_model_part);
-        void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
+        virtual void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
         virtual void ComputeNewNeighboursHistoricalData();
         virtual void CreateContactElements();

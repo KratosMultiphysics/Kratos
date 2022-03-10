@@ -454,7 +454,7 @@ public:
      * :TODO: might be necessary to reimplement
      */
     double Volume() const override {
-        //closed formula for the linear triangle
+        //Closed formula for the linear tetrahedra
         const double onesixth = 1.0/6.0;
 
         const CoordinatesArrayType& rP0 = this->Points()[0].Coordinates();
@@ -462,20 +462,20 @@ public:
         const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
         const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-        double x10 = rP1[0] - rP0[0];
-        double y10 = rP1[1] - rP0[1];
-        double z10 = rP1[2] - rP0[2];
+        const double x10 = rP1[0] - rP0[0];
+        const double y10 = rP1[1] - rP0[1];
+        const double z10 = rP1[2] - rP0[2];
 
-        double x20 = rP2[0] - rP0[0];
-        double y20 = rP2[1] - rP0[1];
-        double z20 = rP2[2] - rP0[2];
+        const double x20 = rP2[0] - rP0[0];
+        const double y20 = rP2[1] - rP0[1];
+        const double z20 = rP2[2] - rP0[2];
 
-        double x30 = rP3[0] - rP0[0];
-        double y30 = rP3[1] - rP0[1];
-        double z30 = rP3[2] - rP0[2];
+        const double x30 = rP3[0] - rP0[0];
+        const double y30 = rP3[1] - rP0[1];
+        const double z30 = rP3[2] - rP0[2];
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-        return  detJ*onesixth;
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        return detJ*onesixth;
     }
 
     double DomainSize() const override {
@@ -1441,29 +1441,43 @@ public:
     }
 
 
-    /// detect if two tetrahedra are intersected
+    /**
+     * @brief Test if this geometry intersects with other geometry
+     * @param  ThisGeometry Geometry to intersect with
+     * @return True if the geometries intersect, False in any other case.
+     * @details We always check the intersection from the higher LocalSpaceDimension to the lower one
+     */
     bool HasIntersection( const BaseType& rThisGeometry) const override
     {
-
+        if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
+            // Check the intersection of each face against the intersecting object
+            const auto faces = this->GenerateFaces();
+            for (auto& face : faces) {
+                if (face.HasIntersection(rThisGeometry)) {
+                    return true;
+                }
+            }
+            // Let check the second geometry is inside.
+            // Considering there are no intersection, if one point is inside all of it is inside.
+            array_1d<double, 3> local_point;
+            return this->IsInside(rThisGeometry.GetPoint(0), local_point);
+        }
+        // Both geometries are 3D
         array_1d<Plane, 4>  plane;
-        std::vector<BaseType> Intersection;
-
-        //const BaseType& geom_1 = *this;
-        const BaseType& geom_2 = rThisGeometry;
+        std::vector<BaseType> intersections;
 
         GetPlanes(plane);
-        Intersection.push_back(geom_2);
+        intersections.push_back(rThisGeometry);
         for (unsigned int i = 0; i < 4; ++i)
         {
             std::vector<BaseType> inside;
-            for (unsigned int j = 0; j < Intersection.size(); ++j)
+            for (unsigned int j = 0; j < intersections.size(); ++j)
             {
-                SplitAndDecompose(Intersection[j], plane[i], inside);
+                SplitAndDecompose(intersections[j], plane[i], inside);
             }
-            Intersection = inside;
+            intersections = inside;
         }
-
-        return bool (Intersection.size() > 0);
+        return bool (intersections.size() > 0);
     }
 
 
@@ -1480,12 +1494,9 @@ public:
         if(Triangle3D3Type(this->pGetPoint(2),this->pGetPoint(3), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
 
-        CoordinatesArrayType local_coordinates;
         // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
-        if(IsInside(rLowPoint,local_coordinates))
-            return true;
-
-        return false;
+        CoordinatesArrayType local_coordinates;
+        return IsInside(rLowPoint,local_coordinates);
     }
 
 
