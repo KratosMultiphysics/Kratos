@@ -144,7 +144,7 @@ void ConnectivityPreserveModeler::CopyCommonData(
 
     // These should be safe for SubModelParts
     rDestinationModelPart.SetProcessInfo( rOriginModelPart.pGetProcessInfo() );
-    rDestinationModelPart.SetProperties( rOriginModelPart.pProperties() );
+    rDestinationModelPart.PropertiesArray() = rOriginModelPart.PropertiesArray();
     rDestinationModelPart.Tables() = rOriginModelPart.Tables();
 
     // Assign the nodes to the new model part
