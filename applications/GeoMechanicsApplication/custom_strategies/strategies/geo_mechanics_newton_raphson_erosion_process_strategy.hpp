@@ -269,7 +269,7 @@ private:
 
         if (PipeElements.size() == 0)
         {
-	        return PipeElements
+            return PipeElements;
         }
 
     	// Get Maximum X Value in Pipe
