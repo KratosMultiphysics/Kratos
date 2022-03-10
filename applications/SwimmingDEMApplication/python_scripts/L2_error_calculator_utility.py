@@ -56,7 +56,7 @@ class L2ErrorCalculatorUtility:
 
         self.reynolds_number = self.porosity_mean * self.u_characteristic / self.nu
 
-        return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part, self.reynolds_number
+        return self.velocity_error_norm/self.u_characteristic, self.pressure_error_norm/self.p_characteristic, self.error_model_part, self.reynolds_number, self.porosity_mean
 
     def ComputeDofsErrors(self):
         SDEM.L2ErrorNormCalculator().ComputeDofsErrors(self.error_model_part)
