@@ -380,7 +380,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
                 double GBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * rData.N[i] / dt * rData.DN_DX(j,d) * fluid_fraction_gradient[d];
                 double AGBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * (rData.DN_DX(j,d) * fluid_fraction_gradient[d]);
-                double GBetaADiag = 2.0 / 3.0 * kin_viscosity * fluid_fraction * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[d] * rData.DN_DX(i,d);
+                double GBetaADiag = tau_one(d,d) * fluid_fraction * kin_viscosity * fluid_fraction_gradient[d] * rData.DN_DX(i,d) * AGradN[j];
 
                 LHS(row+d,col+d) += rData.Weight * (V + AA - A + GBetaDiag - AGBetaDiag + GBetaADiag);
                 // Galerkin pressure term: Div(v) * p
