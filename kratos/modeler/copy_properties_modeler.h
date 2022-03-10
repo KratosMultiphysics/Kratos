@@ -130,6 +130,10 @@ private:
     ///@name Operations
     ///@{
 
+    void RecursivelyCopyProperties(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart);
+
     template<class TContainerType>
     void ReplaceProperties(
         TContainerType& rContainer,

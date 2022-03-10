@@ -64,13 +64,26 @@ void CopyPropertiesModeler::SetupModelPart()
     }
 
     // make copies of the properties
-    for (auto& r_prop : r_origin_model_part.rProperties()) {
-        r_destination_model_part.AddProperties(Kratos::make_shared<Properties>(r_prop));
-    }
+    RecursivelyCopyProperties(r_origin_model_part, r_destination_model_part);
 
     // replace the properties of the elements and conditions
     ReplaceProperties(r_destination_model_part.Elements(), r_destination_model_part);
     ReplaceProperties(r_destination_model_part.Conditions(), r_destination_model_part);
+}
+
+void CopyPropertiesModeler::RecursivelyCopyProperties(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart)
+{
+    for (auto& r_prop : rOriginModelPart.rProperties()) {
+        rDestinationModelPart.AddProperties(Kratos::make_shared<Properties>(r_prop));
+    }
+    for (auto& r_orig_sub_mp : rOriginModelPart.SubModelParts()) {
+        if (rDestinationModelPart.HasSubModelPart(r_orig_sub_mp.Name())) {
+            auto& r_dest_sub_mp = rDestinationModelPart.GetSubModelPart(r_orig_sub_mp.Name());
+            RecursivelyCopyProperties(r_orig_sub_mp, r_dest_sub_mp);
+        }
+    }
 }
 
 template<class TContainerType>
