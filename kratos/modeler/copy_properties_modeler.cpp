@@ -61,7 +61,6 @@ void CopyPropertiesModeler::SetupModelPart()
     }
     for (auto prop_id : properties_ids) {
         r_destination_model_part.RemovePropertiesFromAllLevels(prop_id);
-
     }
 
     // make copies of the properties
