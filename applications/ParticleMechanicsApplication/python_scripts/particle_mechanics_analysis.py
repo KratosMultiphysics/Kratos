@@ -64,11 +64,11 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 KratosMultiphysics.Logger.PrintInfo("ParticleMechanicsAnalysis", info_msg)
                 if self.project_parameters.Has("grid_output_configuration"):
                     grid_gid_output= self._SetUpGiDOutput("grid_output")
-                    grid_gid_output= self._SetUpVTKOutput("grid_output")
+                    grid_vtk_output= self._SetUpVTKOutput("grid_output")
                     list_of_processes += [grid_gid_output,]
                 if self.project_parameters.Has("body_output_configuration"):
                     mp_gid_output= self._SetUpGiDOutput("body_output")
-                    mp_gid_output= self._SetUpVTKOutput("body_output")
+                    mp_vtk_output= self._SetUpVTKOutput("body_output")
                     list_of_processes += [mp_gid_output,]        
         else:
             raise NameError("wrong parameter name")
