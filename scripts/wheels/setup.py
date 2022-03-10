@@ -62,7 +62,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
@@ -82,7 +81,7 @@ setuptools.setup(
     package_data={
         'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     ext_modules=EmptyListWithLength(),
     distclass=BinaryDistribution
 )
