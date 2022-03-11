@@ -168,8 +168,7 @@ public:
           mPlasticStrain(rOther.mPlasticStrain),
           mOldStrain(rOther.mOldStrain),
           mComplianceMatrix(rOther.mComplianceMatrix),
-          mComplianceMatrixCompression(rOther.mComplianceMatrixCompression),
-          mOldConstitutiveMatrix(rOther.mOldConstitutiveMatrix)
+          mComplianceMatrixCompression(rOther.mComplianceMatrixCompression)
     {
     }
 
@@ -639,7 +638,6 @@ private:
     BoundedVectorType mOldStrain        = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
     BoundedMatrixType mComplianceMatrixCompression = ZeroMatrix(VoigtSize, VoigtSize);
-    BoundedMatrixType mOldConstitutiveMatrix = ZeroMatrix(VoigtSize, VoigtSize);
 
     ///@}
     ///@name Private Operators
@@ -670,7 +668,6 @@ private:
         rSerializer.save("OldStrain", mOldStrain);
         rSerializer.save("ComplianceMatrix", mComplianceMatrix);
         rSerializer.save("ComplianceMatrixCompression", mComplianceMatrixCompression);
-        rSerializer.save("OldConstitutiveMatrix", mOldConstitutiveMatrix);
     }
 
     void load(Serializer &rSerializer) override
@@ -683,7 +680,6 @@ private:
         rSerializer.load("OldStrain", mOldStrain);
         rSerializer.load("ComplianceMatrix", mComplianceMatrix);
         rSerializer.load("ComplianceMatrixCompression", mComplianceMatrixCompression);
-        rSerializer.load("OldConstitutiveMatrix", mOldConstitutiveMatrix);
     }
 
 
