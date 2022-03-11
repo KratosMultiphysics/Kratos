@@ -164,7 +164,7 @@ void MPMParticleLagrangeDirichletCondition::MPMShapeFunctionPointValues( Vector&
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     double denominator = 1.0;
-    const double small_cut_instability_tolerance = 0.1;
+    const double small_cut_instability_tolerance = 0.02;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         if (rResult[i] < small_cut_instability_tolerance){
@@ -247,7 +247,7 @@ void MPMParticleLagrangeDirichletCondition::CalculateAll(
 
         const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
         // If penetrates, apply constraint, otherwise no
-        if (penetration >= 0.0)
+        if (penetration > 0.0)
         {
             apply_constraints = false;
 
