@@ -148,18 +148,21 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             err_msg = err_msg + " - {}\n".format(key)
         raise RuntimeError(err_msg)
 
+    def _OverrideBoolParameterWithWarning(self, parent, child, value):
+        if parent.Has(child) and parent[child].GetBool() != value:
+            KratosMultiphysics.Logger.PrintWarning("", "User-specifed {} will be overriden with {}".format(parameter, value))
+        else:
+            parent.AddEmptyValue(child)
+        parent[child].SetBool(True)
+
     def _CreateEstimateDtUtility(self):
         """This method overloads FluidSolver in order to enforce:
         ```
         self.settings["time_stepping"]["consider_compressibility_in_CFL"] == True
         ```
         """
-        if self.settings["time_stepping"].Has("consider_compressibility_in_CFL"):
-            KratosMultiphysics.Logger.PrintWarning("", "User-specifed consider_compressibility_in_CFL will be overriden with TRUE")
-        else:
-            self.settings["time_stepping"].AddEmptyValue("consider_compressibility_in_CFL")
-
-        self.settings["time_stepping"]["consider_compressibility_in_CFL"].SetBool(True)
+        self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "consider_compressibility_in_CFL", True)
+        self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "consider_artificial_diffusion", True)
 
         estimate_dt_utility = KratosFluid.EstimateDtUtility(
                 self.GetComputingModelPart(),
