@@ -641,27 +641,16 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
                 // Compute the compliance increment -> C dot
                 CalculateComplianceMatrixIncrement(rValues, rPDParameters);
 
-
-    // tension_parameter = (tension_parameter > 0.0) ? 1.0 : 0.0;
-    // compression_parameter = 1.0 - tension_parameter;
-
-    // tension_parameter = (tension_parameter < 0.001) ? 0.0 : 1.0;
-    // tension_parameter = (tension_parameter > 0.9) ? 1.0 : 0.0;
-    // compression_parameter = 1.0 - tension_parameter;
-
-
                 noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement * prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
-                // CalculateConstitutiveMatrix(rValues, rPDParameters);
-    // now we check the tensile-compressive distribution
-    double tension_parameter, compression_parameter;
-    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(rPDParameters.StressVector, tension_parameter,compression_parameter);
-    double det = 0.0;
-    //     tension_parameter = 0.0;
-    // compression_parameter = 1.0;
+                // now we check the tensile-compressive distribution
+                double tension_parameter, compression_parameter;
+                GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(rPDParameters.StressVector, tension_parameter,compression_parameter);
+                double det = 0.0;
+
                 noalias(rPDParameters.ComplianceMatrix) += tension_parameter*rPDParameters.ComplianceMatrixIncrement;
                 noalias(rPDParameters.ComplianceMatrixCompression) += compression_parameter*rPDParameters.ComplianceMatrixIncrement;
-    MathUtils<double>::InvertMatrix(tension_parameter*rPDParameters.ComplianceMatrix+compression_parameter*rPDParameters.ComplianceMatrixCompression, rPDParameters.ConstitutiveMatrix, det);
+                MathUtils<double>::InvertMatrix(tension_parameter*rPDParameters.ComplianceMatrix+compression_parameter*rPDParameters.ComplianceMatrixCompression, rPDParameters.ConstitutiveMatrix, det);
 
                 // Compute the non-linear dissipation performed
                 CalculatePlasticDissipationIncrement(r_material_properties, rPDParameters);
