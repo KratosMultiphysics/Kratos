@@ -33,15 +33,14 @@ namespace Kratos
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters( R"(
             {
-                "help"                 : "This process applies constraints to the particles and walls in a certain submodelpart, for a certain time interval",
+                "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
-                "velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [10.0, "3*t", "x+y"],
-                    "table"                : [0, 0, 0]
-                },
-                "interval"             : [0.0, 1e30]
+                "variable_name"        : "object",
+                "interval"             : [0.0, 1e30],
+                "constrained"          : [true,true,true],
+                "value"                : [10.0, "3*t", "x+y"],
+                "table"                : [0, 0, 0]
             } )" );
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -55,30 +54,28 @@ namespace Kratos
         mpVelocityTable.clear();
 
         for(int i=0; i<3; i++) {
-            mVelocityIsConstrained[i] = rParameters["velocity_constraints_settings"]["constrained"][i].GetBool();
-            if(rParameters["velocity_constraints_settings"]["value"][i].IsNull()) {
+            mVelocityIsConstrained[i] = rParameters["constrained"][i].GetBool();
+            if(rParameters["value"][i].IsNull()) {
                 mVelocityValueIsNumeric[i] = true;
                 mVelocityValues[i] = 0.0;
                 mVelocityFunctions.push_back(GenericFunctionUtility("0.0"));
                 // because I can't construct an array_1d of these
             } else {
-                if(rParameters["velocity_constraints_settings"]["value"][i].IsNumber()) {
+                if(rParameters["value"][i].IsNumber()) {
                     mVelocityValueIsNumeric[i] = true;
-                    mVelocityValues[i] = rParameters["velocity_constraints_settings"]["value"][i].GetDouble();
-
-
+                    mVelocityValues[i] = rParameters["value"][i].GetDouble();
                     mVelocityFunctions.push_back(GenericFunctionUtility("0.0"));
                     // because I can't construct an array_1d of these
                 } else {
                     mVelocityValueIsNumeric[i] = false;
-                    mVelocityFunctions.push_back(GenericFunctionUtility(rParameters["velocity_constraints_settings"]["value"][i].GetString()));
+                    mVelocityFunctions.push_back(GenericFunctionUtility(rParameters["value"][i].GetString()));
                 }
             }
 
-            if(rParameters["velocity_constraints_settings"]["table"][i].IsNull()) {
+            if(rParameters["table"][i].IsNull()) {
                 mVelocityTableId[i] = 0;
             } else {
-                mVelocityTableId[i] = rParameters["velocity_constraints_settings"]["table"][i].GetInt();
+                mVelocityTableId[i] = rParameters["table"][i].GetInt();
             }
             mpVelocityTable.push_back(mrModelPart.pGetTable(mVelocityTableId[i]));
             // because I can't construct an array_1d of these

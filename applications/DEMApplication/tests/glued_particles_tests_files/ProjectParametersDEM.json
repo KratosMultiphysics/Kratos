@@ -35,11 +35,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.sticky",
-            "velocity_constraints_settings" : {
-                "constrained"          : [true, true, true],
-                "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+            "constrained"          : [true, true, true],
+            "value"                : [0.0, 0.0, 0.0],
+            "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -47,11 +45,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.sticky",
-            "angular_velocity_constraints_settings" : {
                 "constrained"          : [true, true, true],
                 "value"                : [2.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+                "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     }],

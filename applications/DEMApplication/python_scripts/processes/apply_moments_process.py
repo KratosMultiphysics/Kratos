@@ -15,10 +15,8 @@ def Factory(settings, Model):
             "help"                 : "This process applies loads over the particles in a certain submodelpart, for a certain time interval",
             "mesh_id"              : 0,
             "model_part_name"      : "please_specify_model_part_name",
-            "moment_settings" : {
                 "value"            : [10.0, "3*t", "x+y"],
-                "table"            : [0, 0, 0]
-            },
+                "table"            : [0, 0, 0],
             "interval"             : [0.0, 1e30]
         }""" )
 

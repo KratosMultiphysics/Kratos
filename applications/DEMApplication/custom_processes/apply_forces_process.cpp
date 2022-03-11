@@ -18,10 +18,8 @@ namespace Kratos
                 "help"                 : "This process applies loads over the particles and walls in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
-                "force_settings" : {
                     "value"            : [10.0, "3*t", "x+y"],
-                    "table"            : [0, 0, 0]
-                },
+                    "table"            : [0, 0, 0],
                 "interval"             : [0.0, 1e30]
             } )" );
 
@@ -36,25 +34,25 @@ namespace Kratos
         mpForceTable.clear();
 
         for(int i=0; i<3; i++) {
-            if(rParameters["force_settings"]["value"][i].IsNull()) {
+            if(rParameters["value"][i].IsNull()) {
                 mForceValueIsNumeric[i] = true;
                 mForceValues[i] = 0.0;
                 mForceFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
             } else {
-                if(rParameters["force_settings"]["value"][i].IsNumber()) {
+                if(rParameters["value"][i].IsNumber()) {
                     mForceValueIsNumeric[i] = true;
-                    mForceValues[i] = rParameters["force_settings"]["value"][i].GetDouble();
+                    mForceValues[i] = rParameters["value"][i].GetDouble();
                     mForceFunctions.push_back(GenericFunctionUtility("0.0")); // because I can't construct an array_1d of these
                 } else {
                     mForceValueIsNumeric[i] = false;
-                    mForceFunctions.push_back(GenericFunctionUtility(rParameters["force_settings"]["value"][i].GetString()));
+                    mForceFunctions.push_back(GenericFunctionUtility(rParameters["value"][i].GetString()));
                 }
             }
 
-            if(rParameters["force_settings"]["table"][i].IsNull()) {
+            if(rParameters["table"][i].IsNull()) {
                 mForceTableId[i] = 0;
             } else {
-                mForceTableId[i] = rParameters["force_settings"]["table"][i].GetInt();
+                mForceTableId[i] = rParameters["table"][i].GetInt();
             }
             mpForceTable.push_back(mrModelPart.pGetTable(mForceTableId[i])); // because I can't construct an array_1d of these
         }

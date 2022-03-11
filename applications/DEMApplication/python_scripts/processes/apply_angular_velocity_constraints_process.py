@@ -16,11 +16,9 @@ def Factory(settings, Model):
         "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
         "mesh_id"              : 0,
         "model_part_name"      : "please_specify_model_part_name",
-        "angular_velocity_constraints_settings" : {
-            "constrained"          : [true,true,true],
-            "value"                : [10.0, "3*t", "x+y"],
-            "table"                : [0, 0, 0]
-        },
+        "constrained"          : [true,true,true],
+        "value"                : [10.0, "3*t", "x+y"],
+        "table"                : [0, 0, 0],
         "interval"             : [0.0, 1e30]
     }
     """)

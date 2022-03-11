@@ -65,11 +65,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.left",
-            "velocity_constraints_settings" : {
-                "constrained"          : [true, true, true],
-                "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+            "constrained"          : [true, true, true],
+            "value"                : [0.0, 0.0, 0.0],
+            "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -77,11 +75,10 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.left",
-            "angular_velocity_constraints_settings" : {
+
                 "constrained"          : [true, true, true],
                 "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+                "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -89,11 +86,11 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.right",
-            "velocity_constraints_settings" : {
+
                 "constrained"          : [true, true, true],
                 "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+                "table"                : [null, null, null],
+
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -101,11 +98,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.right",
-            "angular_velocity_constraints_settings" : {
                 "constrained"          : [true, true, true],
                 "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+                "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -113,11 +108,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.top",
-            "velocity_constraints_settings" : {
                 "constrained"          : [true, true, true],
                 "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+                "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -125,11 +118,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.top",
-            "angular_velocity_constraints_settings" : {
                 "constrained"          : [true, true, true],
                 "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+                "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -137,11 +128,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.bot",
-            "velocity_constraints_settings" : {
-                "constrained"          : [true, true, true],
-                "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+            "constrained"          : [true, true, true],
+            "value"                : [0.0, 0.0, 0.0],
+            "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     },{
@@ -149,11 +138,9 @@
         "kratos_module" : "KratosMultiphysics.DEMApplication",
         "Parameters"    : {
             "model_part_name" : "RigidFacePart.bot",
-            "angular_velocity_constraints_settings" : {
                 "constrained"          : [true, true, true],
                 "value"                : [0.0, 0.0, 0.0],
-                "table"                : [null, null, null]
-            },
+                "table"                : [null, null, null],
             "interval"             : [0.0, 1.0e30]
         }
     }],

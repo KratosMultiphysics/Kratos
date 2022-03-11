@@ -31,11 +31,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball1",
-		        "velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 0.2]
             }
         },{
@@ -43,11 +41,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball1",
-                "angular_velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
                     "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                    "table"                : [null, null, null],
                 "interval"             : [0.0, 0.2]
             }
         },{
@@ -55,11 +51,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball2",
-		        "velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : ["-10.0*t", 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : ["-10.0*t", 0.0, 0.0],
+                "table"                : [null, null, null],
                 "interval"             : [0.2, 0.3]
             }
         },{
@@ -67,11 +61,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball2",
-                "angular_velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
                     "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                    "table"                : [null, null, null],
                 "interval"             : [0.2, 0.3]
             }
         },{
@@ -79,11 +71,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball3",
-		        "velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [-5.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [-5.0, 0.0, 0.0],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 0.1]
             }
         },{
@@ -91,11 +81,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball3",
-                "angular_velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
                     "value"                : [0.0, 0.0, -10.0],
-                    "table"                : [null, null, null]
-                },
+                    "table"                : [null, null, null],
                 "interval"             : [0.0, 0.1]
             }
         },{
@@ -103,11 +91,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball4",
-		        "velocity_constraints_settings" : {
-                    "constrained"          : [false, false, true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [false, false, true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1e30]
             }
         },{
@@ -115,11 +101,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball4",
-                "angular_velocity_constraints_settings" : {
                     "constrained"          : [false, false, false],
                     "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                    "table"                : [null, null, null],
                 "interval"             : [0.0, 1e30]
             }
         },{
@@ -127,11 +111,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball5",
-		        "velocity_constraints_settings" : {
-                    "constrained"          : [false, false, true],
-                    "value"                : [null, null, null],
-                    "table"                : [1, 2, 3]
-                },
+                "constrained"          : [false, false, true],
+                "value"                : [null, null, null],
+                "table"                : [1, 2, 3],
                 "interval"             : [0.0, 1e30]
             }
         },{
@@ -139,11 +121,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball5",
-                "angular_velocity_constraints_settings" : {
                     "constrained"          : [false, false, false],
                     "value"                : [null, null, null],
-                    "table"                : [4, 5, 6]
-                },
+                    "table"                : [4, 5, 6],
                 "interval"             : [0.0, 1e30]
             }
         },{
@@ -151,11 +131,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube1",
-		        "velocity_constraints_settings" : {
-                    "constrained"          : [true, true, true],
-                    "value"                : ["1.0*t", 0.5, "1.0*t**2"],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true, true, true],
+                "value"                : ["1.0*t", 0.5, "1.0*t**2"],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
@@ -163,11 +141,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube1",
-                "angular_velocity_constraints_settings" : {
                     "constrained"          : [true, true, true],
                     "value"                : [2.61799, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                    "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
@@ -175,11 +151,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube2",
-		        "velocity_constraints_settings" : {
-                    "constrained"          : [true, true, true],
-                    "value"                : [null, null, null],
-                    "table"                : [7, 8, 9]
-                },
+                "constrained"          : [true, true, true],
+                "value"                : [null, null, null],
+                "table"                : [7, 8, 9],
                 "interval"                 : [0.0, 1.0e30]
             }
         },{
@@ -187,11 +161,9 @@
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Cube2",
-                "angular_velocity_constraints_settings" : {
                     "constrained"          : [true, true, true],
                     "value"                : [null, null, null],
-                    "table"                : [10, 11, 12]
-                },
+                    "table"                : [10, 11, 12],
                 "interval"                 : [0.0, 1.0e30]
             }
         }],
