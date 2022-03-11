@@ -146,10 +146,12 @@ for dim in dim_vector:
         tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h) + K_darcy)
         tau1 *= not_stabilization_cut_elements_momentum  # Stabilization parameter 1
     else:
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))
+        # tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))
+        tau1=dt/rho
         tau1 *= not_stabilization_cut_elements_momentum  # Stabilization parameter 1
-    tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1
-    tau2 *= not_stabilization_cut_elements_mass
+    # tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1
+    tau2=h**2/(stab_c1*tau1)
+    tau2 *=not_stabilization_cut_elements_mass
 
     ## Data interpolation to the Gauss points
     p_gauss = p.transpose()*N #NOTE: We evaluate p-related terms at n+1 as temporal component makes no sense in this case for both time integration schemes
