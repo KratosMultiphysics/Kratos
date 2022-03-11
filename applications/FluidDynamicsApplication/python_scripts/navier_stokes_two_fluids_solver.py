@@ -1,4 +1,5 @@
 # Importing the Kratos Library
+import time
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
@@ -333,16 +334,24 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
-            for node in self.GetComputingModelPart().Nodes:
-                new_density=node.GetSolutionStepValue(KratosMultiphysics.DENSITY,0)
-                old_density = node.GetSolutionStepValue(KratosMultiphysics.DENSITY,1)
-                if (abs(new_density-old_density)>1e-10):
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,0.0)
-                    node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,0.0)
+            # for node in self.GetComputingModelPart().Nodes:
+            #     new_density=node.GetSolutionStepValue(KratosMultiphysics.DENSITY,0)
+            #     old_density = node.GetSolutionStepValue(KratosMultiphysics.DENSITY,1)
+            #     if (abs(new_density-old_density)>1e-10):
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,0.0)
+            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,0.0)
+
+            print("Before history projection")
+            start = time.time()
+            KratosCFD.TwoFluidHistoryProjectionUtility.CalculateHistoryProjection(self.GetComputingModelPart(),True)
+            end = time.time()
+            print("After history projection. Took {} seconds.".format(end-start))
+
+            self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
             # We set this value at every time step as other processes/solvers also use them
             dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()

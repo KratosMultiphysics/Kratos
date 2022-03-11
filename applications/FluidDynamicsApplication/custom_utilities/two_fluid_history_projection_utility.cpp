@@ -33,7 +33,7 @@ namespace Kratos
         ModelPart& rModelPart,
         const bool ComputeNodalH)
     {
-        const std::size_t n_extra_layers = 5;
+        const std::size_t n_extra_layers = 3;
         FlagElementsAndNodes(rModelPart, n_extra_layers);
 
         const auto particle_data = SeedAndConvectParticles(rModelPart);
@@ -55,10 +55,10 @@ namespace Kratos
         // Reset flags
         // SELECTED: Nodes and elements used for creating the seeds
         // FREE_SURFACE: Nodes and elements where the history is to be reset
+        VariableUtils().SetFlag(MARKER, false, rModelPart.Nodes());
         VariableUtils().SetFlag(SELECTED, false, rModelPart.Nodes());
         VariableUtils().SetFlag(SELECTED, false, rModelPart.Elements());
         VariableUtils().SetFlag(FREE_SURFACE, false, rModelPart.Nodes());
-        VariableUtils().SetFlag(FREE_SURFACE, false, rModelPart.Elements());
 
         // Flag the nodes that have changed its phase
         block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
@@ -74,22 +74,27 @@ namespace Kratos
         // Note that in here we are assuming that the neighbours are already computed
         for (std::size_t i_layer = 0; i_layer < NumberOfExtraLayers; ++i_layer) {
             for (auto& r_node : rModelPart.Nodes()) {
-                auto& r_neighbours = r_node.GetValue(NEIGHBOUR_NODES);
-                for (auto& r_neigh : r_neighbours) {
-                    if (!r_neigh.Is(SELECTED)) {
-                        r_neigh.Set(SELECTED, true);
+                if (r_node.Is(SELECTED)) {
+                    auto& r_neighbours = r_node.GetValue(NEIGHBOUR_NODES);
+                    for (auto& r_neigh : r_neighbours) {
+                        r_neigh.Set(MARKER, true);
                     }
                 }
             }
+
+            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+                if (rNode.Is(MARKER)) {
+                    rNode.Set(SELECTED, true);
+                }
+            });
+
+            VariableUtils().SetFlag(MARKER, false, rModelPart.Nodes());
         }
 
         // Flag all the elements that own a flagged node
         block_for_each(rModelPart.Elements(), [](Element& rElement){
             const auto& r_geom = rElement.GetGeometry();
             for (const auto& rNode : r_geom) {
-                if (rNode.Is(FREE_SURFACE)) {
-                    rElement.Set(FREE_SURFACE, true);
-                }
                 if (rNode.Is(SELECTED)) {
                     rElement.Set(SELECTED, true);
                 }
@@ -108,7 +113,7 @@ namespace Kratos
 
         // Get and allocate arrays according to 1st element
         // Note that we are assuming a unique element type in the mesh
-        const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
+        const auto integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
         const auto& elem_begin_geom = rModelPart.ElementsBegin()->GetGeometry();
         const std::size_t n_nodes = elem_begin_geom.PointsNumber();
         const std::size_t n_gauss = elem_begin_geom.IntegrationPointsNumber(integration_method);
@@ -151,10 +156,14 @@ namespace Kratos
         const ParticleDataContainerType& rParticleData)
     {
         std::size_t domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        std::size_t min_n_particles = domain_size + 1;
 
-        const double search_factor = 2.0;
+        // Reset MESH_VELOCITY
+        VariableUtils().SetHistoricalVariableToZero(MESH_VELOCITY, rModelPart.Nodes());
+
+        // Compute the Lagrangian velocity interpolation
+        const double search_factor = 3.0;
         for (auto& r_node : rModelPart.Nodes()) {
-            if (r_node.Is(FREE_SURFACE)) {
                 const auto& r_node_coords = r_node.Coordinates();
 
                 // Set the cloud of points inside the search bounding box
@@ -186,12 +195,14 @@ namespace Kratos
                 // Calculate the MLS interpolation in the FREE_SURFACE node
                 // TODO: Use an auxiliary lambda to avoid this if
                 Vector cloud_shape_functions;
-                if (domain_size == 2) {
-                    MLSShapeFunctionsUtility::CalculateShapeFunctions<2>(cloud_coords, r_node_coords, search_dist, cloud_shape_functions);
-                } else if (domain_size == 3) {
-                    MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(cloud_coords, r_node_coords, search_dist, cloud_shape_functions);
-                } else {
-                    KRATOS_ERROR << "Wrong DOMAIN_SIZE." << std::endl;
+                if(n_cloud_points > min_n_particles)
+                {
+                    if (domain_size == 2) {
+                        MLSShapeFunctionsUtility::CalculateShapeFunctions<2>(cloud_coords, r_node_coords, search_dist, cloud_shape_functions);
+                    } else if (domain_size == 3) {
+                        MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(cloud_coords, r_node_coords, search_dist, cloud_shape_functions);
+                    } else {
+                        KRATOS_ERROR << "Wrong DOMAIN_SIZE." << std::endl;
                 }
 
                 // Interpolate the FREE_SURFACE node history and mesh velocity
@@ -200,10 +211,35 @@ namespace Kratos
                     noalias(v_n) += cloud_shape_functions(i_node) * vel_cloud[i_node];
                 }
 
-                // Set new interpolated velocity such that the interface is Lagrangian in an approximate sense
-                r_node.FastGetSolutionStepValue(VELOCITY) = v_n;
-                r_node.FastGetSolutionStepValue(VELOCITY, 1) = v_n;
-                r_node.FastGetSolutionStepValue(MESH_VELOCITY) = v_n;
+                // Set new interpolated velocity such that the interface is Lagrangian in an approximate sense.
+                // It should be considered the fixity. for that nodes that ones of each components is fixed it is not applied false fm-ale to that component.
+                //TODO: Same procedure should be done for SLIP CONDITION,
+                if (r_node.IsNot(SLIP)) {
+                    if (!r_node.IsFixed(VELOCITY_X)){
+                        r_node.FastGetSolutionStepValue(VELOCITY_X) = v_n[0];
+                        r_node.FastGetSolutionStepValue(VELOCITY_X, 1) = v_n[0];
+                        r_node.FastGetSolutionStepValue(MESH_VELOCITY_X) = v_n[0];
+                    }
+
+                    if (!r_node.IsFixed(VELOCITY_Y)){
+                        r_node.FastGetSolutionStepValue(VELOCITY_Y) = v_n[1];
+                        r_node.FastGetSolutionStepValue(VELOCITY_Y, 1) = v_n[1];
+                        r_node.FastGetSolutionStepValue(MESH_VELOCITY_Y) = v_n[1];
+                    }
+
+                    if (!r_node.IsFixed(VELOCITY_Z)){
+                        r_node.FastGetSolutionStepValue(VELOCITY_Z) = v_n[2];
+                        r_node.FastGetSolutionStepValue(VELOCITY_Z, 1) = v_n[2];
+                        r_node.FastGetSolutionStepValue(MESH_VELOCITY_Z) = v_n[2];
+                    }
+                } else {
+                    const auto& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
+                    const array_1d<double,3> v_n_norm = inner_prod(v_n, r_normal) * r_normal;
+                    const array_1d<double,3> v_n_tang = v_n - v_n_norm;
+                    r_node.FastGetSolutionStepValue(VELOCITY) = v_n_tang;
+                    r_node.FastGetSolutionStepValue(VELOCITY, 1) = v_n_tang;
+                    r_node.FastGetSolutionStepValue(MESH_VELOCITY) = v_n_tang;
+                }
             }
         }
     }
@@ -220,3 +256,4 @@ namespace Kratos
     }
 
 }
+
