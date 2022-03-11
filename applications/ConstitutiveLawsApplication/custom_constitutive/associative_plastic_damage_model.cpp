@@ -605,7 +605,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, mOldStrain - rPDParameters.PlasticStrain);
 
     for (SizeType i = 0; i < splits; i++) {
-        // rPDParameters.StressVector += delta_stress;
         rPDParameters.StressVector += prod(rPDParameters.ConstitutiveMatrix, rPDParameters.StrainVector - mOldStrain) / splits;
         is_converged = false;
         iteration = 0;
