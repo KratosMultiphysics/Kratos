@@ -148,9 +148,10 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             err_msg = err_msg + " - {}\n".format(key)
         raise RuntimeError(err_msg)
 
-    def _OverrideBoolParameterWithWarning(self, parent, child, value):
+    @classmethod
+    def _OverrideBoolParameterWithWarning(cls, parent, child, value):
         if parent.Has(child) and parent[child].GetBool() != value:
-            KratosMultiphysics.Logger.PrintWarning("", "User-specifed {} will be overriden with {}".format(parameter, value))
+            KratosMultiphysics.Logger.PrintWarning("", "User-specifed {} will be overriden with {}".format(child, value))
         else:
             parent.AddEmptyValue(child)
         parent[child].SetBool(True)
