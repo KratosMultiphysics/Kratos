@@ -107,7 +107,6 @@ void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
         Point projected;
         double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
-        // TODO: remove the std::abs once the GeometricalProjectionUtilities are fixed or a consensus is reached
         const auto projection = std::abs(GeometricalProjectionUtilities::FastProjectOnLine2D(*mpBoundary, rNode, projected));
         r_distance = std::min(r_distance, projection);
     });
