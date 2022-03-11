@@ -203,9 +203,6 @@ class OptimizationAlgorithm:
             vtk_parameters.AddEmptyArray("nodal_solution_step_data_variables")
             for nodal_result in data_fields:
                 vtk_parameters["nodal_solution_step_data_variables"].Append(nodal_result)
-
-            vtk_parameters["nodal_solution_step_data_variables"].Append("THICKNESS_SENSITIVITY")
-            vtk_parameters["nodal_solution_step_data_variables"].Append("YOUNG_MODULUS_SENSITIVITY")
             
             controlling_model_part_vtkIO = VtkOutputProcess(self.model, vtk_parameters)
             controlling_model_part_vtkIO.ExecuteInitialize()

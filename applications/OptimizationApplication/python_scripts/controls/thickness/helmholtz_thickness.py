@@ -21,7 +21,8 @@ class HelmholtzThickness(ThicknessControl):
 
         self.default_technique_settings = KM.Parameters("""{
                     "automatic_filter_size" : true,
-                    "filter_radius" : 0.000000000001,          
+                    "filter_radius" : 0.000000000001,
+                    "beta":25,          
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -65,25 +66,14 @@ class HelmholtzThickness(ThicknessControl):
         self.helmholtz_thickness_control.Initialize()
     
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
-        pass
-        # self.helmholtz_thickness_control.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
+        self.helmholtz_thickness_control.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):
         pass
         # self.helmholtz_thickness_control.MapControlUpdate(KOA.D_CX,KOA.D_X) 
 
     def Update(self):
-        pass
-        # for model_part_name in self.controlling_objects:
-        #     model_part = self.model.GetModelPart(model_part_name)
-        #     for node in model_part.Nodes:
-        #         shape_update = node.GetSolutionStepValue(KOA.D_X)
-        #         node.X0 += shape_update[0]
-        #         node.Y0 += shape_update[1]
-        #         node.Z0 += shape_update[2]
-        #         node.X += shape_update[0]
-        #         node.Y += shape_update[1]
-        #         node.Z += shape_update[2]   
+        self.helmholtz_thickness_control.Update() 
             
             
 

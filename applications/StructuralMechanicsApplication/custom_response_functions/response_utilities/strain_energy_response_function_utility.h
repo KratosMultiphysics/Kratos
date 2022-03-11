@@ -360,23 +360,23 @@ protected:
 					Vector GaussPtsJDet = ZeroVector(NumGauss);
 					r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
 					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method); 
-					// for (auto& node_i : r_geom){
-					// 	auto node_weight = node_i.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-					// 	node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens/node_weight ;
-					// }
-					double elem_area = 0.0; 
-					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-						elem_area += integration_points[i_point].Weight() * GaussPtsJDet[i_point];			
-					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-					{
-						const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-						const auto& rN = row(Ncontainer,i_point);
-						int node_index = 0;
-						for (auto& node_i : r_geom){
-							node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index]/elem_area;
-							node_index++;
-						}						
-					}		
+					for (auto& node_i : r_geom){
+						auto node_weight = node_i.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
+						node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens/node_weight ;
+					}
+					// double elem_area = 0.0; 
+					// for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+					// 	elem_area += integration_points[i_point].Weight() * GaussPtsJDet[i_point];			
+					// for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+					// {
+					// 	const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+					// 	const auto& rN = row(Ncontainer,i_point);
+					// 	int node_index = 0;
+					// 	for (auto& node_i : r_geom){
+					// 		node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index]/elem_area;
+					// 		node_index++;
+					// 	}						
+					// }		
 				}				
 				
 				
