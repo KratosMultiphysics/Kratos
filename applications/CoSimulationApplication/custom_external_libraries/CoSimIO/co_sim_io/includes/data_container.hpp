@@ -61,14 +61,20 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
+        CO_SIM_IO_TRY
+
         rSerializer.save("size", size());
         for (std::size_t i=0; i<size(); ++i) {
             rSerializer.save("v", data()[i]);
         }
+
+        CO_SIM_IO_CATCH
     }
 
     virtual void load(Serializer& rSerializer)
     {
+        CO_SIM_IO_TRY
+
         std::size_t new_size;
         rSerializer.load("size", new_size);
         if (size() != new_size) {
@@ -78,6 +84,8 @@ private:
         for (std::size_t i=0; i<size(); ++i) {
             rSerializer.load("v", data()[i]);
         }
+
+        CO_SIM_IO_CATCH
     }
 };
 

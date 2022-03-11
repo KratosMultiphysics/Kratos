@@ -18,17 +18,26 @@
 
 // Project includes
 #include "includes/serializer.h"
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
 
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LineNormalFluidFlux2DDiffOrderCondition : public GeneralUPwDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION)
+    LineNormalFluidFlux2DDiffOrderCondition : public LineLoad2DDiffOrderCondition
 {
 
 public:
+
+    typedef std::size_t IndexType;
+	typedef Properties PropertiesType;
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef Vector VectorType;
+    typedef Matrix MatrixType;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( LineNormalFluidFlux2DDiffOrderCondition );
 
@@ -59,8 +68,6 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
-
-    void CalculateIntegrationCoefficient(ConditionVariables& rVariables, unsigned int PointNumber, double weight) override;
     
     void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables) override;
 
@@ -74,12 +81,12 @@ private:
     
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoad2DDiffOrderCondition )
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeneralUPwDiffOrderCondition )
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoad2DDiffOrderCondition )
     }
     
 }; // class LineNormalFluidFlux2DDiffOrderCondition.

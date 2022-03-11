@@ -20,7 +20,14 @@ with open(os.path.join(os.environ["KRATOS_ROOT"], conf["readme"]), "r") as fh:
     long_description = fh.read()
 
 for module in conf["included_modules"]:
-    shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
+    src = os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module)
+    dst = os.path.join("KratosMultiphysics", module)
+    if os.path.exists(dst):
+        shutil.rmtree(dst)
+    try:
+        shutil.copytree(src, dst)
+    except Exception as e:
+        print("Warning copying {}: {}".format(src,e))
 
 for binary in conf["included_binaries"]:
     for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
@@ -55,7 +62,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: C++",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
@@ -75,7 +81,7 @@ setuptools.setup(
     package_data={
         'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     ext_modules=EmptyListWithLength(),
     distclass=BinaryDistribution
 )

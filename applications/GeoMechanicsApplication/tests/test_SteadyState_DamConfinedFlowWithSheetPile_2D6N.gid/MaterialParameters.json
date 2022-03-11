@@ -7,6 +7,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
               "BIOT_COEFFICIENT"         :  1.0,
               "YOUNG_MODULUS"            :  10000,
               "POISSON_RATIO"            :  0.2,

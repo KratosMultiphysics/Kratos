@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "custom_utilities/advanced_constitutive_law_utilities.h"
+
 
 namespace Kratos
 {
@@ -601,6 +601,18 @@ public:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure& rStressMeasure
     );
+
+    /**
+     * This method computes the Green-Lagrange strain
+     * @see Parameters
+     */
+    void CalculateGreenLagrangeStrain(Parameters &rValues);
+
+    /**
+     * This method computes the Almansi strain
+     * @see Parameters
+     */
+    void CalculateAlmansiStrain(Parameters &rValues);
 
 protected:
 

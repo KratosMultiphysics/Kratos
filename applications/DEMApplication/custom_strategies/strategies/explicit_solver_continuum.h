@@ -69,6 +69,11 @@ namespace Kratos {
         void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
         double ComputeCoordinationNumber(double& standard_dev);
+
+        void RebuildListOfContinuumSphericParticles() {
+            RebuildListOfSphericParticles<SphericContinuumParticle>(GetModelPart().GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
+        }
+
         void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
         virtual void CalculateMaxSearchDistance();

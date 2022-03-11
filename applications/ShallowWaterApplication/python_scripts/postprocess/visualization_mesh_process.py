@@ -53,7 +53,7 @@ class VisualizationMeshProcess(KM.Process):
         if settings["create_topographic_model_part"].GetBool():
             self.topographic_model_part = model.CreateModelPart(settings["topographic_model_part_name"].GetString())
         else:
-            if model.Has(settings["topographic_model_part_name"].GetString()):
+            if model.HasModelPart(settings["topographic_model_part_name"].GetString()):
                 self.topographic_model_part = model.GetModelPart(settings["topographic_model_part_name"].GetString())
 
         # Creating the variables list
@@ -111,6 +111,7 @@ class VisualizationMeshProcess(KM.Process):
 
     def _DuplicateModelPart(self):
         KM.MergeVariableListsUtility().Merge(self.computing_model_part, self.topographic_model_part)
+        self.topographic_model_part.ProcessInfo = self.computing_model_part.ProcessInfo
         element_num_nodes = len(self.computing_model_part.Elements.__iter__().__next__().GetNodes())
         condition_num_nodes = len(self.computing_model_part.Conditions.__iter__().__next__().GetNodes())
         reference_element = "Element2D{}N".format(element_num_nodes)
@@ -130,11 +131,14 @@ class VisualizationMeshProcess(KM.Process):
                 self.topographic_model_part,
                 0)
         for variable in self.nonhistorical_variables:
-            KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
-                variable,
-                self.computing_model_part,
-                self.topographic_model_part,
-                KM.Flags())
+            for node_src, node_dest in zip(self.computing_model_part.Nodes, self.topographic_model_part.Nodes):
+                node_dest.SetValue(variable, node_src.GetValue(variable))
+            #TODO: implement this function in VariableUtils
+            # KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+            #     variable,
+            #     self.computing_model_part,
+            #     self.topographic_model_part,
+            #     KM.Flags(), False)
 
 
     def _FlattenMeshCoordinates(self):

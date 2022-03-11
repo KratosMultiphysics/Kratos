@@ -339,6 +339,8 @@ KRATOS_CREATE_VARIABLE(double, AREA_VERTICAL_CENTRE)
 
 // TENSION
 KRATOS_CREATE_VARIABLE(Matrix, DEM_STRESS_TENSOR)
+KRATOS_CREATE_VARIABLE(Matrix, DEM_STRAIN_TENSOR)
+KRATOS_CREATE_VARIABLE(Matrix, DEM_DIFFERENTIAL_STRAIN_TENSOR)
 
 // APPLIED LOADS
 KRATOS_CREATE_VARIABLE(double, BLAST_RADIUS)
@@ -374,11 +376,6 @@ KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE)
 // DUMMY INT AND DOUBLE VARIABLES
 KRATOS_CREATE_VARIABLE(int, DUMMY_SWITCH)
 KRATOS_CREATE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
-
-// *************** Thermal only BEGIN *************
-KRATOS_CREATE_VARIABLE(double, HEATFLUX)
-KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
-// *************** Thermal only END ***************
 
 // EXPORTS
 KRATOS_CREATE_VARIABLE(double, EXPORT_PARTICLE_FAILURE_ID)
@@ -446,7 +443,6 @@ KRATOS_CREATE_VARIABLE(bool, IMPOSED_Z_STRAIN_OPTION)
 
 //FLAGS
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROTATION, 0);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SINTERING, 1);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROLLING_FRICTION, 2);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, STICKY, 3);
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_CRITICAL_TIME, 4);
@@ -480,9 +476,6 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
     mPolyhedronSkinSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mIceContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBeamParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mSinteringSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBondingSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -798,6 +791,8 @@ void KratosDEMApplication::Register() {
 
     // TENSION
     KRATOS_REGISTER_VARIABLE(DEM_STRESS_TENSOR)
+    KRATOS_REGISTER_VARIABLE(DEM_STRAIN_TENSOR)
+    KRATOS_REGISTER_VARIABLE(DEM_DIFFERENTIAL_STRAIN_TENSOR)
 
     // APPLIED LOADS
     KRATOS_REGISTER_VARIABLE(BLAST_RADIUS)
@@ -817,11 +812,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BLAST_COORDINATES_7)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BLAST_COORDINATES_8)
     // *************** Continuum only END *************
-
-    // *************** Thermal only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(HEATFLUX)
-    KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)
-    // *************** Thermal only END ***************
 
     // Possible future blocks (no FEM) interaction
 
@@ -909,9 +899,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("PolyhedronSkinSphericParticle3D", mPolyhedronSkinSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("IceContinuumParticle3D", mIceContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("BeamParticle3D", mBeamParticle3D)
-    KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
-    KRATOS_REGISTER_ELEMENT("ThermalSphericParticle3D", mThermalSphericParticle3D)
-    KRATOS_REGISTER_ELEMENT("SinteringSphericContinuumParticle3D", mSinteringSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("BondingSphericContinuumParticle3D", mBondingSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
     KRATOS_REGISTER_ELEMENT("RigidBodyElement3D", mRigidBodyElement3D)
