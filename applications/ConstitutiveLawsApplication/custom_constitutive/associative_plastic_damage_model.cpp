@@ -85,12 +85,22 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
 
         CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
 
-        if (rValues.GetProcessInfo()[STEP] <= 1) {
-            CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
-        } else {
-            noalias(plastic_damage_parameters.ConstitutiveMatrix) = mOldConstitutiveMatrix;
-        }
-        
+        // if (rValues.GetProcessInfo()[STEP] <= 1) {
+        //     CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
+        // } else {
+        //     noalias(plastic_damage_parameters.ConstitutiveMatrix) = mOldConstitutiveMatrix;
+        // }
+        Vector predictor(VoigtSize);
+        CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
+        noalias(predictor) = prod(plastic_damage_parameters.ConstitutiveMatrix, plastic_damage_parameters.StrainVector - plastic_damage_parameters.PlasticStrain);
+    double tension_parameter, compression_parameter;
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(predictor, tension_parameter,compression_parameter);
+    double det = 0.0;
+
+    // tension_parameter = 0.0;
+    // compression_parameter = 1.0;
+    MathUtils<double>::InvertMatrix(tension_parameter*plastic_damage_parameters.ComplianceMatrix+compression_parameter*plastic_damage_parameters.ComplianceMatrixCompression, plastic_damage_parameters.ConstitutiveMatrix, det);
+
         noalias(rValues.GetConstitutiveMatrix()) = plastic_damage_parameters.ConstitutiveMatrix;
 
         noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix, r_strain_vector - plastic_damage_parameters.PlasticStrain);
@@ -138,11 +148,20 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
 
     CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
 
-        if (rValues.GetProcessInfo()[STEP] <= 1) {
-            CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
-        } else {
-            noalias(plastic_damage_parameters.ConstitutiveMatrix) = mOldConstitutiveMatrix;
-        }
+        // if (rValues.GetProcessInfo()[STEP] <= 1) {
+        //     CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
+        // } else {
+        //     noalias(plastic_damage_parameters.ConstitutiveMatrix) = mOldConstitutiveMatrix;
+        // }
+        Vector predictor(VoigtSize);
+        CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
+        noalias(predictor) = prod(plastic_damage_parameters.ConstitutiveMatrix, plastic_damage_parameters.StrainVector - plastic_damage_parameters.PlasticStrain);
+    double tension_parameter, compression_parameter;
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(predictor, tension_parameter,compression_parameter);
+    double det = 0.0;
+    // tension_parameter = 0.0;
+    // compression_parameter = 1.0;
+    MathUtils<double>::InvertMatrix(tension_parameter*plastic_damage_parameters.ComplianceMatrix+compression_parameter*plastic_damage_parameters.ComplianceMatrixCompression, plastic_damage_parameters.ConstitutiveMatrix, det);
         
     noalias(plastic_damage_parameters.StressVector) = prod(plastic_damage_parameters.ConstitutiveMatrix,
         r_strain_vector - plastic_damage_parameters.PlasticStrain);
@@ -156,16 +175,20 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
         IntegrateStressPlasticDamageMechanics(rValues, plastic_damage_parameters);
         UpdateInternalVariables(plastic_damage_parameters);
 
-        double tension_parameter, compression_parameter, det;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(plastic_damage_parameters.StressVector, tension_parameter,compression_parameter);
-        KRATOS_WATCH(tension_parameter)
+        // double tension_parameter, compression_parameter, det;
+        // GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(plastic_damage_parameters.StressVector, tension_parameter,compression_parameter);
+        // KRATOS_WATCH(tension_parameter)
     } else {
-        double tension_parameter, compression_parameter, det;
-        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(plastic_damage_parameters.StressVector, tension_parameter,compression_parameter);
-        // tension_parameter = (tension_parameter < 0.5) ? 0.0 : 1.0;
+        // double tension_parameter, compression_parameter, det;
+        // GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(plastic_damage_parameters.StressVector, tension_parameter,compression_parameter);
+        // tension_parameter = (tension_parameter > 0.0) ? 1.0 : 0.0;
         // compression_parameter = 1.0 - tension_parameter;
-        MathUtils<double>::InvertMatrix(tension_parameter*plastic_damage_parameters.ComplianceMatrix+compression_parameter*plastic_damage_parameters.ComplianceMatrixCompression, mOldConstitutiveMatrix, det);
-        KRATOS_WATCH(tension_parameter)
+
+        // tension_parameter = (tension_parameter < 0.2) ? 0.0 : 1.0;
+        // tension_parameter = (tension_parameter > 0.9) ? 1.0 : 0.0;
+        // compression_parameter = 1.0 - tension_parameter;
+        // MathUtils<double>::InvertMatrix(tension_parameter*plastic_damage_parameters.ComplianceMatrix+compression_parameter*plastic_damage_parameters.ComplianceMatrixCompression, mOldConstitutiveMatrix, det);
+        // KRATOS_WATCH(tension_parameter)
     }
 
 }
@@ -612,7 +635,6 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
 {
     KRATOS_TRY;
     BoundedMatrixType constitutive_matrix_increment;
-    CalculateConstitutiveMatrix(rValues, rPDParameters);
     noalias(rPDParameters.TangentTensor) = rPDParameters.ConstitutiveMatrix;
     const auto& r_material_properties = rValues.GetMaterialProperties();
 
@@ -646,18 +668,26 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
                 // Compute the compliance increment -> C dot
                 CalculateComplianceMatrixIncrement(rValues, rPDParameters);
 
-    // now we check the tensile-compressive distribution
-    double tension_parameter, compression_parameter;
-    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(rPDParameters.StressVector, tension_parameter,compression_parameter);
-    // tension_parameter = (tension_parameter < 0.5) ? 0.0 : 1.0;
+
+    // tension_parameter = (tension_parameter > 0.0) ? 1.0 : 0.0;
     // compression_parameter = 1.0 - tension_parameter;
-                noalias(rPDParameters.ComplianceMatrix) += tension_parameter*rPDParameters.ComplianceMatrixIncrement;
-                noalias(rPDParameters.ComplianceMatrixCompression) += compression_parameter*rPDParameters.ComplianceMatrixIncrement;
+
+    // tension_parameter = (tension_parameter < 0.001) ? 0.0 : 1.0;
+    // tension_parameter = (tension_parameter > 0.9) ? 1.0 : 0.0;
+    // compression_parameter = 1.0 - tension_parameter;
+
 
                 noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement * prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
                 // CalculateConstitutiveMatrix(rValues, rPDParameters);
+    // now we check the tensile-compressive distribution
+    double tension_parameter, compression_parameter;
+    GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(rPDParameters.StressVector, tension_parameter,compression_parameter);
     double det = 0.0;
+    //     tension_parameter = 0.0;
+    // compression_parameter = 1.0;
+                noalias(rPDParameters.ComplianceMatrix) += tension_parameter*rPDParameters.ComplianceMatrixIncrement;
+                noalias(rPDParameters.ComplianceMatrixCompression) += compression_parameter*rPDParameters.ComplianceMatrixIncrement;
     MathUtils<double>::InvertMatrix(tension_parameter*rPDParameters.ComplianceMatrix+compression_parameter*rPDParameters.ComplianceMatrixCompression, rPDParameters.ConstitutiveMatrix, det);
 
                 // Compute the non-linear dissipation performed
@@ -708,8 +738,9 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::UpdateInternalVariables(
     mThreshold                 = rPDParameters.Threshold;
     noalias(mPlasticStrain)    = rPDParameters.PlasticStrain;
     noalias(mComplianceMatrix) = rPDParameters.ComplianceMatrix;
+    noalias(mComplianceMatrixCompression) = rPDParameters.ComplianceMatrixCompression;
     noalias(mOldStrain) = rPDParameters.StrainVector;
-    noalias(mOldConstitutiveMatrix) = rPDParameters.ConstitutiveMatrix;
+    // noalias(mOldConstitutiveMatrix) = rPDParameters.ConstitutiveMatrix;
 }
 
 /***********************************************************************************/
