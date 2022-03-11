@@ -241,9 +241,7 @@ namespace Kratos {
         void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void ResetPrescribedMotionFlagsRespectingImposedDofs();
-        void ApplyPrescribedBoundaryConditions();
-        void ApplyInitialConditions();
-        virtual void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
+        void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         void SetNormalRadiiOnAllParticles(ModelPart& r_model_part);
         virtual void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();

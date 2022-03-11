@@ -29,6 +29,7 @@ import test_DEM_schemes
 import test_random_variable
 import test_DEM_search_tolerance
 import test_DEM_search_flags
+import test_omp
 import test_erase_particles
 import test_search_nodes
 
