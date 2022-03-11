@@ -63,7 +63,7 @@ class ResponsesController:
         structural_responses = ["strain_energy", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]        
         analysis_based_responses.extend(structural_responses)
 
-        analysis_free_responses = []
+        analysis_free_responses = ["mass"]
         shape_opt_responses = ["plane_based_packaging","mesh_based_packaging","surface_normal_shape_change","face_angle","airfoil_chord_length",
                                "airfoil_perimeter","total_volume"]                                
         analysis_free_responses.extend(shape_opt_responses)
@@ -284,7 +284,8 @@ class ResponsesController:
 
         analyses_list = []
         for response_name in responses_name:
-            analyses_list.append(self.responses_analyses[response_name])
+            if self.responses_analyses[response_name] != None:
+                analyses_list.append(self.responses_analyses[response_name])
         
         return list(set(analyses_list)) # here we remove duplicates     
     # --------------------------------------------------------------------------

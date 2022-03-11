@@ -82,14 +82,23 @@ public:
 	MassResponseFunctionUtility(ModelPart& model_part, Parameters responseSettings)
 	: mrModelPart(model_part)
 	{
-		std::string gradient_mode = responseSettings["gradient_mode"].GetString();
+		std::string gradient_mode = responseSettings["gradient_settings"]["gradient_mode"].GetString();
 		if (gradient_mode.compare("finite_differencing") == 0)
 		{
-			double delta = responseSettings["step_size"].GetDouble();
+			double delta = responseSettings["gradient_settings"]["step_size"].GetDouble();
 			mDelta = delta;
 		}
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
+
+		for (auto& control_type : responseSettings["control_types"]){
+			if (control_type.GetString()=="thickness")
+				thickness_grad = true;
+			if (control_type.GetString()=="shape")
+				shape_grad = true;
+		}
+
+
 	}
 
 	/// Destructor.
@@ -139,7 +148,10 @@ public:
 		// \frac{dm_{total}}{dx}
 
 		// First gradients are initialized
-		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		if(shape_grad)
+			VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
+		if(thickness_grad)
+			VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
 
 		const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
@@ -147,80 +159,117 @@ public:
 		FindNodalNeighboursProcess neighorFinder(mrModelPart);
 		neighorFinder.Execute();
 
-		for(auto& node_i : mrModelPart.Nodes())
+		if(shape_grad)
+			for(auto& node_i : mrModelPart.Nodes())
+			{
+				// Get all neighbor elements of current node
+				GlobalPointersVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
+
+				// Compute total mass of all neighbor elements before finite differencing
+				double mass_before_fd = 0.0;
+				for(std::size_t i = 0; i < ng_elem.size(); i++)
+				{
+					Element& ng_elem_i = ng_elem[i];
+					const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+
+					// Compute mass according to element dimension
+					if(element_is_active)
+						mass_before_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				}
+				
+				// Compute sensitivities using finite differencing in the three spatial direction
+				array_3d gradient(3, 0.0);
+
+				// Apply pertubation in X-direction and recompute total mass of all neighbor elements
+				double mass_after_fd = 0.0;
+				node_i.X() += mDelta;
+				node_i.X0() += mDelta;
+				for(std::size_t i = 0; i < ng_elem.size(); i++)
+				{
+					Element& ng_elem_i = ng_elem[i];
+					const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+
+					// Compute mass according to element dimension
+					if(element_is_active)
+						mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				}
+				gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i.X() -= mDelta;
+				node_i.X0() -= mDelta;
+
+				// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
+				mass_after_fd = 0.0;
+				node_i.Y() += mDelta;
+				node_i.Y0() += mDelta;
+				for(std::size_t i = 0; i < ng_elem.size(); i++)
+				{
+					Element& ng_elem_i = ng_elem[i];
+					const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+
+					// Compute mass according to element dimension
+					if(element_is_active)
+						mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				}
+				gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i.Y() -= mDelta;
+				node_i.Y0() -= mDelta;
+
+				// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
+				mass_after_fd = 0.0;
+				node_i.Z() += mDelta;
+				node_i.Z0() += mDelta;
+				for(std::size_t i = 0; i < ng_elem.size(); i++)
+				{
+					Element& ng_elem_i = ng_elem[i];
+					const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+
+					// Compute mass according to element dimension
+					if(element_is_active)
+						mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				}
+				gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
+				node_i.Z() -= mDelta;
+				node_i.Z0() -= mDelta;
+
+				// Compute sensitivity
+				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
+
+			}
+
+		if(thickness_grad)
 		{
-			// Get all neighbor elements of current node
-			GlobalPointersVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
-
-			// Compute total mass of all neighbor elements before finite differencing
-			double mass_before_fd = 0.0;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Element& ng_elem_i = ng_elem[i];
-				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
-
-				// Compute mass according to element dimension
+			for(auto& elem_i : mrModelPart.Elements())
+			{				
+				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active)
-					mass_before_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				{
+					Properties& elem_i_prop = elem_i.GetProperties();
+					auto original_thickness = elem_i_prop.GetValue(THICKNESS);
+					elem_i_prop.SetValue(THICKNESS,1.0);
+					double elem_gradient = TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
+					elem_i_prop.SetValue(THICKNESS,original_thickness);								
+					const auto& r_geom = elem_i.GetGeometry();	
+					const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
+					const auto& integration_points = r_geom.IntegrationPoints(integration_method);
+					const unsigned int NumGauss = integration_points.size();
+					Vector GaussPtsJDet = ZeroVector(NumGauss);
+					r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
+					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
+					double elem_area = r_geom.Area(); 			
+					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+					{
+						const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+						const auto& rN = row(Ncontainer,i_point);
+						int node_index = 0;
+						for (auto& node_i : r_geom){
+							node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += elem_gradient * IntToReferenceWeight * rN[node_index]/elem_area;
+							node_index++;
+						}						
+					}
+
+
+				}
 			}
-
-			// Compute sensitivities using finite differencing in the three spatial direction
-			array_3d gradient(3, 0.0);
-
-			// Apply pertubation in X-direction and recompute total mass of all neighbor elements
-			double mass_after_fd = 0.0;
-			node_i.X() += mDelta;
-			node_i.X0() += mDelta;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Element& ng_elem_i = ng_elem[i];
-				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
-
-				// Compute mass according to element dimension
-				if(element_is_active)
-					mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
-			}
-			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i.X() -= mDelta;
-			node_i.X0() -= mDelta;
-
-			// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
-			mass_after_fd = 0.0;
-			node_i.Y() += mDelta;
-			node_i.Y0() += mDelta;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Element& ng_elem_i = ng_elem[i];
-				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
-
-				// Compute mass according to element dimension
-				if(element_is_active)
-					mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
-			}
-			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i.Y() -= mDelta;
-			node_i.Y0() -= mDelta;
-
-			// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
-			mass_after_fd = 0.0;
-			node_i.Z() += mDelta;
-			node_i.Z0() += mDelta;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Element& ng_elem_i = ng_elem[i];
-				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
-
-				// Compute mass according to element dimension
-				if(element_is_active)
-					mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
-			}
-			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
-			node_i.Z() -= mDelta;
-			node_i.Z0() -= mDelta;
-
-			// Compute sensitivity
-			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
-
 		}
 
 		KRATOS_CATCH("");
@@ -305,6 +354,8 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
+	bool shape_grad = false;
+	bool thickness_grad = false;	
 
 	///@}
 ///@name Private Operators

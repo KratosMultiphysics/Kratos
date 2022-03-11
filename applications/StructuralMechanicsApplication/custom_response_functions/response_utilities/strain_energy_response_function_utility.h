@@ -350,8 +350,10 @@ protected:
 				if(elem_i_prop.Has(THICKNESS) && thickness_grad)
 				{
 					auto original_thickness = elem_i_prop.GetValue(THICKNESS);
+					elem_i_prop.SetValue(THICKNESS,1.0);
 					Vector ANAL_RHS_SENS;
 					elem_i.CalculateRightHandSide(ANAL_RHS_SENS, CurrentProcessInfo);
+					elem_i_prop.SetValue(THICKNESS,original_thickness);
 					double anal_sens = inner_prod(lambda, ANAL_RHS_SENS);
 					const auto& r_geom = elem_i.GetGeometry();	
 					const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
@@ -360,23 +362,17 @@ protected:
 					Vector GaussPtsJDet = ZeroVector(NumGauss);
 					r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
 					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method); 
-					for (auto& node_i : r_geom){
-						auto node_weight = node_i.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-						node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens/node_weight ;
-					}
-					// double elem_area = 0.0; 
-					// for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-					// 	elem_area += integration_points[i_point].Weight() * GaussPtsJDet[i_point];			
-					// for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-					// {
-					// 	const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-					// 	const auto& rN = row(Ncontainer,i_point);
-					// 	int node_index = 0;
-					// 	for (auto& node_i : r_geom){
-					// 		node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index]/elem_area;
-					// 		node_index++;
-					// 	}						
-					// }		
+					double elem_area = r_geom.Area(); 			
+					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
+					{
+						const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+						const auto& rN = row(Ncontainer,i_point);
+						int node_index = 0;
+						for (auto& node_i : r_geom){
+							node_i.FastGetSolutionStepValue(THICKNESS_SENSITIVITY) += anal_sens * IntToReferenceWeight * rN[node_index]/elem_area;
+							node_index++;
+						}						
+					}		
 				}				
 				
 				
