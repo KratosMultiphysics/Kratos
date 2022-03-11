@@ -104,6 +104,7 @@ public:
     struct PlasticDamageParameters {
         BoundedMatrixType ComplianceMatrixIncrement{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedMatrixType ComplianceMatrix{ZeroMatrix(VoigtSize, VoigtSize)};
+        BoundedMatrixType ComplianceMatrixCompression{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedMatrixType ConstitutiveMatrix{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedMatrixType TangentTensor{ZeroMatrix(VoigtSize, VoigtSize)};
         BoundedVectorType PlasticFlow{ZeroVector(VoigtSize)};
@@ -497,6 +498,7 @@ public:
         rPlasticDamageParameters.Threshold              = mThreshold;
         noalias(rPlasticDamageParameters.PlasticStrain) = mPlasticStrain;
         noalias(rPlasticDamageParameters.ComplianceMatrix) = mComplianceMatrix;
+        noalias(rPlasticDamageParameters.ComplianceMatrixCompression) = mComplianceMatrixCompression;
         noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
         rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
         rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
