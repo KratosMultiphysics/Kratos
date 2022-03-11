@@ -103,8 +103,8 @@ const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() c
     {
         "model_part_name" : "",
         "calculate_nodal_area_at_each_step" : false,
-        "entropy_constant"  : 0.0,
-        "energy_constant"   : 0.0,
+        "entropy_constant"  : 1.0,
+        "energy_constant"   : 0.25,
         "artificial_mass_viscosity_Prandtl"   : 0.1,
         "artificial_conductivity_Prandtl"     : 0.1
     }
