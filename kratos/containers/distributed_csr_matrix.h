@@ -700,10 +700,9 @@ public:
         for(unsigned int i=0; i<GetDiagonalBlock().size1(); ++i){
             IndexType row_begin = GetDiagonalBlock().index1_data()[i];
             IndexType row_end   = GetDiagonalBlock().index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k)
-            {
-                IndexType j = GetDiagonalBlock().index2_data()[k];
-                TDataType v = GetDiagonalBlock().value_data()[k];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                const IndexType j = GetDiagonalBlock().index2_data()[k];
+                const TDataType v = GetDiagonalBlock().value_data()[k];
                 tmp_data.push_back(GetRowNumbering().GlobalId(i));
                 tmp_data.push_back(GetColNumbering().GlobalId(j));
                 tmp_data.push_back(v);
@@ -712,10 +711,9 @@ public:
         for(unsigned int i=0; i<GetOffDiagonalBlock().size1(); ++i){
             IndexType row_begin = GetOffDiagonalBlock().index1_data()[i];
             IndexType row_end   = GetOffDiagonalBlock().index1_data()[i+1];
-            for(IndexType k = row_begin; k < row_end; ++k)
-            {
-                IndexType j = GetOffDiagonalBlock().index2_data()[k]; 
-                TDataType v = GetOffDiagonalBlock().value_data()[k];
+            for(IndexType k = row_begin; k < row_end; ++k){
+                const IndexType j = GetOffDiagonalBlock().index2_data()[k]; 
+                const TDataType v = GetOffDiagonalBlock().value_data()[k];
                 tmp_data.push_back(GetRowNumbering().GlobalId(i));
                 tmp_data.push_back(mOffDiagonalGlobalIds[j]);
                 tmp_data.push_back(v);
