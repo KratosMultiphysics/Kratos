@@ -117,8 +117,7 @@ void BoussinesqCondition<TNumNodes>::AddAuxiliaryLaplacian(
     const Matrix& rDN_DX,
     const double Weight)
 {
-    array_1d<double,TNumNodes> normal_i;
-    double divergence_j;
+    array_1d<double,3> normal_i;
     std::size_t elem_num_nodes = rParentGeometry.size();
     std::vector<array_1d<double,3>> nodal_v(elem_num_nodes);
 
@@ -128,17 +127,15 @@ void BoussinesqCondition<TNumNodes>::AddAuxiliaryLaplacian(
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        normal_i[0] = rData.normal[0] * rN[i];
-        normal_i[1] = rData.normal[1] * rN[i];
-        normal_i[2] = 0.0;
+        normal_i = rData.normal * rN[i];
 
+        double divergence = 0.0;
         for (IndexType j = 0; j < elem_num_nodes; ++j)
         {
-            divergence_j  = rDN_DX(j,0) * nodal_v[j][0];
-            divergence_j += rDN_DX(j,1) * nodal_v[j][1];
-
-            MathUtils<double>::AddVector(rLaplacian, Weight*normal_i*divergence_j, 3*i);
+            divergence += rDN_DX(j,0) * nodal_v[j][0];
+            divergence += rDN_DX(j,1) * nodal_v[j][1];
         }
+        MathUtils<double>::AddVector(rLaplacian, Weight*normal_i*divergence, 3*i);
     }
 }
 

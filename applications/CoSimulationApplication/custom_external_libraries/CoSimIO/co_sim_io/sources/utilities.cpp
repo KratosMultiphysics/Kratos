@@ -59,6 +59,17 @@ double ElapsedSeconds(const std::chrono::steady_clock::time_point& rStartTime)
     return duration_cast<duration<double>>(steady_clock::now() - rStartTime).count();
 }
 
+bool IsBigEndian()
+{
+    // from: https://stackoverflow.com/a/1001373
+    union {
+        uint32_t i;
+        char c[4];
+    } bint = {0x01020304};
+
+    return bint.c[0] == 1;
+}
+
 int GetNumberOfNodesForElementType(const ElementType I_ElementType)
 {
     // using switch over map as the compiler warns if some enum values are not handled in the switch
@@ -180,7 +191,7 @@ std::string GetElementName(const ElementType I_ElementType)
 void WaitUntilPathExists(const fs::path& rPath)
 {
     std::error_code ec;
-    while(!fs::exists(rPath, ec)) {std::this_thread::sleep_for(std::chrono::milliseconds(5));} // wait 0.005s before next check
+    while(!fs::exists(rPath, ec)) {std::this_thread::sleep_for(std::chrono::microseconds(10));} // wait 0.005s before next check
 }
 
 std::set<std::size_t> ComputePartnerRanksAsImporter(

@@ -82,28 +82,28 @@ void SurfaceLoad3DDiffOrderCondition::
 }
 
 //----------------------------------------------------------------------------------------
+double SurfaceLoad3DDiffOrderCondition::
+    CalculateIntegrationCoefficient(const IndexType PointNumber,
+                                    const GeometryType::JacobiansType& JContainer,
+                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 
-void SurfaceLoad3DDiffOrderCondition::
-    CalculateIntegrationCoefficient(ConditionVariables& rVariables,
-                                    unsigned int PointNumber,
-                                    double weight)
 {
     KRATOS_TRY
 
     double NormalVector[3];
 
-    NormalVector[0] = rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](2,1) -
-                      rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](1,1);
+    NormalVector[0] = JContainer[PointNumber](1,0) * JContainer[PointNumber](2,1) -
+                      JContainer[PointNumber](2,0) * JContainer[PointNumber](1,1);
 
-    NormalVector[1] = rVariables.JContainer[PointNumber](2,0) * rVariables.JContainer[PointNumber](0,1) -
-                      rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](2,1);
+    NormalVector[1] = JContainer[PointNumber](2,0) * JContainer[PointNumber](0,1) -
+                      JContainer[PointNumber](0,0) * JContainer[PointNumber](2,1);
 
-    NormalVector[2] = rVariables.JContainer[PointNumber](0,0) * rVariables.JContainer[PointNumber](1,1) -
-                      rVariables.JContainer[PointNumber](1,0) * rVariables.JContainer[PointNumber](0,1);
+    NormalVector[2] = JContainer[PointNumber](0,0) * JContainer[PointNumber](1,1) -
+                      JContainer[PointNumber](1,0) * JContainer[PointNumber](0,1);
 
     double dA = sqrt(NormalVector[0]*NormalVector[0] + NormalVector[1]*NormalVector[1] + NormalVector[2]*NormalVector[2]);
 
-    rVariables.IntegrationCoefficient = dA * weight;
+    return dA * IntegrationPoints[PointNumber].Weight();
 
     KRATOS_CATCH( "" )
 }

@@ -120,7 +120,7 @@ void FindNeighbourElementsOfConditionsProcess::Execute()
                 // condition is found!
                 // but check if there are more than one condition on the element
                 std::pair <hashmap::iterator, hashmap::iterator> ret;
-                ret = FacesMap.equal_range(FaceIds);
+                ret = FacesMap.equal_range(itFace->first);
                 for (hashmap::iterator it=ret.first; it!=ret.second; ++it) {
                     std::vector<Condition::Pointer>& ListConditions = it->second;
 

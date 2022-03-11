@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014-2015, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -157,6 +157,7 @@ class subdomain_deflation {
         };
 
         typedef typename backend_type::value_type value_type;
+        typedef typename math::scalar_of<value_type>::type scalar_type;
         typedef typename backend_type::matrix     bmatrix;
         typedef typename backend_type::vector     vector;
         typedef distributed_matrix<backend_type>  matrix;
@@ -494,6 +495,8 @@ class subdomain_deflation {
 
         template <class Vector>
         void project(Vector &x) const {
+            const auto one = math::identity<scalar_type>();
+
             AMGCL_TIC("project");
 
             AMGCL_TIC("local inner product");
@@ -505,7 +508,7 @@ class subdomain_deflation {
 
             AMGCL_TIC("spmv");
             backend::copy(dx, *dd);
-            backend::spmv(-1, *AZ, *dd, 1, x);
+            backend::spmv(-one, *AZ, *dd, one, x);
             AMGCL_TOC("spmv");
 
             AMGCL_TOC("project");
@@ -545,11 +548,13 @@ class subdomain_deflation {
 
         template <class Vec1, class Vec2>
         void postprocess(const Vec1 &rhs, Vec2 &x) const {
+            const auto one = math::identity<scalar_type>();
+
             AMGCL_TIC("postprocess");
 
             // q = rhs - Ax
             backend::copy(rhs, *q);
-            backend::spmv(-1, *A, x, 1, *q);
+            backend::spmv(-one, *A, x, one, *q);
 
             // df = transp(Z) * (rhs - Ax)
             AMGCL_TIC("local inner product");
@@ -561,7 +566,7 @@ class subdomain_deflation {
             coarse_solve(df, dx);
 
             // x += Z * dx
-            backend::lin_comb(ndv, dx, Z, 1, x);
+            backend::lin_comb(ndv, dx, Z, one, x);
 
             AMGCL_TOC("postprocess");
         }
