@@ -128,7 +128,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(MeshVelocityOldStep,MESH_VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocityOldStep,MESH_VELOCITY,r_geometry,1);
 
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_OldStep1,BODY_FORCE,r_geometry,1);
@@ -167,7 +167,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
         double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
         this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
         // double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
-        NotStabilizationCutElementsMomentum=0.1 ;
+        NotStabilizationCutElementsMomentum=1.0 ;
         NotStabilizationCutElementsMass=1.0;
         VolumeError /= -previous_dt;
     } else {
