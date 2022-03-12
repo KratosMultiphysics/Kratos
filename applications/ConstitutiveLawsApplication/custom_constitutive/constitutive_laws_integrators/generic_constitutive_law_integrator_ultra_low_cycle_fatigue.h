@@ -1032,7 +1032,6 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const int curve_type = r_material_properties[HARDENING_CURVE];
         BoundedVector<double, 2> slopes, eq_thresholds;
-
         for (IndexType i = 0; i < 2; ++i) { // i:0 Tension ; i:1 compression
             switch (static_cast<HardeningCurveType>(curve_type))
             {
@@ -1154,14 +1153,10 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
         fracture_energy_compression *= FatigueReductionFactor * FatigueReductionFactor;
         const double characteristic_fracture_energy_compression = fracture_energy_compression / CharacteristicLength;
 
-        const double minimum_characteristic_fracture_energy_exponential_softening = (std::pow(yield_compression, 2)) / young_modulus;
-
         const bool has_total_or_plastic_strain_space = r_material_properties.Has(TOTAL_OR_PLASTIC_STRAIN_SPACE);
         const bool total_or_plastic_strain_space = has_total_or_plastic_strain_space ? r_material_properties[TOTAL_OR_PLASTIC_STRAIN_SPACE] : false; //Default value = plastic strain space
-
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold, FatigueReductionFactor); //already afected by fatigue
-
         if (total_or_plastic_strain_space) { // Curve built in the total strain space
             const double yield_strain = initial_threshold / young_modulus;
             const double equivalent_plastic_strain_constant = std::sqrt(std::pow(0.5 * initial_threshold * yield_strain + characteristic_fracture_energy_compression, 2.0)
@@ -1170,7 +1165,7 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
             rEquivalentPlasticStrain = yield_strain + (0.5 * initial_threshold * yield_strain - characteristic_fracture_energy_compression) / initial_threshold *
                                         (std::log(0.5 + characteristic_fracture_energy_compression / (initial_threshold * yield_strain) *
                                         (equivalent_plastic_strain_constant / characteristic_fracture_energy_compression - 1.0)) - 1.0) -
-                                        equivalent_plastic_strain_constant / characteristic_fracture_energy_compression;
+                                        equivalent_plastic_strain_constant / initial_threshold;
         } else { // Curve built in the plastic strain space
             rEquivalentPlasticStrain = - characteristic_fracture_energy_compression / initial_threshold * std::log(1.0 - PlasticDissipation);
         }
