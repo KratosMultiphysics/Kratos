@@ -82,7 +82,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
                     }
                 }
             }]''')
-            output_settings["Parameters"]["output_name"].SetString("rve_test/smallest_rve_test_{}D".format(domain_size))
+            output_settings[0]["Parameters"]["output_name"].SetString("rve_test/smallest_rve_test_{}D".format(domain_size))
             parameters["output_processes"].AddValue("gid_output", output_settings)
 
         model = KratosMultiphysics.Model()
