@@ -670,7 +670,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
             }
         }
     }
-    KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticDamage", iteration > max_iter) << "Maximum number of iterations in plastic-damage loop reached..." << std::endl;
+    // KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticDamage", iteration > max_iter) << "Maximum number of iterations in plastic-damage loop reached..." << std::endl;
+    KRATOS_ERROR_IF(iteration > max_iter) << "Maximum number of iterations in plastic-damage loop reached..." << std::endl;
     KRATOS_CATCH("");
 }
 
