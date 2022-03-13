@@ -48,6 +48,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * Shock Capturing Process for compressible navier stokes. Source:
+ * 
+ * 2011. Guermond, Pasquetti, Popov. Entropy viscosity method for nonlinear conservation laws
+ * Journal of Computational Physics. Volume 230, Issue 11, 20 May 2011, Pages 4248-4267
+ * 
+ */
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ShockCapturingEntropyViscosityProcess : public Process
 {
 public:
@@ -250,7 +257,7 @@ private:
     void DistributeVariablesToNodes(
         Element& rElement,
         const double ArtificialDynamicViscosity,
-        const double ArtificialBulkViscosity,
+        const double ArtificialMassDiffusivity,
         const double ArtificialConductivity,
         const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const;
 
