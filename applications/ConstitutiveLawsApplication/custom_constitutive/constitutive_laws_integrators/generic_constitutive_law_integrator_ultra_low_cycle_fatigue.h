@@ -1222,8 +1222,8 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
             }
             const double plastic_dissipation_next_point = gf_point_region / volumetric_fracture_energy;
 
-            rEquivalentPlasticStrain =  plastic_strain_vector(i - 1) + (plastic_strain_vector(i) - plastic_strain_vector(i - 1)) / (equivalent_stress_vector(i) + equivalent_stress_vector(i - 1))
-                                        * (std::sqrt(std::pow(equivalent_stress_vector(i - 1), 2.0) + 2.0 * (equivalent_stress_vector(i) + equivalent_stress_vector(i - 1)) / (plastic_strain_vector(i) - plastic_strain_vector(i - 1))
+            rEquivalentPlasticStrain =  plastic_strain_vector(i - 1) + (plastic_strain_vector(i) - plastic_strain_vector(i - 1)) / (equivalent_stress_vector(i) - equivalent_stress_vector(i - 1))
+                                        * (std::sqrt(std::pow(equivalent_stress_vector(i - 1), 2.0) + 2.0 * (equivalent_stress_vector(i) - equivalent_stress_vector(i - 1)) / (plastic_strain_vector(i) - plastic_strain_vector(i - 1))
                                         * (PlasticDissipation - plastic_dissipation_previous_point) * volumetric_fracture_energy) - equivalent_stress_vector(i - 1));
 
         // } else { //Exponential branch included to achieve consistent results after full plasticity scenarios
