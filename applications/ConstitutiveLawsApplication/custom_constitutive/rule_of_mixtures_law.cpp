@@ -1185,6 +1185,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
         // Auxiliar stress vector
         const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
+        Vector undamaged_auxiliar_stress_vector       = ZeroVector(VoigtSize);
         Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
 
         // The rotation matrix
@@ -1206,12 +1207,42 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
+
+
+            //  we compute delamination attributed damage
+            double H_variable = mH;
+            double rD_variable  = mrD;
+            double D_variable = mD;
+            double Hmax_variable = mHmax;
+
+            // We compute H
+            H_variable = std::min(((strain_vector[2]-0.02) / (0.042-0.02)),1.0);
+    
+            // We store the maximum amount of H over time
+            if(H_variable > Hmax_variable){
+                Hmax_variable = H_variable;
+            }
+    
+            // We compute rD
+            rD_variable = std::max(0.0,Hmax_variable);
+
+            // We compute damage
+            D_variable = (rD_variable*0.042) / ((rD_variable*0.042)+((1-rD_variable)*0.042));
+
+            // we compute stress considering delamination damage
+            auxiliar_stress_vector = (1-D_variable) * undamaged_auxiliar_stress_vector;
+
+            // mH = H_variable;
+            // mrD = rD_variable;
+            // mD = D_variable;
+            // mHmax = Hmax_variable;
+
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
         if (flag_const_tensor) {
@@ -1541,6 +1572,118 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
+
+    // We Finalize the delamination damage variables  
+    KRATOS_TRY;
+
+    // Get Values to compute the constitutive law:
+    Flags& r_flags = rValues.GetOptions();
+
+    // Previous flags saved
+    const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+    // const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+    // The deformation gradient
+    if (rValues.IsSetDeterminantF()) {
+        const double determinant_f = rValues.GetDeterminantF();
+        KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+    }
+
+    // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+    if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[0];
+        p_law->CalculateMaterialResponsePK2(rValues);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    }
+
+    // The global strain vector, constant
+    const Vector strain_vector = rValues.GetStrainVector();
+
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        // Set new flags
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        // Auxiliar stress vector
+        const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
+        Vector undamaged_auxiliar_stress_vector       = ZeroVector(VoigtSize);
+        Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
+
+        // The rotation matrix
+        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+
+        for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
+
+            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
+
+            Properties& r_prop             = *(it_prop_begin + i_layer);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+            const double factor            = mCombinationFactors[i_layer];
+
+            // We rotate to local axes the strain
+            noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
+            rValues.SetMaterialProperties(r_prop);
+            p_law->CalculateMaterialResponsePK2(rValues);
+
+            // we return the stress and constitutive tensor to the global coordinates
+            rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
+
+            // we reset the properties and Strain
+            rValues.SetMaterialProperties(r_material_properties);
+            noalias(rValues.GetStrainVector()) = strain_vector;
+        }
+
+
+            //  we compute delamination attributed damage
+            double H_variable = mH;
+            double rD_variable  = mrD;
+            double D_variable = mD;
+            double Hmax_variable = mHmax;
+
+            // We compute H
+            H_variable = std::min(((strain_vector[2]-0.02) / (0.042-0.02)),1.0);
+    
+            // We store the maximum amount of H over time
+            if(H_variable > Hmax_variable){
+                Hmax_variable = H_variable;
+            }
+    
+            // We compute rD
+            rD_variable = std::max(0.0,Hmax_variable);
+
+            // We compute damage
+            D_variable = (rD_variable*0.042) / ((rD_variable*0.042)+((1-rD_variable)*0.042));
+
+            // we compute stress considering delamination damage
+            auxiliar_stress_vector = (1-D_variable) * undamaged_auxiliar_stress_vector;
+
+            mH = H_variable;
+            mrD = rD_variable;
+            mD = D_variable;
+            mHmax = Hmax_variable;
+
+        noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+
+        if (flag_const_tensor) {
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+        }
+    }
+
+    KRATOS_CATCH("");
+
+    //
+
 }
 
 /***********************************************************************************/
