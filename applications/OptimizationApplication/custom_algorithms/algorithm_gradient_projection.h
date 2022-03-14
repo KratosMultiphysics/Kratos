@@ -159,7 +159,9 @@ public:
                 num_active_constraints++;
             
             if (!constraint.Has("is_active"))
-                constraint.AddBool("is_active",is_active);            
+                constraint.AddBool("is_active",is_active);
+            else
+                constraint["is_active"].SetBool(is_active);            
         }
 
        for(auto& objetive : mrSettings["objectives"]){
@@ -182,7 +184,9 @@ public:
                         L2_norm += nodal_gradient * nodal_gradient;
                     }
                 }
-                L2_norm = std::sqrt(L2_norm);           
+                L2_norm = std::sqrt(L2_norm) * std::sqrt(objetive["controls"].size());
+
+                std::cout<<"objective : "<<objetive["name"].GetString()<<", objective_controlled_object_name : "<<objective_controlled_object_name<<", L2_norm : "<<L2_norm<<std::endl;           
 
                 int node_index=0;
                 for(auto& node : objective_controlled_obj_model_part.Nodes()){
@@ -228,7 +232,8 @@ public:
                         } 
                         node_index++;
                     }
-                    L2_norm = std::sqrt(L2_norm);
+                    L2_norm = std::sqrt(L2_norm) * std::sqrt(constraint["controls"].size());
+                    std::cout<<"constraint : "<<constraint["name"].GetString()<<", objective_controlled_object_name : "<<constraint_controlled_object_name<<", L2_norm : "<<L2_norm<<std::endl; 
                     // now do the l2_norm scaling
                     for (int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
                         active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+i) *= (1.0/L2_norm);
@@ -238,19 +243,76 @@ public:
         }
 
 
-        // compute feasible self.lin_solversearch direction
-        Matrix NTN = prod(active_constraints_gradients,trans(active_constraints_gradients));
-        Matrix I = IdentityMatrix(active_constraints_gradients.size1());
-        Matrix NTN_inv(NTN.size1(), NTN.size2());
+        if(num_active_constraints>0)
+        {
 
-        mrSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
+            // double obj_norm = 0.0;
+            // for(int i=0;i<mObjectiveGradients.size();i++)
+            //     obj_norm += mObjectiveGradients[i] * mObjectiveGradients[i];
+            // std::cout<<"obj_norm : "<<std::sqrt(obj_norm)<<std::endl;
 
-        std::cout<<NTN_inv<<std::endl;
+            // for(int i=0;i<active_constraints_gradients.size1();i++){
+            //     double constraint_norm = 0.0;
+            //     for(int j=0;j<active_constraints_gradients.size2();j++)            
+            //         constraint_norm += active_constraints_gradients(i,j) * active_constraints_gradients(i,j);
+            
+            //     std::cout<<"constraint_norm : "<<std::sqrt(constraint_norm)<<std::endl;
+            // }
 
+            // std::exit(0);
+            // compute feasible self.lin_solversearch direction
+            Matrix NTN = prod(active_constraints_gradients,trans(active_constraints_gradients));
+            Matrix I = IdentityMatrix(active_constraints_gradients.size1());
+            Matrix NTN_inv(NTN.size1(), NTN.size2());
+
+            mrSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
+
+            mSearchDirection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
         
+            
+            double sum_violation = 0.0;
+            for(auto& constraint : mrSettings["constraints"]){
+                if(constraint["is_active"].GetBool()){        
+
+                    auto ref_value = constraint["ref_value"].GetDouble();
+                    auto value = constraint["value"].GetDouble();
+                    double violation = 10 * std::abs(value-ref_value)/std::abs(ref_value);
+                    sum_violation+=violation;
+                }
+            }
+            if(sum_violation>0.5)
+                mSearchDirection *= 0.5;
+            else
+                mSearchDirection *= (1.0-sum_violation);
+
+            int constraint_index = 0;
+            for(auto& constraint : mrSettings["constraints"]){
+                if(constraint["is_active"].GetBool()){        
+
+                    auto ref_value = constraint["ref_value"].GetDouble();
+                    auto value = constraint["value"].GetDouble();
+                    double violation = 10 * std::abs(value-ref_value)/std::abs(ref_value);
+                    double factor = 1.0;
+                    if (value>ref_value)
+                        factor = -1.0;
+                    
+                    double share;
+                    if (sum_violation>0.5)
+                        share = 0.5 * violation / sum_violation;
+                    else
+                        share = violation / sum_violation;
+
+                    mSearchDirection += factor * share * row(active_constraints_gradients,constraint_index);
+                    constraint_index++;
+
+                }
+            }            
+        
+        }
+        else
+            mSearchDirection = - mObjectiveGradients;
 
 
-        mSearchDirection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
 
 
         // std::cout<<"mrSettings : "<<mrSettings<<std::endl;
