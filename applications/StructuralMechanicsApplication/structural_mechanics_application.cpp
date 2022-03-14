@@ -27,6 +27,8 @@
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/quadrilateral_3d_9.h"
+#include "geometries/pyramid_3d_5.h"
+#include "geometries/pyramid_3d_13.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/prism_3d_15.h"
 #include "geometries/tetrahedra_3d_4.h"
