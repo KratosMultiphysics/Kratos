@@ -25,7 +25,7 @@ Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure 
 between the compilation configurations, so the Particle Mechanics application is compiled along with auxiliary external solvers required.
 
 ## Examples
-Some use-cases and validation examples are available in the [Examples](https://kratosmultiphysics.github.io/Examples/) repository. Also, some unit tests of the Material Point Method features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
+Some use-cases and validation examples are available in the [Examples](https://kratosmultiphysics.github.io/Examples/) repository. Also, some unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
 
 
 ### GiD Interface
