@@ -84,7 +84,7 @@ public:
     /// Definition of the machine precision tolerance
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
-    static constexpr double tolerance = 1.0e-4;
+    static constexpr double tolerance = 1.0e-8;
 
     /// The node definition
     typedef Node<3> NodeType;
