@@ -233,6 +233,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Calculate", Calculate<array_1d<double, 6>>)
     .def("Calculate", Calculate<Vector>)
     .def("Calculate", Calculate<Matrix>)
+    // Info
+    .def("Info",&GeometryType::Info)
     // Print
     .def("__str__", PrintObject<GeometryType>)
     // Access to nodes
