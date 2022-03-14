@@ -608,8 +608,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         el2 = mp.CreateNewElement("SmallDisplacementElement3D5N", 2,[8,7,6,5,9], mp.GetProperties()[1])
         el3 = mp.CreateNewElement("SmallDisplacementElement3D5N", 3,[5,6,2,1,9], mp.GetProperties()[1])
         el4 = mp.CreateNewElement("SmallDisplacementElement3D5N", 4,[7,8,4,3,9], mp.GetProperties()[1])
-        el5 = mp.CreateNewElement("SmallDisplacementElement3D5N", 5,[5,6,3,1,9], mp.GetProperties()[1])
-        el6 = mp.CreateNewElement("SmallDisplacementElement3D5N", 6,[7,8,4,2,9], mp.GetProperties()[1])
+        el5 = mp.CreateNewElement("SmallDisplacementElement3D5N", 5,[6,7,3,2,9], mp.GetProperties()[1])
+        el6 = mp.CreateNewElement("SmallDisplacementElement3D5N", 6,[1,4,8,5,9], mp.GetProperties()[1])
 
         self.assertAlmostEqual(el1.GetGeometry().Volume() + el2.GetGeometry().Volume() + el3.GetGeometry().Volume() + el4.GetGeometry().Volume() + el5.GetGeometry().Volume() + el6.GetGeometry().Volume(), 1.0)
 
