@@ -660,7 +660,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
                 CalculateThresholdAndSlope(rValues, rPDParameters);
                 rPDParameters.NonLinearIndicator = rPDParameters.UniaxialStress - rPDParameters.Threshold;
 
-                if (rPDParameters.NonLinearIndicator <= tolerance*rPDParameters.Threshold) {
+                if (rPDParameters.NonLinearIndicator <= tolerance*rPDParameters.Threshold || rPDParameters.TotalDissipation > 0.999) {
                     is_converged = true;
                 } else {
                     iteration++;
