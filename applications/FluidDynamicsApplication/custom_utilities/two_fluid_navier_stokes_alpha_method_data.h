@@ -125,7 +125,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(MeshVelocityOldStep,MESH_VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(MeshVelocityOldStep,MESH_VELOCITY,r_geometry,1);
 
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_OldStep1,BODY_FORCE,r_geometry,1);
