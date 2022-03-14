@@ -23,6 +23,15 @@ def Factory(settings, Model):
     }
     """)
 
+    # Detect "End" as a tag and replace it by a large number
+    if process_settings.Has("interval"):
+        if process_settings["interval"][1].IsString():
+            if process_settings["interval"][1].GetString() == "End":
+                process_settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
+            else:
+                raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
+
+
     process_settings.AddMissingParameters(folder_settings)
 
     if process_settings.Has("model_part_name"):
