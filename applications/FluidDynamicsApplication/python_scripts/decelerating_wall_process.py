@@ -1,9 +1,11 @@
 import KratosMultiphysics
 
+
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return DeceleratingWallProcess(model, settings["Parameters"])
+
 
 class DeceleratingWallProcess(KratosMultiphysics.Process):
     """
@@ -28,6 +30,7 @@ class DeceleratingWallProcess(KratosMultiphysics.Process):
     takes for the momentum to be 0.001 of the original. After this period, the
     model part is treated like a solid wall.
     """
+
     def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
 
@@ -85,20 +88,11 @@ class DeceleratingWallProcess(KratosMultiphysics.Process):
             unit_normal = node.GetSolutionStepValue(KratosMultiphysics.NORMAL)
             unit_normal /= unit_normal.norm_2()
 
-            mom_n = sum([m*n for m,n in zip(mom, unit_normal)])
+            mom_n = sum([m*n for m, n in zip(mom, unit_normal)])
             new_mom_n = mom_n * decay
-
 
             delta_mom_n = new_mom_n - mom_n
 
             new_mom = mom + delta_mom_n * unit_normal
 
             node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM, new_mom)
-
-            # print("mom =", mom)
-            # print("unit_normal =", unit_normal)
-            # print("mom_n =", mom_n)
-            # print("new_mom_n =", new_mom_n)
-            # print("delta_mom_n =", delta_mom_n)
-            # print("new_mom =", new_mom)
-            # exit(0)

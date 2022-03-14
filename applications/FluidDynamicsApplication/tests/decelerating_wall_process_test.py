@@ -27,7 +27,7 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
         initial_mom = cls._Rotate(3.0, 5.0, 4/5, 3/5)
         child_model_part.CreateNewNode(1, 0.0, 0.0, 0.0).SetSolutionStepValue(MOMENTUM, initial_mom)
         child_model_part.CreateNewNode(2, 4.0, 3.0, 0.0).SetSolutionStepValue(MOMENTUM, initial_mom)
-        child_model_part.CreateNewCondition("LineCondition2D2N", 1, [1,2], child_model_part.GetProperties()[0])
+        child_model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], child_model_part.GetProperties()[0])
 
         root_model_part.ProcessInfo.SetValue(TIME, 0.0)
         root_model_part.ProcessInfo.SetValue(DELTA_TIME, 0.05)
@@ -69,9 +69,8 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
             if(root_model_part.ProcessInfo[TIME] > 0.95):
                 break
 
-
-            self.assertFalse(child_model_part.GetNode(1).Is(SLIP), "Slip enabled too soon, at time-step #{}".format(step))
-            self.assertFalse(child_model_part.GetNode(2).Is(SLIP), "Slip enabled too soon, at time-step #{}".format(step))
+            self.assertFalse(child_model_part.GetNode(1).Is(SLIP), "Slip enabled too soon (time-step #{})".format(step))
+            self.assertFalse(child_model_part.GetNode(2).Is(SLIP), "Slip enabled too soon (time-step #{})".format(step))
 
         self.assertTrue(child_model_part.GetNode(1).Is(SLIP))
         self.assertTrue(child_model_part.GetNode(2).Is(SLIP))
