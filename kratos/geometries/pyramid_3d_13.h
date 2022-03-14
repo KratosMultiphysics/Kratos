@@ -324,6 +324,22 @@ public:
     }
 
     /**
+     * This method calculate and return length, area or volume of
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns its length, for two dimensional it gives area
+     * and for three dimensional geometries it gives its volume.
+     *
+     * @return double value contains length, area or volume.
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    double DomainSize() const override
+    {
+        return Volume();
+    }
+
+    /**
     * @brief Checks if given point in local space coordinates of this geometry
     *        is inside the geometry boundaries.
     * @param rPointLocalCoordinates the point on the geometry,
