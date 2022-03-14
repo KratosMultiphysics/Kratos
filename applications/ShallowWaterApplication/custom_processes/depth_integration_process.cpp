@@ -77,9 +77,10 @@ void DepthIntegrationProcess<TDim>::Execute()
     struct locator_tls {
         Vector N;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results;
-        locator_tls(const int max_results = 10000)
-            : N(TDim + 1)
-            , results(max_results) {}
+        locator_tls(const int max_results = 10000) {
+            N.resize(TDim+1);
+            results.resize(max_results);
+        }
     };
 
     block_for_each(mrInterfaceModelPart.Nodes(), locator_tls(), [&](NodeType& rNode, locator_tls& rTLS){
