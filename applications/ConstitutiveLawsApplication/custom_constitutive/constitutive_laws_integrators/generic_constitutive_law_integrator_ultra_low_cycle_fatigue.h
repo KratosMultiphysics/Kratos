@@ -1078,7 +1078,6 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
                     break;
 
                 case HardeningCurveType::CurveDefinedByPoints:
-                    KRATOS_ERROR << " The process to compute equivalen plastic strain has not been implemented yet, use curves 0 or 1 instead..." << curve_type << std::endl;
                     CalculateEquivalentPlasticStrainHardeningCurveDefinedByPoints(
                         rEquivalentPlasticStrain, rValues, PlasticDissipation, FatigueReductionFactor, CharacteristicLength);
                     break;
