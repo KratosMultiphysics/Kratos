@@ -521,7 +521,7 @@ double AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateSlopeFiniteDif
 )
 {
     const double current_threshold = rPDParameters.Threshold;
-    const double perturbation = 1.0e-7;
+    const double perturbation = std::sqrt(tolerance);
 
     rPDParameters.TotalDissipation += perturbation;
     const double perturbed_threshold = CalculateThresholdImplicitExpression(rF, rdF_dk, rValues, rPDParameters, MaxThreshold);
