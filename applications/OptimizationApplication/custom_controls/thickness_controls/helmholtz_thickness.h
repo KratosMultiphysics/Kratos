@@ -162,10 +162,12 @@ public:
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             //do the inverse projection 
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
-                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_THICKNESS);
+                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
                 const auto& derivative = node_i.FastGetSolutionStepValue(rDerivativeVariable);
                 auto& helmholtz_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE_THICKNESS);
+                // helmholtz_source = derivative;
                 helmholtz_source = derivative * (2.0*beta*std::exp(-2.0*beta*(filtered_thickness-0.5))) * std::pow(1.0/(1+std::exp(-2*beta*(filtered_thickness-0.5))),2);
+                // std::cout<<"helmholtz_source : "<<helmholtz_source<<std::endl;
             }
 
             SetVariable(mpVMModePart,HELMHOLTZ_VAR_THICKNESS,0.0);
@@ -446,9 +448,11 @@ private:
 
             mpStrategies[model_i]->Solve();
 
+            SetVariable1ToVarible2(mpVMModelParts[model_i],HELMHOLTZ_VAR_THICKNESS,FT);
+
             //now do the projection and then set the PT
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
-                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(HELMHOLTZ_VAR_THICKNESS);
+                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
                 auto& physical_thickness = node_i.FastGetSolutionStepValue(PT);
                 physical_thickness = 1.0/(1+std::exp(-2*beta*(filtered_thickness-0.5)));
                 if(physical_thickness<0.001)

@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef STEEPEST_DESCENT_H
-#define STEEPEST_DESCENT_H
+#ifndef GRADIENT_PROJECTION_H
+#define GRADIENT_PROJECTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -24,6 +24,8 @@
 #include "includes/define.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
 #include "algorithm_base.h"
 
 // ==============================================================================
@@ -31,20 +33,21 @@
 namespace Kratos
 {
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) AlgorithmSteepestDescent : public OptimizationAlgorithm
+class KRATOS_API(OPTIMIZATION_APPLICATION) AlgorithmGradientProjection : public OptimizationAlgorithm
 {
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(AlgorithmSteepestDescent);
+    KRATOS_CLASS_POINTER_DEFINITION(AlgorithmGradientProjection);
 
     typedef Variable<double> VariableType;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpace;
 
-    AlgorithmSteepestDescent(std::string OptName, Model& rModel, Parameters& rOptSettings)
-    : OptimizationAlgorithm(OptName,"steepest_desceent",rModel,rOptSettings)
+    AlgorithmGradientProjection(std::string OptName, Model& rModel, LinearSolver<DenseSpace, DenseSpace>& rSolver, Parameters& rOptSettings)
+    : OptimizationAlgorithm(OptName,"gradient_projection",rModel,rOptSettings),mrSolver(rSolver)
     {
     }
 
-    virtual ~AlgorithmSteepestDescent() {};
+    virtual ~AlgorithmGradientProjection() {};
 
     // --------------------------------------------------------------------------
     void Initialize() override {
@@ -69,7 +72,7 @@ public:
         mSumObjectiveWeights = 0.0;
         for(auto& objetive : mrSettings["objectives"]){
             double weight = objetive["objective_weight"].GetDouble();
-            mSumObjectiveWeights += std::abs(weight);
+            mSumObjectiveWeights +=  std::abs(weight);
             objetive.AddEmptyArray("controlled_objects_start_index");
             objetive.AddEmptyArray("controlled_objects_size");
             for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
@@ -97,7 +100,37 @@ public:
                 objetive["controlled_objects_start_index"].Append(objective_control_object_start_index);
                 objetive["controlled_objects_size"].Append(objective_control_object_size);
             }
-        }             
+        }  
+
+        for(auto& constraint : mrSettings["constraints"]){
+            constraint.AddEmptyArray("controlled_objects_start_index");
+            constraint.AddEmptyArray("controlled_objects_size");
+            for(int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
+                auto constraint_control_name = constraint["controls"][constraint_control_i].GetString();
+                auto constraint_controlled_object_name = constraint["controlled_objects"][constraint_control_i].GetString();
+                int constraint_control_object_start_index = 0;
+                int constraint_control_object_size = 0;
+                bool found = false;
+                for(auto& control : mrSettings["controls"]){
+                    auto control_name = control["name"].GetString();
+                    int control_size = control["size"].GetInt();
+                    for(auto& control_controlling_obj : control["controlling_objects"]){
+                        auto control_controlling_obj_name =  control_controlling_obj.GetString();
+                        ModelPart& control_controlling_obj_model_part = mrModel.GetModelPart(control_controlling_obj_name);
+                        if (control_name==constraint_control_name && control_controlling_obj_name==constraint_controlled_object_name){
+                            constraint_control_object_size = control_size;
+                            found = true;
+                            break;
+                        }
+                        constraint_control_object_start_index += control_size * control_controlling_obj_model_part.Nodes().size();
+                    }
+                    if(found)
+                        break;
+                }
+                constraint["controlled_objects_start_index"].Append(constraint_control_object_start_index);
+                constraint["controlled_objects_size"].Append(constraint_control_object_size);
+            }
+        }            
 
     };
     // --------------------------------------------------------------------------
@@ -107,9 +140,30 @@ public:
         mControlVarsUpdate.clear();
         mSearchDirection.clear();
 
-        for(auto& objetive : mrSettings["objectives"]){
-            double weight = objetive["objective_weight"].GetDouble();
+        // analyze the constraints
+        int num_active_constraints = 0;
+        for(auto& constraint : mrSettings["constraints"]){
+            auto ref_value = constraint["ref_value"].GetDouble();
+            auto value = constraint["value"].GetDouble();
+            auto type = constraint["type"].GetString();
+            Vector constraint_gradients = ZeroVector(mTotalNumControlVars);
+            bool is_active = false;
+            if(type == "equality" && std::abs(value-ref_value)>0.01*ref_value)
+                is_active = true;
+            else if(type == "smaller_than" && value>ref_value)
+                is_active = true;
+            else if(type == "bigger_than" && value<ref_value)
+                is_active = true;
+
+            if(is_active)
+                num_active_constraints++;
             
+            if (!constraint.Has("is_active"))
+                constraint.AddBool("is_active",is_active);            
+        }
+
+       for(auto& objetive : mrSettings["objectives"]){
+            double weight = objetive["objective_weight"].GetDouble();            
             for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
                 int objective_controlled_object_start_index = objetive["controlled_objects_start_index"][objective_control_i].GetInt();
                 int objective_controlled_object_size = objetive["controlled_objects_size"][objective_control_i].GetInt();
@@ -146,8 +200,61 @@ public:
             }
         }
 
-        // compute search direction
-        mSearchDirection = -mObjectiveGradients;
+        //now fill the active_constraints_gradients matrix
+        int constraint_index = 0;
+        Matrix active_constraints_gradients = ZeroMatrix(num_active_constraints,mTotalNumControlVars);
+        for(auto& constraint : mrSettings["constraints"]){
+            if(constraint["is_active"].GetBool()){
+                for(int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
+                    int constraint_controlled_object_start_index = constraint["controlled_objects_start_index"][constraint_control_i].GetInt();
+                    int constraint_controlled_object_size = constraint["controlled_objects_size"][constraint_control_i].GetInt();
+                    auto constraint_control_gradient_name = constraint["control_gradient_names"][constraint_control_i].GetString();
+                    auto constraint_controlled_object_name = constraint["controlled_objects"][constraint_control_i].GetString();
+                    ModelPart& constraint_controlled_obj_model_part = mrModel.GetModelPart(constraint_controlled_object_name);
+                    int node_index=0;
+                    double L2_norm =0;
+                    for(auto& node : constraint_controlled_obj_model_part.Nodes()){
+                        if (constraint_controlled_object_size==3){
+                            const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(constraint_control_gradient_name));
+                            for(int i=0; i<constraint_controlled_object_size; i++){
+                                active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+constraint_controlled_object_size*node_index+i) = nodal_gradient(i); 
+                                L2_norm += nodal_gradient(i) * nodal_gradient(i);     
+                            }
+                        }
+                        else if (constraint_controlled_object_size==1) {
+                            const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(constraint_control_gradient_name));
+                            active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+node_index) = nodal_gradient;
+                            L2_norm += nodal_gradient * nodal_gradient;
+                        } 
+                        node_index++;
+                    }
+                    L2_norm = std::sqrt(L2_norm);
+                    // now do the l2_norm scaling
+                    for (int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
+                        active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+i) *= (1.0/L2_norm);
+                }
+                constraint_index++;                
+            }
+        }
+
+
+        // compute feasible self.lin_solversearch direction
+        Matrix NTN = prod(active_constraints_gradients,trans(active_constraints_gradients));
+        Matrix I = IdentityMatrix(active_constraints_gradients.size1());
+        Matrix NTN_inv(NTN.size1(), NTN.size2());
+
+        mrSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
+
+        std::cout<<NTN_inv<<std::endl;
+
+        
+
+
+        mSearchDirection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
+
+
+        // std::cout<<"mrSettings : "<<mrSettings<<std::endl;
+        // std::exit(0);
 
         // // compute control variables update
         // mControlVarsUpdate = 20 * mSearchDirection;
@@ -212,6 +319,7 @@ public:
     Vector mObjectiveGradients;
     Vector mControlVarsUpdate;
     Vector mSearchDirection;
+    LinearSolver<DenseSpace, DenseSpace>& mrSolver;
     int mTotalNumControlVars;
     double mSumObjectiveWeights;
 
@@ -220,4 +328,4 @@ public:
 
 }  // namespace Kratos.
 
-#endif // STEEPEST_DESCENT_H
+#endif // GRADIENT_PROJECTION_H

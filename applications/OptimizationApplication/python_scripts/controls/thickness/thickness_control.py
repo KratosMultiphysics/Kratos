@@ -22,15 +22,15 @@ class ThicknessControl():
 
         self.control_variable_name = "CT"
         self.control_update_name = "D_CT"
-        self.output_names = ["CT","PT","D_CT","D_PT"]
+        self.output_names = ["CT","PT","FT","D_CT"]
 
         # add vars
         for model_part_name in self.controlling_objects:
             root_model = model_part_name.split(".")[0]
             self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.CT)
             self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.PT)
+            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.FT)
             self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.D_CT)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.D_PT)
 
 
     def Initialize(self):
@@ -40,8 +40,8 @@ class ThicknessControl():
             for node in model_part.Nodes:
                 node.SetSolutionStepValue(KOA.CT, 0.0)  
                 node.SetSolutionStepValue(KOA.PT, 0.0)
-                node.SetSolutionStepValue(KOA.D_CT, 0.0) 
-                node.SetSolutionStepValue(KOA.D_PT, 0.0) 
+                node.SetSolutionStepValue(KOA.FT, 0.0)
+                node.SetSolutionStepValue(KOA.D_CT, 0.0)
  
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         raise RuntimeError("ThicknessControl:MapFirstDerivative: calling base class function") 
@@ -62,7 +62,7 @@ class ThicknessControl():
         return self.output_names 
 
     def GetType(self):
-        return self.control_update_name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+        return self.type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
             
 
 

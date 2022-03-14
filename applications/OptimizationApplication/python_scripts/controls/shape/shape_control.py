@@ -60,7 +60,7 @@ class ShapeControl():
         return self.output_names 
 
     def GetType(self):
-        return self.control_update_name                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+        return self.type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
             
 
 

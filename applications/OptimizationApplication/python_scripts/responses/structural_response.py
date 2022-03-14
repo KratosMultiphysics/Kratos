@@ -103,13 +103,14 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
                 if not control_types[itr] == self.control_types[controlled_object_index]:
                     raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
 
-        Logger.PrintInfo("StrainEnergyResponse", "Starting shape gradient calculation of response ", self.name," for ",controlled_objects)
+        Logger.PrintInfo("StrainEnergyResponse", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)        
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
         # copy values from SHAPE_SENSITIVITY to D_STRAIN_ENERGY_D_X
         for controlle_object in controlled_objects:
             model_part = self.model.GetModelPart(controlle_object)
-            control_type = self.control_types[controlled_objects.index(controlle_object)]           
+            controlle_object_index = controlled_objects.index(controlle_object)
+            control_type = control_types[controlle_object_index]         
             for node in model_part.Nodes:
                 if control_type == "shape":
                     shape_gradient = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY)
@@ -218,13 +219,14 @@ class MassResponseFunction(BaseResponseFunction):
                 if not control_types[itr] == self.control_types[controlled_object_index]:
                     raise RuntimeError("MassResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
 
-        Logger.PrintInfo("MassResponseFunction", "Starting shape gradient calculation of response ", self.name," for ",controlled_objects)
+        Logger.PrintInfo("MassResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
 
         for controlle_object in controlled_objects:
             model_part = self.model.GetModelPart(controlle_object)
-            control_type = self.control_types[controlled_objects.index(controlle_object)]           
+            controlle_object_index = controlled_objects.index(controlle_object)
+            control_type = control_types[controlle_object_index]           
             for node in model_part.Nodes:
                 if control_type == "shape":
                     shape_gradient = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY)

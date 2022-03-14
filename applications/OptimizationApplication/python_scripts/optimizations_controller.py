@@ -17,6 +17,7 @@ from KratosMultiphysics import Parameters, Logger
 
 # Additional imports
 import KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent as steepest_descent
+import KratosMultiphysics.OptimizationApplication.algorithms.algorithm_gradient_projection as gradient_projection
 
 import time as timer
 
@@ -85,7 +86,7 @@ class OptimizationsController:
         self.optimizations_controls_upper_bounds_values={}
         self.optimizations_algorithm={}
         self.supported_opt_types = ["gradient_based"]
-        self.supported_algorithms = ["steepest_descent"]
+        self.supported_algorithms = ["steepest_descent","gradient_projection"]
         for itr in range(self.optimizations_settings.size()):
             opt_settings = self.optimizations_settings[itr]
             opt_name = opt_settings["name"].GetString()
@@ -153,7 +154,7 @@ class OptimizationsController:
                 if not len(constraints_types) == len(constraints_names):
                     raise RuntimeError("OptimizationsController:'constraints_types' of optimization '{}' should be of the same size of constraint list.".format(opt_name))
                 for index, type in enumerate(constraints_types):
-                    if not type in ["equality","inequality"]: 
+                    if not type in ["equality","smaller_than","bigger_than"]: 
                         raise RuntimeError("OptimizationsController: constraint type {} of constraint {} of optimization '{}' should be either 'equality' or 'inequality'.".format(type,constraints_names[index],opt_name,))
                 self.optimizations_constraints_type[opt_name]=constraints_types                
 
@@ -246,6 +247,8 @@ class OptimizationsController:
 
             if algorithm == "steepest_descent":
                 self.optimizations[opt_name] = steepest_descent.AlgorithmSteepestDescent(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
+            elif algorithm == "gradient_projection":
+                self.optimizations[opt_name] = gradient_projection.AlgorithmGradientProjection(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
 
     # --------------------------------------------------------------------------
     def Initialize(self):

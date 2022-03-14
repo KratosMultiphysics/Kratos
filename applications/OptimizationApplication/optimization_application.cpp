@@ -95,6 +95,7 @@ namespace Kratos
 
         // thickness control
         KRATOS_REGISTER_VARIABLE(PT);
+        KRATOS_REGISTER_VARIABLE(FT);
         KRATOS_REGISTER_VARIABLE(CT);
         KRATOS_REGISTER_VARIABLE(D_CT);  
         KRATOS_REGISTER_VARIABLE(D_PT);    

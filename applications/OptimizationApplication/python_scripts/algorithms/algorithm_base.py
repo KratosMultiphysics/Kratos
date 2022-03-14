@@ -99,6 +99,7 @@ class OptimizationAlgorithm:
                                     self.root_model_part_data_field_names[extracted_root_model_part_name].append(response_control_gradient_field)
                                     self.root_model_part_data_field_names[extracted_root_model_part_name].append(response_gradient_name)
                                     self.root_model_part_data_field_names[extracted_root_model_part_name].extend(control_output_names)
+                                    control_controlling_root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(response_control_gradient_field))
                             else:
                                 self.root_model_part_data_field_names[extracted_root_model_part_name] = [response_control_gradient_field,response_gradient_name]
                                 self.root_model_part_data_field_names[extracted_root_model_part_name].extend(control_output_names)
