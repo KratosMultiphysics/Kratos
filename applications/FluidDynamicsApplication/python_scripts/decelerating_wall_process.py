@@ -34,7 +34,8 @@ class DeceleratingWallProcess(KratosMultiphysics.Process):
     def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
 
-        assert settings.Has("period")
+        if not settings.Has("period"):
+            raise KeyError("Missing period parameter")
 
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
