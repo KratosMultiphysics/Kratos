@@ -153,8 +153,9 @@ public:
         // Calculate the perturbation
         double pertubation = PerturbationThreshold;
         if (rValues.GetMaterialProperties().Has(PERTURBATION_SIZE)) {
-            // pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
-            pertubation = std::sqrt(tolerance);
+            pertubation = rValues.GetMaterialProperties()[PERTURBATION_SIZE];
+            if (pertubation == -1.0)
+                pertubation = std::sqrt(tolerance);
         } else {
             for (IndexType i_component = 0; i_component < num_components; ++i_component) {
                 double component_perturbation;
