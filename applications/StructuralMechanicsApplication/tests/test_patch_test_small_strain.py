@@ -587,12 +587,12 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         # Create nodes
         mp.CreateNewNode(1, 0.00000,  0.00000,  0.00000)
         mp.CreateNewNode(2, 1.00000,  0.00000,  0.00000)
-        mp.CreateNewNode(3, 1.00000,  0.00000,  0.00000)
-        mp.CreateNewNode(4, 1.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(3, 1.00000,  1.00000,  0.00000)
+        mp.CreateNewNode(4, 0.00000,  1.00000,  0.00000)
         mp.CreateNewNode(5, 0.00000,  0.00000,  1.00000)
         mp.CreateNewNode(6, 1.00000,  0.00000,  1.00000)
-        mp.CreateNewNode(7, 1.00000,  0.00000,  1.00000)
-        mp.CreateNewNode(8, 1.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(7, 1.00000,  1.00000,  1.00000)
+        mp.CreateNewNode(8, 0.00000,  1.00000,  1.00000)
         mp.CreateNewNode(9, 0.50000,  0.50000,  0.50000)
 
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
