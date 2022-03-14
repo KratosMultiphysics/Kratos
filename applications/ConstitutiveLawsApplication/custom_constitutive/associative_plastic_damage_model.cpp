@@ -86,7 +86,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
         CheckMinimumFractureEnergy(rValues, plastic_damage_parameters);
 
         // here we compute a predictor of the constitutive matrix
-        Vector predictor(VoigtSize);
+        BoundedVectorType predictor(VoigtSize);
         CalculateConstitutiveMatrix(rValues, plastic_damage_parameters);
         noalias(predictor) = prod(plastic_damage_parameters.ConstitutiveMatrix, plastic_damage_parameters.StrainVector - plastic_damage_parameters.PlasticStrain);
         double tension_parameter, compression_parameter;
