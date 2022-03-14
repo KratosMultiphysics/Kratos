@@ -614,6 +614,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
     IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 1000;
 
     const double splits = 1;
+    double tension_parameter, compression_parameter, det;
     noalias(rPDParameters.StressVector) = prod(rPDParameters.ConstitutiveMatrix, mOldStrain - rPDParameters.PlasticStrain);
 
 
@@ -643,9 +644,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::IntegrateStressPlasticDam
                 noalias(rPDParameters.StressVector) -= rPDParameters.PlasticConsistencyIncrement * prod(rPDParameters.ConstitutiveMatrix, rPDParameters.PlasticFlow);
 
                 // now we check the tensile-compressive distribution
-                double tension_parameter, compression_parameter;
                 GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::CalculateIndicatorsFactors(rPDParameters.StressVector, tension_parameter,compression_parameter);
-                double det = 0.0;
 
                 noalias(rPDParameters.ComplianceMatrix) += tension_parameter*rPDParameters.ComplianceMatrixIncrement;
                 noalias(rPDParameters.ComplianceMatrixCompression) += compression_parameter*rPDParameters.ComplianceMatrixIncrement;
