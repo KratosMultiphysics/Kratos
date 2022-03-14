@@ -141,7 +141,9 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         }
 
         if rk_parameter in rk_startegies:
-            return rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+            strat = rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+            self.settings["shock_capturing_settings"] = strategy_settings["shock_capturing_settings"]
+            return strat
 
         err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
         for key in rk_startegies:
