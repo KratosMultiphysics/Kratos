@@ -258,8 +258,15 @@ struct vexcl {
 
 // Hybrid backend uses scalar matrices to build the hierarchy,
 // but stores the computed matrices in the block format.
-template <typename ScalarType, typename BlockType, typename ColumnType = ptrdiff_t, typename PointerType = ColumnType, class DirectSolver = solver::vexcl_skyline_lu<ScalarType> >
-struct vexcl_hybrid : public vexcl<ScalarType, ColumnType, PointerType, DirectSolver> {
+template <
+    typename BlockType,
+    typename ColumnType = ptrdiff_t,
+    typename PointerType = ColumnType,
+    class DirectSolver = solver::vexcl_skyline_lu<typename math::scalar_of<BlockType>::type>
+    >
+struct vexcl_hybrid : public vexcl<typename math::scalar_of<BlockType>::type, ColumnType, PointerType, DirectSolver>
+{
+    typedef typename math::scalar_of<BlockType>::type ScalarType;
     typedef vexcl<ScalarType, DirectSolver> Base;
     typedef vex::sparse::distributed<
                 vex::sparse::matrix<
@@ -295,14 +302,14 @@ struct vexcl_hybrid : public vexcl<ScalarType, ColumnType, PointerType, DirectSo
 template <typename T1, typename T2, typename C, typename P>
 struct backends_compatible< vexcl<T1, C, P>, vexcl<T2, C, P> > : std::true_type {};
 
-template <typename T1, typename B1, typename T2, typename B2, typename C, typename P>
-struct backends_compatible< vexcl_hybrid<T1, B1, C, P>, vexcl_hybrid<T2, B2, C, P> > : std::true_type {};
+template <typename B1, typename B2, typename C, typename P>
+struct backends_compatible< vexcl_hybrid<B1, C, P>, vexcl_hybrid<B2, C, P> > : std::true_type {};
 
-template <typename T1, typename T2, typename B2, typename C, typename P>
-struct backends_compatible< vexcl<T1, C, P>, vexcl_hybrid<T2, B2, C, P> > : std::true_type {};
+template <typename T1, typename B2, typename C, typename P>
+struct backends_compatible< vexcl<T1, C, P>, vexcl_hybrid<B2, C, P> > : std::true_type {};
 
-template <typename T1, typename B1, typename T2, typename C, typename P>
-struct backends_compatible< vexcl_hybrid<T1, B1, C, P>, vexcl<T2, C, P> > : std::true_type {};
+template <typename B1, typename T2, typename C, typename P>
+struct backends_compatible< vexcl_hybrid<B1, C, P>, vexcl<T2, C, P> > : std::true_type {};
 
 template < typename V, typename C, typename P >
 struct bytes_impl< vex::sparse::distributed<vex::sparse::matrix<V,C,P> > > {

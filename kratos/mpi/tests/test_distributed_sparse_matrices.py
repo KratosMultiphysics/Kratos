@@ -2,47 +2,44 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi
-from KratosMultiphysics.testing.utilities import ReadModelPart
 import numpy as np
 
-def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
 class TestDistributedSparseMatrices(KratosUnittest.TestCase):
 
     all_connectivities = [
-            [19,11,7,39],
-            [33,27,22,9],
-            [11,2,3,6],
-            [8,26,3,22],
-            [0,26,5,31],
-            [1,18,35,12],
-            [3,36,23,7],
-            [16,8,18,15],
-            [16,33,10,26],
-            [25,2,18,31],
-            [33,26,4,6],
-            [19,21,22,7],
-            [9,37,29,14],
-            [18,19,14,39],
-            [24,34,37,7],
-            [16,9,29,14],
-            [17,18,11,4],
-            [16,33,28,37],
-            [37,26,11,5],
-            [8,26,35,14],
-            [24,4,30,15],
-            [16,17,12,6],
-            [32,25,35,28],
-            [24,25,14,1],
-            [24,35,5,6],
-            [28,12,38,15],
-            [8,18,35,6],
-            [28,31,22,39],
-            [1,28,13,7],
-            [17,10,36,7],
-            [25,14,30,9],
-        ]  
+        [19,11,7,39],
+        [33,27,22,9],
+        [11,2,3,6],
+        [8,26,3,22],
+        [0,26,5,31],
+        [1,18,35,12],
+        [3,36,23,7],
+        [16,8,18,15],
+        [16,33,10,26],
+        [25,2,18,31],
+        [33,26,4,6],
+        [19,21,22,7],
+        [9,37,29,14],
+        [18,19,14,39],
+        [24,34,37,7],
+        [16,9,29,14],
+        [17,18,11,4],
+        [16,33,28,37],
+        [37,26,11,5],
+        [8,26,35,14],
+        [24,4,30,15],
+        [16,17,12,6],
+        [32,25,35,28],
+        [24,25,14,1],
+        [24,35,5,6],
+        [28,12,38,15],
+        [8,18,35,6],
+        [28,31,22,39],
+        [1,28,13,7],
+        [17,10,36,7],
+        [25,14,30,9]
+    ]  
 
     Aref_all = {
         (19,19):3.0,(19,11):1.0,(19,7):2.0,(19,39):2.0,(11,19):1.0,(11,11):4.0,(11,7):1.0,(11,39):1.0,(7,19):2.0,(7,11):1.0,(7,7):6.0,(7,39):1.0,(39,19):2.0,(39,11):1.0,(39,7):1.0,(39,39):3.0,(33,33):4.0,(33,27):1.0,(33,22):1.0,(33,9):1.0,(27,33):1.0,
@@ -77,8 +74,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         for i in range(1,NumThreads):
             Partitions[i] = Partitions[i-1] + PartitionSize 
         return Partitions
-
-
+    
     def ComputeBounds(self,N,Ndivisions,current_rank ):                            
         partition = self.DivideInPartitions(N,Ndivisions)
         return np.array([partition[current_rank],partition[current_rank+1]], dtype=int)
@@ -100,7 +96,6 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         el_bounds = self.ComputeBounds(31, world_size, my_rank)
 
         local_connectivities = self.GetLocalConnectivities(el_bounds)
-
 
         #################construct the graph!
         local_size = dofs_bounds[1]-dofs_bounds[0]
@@ -136,8 +131,14 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         for i in range(y.LocalSize()):
             global_i = y.GetNumbering().GlobalId(i);
             self.assertEqual(y[i],  reference_spmv_res[global_i], 1e-14 )
+
+        y = A@b
     
         B = A.SpMM(A)
+
+        for i in range(y.LocalSize()):
+            global_i = y.GetNumbering().GlobalId(i);
+            self.assertEqual(y[i],  reference_spmv_res[global_i], 1e-14 )
 
         #emulating y = A@b by low level interface
         local_mat = A.GetDiagonalBlock()
@@ -158,10 +159,40 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
             self.assertEqual(y.GetLocalData()[i],  output[i], 1e-14 )
 
         dotprod = y.Dot(y,0)
-        print("dotprod = ",dotprod, " on rank", my_rank)
+
         if(my_rank == 0):
             self.assertEqual(dotprod, np.dot(reference_spmv_res,reference_spmv_res), 1e-14)
-  
+
+        #test transpose and TransposeSpMV
+        b.SetValue(1.0)
+        y.SetValue(0.0)
+        A.TransposeSpMV(b,y) 
+
+        At = A.Transpose()
+        y2 =  KratosMultiphysics.mpi.DistributedSystemVector(Agraph)
+        y2.SetValue(0.0)  
+        At.SpMV(b,y2)
+        for i in range(y.LocalSize()):
+            self.assertEqual(y[i], y2[i], 1e-14)
+
+        #test moving material to serial
+        target_rank = 0
+        Aserial = A.ToSerialCSR(target_rank)
+        if(my_rank == 0):
+            y_serial = KratosMultiphysics.Vector(Aserial.Size1())
+            y_serial.fill(1.0)
+            b_serial = KratosMultiphysics.Vector(Aserial.Size1())
+            b_serial.fill(0.0)
+            Aserial.SpMV(y_serial, b_serial)
+            
+            self.assertVectorAlmostEqual(b_serial, reference_spmv_res)
+
+        #test operations
+        b.SetValue(1.0)
+        y.SetValue(2.0)
+        c = 2.0*b+y*2.0 - b
+        for i in range(y.LocalSize()):
+            self.assertEqual(c[i], 5.0)
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -51,7 +51,7 @@ struct is_eigen_type : std::false_type {};
 
 template <typename Scalar, int Flags, typename Storage>
 struct is_eigen_sparse_matrix<
-    Eigen::MappedSparseMatrix<Scalar, Flags, Storage>
+    Eigen::Map<Eigen::SparseMatrix<Scalar, Flags, Storage>>
     > : std::true_type
 {};
 
