@@ -36,6 +36,7 @@ namespace Kratos
                 "help"                 : "This process applies constraints to the particles and walls in a certain submodelpart, for a certain time interval",
                 "mesh_id"              : 0,
                 "model_part_name"      : "please_specify_model_part_name",
+                "variable_name"        : "object",
                 "constrained"          : [true,true,true],
                 "value"                : [10.0, "3*t", "x+y"],
                 "table"                : [0, 0, 0],

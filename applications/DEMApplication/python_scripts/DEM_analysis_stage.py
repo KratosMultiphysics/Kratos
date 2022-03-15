@@ -397,6 +397,7 @@ class DEMAnalysisStage(AnalysisStage):
             return max_node_id, max_elem_id, max_cond_id
 
         def ReadModelPart(model_part, file_tag, max_node_id, max_elem_id, max_cond_id):
+
             file_path = self.GetInputFilePath(file_tag)
 
             if not os.path.isfile(file_path + '.mdpa'):
