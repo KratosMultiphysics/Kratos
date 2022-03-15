@@ -1,20 +1,17 @@
 {
     "problem_data"             : {
-        "problem_name"    : "adjoint_problem",
+        "problem_name"    : "primal_problem",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 1
     },
     "solver_settings"          : {
-        "solver_type"     : "adjoint_static",
-        "analysis_type"   : "linear",
+        "solver_type"     : "static",
+        "analysis_type"   : "non_linear",
+        "domain_size"     : 3,
         "echo_level"      : 0,
         "model_part_name" : "model",
-        "domain_size"     : 3,
-        "time_stepping" : {
-            "time_step"       : 1.1
-        },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "cantilever_beam"
@@ -22,30 +19,20 @@
         "material_import_settings"           : {
             "materials_filename" : "cantilever_beam_material.json"
         },
-        "rotation_dofs"                   : true,
-        "compute_reactions" :   false,
-        "move_mesh_flag" :   false,
-        "sensitivity_settings"  : {
-            "sensitivity_model_part_name"                : "Sensitivity_Beam",
-            "nodal_solution_step_sensitivity_variables"  : [],
-            "element_data_value_sensitivity_variables"   : ["YOUNG_MODULUS"],
-            "condition_data_value_sensitivity_variables" : [],
-            "build_mode": "static"
+        "time_stepping" : {
+            "time_step"       : 1.1
         },
-        "response_function_settings"    :   {
-            "response_type"        : "adjoint_eigenfrequency",
-            "gradient_mode"        : "semi_analytic",
-            "step_size"            : 1.0e-5,
-            "critical_part_name"   : "Parts_structure",
-            "stress_type"          : "VON_MISES_STRESS",
-            "stress_treatment"     : "mean",
-            "echo_level"           : 1,
-            "primal_settings"      : "adjoint_primal_parameters.json",
-            "adjoint_settings"     : "adjoint_adjoint_parameters.json",
-            "eigen_settings"       : "adjoint_eigen_parameters.json",
-            "primal_data_transfer_with_python": true,
-            "primal_to_eigen_data_transfer_with_python": true
-        }
+        "builder_and_solver_settings" : {
+            "use_block_builder" : true
+    },
+        "line_search"                     : false,
+        "convergence_criterion"           : "displacement_criterion",
+        "displacement_relative_tolerance" : 1e-10,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 1e-10,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 20,
+        "rotation_dofs"                   : true
     },
     "processes": {
         "constraints_process_list" : [{
@@ -56,7 +43,7 @@
             "Parameters"    : {
                 "mesh_id"         : 0,
                 "model_part_name" : "model.DISPLACEMENT_support",
-                "variable_name"   : "ADJOINT_DISPLACEMENT",
+                "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
                 "value"           : [0.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
@@ -73,13 +60,13 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "model.PointLoad3D_load_point",
                 "variable_name"   : "POINT_LOAD",
-                "modulus"         : 5000000000.0,
+                "modulus"         : -1000000.0,
                 "direction"       : [0.0,1.0,0.0],
                 "interval"        : [0.0,"End"]
             }
         }]
     },
-    "output_processes" : {
+    "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -98,12 +85,12 @@
                         },
                         "file_label"          : "step",
                         "output_control_type" : "step",
-                        "output_interval"    : 1,
+                        "output_frequency"    : 1,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,
-                        "nodal_results"       : ["ADJOINT_DISPLACEMENT"],
-                        "gauss_point_results" : ["YOUNG_MODULUS_SENSITIVITY"]
+                        "nodal_results"       : ["DISPLACEMENT","REACTION"],
+                        "gauss_point_results" : ["VON_MISES_STRESS"]
                     },
                     "point_data_configuration"  : []
                 }
