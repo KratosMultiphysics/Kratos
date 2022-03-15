@@ -41,6 +41,7 @@
 #include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "includes/deprecated_variables.h"
+#include "utilities/variable_utils.h"
 //#include "utilities/enrichment_utilities.h"
 //#
 #include <boost/timer.hpp>
@@ -403,7 +404,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 
 	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
-if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
+		if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
                 initial_position = pparticle->GetInitialPosition() + pparticle->FastGetSolutionStepValue(DISPLACEMENT);
 
 		Element::Pointer pelement;
@@ -610,6 +611,16 @@ if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
         bool inverted=false;
 	double vol=0.0;
 
+
+        VariableUtils().SetFlag(TO_ERASE, false, ThisModelPart.Elements());
+        
+        VariableUtils().SetFlag(TO_ERASE, false, ThisModelPart.Nodes());
+        //VariableUtils().SetFlag(INTERFACE, 0, ThisModelPart.Nodes());
+        //rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+        //rDestinationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+        
+        
+
         if(domain_size == 2)
         {
 	    KRATOS_ERROR<<"error: this part is emptyyyy";
@@ -630,14 +641,183 @@ if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
 		        //counting number of structural nodes
 		        vol = GeometryUtils::CalculateVolume3D(geom);
 
-			geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
+			/*geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
 			geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
 			geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
-			geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
+			geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;*/
 
-	     	        if(vol <= 0)  inverted=true;
+	     	        if(vol <= 0)  {inverted=true;
+	     	        //ThisModelPart.RemoveElement(i->Id());
+	     	            	        
+	     	        i->Set(TO_ERASE, true);
+	     	        /*geom[0].Set(TO_ERASE, true);
+	     	        geom[1].Set(TO_ERASE, true);
+	     	        geom[2].Set(TO_ERASE, true);
+	     	        geom[3].Set(TO_ERASE, true);*/
+
+
+	     	        geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+			geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+			geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+			geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+			
+
+	     	        
+	     	        }
+	     	        
+	     	        //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
 		    }
+		    
+		    
+		    //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
+		    
+		/*for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+                    i!=ThisModelPart.ElementsEnd(); i++)
+		    {
+		        //calculating shape functions values
+		        Geometry< Node<3> >& geom = i->GetGeometry();
+		        //counting number of structural nodes
+
+	     	            	        
+	     	        if(i->FastGetSolutionStepValue(TO_ERASE)==true) double pepe;
+
+	     	        }
+	     	        
+	     	        //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
+		    }
+		    */
 	}
+	
+	
+	
+	//BinBasedFastPointLocator<TDim> SearchStructure(ThisModelPart);
+	//SearchStructure.UpdateSearchDatabase();
+
+	//do movement
+	//array_1d<double, 3 > veulerian;
+	//double temperature=0.0;
+	//array_1d<double, 3 > acc_particle;
+
+        //array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
+
+	//array_1d<double, TDim + 1 > N;
+
+	//const int max_results = 10000;
+
+	//typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+
+	const int nparticles = ThisModelPart.Nodes().size();
+
+	//#pragma omp parallel for firstprivate(results,N,veulerian,v1,v2,v3,v4,x)
+
+	for (int i = 0; i < nparticles; i++)
+	  {
+
+
+	   //typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+	    ModelPart::NodesContainerType::iterator iparticle = ThisModelPart.NodesBegin() + i;
+
+
+	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
+
+		if(iparticle->FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) {
+ 
+ 
+        
+                	
+               //initial_position = pparticle->GetInitialPosition() + pparticle->FastGetSolutionStepValue(DISPLACEMENT);
+
+		//Element::Pointer pelement;
+
+		//STEP1
+		//noalias(current_position) =  initial_position;
+		
+		for (GlobalPointersVector< Element >::iterator ie = iparticle->GetValue(NEIGHBOUR_ELEMENTS).begin(); ie != iparticle->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
+                             //ie->GetValue(IS_VISITED)=1;
+                             {
+
+ 				Geometry<Node<3> >&geom = ie->GetGeometry();
+        			array_1d<double,TDim+1> N;
+        			
+        			 bool is_inside = false;
+            			is_inside = CalculatePosition(geom,	iparticle->X(),iparticle->Y(),iparticle->Z(),N);
+            	
+            			if(is_inside == true)
+            			{
+            				ie->Set(TO_ERASE, true);
+            			}
+
+        			//double xc, yc, zc,  radius;
+        			//CalculateCenterAndSearchRadius( geom, xc,yc,zc, radius,N);
+
+
+
+                             		//double julio=0.0;
+                             		//is_found1 = SearchStructure.FindPointOnMesh(initial_position, N, pelement, result_begin, max_results);
+                             		//is_found1 = SearchStructure.FindPointOnMesh(initial_position, N, ie, result_begin, max_results);
+                             		
+                             
+                             }
+	}
+	}
+		
+		/*
+		if(in->FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) 
+		{
+
+				//if (it->GetValue(IS_VISITED) != 1) //it was not possible to calculate the distance
+                     {
+                         for (GlobalPointersVector< Element >::iterator ie = in->GetValue(NEIGHBOUR_ELEMENTS).begin(); ie != in->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
+                             //ie->GetValue(IS_VISITED)=1;
+                             {
+                             		double julio=0.0;
+                             
+                             }
+                             	
+
+			}			
+			
+			
+		}*/
+
+//			if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
+//			    //in->FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
+//			    in->Set(TO_ERASE, true);
+        
+
+
+///////////////////////
+///////////////////////
+
+
+
+	
+
+/*	for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+                    i!=ThisModelPart.ElementsEnd(); i++)
+		    {
+		        //calculating shape functions values
+		        Geometry< Node<3> >& geom = i->GetGeometry();
+		        //counting number of structural nodes
+		        //if(i->Get(TO_ERASE)==true)
+				//{
+				int number=0;
+				if(geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
+				if(geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
+				if(geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
+				if(geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
+				if(number>=1)  i->Set(TO_ERASE, true);
+				//}	     	        
+	     	        }
+*/	     	        
+	  ThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+	  //ThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
+	     	        //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
+		    
+		    
+	
+	
 	return inverted;
 
         KRATOS_CATCH("")
@@ -660,6 +840,82 @@ if(iparticle->FastGetSolutionStepValue(IS_INTERFACE) == 0.0) {
         else
             return 0.0;
     }
+    
+ inline bool CalculatePosition(
+        Geometry<Node < 3 > >&geom,
+        const double xc,
+         const double yc, 
+         const double zc,
+        array_1d<double, 4 > & N
+        )
+    {
+
+        const double x0 = geom[0].X();
+        const double y0 = geom[0].Y();
+        const double z0 = geom[0].Z();
+        const double x1 = geom[1].X();
+        const double y1 = geom[1].Y();
+        const double z1 = geom[1].Z();
+        const double x2 = geom[2].X();
+        const double y2 = geom[2].Y();
+        const double z2 = geom[2].Z();
+        const double x3 = geom[3].X();
+        const double y3 = geom[3].Y();
+        const double z3 = geom[3].Z();
+
+        const double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+
+        double inv_vol = 0.0;
+        if (vol < 0.0000000000001)
+        {
+            //The interpolated node will not be inside an elemente with zero area
+            return false;
+        }
+        else
+        {
+            inv_vol = 1.0 / vol;
+        }
+
+        N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
+        N[1] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
+        N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
+        N[3] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc) * inv_vol;
+
+
+        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >= 0.0 &&
+                N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <= 1.0)
+            //if the xc yc zc is inside the tetrahedron return true
+            return true;
+
+        return false;
+    }
+    /**
+     * This method computes the volume of a tetrahedra
+     */
+    inline double CalculateVol(const double x0, const double y0, const double z0,
+                               const double x1, const double y1, const double z1,
+                               const double x2, const double y2, const double z2,
+                               const double x3, const double y3, const double z3
+                              )
+    {
+        const double x10 = x1 - x0;
+        const double y10 = y1 - y0;
+        const double z10 = z1 - z0;
+
+        const double x20 = x2 - x0;
+        const double y20 = y2 - y0;
+        const double z20 = z2 - z0;
+
+        const double x30 = x3 - x0;
+        const double y30 = y3 - y0;
+        const double z30 = z3 - z0;
+
+        const double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+        return detJ * 0.1666666666666666666667;
+    }
+
+
+
 };
 
 } // namespace Kratos.

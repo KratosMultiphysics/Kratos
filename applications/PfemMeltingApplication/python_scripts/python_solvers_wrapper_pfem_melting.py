@@ -19,6 +19,12 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         if (solver_type == "thermally_coupledpfem2" or solver_type == "ThermallyCoupledPfem2"):
             
             solver_module_name = "coupled_fluid_thermal_pfem2solver"
+            
+        elif (solver_type == "Withoumesh"):
+            
+            solver_module_name = "coupled_fluid_thermal_withoutmeshsolver"
+            
+            
         # Coupled mechanical-thermal solver
         # Wrong solver check
         else:
