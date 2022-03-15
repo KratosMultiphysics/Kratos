@@ -279,8 +279,7 @@ public:
     void AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo) override
     {
         // Calculate the explicit residual vector
-        BoundedVector<double, DofSize> rhs;
-        CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
+        const auto rhs = CalculateRightHandSideInternal(rCurrentProcessInfo);
 
         // Add the residual contribution
         // Note that the reaction is indeed the formulation residual
@@ -429,25 +428,25 @@ protected:
         ConditionDataStruct& rData);
 
     /**
-     * @brief Fill element data
+     * @brief Fill condition data
      * Auxiliary function to fill the element data structure
      * @param rData Reference to the element data structure to be filled
      * @param rCurrentProcessInfo Reference to the current process info
      */
-    void FillElementData(
-        ConditionDataStruct& rData,
-        const ProcessInfo& rCurrentProcessInfo)
+    ConditionDataStruct ConditionData(const ProcessInfo& rCurrentProcessInfo)
     {
-         // Getting data for the given geometry
+        ConditionDataStruct data;
+
+        // Getting data for the given geometry
         const auto& r_geometry = GetGeometry();
 
         // Loads shape function info only if jacobian is uniform
-        ComputeGeometryData(r_geometry, rData);
+        ComputeGeometryData(r_geometry, data);
 
         // Database access to all of the variables needed
         Properties &r_properties = this->GetProperties();
-        rData.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
-        rData.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
+        data.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
+        data.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
 
         // Magnitudes to calculate the time derivatives
         const double time_step = rCurrentProcessInfo[DELTA_TIME];
@@ -458,10 +457,10 @@ protected:
         {
             // Shock capturing data
             const auto& r_node = r_geometry[i];
-            rData.alpha_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY);
-            rData.mu_sc_nodes(i)    = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
-            rData.beta_sc_nodes(i)  = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
-            rData.lamb_sc_nodes(i)  = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
+            data.alpha_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY);
+            data.mu_sc_nodes(i)    = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+            data.beta_sc_nodes(i)  = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
+            data.lamb_sc_nodes(i)  = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
 
             // Momentum data
             const array_1d<double, 3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
@@ -469,21 +468,21 @@ protected:
             const array_1d<double, 3> mom_inc = r_momentum - r_momentum_old;
 
             for (unsigned int d = 0; d < Dim; ++d) {
-                rData.U(i, 1+d)    = r_momentum[d];
-                rData.dUdt(i, 1+d) = aux_theta * mom_inc[d];
+                data.U(i, 1+d)    = r_momentum[d];
+                data.dUdt(i, 1+d) = aux_theta * mom_inc[d];
             }
 
             // Density data
             const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
             const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
-            rData.U(i, 0)    = r_rho;
-            rData.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
+            data.U(i, 0)    = r_rho;
+            data.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
 
             // Total energy data
             const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
-            rData.U(i, TDim+1)    = r_tot_ener;
-            rData.dUdt(i, TDim+1) = aux_theta * (r_tot_ener - r_tot_ener_old);
+            data.U(i, TDim+1)    = r_tot_ener;
+            data.dUdt(i, TDim+1) = aux_theta * (r_tot_ener - r_tot_ener_old);
         }
     }
 
@@ -494,8 +493,7 @@ protected:
      * @param rRightHandSideBoundedVector Reference to the auxiliary RHS vector
      * @param rCurrentProcessInfo Reference to the current process info
      */
-    void CalculateRightHandSideInternal(
-        BoundedVector<double, BlockSize * TNumNodes>& rRightHandSideBoundedVector,
+    BoundedVector<double, BlockSize * TNumNodes> CalculateRightHandSideInternal(
         const ProcessInfo& rCurrentProcessInfo);
 
 

@@ -18,6 +18,7 @@
 
 
 // Project includes
+#include "includes/define.h"
 
 
 // Application includes
@@ -31,21 +32,33 @@ namespace Kratos {
  * Computation of RHS integration method is chosen in the symbolic generator.
  */
 template<>
-GeometryData::IntegrationMethod CompressibleNavierStokesExplicitCondition<2,3>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod CompressibleNavierStokesExplicitCondition<2,2>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 template<>
-void CompressibleNavierStokesExplicitCondition<2,3>::CalculateRightHandSideInternal(
-    BoundedVector<double, BlockSize * NumNodes>& rRightHandSideBoundedVector,
+BoundedVector<double, 8> CompressibleNavierStokesExplicitCondition<2,2>::CalculateRightHandSideInternal(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
 
+    BoundedVector<double, BlockSize*NumNodes> rRightHandSideBoundedVector = ZeroVector(BlockSize*NumNodes);
+
+    const auto data = ConditionData(rCurrentProcessInfo);
+    [[maybe_unused]] const auto& DN_DX = data.DN_DX;
+
+    //substitute_rhs_2D_fluxes
+
+    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
+    rRightHandSideBoundedVector *= data.volume / static_cast<double>(NumNodes);
+
+    return rRightHandSideBoundedVector;
+    KRATOS_CATCH("")
 }
 
 
-template class CompressibleNavierStokesExplicitCondition<2,3>;
-using CompressibleNavierStokesExplicitCondition2D2N = CompressibleNavierStokesExplicitCondition<2,3>;
+template class CompressibleNavierStokesExplicitCondition<2,2>;
+using CompressibleNavierStokesExplicitCondition2D2N = CompressibleNavierStokesExplicitCondition<2,2>;
 
 }
