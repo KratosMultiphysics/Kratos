@@ -2,6 +2,7 @@
 import json
 import numpy as np
 import os
+import scipy.linalg
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -31,7 +32,8 @@ class PetrovGalerkinTrainingUtility(object):
         self.time_step_snapshots_matrix_container = [] ## K@Phi
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"]
-        self.basis_strategy = "Assembled_Residuals" if self.rom_settings["solve_with_qr"].GetBool() else settings["basis_strategy"].GetString() #FIXME: Either stop writing to memory or make sure that we can erase after SVD. When solving with QR, force this option to erase the matrices that are written to build the assembled residual option.
+        # self.basis_strategy = "Assembled_Residuals" if self.rom_settings["solving_strategy"].GetString()=="QR" else settings["basis_strategy"].GetString() #FIXME: Either stop writing to memory or make sure that we can erase after SVD. When solving with QR, force this option to erase the matrices that are written to build the assembled residual option.
+        self.basis_strategy = settings["basis_strategy"].GetString()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
     def AppendCurrentStepProjectedSystem(self):
@@ -65,7 +67,7 @@ class PetrovGalerkinTrainingUtility(object):
                 snapshot_name = "R_"+str(current_time)+"_"+str(i+1)+".mm"
                 KratosMultiphysics.ReadMatrixMarketVector(snapshot_name, iteration_snapshot)
                 snapshots_matrix.append(iteration_snapshot)
-                kratos_utils.DeleteFileIfExisting(GetFilePath(snapshot_name))
+                # kratos_utils.DeleteFileIfExisting(GetFilePath(snapshot_name))
             snapshots_matrix = np.array(snapshots_matrix).T
         else:
             err_msg = "\'self.basis_strategy\' is not available. Select either Projected_System or Assembled_Residuals."
@@ -84,8 +86,8 @@ class PetrovGalerkinTrainingUtility(object):
     def __GetPetrovGalerkinTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
                 "train": false,
-                "basis_strategy": "Projected_System",
-                "svd_truncation_tolerance": 1.0e-6,
+                "basis_strategy": "Assembled_Residuals",
+                "svd_truncation_tolerance": 1.0e-4,
                 "echo_level": 0
         }""")
         return default_settings
@@ -96,19 +98,34 @@ class PetrovGalerkinTrainingUtility(object):
         snapshots_matrix = self.time_step_snapshots_matrix_container[0]
         for i in range(1,n_steps):
             snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[i]]
-
-        # Calculate the randomized and truncated SVD of the snapshots
-        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+        u_temp,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
             snapshots_matrix,
             self.svd_truncation_tolerance)
+        #Read Galerkin modes from RomParameters.json
+        u_galerkin = self.__GetGalerkinBasis()
+        u,R, _ = scipy.linalg.qr(np.c_[u_galerkin,u_temp],pivoting=True)
+        tol = np.sqrt(u.shape[1])*self.svd_truncation_tolerance # Norm of u is equal to the sqrt of the number of nodes because of its orthogonality.
+        rank = R.shape[1]
+        for i in range(rank):
+            if abs(R[i,i])<tol:
+                rank = i
+                break
+        u = u[:,:rank]
+        # Repeat application of projector to avoid numeric cancellation
+        # for i in range(3):
+        #     snapshots_matrix = self.__OrthogonalProjector(snapshots_matrix, u_galerkin)
+        # snapshots_matrix = np.c_[u_galerkin,snapshots_matrix]
+        # del u_galerkin
+        # # Calculate the randomized and truncated SVD of the snapshots
+        # u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+        #     snapshots_matrix,
+        #     self.svd_truncation_tolerance)
 
         return u
     
     def __AppendNewBasisToRomParameters(self, u):
-        petrov_galerkin_rom_settings =  {}
-        petrov_galerkin_rom_settings["nodal_unknowns"] = self.rom_settings["nodal_unknowns"].GetStringArray()
-        petrov_galerkin_rom_settings["number_of_rom_dofs"] = np.shape(u)[1]
-        n_nodal_unknowns = len(petrov_galerkin_rom_settings["nodal_unknowns"])
+        petrov_galerkin_number_of_rom_dofs= np.shape(u)[1]
+        n_nodal_unknowns = len(self.rom_settings["nodal_unknowns"].GetStringArray())
         petrov_galerkin_nodal_modes = {}
         computing_model_part = self.solver.GetComputingModelPart()
         i = 0
@@ -118,7 +135,7 @@ class PetrovGalerkinTrainingUtility(object):
 
         with open('RomParameters.json','r') as f:
             updated_rom_parameters = json.load(f)
-            updated_rom_parameters["petrov_galerkin_rom_settings"] = petrov_galerkin_rom_settings #TODO: Rename elements_and_weights to hrom_weights
+            updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
             updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
 
         with open('RomParameters.json','w') as f:
@@ -130,3 +147,25 @@ class PetrovGalerkinTrainingUtility(object):
         float_format = "{:.12f}"
         pretty_number = float(float_format.format(number))
         return pretty_number
+    
+    def __GetGalerkinBasis(self):
+        with open('RomParameters.json','r') as f:
+            galerkin_rom_parameters = json.load(f)
+            N_Dof_per_node = len(galerkin_rom_parameters["rom_settings"]["nodal_unknowns"])
+            N_nodes = len(galerkin_rom_parameters["nodal_modes"])
+            N_Dofs = int(N_Dof_per_node*N_nodes)
+            N_Dofs_rom = galerkin_rom_parameters["rom_settings"]["number_of_rom_dofs"]
+            u = np.zeros((N_Dofs,N_Dofs_rom))
+            counter_in = 0
+            for key in galerkin_rom_parameters["nodal_modes"].keys(): 
+                counter_fin = counter_in + N_Dof_per_node
+                u[counter_in:counter_fin,:] = np.array(galerkin_rom_parameters["nodal_modes"][key])
+                counter_in = counter_fin
+        
+        return u
+    
+    def __OrthogonalProjector(self, A, B):
+        # A - B @(B.T @ A)
+        BtA = B.T@A
+        A -= B @ BtA
+        return A

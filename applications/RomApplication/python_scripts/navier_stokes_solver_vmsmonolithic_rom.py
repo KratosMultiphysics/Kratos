@@ -26,8 +26,9 @@ class ROMSolver(NavierStokesSolverMonolithic):
         {
             "rom_settings": {
             "nodal_unknowns": [ "CFD_DOFS_USED_LISTED_HERE" ],
-            "number_of_rom_dofs": 3,
-            "solve_with_qr" : false
+            "number_of_rom_dofs" : 10,
+            "petrov_galerkin_number_of_rom_dofs" : 10,
+            "solving_strategy" : "Galerkin",
             }
         }
         """)

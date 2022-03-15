@@ -35,8 +35,9 @@ class ROMSolver(ImplicitMechanicalSolver):
         {
             "rom_settings": {
             "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
-            "number_of_rom_dofs": 10,
-            "solve_with_qr" : false
+            "number_of_rom_dofs" : 10,
+            "petrov_galerkin_number_of_rom_dofs" : 10,
+            "solving_strategy" : "Galerkin"
             }
         }
         """)

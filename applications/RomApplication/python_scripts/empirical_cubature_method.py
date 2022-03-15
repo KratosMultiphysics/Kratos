@@ -38,7 +38,8 @@ class EmpiricalCubatureMethod():
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
         if constrain_sum_of_weights:
-            self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+            dummy_number = 0
+            # self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
         self.b = self.G @ self.W
 
 

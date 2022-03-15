@@ -37,6 +37,7 @@ class HRomTrainingUtility(object):
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"]
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
+        self.projection_strategy = settings["projection_strategy"].GetString()
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -55,7 +56,10 @@ class HRomTrainingUtility(object):
 
         # Generate the matrix of residuals
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of residuals.")
-        res_mat = self.__rom_residuals_utility.GetResiduals()
+        if (self.projection_strategy=="Galerkin"):
+            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        elif (self.projection_strategy=="Petrov-Galerkin"):
+            res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
@@ -123,7 +127,8 @@ class HRomTrainingUtility(object):
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
-            "create_hrom_visualization_model_part" : true
+            "create_hrom_visualization_model_part" : true,
+            "projection_strategy": "Galerkin"
         }""")
         return default_settings
 

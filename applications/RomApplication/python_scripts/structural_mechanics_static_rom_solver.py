@@ -32,7 +32,8 @@ class ROMSolver(StaticMechanicalSolver):
         {
             "rom_settings": {
             "nodal_unknowns": [ "DISPLACEMENT_X", "DISPLACEMENT_Y", "DISPLACEMENT_Z"],
-            "number_of_rom_dofs": 3
+            "number_of_rom_dofs" : 10,
+            "petrov_galerkin_number_of_rom_dofs" : 10,
             }
         }
         """)

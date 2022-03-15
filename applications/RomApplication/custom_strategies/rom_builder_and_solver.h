@@ -410,13 +410,17 @@ public:
         // Define a dense matrix to hold the reduced problem
         Matrix Arom;
         Vector brom;
-        if (mSolveWithQR){// QR POD
+        if (mSolveWithGalerkin){// Galerkin POD
+            Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+            brom = ZeroVector(mNumberOfRomModes);
+        }
+        else if (mSolveWithQR){// QR POD
             Arom = ZeroMatrix(BaseType::GetEquationSystemSize(), mNumberOfRomModes);
             brom = ZeroVector(BaseType::GetEquationSystemSize());
         }
-        else {// Galerkin POD
-            Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-            brom = ZeroVector(mNumberOfRomModes);
+        else if (mSolveWithPetrovGalerkin){// Petrov-Galerkin POD
+            Arom = ZeroMatrix(mNumberOfPetrovGalerkinRomModes, mNumberOfRomModes);
+            brom = ZeroVector(mNumberOfPetrovGalerkinRomModes);
         }
         
         // TSystemVectorType x(Dx.size());
@@ -448,7 +452,83 @@ public:
 
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
-        if (mSolveWithQR){// QR POD: This is used to build Petrov-Galerkin POD.
+        if (mSolveWithGalerkin){// Galerkin POD
+            #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
+            {
+                Matrix PhiElemental;
+                Matrix tempA = ZeroMatrix(mNumberOfRomModes,mNumberOfRomModes);
+                Vector tempb = ZeroVector(mNumberOfRomModes);
+                Matrix aux;
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nelements); k++) {
+                    auto it_el = el_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                    bool element_is_active = true;
+                    if ((it_el)->IsDefined(ACTIVE)) {
+                        element_is_active = (it_el)->Is(ACTIVE);
+                    }
+
+                    // Calculate elemental contribution
+                    if (element_is_active){
+                        pScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
+                        Element::DofsVectorType dofs;
+                        it_el->GetDofList(dofs, r_current_process_info);
+                        const auto &geom = it_el->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
+                            PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
+                            aux.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
+                        noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                        noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+                    }
+                }
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(nconditions); k++){
+                    auto it = cond_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the condition is active by default
+                    bool condition_is_active = true;
+                    if ((it)->IsDefined(ACTIVE)) {
+                        condition_is_active = (it)->Is(ACTIVE);
+                    }
+
+                    // Calculate condition contribution
+                    if (condition_is_active) {
+                        Condition::DofsVectorType dofs;
+                        it->GetDofList(dofs, r_current_process_info);
+                        pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, r_current_process_info);
+                        const auto &geom = it->GetGeometry();
+                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
+                            PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
+                            aux.resize(dofs.size(), mNumberOfRomModes,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        noalias(aux) = prod(LHS_Contribution, PhiElemental);
+                        double h_rom_weight = it->GetValue(HROM_WEIGHT);
+                        noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
+                        noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+                    }
+                }
+
+                #pragma omp critical
+                {
+                    noalias(Arom) += tempA;
+                    noalias(brom) += tempb;
+                }
+
+            }
+        }
+        else if (mSolveWithQR){// QR POD: This is used to build Petrov-Galerkin POD.
             #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
             {
                 Matrix PhiElemental;
@@ -529,12 +609,13 @@ public:
 
             }
         }
-        else {// Galerkin POD
+        else if (mSolveWithPetrovGalerkin) {// Petrov Galerkin POD
             #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
             {
                 Matrix PhiElemental;
-                Matrix tempA = ZeroMatrix(mNumberOfRomModes,mNumberOfRomModes);
-                Vector tempb = ZeroVector(mNumberOfRomModes);
+                Matrix PsiElemental;
+                Matrix tempA = ZeroMatrix(mNumberOfPetrovGalerkinRomModes,mNumberOfRomModes);
+                Vector tempb = ZeroVector(mNumberOfPetrovGalerkinRomModes);
                 Matrix aux;
 
                 #pragma omp for nowait
@@ -556,14 +637,18 @@ public:
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
                             PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
                         }
+                        if(PsiElemental.size1() != dofs.size() || PsiElemental.size2() != mNumberOfPetrovGalerkinRomModes) {
+                            PsiElemental.resize(dofs.size(), mNumberOfPetrovGalerkinRomModes,false);
+                        }
                         if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
                             aux.resize(dofs.size(), mNumberOfRomModes,false);
                         }
                         RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        RomAuxiliaryUtilities::GetPsiElemental(PsiElemental, dofs, geom, mMapPhi);
                         noalias(aux) = prod(LHS_Contribution, PhiElemental);
                         double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
-                        noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
-                        noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+                        noalias(tempA) += prod(trans(PsiElemental), aux) * h_rom_weight;
+                        noalias(tempb) += prod(trans(PsiElemental), RHS_Contribution) * h_rom_weight;
                     }
                 }
 
@@ -586,14 +671,18 @@ public:
                         if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mNumberOfRomModes) {
                             PhiElemental.resize(dofs.size(), mNumberOfRomModes,false);
                         }
+                        if(PsiElemental.size1() != dofs.size() || PsiElemental.size2() != mNumberOfPetrovGalerkinRomModes) {
+                            PsiElemental.resize(dofs.size(), mNumberOfPetrovGalerkinRomModes,false);
+                        }
                         if(aux.size1() != dofs.size() || aux.size2() != mNumberOfRomModes) {
                             aux.resize(dofs.size(), mNumberOfRomModes,false);
                         }
                         RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, mMapPhi);
+                        RomAuxiliaryUtilities::GetPsiElemental(PsiElemental, dofs, geom, mMapPhi);
                         noalias(aux) = prod(LHS_Contribution, PhiElemental);
                         double h_rom_weight = it->GetValue(HROM_WEIGHT);
-                        noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
-                        noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
+                        noalias(tempA) += prod(trans(PsiElemental), aux) * h_rom_weight;
+                        noalias(tempb) += prod(trans(PsiElemental), RHS_Contribution) * h_rom_weight;
                     }
                 }
 
@@ -613,13 +702,18 @@ public:
         //solve for the rom unkowns dunk = Arom^-1 * brom
         Vector dxrom(mNumberOfRomModes);
         const auto solving_timer = BuiltinTimer();
-        if (mSolveWithQR){
+        if (mSolveWithGalerkin){
+            MathUtils<double>::Solve(Arom, dxrom, brom);
+        }
+        else if (mSolveWithQR){
             QR<double, row_major> qr_util;
             qr_util.compute(BaseType::GetEquationSystemSize(),mNumberOfRomModes,&(Arom)(0,0));
             qr_util.solve(&(brom)(0),&(dxrom)(0));
         }
-        else{
-            MathUtils<double>::Solve(Arom, dxrom, brom);
+        else if (mSolveWithPetrovGalerkin){
+            QR<double, row_major> qr_util;
+            qr_util.compute(mNumberOfPetrovGalerkinRomModes,mNumberOfRomModes,&(Arom)(0,0));
+            qr_util.solve(&(brom)(0),&(dxrom)(0));
         }
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
@@ -686,7 +780,8 @@ public:
             "name" : "rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
-            "solve_with_qr" : false
+            "petrov_galerkin_number_of_rom_dofs" : 10,
+            "solving_strategy" : "Galerkin"
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
@@ -747,7 +842,7 @@ protected:
     ///@{
 
     SizeType mNodalDofs;
-    SizeType mNumberOfRomModes;
+    SizeType mNumberOfRomModes, mNumberOfPetrovGalerkinRomModes;
     std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
 
     ElementsArrayType mSelectedElements;
@@ -756,7 +851,11 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
 
+    bool mSolveWithGalerkin = false;
     bool mSolveWithQR = false;
+    bool mSolveWithPetrovGalerkin = false;
+
+    std::string mSolvingStrategy;
 
     ///@}
     ///@name Protected operators
@@ -774,8 +873,21 @@ protected:
         // Set member variables
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
-        mSolveWithQR = ThisParameters["solve_with_qr"].GetBool();
+        mNumberOfPetrovGalerkinRomModes = ThisParameters["petrov_galerkin_number_of_rom_dofs"].GetInt();
+        mSolvingStrategy = ThisParameters["solving_strategy"].GetString();
 
+        if (mSolvingStrategy == "Galerkin"){
+            mSolveWithGalerkin = true;
+        }
+        else if (mSolvingStrategy == "QR"){
+            mSolveWithQR = true;
+        } 
+        else if (mSolvingStrategy == "Petrov-Galerkin"){
+            mSolveWithPetrovGalerkin = true;
+        }
+        else {
+            KRATOS_ERROR << "Solving strategy \""<< mSolvingStrategy << "\" not valid" << std::endl;
+        }
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
         for (const auto& r_var_name : ThisParameters["nodal_unknowns"].GetStringArray()) {

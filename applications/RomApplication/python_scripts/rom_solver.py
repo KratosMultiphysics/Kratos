@@ -21,8 +21,9 @@ def CreateSolver(cls, model, custom_settings):
             default_settings = KratosMultiphysics.Parameters("""{
                 "rom_settings": {
                     "nodal_unknowns": [],
-                    "number_of_rom_dofs": 0,
-                    "solve_with_qr" : false
+                    "number_of_rom_dofs" : 10,
+                    "petrov_galerkin_number_of_rom_dofs" : 10,
+                    "solving_strategy" : "Galerkin"
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -40,6 +41,12 @@ def CreateSolver(cls, model, custom_settings):
             if not n_rom_dofs > 0:
                 err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
                 raise Exception(err_msg)
+            ##Added Petrov
+            n_petrov_galerkin_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
+            if not n_rom_dofs > 0:
+                err_msg = "\'petrov_galerkin_number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
+                raise Exception(err_msg)
+            #####
 
             # Check if the nodal unknowns have been provided by the user
             # If not, take the DOFs list from the base solver

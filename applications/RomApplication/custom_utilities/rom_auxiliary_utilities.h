@@ -159,6 +159,19 @@ public:
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
 
     /**
+     * @brief Obtain the left elemental basis matrix for a particular element.
+     * @param rPsiElemental The matrix to store the result in. Must have the appropiate size already.
+     * @param rDofs The set of dofs of the element.
+     * @param rGeom The geometry of the element.
+     * @rVarToRowMapping A map from each variables's key to its row in the basis matrix.
+     */
+    static void GetPsiElemental(
+        Matrix &rPsiElemental,
+        const Element::DofsVectorType& rDofs,
+        const Element::GeometryType& rGeom,
+        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
+
+    /**
      * @brief Write the assembled residuals for current iteration for a given rModelPart. (This is to be read by calculate_rom_residual_basis_ouput_process.py to build a Petrov-Galerkin ROM)
      * @param rModelPart Model Part from which the assembled residuals will be obtained.
      * @param pScheme Current scheme.

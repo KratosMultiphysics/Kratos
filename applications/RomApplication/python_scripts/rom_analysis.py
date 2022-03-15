@@ -8,6 +8,9 @@ from KratosMultiphysics.RomApplication.petrov_galerkin_training_utility import P
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 
+from glob import glob 
+from os import remove
+
 def CreateRomAnalysisInstance(cls, global_model, parameters):
     class RomAnalysis(cls):
 
@@ -37,10 +40,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             #########Added Petrov
             self.train_petrov_galerkin = self.rom_parameters["train_petrov_galerkin"]["train"].GetBool() if self.rom_parameters.Has("train_petrov_galerkin") else False
             if self.train_hrom and self.train_petrov_galerkin:
-                err_msg = "\'train_petrov_galerkin\' and \'train_hrom\' are both \'true\'. Select training strategy."
+                err_msg = "\'train_petrov_galerkin\' and \'train_hrom\' are both \'true\'. Select only one training strategy."
                 raise Exception(err_msg)
-            if self.run_hrom and self.train_petrov_galerkin:
-                err_msg = "\'train_petrov_galerkin\' and \'run_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
+            if (self.train_hrom or self.train_petrov_galerkin) and (self.run_hrom):
+                err_msg = "\'train_petrov_galerkin\' or \'train_hrom\' and \'run_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
+                raise Exception(err_msg)
+            self.solving_strategy = self.rom_parameters["rom_settings"]["solving_strategy"].GetString()
+            solving_strategy_list = ["Galerkin","QR","Petrov-Galerkin"]
+            if (self.solving_strategy not in solving_strategy_list):
+                err_msg = "\'solving_strategy\': '" +self.solving_strategy+"' is not available. Please select one of the following: "+ str(solving_strategy_list)
                 raise Exception(err_msg)
             #########
 
@@ -120,6 +128,20 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         aux[j,i] = nodal_modes[node_id][j][i].GetDouble()
                 node.SetValue(KratosROM.ROM_BASIS, aux)
 
+            ########Added Petrov
+            # Set the left nodal ROM basis
+            if (self.solving_strategy == "Petrov-Galerkin"):
+                petrov_galerkin_nodal_modes = self.rom_parameters["petrov_galerkin_nodal_modes"]
+                petrov_galerkin_nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
+                petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
+                aux = KratosMultiphysics.Matrix(petrov_galerkin_nodal_dofs, petrov_galerkin_rom_dofs)
+                for node in computing_model_part.Nodes:
+                    node_id = str(node.Id)
+                    for j in range(petrov_galerkin_nodal_dofs):
+                        for i in range(petrov_galerkin_rom_dofs):
+                            aux[j,i] = petrov_galerkin_nodal_modes[node_id][j][i].GetDouble()
+                    node.SetValue(KratosROM.ROM_LEFT_BASIS, aux)
+
             # Check for HROM stages
             if self.train_hrom:
                 # Create the training utility to calculate the HROM weights
@@ -160,6 +182,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             #####Added Petrov
             if self.train_petrov_galerkin:
                 self.__petrov_galerkin_training_utility.AppendCurrentStepProjectedSystem()
+            ## Delete all .mm files when training Petrov-Galerkin with AssembledResiduals
+            files_to_delete_list = glob('*.mm')
+            for to_erase_file in files_to_delete_list:
+                remove(to_erase_file)
             #####
 
             # Call the HROM training utility to append the current step residuals
