@@ -9,6 +9,7 @@ from importlib import import_module
 import KratosMultiphysics as KtsMp
 import KratosMultiphysics.KratosUnittest as KtsUt
 import KratosMultiphysics.kratos_utilities as KtsUtls
+from KratosMultiphysics.testing import utilities as testing_utils
 
 
 def Usage():
@@ -177,7 +178,7 @@ def print_summary(exit_codes):
 
 def main():
     # Define the command
-    cmd = sys.executable
+    cmd = testing_utils.GetPython3Command()
 
     verbose_values = [0, 1, 2]
     level_values = ['all', 'nightly', 'small', 'validation']
