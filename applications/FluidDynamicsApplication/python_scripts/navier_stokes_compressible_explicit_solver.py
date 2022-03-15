@@ -135,12 +135,15 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         rk_parameter = self.settings["time_scheme"].GetString()
 
         rk_startegies = {
-            "RK3-TVD": KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
-            "RK4"    : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
+            "RK3-TVD"       : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta3TVD,
+            "RK4"           : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4,
+            "forward_euler" : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyForwardEuler
         }
 
         if rk_parameter in rk_startegies:
-            return rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+            strat = rk_startegies[rk_parameter](self.computing_model_part, strategy_settings)
+            self.settings["shock_capturing_settings"] = strategy_settings["shock_capturing_settings"]
+            return strat
 
         err_msg = "Runge-Kutta method of type '{}' not available. Try any of\n".format(rk_parameter)
         for key in rk_startegies:

@@ -92,6 +92,18 @@ public:
         FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
         const double RelativeTolerance);
 
+    /**
+     * @brief Construct a new Apply Ray Casting Process object using an already created search strucutre
+     *
+     * @param TheFindIntersectedObjectsProcess reference to the already created search structure
+     * @param RelativeTolerance user-defined relative tolerance to be multiplied by the domain bounding box size
+     * @param pDistanceVariable user-defined variabe to be used to read and store the distance to the skin
+     */
+    ApplyRayCastingProcess(
+        FindIntersectedGeometricalObjectsProcess& TheFindIntersectedObjectsProcess,
+        const double RelativeTolerance,
+        const Variable<double>* pDistanceVariable);
+
     /// Destructor.
     ~ApplyRayCastingProcess() override;
 
@@ -192,6 +204,8 @@ private:
     FindIntersectedGeometricalObjectsProcess* mpFindIntersectedObjectsProcess;
     bool mIsSearchStructureAllocated;
     double mCharacteristicLength = 1.0;
+
+    const Variable<double>* mpDistanceVariable = &DISTANCE;
 
     ///@}
     ///@name Private Operators

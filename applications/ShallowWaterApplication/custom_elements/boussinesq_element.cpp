@@ -37,6 +37,7 @@ const Variable<double>& BoussinesqElement<TNumNodes>::GetUnknownComponent(int In
     }
 }
 
+
 template<std::size_t TNumNodes>
 typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::GetUnknownVector(const ElementData& rData) const
 {
@@ -50,84 +51,63 @@ typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNod
     return unknown;
 }
 
-template<std::size_t TNumNodes>
-typename BoussinesqElement<TNumNodes>::LocalVectorType BoussinesqElement<TNumNodes>::ConservativeVector(
-    const LocalVectorType& rVector,
-    const ElementData& rData) const
-{
-    array_1d<double,mLocalSize> conservative_vector;
-    for (std::size_t i = 0; i < TNumNodes; ++i) {
-        conservative_vector[3*i    ] = -rVector[3*i    ] * rData.nodal_z[i];
-        conservative_vector[3*i + 1] = -rVector[3*i + 1] * rData.nodal_z[i];
-        conservative_vector[3*i + 2] =  rVector[3*i + 2];
-    }
-    return conservative_vector;
-}
 
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step)
 {
-    rData.length = rGeometry.Length();
-
-    for (IndexType i = 0; i < TNumNodes; i++)
+    for (std::size_t i = 0; i < TNumNodes; i++)
     {
         rData.nodal_f[i] = rGeometry[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, Step);
-        rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
+        rData.nodal_w[i] = rGeometry[i].FastGetSolutionStepValue(VERTICAL_VELOCITY, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
-        rData.nodal_a[i] = rGeometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
         rData.nodal_v_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN, Step);
+        rData.nodal_q_lap[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY_H_LAPLACIAN, Step);
     }
 }
 
+
 template<std::size_t TNumNodes>
-void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
+void BoussinesqElement<TNumNodes>::UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
     const double eta = inner_prod(rData.nodal_f, rN);
     const double H = -inner_prod(rData.nodal_z, rN);
     const double g = rData.gravity;
     const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, rN);
 
-    double e; // the non linearity ratio
-    if (rData.amplitude) {
-        e = rData.amplitude / H;
-    } else {
-        e = std::abs(eta) / H;
-    }
-
-    rData.depth = H;
-    rData.height = H + e * eta;
+    rData.depth = std::max(0.0, H);
+    rData.height = H + eta;
     rData.velocity = v;
 
     /**
-     * A_1 = {{ e*u_1      0     g  },
-     *        {   0      e*u_1   0  },
-     *        {H + e*eta   0   e*u_1}}
+     * A_1 = {{ u_1     0    g  },
+     *        {  0     u_1   0  },
+     *        {H + eta  0   u_1}}
      */
-    rData.A1(0,0) = e*v[0];
+    rData.A1(0,0) = v[0];
     rData.A1(0,1) = 0;
     rData.A1(0,2) = g;
     rData.A1(1,0) = 0;
-    rData.A1(1,1) = e*v[0];
+    rData.A1(1,1) = v[0];
     rData.A1(1,2) = 0;
-    rData.A1(2,0) = H + e*eta;
+    rData.A1(2,0) = H + eta;
     rData.A1(2,1) = 0;
-    rData.A1(2,2) = e*v[0];
+    rData.A1(2,2) = v[0];
 
     /*
-     * A_2 = {{ e*u_2      0      0  },
-     *        {   0      e*u_2    g  },
-     *        {   0   H + e*eta e*u_2}}
+     * A_2 = {{ u_2    0      0  },
+     *        {  0    u_2     g  },
+     *        {  0  H + eta  u_2}}
      */
-    rData.A2(0,0) = e*v[1];
+    rData.A2(0,0) = v[1];
     rData.A2(0,1) = 0;
     rData.A2(0,2) = 0;
     rData.A2(1,0) = 0;
-    rData.A2(1,1) = e*v[1];
+    rData.A2(1,1) = v[1];
     rData.A2(1,2) = g;
     rData.A2(2,0) = 0;
-    rData.A2(2,1) = H + e*eta;
-    rData.A2(2,2) = e*v[1];
+    rData.A2(2,1) = H + eta;
+    rData.A2(2,2) = v[1];
 
     /// b_1
     rData.b1[0] = 0;
@@ -140,15 +120,74 @@ void BoussinesqElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, c
     rData.b2[2] = -v[1];
 }
 
+
 template<std::size_t TNumNodes>
 double BoussinesqElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
 {
-    const double lambda = std::sqrt(rData.gravity * std::abs(rData.height)) + norm_2(rData.velocity);
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
     const double epsilon = 1e-6;
-    const double threshold = rData.relative_dry_height * rData.length;
-    const double w = PhaseFunction::WetFraction(rData.height, threshold);
-    return w * rData.length * rData.stab_factor / (lambda + epsilon);
+    const double w = WaveElementType::WetFraction(rData);
+    return w * rData.length * rData.stab_factor / (eigenvalue + epsilon);
 }
+
+
+template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::CalculateArtificialViscosity(
+    BoundedMatrix<double,3,3>& rViscosity,
+    BoundedMatrix<double,2,2>& rDiffusion,
+    const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+    // Computation of the residuals and gradients
+    double residual;
+    array_1d<double,2> gradient;
+    AlgebraicResidual(residual, gradient, rData, rN, rDN_DX);
+
+    // slope limits
+    const double min_slope = 0.1;
+    const double max_slope = 1.0;
+
+    // Computation of the artificial viscosity/diffusion
+    const double residual_norm = std::abs(residual);
+    const double gradient_norm = std::min(std::max(norm_2(gradient), min_slope), max_slope);
+    const double artificial_diffusion = 0.5 * rData.shock_stab_factor * rData.length * residual_norm / gradient_norm;
+
+    // Assembly of the shock capturing tensors
+    rDiffusion = artificial_diffusion * IdentityMatrix(2);
+    rViscosity = artificial_diffusion * IdentityMatrix(3);
+}
+
+
+template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::AlgebraicResidual(
+    double& rMassResidual,
+    array_1d<double,2>& rFreeSurfaceGradient,
+    const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const
+{
+    // constants
+    const double beta = -0.531;
+    const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
+    const double C3 = beta + 0.5;
+    const double H = rData.depth;
+    const double H3 = std::pow(H, 3);
+    const double H2 = std::pow(H, 2);
+
+    // Spatial derivatives
+    rFreeSurfaceGradient = prod(rData.nodal_f, rDN_DX);
+    const double v_divergence = WaveElementType::VectorProduct(rData.nodal_v, rDN_DX);
+
+    // Mass conservation residual
+    const double vertical_vel = inner_prod(rData.nodal_w, rN);
+    const double wave_f = rData.height * v_divergence;
+    const double convection_f = rData.velocity[0] * rFreeSurfaceGradient[0] + rData.velocity[1] * rFreeSurfaceGradient[1];
+    double dispersion_f = C1 * H3 * WaveElementType::VectorProduct(rData.nodal_v_lap, rDN_DX);
+    dispersion_f       += C3 * H2 * WaveElementType::VectorProduct(rData.nodal_q_lap, rDN_DX);
+    rMassResidual = vertical_vel + wave_f + convection_f + dispersion_f;
+}
+
 
 template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
@@ -159,17 +198,17 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const double Weight)
 {
     // Constants
-    const double dispersive_ratio = rData.depth / rData.wavelength;
-    const double m2 = std::pow(dispersive_ratio, 2);
     const double beta = -0.531;
     const double C1 = 0.5 * std::pow(beta, 2) - 0.166666666666;
     const double C3 = beta + 0.5;
     const double H = rData.depth;
+    const double H3 = std::pow(H, 3);
+    const double H2 = std::pow(H, 2);
 
     // Projected auxiliary field
     array_1d<array_1d<double,3>,TNumNodes> nodal_Jf;
     for (std::size_t i = 0; i < TNumNodes; ++i) {
-        nodal_Jf[i] = (C1 + C3) * std::pow(H, 3) * rData.nodal_v_lap[i];
+        nodal_Jf[i] = C1 * H3 * rData.nodal_v_lap[i] + C3 * H2 * rData.nodal_q_lap[i];
     }
 
     // Stabilization constants
@@ -178,9 +217,9 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
     const array_1d<double,3> A2i3 = column(rData.A2, 2);
 
     // Adding the contribution of the dispersive fields
-    for (IndexType i = 0; i < TNumNodes; ++i)
+    for (std::size_t i = 0; i < TNumNodes; ++i)
     {
-        for (IndexType j = 0; j < TNumNodes; ++j)
+        for (std::size_t j = 0; j < TNumNodes; ++j)
         {
             double g1_ij;
             double g2_ij;
@@ -194,24 +233,24 @@ void BoussinesqElement<TNumNodes>::AddDispersiveTerms(
             }
 
             /// Gradient contribution
-            rVector[3*i + 2] -= Weight*m2*g1_ij*nodal_Jf[j][0];
-            rVector[3*i + 2] -= Weight*m2*g2_ij*nodal_Jf[j][1];
+            rVector[3*i + 2] -= Weight*g1_ij*nodal_Jf[j][0];
+            rVector[3*i + 2] -= Weight*g2_ij*nodal_Jf[j][1];
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A1i3*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*nodal_Jf[j][0], 3*i);
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A2i3*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*nodal_Jf[j][1], 3*i);
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A1i3*nodal_Jf[j][1], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A1i3*nodal_Jf[j][1], 3*i);
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            MathUtils<double>::AddVector(rVector, -Weight*m2*l*d_ij*A2i3*nodal_Jf[j][0], 3*i);
+            MathUtils<double>::AddVector(rVector, -Weight*l*d_ij*A2i3*nodal_Jf[j][0], 3*i);
         }
     }
 }
@@ -226,27 +265,26 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
     const double Weight)
 {
     // Constants
-    const double dispersive_ratio = rData.depth / rData.wavelength;
-    const double m2 = std::pow(dispersive_ratio, 2);
     const double beta = -0.531;
     const double C2 = 0.5 * std::pow(beta, 2);
     const double C4 = beta;
     const double H = rData.depth;
+    const double H2 = std::pow(H, 2);
     const double l = StabilizationParameter(rData);
     BoundedMatrix<double,3,3> M = IdentityMatrix(3);
     BoundedMatrix<double,2,2> K;
+    BoundedMatrix<double,2,2> Ju;
     array_1d<double,2> derivatives_i;
     array_1d<double,2> derivatives_j;
 
-    // Adding the contribution of the dispersive fields
-    for (IndexType i = 0; i < TNumNodes; ++i)
+    for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         derivatives_i[0] = rDN_DX(i,0);
         derivatives_i[1] = rDN_DX(i,1);
-        for (IndexType j = 0; j < TNumNodes; ++j)
+        for (std::size_t j = 0; j < TNumNodes; ++j)
         {
             /// Consistent mass matrix
-            const double n_ij = WaveElementType::ShapeFunctionProduct(rN, i, j);//rN[i] * rN[j];
+            const double n_ij = WaveElementType::ShapeFunctionProduct(rN, i, j);
             MathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
 
             /// Stabilization x
@@ -257,11 +295,12 @@ void BoussinesqElement<TNumNodes>::AddMassTerms(
             const double g2_ij = rDN_DX(i,1) * rN[j];
             MathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
 
-            /// Disperive term
+            /// Dispersive term
             derivatives_j[0] = rDN_DX(j,0);
             derivatives_j[1] = rDN_DX(j,1);
             noalias(K) = -outer_prod(derivatives_i, derivatives_j);
-            MathUtils<double>::AddMatrix(rMatrix, Weight*m2*(C2+C4)*std::pow(H,2)*K, 3*i, 3*j);
+            noalias(Ju) = C2 * H2 * K - C4 * H * rData.nodal_z[j] * K;
+            MathUtils<double>::AddMatrix(rMatrix, Weight*Ju, 3*i, 3*j);
         }
     }
 }
@@ -278,13 +317,13 @@ void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
     array_1d<double,3> gradients_vector_i;
     array_1d<double,3> gradients_vector_j;
 
-    for (IndexType i = 0; i < TNumNodes; ++i)
+    for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         gradients_vector_i[0] = rDN_DX(i,0);
         gradients_vector_i[1] = rDN_DX(i,1);
         gradients_vector_i[2] = 0.0;
 
-        for (IndexType j = 0; j < TNumNodes; ++j)
+        for (std::size_t j = 0; j < TNumNodes; ++j)
         {
             gradients_vector_j[0] = rDN_DX(j,0);
             gradients_vector_j[1] = rDN_DX(j,1);
@@ -297,43 +336,50 @@ void BoussinesqElement<TNumNodes>::AddAuxiliaryLaplacian(
 }
 
 
-template<>
-void BoussinesqElement<3>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    auto& r_geom = this->GetGeometry();
+    auto& r_geometry = this->GetGeometry();
 
     // Struct to pass around the data
     ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, r_geom);
+    WaveElementType::InitializeData(data, rCurrentProcessInfo);
+    GetNodalData(data, r_geometry);
 
-    // Geometrical data
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
+    Vector weights;
+    Matrix N_container;
+    ShapeFunctionsGradientsType DN_DX_container;
+    WaveElementType::CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
 
-    // Auxiliary fields
+    // Auxiliary field
     LocalMatrixType laplacian = ZeroMatrix(mLocalSize, mLocalSize);
 
-    // Gauss point contribution
-    CalculateGaussPointData(data, N);
-    AddAuxiliaryLaplacian(laplacian, data, N, DN_DX, area);
+    const std::size_t num_gauss_points = weights.size();
+    for (std::size_t g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = weights[g];
+        const array_1d<double,TNumNodes> N = row(N_container, g);
+        const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
 
-    // Calculate the lapacian vector
+        UpdateGaussPointData(data, N);
+
+        AddAuxiliaryLaplacian(laplacian, data, N, DN_DX, weight);
+    }
+
+    // Calculate the laplacian vector
     const LocalVectorType& vel_vector = this->GetUnknownVector(data);
     LocalVectorType vel_laplacian_vector = prod(laplacian, vel_vector);
 
     // Add the elemental contribution to the nodes
     array_1d<double,3> vel_laplacian = ZeroVector(3);
-    for (std::size_t i = 0; i < 3; ++i)
+    for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         std::size_t block = 3 * i;
         vel_laplacian[0] = vel_laplacian_vector[block];
         vel_laplacian[1] = vel_laplacian_vector[block + 1];
-        r_geom[i].SetLock();
-        r_geom[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
-        r_geom[i].UnSetLock();
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(VELOCITY_LAPLACIAN) += vel_laplacian;
+        r_geometry[i].UnSetLock();
     }
 }
 
@@ -342,30 +388,55 @@ template<std::size_t TNumNodes>
 void BoussinesqElement<TNumNodes>::AddRightHandSide(
     LocalVectorType& rRHS,
     ElementData& rData,
-    const array_1d<double,TNumNodes>& rN,
-    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    const double Weight)
+    const Matrix& rNContainer,
+    const ShapeFunctionsGradientsType& rDN_DXContainer,
+    const Vector& rWeights)
 {
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
 
-    CalculateGaussPointData(rData, rN);
+    const std::size_t num_gauss_points = rWeights.size();
 
-    this->AddWaveTerms(lhs, rRHS, rData, rN, rDN_DX, Weight);
-    this->AddFrictionTerms(lhs, rRHS, rData, rN, rDN_DX, Weight);
-    this->AddDispersiveTerms(rRHS, rData, rN, rDN_DX, Weight);
-    this->AddArtificialViscosityTerms(lhs, rData, rDN_DX, Weight);
+    for (std::size_t g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = rWeights[g];
+        const array_1d<double,TNumNodes> N = row(rNContainer, g);
+        const BoundedMatrix<double,TNumNodes,2> DN_DX = rDN_DXContainer[g];
 
+        UpdateGaussPointData(rData, N);
+
+        this->AddWaveTerms(lhs, rRHS, rData, N, DN_DX, weight);
+        this->AddFrictionTerms(lhs, rRHS, rData, N, DN_DX, weight);
+        this->AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
+        this->AddArtificialViscosityTerms(lhs, rData, N, DN_DX, weight);
+
+        // Deactivating the dry domain
+        const double w = WaveElementType::WetFraction(rData);
+        lhs *= w;
+        rRHS *= w;
+
+        // Controlling the drainage mechanism
+        const double factor = 2.0 * norm_2(rData.velocity);
+        BoundedMatrix<double,3,3> S = ZeroMatrix(3,3);
+        S(0,0) = factor;
+        S(1,1) = factor;
+        for (std::size_t i = 0; i < TNumNodes; ++i)
+        {
+            /// Lumped mass matrix
+            const double n_ij = 1.0 / static_cast<double>(TNumNodes);
+            MathUtils<double>::AddMatrix(lhs, weight*(1.0-w)*n_ij*S, 3*i, 3*i);
+        }
+    }
     noalias(rRHS) -= prod(lhs, this->GetUnknownVector(rData));
 }
 
 
-template<>
-void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
 
-    auto& r_geom = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     LocalVectorType f0 = ZeroVector(mLocalSize);
     LocalVectorType f1 = ZeroVector(mLocalSize);
@@ -374,33 +445,33 @@ void BoussinesqElement<3>::CalculateRightHandSide(VectorType& rRightHandSideVect
 
     // Struct to pass around the data
     ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
+    WaveElementType::InitializeData(data, rCurrentProcessInfo);
 
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
+    Vector weights;
+    Matrix N_container;
+    ShapeFunctionsGradientsType DN_DX_container;
+    WaveElementType::CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
 
-    GetNodalData(data, r_geom, 0);
-    AddRightHandSide(f0, data, N, DN_DX, area);
+    GetNodalData(data, r_geometry, 0);
+    AddRightHandSide(f0, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 1);
-    AddRightHandSide(f1, data, N, DN_DX, area);
+    GetNodalData(data, r_geometry, 1);
+    AddRightHandSide(f1, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 2);
-    AddRightHandSide(f2, data, N, DN_DX, area);
+    GetNodalData(data, r_geometry, 2);
+    AddRightHandSide(f2, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 3);
-    AddRightHandSide(f3, data, N, DN_DX, area);
+    GetNodalData(data, r_geometry, 3);
+    AddRightHandSide(f3, data, N_container, DN_DX_container, weights);
 
     noalias(rRightHandSideVector) = (9*f0 + 19*f1 - 5*f2 + f3) / 24.0;
 }
 
 
-template<>
-void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
+template<std::size_t TNumNodes>
+void BoussinesqElement<TNumNodes>::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
-    auto& r_geom = this->GetGeometry();
+    auto& r_geometry = this->GetGeometry();
 
     LocalVectorType f1 = ZeroVector(mLocalSize);
     LocalVectorType f2 = ZeroVector(mLocalSize);
@@ -408,52 +479,39 @@ void BoussinesqElement<3>::AddExplicitContribution(const ProcessInfo& rCurrentPr
 
     // Struct to pass around the data
     ElementData data;
-    InitializeData(data, rCurrentProcessInfo);
+    WaveElementType::InitializeData(data, rCurrentProcessInfo);
 
-    BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
-    array_1d<double,3> N;            // Position of the gauss point
-    double area;
-    GeometryUtils::CalculateGeometryData(r_geom, DN_DX, N, area);
+    Vector weights;
+    Matrix N_container;
+    ShapeFunctionsGradientsType DN_DX_container;
+    WaveElementType::CalculateGeometryData(r_geometry, weights, N_container, DN_DX_container);
 
-    GetNodalData(data, r_geom, 1);
-    AddRightHandSide(f1, data, N, DN_DX, area);
+    GetNodalData(data, r_geometry, 1);
+    AddRightHandSide(f1, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 2);
-    AddRightHandSide(f2, data, N, DN_DX, area);
+    GetNodalData(data, r_geometry, 2);
+    AddRightHandSide(f2, data, N_container, DN_DX_container, weights);
 
-    GetNodalData(data, r_geom, 3);
-    AddRightHandSide(f3, data, N, DN_DX, area);
+    GetNodalData(data, r_geometry, 3);
+    AddRightHandSide(f3, data, N_container, DN_DX_container, weights);
 
     LocalVectorType increment = (23*f1 - 16*f2 + 5*f3) / 12.0;
     array_1d<double,3> nodal_increment;
-    for (std::size_t i = 0; i < r_geom.size(); ++i)
+    for (std::size_t i = 0; i < TNumNodes; ++i)
     {
         std::size_t block = 3*i;
         nodal_increment[0] = increment[block];
         nodal_increment[1] = increment[block + 1];
         nodal_increment[2] = increment[block + 2];
 
-        r_geom[i].SetLock();
-        r_geom[i].FastGetSolutionStepValue(RESIDUAL_VECTOR) += nodal_increment;
-        r_geom[i].UnSetLock();
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(RHS) += nodal_increment;
+        r_geometry[i].UnSetLock();
     }
 }
 
 
-template<std::size_t TNumNodes>
-void BoussinesqElement<TNumNodes>::CalculateLumpedMassVector(
-    VectorType& rLumpedMassVector,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    if(rLumpedMassVector.size() != mLocalSize)
-        rLumpedMassVector.resize(mLocalSize, false);
-
-    const double area = this->GetGeometry().Area();
-    const double lump_factor = 1.0 / static_cast<double>(TNumNodes);
-    rLumpedMassVector = Vector(mLocalSize, area * lump_factor);
-}
-
-
 template class BoussinesqElement<3>;
+template class BoussinesqElement<4>;
 
 } // namespace Kratos

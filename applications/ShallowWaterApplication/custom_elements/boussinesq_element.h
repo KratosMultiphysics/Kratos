@@ -168,13 +168,6 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief This is called during the initialize of the builder to calculate the lumped mass vector
-     * @param rLumpedMassVector the elemental lumped mass vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateLumpedMassVector(VectorType& rLumpedMassVector, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
      * @brief Add the explicit contribution according to the Adams-Bashforth scheme
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -207,9 +200,9 @@ protected:
     void AddRightHandSide(
         LocalVectorType& rRHS,
         ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0);
+        const Matrix& rNContainer,
+        const ShapeFunctionsGradientsType& rDN_DXContainer,
+        const Vector& rWeights);
 
     void AddAuxiliaryLaplacian(
         LocalMatrixType& rLaplacian,
@@ -222,13 +215,25 @@ protected:
 
     LocalVectorType GetUnknownVector(const ElementData& rData) const override;
 
-    LocalVectorType ConservativeVector(const LocalVectorType& rVector, const ElementData& rData) const;
-
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
 
-    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
+    void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     double StabilizationParameter(const ElementData& rData) const override;
+
+    void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
+
+    void AlgebraicResidual(
+        double& rMassResidual,
+        array_1d<double,2>& rFreeSurfaceGradient,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX) const;
 
     void AddDispersiveTerms(
         LocalVectorType& rVector,

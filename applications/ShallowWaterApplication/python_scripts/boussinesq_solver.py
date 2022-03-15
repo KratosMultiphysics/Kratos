@@ -25,11 +25,12 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.RESIDUAL_VECTOR) # This is used by the predictor. TODO: replace with reaction
-        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)
-        self.main_model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY_LAPLACIAN)   # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(SW.VELOCITY_H_LAPLACIAN) # Intermediate field
+        self.main_model_part.AddNodalSolutionStepVariable(KM.RHS)          # This is used by the predictor
+        self.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)   # This is used to assemble the RHS by the predictor
+        self.main_model_part.AddNodalSolutionStepVariable(SW.FIRST_DERIVATIVE_WEIGHTS)  # Gradient recovery
+        self.main_model_part.AddNodalSolutionStepVariable(SW.SECOND_DERIVATIVE_WEIGHTS) # Laplacian recovery
 
     def AdvanceInTime(self, current_time):
         current_time = super().AdvanceInTime(current_time)
@@ -46,10 +47,9 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
 
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
-        self.main_model_part.ProcessInfo.SetValue(SW.AMPLITUDE, self.settings["amplitude"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(SW.WAVELENGTH, self.settings["wavelength"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
 
     def _CreateScheme(self):
         return SW.ResidualBasedAdamsMoultonScheme()
@@ -59,8 +59,7 @@ class BoussinesqSolver(ShallowWaterBaseSolver):
         default_settings = KM.Parameters("""{
             "relative_dry_height"        : 0.1,
             "stabilization_factor"       : 0.01,
-            "wavelength"                 : 10,
-            "amplitude"                  : 0.0
+            "shock_stabilization_factor" : 0.0
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
