@@ -290,7 +290,7 @@ public:
 
     KRATOS_DEPRECATED virtual IntegrationMethod GetIntegrationMethod()
     {
-        return static_cast<const Condition * const>(this)->GetIntegrationMethod();
+        return const_cast<const Condition&>(*this).GetIntegrationMethod();
     }
 
     /**
