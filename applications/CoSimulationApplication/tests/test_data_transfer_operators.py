@@ -235,7 +235,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_distributed"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -252,15 +252,16 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_single_node.GetModelPart().Nodes,
                                         KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT,1)
 
-        with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
-            data_transfer_op.TransferData(self.origin_data_scalar,
-                                          self.destination_matching_data_scalar,
-                                          transfer_options)
+        # Test with false input
+        # with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
+        #     data_transfer_op.TransferData(self.origin_data_scalar,
+        #                                   self.destination_matching_data_scalar,
+        #                                   transfer_options)
 
 
     def test_copy_single_to_dist_transfer_operator_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_distributed"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -279,7 +280,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator_distribute_values(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_distributed"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -298,7 +299,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_distributed"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -326,7 +327,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator_distribute_values_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_distributed"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -345,7 +346,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_transfer_operator_distribute_values_swap_sign_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_distributed"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -373,7 +374,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_sum_dist_to_single(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_distributed_to_single"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -390,15 +391,16 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 5)
 
-        with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
-            data_transfer_op.TransferData(self.origin_data_scalar,
-                                        self.destination_matching_data_scalar,
-                                        transfer_options)
+        # Test with false input
+        # with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
+        #     data_transfer_op.TransferData(self.origin_data_scalar,
+        #                                 self.destination_matching_data_scalar,
+        #                                 transfer_options)
 
 
     def test_sum_dist_to_single_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_distributed_to_single"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -418,7 +420,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_sum_dist_to_single_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_distributed_to_single"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -440,7 +442,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_sum_dist_to_single_add_values_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_distributed_to_single"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -460,9 +462,147 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
                                         self.origin_data_scalar.GetModelPart().Nodes,
                                         KMC.SCALAR_FORCE, KM.PRESSURE, 0.0)
 
+    def test_sum_dist_to_dist(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_many_to_many"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
+        transfer_options = KM.Parameters(""" [] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, self.origin_data_scalar.Size())
+     
+        # Test with false input
+        # with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
+        #     data_transfer_op.TransferData(self.origin_data_scalar,
+        #                                 self.destination_matching_data_scalar,
+        #                                 transfer_options)
+
+    def test_sum_dist_to_dist_distribute_values(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_many_to_many"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
+        transfer_options = KM.Parameters(""" ["distribute_values"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+
+    def test_sum_dist_to_dist_add_values(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_many_to_many"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
+        transfer_options_empty = KM.Parameters(""" [] """)
+        transfer_options_add = KM.Parameters(""" ["add_values"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options_empty)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, self.origin_data_scalar.Size() )
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options_add)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, 2 * self.origin_data_scalar.Size() )
+
+    def test_sum_dist_to_dist_swap_sign(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_many_to_many"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
+        transfer_options = KM.Parameters(""" ["swap_sign"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, -self.origin_data_scalar.Size())
+
+    def test_sum_dist_to_dist_distribute_values_swap_sign(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_many_to_many"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
+        transfer_options = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, -self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+
+    def test_sum_dist_to_dist_distribute_values_swap_sign_add_values(self):
+        data_transfer_op_settings = KM.Parameters("""{
+            "type" : "sum_many_to_many"
+        }""")
+
+        data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
+        transfer_options_empty = KM.Parameters(""" ["distribute_values", "swap_sign"] """)
+        transfer_options_add = KM.Parameters(""" ["distribute_values", "swap_sign", "add_values"] """)
+
+        for node in self.origin_data_scalar.GetModelPart().Nodes:
+            node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options_empty)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, -self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_non_matching_data_scalar,
+                                      transfer_options_add)      
+
+        self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KM.TEMPERATURE, KM.PRESSURE, -2 * self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+        
     def test_sum_dist_to_single_check_var(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "sum_distributed_to_single"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
@@ -475,7 +615,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
     def test_copy_single_to_dist_check_var(self):
         data_transfer_op_settings = KM.Parameters("""{
-            "type" : "copy_single_to_distributed"
+            "type" : "sum_many_to_many"
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
