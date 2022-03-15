@@ -3,8 +3,8 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
     .src.defines import CompressibleNavierStokesDefines as defs
 
 
-def ComputeEulerJacobianMatrix(dofs, params):
-    """This function calculates the Euler Jacobian matrix for convection"""
+def ComputeConvectiveFlux(dofs, params):
+    """This function calculates the convective flux"""
 
     # Auxiliary variables
     dim = params.dim
@@ -30,7 +30,12 @@ def ComputeEulerJacobianMatrix(dofs, params):
                 E[1 + d, j] += p
         E[dim + 1, j] = vel[j] * (e_tot + p)
 
-    # Define and derive the Euler Jacobian matrix
+    return E
+
+
+def ComputeEulerJacobianMatrix(E, dofs, params):
+    """This function calculates the Euler Jacobian matrix for convection"""
+    dim = params.dim
     A = []
     for j in range(dim):
         A_j = defs.Matrix('A_j', dim + 2, dim + 2, real=True)
@@ -50,6 +55,6 @@ def printA(A, params):
         tmp = A[j]
         for i in range(0, dim + 2):
             for k in range(0, dim + 2):
-                print("A[{},{},{}]=[]\n".format(j, i, k, tmp[i, k]))
+                print("A[{},{},{}]=[{}]\n".format(j, i, k, tmp[i, k]))
 
     return 0

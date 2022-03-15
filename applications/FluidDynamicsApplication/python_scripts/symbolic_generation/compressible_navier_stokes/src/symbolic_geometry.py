@@ -41,7 +41,7 @@ class GeometryData:
         self._DN = None
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
     def SymbolicIntegrationPoints(self):
         "Returns the number of gauss points to be evaluated at symbolic time"
@@ -121,7 +121,7 @@ class QuadrilateralData(GeometryData):
         return defs.Vector('N', self.nnodes, positive=True)
 
     def _ComputeShapeFunctionsGradients(self):
-        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims, real=True)
 
 
 class TetrahedronData(GeometryData):

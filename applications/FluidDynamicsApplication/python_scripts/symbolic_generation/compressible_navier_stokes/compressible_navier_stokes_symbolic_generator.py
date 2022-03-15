@@ -163,15 +163,15 @@ class CompressibleNavierStokesSymbolicGenerator:
 
         return L_adj
 
-    def _ComputeVariationalFormulation(self, A, acc, G, H, L_adj, Q, S, Ug, V):
+    def _ComputeVariationalFormulation(self, acc, E, G, L_adj, Q, S, Ug, V):
         # Mass (inertial) term - FE scale (only computed in the implicit case)
         n1 = defs.ZeroMatrix(1, 1) if self.is_explicit else -V.T*acc
 
         # Convective term - FE scale
-        conv_flux = defs.ZeroVector(self.geometry.blocksize)
+        n2 = defs.ZeroMatrix(1, 1)
         for j in range(self.geometry.ndims):
-            conv_flux += A[j] * H.col(j)
-        n2 = - V.transpose() * conv_flux
+            for k in range(self.geometry.blocksize):
+                n2[0, 0] += Q[k, j] * E[k, j]
 
         # Diffusive term - FE scale
         n3 = defs.ZeroMatrix(1, 1)
@@ -436,16 +436,16 @@ class CompressibleNavierStokesSymbolicGenerator:
             bdf = [sympy.Symbol('bdf{}'.format(i)) for i in range(3)]
 
         # Construction of the variational equation
-        Ug  = defs.Vector('Ug', block_size)             # Dofs vector
-        H   = defs.Matrix('H', block_size, dim)         # Gradient of , real=TrueU
-        mg  = sympy.Symbol('mg')                         # Mass source term
-        f   = defs.Vector('f',  dim)                    # Body force vector
-        rg  = sympy.Symbol('rg')                         # Thermal source/sink term
-        V   = defs.Vector('V', block_size)              # Test function
-        Q   = defs.Matrix('Q', block_size, dim)         # Gradient of , real=TrueV
-        acc = defs.Vector('acc', block_size)            # Derivative of Dofs/Time
-        G   = defs.Matrix('G', block_size, dim)         # Diffusive Flux matri, real=Truex
-        res_proj = defs.Vector('res_proj', block_size)  # Residuals projection for the OSS
+        Ug  = defs.Vector('Ug', block_size, real=True)             # Dofs vector
+        H   = defs.Matrix('H', block_size, dim, real=True)         # Gradient of Ug
+        mg  = sympy.Symbol('mg', real=True)                        # Mass source term
+        f   = defs.Vector('f',  dim, real=True)                    # Body force vector
+        rg  = sympy.Symbol('rg', real=True)                        # Thermal source/sink term
+        V   = defs.Vector('V', block_size, real=True)              # Test function
+        Q   = defs.Matrix('Q', block_size, dim, real=True)         # Gradient of V
+        acc = defs.Vector('acc', block_size, real=True)            # Derivative of Dofs/Time
+        G   = defs.Matrix('G', block_size, dim, real=True)         # Diffusive Flux matrix
+        res_proj = defs.Vector('res_proj', block_size, real=True)  # Residuals projection for the OSS
 
         # Calculate the Gauss point residual
         # Matrix Computation
@@ -453,7 +453,8 @@ class CompressibleNavierStokesSymbolicGenerator:
         S = generate_source_term.ComputeSourceMatrix(Ug, mg, f, rg, params)
 
         KratosMultiphysics.Logger.Print(" - Compute Euler Jacobian matrix")
-        A = generate_convective_flux.ComputeEulerJacobianMatrix(Ug, params)
+        E = generate_convective_flux.ComputeConvectiveFlux(Ug, params)
+        A = generate_convective_flux.ComputeEulerJacobianMatrix(E, Ug, params)
 
         if self.shock_capturing:
             sc_params = ShockCapturingParameters()
@@ -482,7 +483,7 @@ class CompressibleNavierStokesSymbolicGenerator:
         KratosMultiphysics.Logger.Print(" - Compute non-linear adjoint operator")
         L_adj = self._ComputeNonLinearAdjointOperator(A, H, Q, S, Ug, V)
 
-        (rv, subscales) = self._ComputeVariationalFormulation(A, acc, G, H, L_adj, Q, S, Ug, V)
+        (rv, subscales) = self._ComputeVariationalFormulation(acc, E, G, L_adj, Q, S, Ug, V)
 
         # OSS Residual projections calculation
         # Calculate the residuals projection
