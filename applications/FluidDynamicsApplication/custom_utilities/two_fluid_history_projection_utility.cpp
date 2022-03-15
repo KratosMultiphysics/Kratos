@@ -33,8 +33,9 @@ namespace Kratos
         ModelPart& rModelPart,
         const bool ComputeNodalH)
     {
-        const std::size_t n_extra_layers = 3;
-        FlagElementsAndNodes(rModelPart, n_extra_layers);
+        // const std::size_t n_extra_layers = 3;
+        double maximum_distance=0.1;
+        FlagElementsAndNodes(rModelPart, maximum_distance);
 
         const auto particle_data = SeedAndConvectParticles(rModelPart);
 
@@ -43,14 +44,14 @@ namespace Kratos
             nodal_h_calculator.Execute();
         }
 
-        CalculateLagrangianVelocityInterpolation(rModelPart, particle_data);
+        CalculateLagrangianVelocityInterpolation(rModelPart, particle_data,maximum_distance);
     }
 
     /* Private functions *******************************************************/
 
     void TwoFluidHistoryProjectionUtility::FlagElementsAndNodes(
         ModelPart& rModelPart,
-        const std::size_t NumberOfExtraLayers)
+        double MaximumDistance)
     {
         // Reset flags
         // SELECTED: Nodes and elements used for creating the seeds
@@ -70,28 +71,45 @@ namespace Kratos
             }
         });
 
-        // Extra layers for seeding
-        // Note that in here we are assuming that the neighbours are already computed
-        for (std::size_t i_layer = 0; i_layer < NumberOfExtraLayers; ++i_layer) {
-            for (auto& r_node : rModelPart.Nodes()) {
-                if (r_node.Is(SELECTED)) {
-                    auto& r_neighbours = r_node.GetValue(NEIGHBOUR_NODES);
-                    for (auto& r_neigh : r_neighbours) {
-                        r_neigh.Set(MARKER, true);
-                    }
-                }
+// FIXME: This is a parallel band for virtua creators; 
+        for (auto& r_node : rModelPart.Nodes()) {
+            const double distance_n = r_node.FastGetSolutionStepValue(DISTANCE,1);
+            if (distance_n>0.0){
+                if(distance_n-MaximumDistance<0.0){
+                    r_node.Set(SELECTED,true);
+                }        
+            }        
+            else{
+                if(distance_n+MaximumDistance>0.0){
+                    r_node.Set(SELECTED,true);
+                }                
             }
 
-            block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
-                if (rNode.Is(MARKER)) {
-                    rNode.Set(SELECTED, true);
-                }
-            });
+//FIXME: This case is in order to use layers as a virtual particle creators--- SPHERIC ZONE THAT ENVOLVES FREE SURFACE NODES
+        // // Extra layers for seeding
+        // // Note that in here we are assuming that the neighbours are already computed
+        // for (std::size_t i_layer = 0; i_layer < NumberOfExtraLayers; ++i_layer) {
+        //     for (auto& r_node : rModelPart.Nodes()) {
+        //         if (r_node.Is(SELECTED)) {
+        //             auto& r_neighbours = r_node.GetValue(NEIGHBOUR_NODES);
+        //             for (auto& r_neigh : r_neighbours) {
+        //                 r_neigh.Set(MARKER, true);
+        //             }
+        //         }
+        //     }
 
-            VariableUtils().SetFlag(MARKER, false, rModelPart.Nodes());
-        }
+        //     block_for_each(rModelPart.Nodes(), [](Node<3>& rNode){
+        //         if (rNode.Is(MARKER)) {
+        //             rNode.Set(SELECTED, true);
+        //         }
+        //     });
+
+        //     VariableUtils().SetFlag(MARKER, false, rModelPart.Nodes());
+        // }
 
         // Flag all the elements that own a flagged node
+
+
         block_for_each(rModelPart.Elements(), [](Element& rElement){
             const auto& r_geom = rElement.GetGeometry();
             for (const auto& rNode : r_geom) {
@@ -100,6 +118,7 @@ namespace Kratos
                 }
             }
         });
+    }
     }
 
     TwoFluidHistoryProjectionUtility::ParticleDataContainerType TwoFluidHistoryProjectionUtility::SeedAndConvectParticles(ModelPart& rModelPart)
@@ -153,7 +172,8 @@ namespace Kratos
 
     void TwoFluidHistoryProjectionUtility::CalculateLagrangianVelocityInterpolation(
         ModelPart& rModelPart,
-        const ParticleDataContainerType& rParticleData)
+        const ParticleDataContainerType& rParticleData,
+        double MaximumDistance)
     {
         std::size_t domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
         std::size_t min_n_particles = domain_size + 1;
@@ -209,7 +229,36 @@ namespace Kratos
                 array_1d<double,3> v_n = ZeroVector(3);
                 for (std::size_t i_node = 0; i_node < n_cloud_points; ++i_node) {
                     noalias(v_n) += cloud_shape_functions(i_node) * vel_cloud[i_node];
+
                 }
+                double weigth_contour=0.0;
+                double distance=r_node.FastGetSolutionStepValue(DISTANCE);
+                double old_distance=r_node.FastGetSolutionStepValue(DISTANCE,1);
+                if (r_node.Is(FREE_SURFACE)){
+                    weigth_contour=1.0;
+                }
+                else{
+                    if ((distance-old_distance)<0.0){
+                        if (distance < 0.0){
+                            weigth_contour=abs(old_distance)/MaximumDistance;
+                        }
+                        else{
+                             weigth_contour=abs(distance)/MaximumDistance;
+                        }
+                    }
+                    else{S
+                        if (distance < 0.0){
+                            weigth_contour=abs(distance)/MaximumDistance;
+                        }
+                        else{
+                             weigth_contour=abs(old_distance)/MaximumDistance;
+                        }
+
+                    }   
+                }
+                
+                const array_1d<double, 3> original_velocity=r_node.FastGetSolutionStepValue(VELOCITY);
+                v_n= (v_n*weigth_contour+(1.0-weigth_contour)*original_velocity);
 
                 // Set new interpolated velocity such that the interface is Lagrangian in an approximate sense.
                 // It should be considered the fixity. for that nodes that ones of each components is fixed it is not applied false fm-ale to that component.

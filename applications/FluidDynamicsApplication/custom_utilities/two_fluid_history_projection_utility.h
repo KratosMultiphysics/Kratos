@@ -134,13 +134,14 @@ private:
 
     static void FlagElementsAndNodes(
         ModelPart& rModelPart,
-        const std::size_t NumberOfExtraLayers);
+        double MaximumDistance);
 
     static ParticleDataContainerType SeedAndConvectParticles(ModelPart& rModelPart);
 
     static void CalculateLagrangianVelocityInterpolation(
         ModelPart& rModelPart,
-        const ParticleDataContainerType& rParticleData);
+        const ParticleDataContainerType& rParticleData,
+        double MaximumDistance);
 
     ///@}
     ///@name Private  Access
