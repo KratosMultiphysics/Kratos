@@ -290,7 +290,7 @@ public:
 
     KRATOS_DEPRECATED virtual IntegrationMethod GetIntegrationMethod()
     {
-        return pGetGeometry()->GetDefaultIntegrationMethod();
+        return static_cast<const Condition * const>(this)->GetIntegrationMethod();
     }
 
     /**
