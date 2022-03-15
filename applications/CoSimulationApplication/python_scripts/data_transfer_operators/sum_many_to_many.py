@@ -13,15 +13,16 @@ class SumManyToMany(CoSimulationDataTransferOperator):
             return
 
         data_values = from_solver_data.GetData()
-        value = data_values.sum()
-        # data_value = from_solver_data.GetModelPart().GetCommunicator().GetDataCommunicator().Sum(value, 0)
-        data_value = self.data_communicator.SumAll(value)
+        data_value = data_values.sum()        
+
+        if from_solver_data.IsDistributed():
+            data_value = self.data_communicator.SumAll(data_value)       
 
         if not to_solver_data.IsDefinedOnThisRank():
             return
 
         to_solver_values = to_solver_data.GetData()
-        to_solver_values.fill(data_value)
+        to_solver_values.fill(data_value)        
 
         # the order is IMPORTANT here!
         if "swap_sign" in transfer_options.GetStringArray():
