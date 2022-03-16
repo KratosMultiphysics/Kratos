@@ -487,11 +487,7 @@ class SearchBaseProcess(KM.Process):
                 sub_search_model_part = self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
             KM.AuxiliarModelPartUtilities(sub_search_model_part).RecursiveEnsureModelPartOwnsProperties(True)
             if sub_search_model_part.RecursivelyHasProperties(100 + int(key)):
-                if sub_search_model_part.HasProperties(100 + int(key)):
-                    return sub_search_model_part.GetProperties(100 + int(key))
-                else:
-                    for prop in sub_search_model_part.GetRootModelPart().Properties:
-                        if prop.Id == 100 + int(key): return prop
+                return sub_search_model_part.GetProperties(100 + int(key))
             else:
                 return sub_search_model_part.CreateNewProperties(100 + int(key))
 
@@ -690,7 +686,7 @@ class SearchBaseProcess(KM.Process):
 
         id_prop = self.settings["search_property_ids"][key].GetInt()
         if id_prop != 0:
-            sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
+            sub_search_model_part.AddProperties(self.main_model_part.GetProperties(id_prop))
         else:
             sub_prop = self._get_properties_pair(key)
             if partial_model_part.NumberOfConditions() == 0:
