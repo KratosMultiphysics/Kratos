@@ -113,7 +113,7 @@ void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::GetValu
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-GeometryData::IntegrationMethod IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::GetIntegrationMethod()
+GeometryData::IntegrationMethod IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
