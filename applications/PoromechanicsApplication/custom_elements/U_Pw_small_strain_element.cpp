@@ -899,6 +899,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateStiffnessMatrix( MatrixType
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+    ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
     //Element variables
     ElementVariables Variables;
