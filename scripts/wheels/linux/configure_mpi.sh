@@ -5,6 +5,9 @@ add_app () {
     export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}$1;"
 }
 
+# Enable intel things because intel is special
+source /opt/intel/oneapi/setvars.sh
+
 export MPI_HOME=/usr/lib64/mpich/bin
 export PATH=${PATH}:${MPI_HOME}
 
@@ -73,5 +76,7 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DINCLUDE_MMG=ON                                                       \
 -DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
+-DUSE_EIGEN_MKL=ON                                                     \
+-DMKL_ROOT="/opt/intel/oneapi/mkl/latest"                              \
 -DKRATOS_BUILD_TESTING=OFF                                             \
 -DINSTALL_RUNKRATOS=OFF
