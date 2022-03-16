@@ -288,11 +288,6 @@ public:
         return pGetGeometry()->GetDefaultIntegrationMethod();
     }
 
-    KRATOS_DEPRECATED virtual IntegrationMethod GetIntegrationMethod()
-    {
-        return const_cast<const Condition&>(*this).GetIntegrationMethod();
-    }
-
     /**
      * CONDITIONS inherited from this class must implement this methods
      * if they need the values of the time derivatives of any of the dof
