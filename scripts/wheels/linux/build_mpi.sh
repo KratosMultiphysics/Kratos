@@ -3,6 +3,8 @@
 PYTHONS=("cp38")
 export KRATOS_VERSION="9.1.1"
 
+source /opt/intel/oneapi/setvars.sh
+
 BASE_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 export KRATOS_ROOT="/workspace/kratos/Kratos"
 WHEEL_ROOT="/workspace/wheel"
