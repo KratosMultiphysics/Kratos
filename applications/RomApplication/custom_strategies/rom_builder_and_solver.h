@@ -515,15 +515,15 @@ protected:
         KRATOS_CATCH("")
     }
 
-    static DofsArrayType SortAndRemoveDuplicateDofs(DofQueue& dof_queue)
+    static DofsArrayType SortAndRemoveDuplicateDofs(DofQueue& rDofQueue)
     {
         KRATOS_TRY
 
         DofsArrayType dof_array;
-        dof_array.reserve(dof_queue.size_approx());
+        dof_array.reserve(rDofQueue.size_approx());
         DofType::Pointer p_dof;
         std::size_t err_id;
-        while ( (err_id = dof_queue.try_dequeue(p_dof)) != 0) {
+        while ( (err_id = rDofQueue.try_dequeue(p_dof)) != 0) {
             dof_array.push_back(std::move(p_dof));
         }
 
@@ -652,14 +652,14 @@ protected:
     void BuildROM(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
-        RomSystemMatrixType &A,
-        RomSystemVectorType &b)
+        RomSystemMatrixType &rA,
+        RomSystemVectorType &rb)
     {
         KRATOS_TRY
 
         // Define a dense matrix to hold the reduced problem
-        A = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-        b = ZeroVector(mNumberOfRomModes);
+        rA = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
+        rb = ZeroVector(mNumberOfRomModes);
 
         // Build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -676,7 +676,7 @@ protected:
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
         if(!elements.empty())
         {
-            std::tie(A, b) =
+            std::tie(rA, rb) =
             block_for_each<SystemSumReducer>(elements, prealloc, 
                 [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
             {
@@ -697,16 +697,16 @@ protected:
                 return CalculateLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
             });
 
-            A += Aconditions;
-            b += bconditions;
+            rA += Aconditions;
+            rb += bconditions;
         }
 
         // Syncronizing
         constexpr IndexType root_rank = 0;
         for(IndexType i=0; i<mNumberOfRomModes; ++i) {
-            b(i) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(b(i), root_rank);
+            rb(i) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(rb(i), root_rank);
             for(IndexType j=0; j<mNumberOfRomModes; ++j) {
-                A(i,j) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(A(i,j), root_rank);
+                rA(i,j) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(rA(i,j), root_rank);
             }
         }
 
