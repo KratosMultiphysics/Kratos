@@ -24,32 +24,30 @@ from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer impo
 
 
 # ==============================================================================
-class AlgorithmGradientProjection(OptimizationAlgorithm):
+class AlgorithmOptimalityCriteria(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __init__(self,name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
         super().__init__(name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
         default_algorithm_settings = Parameters("""
         {
             "max_iterations"     : 100,
-            "relative_tolerance" : 1e-3,
-            "alpha": 0.3
+            "relative_tolerance" : 1e-3
         }""")
 
         self.opt_settings["algorithm_settings"].RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
         self.algorithm_settings = self.opt_settings["algorithm_settings"]
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt()
-        self.opt_parameters.AddDouble("alpha",self.opt_settings["algorithm_settings"]["alpha"].GetDouble())
 
         # check if constraint list is empty or not 
         if not len(self.constraints)>0:
-            raise RuntimeError("AlgorithmGradientProjection:__init__: constraints list can not be empty !")  
+            raise RuntimeError("AlgorithmOptimalityCriteria:__init__: constraints list can not be empty !")  
 
         self.lin_solver_settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         self.lin_solver = dense_linear_solver_factory.ConstructSolver(self.lin_solver_settings)          
 
-        self.opt_algorithm = KOA.AlgorithmGradientProjection(self.name,self.model,self.lin_solver,self.opt_parameters)
+        self.opt_algorithm = KOA.AlgorithmOptimalityCriteria(self.name,self.model,self.lin_solver,self.opt_parameters)
 
-        Logger.PrintInfo("::[AlgorithmGradientProjection]:: ", "Construction finished")
+        Logger.PrintInfo("::[AlgorithmOptimalityCriteria]:: ", "Construction finished")
 
 
     # --------------------------------------------------------------------------
@@ -66,7 +64,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         for self.optimization_iteration in range(1,self.max_iterations+1):
             Logger.Print("")
             Logger.Print("===============================================================================")
-            Logger.PrintInfo("AlgorithmGradientProjection", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
+            Logger.PrintInfo("AlgorithmOptimalityCriteria", "",timer.GetTimeStamp(), ": Starting optimization iteration ",self.optimization_iteration)
             Logger.Print("===============================================================================\n")
 
             self.model_parts_controller.UpdateTimeStep(self.optimization_iteration)
@@ -127,8 +125,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 root_control_model_part.ProcessInfo[KM.TIME] = OriginalTime
                             
             Logger.Print("")
-            Logger.PrintInfo("AlgorithmGradientProjection", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
-            Logger.PrintInfo("AlgorithmGradientProjection", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
+            Logger.PrintInfo("AlgorithmOptimalityCriteria", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            Logger.PrintInfo("AlgorithmOptimalityCriteria", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
         #     if self.__isAlgorithmConverged():
         #         break

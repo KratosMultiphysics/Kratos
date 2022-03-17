@@ -442,6 +442,24 @@ private:
             }
         }
 
+        const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
+        const auto& fixed_model_parts_X =  mTechniqueSettings["fixed_model_parts_X"];
+        const auto& fixed_model_parts_Y =  mTechniqueSettings["fixed_model_parts_Y"];
+        const auto& fixed_model_parts_Z =  mTechniqueSettings["fixed_model_parts_Z"];
+
+        for(int i=0; i<fixed_model_parts.size();i++)
+        {
+            const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
+            for(auto& node_i : model_part.Nodes())
+            {
+                if(fixed_model_parts_X[i].GetBool())
+                    node_i.Fix(HELMHOLTZ_VARS_SHAPE_X);
+                if(fixed_model_parts_Y[i].GetBool())
+                    node_i.Fix(HELMHOLTZ_VARS_SHAPE_Y);
+                if(fixed_model_parts_Z[i].GetBool())
+                    node_i.Fix(HELMHOLTZ_VARS_SHAPE_Z);
+            }
+        }
     }
 
     void AdjustFilterSizes()

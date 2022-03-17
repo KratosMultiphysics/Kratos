@@ -28,6 +28,7 @@
 #include "custom_python/add_custom_optimization_algorithm_to_python.h"
 #include "custom_algorithms/algorithm_steepest_descent.h"
 #include "custom_algorithms/algorithm_gradient_projection.h"
+#include "custom_algorithms/algorithm_optimality_criteria.h"
 
 
 // ==============================================================================
@@ -56,7 +57,13 @@ void  AddCustomOptimizationAlgorithmToPython(pybind11::module& m)
         .def(py::init<std::string, Model&, LinearSolver<DenseSpace, DenseSpace>&, Parameters& >())
         .def("Initialize", &AlgorithmGradientProjection::Initialize)
         .def("CalculateSolutionStep", &AlgorithmGradientProjection::CalculateSolutionStep)
-        ;        
+        ;  
+
+    py::class_<AlgorithmOptimalityCriteria >(m, "AlgorithmOptimalityCriteria")
+        .def(py::init<std::string, Model&, LinearSolver<DenseSpace, DenseSpace>&, Parameters& >())
+        .def("Initialize", &AlgorithmOptimalityCriteria::Initialize)
+        .def("CalculateSolutionStep", &AlgorithmOptimalityCriteria::CalculateSolutionStep)
+        ; 
  
 }
 

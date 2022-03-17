@@ -18,6 +18,7 @@ from KratosMultiphysics import Parameters, Logger
 # Additional imports
 import KratosMultiphysics.OptimizationApplication.algorithms.algorithm_steepest_descent as steepest_descent
 import KratosMultiphysics.OptimizationApplication.algorithms.algorithm_gradient_projection as gradient_projection
+import KratosMultiphysics.OptimizationApplication.algorithms.algorithm_optimality_criteria as optimality_criteria
 
 import time as timer
 
@@ -86,7 +87,7 @@ class OptimizationsController:
         self.optimizations_controls_upper_bounds_values={}
         self.optimizations_algorithm={}
         self.supported_opt_types = ["gradient_based"]
-        self.supported_algorithms = ["steepest_descent","gradient_projection"]
+        self.supported_algorithms = ["steepest_descent","gradient_projection","optimality_criteria"]
         for itr in range(self.optimizations_settings.size()):
             opt_settings = self.optimizations_settings[itr]
             opt_name = opt_settings["name"].GetString()
@@ -249,6 +250,8 @@ class OptimizationsController:
                 self.optimizations[opt_name] = steepest_descent.AlgorithmSteepestDescent(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
             elif algorithm == "gradient_projection":
                 self.optimizations[opt_name] = gradient_projection.AlgorithmGradientProjection(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
+            elif algorithm == "optimality_criteria":
+                self.optimizations[opt_name] = optimality_criteria.AlgorithmOptimalityCriteria(opt_name,opt_settings["settings"],model,model_parts_controller,analyses_controller,responses_controller,controls_controller)                
 
     # --------------------------------------------------------------------------
     def Initialize(self):

@@ -132,12 +132,17 @@ public:
 
         AdjustFilterSizes();
 
-        //initialize control thicknesses
+        //initialize control thicknesses with 
+        t_min = mTechniqueSettings["min_thickness"].GetInt();
+        t_max = mTechniqueSettings["max_thickness"].GetInt();
+        t_initial = mTechniqueSettings["initial_thickness"].GetDouble();
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++)
-            SetVariable(mpVMModelParts[model_i],CT,0.5);
+            SetVariable(mpVMModelParts[model_i],CT,t_initial);
 
         //now compute physical thicknesses
         beta = mTechniqueSettings["beta"].GetDouble();
+        sigmoid_projection = mTechniqueSettings["sigmoid_projection"].GetBool();
+        penalization = mTechniqueSettings["penalization"].GetBool();
         ComputePhyiscalThickness();
 
         KRATOS_INFO("HelmholtzThickness:Initialize") << "Finished initialization of thickness control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -160,14 +165,45 @@ public:
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
-            //do the inverse projection 
+            //do the inverse projection and penalization
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
                 const auto& derivative = node_i.FastGetSolutionStepValue(rDerivativeVariable);
                 auto& helmholtz_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE_THICKNESS);
-                // helmholtz_source = derivative;
-                helmholtz_source = derivative * (2.0*beta*std::exp(-2.0*beta*(filtered_thickness-0.5))) * std::pow(1.0/(1+std::exp(-2*beta*(filtered_thickness-0.5))),2);
-                // std::cout<<"helmholtz_source : "<<helmholtz_source<<std::endl;
+                if(sigmoid_projection)
+                {
+
+                    double reference_thickness = 0;
+                    if (filtered_thickness<=t_min)
+                        reference_thickness = t_min;
+                    else if (filtered_thickness>=t_max)
+                        reference_thickness = t_max-1;
+                    else
+                    {
+                        for(int t=t_min;t<t_max;t++){                        
+                            if (filtered_thickness>=t && filtered_thickness<=t+1)
+                            {
+                                reference_thickness = t;
+                                break;
+                            }
+                        }
+                    }
+
+                    double value = -2*beta*(filtered_thickness-(reference_thickness+0.5));
+                    if(value<-600)
+                        value = -600;
+                    if(value>600)
+                        value = 600;
+                    helmholtz_source = derivative * (2.0*beta*std::exp(value)) * std::pow(1.0/(1+std::exp(value)),2);
+
+                }
+                else if(penalization)
+                {
+                    helmholtz_source = 3 * filtered_thickness * filtered_thickness * derivative;
+                }
+                else
+                    helmholtz_source = derivative;
+
             }
 
             SetVariable(mpVMModePart,HELMHOLTZ_VAR_THICKNESS,0.0);
@@ -237,6 +273,11 @@ protected:
     std::vector<ModelPart*> mpVMModelParts;
     Parameters mTechniqueSettings;
     double beta;
+    bool sigmoid_projection;
+    bool penalization;
+    double t_min;
+    double t_max;
+    double t_initial;
     
     ///@}
     ///@name Protected Operators
@@ -301,8 +342,6 @@ private:
             int mNumNodes = r_nodes.size();
 
             VariableUtils variable_utils;
-            variable_utils.SetFlag(STRUCTURE,true,r_nodes);
-
             // Note: this should not be parallel, the operation is not threadsafe if the variable is uninitialized
             for (auto& r_node : r_nodes)
             {
@@ -454,9 +493,39 @@ private:
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
                 const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
                 auto& physical_thickness = node_i.FastGetSolutionStepValue(PT);
-                physical_thickness = 1.0/(1+std::exp(-2*beta*(filtered_thickness-0.5)));
-                if(physical_thickness<0.001)
-                    physical_thickness = 0.001;
+                if (sigmoid_projection)
+                {
+                    double reference_thickness = 0;
+                    if (filtered_thickness<=t_min)
+                        reference_thickness = t_min;
+                    else if (filtered_thickness>=t_max)
+                        reference_thickness = t_max-1;
+                    else
+                    {
+                        for(int t=t_min;t<t_max;t++){                        
+                            if (filtered_thickness>=t && filtered_thickness<=t+1)
+                            {
+                                reference_thickness = t;
+                                break;
+                            }
+                        }
+                    }
+
+                    double value = -2*beta*(filtered_thickness-(reference_thickness+0.5)); 
+                    if(value<-600)
+                        value = -600;
+                    if(value>600)
+                        value = 600;                    
+                    physical_thickness = (1.0/(1+std::exp(value)))+reference_thickness;
+                    if(physical_thickness<0.001)
+                        physical_thickness = 0.001;
+
+                }
+                else if(penalization){
+                    physical_thickness = std::pow(filtered_thickness,3);
+                }
+                else
+                    physical_thickness = filtered_thickness;
             }
             //now compute element thicknesses
             for(auto& elem_i : mpVMModelParts[model_i]->Elements()){

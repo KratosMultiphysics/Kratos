@@ -17,9 +17,13 @@ class ImplicitVertexMorphing(ShapeControl):
 
     def __init__(self, name, model, settings):
         super().__init__(name,model,settings)
-        self.technique_settings = self.settings["technique_settings"]
+        self.technique_settings = self.settings["technique_settings"] 
 
         self.default_technique_settings = KM.Parameters("""{
+                    "fixed_model_parts"  : [],
+                    "fixed_model_parts_X"  : [],
+                    "fixed_model_parts_Y"  : [],
+                    "fixed_model_parts_Z"  : [],
                     "element_type" : "helmholtz_vec_element",
                     "surface_element_type" : "helmholtz_surf_element",
                     "only_design_surface_parameterization" : true,
@@ -47,6 +51,29 @@ class ImplicitVertexMorphing(ShapeControl):
                 }""")
 
         self.technique_settings.RecursivelyValidateAndAssignDefaults(self.default_technique_settings)
+
+        fixed_model_parts = self.technique_settings["fixed_model_parts"]
+        fixed_model_parts_X = self.technique_settings["fixed_model_parts_X"]
+        fixed_model_parts_Y = self.technique_settings["fixed_model_parts_Y"]
+        fixed_model_parts_Z = self.technique_settings["fixed_model_parts_Z"]
+
+        if not (fixed_model_parts.size() == fixed_model_parts_X.size() == fixed_model_parts_Y.size() == fixed_model_parts_Z.size()):
+            raise RuntimeError("ImplicitVertexMorphing:__init__: fixed_model_parts & fixed_model_parts_X & fixed_model_parts_Y & fixed_model_parts_Z should have the same size")
+
+        for i in range(fixed_model_parts.size()):
+            if not fixed_model_parts[i].IsString():
+                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts' of control '{}' should be a string .".format(i+1,self.name))
+            if not fixed_model_parts_X[i].IsBool():
+                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_X' of control '{}' should be a bool .".format(i+1,self.name))
+            if not fixed_model_parts_Y[i].IsBool():
+                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Y' of control '{}' should be a bool .".format(i+1,self.name))
+            if not fixed_model_parts_Z[i].IsBool():
+                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Z' of control '{}' should be a bool .".format(i+1,self.name))   
+            fixed_model_part = fixed_model_parts[i].GetString()
+            root_fixed_model_part = fixed_model_part.split(".")[0]
+            if not self.model.HasModelPart(root_fixed_model_part):
+                raise RuntimeError("ImplicitVertexMorphing:__init__: model_part {} in fixed_model_parts of control '{}' does not exist .".format(fixed_model_part,self.name))
+                                         
 
 
         # add vars

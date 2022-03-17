@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef GRADIENT_PROJECTION_H
-#define GRADIENT_PROJECTION_H
+#ifndef OPTIMALITY_CRITERIA_H
+#define OPTIMALITY_CRITERIA_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -33,21 +33,21 @@
 namespace Kratos
 {
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) AlgorithmGradientProjection : public OptimizationAlgorithm
+class KRATOS_API(OPTIMIZATION_APPLICATION) AlgorithmOptimalityCriteria : public OptimizationAlgorithm
 {
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(AlgorithmGradientProjection);
+    KRATOS_CLASS_POINTER_DEFINITION(AlgorithmOptimalityCriteria);
 
     typedef Variable<double> VariableType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpace;
 
-    AlgorithmGradientProjection(std::string OptName, Model& rModel, LinearSolver<DenseSpace, DenseSpace>& rSolver, Parameters& rOptSettings)
-    : OptimizationAlgorithm(OptName,"gradient_projection",rModel,rOptSettings),mrSolver(rSolver)
+    AlgorithmOptimalityCriteria(std::string OptName, Model& rModel, LinearSolver<DenseSpace, DenseSpace>& rSolver, Parameters& rOptSettings)
+    : OptimizationAlgorithm(OptName,"OPTIMALITY_CRITERIA",rModel,rOptSettings),mrSolver(rSolver)
     {
     }
 
-    virtual ~AlgorithmGradientProjection() {};
+    virtual ~AlgorithmOptimalityCriteria() {};
 
     // --------------------------------------------------------------------------
     void Initialize() override {
@@ -63,9 +63,6 @@ public:
             }
             mTotalNumControlVars += control_num_vars;
         }
-
-        // get alpha
-        alpha = mrSettings["alpha"].GetDouble();
 
         //resize the required vectors
         mObjectiveGradients = ZeroVector(mTotalNumControlVars);
@@ -280,16 +277,16 @@ public:
 
                     auto ref_value = constraint["ref_value"].GetDouble();
                     auto value = constraint["value"].GetDouble();
-                    double current_alpha = 10 * std::abs(value-ref_value)/std::abs(ref_value);
-                    if (current_alpha>alpha)
-                        current_alpha = alpha;
+                    double alpha = 10 * std::abs(value-ref_value)/std::abs(ref_value);
+                    if (alpha>0.4)
+                        alpha = 0.4;
 
-                    std::cout<<"current_alpha : "<<current_alpha<<std::endl;
+                    std::cout<<"alpha : "<<alpha<<std::endl;
 
                     if (value>ref_value)
                         constraint_gradient *= -1;
 
-                    mSearchDirection = (1.0-current_alpha) * mSearchDirection + current_alpha * constraint_gradient;
+                    mSearchDirection = (1.0-alpha) * mSearchDirection + alpha * constraint_gradient;
 
                     break;
                 }
@@ -405,11 +402,10 @@ public:
     LinearSolver<DenseSpace, DenseSpace>& mrSolver;
     int mTotalNumControlVars;
     double mSumObjectiveWeights;
-    double alpha;
 
 
 }; // Class OptimizationAlgorithm
 
 }  // namespace Kratos.
 
-#endif // GRADIENT_PROJECTION_H
+#endif // OPTIMALITY_CRITERIA_H
