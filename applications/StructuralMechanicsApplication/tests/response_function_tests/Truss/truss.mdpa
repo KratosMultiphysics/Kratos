@@ -41,8 +41,8 @@ Begin SubModelPart Almost_Whole_Truss // Group Truss1 // Subtree Parts_Truss
             7
     End SubModelPartNodes
     Begin SubModelPartElements
-            1
             2
+            3
             4
             5
             6
@@ -59,11 +59,9 @@ End SubModelPart
 
 Begin SubModelPart Special_Element_Truss // Group Truss1 // Subtree Parts_Truss
     Begin SubModelPartNodes
-            1
-            3
     End SubModelPartNodes
     Begin SubModelPartElements
-            3
+            1
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions
@@ -72,10 +70,6 @@ End SubModelPart
 Begin SubModelPart Sensitivity_Truss // Group Truss1 // Subtree Parts_Truss
     Begin SubModelPartElements
             1
-            3
-            4
-            7
-            8
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions

@@ -13,8 +13,8 @@
         "eigenvalue_settings"  : "eigenfrequency_parameters.json",
         "primal_data_transfer_with_python": true,
         "primal_to_eigen_data_transfer_with_python": true,
-        "traced_eigenfrequencies"  : [1, 2, 3],
+        "traced_eigenfrequencies"  : [1],
         "weighting_method"       : "linear_scaling",
-        "weighting_factors"      : [1.0, 0.0, 0.0]
+        "weighting_factors"      : [1.0]
     }
 }
