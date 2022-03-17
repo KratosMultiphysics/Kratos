@@ -98,11 +98,13 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
                 .format(self.rampup_period, full_duration)
             raise ValueError(msg)
 
-        self.model_part.HasNodalSolutionStepVariable(self.variable)
+        if not self.model_part.HasNodalSolutionStepVariable(self.variable):
+            msg = "The variable must be in the historical database. Provided variable {} is not.".format(self.variable.Name())
+            raise RuntimeError(msg)
 
         normal_type = type(KratosMultiphysics.NORMAL)
         if not isinstance(self.variable, normal_type):
-            msg = "Variable must be a vector with the same size as NORMAL. Provided variable {} is not"\
+            msg = "Variable must be a vector with the same size as NORMAL. Provided variable {} is not."\
                 .format(self.variable.Name())
             raise TypeError(msg)
 
