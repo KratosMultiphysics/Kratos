@@ -665,7 +665,8 @@ protected:
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
         // Get ProcessInfo from main model part
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
 
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
