@@ -420,9 +420,8 @@ protected:
 
         // Inspecting elements
         ElementQueue element_queue;
-        DofsVectorType tmp_dof_list; // Preallocation
-        block_for_each(rModelPart.Elements().GetContainer(), tmp_dof_list,
-            [&](Element::Pointer p_element, DofsVectorType& dof_list)
+        block_for_each(rModelPart.Elements().GetContainer(),
+            [&](Element::Pointer p_element)
         {
             if (p_element->Has(HROM_WEIGHT)) {
                 element_queue.enqueue(std::move(p_element));
@@ -433,8 +432,8 @@ protected:
 
         // Inspecting conditions
         ConditionQueue condition_queue;
-        block_for_each(rModelPart.Conditions().GetContainer(), tmp_dof_list,
-            [&](Condition::Pointer p_condition, DofsVectorType& dof_list)
+        block_for_each(rModelPart.Conditions().GetContainer(),
+            [&](Condition::Pointer p_condition)
         {
             if (p_condition->Has(HROM_WEIGHT)) {
                 condition_queue.enqueue(std::move(p_condition));
