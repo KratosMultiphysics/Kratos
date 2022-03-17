@@ -30,7 +30,7 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
         child_model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], child_model_part.GetProperties()[0])
 
         root_model_part.ProcessInfo.SetValue(TIME, 0.0)
-        root_model_part.ProcessInfo.SetValue(DELTA_TIME, 0.05)
+        root_model_part.ProcessInfo.SetValue(DELTA_TIME, 0.1)
 
         return model
 
@@ -52,7 +52,8 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
         {
             "Parameters": {
                 "model_part_name": "root.child",
-                "period": 0.95
+                "interval" : [1, 2.5],
+                "rampup_period": 0.95
             }
         }""")
 
@@ -61,24 +62,50 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
         process.ExecuteInitialize()
         process.ExecuteBeforeSolutionLoop()
 
-        step = 0
-        while True:
+        stages_reached = {
+            process.AWAITING: False,
+            process.RAMP_UP: False,
+            process.STEADY: False,
+            process.FINISHED: False
+        }
+
+        for step in range(27):
             self._SimulateStep(root_model_part, process)
-            step += 1
+            time = root_model_part.ProcessInfo[TIME]
 
-            if(root_model_part.ProcessInfo[TIME] > 0.95):
-                break
+            node_1 = child_model_part.GetNode(1)
+            node_2 = child_model_part.GetNode(2)
 
-            self.assertFalse(child_model_part.GetNode(1).Is(SLIP), "Slip enabled too soon (time-step #{})".format(step))
-            self.assertFalse(child_model_part.GetNode(2).Is(SLIP), "Slip enabled too soon (time-step #{})".format(step))
+            stages_reached[process._stage] = True
 
-        self.assertTrue(child_model_part.GetNode(1).Is(SLIP))
-        self.assertTrue(child_model_part.GetNode(2).Is(SLIP))
+            if(time <= 1.0):
+                self.assertTrue(process._stage == process.AWAITING)
+                self.assertTrue(node_1.IsNot(SLIP))
+                self.assertTrue(node_2.IsNot(SLIP))
 
-        expected = self._Rotate(3.0, 5.0e-3, 4/5, 3/5)
+            elif(time <= 1.95):
+                self.assertTrue(process._stage == process.RAMP_UP)
+                self.assertTrue(node_1.IsNot(SLIP))
+                self.assertTrue(node_2.IsNot(SLIP))
 
-        self.assertVectorAlmostEqual(child_model_part.GetNode(1).GetSolutionStepValue(MOMENTUM), expected, 2)
-        self.assertVectorAlmostEqual(child_model_part.GetNode(2).GetSolutionStepValue(MOMENTUM), expected, 2)
+                decay_time = time - 1.0
+                normal = 5.0 * process.decay_constant**(-decay_time/0.95)
+                expected = self._Rotate(3.0, normal, 4/5, 3/5)
+                self.assertVectorAlmostEqual(node_1.GetSolutionStepValue(MOMENTUM), expected, 2)
+                self.assertVectorAlmostEqual(node_2.GetSolutionStepValue(MOMENTUM), expected, 2)
+
+            elif(time <= 2.5):
+                self.assertTrue(process._stage == process.STEADY)
+                self.assertTrue(node_1.Is(SLIP))
+                self.assertTrue(node_2.Is(SLIP))
+
+            else:
+                self.assertTrue(process._stage == process.FINISHED)
+                self.assertTrue(node_1.IsNot(SLIP))
+                self.assertTrue(node_2.IsNot(SLIP))
+
+        for (stage, reached) in stages_reached.items():
+            self.assertTrue(reached, msg="Failed to reach stage {}".format(stage))
 
 
 if __name__ == "__main__":
