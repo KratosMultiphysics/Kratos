@@ -1,5 +1,5 @@
 import KratosMultiphysics
-from KratosMultiphysics import SLIP, NORMAL, TIME, DELTA_TIME, MOMENTUM
+from KratosMultiphysics import SLIP, NORMAL, TIME, DELTA_TIME, VELOCITY
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication import compressible_slip_wall_process
@@ -21,12 +21,12 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
         root_model_part = model.CreateModelPart("root")
         child_model_part = root_model_part.CreateSubModelPart("child")
 
-        root_model_part.AddNodalSolutionStepVariable(MOMENTUM)
+        root_model_part.AddNodalSolutionStepVariable(VELOCITY)
         root_model_part.AddNodalSolutionStepVariable(NORMAL)
 
         initial_mom = cls._Rotate(3.0, 5.0, 4/5, 3/5)
-        child_model_part.CreateNewNode(1, 0.0, 0.0, 0.0).SetSolutionStepValue(MOMENTUM, initial_mom)
-        child_model_part.CreateNewNode(2, 4.0, 3.0, 0.0).SetSolutionStepValue(MOMENTUM, initial_mom)
+        child_model_part.CreateNewNode(1, 0.0, 0.0, 0.0).SetSolutionStepValue(VELOCITY, initial_mom)
+        child_model_part.CreateNewNode(2, 4.0, 3.0, 0.0).SetSolutionStepValue(VELOCITY, initial_mom)
         child_model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], child_model_part.GetProperties()[0])
 
         root_model_part.ProcessInfo.SetValue(TIME, 0.0)
@@ -53,7 +53,8 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
             "Parameters": {
                 "model_part_name": "root.child",
                 "interval" : [1, 2.5],
-                "rampup_period": 0.95
+                "rampup_period": 0.95,
+                "variable" : "VELOCITY"
             }
         }""")
 
@@ -91,8 +92,8 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
                 decay_time = time - 1.0
                 normal = 5.0 * process.decay_constant**(-decay_time/0.95)
                 expected = self._Rotate(3.0, normal, 4/5, 3/5)
-                self.assertVectorAlmostEqual(node_1.GetSolutionStepValue(MOMENTUM), expected, 2)
-                self.assertVectorAlmostEqual(node_2.GetSolutionStepValue(MOMENTUM), expected, 2)
+                self.assertVectorAlmostEqual(node_1.GetSolutionStepValue(VELOCITY), expected, 2)
+                self.assertVectorAlmostEqual(node_2.GetSolutionStepValue(VELOCITY), expected, 2)
 
             elif(time <= 2.5):
                 self.assertTrue(process._stage == process.STEADY)

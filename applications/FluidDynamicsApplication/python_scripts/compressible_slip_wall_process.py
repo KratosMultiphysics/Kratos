@@ -70,6 +70,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
         self.rampup_period = settings["rampup_period"].GetDouble()
         self.recompute_normals = settings["recompute_normals"].GetBool()
         self._stage = self.AWAITING
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable"].GetString())
 
     def GetDefaultParameters(self):
         return KratosMultiphysics.Parameters(
@@ -92,6 +93,13 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
         if self.rampup_period > full_duration:
             msg = "Parameter rampup_period must greater than the interval ({0} < {1}).".format(self.rampup_period, full_duration)
             raise ValueError(msg)
+
+        self.model_part.HasNodalSolutionStepVariable(self.variable)
+
+        normal_type = type(KratosMultiphysics.NORMAL)
+        if not isinstance(self.variable, normal_type):
+            msg = "Variable must be a vector with the same size as NORMAL. Provided variable {} is not".format(self.variable.Name())
+            raise TypeError(msg)
 
     def ExecuteInitialize(self):
         KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, True)
@@ -119,14 +127,14 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
                 continue
             unit_normal /= norm2
 
-            mom = node.GetSolutionStepValue(KratosMultiphysics.MOMENTUM)
-            mom_n = sum([m*n for m, n in zip(mom, unit_normal)])
-            new_mom_n = mom_n * decay
+            vec = node.GetSolutionStepValue(self.variable)
+            vec_n = sum([m*n for m, n in zip(vec, unit_normal)])
+            new_vec_n = vec_n * decay
 
-            delta_mom_n = new_mom_n - mom_n
-            new_mom = mom + delta_mom_n * unit_normal
+            delta_vec_n = new_vec_n - vec_n
+            new_vec = vec + delta_vec_n * unit_normal
 
-            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM, new_mom)
+            node.SetSolutionStepValue(self.variable, new_vec)
 
     def _GetStage(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
