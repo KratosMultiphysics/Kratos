@@ -483,12 +483,12 @@ protected:
         };
 
         // Inspecting elements
-        DofsVectorType tmp_dof_list; // Preallocation
-        block_for_each(rModelPart.Elements(), tmp_dof_list,
-            [&](const Element& r_element, DofsVectorType& dof_list)
+        DofsVectorType tls_dof_list; // Preallocation
+        block_for_each(rModelPart.Elements(), tls_dof_list,
+            [&](const Element& r_element, DofsVectorType& r_dof_list)
         {
-            pScheme->GetDofList(r_element, dof_list, rModelPart.GetProcessInfo());
-            enqueue_bulk_move(dof_queue, dof_list);
+            pScheme->GetDofList(r_element, r_dof_list, rModelPart.GetProcessInfo());
+            enqueue_bulk_move(dof_queue, r_dof_list);
         });
 
         // Inspecting conditions
