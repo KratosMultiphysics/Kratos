@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication import compressible_slip_wall_process
 
 
-class TestDeceleratingWallProcess(KratosUnittest.TestCase):
+class TestCompressibleSlipWallProcess(KratosUnittest.TestCase):
 
     @classmethod
     def _Rotate(cls, tangential, normal, cos, sin):
