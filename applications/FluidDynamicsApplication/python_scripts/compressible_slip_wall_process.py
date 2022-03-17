@@ -70,6 +70,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
 
         self.model_part = model[modelpart_name]
         self.rampup_period = settings["rampup_period"].GetDouble()
+        self.rampup_enabled = True
         self.recompute_normals = settings["recompute_normals"].GetBool()
         self._stage = self.AWAITING
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable"].GetString())
@@ -88,8 +89,8 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
         )
 
     def Check(self):
-        if self.rampup_period < 0:
-            raise ValueError("Parameter rampup_period must be strictly positive.")
+        if self.rampup_period <= 0:
+            raise ValueError("Parameter rampup_period must be positive or zero.")
 
         full_duration = self.interval.GetIntervalEnd() - self.interval.GetIntervalBegin()
         if self.rampup_period > full_duration:
@@ -108,6 +109,9 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, True)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, False, self.model_part.Nodes)
+
+        if self.rampup_period < 1e-18:
+            self.rampup_enabled = False
 
     def ExecuteInitializeSolutionStep(self):
         self._UpdateStage()
@@ -144,8 +148,11 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         if time <= self.interval.GetIntervalBegin():
             return self.AWAITING
-        elif time <= self.interval.GetIntervalBegin() + self.rampup_period:
+
+        rampup_stop = self.interval.GetIntervalBegin() + self.rampup_period
+        if self.rampup_enabled and time <= rampup_stop:
             return self.RAMP_UP
+
         elif time <= self.interval.GetIntervalEnd():
             return self.STEADY
         return self.FINISHED
