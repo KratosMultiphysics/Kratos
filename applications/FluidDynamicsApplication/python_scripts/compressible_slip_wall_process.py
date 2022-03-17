@@ -11,52 +11,54 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
     """
     This process helps with convergence by slowly transforming an outlet into a
     wall. This process has four phases:
-    - Awaiting: Nothing is done before the interval starts
-    - Ramp-up: The time after interval start. Duration is rampup_period. The wall lets
-    a proportion of the fluid through.
-    - Steady state: Solid free-slip wall. Lasts until the end of the interval.
-    - Finished: Nothing is done after the interval end
+
+    Stages
+    ------
+    - `AWAITING`: Nothing is done before the interval starts.
+    - `RAMP_UP`: The time after interval start. Duration is rampup_period. The
+    wall lets a proportion of the fluid through.
+    - `STEADY` state: Solid free-slip wall. Lasts until the end of the interval.
+    - `FINISHED`: Nothing is done after the interval ends.
 
     RAMP-UP
     -------
-    During the start of the simulation, the normal component of the
-    momentum or velocity of the selected wall will have exponential decay. After its speed
-    is A times smaller than originally, it extits ramp-up stage.
+    During this stage, the normal component of the momentum or velocity of the
+    selected wall will have exponential decay. After its speed is A times
+    smaller than originally, it extits ramp-up stage.
 
     This parameter A is hardcoded as `decay_constant`.
 
-    The effect on the normal component of the momentum/velocity `f`, if only manipulated by
-    this process is:
-    ```
+    The effect on the normal component of the momentum/velocity `f`, if only
+    manipulated by this process is:
+    ```Python
            { f0 * A^(-t/period)  if t < period (RAMP-UP)
     f(t) = {
-           { 0                      if t >= period (STEADY STATE)
+           { 0                   if t >= period (STEADY STATE)
     ```
-    If the momentum/velocity is being affected by any other variable, then the long-term
-    effect is less predictable but each step the momentum/velocity is diminished by a
-    factor of A^(-dt/period).
+    If the momentum/velocity is being affected by any other variable, then the
+    long-term effect is less predictable but each step the momentum/velocity is
+    diminished by a factor of A^(-dt/period).
 
     STEADY STATE
     ------------
-    The node is given the SLIP flag, which signals the stategy that it is in charge
-    of applying the boundary condition.
+    The node is given the SLIP flag, which signals the stategy that it is in
+    charge of applying the boundary condition.
 
     Key parameters
     --------------
     - rampup_period: Duraation of the ramp-up stage.
     - interval:  The time in this process runs (RAMP_UP + STEADY).
-    - recompute_normals: Enable computing the normals every step. Otherwise it's done only once.
+    - recompute_normals: Enable computing the normals every step.
     - variable: The variable to control, usually MOMENTUM of VELOCITY
     """
+
+    decay_constant = 1000
 
     # Stages
     AWAITING = 0
     RAMP_UP = 1
     STEADY = 2
     FINISHED = 3
-
-    # Decay constant
-    decay_constant = 1000
 
     def __init__(self, model, settings):
         KratosMultiphysics.Process.__init__(self)
@@ -91,14 +93,16 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
 
         full_duration = self.interval.GetIntervalEnd() - self.interval.GetIntervalBegin()
         if self.rampup_period > full_duration:
-            msg = "Parameter rampup_period must greater than the interval ({0} < {1}).".format(self.rampup_period, full_duration)
+            msg = "Parameter rampup_period must greater than the interval ({0} < {1})."\
+                .format(self.rampup_period, full_duration)
             raise ValueError(msg)
 
         self.model_part.HasNodalSolutionStepVariable(self.variable)
 
         normal_type = type(KratosMultiphysics.NORMAL)
         if not isinstance(self.variable, normal_type):
-            msg = "Variable must be a vector with the same size as NORMAL. Provided variable {} is not".format(self.variable.Name())
+            msg = "Variable must be a vector with the same size as NORMAL. Provided variable {} is not"\
+                .format(self.variable.Name())
             raise TypeError(msg)
 
     def ExecuteInitialize(self):
