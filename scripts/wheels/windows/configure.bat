@@ -60,7 +60,7 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
 -DUSE_EIGEN_MKL=ON                                                                          ^
--DMKL_ROOT="C:\Program Files (x86)\Intel\oneAPI\mkl\latest"                                 ^
+-DMKLROOT="C:\Program Files (x86)\Intel\oneAPI\mkl\latest"                                  ^
 -DKRATOS_BUILD_TESTING=OFF                                                                  ^
 -DINSTALL_RUNKRATOS=OFF
 
