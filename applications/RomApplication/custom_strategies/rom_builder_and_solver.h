@@ -229,10 +229,10 @@ public:
         const auto& r_dof_set = BaseType::GetDofSet();
         block_for_each(r_dof_set, [&](const DofType& r_dof)
         {
-            const NodeType& node = rModelPart.GetNode(r_dof.Id());
-            const Matrix& rom_nodal_basis = node.GetValue(ROM_BASIS);
+            const auto& r_node = rModelPart.GetNode(r_dof.Id());
+            const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
-            rDx[r_dof.EquationId()] = inner_prod(row(rom_nodal_basis, row_id), rRomUnkowns);
+            rDx[r_dof.EquationId()] = inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns);
         });
     }
 
