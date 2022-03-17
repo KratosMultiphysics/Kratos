@@ -73,7 +73,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
         self.rampup_enabled = True
         self.recompute_normals = settings["recompute_normals"].GetBool()
         self._stage = self.AWAITING
-        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable"].GetString())
+        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
 
     def GetDefaultParameters(self):
         return KratosMultiphysics.Parameters(
