@@ -150,7 +150,7 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
@@ -172,7 +172,7 @@ public:
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -700,8 +700,8 @@ protected:
             rb += bconditions;
         }
 
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -721,7 +721,7 @@ protected:
         
         const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(rA, dxrom, rb);
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
@@ -730,7 +730,7 @@ protected:
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, rDx);
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
     }
