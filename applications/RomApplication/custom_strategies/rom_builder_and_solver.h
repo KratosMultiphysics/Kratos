@@ -475,11 +475,11 @@ protected:
         DofQueue dof_queue;
 
         // Emulates ConcurrentQueue::enqueue_bulk adding move semantics to avoid atomic ops
-        const auto enqueue_bulk_move = [](DofQueue& queue, DofsVectorType& dof_list) {
-            for(auto& p_dof: dof_list) {
-                queue.enqueue(std::move(p_dof));
+        const auto enqueue_bulk_move = [](DofQueue& r_queue, DofsVectorType& r_dof_list) {
+            for(auto& p_dof: r_dof_list) {
+                r_queue.enqueue(std::move(p_dof));
             }
-            dof_list.clear();
+            r_dof_list.clear();
         };
 
         // Inspecting elements
