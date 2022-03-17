@@ -54,7 +54,7 @@ class TestCompressibleSlipWallProcess(KratosUnittest.TestCase):
                 "model_part_name": "root.child",
                 "interval" : [1, 2.5],
                 "rampup_period": 0.95,
-                "variable" : "VELOCITY"
+                "variable_name" : "VELOCITY"
             }
         }""")
 
