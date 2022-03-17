@@ -2,7 +2,7 @@ import KratosMultiphysics
 from KratosMultiphysics import SLIP, NORMAL, TIME, DELTA_TIME, MOMENTUM
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.FluidDynamicsApplication import decelerating_wall_process
+from KratosMultiphysics.FluidDynamicsApplication import compressible_slip_wall_process
 
 
 class TestDeceleratingWallProcess(KratosUnittest.TestCase):
@@ -57,7 +57,7 @@ class TestDeceleratingWallProcess(KratosUnittest.TestCase):
             }
         }""")
 
-        process = decelerating_wall_process.Factory(settings, model)
+        process = compressible_slip_wall_process.Factory(settings, model)
         process.Check()
         process.ExecuteInitialize()
         process.ExecuteBeforeSolutionLoop()

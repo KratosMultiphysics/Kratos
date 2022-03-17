@@ -4,10 +4,10 @@ import KratosMultiphysics
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return DeceleratingWallProcess(model, settings["Parameters"])
+    return CompressibleSlipWallProcess(model, settings["Parameters"])
 
 
-class DeceleratingWallProcess(KratosMultiphysics.Process):
+class CompressibleSlipWallProcess(KratosMultiphysics.Process):
     """
     This process helps with convergence by slowly transforming an outlet into a
     wall. This process has four phases:
@@ -130,11 +130,11 @@ class DeceleratingWallProcess(KratosMultiphysics.Process):
 
     def _GetStage(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        if time < self.interval.GetIntervalBegin():
+        if time <= self.interval.GetIntervalBegin():
             return self.AWAITING
-        elif time < self.interval.GetIntervalBegin() + self.rampup_period:
+        elif time <= self.interval.GetIntervalBegin() + self.rampup_period:
             return self.RAMP_UP
-        elif time < self.interval.GetIntervalEnd():
+        elif time <= self.interval.GetIntervalEnd():
             return self.STEADY
         return self.FINISHED
 
