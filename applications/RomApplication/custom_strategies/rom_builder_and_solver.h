@@ -492,11 +492,11 @@ protected:
         });
 
         // Inspecting conditions
-        block_for_each(rModelPart.Conditions(), tmp_dof_list,
-            [&](const Condition& r_condition, DofsVectorType& dof_list)
+        block_for_each(rModelPart.Conditions(), tls_dof_list,
+            [&](const Condition& r_condition, DofsVectorType& r_dof_list)
         {
-            pScheme->GetDofList(r_condition, dof_list, rModelPart.GetProcessInfo());
-            enqueue_bulk_move(dof_queue, dof_list);
+            pScheme->GetDofList(r_condition, r_dof_list, rModelPart.GetProcessInfo());
+            enqueue_bulk_move(dof_queue, r_dof_list);
         });
 
         // Inspecting master-slave constraints
