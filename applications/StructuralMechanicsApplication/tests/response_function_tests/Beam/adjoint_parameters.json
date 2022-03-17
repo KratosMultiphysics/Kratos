@@ -28,7 +28,7 @@
         "sensitivity_settings"  : {
             "sensitivity_model_part_name"                : "Sensitivity_Beam",
             "nodal_solution_step_sensitivity_variables"  : [],
-            "element_data_value_sensitivity_variables"   : [],
+            "element_data_value_sensitivity_variables"   : ["YOUNG_MODULUS"],
             "condition_data_value_sensitivity_variables" : [],
             "build_mode": "static"
         },
@@ -44,14 +44,7 @@
             "adjoint_settings"     : "adjoint_adjoint_parameters.json",
             "eigen_settings"       : "adjoint_eigen_parameters.json",
             "primal_data_transfer_with_python": true,
-            "primal_to_eigen_data_transfer_with_python": true,
-            "sensitivity_settings" : {
-                "sensitivity_model_part_name"                : "notimportantitdoesntgohere",
-                "nodal_solution_step_sensitivity_variables"  : [],
-                "element_data_value_sensitivity_variables"   : ["notimportantitdoesntgohere"],
-                "condition_data_value_sensitivity_variables" : [],
-                "build_mode": "static"
-            }
+            "primal_to_eigen_data_transfer_with_python": true
         }
     },
     "processes": {
