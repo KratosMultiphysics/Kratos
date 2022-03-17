@@ -711,8 +711,8 @@ protected:
      */
     void SolveROM(
         ModelPart &rModelPart,
-        RomSystemMatrixType &Arom,
-        RomSystemVectorType &brom,
+        RomSystemMatrixType &rA,
+        RomSystemVectorType &rb,
         TSystemVectorType &rDx)
     {
         KRATOS_TRY
@@ -720,7 +720,7 @@ protected:
         RomSystemVectorType dxrom(mNumberOfRomModes);
         
         const auto solving_timer = BuiltinTimer();
-        MathUtils<double>::Solve(Arom, dxrom, brom);
+        MathUtils<double>::Solve(rA, dxrom, rb);
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
