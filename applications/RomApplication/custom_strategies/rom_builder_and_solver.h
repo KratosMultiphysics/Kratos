@@ -535,15 +535,15 @@ protected:
     }
 
     /**
-    * Contains dynamically allocated structures to avoid reallocating each iteration.
+    * Thread Local Storage containing dynamically allocated structures to avoid reallocating each iteration.
     */
-    struct AssemblyPrealocation
+    struct AssemblyTLS
     {
-        AssemblyPrealocation(SizeType NRomModes)
+        AssemblyTLS(SizeType NRomModes)
             : romA(ZeroMatrix(NRomModes, NRomModes)),
               romB(ZeroVector(NRomModes))
         { }
-        AssemblyPrealocation() = delete;
+        AssemblyTLS() = delete;
 
         Matrix phiE = {};                // Elemental Phi
         LocalSystemMatrixType lhs = {};  // Elemental LHS
@@ -615,7 +615,7 @@ protected:
     template<typename TEntity>
     std::tuple<LocalSystemMatrixType, LocalSystemVectorType> CalculateLocalContribution(
         TEntity& rEntity,
-        AssemblyPrealocation& rPreAlloc,
+        AssemblyTLS& rPreAlloc,
         TSchemeType& rScheme,
         const ProcessInfo& rCurrentProcessInfo)
     {
@@ -671,16 +671,16 @@ protected:
         const auto assembling_timer = BuiltinTimer();
 
         using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<RomSystemMatrixType>, NonTrivialSumReduction<RomSystemVectorType>>;
-        AssemblyPrealocation prealloc(mNumberOfRomModes);
+        AssemblyTLS assembly_tls_container(mNumberOfRomModes);
 
         auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
         if(!elements.empty())
         {
             std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(elements, prealloc, 
-                [&](Element& r_element, AssemblyPrealocation& thread_prealloc)
+            block_for_each<SystemSumReducer>(elements, assembly_tls_container, 
+                [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
-                return CalculateLocalContribution(r_element, thread_prealloc, *pScheme, r_current_process_info);
+                return CalculateLocalContribution(r_element, r_thread_prealloc, *pScheme, r_current_process_info);
             });
         }
 
@@ -691,10 +691,10 @@ protected:
             RomSystemVectorType bconditions;
 
             std::tie(Aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(conditions, prealloc, 
-                [&](Condition& r_condition, AssemblyPrealocation& thread_prealloc)
+            block_for_each<SystemSumReducer>(conditions, assembly_tls_container, 
+                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
-                return CalculateLocalContribution(r_condition, thread_prealloc, *pScheme, r_current_process_info);
+                return CalculateLocalContribution(r_condition, r_thread_prealloc, *pScheme, r_current_process_info);
             });
 
             rA += Aconditions;
