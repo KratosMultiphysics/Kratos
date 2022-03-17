@@ -461,8 +461,6 @@ protected:
         mHromSimulation = !(mSelectedElements.empty() && mSelectedConditions.empty());
         mHromWeightsInitialized = true;
 
-        rModelPart.GetCommunicator().GetDataCommunicator().OrReduceAll(mHromSimulation);
-
         KRATOS_CATCH("")
     }
     
@@ -702,15 +700,6 @@ protected:
             rb += bconditions;
         }
 
-        // Syncronizing
-        constexpr IndexType root_rank = 0;
-        for(IndexType i=0; i<mNumberOfRomModes; ++i) {
-            rb(i) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(rb(i), root_rank);
-            for(IndexType j=0; j<mNumberOfRomModes; ++j) {
-                rA(i,j) = rModelPart.GetCommunicator().GetDataCommunicator().Sum(rA(i,j), root_rank);
-            }
-        }
-
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
@@ -728,16 +717,11 @@ protected:
     {
         KRATOS_TRY
 
-        constexpr IndexType root_rank = 0;
         RomSystemVectorType dxrom(mNumberOfRomModes);
-        if(rModelPart.GetCommunicator().MyPID() == root_rank)
-        {
-            const auto solving_timer = BuiltinTimer();
-            MathUtils<double>::Solve(Arom, dxrom, brom);
-            KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
-        }
-
-        rModelPart.GetCommunicator().GetDataCommunicator().Broadcast(dxrom, root_rank);
+        
+        const auto solving_timer = BuiltinTimer();
+        MathUtils<double>::Solve(Arom, dxrom, brom);
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
