@@ -94,7 +94,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
 
         full_duration = self.interval.GetIntervalEnd() - self.interval.GetIntervalBegin()
         if self.rampup_period > full_duration:
-            msg = "Parameter rampup_period must greater than the interval ({0} < {1})."\
+            msg = "Parameter rampup_period must smaller than the interval ({0} < {1})."\
                 .format(self.rampup_period, full_duration)
             raise ValueError(msg)
 
