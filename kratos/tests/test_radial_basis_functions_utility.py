@@ -65,7 +65,7 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
         midpoint[2] = 0.0
         N_container = KratosMultiphysics.Vector()
         h = 1 #Shape parameter for the kernel function (radial basis function, inverse multiquadratic)
-        InputShapeParameter = False
+        input_shape_parameter = False
         if InputShapeParameter:
             KratosMultiphysics.RadialBasisFunctionsUtility.CalculateShapeFunctions(
                 pts_coord,
