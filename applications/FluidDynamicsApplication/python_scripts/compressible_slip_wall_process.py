@@ -102,8 +102,9 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
             msg = "The variable must be in the historical database. Provided variable {} is not.".format(self.variable.Name())
             raise RuntimeError(msg)
 
-        normal_type = type(KratosMultiphysics.NORMAL)
-        if not isinstance(self.variable, normal_type):
+        variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(self.variable.Name())
+        normal_type = KratosMultiphysics.KratosGlobals.GetVariableType(KratosMultiphysics.NORMAL.Name())
+        if variable_type != normal_type:
             msg = "Variable must be a vector with the same size as NORMAL. Provided variable {} is not."\
                 .format(self.variable.Name())
             raise TypeError(msg)
