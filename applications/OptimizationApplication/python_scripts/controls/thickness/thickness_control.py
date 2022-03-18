@@ -52,6 +52,9 @@ class ThicknessControl():
     def Update(self):
         raise RuntimeError("ThicknessControl:Update: calling base class function") 
 
+    def GetControllingObjects(self):
+        raise RuntimeError("ThicknessControl:GetControllingObjects: calling base class function") 
+
     def GetVariableName(self):
         return self.control_variable_name       
 

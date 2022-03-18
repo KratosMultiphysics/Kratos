@@ -179,7 +179,7 @@ class ControlsController:
             if not control_name in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:GetControlControllingObjects: Control {} does not exist.".format(control_name))
        
-        return self.controls_controlling_objects[control_name]                   
+        return self.controls[control_name].GetControllingObjects()            
 
     # --------------------------------------------------------------------------
     def GetSupportedControlTypesVariablesName(self):

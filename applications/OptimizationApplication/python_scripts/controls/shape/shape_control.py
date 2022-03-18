@@ -51,7 +51,10 @@ class ShapeControl():
         raise RuntimeError("ShapeControl:Update: calling base class function") 
 
     def GetVariableName(self):
-        return self.control_variable_name       
+        return self.control_variable_name    
+
+    def GetControllingObjects(self):
+        raise RuntimeError("ShapeControl:GetControllingObjects: calling base class function")            
 
     def GetUpdateName(self):
         return self.control_update_name   

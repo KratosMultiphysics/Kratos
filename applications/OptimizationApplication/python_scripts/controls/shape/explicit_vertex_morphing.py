@@ -54,7 +54,10 @@ class ExplicitVertexMorphing(ShapeControl):
                 node.Z += shape_update[2]   
 
         for mapper in self.ex_vm_mapper.values():
-            mapper.Update()               
+            mapper.Update()  
+
+    def GetControllingObjects(self):      
+        return self.controlling_objects  
             
 
 

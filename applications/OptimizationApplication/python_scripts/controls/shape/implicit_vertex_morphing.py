@@ -106,6 +106,8 @@ class ImplicitVertexMorphing(ShapeControl):
 
     def Update(self):
         for model_part_name in self.controlling_objects:
+            if not self.technique_settings["only_design_surface_parameterization"].GetBool():
+                model_part_name = model_part_name.split(".")[0]
             model_part = self.model.GetModelPart(model_part_name)
             for node in model_part.Nodes:
                 shape_update = node.GetSolutionStepValue(KOA.D_X)
@@ -115,6 +117,17 @@ class ImplicitVertexMorphing(ShapeControl):
                 node.X += shape_update[0]
                 node.Y += shape_update[1]
                 node.Z += shape_update[2]   
+
+    def GetControllingObjects(self):
+        if self.technique_settings["only_design_surface_parameterization"].GetBool():
+            return self.controlling_objects
+        else:
+            root_controlling_names=[]
+            for model_part_name in self.controlling_objects:
+                root_model = model_part_name.split(".")[0]
+                root_controlling_names.append(root_model)
+            return root_controlling_names
+
             
             
 

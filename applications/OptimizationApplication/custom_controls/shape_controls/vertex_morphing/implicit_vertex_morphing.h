@@ -373,6 +373,16 @@ private:
         for(auto& control_obj : mControlSettings["controlling_objects"]){
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
             ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
+            const std::size_t domain_size = root_model_part.GetProcessInfo()[DOMAIN_SIZE];
+
+            // check if control_obj has surface condition and root_model_part has elements
+            KRATOS_ERROR_IF_NOT(r_controlling_object.Conditions().size()>0)
+            <<"ImplicitVertexMorphing::CreateModelParts: controlling object "<<control_obj.GetString()<<" must have surface conditions !"<<std::endl;
+            KRATOS_ERROR_IF_NOT(root_model_part.Elements().size()>0)
+            <<"ImplicitVertexMorphing::CreateModelParts: root model of controlling object "<<control_obj.GetString()<<" must have 3D elements !"<<std::endl;
+            KRATOS_ERROR_IF_NOT(domain_size == 3)
+            << "ImplicitVertexMorphing::CreateModelParts: controlling_object should be a 3D model part " << std::endl;
+
             std::string vm_model_part_name =  root_model_part.Name()+"_Implicit_VM_Part";
             ModelPart* p_vm_model_part;
             Properties::Pointer p_vm_model_part_property;
@@ -395,9 +405,13 @@ private:
             p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,mTechniqueSettings["bulk_filter_radius"].GetDouble()); 
             p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_POISSON_RATIO_SHAPE,mTechniqueSettings["poisson_ratio"].GetDouble()); 
             p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_POISSON_RATIO_SHAPE,mTechniqueSettings["poisson_ratio"].GetDouble());
-
-            for(auto& node : r_controlling_object.Nodes())
-                p_vm_model_part->AddNode(&node);
+            
+            if(only_suf_param)
+                for(auto& node : r_controlling_object.Nodes())
+                    p_vm_model_part->AddNode(&node);
+            else
+                for(auto& node : root_model_part.Nodes())
+                    p_vm_model_part->AddNode(&node);  
 
 
             // creating vm elements

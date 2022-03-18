@@ -79,6 +79,9 @@ class HelmholtzThickness(ThicknessControl):
 
     def Update(self):
         self.helmholtz_thickness_control.Update() 
+
+    def GetControllingObjects(self):
+        return self.controlling_objects
             
             
 

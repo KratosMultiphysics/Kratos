@@ -63,9 +63,11 @@ public:
             }
             mTotalNumControlVars += control_num_vars;
         }
+        KRATOS_INFO("AlgorithmGradientProjection:Initialize: ") << " total number of design variables " <<mTotalNumControlVars<< std::endl;
 
         // get alpha
         alpha = mrSettings["alpha"].GetDouble();
+        KRATOS_INFO("AlgorithmGradientProjection:Initialize: ") << " alpha value for correction is " <<alpha<< std::endl;
 
         //resize the required vectors
         mObjectiveGradients = ZeroVector(mTotalNumControlVars);
