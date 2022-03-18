@@ -112,7 +112,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
         KratosMultiphysics.NormalCalculationUtils().CalculateNormals(self.model_part, True)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLIP, False, self.model_part.Nodes)
 
-        if self.rampup_period < 1e-18:
+        if not self.rampup_period > 0.0:
             self.rampup_enabled = False
 
     def ExecuteInitializeSolutionStep(self):
