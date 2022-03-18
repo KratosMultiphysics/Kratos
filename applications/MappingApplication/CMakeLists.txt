@@ -81,10 +81,10 @@ install(TARGETS KratosMappingCore DESTINATION libs )
 install(TARGETS KratosMappingApplication DESTINATION libs )
 
 ## If MPI is used, then enable the MPIExtension
-if(${USE_MPI})
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message("Enabling mpi extension for MappingApplication")
   add_subdirectory(mpi_extension)
-endif(${USE_MPI})
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMappingCore" PARENT_SCOPE)

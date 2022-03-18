@@ -107,11 +107,6 @@ struct scaled_problem {
 
     template <class Vector>
     std::shared_ptr<typename Backend::vector> rhs(const Vector &v) const {
-        typedef typename backend::value_type<Vector>::type value_type;
-        typedef typename math::scalar_of<value_type>::type scalar_type;
-        const auto one  = math::identity<scalar_type>();
-        const auto zero = math::zero<scalar_type>();
-
         auto t = Backend::copy_vector(v, bprm);
         (*this)(*t);
         return t;
