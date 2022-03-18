@@ -72,7 +72,7 @@ public:
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN,
-        Vector Y);
+        Vector& Y);
 };
 
 }  // namespace Kratos.
