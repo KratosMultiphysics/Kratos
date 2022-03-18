@@ -81,7 +81,7 @@ class CompressibleSlipWallProcess(KratosMultiphysics.Process):
             {
                 "model_part_name"   : "SPECIFY_MODEL_PART_NAME",
                 "interval"   : [0, "End"],
-                "rampup_period"   : 0,
+                "rampup_time"   : 0,
                 "recompute_normals" : false,
                 "variable_name" : "MOMENTUM"
             }
