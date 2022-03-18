@@ -56,7 +56,37 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using ParticleDataContainerType = std::vector<std::pair<array_1d<double,3>, array_1d<double,3>>>;
+    struct ParticleData
+    {
+        KRATOS_CLASS_POINTER_DEFINITION(ParticleData);
+
+        ParticleData(){}
+
+        ParticleData(
+            const array_1d<double,3>& rCoordinates)
+            : Coordinates(rCoordinates)
+        {}
+
+        ParticleData(
+            const array_1d<double,3>& rCoordinates,
+            const array_1d<double,3>& rOldVelocity)
+            : Coordinates(rCoordinates)
+            , OldVelocity(rOldVelocity)
+        {}
+
+        ParticleData& operator=(const ParticleData& rOther) {return *this;}
+
+        double& operator[](std::size_t i) {return Coordinates[i];}
+
+        const double& operator[](std::size_t i) const {return Coordinates[i];}
+
+        array_1d<double,3> Coordinates;
+        array_1d<double,3> OldVelocity;
+    };
+
+    // using ParticleDataContainerType = std::vector<std::pair<array_1d<double,3>, array_1d<double,3>>>;
+    using ParticleDataType = ParticleData;
+    using ParticleDataContainerType = std::vector<ParticleData::Pointer>;
 
     /// Pointer definition of TwoFluidHistoryProjectionUtility
     KRATOS_CLASS_POINTER_DEFINITION(TwoFluidHistoryProjectionUtility);
@@ -140,7 +170,7 @@ private:
 
     static void CalculateLagrangianVelocityInterpolation(
         ModelPart& rModelPart,
-        const ParticleDataContainerType& rParticleData,
+        ParticleDataContainerType& rParticleData,
         double MaximumDistance);
 
     ///@}
@@ -176,10 +206,15 @@ private:
 ///@name Input and output
 ///@{
 
-/// output stream function
+/// output stream function for TwoFluidHistoryProjectionUtility
 inline std::ostream& operator << (
     std::ostream& rOStream,
     const TwoFluidHistoryProjectionUtility& rThis);
+
+/// output stream function for ParticleData class
+inline std::ostream& operator<<(
+    std::ostream& rOStream,
+    const TwoFluidHistoryProjectionUtility::ParticleData& rThis);
 
 ///@}
 

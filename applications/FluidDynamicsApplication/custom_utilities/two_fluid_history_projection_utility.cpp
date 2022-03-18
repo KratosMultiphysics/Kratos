@@ -19,6 +19,7 @@
 #include "geometries/geometry_data.h"
 #include "includes/global_pointer_variables.h"
 #include "processes/find_nodal_h_process.h"
+#include "spatial_containers/bins_dynamic.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/variable_utils.h"
 
@@ -37,14 +38,14 @@ namespace Kratos
         double maximum_distance=0.1;
         FlagElementsAndNodes(rModelPart, maximum_distance);
 
-        const auto particle_data = SeedAndConvectParticles(rModelPart);
+        auto particle_data = SeedAndConvectParticles(rModelPart);
 
         if (ComputeNodalH) {
             FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable> nodal_h_calculator(rModelPart);
             nodal_h_calculator.Execute();
         }
 
-        CalculateLagrangianVelocityInterpolation(rModelPart, particle_data,maximum_distance);
+        CalculateLagrangianVelocityInterpolation(rModelPart, particle_data, maximum_distance);
     }
 
     /* Private functions *******************************************************/
@@ -71,19 +72,20 @@ namespace Kratos
             }
         });
 
-// FIXME: This is a parallel band for virtua creators; 
+// FIXME: This is a parallel band for virtua creators;
         for (auto& r_node : rModelPart.Nodes()) {
             const double distance_n = r_node.FastGetSolutionStepValue(DISTANCE,1);
             if (distance_n>0.0){
                 if(distance_n-MaximumDistance<0.0){
                     r_node.Set(SELECTED,true);
-                }        
-            }        
+                }
+            }
             else{
                 if(distance_n+MaximumDistance>0.0){
                     r_node.Set(SELECTED,true);
-                }                
+                }
             }
+        }
 
 //FIXME: This case is in order to use layers as a virtual particle creators--- SPHERIC ZONE THAT ENVOLVES FREE SURFACE NODES
         // // Extra layers for seeding
@@ -118,7 +120,6 @@ namespace Kratos
                 }
             }
         });
-    }
     }
 
     TwoFluidHistoryProjectionUtility::ParticleDataContainerType TwoFluidHistoryProjectionUtility::SeedAndConvectParticles(ModelPart& rModelPart)
@@ -162,7 +163,8 @@ namespace Kratos
                     noalias(aux_coords) += dt * aux_v;
 
                     // Save data in the particle data container
-                    particle_data.push_back(std::make_pair(aux_coords, aux_v));
+                    auto p_new_particle = Kratos::make_shared<ParticleDataType>(aux_coords, aux_v);
+                    particle_data.push_back(p_new_particle);
                 }
             }
         }
@@ -172,7 +174,7 @@ namespace Kratos
 
     void TwoFluidHistoryProjectionUtility::CalculateLagrangianVelocityInterpolation(
         ModelPart& rModelPart,
-        const ParticleDataContainerType& rParticleData,
+        ParticleDataContainerType& rParticleData,
         double MaximumDistance)
     {
         std::size_t domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -181,84 +183,86 @@ namespace Kratos
         // Reset MESH_VELOCITY
         VariableUtils().SetHistoricalVariableToZero(MESH_VELOCITY, rModelPart.Nodes());
 
+        // Set the bins search
+        //TODO: Make it 2D compatible
+        typedef BinsDynamic<3, ParticleDataType, ParticleDataContainerType> BinsDynamicSearchType;
+        BinsDynamicSearchType bins_search(rParticleData.begin(), rParticleData.end());
+
         // Compute the Lagrangian velocity interpolation
         const double search_factor = 3.0;
+        const std::size_t max_results = 20;
         for (auto& r_node : rModelPart.Nodes()) {
-                const auto& r_node_coords = r_node.Coordinates();
+            const auto& r_node_coords = r_node.Coordinates();
 
-                // Set the cloud of points inside the search bounding box
-                std::vector<array_1d<double,3>> vel_cloud;
-                std::vector<array_1d<double,3>> coord_cloud;
-                const double search_dist = search_factor * r_node.GetValue(NODAL_H) / 2.0;
-                for (const auto& r_data : rParticleData) {
-                    const auto& r_part_coords = std::get<0>(r_data);
-                    if (std::abs(r_part_coords[0] - r_node_coords[0]) < search_dist) {
-                        if (std::abs(r_part_coords[1] - r_node_coords[1]) < search_dist) {
-                            if (std::abs(r_part_coords[2] - r_node_coords[2]) < search_dist) {
-                                coord_cloud.push_back(r_part_coords);
-                                vel_cloud.push_back(std::get<1>(r_data));
-                            }
-                        }
-                    }
-                }
+            // Search the closest particles to the current node
+            ParticleDataType aux_node(r_node_coords);
+            ParticleDataContainerType cloud_particles(max_results);
+            const double search_dist = search_factor * r_node.GetValue(NODAL_H) / 2.0;
+            const std::size_t n_cloud_points = bins_search.SearchInRadius(
+                aux_node,
+                search_dist,
+                cloud_particles.begin(),
+                max_results);
 
+            if(n_cloud_points >= min_n_particles)
+            {
                 // Set the coordinates matrix for the MLS interpolation
-                std::size_t n_cloud_points = coord_cloud.size();
                 Matrix cloud_coords(n_cloud_points, domain_size);
                 for (std::size_t i = 0; i < n_cloud_points; ++i) {
-                    const auto& r_aux_coords = coord_cloud[i];
+                    const auto& r_particle = *(cloud_particles[i]);
                     for (std::size_t d = 0; d < domain_size; ++d) {
-                        cloud_coords(i,d) = r_aux_coords[d];
+                        cloud_coords(i,d) = r_particle[d];
                     }
                 }
 
                 // Calculate the MLS interpolation in the FREE_SURFACE node
                 // TODO: Use an auxiliary lambda to avoid this if
                 Vector cloud_shape_functions;
-                if(n_cloud_points > min_n_particles)
-                {
+
                     if (domain_size == 2) {
                         MLSShapeFunctionsUtility::CalculateShapeFunctions<2>(cloud_coords, r_node_coords, search_dist, cloud_shape_functions);
                     } else if (domain_size == 3) {
                         MLSShapeFunctionsUtility::CalculateShapeFunctions<3>(cloud_coords, r_node_coords, search_dist, cloud_shape_functions);
                     } else {
                         KRATOS_ERROR << "Wrong DOMAIN_SIZE." << std::endl;
-                }
+                    }
 
                 // Interpolate the FREE_SURFACE node history and mesh velocity
                 array_1d<double,3> v_n = ZeroVector(3);
-                for (std::size_t i_node = 0; i_node < n_cloud_points; ++i_node) {
-                    noalias(v_n) += cloud_shape_functions(i_node) * vel_cloud[i_node];
-
+                for (std::size_t i = 0; i < n_cloud_points; ++i) {
+                    const auto& r_particle = *(cloud_particles[i]);
+                    noalias(v_n) += cloud_shape_functions(i) * r_particle.OldVelocity;
                 }
-                double weigth_contour=0.0;
+
+                double distance_ratio = 0.0;
                 double distance=r_node.FastGetSolutionStepValue(DISTANCE);
                 double old_distance=r_node.FastGetSolutionStepValue(DISTANCE,1);
-                if (r_node.Is(FREE_SURFACE)){
-                    weigth_contour=1.0;
-                }
-                else{
-                    if ((distance-old_distance)<0.0){
-                        if (distance < 0.0){
-                            weigth_contour=abs(old_distance)/MaximumDistance;
+                if (!r_node.Is(FREE_SURFACE)){
+                    if (std::abs(distance)<MaximumDistance){
+                        if ((distance-old_distance)<0.0){
+                            if (distance < 0.0 && std::abs(old_distance)<MaximumDistance ){
+                                distance_ratio=std::abs(old_distance)/MaximumDistance;
+                            }
+                            else if (distance<MaximumDistance){
+                                 distance_ratio=std::abs(distance)/MaximumDistance;
+                            }
                         }
                         else{
-                             weigth_contour=abs(distance)/MaximumDistance;
+                            if (distance < 0.0 && std::abs(distance)<MaximumDistance){
+                                distance_ratio=std::abs(distance)/MaximumDistance;
+                            }
+                            else if (distance<MaximumDistance){
+                                 distance_ratio=std::abs(old_distance)/MaximumDistance;
+                            }
                         }
+                    } else {
+                        distance_ratio = 1.0;
                     }
-                    else{S
-                        if (distance < 0.0){
-                            weigth_contour=abs(distance)/MaximumDistance;
-                        }
-                        else{
-                             weigth_contour=abs(old_distance)/MaximumDistance;
-                        }
-
-                    }   
                 }
-                
+
                 const array_1d<double, 3> original_velocity=r_node.FastGetSolutionStepValue(VELOCITY);
-                v_n= (v_n*weigth_contour+(1.0-weigth_contour)*original_velocity);
+                r_node.SetValue(TEMPERATURE,distance_ratio);
+                v_n= ((1.0 - distance_ratio)*v_n + distance_ratio*original_velocity);
 
                 // Set new interpolated velocity such that the interface is Lagrangian in an approximate sense.
                 // It should be considered the fixity. for that nodes that ones of each components is fixed it is not applied false fm-ale to that component.
@@ -295,12 +299,23 @@ namespace Kratos
 
     /* External functions *****************************************************/
 
-    /// output stream function
+    /// output stream function for TwoFluidHistoryProjectionUtility
     inline std::ostream& operator << (
         std::ostream& rOStream,
         const TwoFluidHistoryProjectionUtility& rThis)
     {
         rThis.PrintData(rOStream);
+        return rOStream;
+    }
+
+    /// output stream function for ParticleData class
+    inline std::ostream& operator<<(
+        std::ostream& rOStream,
+        const TwoFluidHistoryProjectionUtility::ParticleData& rThis)
+    {
+        rOStream << "ParticleData" << std::endl;
+        rOStream << "\tCoordinates: [" << rThis.Coordinates[0] << "," << rThis.Coordinates[1] << "," << rThis.Coordinates[2] << "]" << std::endl;
+        rOStream << "\tOldVelocity: [" << rThis.OldVelocity[0] << "," << rThis.OldVelocity[1] << "," << rThis.OldVelocity[2] << "]" << std::endl;
         return rOStream;
     }
 
