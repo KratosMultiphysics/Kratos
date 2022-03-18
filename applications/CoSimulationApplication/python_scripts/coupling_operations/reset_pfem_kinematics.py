@@ -18,8 +18,8 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
     - add tests
     - more cleanup
     """
-    def __init__(self, settings, solver_wrappers, process_info):
-        super().__init__(settings, process_info)
+    def __init__(self, settings, solver_wrappers, process_info, data_communicator):
+        super().__init__(settings, process_info, data_communicator)
         model = solver_wrappers[self.settings["solver"].GetString()].model
         self.model_part_name = self.settings["model_part_name"].GetString()
         self.model_part = model[self.model_part_name]
@@ -34,7 +34,7 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
                 cs_tools.cs_print_info(self._ClassName(), "PFEM KINEMATICS RESET IN MODEL PART: " + self.model_part_name)
 
     def _ResetPfemKinematicValues(self):
-        KM.PfemFluidDynamicsApplication.MoveMeshUtility.ResetPfemKinematicValues(self.model_part)
+        KM.PfemFluidDynamicsApplication.PFEMMoveMeshUtility.ResetPfemKinematicValues(self.model_part)
 
     @classmethod
     def _GetDefaultParameters(cls):

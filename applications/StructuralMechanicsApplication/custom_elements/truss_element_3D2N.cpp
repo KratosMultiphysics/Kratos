@@ -983,6 +983,36 @@ bool TrussElement3D2N::HasSelfWeight() const
     }
 }
 
+const Parameters TrussElement3D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : ["DISPLACEMENT","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","DISPLACEMENT_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line3D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["TrussConstitutiveLaw"],
+            "dimension"   : ["3D"],
+            "strain_size" : [1]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a non-linear truss formulation."
+    })");
+
+    return specifications;
+}
+
 void TrussElement3D2N::CalculateLumpedMassVector(
     VectorType& rLumpedMassVector,
     const ProcessInfo& rCurrentProcessInfo) const

@@ -375,11 +375,6 @@ KRATOS_CREATE_VARIABLE(Vector, NEIGHBOUR_RIGID_FACES_TOTAL_CONTACT_FORCE)
 KRATOS_CREATE_VARIABLE(int, DUMMY_SWITCH)
 KRATOS_CREATE_VARIABLE(double, TOTAL_CONTACT_DISTANCES)
 
-// *************** Thermal only BEGIN *************
-KRATOS_CREATE_VARIABLE(double, HEATFLUX)
-KRATOS_CREATE_VARIABLE(double, THERMAL_CONDUCTIVITY)
-// *************** Thermal only END ***************
-
 // EXPORTS
 KRATOS_CREATE_VARIABLE(double, EXPORT_PARTICLE_FAILURE_ID)
 KRATOS_CREATE_VARIABLE(double, EXPORT_ID)
@@ -446,24 +441,23 @@ KRATOS_CREATE_VARIABLE(bool, IMPOSED_Z_STRAIN_OPTION)
 
 //FLAGS
 KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROTATION, 0);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SINTERING, 1);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROLLING_FRICTION, 2);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, STICKY, 3);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_CRITICAL_TIME, 4);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_X, 5);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_Y, 6);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_Z, 7);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_X, 8);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_Y, 9);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_Z, 10);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, BELONGS_TO_A_CLUSTER, 11);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_STRESS_TENSOR, 12);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR, 13);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR2, 14);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, PRINT_STRESS_TENSOR, 15);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, CUMULATIVE_ZONE, 16);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SAND_PRODUCTION, 17);
-KRATOS_CREATE_LOCAL_FLAG(DEMFlags, POLYHEDRON_SKIN, 18);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_ROLLING_FRICTION, 1);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, STICKY, 2);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_CRITICAL_TIME, 3);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_X, 4);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_Y, 5);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_VEL_Z, 6);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_X, 7);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_Y, 8);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, FIXED_ANG_VEL_Z, 9);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, BELONGS_TO_A_CLUSTER, 10);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, HAS_STRESS_TENSOR, 11);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR, 12);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, COPIED_STRESS_TENSOR2, 13);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, PRINT_STRESS_TENSOR, 14);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, CUMULATIVE_ZONE, 15);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, IS_SAND_PRODUCTION, 16);
+KRATOS_CREATE_LOCAL_FLAG(DEMFlags, POLYHEDRON_SKIN, 17);
 
 //ELEMENTS
 
@@ -477,9 +471,6 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
     mPolyhedronSkinSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mIceContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBeamParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mThermalSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mThermalSphericParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-    mSinteringSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mBondingSphericContinuumParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
     mParticleContactElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     mSolidFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -816,11 +807,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BLAST_COORDINATES_8)
     // *************** Continuum only END *************
 
-    // *************** Thermal only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(HEATFLUX)
-    KRATOS_REGISTER_VARIABLE(THERMAL_CONDUCTIVITY)
-    // *************** Thermal only END ***************
-
     // Possible future blocks (no FEM) interaction
 
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FAILURE_ID)
@@ -907,9 +893,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("PolyhedronSkinSphericParticle3D", mPolyhedronSkinSphericParticle3D)
     KRATOS_REGISTER_ELEMENT("IceContinuumParticle3D", mIceContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("BeamParticle3D", mBeamParticle3D)
-    KRATOS_REGISTER_ELEMENT("ThermalSphericContinuumParticle3D", mThermalSphericContinuumParticle3D)
-    KRATOS_REGISTER_ELEMENT("ThermalSphericParticle3D", mThermalSphericParticle3D)
-    KRATOS_REGISTER_ELEMENT("SinteringSphericContinuumParticle3D", mSinteringSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("BondingSphericContinuumParticle3D", mBondingSphericContinuumParticle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
     KRATOS_REGISTER_ELEMENT("RigidBodyElement3D", mRigidBodyElement3D)
