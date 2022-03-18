@@ -43,7 +43,7 @@ public:
      * @return double The RBF value
      */
     static double EvaluateRBF(
-        double x,
+        const double x,
         const double h);
 
     /**
