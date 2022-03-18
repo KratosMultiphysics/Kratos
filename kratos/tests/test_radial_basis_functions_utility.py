@@ -1,5 +1,3 @@
-import os
-
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
