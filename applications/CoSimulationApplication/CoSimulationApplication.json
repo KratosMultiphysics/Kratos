@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosCoSimulationApplication",
 	"included_modules": ["CoSimulationApplication"],
-	"included_binaries": ["KratosCoSimulationApplication.*", "KratosCoSimulationCore.*", "libKratosCoSimulationCore.*"],
+	"included_binaries": ["KratosCoSimulationApplication.*", "KratosCoSimulationCore.*", "libKratosCoSimulationCore.*", "co_sim_io.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
