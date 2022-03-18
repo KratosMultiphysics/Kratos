@@ -23,7 +23,7 @@ namespace Kratos
 {
 
     double RadialBasisFunctionsUtility::EvaluateRBF(
-        double x,
+        const double x,
         const double h)
     {   
         // Evaluate Inverse multiquadric
