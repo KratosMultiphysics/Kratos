@@ -128,6 +128,7 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
     BoundedMatrix<double,3,3>& rViscosity,
     BoundedMatrix<double,2,2>& rDiffusion,
     const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
     double jump = 0;

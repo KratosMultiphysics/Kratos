@@ -1,6 +1,6 @@
 Kratos CoSimIO for Kratos CoSimulation Application
 
-Copyright (c) 2020-2021, Philipp Bucher, Chair of Structural Analysis, Technical University of Munich
+Copyright (c) 2020-2022, Philipp Bucher, Chair of Structural Analysis, Technical University of Munich
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
