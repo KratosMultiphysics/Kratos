@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Eduard Gómez, Eduard Gómez
+//  Main authors:    Eduard Gómez, Ruben Zorrilla
 //
 
 /**
@@ -41,6 +41,12 @@
 
 
 namespace Kratos {
+
+template<>
+GeometryData::IntegrationMethod CompressibleNavierStokesExplicit<2,4>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
 
 template <>
 void CompressibleNavierStokesExplicit<2,4>::EquationIdVector(
@@ -95,14 +101,33 @@ void CompressibleNavierStokesExplicit<2,4>::GetDofList(
 }
 
 
+void ComputeMidpointShapeFunctions(
+    const Geometry<Node<3>>& rGeometry,
+    Vector& rN,
+    Matrix& rDN_DX)
+{
+    Matrix DN_De;
+    Matrix Jinv;
+
+    const auto center = rGeometry.Center();
+    rGeometry.ShapeFunctionsValues(rN, center);
+    rGeometry.InverseOfJacobian(Jinv, center);
+
+    rGeometry.ShapeFunctionsLocalGradients(DN_De, center);
+    GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, rDN_DX);
+}
+
+
 template <>
 array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVelocityRotational() const
 {
     // Get geometry data
-    const auto& r_geom = GetGeometry();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
-    const auto& r_dNdX = dNdX_container[0];
+    const auto& r_geometry = GetGeometry();
+
+    Vector N;
+    Matrix DN_DX;
+
+    ComputeMidpointShapeFunctions(r_geometry, N, DN_DX);
 
     // Calculate midpoint magnitudes
     double midpoint_rho = 0.0;
@@ -110,21 +135,23 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVeloc
     double midpoint_dmx_dy = 0.0;
     double midpoint_rho_dx = 0.0;
     double midpoint_rho_dy = 0.0;
-    array_1d<double,3> midpoint_mom = ZeroVector(3);
+    array_1d<double, 3> midpoint_mom = ZeroVector(3);
+
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-        auto& r_node = r_geom[i_node];
-        const auto node_dNdX = row(r_dNdX, i_node);
+        auto& r_node = r_geometry[i_node];
+
+        const auto node_dNdX = row(DN_DX, i_node);
+        const auto node_N = N(i_node);
+
         const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        midpoint_rho += r_rho;
-        midpoint_mom += r_mom;
+        midpoint_rho += node_N * r_rho;
+        midpoint_mom += node_N * r_mom;
         midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
         midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= static_cast<double>(NumNodes);
-    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity rotational
     // Note that the formulation is written in conservative variables. Hence we do rot(mom/rho).
@@ -137,16 +164,19 @@ array_1d<double,3> CompressibleNavierStokesExplicit<2,4>::CalculateMidPointVeloc
     return midpoint_rot_v;
 }
 
+
 template <>
 BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMidPointVelocityGradient() const
 {
     KRATOS_TRY
 
     // Get geometry data
-    const auto& r_geom = GetGeometry();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
-    const auto& r_dNdX = dNdX_container[0];
+    const auto& r_geometry = GetGeometry();
+
+    Vector N;
+    Matrix DN_DX;
+
+    ComputeMidpointShapeFunctions(r_geometry, N, DN_DX);
 
     // Calculate midpoint magnitudes
     double midpoint_rho = 0.0;
@@ -157,13 +187,17 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
     double midpoint_rho_dx = 0.0;
     double midpoint_rho_dy = 0.0;
     array_1d<double,3> midpoint_mom = ZeroVector(3);
+
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-        auto& r_node = r_geom[i_node];
-        const auto node_dNdX = row(r_dNdX, i_node);
+        auto& r_node = r_geometry[i_node];
+
+        const auto node_dNdX = row(DN_DX, i_node);
+        const auto node_N = N(i_node);
+
         const auto& r_mom = r_node.FastGetSolutionStepValue(MOMENTUM);
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        midpoint_rho += r_rho;
-        midpoint_mom += r_mom;
+        midpoint_rho += node_N * r_rho;
+        midpoint_mom += node_N * r_mom;
         midpoint_dmx_dx += r_mom[0] * node_dNdX[0];
         midpoint_dmx_dy += r_mom[0] * node_dNdX[1];
         midpoint_dmy_dx += r_mom[1] * node_dNdX[0];
@@ -171,8 +205,6 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
         midpoint_rho_dx += r_rho * node_dNdX[0];
         midpoint_rho_dy += r_rho * node_dNdX[1];
     }
-    midpoint_rho /= static_cast<double>(NumNodes);
-    midpoint_mom /= static_cast<double>(NumNodes);
 
     // Calculate velocity gradient
     // Note that the formulation is written in conservative variables. Hence we do grad(mom/rho).
@@ -188,6 +220,7 @@ BoundedMatrix<double, 3, 3> CompressibleNavierStokesExplicit<2, 4>::CalculateMid
     KRATOS_CATCH("")
 }
 
+
 template <>
 void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -198,57 +231,66 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMomentumProjection(const Pr
     this->FillElementData(data, rCurrentProcessInfo);
 
     // Calculate shock capturing values
-    BoundedVector<double, Dim*NumNodes> mom_proj = ZeroVector(Dim*NumNodes);
+    constexpr std::size_t vector_size = Dim*NumNodes;
+    BoundedVector<double, vector_size> mom_proj = ZeroVector(vector_size);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
+
+    Matrix J;
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
+        const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
 
-const double cmom_proj0 =             data.gamma - 1;
-const double cmom_proj1 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
-const double cmom_proj2 =             DN_DX(0,1)*data.U(0,1) + DN_DX(1,1)*data.U(1,1) + DN_DX(2,1)*data.U(2,1) + DN_DX(3,1)*data.U(3,1);
-const double cmom_proj3 =             1.0/cmom_proj1;
-const double cmom_proj4 =             N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
-const double cmom_proj5 =             cmom_proj3*cmom_proj4;
-const double cmom_proj6 =             DN_DX(0,1)*data.U(0,2) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,1)*data.U(3,2);
-const double cmom_proj7 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
-const double cmom_proj8 =             cmom_proj3*cmom_proj7;
-const double cmom_proj9 =             DN_DX(0,0)*data.U(0,2) + DN_DX(1,0)*data.U(1,2) + DN_DX(2,0)*data.U(2,2) + DN_DX(3,0)*data.U(3,2);
-const double cmom_proj10 =             1.0*cmom_proj0;
-const double cmom_proj11 =             DN_DX(0,0)*data.U(0,1) + DN_DX(1,0)*data.U(1,1) + DN_DX(2,0)*data.U(2,1) + DN_DX(3,0)*data.U(3,1);
-const double cmom_proj12 =             1.0*data.gamma - 3.0;
-const double cmom_proj13 =             pow(cmom_proj1, -2);
-const double cmom_proj14 =             cmom_proj13*(DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0));
-const double cmom_proj15 =             cmom_proj4*cmom_proj7;
-const double cmom_proj16 =             pow(cmom_proj7, 2);
-const double cmom_proj17 =             pow(cmom_proj4, 2);
-const double cmom_proj18 =             0.5*cmom_proj0*(cmom_proj16 + cmom_proj17);
-const double cmom_proj19 =             cmom_proj13*(DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0));
-const double cmom_proj20 =             N(0)*data.dUdt(0,1) + N(1)*data.dUdt(1,1) + N(2)*data.dUdt(2,1) + N(3)*data.dUdt(3,1) + cmom_proj0*(DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3)) - cmom_proj1*(N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0)) - cmom_proj10*cmom_proj5*cmom_proj9 - cmom_proj11*cmom_proj12*cmom_proj8 - cmom_proj14*cmom_proj15 + cmom_proj19*(-cmom_proj16 + cmom_proj18) + cmom_proj2*cmom_proj5 + cmom_proj6*cmom_proj8;
-const double cmom_proj21 =             N(0)*data.dUdt(0,2) + N(1)*data.dUdt(1,2) + N(2)*data.dUdt(2,2) + N(3)*data.dUdt(3,2) + cmom_proj0*(DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3)) - cmom_proj1*(N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1)) - cmom_proj10*cmom_proj2*cmom_proj8 + cmom_proj11*cmom_proj5 - cmom_proj12*cmom_proj5*cmom_proj6 + cmom_proj14*(-cmom_proj17 + cmom_proj18) - cmom_proj15*cmom_proj19 + cmom_proj8*cmom_proj9;
-            mom_proj[0] += -N(0)*cmom_proj20;
-            mom_proj[1] += -N(0)*cmom_proj21;
-            mom_proj[2] += -N(1)*cmom_proj20;
-            mom_proj[3] += -N(1)*cmom_proj21;
-            mom_proj[4] += -N(2)*cmom_proj20;
-            mom_proj[5] += -N(2)*cmom_proj21;
-            mom_proj[6] += -N(3)*cmom_proj20;
-            mom_proj[7] += -N(3)*cmom_proj21;
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
+
+        BoundedVector<double, vector_size> mom_proj_gauss(DofSize);
+
+        const double cmom_proj_gauss0 = data.gamma - 1;
+        const double cmom_proj_gauss1 = N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
+        const double cmom_proj_gauss2 = DN_DX(0,1)*data.U(0,1) + DN_DX(1,1)*data.U(1,1) + DN_DX(2,1)*data.U(2,1) + DN_DX(3,1)*data.U(3,1);
+        const double cmom_proj_gauss3 = 1.0/cmom_proj_gauss1;
+        const double cmom_proj_gauss4 = N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
+        const double cmom_proj_gauss5 = cmom_proj_gauss3*cmom_proj_gauss4;
+        const double cmom_proj_gauss6 = DN_DX(0,1)*data.U(0,2) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,1)*data.U(3,2);
+        const double cmom_proj_gauss7 = N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
+        const double cmom_proj_gauss8 = cmom_proj_gauss3*cmom_proj_gauss7;
+        const double cmom_proj_gauss9 = DN_DX(0,0)*data.U(0,2) + DN_DX(1,0)*data.U(1,2) + DN_DX(2,0)*data.U(2,2) + DN_DX(3,0)*data.U(3,2);
+        const double cmom_proj_gauss10 = 1.0*cmom_proj_gauss0;
+        const double cmom_proj_gauss11 = DN_DX(0,0)*data.U(0,1) + DN_DX(1,0)*data.U(1,1) + DN_DX(2,0)*data.U(2,1) + DN_DX(3,0)*data.U(3,1);
+        const double cmom_proj_gauss12 = 1.0*data.gamma - 3.0;
+        const double cmom_proj_gauss13 = pow(cmom_proj_gauss1, -2);
+        const double cmom_proj_gauss14 = cmom_proj_gauss13*(DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0));
+        const double cmom_proj_gauss15 = cmom_proj_gauss4*cmom_proj_gauss7;
+        const double cmom_proj_gauss16 = pow(cmom_proj_gauss7, 2);
+        const double cmom_proj_gauss17 = pow(cmom_proj_gauss4, 2);
+        const double cmom_proj_gauss18 = 0.5*cmom_proj_gauss0*(cmom_proj_gauss16 + cmom_proj_gauss17);
+        const double cmom_proj_gauss19 = cmom_proj_gauss13*(DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0));
+        const double cmom_proj_gauss20 = N(0)*data.dUdt(0,1) + N(1)*data.dUdt(1,1) + N(2)*data.dUdt(2,1) + N(3)*data.dUdt(3,1) + cmom_proj_gauss0*(DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3)) - cmom_proj_gauss1*(N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0)) - cmom_proj_gauss10*cmom_proj_gauss5*cmom_proj_gauss9 - cmom_proj_gauss11*cmom_proj_gauss12*cmom_proj_gauss8 - cmom_proj_gauss14*cmom_proj_gauss15 + cmom_proj_gauss19*(-cmom_proj_gauss16 + cmom_proj_gauss18) + cmom_proj_gauss2*cmom_proj_gauss5 + cmom_proj_gauss6*cmom_proj_gauss8;
+        const double cmom_proj_gauss21 = N(0)*data.dUdt(0,2) + N(1)*data.dUdt(1,2) + N(2)*data.dUdt(2,2) + N(3)*data.dUdt(3,2) + cmom_proj_gauss0*(DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3)) - cmom_proj_gauss1*(N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1)) - cmom_proj_gauss10*cmom_proj_gauss2*cmom_proj_gauss8 + cmom_proj_gauss11*cmom_proj_gauss5 - cmom_proj_gauss12*cmom_proj_gauss5*cmom_proj_gauss6 + cmom_proj_gauss14*(-cmom_proj_gauss17 + cmom_proj_gauss18) - cmom_proj_gauss15*cmom_proj_gauss19 + cmom_proj_gauss8*cmom_proj_gauss9;
+        mom_proj_gauss[0] = -N(0)*cmom_proj_gauss20;
+        mom_proj_gauss[1] = -N(0)*cmom_proj_gauss21;
+        mom_proj_gauss[2] = -N(1)*cmom_proj_gauss20;
+        mom_proj_gauss[3] = -N(1)*cmom_proj_gauss21;
+        mom_proj_gauss[4] = -N(2)*cmom_proj_gauss20;
+        mom_proj_gauss[5] = -N(2)*cmom_proj_gauss21;
+        mom_proj_gauss[6] = -N(3)*cmom_proj_gauss20;
+        mom_proj_gauss[7] = -N(3)*cmom_proj_gauss21;
+
+
+        mom_proj += w * detJ * mom_proj_gauss;
     }
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    mom_proj *= data.volume / NumNodes;
 
     // Assembly the projection contributions
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
@@ -276,29 +318,37 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateDensityProjection(const Pro
     BoundedVector<double, NumNodes> rho_proj = ZeroVector(NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
+
+    Matrix J;
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
+        const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
 
-const double crho_proj0 =             DN_DX(0,0)*data.U(0,1) + DN_DX(0,1)*data.U(0,2) + DN_DX(1,0)*data.U(1,1) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,0)*data.U(2,1) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,0)*data.U(3,1) + DN_DX(3,1)*data.U(3,2) + N(0)*data.dUdt(0,0) - N(0)*data.m_ext(0) + N(1)*data.dUdt(1,0) - N(1)*data.m_ext(1) + N(2)*data.dUdt(2,0) - N(2)*data.m_ext(2) + N(3)*data.dUdt(3,0) - N(3)*data.m_ext(3);
-            rho_proj[0] += -N(0)*crho_proj0;
-            rho_proj[1] += -N(1)*crho_proj0;
-            rho_proj[2] += -N(2)*crho_proj0;
-            rho_proj[3] += -N(3)*crho_proj0;
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
+
+        BoundedVector<double, DofSize> rho_proj_gauss(DofSize);
+
+        const double crho_proj_gauss0 = DN_DX(0,0)*data.U(0,1) + DN_DX(0,1)*data.U(0,2) + DN_DX(1,0)*data.U(1,1) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,0)*data.U(2,1) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,0)*data.U(3,1) + DN_DX(3,1)*data.U(3,2) + N(0)*data.dUdt(0,0) - N(0)*data.m_ext(0) + N(1)*data.dUdt(1,0) - N(1)*data.m_ext(1) + N(2)*data.dUdt(2,0) - N(2)*data.m_ext(2) + N(3)*data.dUdt(3,0) - N(3)*data.m_ext(3);
+        rho_proj_gauss[0] = -N(0)*crho_proj_gauss0;
+        rho_proj_gauss[1] = -N(1)*crho_proj_gauss0;
+        rho_proj_gauss[2] = -N(2)*crho_proj_gauss0;
+        rho_proj_gauss[3] = -N(3)*crho_proj_gauss0;
+
+
+        rho_proj += w * detJ * rho_proj_gauss;
     }
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    rho_proj *= data.volume / NumNodes;
 
     // Assembly the projection contributions
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
@@ -322,47 +372,55 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateTotalEnergyProjection(const
     BoundedVector<double, NumNodes> tot_ener_proj = ZeroVector(NumNodes);
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
+
+    Matrix J;
     Matrix Jinv;
 
     auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
     for(const auto& gauss_point: gauss_points)
     {
+        const double w = gauss_point.Weight();
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-        r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-        r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-        GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
 
-const double ctot_ener_proj0 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
-const double ctot_ener_proj1 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
-const double ctot_ener_proj2 =             N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
-const double ctot_ener_proj3 =             1.0/ctot_ener_proj0;
-const double ctot_ener_proj4 =             ctot_ener_proj3*data.gamma;
-const double ctot_ener_proj5 =             data.gamma - 1;
-const double ctot_ener_proj6 =             pow(ctot_ener_proj0, -2);
-const double ctot_ener_proj7 =             1.0*ctot_ener_proj1*ctot_ener_proj2*ctot_ener_proj5*ctot_ener_proj6;
-const double ctot_ener_proj8 =             pow(ctot_ener_proj1, 2);
-const double ctot_ener_proj9 =             ctot_ener_proj3*ctot_ener_proj5;
-const double ctot_ener_proj10 =             1.0*ctot_ener_proj9;
-const double ctot_ener_proj11 =             N(0)*data.U(0,3);
-const double ctot_ener_proj12 =             N(1)*data.U(1,3);
-const double ctot_ener_proj13 =             N(2)*data.U(2,3);
-const double ctot_ener_proj14 =             N(3)*data.U(3,3);
-const double ctot_ener_proj15 =             pow(ctot_ener_proj2, 2);
-const double ctot_ener_proj16 =             -ctot_ener_proj11 - ctot_ener_proj12 - ctot_ener_proj13 - ctot_ener_proj14 - ctot_ener_proj5*(ctot_ener_proj11 + ctot_ener_proj12 + ctot_ener_proj13 + ctot_ener_proj14 - ctot_ener_proj3*(0.5*ctot_ener_proj15 + 0.5*ctot_ener_proj8));
-const double ctot_ener_proj17 =             ctot_ener_proj6*(ctot_ener_proj16 + 0.5*ctot_ener_proj9*(ctot_ener_proj15 + ctot_ener_proj8));
-const double ctot_ener_proj18 =             N(0)*data.dUdt(0,3) + N(1)*data.dUdt(1,3) + N(2)*data.dUdt(2,3) + N(3)*data.dUdt(3,3) - ctot_ener_proj0*(N(0)*data.r_ext(0) + N(1)*data.r_ext(1) + N(2)*data.r_ext(2) + N(3)*data.r_ext(3)) + ctot_ener_proj1*ctot_ener_proj17*(DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0)) + ctot_ener_proj1*ctot_ener_proj4*(DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3)) - ctot_ener_proj1*(N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0)) + ctot_ener_proj17*ctot_ener_proj2*(DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0)) + ctot_ener_proj2*ctot_ener_proj4*(DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3)) - ctot_ener_proj2*(N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1)) - ctot_ener_proj3*(ctot_ener_proj10*ctot_ener_proj15 + ctot_ener_proj16)*(DN_DX(0,1)*data.U(0,2) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,1)*data.U(3,2)) - ctot_ener_proj3*(ctot_ener_proj10*ctot_ener_proj8 + ctot_ener_proj16)*(DN_DX(0,0)*data.U(0,1) + DN_DX(1,0)*data.U(1,1) + DN_DX(2,0)*data.U(2,1) + DN_DX(3,0)*data.U(3,1)) - ctot_ener_proj7*(DN_DX(0,0)*data.U(0,2) + DN_DX(1,0)*data.U(1,2) + DN_DX(2,0)*data.U(2,2) + DN_DX(3,0)*data.U(3,2)) - ctot_ener_proj7*(DN_DX(0,1)*data.U(0,1) + DN_DX(1,1)*data.U(1,1) + DN_DX(2,1)*data.U(2,1) + DN_DX(3,1)*data.U(3,1));
-            tot_ener_proj[0] += -N(0)*ctot_ener_proj18;
-            tot_ener_proj[1] += -N(1)*ctot_ener_proj18;
-            tot_ener_proj[2] += -N(2)*ctot_ener_proj18;
-            tot_ener_proj[3] += -N(3)*ctot_ener_proj18;
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
+        r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+        GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
+
+        BoundedVector<double, DofSize> tot_ener_proj_gauss(DofSize);
+
+        const double ctot_ener_proj_gauss0 = N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
+        const double ctot_ener_proj_gauss1 = N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
+        const double ctot_ener_proj_gauss2 = N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
+        const double ctot_ener_proj_gauss3 = 1.0/ctot_ener_proj_gauss0;
+        const double ctot_ener_proj_gauss4 = ctot_ener_proj_gauss3*data.gamma;
+        const double ctot_ener_proj_gauss5 = data.gamma - 1;
+        const double ctot_ener_proj_gauss6 = pow(ctot_ener_proj_gauss0, -2);
+        const double ctot_ener_proj_gauss7 = 1.0*ctot_ener_proj_gauss1*ctot_ener_proj_gauss2*ctot_ener_proj_gauss5*ctot_ener_proj_gauss6;
+        const double ctot_ener_proj_gauss8 = pow(ctot_ener_proj_gauss1, 2);
+        const double ctot_ener_proj_gauss9 = ctot_ener_proj_gauss3*ctot_ener_proj_gauss5;
+        const double ctot_ener_proj_gauss10 = 1.0*ctot_ener_proj_gauss9;
+        const double ctot_ener_proj_gauss11 = N(0)*data.U(0,3);
+        const double ctot_ener_proj_gauss12 = N(1)*data.U(1,3);
+        const double ctot_ener_proj_gauss13 = N(2)*data.U(2,3);
+        const double ctot_ener_proj_gauss14 = N(3)*data.U(3,3);
+        const double ctot_ener_proj_gauss15 = pow(ctot_ener_proj_gauss2, 2);
+        const double ctot_ener_proj_gauss16 = -ctot_ener_proj_gauss11 - ctot_ener_proj_gauss12 - ctot_ener_proj_gauss13 - ctot_ener_proj_gauss14 - ctot_ener_proj_gauss5*(ctot_ener_proj_gauss11 + ctot_ener_proj_gauss12 + ctot_ener_proj_gauss13 + ctot_ener_proj_gauss14 - ctot_ener_proj_gauss3*(0.5*ctot_ener_proj_gauss15 + 0.5*ctot_ener_proj_gauss8));
+        const double ctot_ener_proj_gauss17 = ctot_ener_proj_gauss6*(ctot_ener_proj_gauss16 + 0.5*ctot_ener_proj_gauss9*(ctot_ener_proj_gauss15 + ctot_ener_proj_gauss8));
+        const double ctot_ener_proj_gauss18 = N(0)*data.dUdt(0,3) + N(1)*data.dUdt(1,3) + N(2)*data.dUdt(2,3) + N(3)*data.dUdt(3,3) - ctot_ener_proj_gauss0*(N(0)*data.r_ext(0) + N(1)*data.r_ext(1) + N(2)*data.r_ext(2) + N(3)*data.r_ext(3)) + ctot_ener_proj_gauss1*ctot_ener_proj_gauss17*(DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0)) + ctot_ener_proj_gauss1*ctot_ener_proj_gauss4*(DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3)) - ctot_ener_proj_gauss1*(N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0)) + ctot_ener_proj_gauss17*ctot_ener_proj_gauss2*(DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0)) + ctot_ener_proj_gauss2*ctot_ener_proj_gauss4*(DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3)) - ctot_ener_proj_gauss2*(N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1)) - ctot_ener_proj_gauss3*(ctot_ener_proj_gauss10*ctot_ener_proj_gauss15 + ctot_ener_proj_gauss16)*(DN_DX(0,1)*data.U(0,2) + DN_DX(1,1)*data.U(1,2) + DN_DX(2,1)*data.U(2,2) + DN_DX(3,1)*data.U(3,2)) - ctot_ener_proj_gauss3*(ctot_ener_proj_gauss10*ctot_ener_proj_gauss8 + ctot_ener_proj_gauss16)*(DN_DX(0,0)*data.U(0,1) + DN_DX(1,0)*data.U(1,1) + DN_DX(2,0)*data.U(2,1) + DN_DX(3,0)*data.U(3,1)) - ctot_ener_proj_gauss7*(DN_DX(0,0)*data.U(0,2) + DN_DX(1,0)*data.U(1,2) + DN_DX(2,0)*data.U(2,2) + DN_DX(3,0)*data.U(3,2)) - ctot_ener_proj_gauss7*(DN_DX(0,1)*data.U(0,1) + DN_DX(1,1)*data.U(1,1) + DN_DX(2,1)*data.U(2,1) + DN_DX(3,1)*data.U(3,1));
+        tot_ener_proj_gauss[0] = -N(0)*ctot_ener_proj_gauss18;
+        tot_ener_proj_gauss[1] = -N(1)*ctot_ener_proj_gauss18;
+        tot_ener_proj_gauss[2] = -N(2)*ctot_ener_proj_gauss18;
+        tot_ener_proj_gauss[3] = -N(3)*ctot_ener_proj_gauss18;
+
+
+        tot_ener_proj += w * detJ * tot_ener_proj_gauss;
     }
-
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    tot_ener_proj *= data.volume / NumNodes;
 
     // Assembly the projection contributions
     for (IndexType i_node = 0; i_node < NumNodes; ++i_node) {
@@ -392,573 +450,594 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateRightHandSideInternal(
     constexpr double stab_c3 = 1.0;
 
     const auto& r_geometry = GetGeometry();
-    const auto& gauss_points = r_geometry.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
     Vector N;
-    Matrix DN_DX_iso;
+    Matrix DN_De;
     Matrix DN_DX;
+
+    Matrix J;
     Matrix Jinv;
 
     if (data.UseOSS)
     {
         for(const auto& gauss_point: gauss_points)
         {
+            const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-            r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
 
-const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
-const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
-const double crRightHandSideBoundedVector2 =             N(2)*data.m_ext(2);
-const double crRightHandSideBoundedVector3 =             N(3)*data.m_ext(3);
-const double crRightHandSideBoundedVector4 =             crRightHandSideBoundedVector0 + crRightHandSideBoundedVector1 + crRightHandSideBoundedVector2 + crRightHandSideBoundedVector3;
-const double crRightHandSideBoundedVector5 =             N(0)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector6 =             DN_DX(0,1)*data.U(0,2);
-const double crRightHandSideBoundedVector7 =             DN_DX(1,1)*data.U(1,2);
-const double crRightHandSideBoundedVector8 =             DN_DX(2,1)*data.U(2,2);
-const double crRightHandSideBoundedVector9 =             DN_DX(3,1)*data.U(3,2);
-const double crRightHandSideBoundedVector10 =             crRightHandSideBoundedVector6 + crRightHandSideBoundedVector7 + crRightHandSideBoundedVector8 + crRightHandSideBoundedVector9;
-const double crRightHandSideBoundedVector11 =             DN_DX(0,0)*data.U(0,1);
-const double crRightHandSideBoundedVector12 =             DN_DX(1,0)*data.U(1,1);
-const double crRightHandSideBoundedVector13 =             DN_DX(2,0)*data.U(2,1);
-const double crRightHandSideBoundedVector14 =             DN_DX(3,0)*data.U(3,1);
-const double crRightHandSideBoundedVector15 =             crRightHandSideBoundedVector11 + crRightHandSideBoundedVector12 + crRightHandSideBoundedVector13 + crRightHandSideBoundedVector14;
-const double crRightHandSideBoundedVector16 =             crRightHandSideBoundedVector10 + crRightHandSideBoundedVector15;
-const double crRightHandSideBoundedVector17 =             DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0);
-const double crRightHandSideBoundedVector18 =             N(0)*data.alpha_sc_nodes(0) + N(1)*data.alpha_sc_nodes(1) + N(2)*data.alpha_sc_nodes(2) + N(3)*data.alpha_sc_nodes(3);
-const double crRightHandSideBoundedVector19 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector18;
-const double crRightHandSideBoundedVector20 =             DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0);
-const double crRightHandSideBoundedVector21 =             crRightHandSideBoundedVector18*crRightHandSideBoundedVector20;
-const double crRightHandSideBoundedVector22 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
-const double crRightHandSideBoundedVector23 =             1.0/crRightHandSideBoundedVector22;
-const double crRightHandSideBoundedVector24 =             fabs(crRightHandSideBoundedVector22);
-const double crRightHandSideBoundedVector25 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
-const double crRightHandSideBoundedVector26 =             pow(crRightHandSideBoundedVector25, 2);
-const double crRightHandSideBoundedVector27 =             N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
-const double crRightHandSideBoundedVector28 =             pow(crRightHandSideBoundedVector27, 2);
-const double crRightHandSideBoundedVector29 =             crRightHandSideBoundedVector26 + crRightHandSideBoundedVector28;
-const double crRightHandSideBoundedVector30 =             0.5*crRightHandSideBoundedVector26;
-const double crRightHandSideBoundedVector31 =             0.5*crRightHandSideBoundedVector28;
-const double crRightHandSideBoundedVector32 =             N(0)*data.U(0,3);
-const double crRightHandSideBoundedVector33 =             N(1)*data.U(1,3);
-const double crRightHandSideBoundedVector34 =             N(2)*data.U(2,3);
-const double crRightHandSideBoundedVector35 =             N(3)*data.U(3,3);
-const double crRightHandSideBoundedVector36 =             -crRightHandSideBoundedVector32 - crRightHandSideBoundedVector33 - crRightHandSideBoundedVector34 - crRightHandSideBoundedVector35;
-const double crRightHandSideBoundedVector37 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector30 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector31 + crRightHandSideBoundedVector36;
-const double crRightHandSideBoundedVector38 =             data.gamma - 1;
-const double crRightHandSideBoundedVector39 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector40 =             crRightHandSideBoundedVector37*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector41 =             1.0/data.gamma;
-const double crRightHandSideBoundedVector42 =             N(0)*data.r_ext(0) + N(1)*data.r_ext(1) + N(2)*data.r_ext(2) + N(3)*data.r_ext(3);
-const double crRightHandSideBoundedVector43 =             pow(crRightHandSideBoundedVector42, 2);
-const double crRightHandSideBoundedVector44 =             N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0);
-const double crRightHandSideBoundedVector45 =             N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1);
-const double crRightHandSideBoundedVector46 =             crRightHandSideBoundedVector40*data.gamma*(pow(crRightHandSideBoundedVector44, 2) + pow(crRightHandSideBoundedVector45, 2));
-const double crRightHandSideBoundedVector47 =             0.70710678118654757*crRightHandSideBoundedVector24*crRightHandSideBoundedVector41*stab_c3*sqrt((crRightHandSideBoundedVector43 - 2.0*crRightHandSideBoundedVector46 + 2.0*sqrt(0.25*crRightHandSideBoundedVector43 - crRightHandSideBoundedVector46)*fabs(crRightHandSideBoundedVector42))/(pow(crRightHandSideBoundedVector37, 2)*pow(crRightHandSideBoundedVector38, 2))) + stab_c2*(sqrt(data.gamma)*sqrt(-crRightHandSideBoundedVector40) + sqrt(crRightHandSideBoundedVector29)/crRightHandSideBoundedVector24)/data.h;
-const double crRightHandSideBoundedVector48 =             1.0*(N(0)*data.ResProj(0,0) + N(0)*data.dUdt(0,0) + N(1)*data.ResProj(1,0) + N(1)*data.dUdt(1,0) + N(2)*data.ResProj(2,0) + N(2)*data.dUdt(2,0) + N(3)*data.ResProj(3,0) + N(3)*data.dUdt(3,0) - crRightHandSideBoundedVector0 - crRightHandSideBoundedVector1 + crRightHandSideBoundedVector16 - crRightHandSideBoundedVector2 - crRightHandSideBoundedVector3)/crRightHandSideBoundedVector47;
-const double crRightHandSideBoundedVector49 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector48;
-const double crRightHandSideBoundedVector50 =             crRightHandSideBoundedVector22*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector51 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector52 =             1.0*data.gamma;
-const double crRightHandSideBoundedVector53 =             crRightHandSideBoundedVector23*(3.0 - crRightHandSideBoundedVector52);
-const double crRightHandSideBoundedVector54 =             DN_DX(0,0)*data.U(0,2);
-const double crRightHandSideBoundedVector55 =             DN_DX(1,0)*data.U(1,2);
-const double crRightHandSideBoundedVector56 =             DN_DX(2,0)*data.U(2,2);
-const double crRightHandSideBoundedVector57 =             DN_DX(3,0)*data.U(3,2);
-const double crRightHandSideBoundedVector58 =             crRightHandSideBoundedVector54 + crRightHandSideBoundedVector55 + crRightHandSideBoundedVector56 + crRightHandSideBoundedVector57;
-const double crRightHandSideBoundedVector59 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector58;
-const double crRightHandSideBoundedVector60 =             1.0*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector61 =             -crRightHandSideBoundedVector59*crRightHandSideBoundedVector60;
-const double crRightHandSideBoundedVector62 =             DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3);
-const double crRightHandSideBoundedVector63 =             DN_DX(0,1)*data.U(0,1);
-const double crRightHandSideBoundedVector64 =             DN_DX(1,1)*data.U(1,1);
-const double crRightHandSideBoundedVector65 =             DN_DX(2,1)*data.U(2,1);
-const double crRightHandSideBoundedVector66 =             DN_DX(3,1)*data.U(3,1);
-const double crRightHandSideBoundedVector67 =             crRightHandSideBoundedVector63 + crRightHandSideBoundedVector64 + crRightHandSideBoundedVector65 + crRightHandSideBoundedVector66;
-const double crRightHandSideBoundedVector68 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector67;
-const double crRightHandSideBoundedVector69 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector70 =             pow(crRightHandSideBoundedVector22, -2);
-const double crRightHandSideBoundedVector71 =             0.5*crRightHandSideBoundedVector29;
-const double crRightHandSideBoundedVector72 =             crRightHandSideBoundedVector38*crRightHandSideBoundedVector71;
-const double crRightHandSideBoundedVector73 =             -crRightHandSideBoundedVector26 + crRightHandSideBoundedVector72;
-const double crRightHandSideBoundedVector74 =             crRightHandSideBoundedVector70*crRightHandSideBoundedVector73;
-const double crRightHandSideBoundedVector75 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector76 =             crRightHandSideBoundedVector70*crRightHandSideBoundedVector75;
-const double crRightHandSideBoundedVector77 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector74 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector68 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector69 - crRightHandSideBoundedVector25*crRightHandSideBoundedVector76 + crRightHandSideBoundedVector38*crRightHandSideBoundedVector62 + crRightHandSideBoundedVector61;
-const double crRightHandSideBoundedVector78 =             N(0)*data.mu_sc_nodes(0);
-const double crRightHandSideBoundedVector79 =             N(1)*data.mu_sc_nodes(1);
-const double crRightHandSideBoundedVector80 =             N(2)*data.mu_sc_nodes(2);
-const double crRightHandSideBoundedVector81 =             N(3)*data.mu_sc_nodes(3);
-const double crRightHandSideBoundedVector82 =             crRightHandSideBoundedVector78 + crRightHandSideBoundedVector79 + crRightHandSideBoundedVector80 + crRightHandSideBoundedVector81 + data.mu;
-const double crRightHandSideBoundedVector83 =             crRightHandSideBoundedVector23*stab_c1/pow(data.h, 2);
-const double crRightHandSideBoundedVector84 =             1.0/(crRightHandSideBoundedVector47 + 1.3333333333333333*crRightHandSideBoundedVector82*crRightHandSideBoundedVector83);
-const double crRightHandSideBoundedVector85 =             crRightHandSideBoundedVector84*(N(0)*data.ResProj(0,1) + N(0)*data.dUdt(0,1) + N(1)*data.ResProj(1,1) + N(1)*data.dUdt(1,1) + N(2)*data.ResProj(2,1) + N(2)*data.dUdt(2,1) + N(3)*data.ResProj(3,1) + N(3)*data.dUdt(3,1) - crRightHandSideBoundedVector50 + crRightHandSideBoundedVector51*crRightHandSideBoundedVector53 + crRightHandSideBoundedVector77);
-const double crRightHandSideBoundedVector86 =             crRightHandSideBoundedVector22*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector87 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector88 =             crRightHandSideBoundedVector25*crRightHandSideBoundedVector67;
-const double crRightHandSideBoundedVector89 =             -crRightHandSideBoundedVector60*crRightHandSideBoundedVector88;
-const double crRightHandSideBoundedVector90 =             DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3);
-const double crRightHandSideBoundedVector91 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector92 =             crRightHandSideBoundedVector25*crRightHandSideBoundedVector58;
-const double crRightHandSideBoundedVector93 =             -crRightHandSideBoundedVector28 + crRightHandSideBoundedVector72;
-const double crRightHandSideBoundedVector94 =             crRightHandSideBoundedVector70*crRightHandSideBoundedVector93;
-const double crRightHandSideBoundedVector95 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector96 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector97 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector94 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector91 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector92 + crRightHandSideBoundedVector38*crRightHandSideBoundedVector90 + crRightHandSideBoundedVector89 - crRightHandSideBoundedVector95*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector98 =             crRightHandSideBoundedVector84*(N(0)*data.ResProj(0,2) + N(0)*data.dUdt(0,2) + N(1)*data.ResProj(1,2) + N(1)*data.dUdt(1,2) + N(2)*data.ResProj(2,2) + N(2)*data.dUdt(2,2) + N(3)*data.ResProj(3,2) + N(3)*data.dUdt(3,2) + crRightHandSideBoundedVector53*crRightHandSideBoundedVector87 - crRightHandSideBoundedVector86 + crRightHandSideBoundedVector97);
-const double crRightHandSideBoundedVector99 =             DN_DX(0,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector100 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector101 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector102 =             crRightHandSideBoundedVector82*(-crRightHandSideBoundedVector100 - crRightHandSideBoundedVector101 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector58 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector67);
-const double crRightHandSideBoundedVector103 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector22 - crRightHandSideBoundedVector95;
-const double crRightHandSideBoundedVector104 =             2*crRightHandSideBoundedVector82;
-const double crRightHandSideBoundedVector105 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector22 - crRightHandSideBoundedVector75;
-const double crRightHandSideBoundedVector106 =             (crRightHandSideBoundedVector103 + crRightHandSideBoundedVector105)*(N(0)*data.beta_sc_nodes(0) + N(1)*data.beta_sc_nodes(1) + N(2)*data.beta_sc_nodes(2) + N(3)*data.beta_sc_nodes(3) - 0.66666666666666663*crRightHandSideBoundedVector78 - 0.66666666666666663*crRightHandSideBoundedVector79 - 0.66666666666666663*crRightHandSideBoundedVector80 - 0.66666666666666663*crRightHandSideBoundedVector81 - 0.66666666666666663*data.mu);
-const double crRightHandSideBoundedVector107 =             crRightHandSideBoundedVector103*crRightHandSideBoundedVector104 + crRightHandSideBoundedVector106;
-const double crRightHandSideBoundedVector108 =             DN_DX(0,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector109 =             crRightHandSideBoundedVector52 - 3.0;
-const double crRightHandSideBoundedVector110 =             crRightHandSideBoundedVector109*crRightHandSideBoundedVector51;
-const double crRightHandSideBoundedVector111 =             -crRightHandSideBoundedVector110*crRightHandSideBoundedVector23 + crRightHandSideBoundedVector77;
-const double crRightHandSideBoundedVector112 =             N(0)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector113 =             DN_DX(0,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector114 =             crRightHandSideBoundedVector113*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector115 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector75;
-const double crRightHandSideBoundedVector116 =             2*crRightHandSideBoundedVector115;
-const double crRightHandSideBoundedVector117 =             -crRightHandSideBoundedVector116*crRightHandSideBoundedVector25 + crRightHandSideBoundedVector68 + crRightHandSideBoundedVector69;
-const double crRightHandSideBoundedVector118 =             N(0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector119 =             1.0*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector120 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector121 =             crRightHandSideBoundedVector110 + crRightHandSideBoundedVector119*crRightHandSideBoundedVector59 - 2*crRightHandSideBoundedVector120*crRightHandSideBoundedVector73;
-const double crRightHandSideBoundedVector122 =             DN_DX(0,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector123 =             crRightHandSideBoundedVector101*crRightHandSideBoundedVector23 - crRightHandSideBoundedVector63 - crRightHandSideBoundedVector64 - crRightHandSideBoundedVector65 - crRightHandSideBoundedVector66;
-const double crRightHandSideBoundedVector124 =             N(0)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector125 =             crRightHandSideBoundedVector52 - 1.0;
-const double crRightHandSideBoundedVector126 =             crRightHandSideBoundedVector100*crRightHandSideBoundedVector23 - crRightHandSideBoundedVector54 - crRightHandSideBoundedVector55 - crRightHandSideBoundedVector56 - crRightHandSideBoundedVector57;
-const double crRightHandSideBoundedVector127 =             N(0)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector128 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector98;
-const double crRightHandSideBoundedVector129 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector95;
-const double crRightHandSideBoundedVector130 =             -crRightHandSideBoundedVector11 - crRightHandSideBoundedVector12 + crRightHandSideBoundedVector129 - crRightHandSideBoundedVector13 - crRightHandSideBoundedVector14;
-const double crRightHandSideBoundedVector131 =             N(0)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector132 =             DN_DX(0,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector133 =             DN_DX(0,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector134 =             crRightHandSideBoundedVector115 - crRightHandSideBoundedVector6 - crRightHandSideBoundedVector7 - crRightHandSideBoundedVector8 - crRightHandSideBoundedVector9;
-const double crRightHandSideBoundedVector135 =             N(0)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector136 =             crRightHandSideBoundedVector133 - crRightHandSideBoundedVector135;
-const double crRightHandSideBoundedVector137 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector85;
-const double crRightHandSideBoundedVector138 =             (N(0)*data.lamb_sc_nodes(0) + N(1)*data.lamb_sc_nodes(1) + N(2)*data.lamb_sc_nodes(2) + N(3)*data.lamb_sc_nodes(3) + data.lambda)/data.c_v;
-const double crRightHandSideBoundedVector139 =             crRightHandSideBoundedVector22*crRightHandSideBoundedVector42;
-const double crRightHandSideBoundedVector140 =             crRightHandSideBoundedVector25*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector141 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector142 =             crRightHandSideBoundedVector62*data.gamma;
-const double crRightHandSideBoundedVector143 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector144 =             crRightHandSideBoundedVector90*data.gamma;
-const double crRightHandSideBoundedVector145 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector146 =             1.0*crRightHandSideBoundedVector92;
-const double crRightHandSideBoundedVector147 =             1.0*crRightHandSideBoundedVector68;
-const double crRightHandSideBoundedVector148 =             crRightHandSideBoundedVector147*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector149 =             crRightHandSideBoundedVector26*crRightHandSideBoundedVector60;
-const double crRightHandSideBoundedVector150 =             crRightHandSideBoundedVector32 + crRightHandSideBoundedVector33 + crRightHandSideBoundedVector34 + crRightHandSideBoundedVector35;
-const double crRightHandSideBoundedVector151 =             crRightHandSideBoundedVector38*(crRightHandSideBoundedVector150 - crRightHandSideBoundedVector23*(crRightHandSideBoundedVector30 + crRightHandSideBoundedVector31));
-const double crRightHandSideBoundedVector152 =             crRightHandSideBoundedVector150 + crRightHandSideBoundedVector151;
-const double crRightHandSideBoundedVector153 =             crRightHandSideBoundedVector28*crRightHandSideBoundedVector60;
-const double crRightHandSideBoundedVector154 =             -crRightHandSideBoundedVector151 + crRightHandSideBoundedVector36;
-const double crRightHandSideBoundedVector155 =             crRightHandSideBoundedVector154 + crRightHandSideBoundedVector39*crRightHandSideBoundedVector71;
-const double crRightHandSideBoundedVector156 =             crRightHandSideBoundedVector155*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector157 =             (N(0)*data.ResProj(0,3) + N(0)*data.dUdt(0,3) + N(1)*data.ResProj(1,3) + N(1)*data.dUdt(1,3) + N(2)*data.ResProj(2,3) + N(2)*data.dUdt(2,3) + N(3)*data.ResProj(3,3) + N(3)*data.dUdt(3,3) + crRightHandSideBoundedVector10*crRightHandSideBoundedVector23*(crRightHandSideBoundedVector152 - crRightHandSideBoundedVector153) - crRightHandSideBoundedVector139 - crRightHandSideBoundedVector140 - crRightHandSideBoundedVector141 + crRightHandSideBoundedVector142*crRightHandSideBoundedVector143 + crRightHandSideBoundedVector144*crRightHandSideBoundedVector145 - crRightHandSideBoundedVector146*crRightHandSideBoundedVector38*crRightHandSideBoundedVector96 - crRightHandSideBoundedVector148*crRightHandSideBoundedVector38*crRightHandSideBoundedVector70 + crRightHandSideBoundedVector15*crRightHandSideBoundedVector23*(-crRightHandSideBoundedVector149 + crRightHandSideBoundedVector152) + crRightHandSideBoundedVector155*crRightHandSideBoundedVector76 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector95)/(crRightHandSideBoundedVector138*crRightHandSideBoundedVector41*crRightHandSideBoundedVector83 + crRightHandSideBoundedVector47);
-const double crRightHandSideBoundedVector158 =             crRightHandSideBoundedVector119*crRightHandSideBoundedVector157;
-const double crRightHandSideBoundedVector159 =             crRightHandSideBoundedVector104*crRightHandSideBoundedVector105 + crRightHandSideBoundedVector106;
-const double crRightHandSideBoundedVector160 =             crRightHandSideBoundedVector109*crRightHandSideBoundedVector87;
-const double crRightHandSideBoundedVector161 =             -crRightHandSideBoundedVector160*crRightHandSideBoundedVector23 + crRightHandSideBoundedVector97;
-const double crRightHandSideBoundedVector162 =             N(0)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector163 =             crRightHandSideBoundedVector132*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector164 =             2*crRightHandSideBoundedVector129;
-const double crRightHandSideBoundedVector165 =             -crRightHandSideBoundedVector164*crRightHandSideBoundedVector27 + crRightHandSideBoundedVector91 + crRightHandSideBoundedVector92;
-const double crRightHandSideBoundedVector166 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector167 =             crRightHandSideBoundedVector119*crRightHandSideBoundedVector88 + crRightHandSideBoundedVector160 - 2*crRightHandSideBoundedVector166*crRightHandSideBoundedVector93;
-const double crRightHandSideBoundedVector168 =             -crRightHandSideBoundedVector131 + crRightHandSideBoundedVector132;
-const double crRightHandSideBoundedVector169 =             crRightHandSideBoundedVector139 + crRightHandSideBoundedVector140 + crRightHandSideBoundedVector141;
-const double crRightHandSideBoundedVector170 =             crRightHandSideBoundedVector102*crRightHandSideBoundedVector145 + crRightHandSideBoundedVector107*crRightHandSideBoundedVector143 + crRightHandSideBoundedVector138*(crRightHandSideBoundedVector120*crRightHandSideBoundedVector26 + crRightHandSideBoundedVector120*crRightHandSideBoundedVector28 - crRightHandSideBoundedVector150*crRightHandSideBoundedVector17 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector62 - crRightHandSideBoundedVector51 - crRightHandSideBoundedVector59);
-const double crRightHandSideBoundedVector171 =             crRightHandSideBoundedVector102*crRightHandSideBoundedVector143 + crRightHandSideBoundedVector138*(-crRightHandSideBoundedVector150*crRightHandSideBoundedVector20 + crRightHandSideBoundedVector166*crRightHandSideBoundedVector26 + crRightHandSideBoundedVector166*crRightHandSideBoundedVector28 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector90 - crRightHandSideBoundedVector87 - crRightHandSideBoundedVector88) + crRightHandSideBoundedVector145*crRightHandSideBoundedVector159;
-const double crRightHandSideBoundedVector172 =             crRightHandSideBoundedVector142*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector173 =             crRightHandSideBoundedVector144*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector174 =             crRightHandSideBoundedVector149 + crRightHandSideBoundedVector154;
-const double crRightHandSideBoundedVector175 =             crRightHandSideBoundedVector153 + crRightHandSideBoundedVector154;
-const double crRightHandSideBoundedVector176 =             -crRightHandSideBoundedVector10*crRightHandSideBoundedVector175 + crRightHandSideBoundedVector115*crRightHandSideBoundedVector155 + crRightHandSideBoundedVector129*crRightHandSideBoundedVector155 - crRightHandSideBoundedVector146*crRightHandSideBoundedVector27*crRightHandSideBoundedVector39 - crRightHandSideBoundedVector148*crRightHandSideBoundedVector39 - crRightHandSideBoundedVector15*crRightHandSideBoundedVector174 + crRightHandSideBoundedVector172 + crRightHandSideBoundedVector173;
-const double crRightHandSideBoundedVector177 =             N(0)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector178 =             -2.0*crRightHandSideBoundedVector115*crRightHandSideBoundedVector25 + crRightHandSideBoundedVector147 + 1.0*crRightHandSideBoundedVector69;
-const double crRightHandSideBoundedVector179 =             crRightHandSideBoundedVector118*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector180 =             crRightHandSideBoundedVector174*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector181 =             3.0*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector182 =             2.0*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector183 =             crRightHandSideBoundedVector155 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector26;
-const double crRightHandSideBoundedVector184 =             crRightHandSideBoundedVector120*crRightHandSideBoundedVector183 + crRightHandSideBoundedVector142 - crRightHandSideBoundedVector181*crRightHandSideBoundedVector51 + crRightHandSideBoundedVector61;
-const double crRightHandSideBoundedVector185 =             -2.0*crRightHandSideBoundedVector129*crRightHandSideBoundedVector27 + crRightHandSideBoundedVector146 + 1.0*crRightHandSideBoundedVector91;
-const double crRightHandSideBoundedVector186 =             crRightHandSideBoundedVector175*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector187 =             crRightHandSideBoundedVector155 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector28;
-const double crRightHandSideBoundedVector188 =             crRightHandSideBoundedVector144 + crRightHandSideBoundedVector166*crRightHandSideBoundedVector187 - crRightHandSideBoundedVector181*crRightHandSideBoundedVector87 + crRightHandSideBoundedVector89;
-const double crRightHandSideBoundedVector189 =             crRightHandSideBoundedVector157*crRightHandSideBoundedVector23*crRightHandSideBoundedVector52;
-const double crRightHandSideBoundedVector190 =             crRightHandSideBoundedVector154 + crRightHandSideBoundedVector29*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector191 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector183 - crRightHandSideBoundedVector164*crRightHandSideBoundedVector190 - crRightHandSideBoundedVector172 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector27*crRightHandSideBoundedVector92;
-const double crRightHandSideBoundedVector192 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector187 - crRightHandSideBoundedVector116*crRightHandSideBoundedVector190 - crRightHandSideBoundedVector173 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector25*crRightHandSideBoundedVector68;
-const double crRightHandSideBoundedVector193 =             N(1)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector194 =             DN_DX(1,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector195 =             DN_DX(1,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector196 =             N(1)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector197 =             DN_DX(1,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector198 =             crRightHandSideBoundedVector197*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector199 =             N(1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector200 =             DN_DX(1,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector201 =             N(1)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector202 =             N(1)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector203 =             N(1)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector204 =             DN_DX(1,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector205 =             DN_DX(1,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector206 =             N(1)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector207 =             crRightHandSideBoundedVector205 - crRightHandSideBoundedVector206;
-const double crRightHandSideBoundedVector208 =             N(1)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector209 =             crRightHandSideBoundedVector204*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector210 =             -crRightHandSideBoundedVector203 + crRightHandSideBoundedVector204;
-const double crRightHandSideBoundedVector211 =             N(1)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector212 =             crRightHandSideBoundedVector199*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector213 =             N(2)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector214 =             DN_DX(2,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector215 =             DN_DX(2,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector216 =             N(2)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector217 =             DN_DX(2,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector218 =             crRightHandSideBoundedVector217*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector219 =             N(2)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector220 =             DN_DX(2,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector221 =             N(2)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector222 =             N(2)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector223 =             N(2)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector224 =             DN_DX(2,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector225 =             DN_DX(2,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector226 =             N(2)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector227 =             crRightHandSideBoundedVector225 - crRightHandSideBoundedVector226;
-const double crRightHandSideBoundedVector228 =             N(2)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector229 =             crRightHandSideBoundedVector224*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector230 =             -crRightHandSideBoundedVector223 + crRightHandSideBoundedVector224;
-const double crRightHandSideBoundedVector231 =             N(2)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector232 =             crRightHandSideBoundedVector219*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector233 =             N(3)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector234 =             DN_DX(3,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector235 =             DN_DX(3,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector236 =             N(3)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector237 =             DN_DX(3,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector238 =             crRightHandSideBoundedVector237*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector239 =             N(3)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector240 =             DN_DX(3,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector241 =             N(3)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector242 =             N(3)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector243 =             N(3)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector244 =             DN_DX(3,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector245 =             DN_DX(3,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector246 =             N(3)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector247 =             crRightHandSideBoundedVector245 - crRightHandSideBoundedVector246;
-const double crRightHandSideBoundedVector248 =             N(3)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector249 =             crRightHandSideBoundedVector244*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector250 =             -crRightHandSideBoundedVector243 + crRightHandSideBoundedVector244;
-const double crRightHandSideBoundedVector251 =             N(3)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector252 =             crRightHandSideBoundedVector239*crRightHandSideBoundedVector38;
-            rRightHandSideBoundedVector[0] += DN_DX(0,0)*crRightHandSideBoundedVector19 - DN_DX(0,0)*crRightHandSideBoundedVector85 + DN_DX(0,1)*crRightHandSideBoundedVector21 - DN_DX(0,1)*crRightHandSideBoundedVector98 - N(0)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector49*crRightHandSideBoundedVector5 + crRightHandSideBoundedVector5;
-            rRightHandSideBoundedVector[1] += -DN_DX(0,0)*crRightHandSideBoundedVector158 - N(0)*crRightHandSideBoundedVector111 + N(0)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector99 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector108 - crRightHandSideBoundedVector128*(crRightHandSideBoundedVector113 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector122 - crRightHandSideBoundedVector124 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector127) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector131 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector132 + crRightHandSideBoundedVector136) - crRightHandSideBoundedVector48*(DN_DX(0,0)*crRightHandSideBoundedVector74 + crRightHandSideBoundedVector112 - crRightHandSideBoundedVector114 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector118 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector121);
-            rRightHandSideBoundedVector[2] += -DN_DX(0,1)*crRightHandSideBoundedVector158 - N(0)*crRightHandSideBoundedVector161 + N(0)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector108 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector133 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector135 + crRightHandSideBoundedVector168) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector113*crRightHandSideBoundedVector119 + crRightHandSideBoundedVector122 + crRightHandSideBoundedVector124*crRightHandSideBoundedVector125 - crRightHandSideBoundedVector127) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector99 - crRightHandSideBoundedVector48*(DN_DX(0,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector118*crRightHandSideBoundedVector165 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector167 + crRightHandSideBoundedVector162 - crRightHandSideBoundedVector163);
-            rRightHandSideBoundedVector[3] += N(0)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector108*crRightHandSideBoundedVector170 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector99 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector177 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector136 + crRightHandSideBoundedVector168) - crRightHandSideBoundedVector48*(N(0)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector191 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector192 + crRightHandSideBoundedVector132*crRightHandSideBoundedVector156 + crRightHandSideBoundedVector133*crRightHandSideBoundedVector156) - crRightHandSideBoundedVector85*(-DN_DX(0,0)*crRightHandSideBoundedVector180 + crRightHandSideBoundedVector112 - crRightHandSideBoundedVector114*crRightHandSideBoundedVector119 + crRightHandSideBoundedVector177*crRightHandSideBoundedVector184 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector179) - crRightHandSideBoundedVector98*(-DN_DX(0,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector163 + crRightHandSideBoundedVector162 + crRightHandSideBoundedVector177*crRightHandSideBoundedVector188 - crRightHandSideBoundedVector179*crRightHandSideBoundedVector185);
-            rRightHandSideBoundedVector[4] += DN_DX(1,0)*crRightHandSideBoundedVector19 - DN_DX(1,0)*crRightHandSideBoundedVector85 + DN_DX(1,1)*crRightHandSideBoundedVector21 - DN_DX(1,1)*crRightHandSideBoundedVector98 - N(1)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector193*crRightHandSideBoundedVector49 + crRightHandSideBoundedVector193;
-            rRightHandSideBoundedVector[5] += -DN_DX(1,0)*crRightHandSideBoundedVector158 - N(1)*crRightHandSideBoundedVector111 + N(1)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector194 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector195 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector200 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector202 + crRightHandSideBoundedVector197 - crRightHandSideBoundedVector201) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector203 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector204 + crRightHandSideBoundedVector207) - crRightHandSideBoundedVector48*(DN_DX(1,0)*crRightHandSideBoundedVector74 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector121*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector196 - crRightHandSideBoundedVector198);
-            rRightHandSideBoundedVector[6] += -DN_DX(1,1)*crRightHandSideBoundedVector158 - N(1)*crRightHandSideBoundedVector161 + N(1)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector195 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector205 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector206 + crRightHandSideBoundedVector210) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector197 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector201 + crRightHandSideBoundedVector200 - crRightHandSideBoundedVector202) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector194 - crRightHandSideBoundedVector48*(DN_DX(1,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector208 - crRightHandSideBoundedVector209);
-            rRightHandSideBoundedVector[7] += N(1)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector195 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector194 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector211 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector207 + crRightHandSideBoundedVector210) - crRightHandSideBoundedVector48*(N(1)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector204 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector205 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector199) - crRightHandSideBoundedVector85*(-DN_DX(1,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector198 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector212 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector211 + crRightHandSideBoundedVector196) - crRightHandSideBoundedVector98*(-DN_DX(1,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector209 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector212 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector211 + crRightHandSideBoundedVector208);
-            rRightHandSideBoundedVector[8] += DN_DX(2,0)*crRightHandSideBoundedVector19 - DN_DX(2,0)*crRightHandSideBoundedVector85 + DN_DX(2,1)*crRightHandSideBoundedVector21 - DN_DX(2,1)*crRightHandSideBoundedVector98 - N(2)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector213*crRightHandSideBoundedVector49 + crRightHandSideBoundedVector213;
-            rRightHandSideBoundedVector[9] += -DN_DX(2,0)*crRightHandSideBoundedVector158 - N(2)*crRightHandSideBoundedVector111 + N(2)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector214 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector215 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector220 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector222 + crRightHandSideBoundedVector217 - crRightHandSideBoundedVector221) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector223 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector224 + crRightHandSideBoundedVector227) - crRightHandSideBoundedVector48*(DN_DX(2,0)*crRightHandSideBoundedVector74 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector121*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector216 - crRightHandSideBoundedVector218);
-            rRightHandSideBoundedVector[10] += -DN_DX(2,1)*crRightHandSideBoundedVector158 - N(2)*crRightHandSideBoundedVector161 + N(2)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector215 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector225 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector226 + crRightHandSideBoundedVector230) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector217 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector221 + crRightHandSideBoundedVector220 - crRightHandSideBoundedVector222) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector214 - crRightHandSideBoundedVector48*(DN_DX(2,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector228 - crRightHandSideBoundedVector229);
-            rRightHandSideBoundedVector[11] += N(2)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector215 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector214 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector231 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector227 + crRightHandSideBoundedVector230) - crRightHandSideBoundedVector48*(N(2)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector224 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector225 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector219) - crRightHandSideBoundedVector85*(-DN_DX(2,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector218 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector232 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector231 + crRightHandSideBoundedVector216) - crRightHandSideBoundedVector98*(-DN_DX(2,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector229 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector232 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector231 + crRightHandSideBoundedVector228);
-            rRightHandSideBoundedVector[12] += DN_DX(3,0)*crRightHandSideBoundedVector19 - DN_DX(3,0)*crRightHandSideBoundedVector85 + DN_DX(3,1)*crRightHandSideBoundedVector21 - DN_DX(3,1)*crRightHandSideBoundedVector98 - N(3)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector233*crRightHandSideBoundedVector49 + crRightHandSideBoundedVector233;
-            rRightHandSideBoundedVector[13] += -DN_DX(3,0)*crRightHandSideBoundedVector158 - N(3)*crRightHandSideBoundedVector111 + N(3)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector240 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector242 + crRightHandSideBoundedVector237 - crRightHandSideBoundedVector241) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector243 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector247) - crRightHandSideBoundedVector48*(DN_DX(3,0)*crRightHandSideBoundedVector74 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector121*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector236 - crRightHandSideBoundedVector238);
-            rRightHandSideBoundedVector[14] += -DN_DX(3,1)*crRightHandSideBoundedVector158 - N(3)*crRightHandSideBoundedVector161 + N(3)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector246 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector237 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector241 + crRightHandSideBoundedVector240 - crRightHandSideBoundedVector242) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector48*(DN_DX(3,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector248 - crRightHandSideBoundedVector249);
-            rRightHandSideBoundedVector[15] += N(3)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector251 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector247 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector48*(N(3)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector239) - crRightHandSideBoundedVector85*(-DN_DX(3,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector238 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector236) - crRightHandSideBoundedVector98*(-DN_DX(3,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector249 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector248);
+            double detJ;
+            r_geometry.Jacobian(J, gauss_point.Coordinates());
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
+
+            BoundedVector<double, DofSize> rhs_gauss(DofSize);
+
+            const double crhs_gauss0 = N(0)*data.m_ext(0);
+            const double crhs_gauss1 = N(1)*data.m_ext(1);
+            const double crhs_gauss2 = N(2)*data.m_ext(2);
+            const double crhs_gauss3 = N(3)*data.m_ext(3);
+            const double crhs_gauss4 = crhs_gauss0 + crhs_gauss1 + crhs_gauss2 + crhs_gauss3;
+            const double crhs_gauss5 = N(0)*crhs_gauss4;
+            const double crhs_gauss6 = DN_DX(0,1)*data.U(0,2);
+            const double crhs_gauss7 = DN_DX(1,1)*data.U(1,2);
+            const double crhs_gauss8 = DN_DX(2,1)*data.U(2,2);
+            const double crhs_gauss9 = DN_DX(3,1)*data.U(3,2);
+            const double crhs_gauss10 = crhs_gauss6 + crhs_gauss7 + crhs_gauss8 + crhs_gauss9;
+            const double crhs_gauss11 = DN_DX(0,0)*data.U(0,1);
+            const double crhs_gauss12 = DN_DX(1,0)*data.U(1,1);
+            const double crhs_gauss13 = DN_DX(2,0)*data.U(2,1);
+            const double crhs_gauss14 = DN_DX(3,0)*data.U(3,1);
+            const double crhs_gauss15 = crhs_gauss11 + crhs_gauss12 + crhs_gauss13 + crhs_gauss14;
+            const double crhs_gauss16 = crhs_gauss10 + crhs_gauss15;
+            const double crhs_gauss17 = DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0);
+            const double crhs_gauss18 = N(0)*data.alpha_sc_nodes(0) + N(1)*data.alpha_sc_nodes(1) + N(2)*data.alpha_sc_nodes(2) + N(3)*data.alpha_sc_nodes(3);
+            const double crhs_gauss19 = crhs_gauss17*crhs_gauss18;
+            const double crhs_gauss20 = DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0);
+            const double crhs_gauss21 = crhs_gauss18*crhs_gauss20;
+            const double crhs_gauss22 = N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
+            const double crhs_gauss23 = 1.0/crhs_gauss22;
+            const double crhs_gauss24 = fabs(crhs_gauss22);
+            const double crhs_gauss25 = N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
+            const double crhs_gauss26 = pow(crhs_gauss25, 2);
+            const double crhs_gauss27 = N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
+            const double crhs_gauss28 = pow(crhs_gauss27, 2);
+            const double crhs_gauss29 = crhs_gauss26 + crhs_gauss28;
+            const double crhs_gauss30 = 0.5*crhs_gauss26;
+            const double crhs_gauss31 = 0.5*crhs_gauss28;
+            const double crhs_gauss32 = N(0)*data.U(0,3);
+            const double crhs_gauss33 = N(1)*data.U(1,3);
+            const double crhs_gauss34 = N(2)*data.U(2,3);
+            const double crhs_gauss35 = N(3)*data.U(3,3);
+            const double crhs_gauss36 = -crhs_gauss32 - crhs_gauss33 - crhs_gauss34 - crhs_gauss35;
+            const double crhs_gauss37 = crhs_gauss23*crhs_gauss30 + crhs_gauss23*crhs_gauss31 + crhs_gauss36;
+            const double crhs_gauss38 = data.gamma - 1;
+            const double crhs_gauss39 = crhs_gauss23*crhs_gauss38;
+            const double crhs_gauss40 = crhs_gauss37*crhs_gauss39;
+            const double crhs_gauss41 = 1.0/data.gamma;
+            const double crhs_gauss42 = N(0)*data.r_ext(0) + N(1)*data.r_ext(1) + N(2)*data.r_ext(2) + N(3)*data.r_ext(3);
+            const double crhs_gauss43 = pow(crhs_gauss42, 2);
+            const double crhs_gauss44 = N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0);
+            const double crhs_gauss45 = N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1);
+            const double crhs_gauss46 = crhs_gauss40*data.gamma*(pow(crhs_gauss44, 2) + pow(crhs_gauss45, 2));
+            const double crhs_gauss47 = 0.70710678118654757*crhs_gauss24*crhs_gauss41*stab_c3*sqrt((crhs_gauss43 - 2.0*crhs_gauss46 + 2.0*sqrt(0.25*crhs_gauss43 - crhs_gauss46)*fabs(crhs_gauss42))/(pow(crhs_gauss37, 2)*pow(crhs_gauss38, 2))) + stab_c2*(sqrt(data.gamma)*sqrt(-crhs_gauss40) + sqrt(crhs_gauss29)/crhs_gauss24)/data.h;
+            const double crhs_gauss48 = 1.0*(N(0)*data.ResProj(0,0) + N(0)*data.dUdt(0,0) + N(1)*data.ResProj(1,0) + N(1)*data.dUdt(1,0) + N(2)*data.ResProj(2,0) + N(2)*data.dUdt(2,0) + N(3)*data.ResProj(3,0) + N(3)*data.dUdt(3,0) - crhs_gauss0 - crhs_gauss1 + crhs_gauss16 - crhs_gauss2 - crhs_gauss3)/crhs_gauss47;
+            const double crhs_gauss49 = crhs_gauss23*crhs_gauss48;
+            const double crhs_gauss50 = crhs_gauss22*crhs_gauss44;
+            const double crhs_gauss51 = crhs_gauss15*crhs_gauss25;
+            const double crhs_gauss52 = 1.0*data.gamma;
+            const double crhs_gauss53 = crhs_gauss23*(3.0 - crhs_gauss52);
+            const double crhs_gauss54 = DN_DX(0,0)*data.U(0,2);
+            const double crhs_gauss55 = DN_DX(1,0)*data.U(1,2);
+            const double crhs_gauss56 = DN_DX(2,0)*data.U(2,2);
+            const double crhs_gauss57 = DN_DX(3,0)*data.U(3,2);
+            const double crhs_gauss58 = crhs_gauss54 + crhs_gauss55 + crhs_gauss56 + crhs_gauss57;
+            const double crhs_gauss59 = crhs_gauss27*crhs_gauss58;
+            const double crhs_gauss60 = 1.0*crhs_gauss39;
+            const double crhs_gauss61 = -crhs_gauss59*crhs_gauss60;
+            const double crhs_gauss62 = DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3);
+            const double crhs_gauss63 = DN_DX(0,1)*data.U(0,1);
+            const double crhs_gauss64 = DN_DX(1,1)*data.U(1,1);
+            const double crhs_gauss65 = DN_DX(2,1)*data.U(2,1);
+            const double crhs_gauss66 = DN_DX(3,1)*data.U(3,1);
+            const double crhs_gauss67 = crhs_gauss63 + crhs_gauss64 + crhs_gauss65 + crhs_gauss66;
+            const double crhs_gauss68 = crhs_gauss27*crhs_gauss67;
+            const double crhs_gauss69 = crhs_gauss10*crhs_gauss25;
+            const double crhs_gauss70 = pow(crhs_gauss22, -2);
+            const double crhs_gauss71 = 0.5*crhs_gauss29;
+            const double crhs_gauss72 = crhs_gauss38*crhs_gauss71;
+            const double crhs_gauss73 = -crhs_gauss26 + crhs_gauss72;
+            const double crhs_gauss74 = crhs_gauss70*crhs_gauss73;
+            const double crhs_gauss75 = crhs_gauss20*crhs_gauss27;
+            const double crhs_gauss76 = crhs_gauss70*crhs_gauss75;
+            const double crhs_gauss77 = crhs_gauss17*crhs_gauss74 + crhs_gauss23*crhs_gauss68 + crhs_gauss23*crhs_gauss69 - crhs_gauss25*crhs_gauss76 + crhs_gauss38*crhs_gauss62 + crhs_gauss61;
+            const double crhs_gauss78 = N(0)*data.mu_sc_nodes(0);
+            const double crhs_gauss79 = N(1)*data.mu_sc_nodes(1);
+            const double crhs_gauss80 = N(2)*data.mu_sc_nodes(2);
+            const double crhs_gauss81 = N(3)*data.mu_sc_nodes(3);
+            const double crhs_gauss82 = crhs_gauss78 + crhs_gauss79 + crhs_gauss80 + crhs_gauss81 + data.mu;
+            const double crhs_gauss83 = crhs_gauss23*stab_c1/pow(data.h, 2);
+            const double crhs_gauss84 = 1.0/(crhs_gauss47 + 1.3333333333333333*crhs_gauss82*crhs_gauss83);
+            const double crhs_gauss85 = crhs_gauss84*(N(0)*data.ResProj(0,1) + N(0)*data.dUdt(0,1) + N(1)*data.ResProj(1,1) + N(1)*data.dUdt(1,1) + N(2)*data.ResProj(2,1) + N(2)*data.dUdt(2,1) + N(3)*data.ResProj(3,1) + N(3)*data.dUdt(3,1) - crhs_gauss50 + crhs_gauss51*crhs_gauss53 + crhs_gauss77);
+            const double crhs_gauss86 = crhs_gauss22*crhs_gauss45;
+            const double crhs_gauss87 = crhs_gauss10*crhs_gauss27;
+            const double crhs_gauss88 = crhs_gauss25*crhs_gauss67;
+            const double crhs_gauss89 = -crhs_gauss60*crhs_gauss88;
+            const double crhs_gauss90 = DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3);
+            const double crhs_gauss91 = crhs_gauss15*crhs_gauss27;
+            const double crhs_gauss92 = crhs_gauss25*crhs_gauss58;
+            const double crhs_gauss93 = -crhs_gauss28 + crhs_gauss72;
+            const double crhs_gauss94 = crhs_gauss70*crhs_gauss93;
+            const double crhs_gauss95 = crhs_gauss17*crhs_gauss25;
+            const double crhs_gauss96 = crhs_gauss27*crhs_gauss70;
+            const double crhs_gauss97 = crhs_gauss20*crhs_gauss94 + crhs_gauss23*crhs_gauss91 + crhs_gauss23*crhs_gauss92 + crhs_gauss38*crhs_gauss90 + crhs_gauss89 - crhs_gauss95*crhs_gauss96;
+            const double crhs_gauss98 = crhs_gauss84*(N(0)*data.ResProj(0,2) + N(0)*data.dUdt(0,2) + N(1)*data.ResProj(1,2) + N(1)*data.dUdt(1,2) + N(2)*data.ResProj(2,2) + N(2)*data.dUdt(2,2) + N(3)*data.ResProj(3,2) + N(3)*data.dUdt(3,2) + crhs_gauss53*crhs_gauss87 - crhs_gauss86 + crhs_gauss97);
+            const double crhs_gauss99 = DN_DX(0,1)*crhs_gauss70;
+            const double crhs_gauss100 = crhs_gauss17*crhs_gauss27;
+            const double crhs_gauss101 = crhs_gauss20*crhs_gauss25;
+            const double crhs_gauss102 = crhs_gauss82*(-crhs_gauss100 - crhs_gauss101 + crhs_gauss22*crhs_gauss58 + crhs_gauss22*crhs_gauss67);
+            const double crhs_gauss103 = crhs_gauss15*crhs_gauss22 - crhs_gauss95;
+            const double crhs_gauss104 = 2*crhs_gauss82;
+            const double crhs_gauss105 = crhs_gauss10*crhs_gauss22 - crhs_gauss75;
+            const double crhs_gauss106 = (crhs_gauss103 + crhs_gauss105)*(N(0)*data.beta_sc_nodes(0) + N(1)*data.beta_sc_nodes(1) + N(2)*data.beta_sc_nodes(2) + N(3)*data.beta_sc_nodes(3) - 0.66666666666666663*crhs_gauss78 - 0.66666666666666663*crhs_gauss79 - 0.66666666666666663*crhs_gauss80 - 0.66666666666666663*crhs_gauss81 - 0.66666666666666663*data.mu);
+            const double crhs_gauss107 = crhs_gauss103*crhs_gauss104 + crhs_gauss106;
+            const double crhs_gauss108 = DN_DX(0,0)*crhs_gauss70;
+            const double crhs_gauss109 = crhs_gauss52 - 3.0;
+            const double crhs_gauss110 = crhs_gauss109*crhs_gauss51;
+            const double crhs_gauss111 = -crhs_gauss110*crhs_gauss23 + crhs_gauss77;
+            const double crhs_gauss112 = N(0)*crhs_gauss44;
+            const double crhs_gauss113 = DN_DX(0,1)*crhs_gauss25;
+            const double crhs_gauss114 = crhs_gauss113*crhs_gauss96;
+            const double crhs_gauss115 = crhs_gauss23*crhs_gauss75;
+            const double crhs_gauss116 = 2*crhs_gauss115;
+            const double crhs_gauss117 = -crhs_gauss116*crhs_gauss25 + crhs_gauss68 + crhs_gauss69;
+            const double crhs_gauss118 = N(0)*crhs_gauss70;
+            const double crhs_gauss119 = 1.0*crhs_gauss38;
+            const double crhs_gauss120 = crhs_gauss17*crhs_gauss23;
+            const double crhs_gauss121 = crhs_gauss110 + crhs_gauss119*crhs_gauss59 - 2*crhs_gauss120*crhs_gauss73;
+            const double crhs_gauss122 = DN_DX(0,0)*crhs_gauss27;
+            const double crhs_gauss123 = crhs_gauss101*crhs_gauss23 - crhs_gauss63 - crhs_gauss64 - crhs_gauss65 - crhs_gauss66;
+            const double crhs_gauss124 = N(0)*crhs_gauss123;
+            const double crhs_gauss125 = crhs_gauss52 - 1.0;
+            const double crhs_gauss126 = crhs_gauss100*crhs_gauss23 - crhs_gauss54 - crhs_gauss55 - crhs_gauss56 - crhs_gauss57;
+            const double crhs_gauss127 = N(0)*crhs_gauss126;
+            const double crhs_gauss128 = crhs_gauss23*crhs_gauss98;
+            const double crhs_gauss129 = crhs_gauss23*crhs_gauss95;
+            const double crhs_gauss130 = -crhs_gauss11 - crhs_gauss12 + crhs_gauss129 - crhs_gauss13 - crhs_gauss14;
+            const double crhs_gauss131 = N(0)*crhs_gauss130;
+            const double crhs_gauss132 = DN_DX(0,0)*crhs_gauss25;
+            const double crhs_gauss133 = DN_DX(0,1)*crhs_gauss27;
+            const double crhs_gauss134 = crhs_gauss115 - crhs_gauss6 - crhs_gauss7 - crhs_gauss8 - crhs_gauss9;
+            const double crhs_gauss135 = N(0)*crhs_gauss134;
+            const double crhs_gauss136 = crhs_gauss133 - crhs_gauss135;
+            const double crhs_gauss137 = crhs_gauss23*crhs_gauss85;
+            const double crhs_gauss138 = (N(0)*data.lamb_sc_nodes(0) + N(1)*data.lamb_sc_nodes(1) + N(2)*data.lamb_sc_nodes(2) + N(3)*data.lamb_sc_nodes(3) + data.lambda)/data.c_v;
+            const double crhs_gauss139 = crhs_gauss22*crhs_gauss42;
+            const double crhs_gauss140 = crhs_gauss25*crhs_gauss44;
+            const double crhs_gauss141 = crhs_gauss27*crhs_gauss45;
+            const double crhs_gauss142 = crhs_gauss62*data.gamma;
+            const double crhs_gauss143 = crhs_gauss23*crhs_gauss25;
+            const double crhs_gauss144 = crhs_gauss90*data.gamma;
+            const double crhs_gauss145 = crhs_gauss23*crhs_gauss27;
+            const double crhs_gauss146 = 1.0*crhs_gauss92;
+            const double crhs_gauss147 = 1.0*crhs_gauss68;
+            const double crhs_gauss148 = crhs_gauss147*crhs_gauss25;
+            const double crhs_gauss149 = crhs_gauss26*crhs_gauss60;
+            const double crhs_gauss150 = crhs_gauss32 + crhs_gauss33 + crhs_gauss34 + crhs_gauss35;
+            const double crhs_gauss151 = crhs_gauss38*(crhs_gauss150 - crhs_gauss23*(crhs_gauss30 + crhs_gauss31));
+            const double crhs_gauss152 = crhs_gauss150 + crhs_gauss151;
+            const double crhs_gauss153 = crhs_gauss28*crhs_gauss60;
+            const double crhs_gauss154 = -crhs_gauss151 + crhs_gauss36;
+            const double crhs_gauss155 = crhs_gauss154 + crhs_gauss39*crhs_gauss71;
+            const double crhs_gauss156 = crhs_gauss155*crhs_gauss70;
+            const double crhs_gauss157 = (N(0)*data.ResProj(0,3) + N(0)*data.dUdt(0,3) + N(1)*data.ResProj(1,3) + N(1)*data.dUdt(1,3) + N(2)*data.ResProj(2,3) + N(2)*data.dUdt(2,3) + N(3)*data.ResProj(3,3) + N(3)*data.dUdt(3,3) + crhs_gauss10*crhs_gauss23*(crhs_gauss152 - crhs_gauss153) - crhs_gauss139 - crhs_gauss140 - crhs_gauss141 + crhs_gauss142*crhs_gauss143 + crhs_gauss144*crhs_gauss145 - crhs_gauss146*crhs_gauss38*crhs_gauss96 - crhs_gauss148*crhs_gauss38*crhs_gauss70 + crhs_gauss15*crhs_gauss23*(-crhs_gauss149 + crhs_gauss152) + crhs_gauss155*crhs_gauss76 + crhs_gauss156*crhs_gauss95)/(crhs_gauss138*crhs_gauss41*crhs_gauss83 + crhs_gauss47);
+            const double crhs_gauss158 = crhs_gauss119*crhs_gauss157;
+            const double crhs_gauss159 = crhs_gauss104*crhs_gauss105 + crhs_gauss106;
+            const double crhs_gauss160 = crhs_gauss109*crhs_gauss87;
+            const double crhs_gauss161 = -crhs_gauss160*crhs_gauss23 + crhs_gauss97;
+            const double crhs_gauss162 = N(0)*crhs_gauss45;
+            const double crhs_gauss163 = crhs_gauss132*crhs_gauss96;
+            const double crhs_gauss164 = 2*crhs_gauss129;
+            const double crhs_gauss165 = -crhs_gauss164*crhs_gauss27 + crhs_gauss91 + crhs_gauss92;
+            const double crhs_gauss166 = crhs_gauss20*crhs_gauss23;
+            const double crhs_gauss167 = crhs_gauss119*crhs_gauss88 + crhs_gauss160 - 2*crhs_gauss166*crhs_gauss93;
+            const double crhs_gauss168 = -crhs_gauss131 + crhs_gauss132;
+            const double crhs_gauss169 = crhs_gauss139 + crhs_gauss140 + crhs_gauss141;
+            const double crhs_gauss170 = crhs_gauss102*crhs_gauss145 + crhs_gauss107*crhs_gauss143 + crhs_gauss138*(crhs_gauss120*crhs_gauss26 + crhs_gauss120*crhs_gauss28 - crhs_gauss150*crhs_gauss17 + crhs_gauss22*crhs_gauss62 - crhs_gauss51 - crhs_gauss59);
+            const double crhs_gauss171 = crhs_gauss102*crhs_gauss143 + crhs_gauss138*(-crhs_gauss150*crhs_gauss20 + crhs_gauss166*crhs_gauss26 + crhs_gauss166*crhs_gauss28 + crhs_gauss22*crhs_gauss90 - crhs_gauss87 - crhs_gauss88) + crhs_gauss145*crhs_gauss159;
+            const double crhs_gauss172 = crhs_gauss142*crhs_gauss25;
+            const double crhs_gauss173 = crhs_gauss144*crhs_gauss27;
+            const double crhs_gauss174 = crhs_gauss149 + crhs_gauss154;
+            const double crhs_gauss175 = crhs_gauss153 + crhs_gauss154;
+            const double crhs_gauss176 = -crhs_gauss10*crhs_gauss175 + crhs_gauss115*crhs_gauss155 + crhs_gauss129*crhs_gauss155 - crhs_gauss146*crhs_gauss27*crhs_gauss39 - crhs_gauss148*crhs_gauss39 - crhs_gauss15*crhs_gauss174 + crhs_gauss172 + crhs_gauss173;
+            const double crhs_gauss177 = N(0)*crhs_gauss23;
+            const double crhs_gauss178 = -2.0*crhs_gauss115*crhs_gauss25 + crhs_gauss147 + 1.0*crhs_gauss69;
+            const double crhs_gauss179 = crhs_gauss118*crhs_gauss38;
+            const double crhs_gauss180 = crhs_gauss174*crhs_gauss23;
+            const double crhs_gauss181 = 3.0*crhs_gauss39;
+            const double crhs_gauss182 = 2.0*crhs_gauss39;
+            const double crhs_gauss183 = crhs_gauss155 + crhs_gauss182*crhs_gauss26;
+            const double crhs_gauss184 = crhs_gauss120*crhs_gauss183 + crhs_gauss142 - crhs_gauss181*crhs_gauss51 + crhs_gauss61;
+            const double crhs_gauss185 = -2.0*crhs_gauss129*crhs_gauss27 + crhs_gauss146 + 1.0*crhs_gauss91;
+            const double crhs_gauss186 = crhs_gauss175*crhs_gauss23;
+            const double crhs_gauss187 = crhs_gauss155 + crhs_gauss182*crhs_gauss28;
+            const double crhs_gauss188 = crhs_gauss144 + crhs_gauss166*crhs_gauss187 - crhs_gauss181*crhs_gauss87 + crhs_gauss89;
+            const double crhs_gauss189 = crhs_gauss157*crhs_gauss23*crhs_gauss52;
+            const double crhs_gauss190 = crhs_gauss154 + crhs_gauss29*crhs_gauss39;
+            const double crhs_gauss191 = crhs_gauss15*crhs_gauss183 - crhs_gauss164*crhs_gauss190 - crhs_gauss172 + crhs_gauss182*crhs_gauss27*crhs_gauss92;
+            const double crhs_gauss192 = crhs_gauss10*crhs_gauss187 - crhs_gauss116*crhs_gauss190 - crhs_gauss173 + crhs_gauss182*crhs_gauss25*crhs_gauss68;
+            const double crhs_gauss193 = N(1)*crhs_gauss4;
+            const double crhs_gauss194 = DN_DX(1,1)*crhs_gauss70;
+            const double crhs_gauss195 = DN_DX(1,0)*crhs_gauss70;
+            const double crhs_gauss196 = N(1)*crhs_gauss44;
+            const double crhs_gauss197 = DN_DX(1,1)*crhs_gauss25;
+            const double crhs_gauss198 = crhs_gauss197*crhs_gauss96;
+            const double crhs_gauss199 = N(1)*crhs_gauss70;
+            const double crhs_gauss200 = DN_DX(1,0)*crhs_gauss27;
+            const double crhs_gauss201 = N(1)*crhs_gauss123;
+            const double crhs_gauss202 = N(1)*crhs_gauss126;
+            const double crhs_gauss203 = N(1)*crhs_gauss130;
+            const double crhs_gauss204 = DN_DX(1,0)*crhs_gauss25;
+            const double crhs_gauss205 = DN_DX(1,1)*crhs_gauss27;
+            const double crhs_gauss206 = N(1)*crhs_gauss134;
+            const double crhs_gauss207 = crhs_gauss205 - crhs_gauss206;
+            const double crhs_gauss208 = N(1)*crhs_gauss45;
+            const double crhs_gauss209 = crhs_gauss204*crhs_gauss96;
+            const double crhs_gauss210 = -crhs_gauss203 + crhs_gauss204;
+            const double crhs_gauss211 = N(1)*crhs_gauss23;
+            const double crhs_gauss212 = crhs_gauss199*crhs_gauss38;
+            const double crhs_gauss213 = N(2)*crhs_gauss4;
+            const double crhs_gauss214 = DN_DX(2,1)*crhs_gauss70;
+            const double crhs_gauss215 = DN_DX(2,0)*crhs_gauss70;
+            const double crhs_gauss216 = N(2)*crhs_gauss44;
+            const double crhs_gauss217 = DN_DX(2,1)*crhs_gauss25;
+            const double crhs_gauss218 = crhs_gauss217*crhs_gauss96;
+            const double crhs_gauss219 = N(2)*crhs_gauss70;
+            const double crhs_gauss220 = DN_DX(2,0)*crhs_gauss27;
+            const double crhs_gauss221 = N(2)*crhs_gauss123;
+            const double crhs_gauss222 = N(2)*crhs_gauss126;
+            const double crhs_gauss223 = N(2)*crhs_gauss130;
+            const double crhs_gauss224 = DN_DX(2,0)*crhs_gauss25;
+            const double crhs_gauss225 = DN_DX(2,1)*crhs_gauss27;
+            const double crhs_gauss226 = N(2)*crhs_gauss134;
+            const double crhs_gauss227 = crhs_gauss225 - crhs_gauss226;
+            const double crhs_gauss228 = N(2)*crhs_gauss45;
+            const double crhs_gauss229 = crhs_gauss224*crhs_gauss96;
+            const double crhs_gauss230 = -crhs_gauss223 + crhs_gauss224;
+            const double crhs_gauss231 = N(2)*crhs_gauss23;
+            const double crhs_gauss232 = crhs_gauss219*crhs_gauss38;
+            const double crhs_gauss233 = N(3)*crhs_gauss4;
+            const double crhs_gauss234 = DN_DX(3,1)*crhs_gauss70;
+            const double crhs_gauss235 = DN_DX(3,0)*crhs_gauss70;
+            const double crhs_gauss236 = N(3)*crhs_gauss44;
+            const double crhs_gauss237 = DN_DX(3,1)*crhs_gauss25;
+            const double crhs_gauss238 = crhs_gauss237*crhs_gauss96;
+            const double crhs_gauss239 = N(3)*crhs_gauss70;
+            const double crhs_gauss240 = DN_DX(3,0)*crhs_gauss27;
+            const double crhs_gauss241 = N(3)*crhs_gauss123;
+            const double crhs_gauss242 = N(3)*crhs_gauss126;
+            const double crhs_gauss243 = N(3)*crhs_gauss130;
+            const double crhs_gauss244 = DN_DX(3,0)*crhs_gauss25;
+            const double crhs_gauss245 = DN_DX(3,1)*crhs_gauss27;
+            const double crhs_gauss246 = N(3)*crhs_gauss134;
+            const double crhs_gauss247 = crhs_gauss245 - crhs_gauss246;
+            const double crhs_gauss248 = N(3)*crhs_gauss45;
+            const double crhs_gauss249 = crhs_gauss244*crhs_gauss96;
+            const double crhs_gauss250 = -crhs_gauss243 + crhs_gauss244;
+            const double crhs_gauss251 = N(3)*crhs_gauss23;
+            const double crhs_gauss252 = crhs_gauss239*crhs_gauss38;
+            rhs_gauss[0] = DN_DX(0,0)*crhs_gauss19 - DN_DX(0,0)*crhs_gauss85 + DN_DX(0,1)*crhs_gauss21 - DN_DX(0,1)*crhs_gauss98 - N(0)*crhs_gauss16 - crhs_gauss49*crhs_gauss5 + crhs_gauss5;
+            rhs_gauss[1] = -DN_DX(0,0)*crhs_gauss158 - N(0)*crhs_gauss111 + N(0)*crhs_gauss50 - crhs_gauss102*crhs_gauss99 - crhs_gauss107*crhs_gauss108 - crhs_gauss128*(crhs_gauss113 - crhs_gauss119*crhs_gauss122 - crhs_gauss124 + crhs_gauss125*crhs_gauss127) - crhs_gauss137*(crhs_gauss109*crhs_gauss131 - crhs_gauss109*crhs_gauss132 + crhs_gauss136) - crhs_gauss48*(DN_DX(0,0)*crhs_gauss74 + crhs_gauss112 - crhs_gauss114 - crhs_gauss117*crhs_gauss118 + crhs_gauss118*crhs_gauss121);
+            rhs_gauss[2] = -DN_DX(0,1)*crhs_gauss158 - N(0)*crhs_gauss161 + N(0)*crhs_gauss86 - crhs_gauss102*crhs_gauss108 - crhs_gauss128*(-crhs_gauss109*crhs_gauss133 + crhs_gauss109*crhs_gauss135 + crhs_gauss168) - crhs_gauss137*(-crhs_gauss113*crhs_gauss119 + crhs_gauss122 + crhs_gauss124*crhs_gauss125 - crhs_gauss127) - crhs_gauss159*crhs_gauss99 - crhs_gauss48*(DN_DX(0,1)*crhs_gauss94 - crhs_gauss118*crhs_gauss165 + crhs_gauss118*crhs_gauss167 + crhs_gauss162 - crhs_gauss163);
+            rhs_gauss[3] = N(0)*crhs_gauss169 - crhs_gauss108*crhs_gauss170 - crhs_gauss171*crhs_gauss99 - crhs_gauss176*crhs_gauss177 - crhs_gauss189*(crhs_gauss136 + crhs_gauss168) - crhs_gauss48*(N(0)*crhs_gauss42 + crhs_gauss118*crhs_gauss191 + crhs_gauss118*crhs_gauss192 + crhs_gauss132*crhs_gauss156 + crhs_gauss133*crhs_gauss156) - crhs_gauss85*(-DN_DX(0,0)*crhs_gauss180 + crhs_gauss112 - crhs_gauss114*crhs_gauss119 + crhs_gauss177*crhs_gauss184 - crhs_gauss178*crhs_gauss179) - crhs_gauss98*(-DN_DX(0,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss163 + crhs_gauss162 + crhs_gauss177*crhs_gauss188 - crhs_gauss179*crhs_gauss185);
+            rhs_gauss[4] = DN_DX(1,0)*crhs_gauss19 - DN_DX(1,0)*crhs_gauss85 + DN_DX(1,1)*crhs_gauss21 - DN_DX(1,1)*crhs_gauss98 - N(1)*crhs_gauss16 - crhs_gauss193*crhs_gauss49 + crhs_gauss193;
+            rhs_gauss[5] = -DN_DX(1,0)*crhs_gauss158 - N(1)*crhs_gauss111 + N(1)*crhs_gauss50 - crhs_gauss102*crhs_gauss194 - crhs_gauss107*crhs_gauss195 - crhs_gauss128*(-crhs_gauss119*crhs_gauss200 + crhs_gauss125*crhs_gauss202 + crhs_gauss197 - crhs_gauss201) - crhs_gauss137*(crhs_gauss109*crhs_gauss203 - crhs_gauss109*crhs_gauss204 + crhs_gauss207) - crhs_gauss48*(DN_DX(1,0)*crhs_gauss74 - crhs_gauss117*crhs_gauss199 + crhs_gauss121*crhs_gauss199 + crhs_gauss196 - crhs_gauss198);
+            rhs_gauss[6] = -DN_DX(1,1)*crhs_gauss158 - N(1)*crhs_gauss161 + N(1)*crhs_gauss86 - crhs_gauss102*crhs_gauss195 - crhs_gauss128*(-crhs_gauss109*crhs_gauss205 + crhs_gauss109*crhs_gauss206 + crhs_gauss210) - crhs_gauss137*(-crhs_gauss119*crhs_gauss197 + crhs_gauss125*crhs_gauss201 + crhs_gauss200 - crhs_gauss202) - crhs_gauss159*crhs_gauss194 - crhs_gauss48*(DN_DX(1,1)*crhs_gauss94 - crhs_gauss165*crhs_gauss199 + crhs_gauss167*crhs_gauss199 + crhs_gauss208 - crhs_gauss209);
+            rhs_gauss[7] = N(1)*crhs_gauss169 - crhs_gauss170*crhs_gauss195 - crhs_gauss171*crhs_gauss194 - crhs_gauss176*crhs_gauss211 - crhs_gauss189*(crhs_gauss207 + crhs_gauss210) - crhs_gauss48*(N(1)*crhs_gauss42 + crhs_gauss156*crhs_gauss204 + crhs_gauss156*crhs_gauss205 + crhs_gauss191*crhs_gauss199 + crhs_gauss192*crhs_gauss199) - crhs_gauss85*(-DN_DX(1,0)*crhs_gauss180 - crhs_gauss119*crhs_gauss198 - crhs_gauss178*crhs_gauss212 + crhs_gauss184*crhs_gauss211 + crhs_gauss196) - crhs_gauss98*(-DN_DX(1,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss209 - crhs_gauss185*crhs_gauss212 + crhs_gauss188*crhs_gauss211 + crhs_gauss208);
+            rhs_gauss[8] = DN_DX(2,0)*crhs_gauss19 - DN_DX(2,0)*crhs_gauss85 + DN_DX(2,1)*crhs_gauss21 - DN_DX(2,1)*crhs_gauss98 - N(2)*crhs_gauss16 - crhs_gauss213*crhs_gauss49 + crhs_gauss213;
+            rhs_gauss[9] = -DN_DX(2,0)*crhs_gauss158 - N(2)*crhs_gauss111 + N(2)*crhs_gauss50 - crhs_gauss102*crhs_gauss214 - crhs_gauss107*crhs_gauss215 - crhs_gauss128*(-crhs_gauss119*crhs_gauss220 + crhs_gauss125*crhs_gauss222 + crhs_gauss217 - crhs_gauss221) - crhs_gauss137*(crhs_gauss109*crhs_gauss223 - crhs_gauss109*crhs_gauss224 + crhs_gauss227) - crhs_gauss48*(DN_DX(2,0)*crhs_gauss74 - crhs_gauss117*crhs_gauss219 + crhs_gauss121*crhs_gauss219 + crhs_gauss216 - crhs_gauss218);
+            rhs_gauss[10] = -DN_DX(2,1)*crhs_gauss158 - N(2)*crhs_gauss161 + N(2)*crhs_gauss86 - crhs_gauss102*crhs_gauss215 - crhs_gauss128*(-crhs_gauss109*crhs_gauss225 + crhs_gauss109*crhs_gauss226 + crhs_gauss230) - crhs_gauss137*(-crhs_gauss119*crhs_gauss217 + crhs_gauss125*crhs_gauss221 + crhs_gauss220 - crhs_gauss222) - crhs_gauss159*crhs_gauss214 - crhs_gauss48*(DN_DX(2,1)*crhs_gauss94 - crhs_gauss165*crhs_gauss219 + crhs_gauss167*crhs_gauss219 + crhs_gauss228 - crhs_gauss229);
+            rhs_gauss[11] = N(2)*crhs_gauss169 - crhs_gauss170*crhs_gauss215 - crhs_gauss171*crhs_gauss214 - crhs_gauss176*crhs_gauss231 - crhs_gauss189*(crhs_gauss227 + crhs_gauss230) - crhs_gauss48*(N(2)*crhs_gauss42 + crhs_gauss156*crhs_gauss224 + crhs_gauss156*crhs_gauss225 + crhs_gauss191*crhs_gauss219 + crhs_gauss192*crhs_gauss219) - crhs_gauss85*(-DN_DX(2,0)*crhs_gauss180 - crhs_gauss119*crhs_gauss218 - crhs_gauss178*crhs_gauss232 + crhs_gauss184*crhs_gauss231 + crhs_gauss216) - crhs_gauss98*(-DN_DX(2,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss229 - crhs_gauss185*crhs_gauss232 + crhs_gauss188*crhs_gauss231 + crhs_gauss228);
+            rhs_gauss[12] = DN_DX(3,0)*crhs_gauss19 - DN_DX(3,0)*crhs_gauss85 + DN_DX(3,1)*crhs_gauss21 - DN_DX(3,1)*crhs_gauss98 - N(3)*crhs_gauss16 - crhs_gauss233*crhs_gauss49 + crhs_gauss233;
+            rhs_gauss[13] = -DN_DX(3,0)*crhs_gauss158 - N(3)*crhs_gauss111 + N(3)*crhs_gauss50 - crhs_gauss102*crhs_gauss234 - crhs_gauss107*crhs_gauss235 - crhs_gauss128*(-crhs_gauss119*crhs_gauss240 + crhs_gauss125*crhs_gauss242 + crhs_gauss237 - crhs_gauss241) - crhs_gauss137*(crhs_gauss109*crhs_gauss243 - crhs_gauss109*crhs_gauss244 + crhs_gauss247) - crhs_gauss48*(DN_DX(3,0)*crhs_gauss74 - crhs_gauss117*crhs_gauss239 + crhs_gauss121*crhs_gauss239 + crhs_gauss236 - crhs_gauss238);
+            rhs_gauss[14] = -DN_DX(3,1)*crhs_gauss158 - N(3)*crhs_gauss161 + N(3)*crhs_gauss86 - crhs_gauss102*crhs_gauss235 - crhs_gauss128*(-crhs_gauss109*crhs_gauss245 + crhs_gauss109*crhs_gauss246 + crhs_gauss250) - crhs_gauss137*(-crhs_gauss119*crhs_gauss237 + crhs_gauss125*crhs_gauss241 + crhs_gauss240 - crhs_gauss242) - crhs_gauss159*crhs_gauss234 - crhs_gauss48*(DN_DX(3,1)*crhs_gauss94 - crhs_gauss165*crhs_gauss239 + crhs_gauss167*crhs_gauss239 + crhs_gauss248 - crhs_gauss249);
+            rhs_gauss[15] = N(3)*crhs_gauss169 - crhs_gauss170*crhs_gauss235 - crhs_gauss171*crhs_gauss234 - crhs_gauss176*crhs_gauss251 - crhs_gauss189*(crhs_gauss247 + crhs_gauss250) - crhs_gauss48*(N(3)*crhs_gauss42 + crhs_gauss156*crhs_gauss244 + crhs_gauss156*crhs_gauss245 + crhs_gauss191*crhs_gauss239 + crhs_gauss192*crhs_gauss239) - crhs_gauss85*(-DN_DX(3,0)*crhs_gauss180 - crhs_gauss119*crhs_gauss238 - crhs_gauss178*crhs_gauss252 + crhs_gauss184*crhs_gauss251 + crhs_gauss236) - crhs_gauss98*(-DN_DX(3,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss249 - crhs_gauss185*crhs_gauss252 + crhs_gauss188*crhs_gauss251 + crhs_gauss248);
+
+
+            rRightHandSideBoundedVector += w * detJ * rhs_gauss;
         }
     }
     else
     {
         for(const auto& gauss_point: gauss_points)
         {
+
+            const double w = gauss_point.Weight();
             r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
-            r_geometry.InverseOfJacobian(Jinv, gauss_point.Coordinates());
-            r_geometry.ShapeFunctionsLocalGradients(DN_DX_iso, gauss_point.Coordinates());
-            GeometryUtils::ShapeFunctionsGradients(DN_DX_iso, Jinv, DN_DX);
 
-const double crRightHandSideBoundedVector0 =             N(0)*data.m_ext(0);
-const double crRightHandSideBoundedVector1 =             N(1)*data.m_ext(1);
-const double crRightHandSideBoundedVector2 =             N(2)*data.m_ext(2);
-const double crRightHandSideBoundedVector3 =             N(3)*data.m_ext(3);
-const double crRightHandSideBoundedVector4 =             crRightHandSideBoundedVector0 + crRightHandSideBoundedVector1 + crRightHandSideBoundedVector2 + crRightHandSideBoundedVector3;
-const double crRightHandSideBoundedVector5 =             N(0)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector6 =             DN_DX(0,1)*data.U(0,2);
-const double crRightHandSideBoundedVector7 =             DN_DX(1,1)*data.U(1,2);
-const double crRightHandSideBoundedVector8 =             DN_DX(2,1)*data.U(2,2);
-const double crRightHandSideBoundedVector9 =             DN_DX(3,1)*data.U(3,2);
-const double crRightHandSideBoundedVector10 =             crRightHandSideBoundedVector6 + crRightHandSideBoundedVector7 + crRightHandSideBoundedVector8 + crRightHandSideBoundedVector9;
-const double crRightHandSideBoundedVector11 =             DN_DX(0,0)*data.U(0,1);
-const double crRightHandSideBoundedVector12 =             DN_DX(1,0)*data.U(1,1);
-const double crRightHandSideBoundedVector13 =             DN_DX(2,0)*data.U(2,1);
-const double crRightHandSideBoundedVector14 =             DN_DX(3,0)*data.U(3,1);
-const double crRightHandSideBoundedVector15 =             crRightHandSideBoundedVector11 + crRightHandSideBoundedVector12 + crRightHandSideBoundedVector13 + crRightHandSideBoundedVector14;
-const double crRightHandSideBoundedVector16 =             crRightHandSideBoundedVector10 + crRightHandSideBoundedVector15;
-const double crRightHandSideBoundedVector17 =             DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0);
-const double crRightHandSideBoundedVector18 =             N(0)*data.alpha_sc_nodes(0) + N(1)*data.alpha_sc_nodes(1) + N(2)*data.alpha_sc_nodes(2) + N(3)*data.alpha_sc_nodes(3);
-const double crRightHandSideBoundedVector19 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector18;
-const double crRightHandSideBoundedVector20 =             DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0);
-const double crRightHandSideBoundedVector21 =             crRightHandSideBoundedVector18*crRightHandSideBoundedVector20;
-const double crRightHandSideBoundedVector22 =             N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
-const double crRightHandSideBoundedVector23 =             1.0/crRightHandSideBoundedVector22;
-const double crRightHandSideBoundedVector24 =             fabs(crRightHandSideBoundedVector22);
-const double crRightHandSideBoundedVector25 =             N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
-const double crRightHandSideBoundedVector26 =             pow(crRightHandSideBoundedVector25, 2);
-const double crRightHandSideBoundedVector27 =             N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
-const double crRightHandSideBoundedVector28 =             pow(crRightHandSideBoundedVector27, 2);
-const double crRightHandSideBoundedVector29 =             crRightHandSideBoundedVector26 + crRightHandSideBoundedVector28;
-const double crRightHandSideBoundedVector30 =             0.5*crRightHandSideBoundedVector26;
-const double crRightHandSideBoundedVector31 =             0.5*crRightHandSideBoundedVector28;
-const double crRightHandSideBoundedVector32 =             N(0)*data.U(0,3);
-const double crRightHandSideBoundedVector33 =             N(1)*data.U(1,3);
-const double crRightHandSideBoundedVector34 =             N(2)*data.U(2,3);
-const double crRightHandSideBoundedVector35 =             N(3)*data.U(3,3);
-const double crRightHandSideBoundedVector36 =             -crRightHandSideBoundedVector32 - crRightHandSideBoundedVector33 - crRightHandSideBoundedVector34 - crRightHandSideBoundedVector35;
-const double crRightHandSideBoundedVector37 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector30 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector31 + crRightHandSideBoundedVector36;
-const double crRightHandSideBoundedVector38 =             data.gamma - 1;
-const double crRightHandSideBoundedVector39 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector40 =             crRightHandSideBoundedVector37*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector41 =             1.0/data.gamma;
-const double crRightHandSideBoundedVector42 =             N(0)*data.r_ext(0) + N(1)*data.r_ext(1) + N(2)*data.r_ext(2) + N(3)*data.r_ext(3);
-const double crRightHandSideBoundedVector43 =             pow(crRightHandSideBoundedVector42, 2);
-const double crRightHandSideBoundedVector44 =             N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0);
-const double crRightHandSideBoundedVector45 =             N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1);
-const double crRightHandSideBoundedVector46 =             crRightHandSideBoundedVector40*data.gamma*(pow(crRightHandSideBoundedVector44, 2) + pow(crRightHandSideBoundedVector45, 2));
-const double crRightHandSideBoundedVector47 =             0.70710678118654757*crRightHandSideBoundedVector24*crRightHandSideBoundedVector41*stab_c3*sqrt((crRightHandSideBoundedVector43 - 2.0*crRightHandSideBoundedVector46 + 2.0*sqrt(0.25*crRightHandSideBoundedVector43 - crRightHandSideBoundedVector46)*fabs(crRightHandSideBoundedVector42))/(pow(crRightHandSideBoundedVector37, 2)*pow(crRightHandSideBoundedVector38, 2))) + stab_c2*(sqrt(data.gamma)*sqrt(-crRightHandSideBoundedVector40) + sqrt(crRightHandSideBoundedVector29)/crRightHandSideBoundedVector24)/data.h;
-const double crRightHandSideBoundedVector48 =             1.0*(N(0)*data.dUdt(0,0) + N(1)*data.dUdt(1,0) + N(2)*data.dUdt(2,0) + N(3)*data.dUdt(3,0) - crRightHandSideBoundedVector0 - crRightHandSideBoundedVector1 + crRightHandSideBoundedVector16 - crRightHandSideBoundedVector2 - crRightHandSideBoundedVector3)/crRightHandSideBoundedVector47;
-const double crRightHandSideBoundedVector49 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector48;
-const double crRightHandSideBoundedVector50 =             crRightHandSideBoundedVector22*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector51 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector52 =             1.0*data.gamma;
-const double crRightHandSideBoundedVector53 =             crRightHandSideBoundedVector23*(3.0 - crRightHandSideBoundedVector52);
-const double crRightHandSideBoundedVector54 =             DN_DX(0,0)*data.U(0,2);
-const double crRightHandSideBoundedVector55 =             DN_DX(1,0)*data.U(1,2);
-const double crRightHandSideBoundedVector56 =             DN_DX(2,0)*data.U(2,2);
-const double crRightHandSideBoundedVector57 =             DN_DX(3,0)*data.U(3,2);
-const double crRightHandSideBoundedVector58 =             crRightHandSideBoundedVector54 + crRightHandSideBoundedVector55 + crRightHandSideBoundedVector56 + crRightHandSideBoundedVector57;
-const double crRightHandSideBoundedVector59 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector58;
-const double crRightHandSideBoundedVector60 =             1.0*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector61 =             -crRightHandSideBoundedVector59*crRightHandSideBoundedVector60;
-const double crRightHandSideBoundedVector62 =             DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3);
-const double crRightHandSideBoundedVector63 =             DN_DX(0,1)*data.U(0,1);
-const double crRightHandSideBoundedVector64 =             DN_DX(1,1)*data.U(1,1);
-const double crRightHandSideBoundedVector65 =             DN_DX(2,1)*data.U(2,1);
-const double crRightHandSideBoundedVector66 =             DN_DX(3,1)*data.U(3,1);
-const double crRightHandSideBoundedVector67 =             crRightHandSideBoundedVector63 + crRightHandSideBoundedVector64 + crRightHandSideBoundedVector65 + crRightHandSideBoundedVector66;
-const double crRightHandSideBoundedVector68 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector67;
-const double crRightHandSideBoundedVector69 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector70 =             pow(crRightHandSideBoundedVector22, -2);
-const double crRightHandSideBoundedVector71 =             0.5*crRightHandSideBoundedVector29;
-const double crRightHandSideBoundedVector72 =             crRightHandSideBoundedVector38*crRightHandSideBoundedVector71;
-const double crRightHandSideBoundedVector73 =             -crRightHandSideBoundedVector26 + crRightHandSideBoundedVector72;
-const double crRightHandSideBoundedVector74 =             crRightHandSideBoundedVector70*crRightHandSideBoundedVector73;
-const double crRightHandSideBoundedVector75 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector76 =             crRightHandSideBoundedVector70*crRightHandSideBoundedVector75;
-const double crRightHandSideBoundedVector77 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector74 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector68 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector69 - crRightHandSideBoundedVector25*crRightHandSideBoundedVector76 + crRightHandSideBoundedVector38*crRightHandSideBoundedVector62 + crRightHandSideBoundedVector61;
-const double crRightHandSideBoundedVector78 =             N(0)*data.mu_sc_nodes(0);
-const double crRightHandSideBoundedVector79 =             N(1)*data.mu_sc_nodes(1);
-const double crRightHandSideBoundedVector80 =             N(2)*data.mu_sc_nodes(2);
-const double crRightHandSideBoundedVector81 =             N(3)*data.mu_sc_nodes(3);
-const double crRightHandSideBoundedVector82 =             crRightHandSideBoundedVector78 + crRightHandSideBoundedVector79 + crRightHandSideBoundedVector80 + crRightHandSideBoundedVector81 + data.mu;
-const double crRightHandSideBoundedVector83 =             crRightHandSideBoundedVector23*stab_c1/pow(data.h, 2);
-const double crRightHandSideBoundedVector84 =             1.0/(crRightHandSideBoundedVector47 + 1.3333333333333333*crRightHandSideBoundedVector82*crRightHandSideBoundedVector83);
-const double crRightHandSideBoundedVector85 =             crRightHandSideBoundedVector84*(N(0)*data.dUdt(0,1) + N(1)*data.dUdt(1,1) + N(2)*data.dUdt(2,1) + N(3)*data.dUdt(3,1) - crRightHandSideBoundedVector50 + crRightHandSideBoundedVector51*crRightHandSideBoundedVector53 + crRightHandSideBoundedVector77);
-const double crRightHandSideBoundedVector86 =             crRightHandSideBoundedVector22*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector87 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector88 =             crRightHandSideBoundedVector25*crRightHandSideBoundedVector67;
-const double crRightHandSideBoundedVector89 =             -crRightHandSideBoundedVector60*crRightHandSideBoundedVector88;
-const double crRightHandSideBoundedVector90 =             DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3);
-const double crRightHandSideBoundedVector91 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector92 =             crRightHandSideBoundedVector25*crRightHandSideBoundedVector58;
-const double crRightHandSideBoundedVector93 =             -crRightHandSideBoundedVector28 + crRightHandSideBoundedVector72;
-const double crRightHandSideBoundedVector94 =             crRightHandSideBoundedVector70*crRightHandSideBoundedVector93;
-const double crRightHandSideBoundedVector95 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector96 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector97 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector94 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector91 + crRightHandSideBoundedVector23*crRightHandSideBoundedVector92 + crRightHandSideBoundedVector38*crRightHandSideBoundedVector90 + crRightHandSideBoundedVector89 - crRightHandSideBoundedVector95*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector98 =             crRightHandSideBoundedVector84*(N(0)*data.dUdt(0,2) + N(1)*data.dUdt(1,2) + N(2)*data.dUdt(2,2) + N(3)*data.dUdt(3,2) + crRightHandSideBoundedVector53*crRightHandSideBoundedVector87 - crRightHandSideBoundedVector86 + crRightHandSideBoundedVector97);
-const double crRightHandSideBoundedVector99 =             DN_DX(0,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector100 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector101 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector102 =             crRightHandSideBoundedVector82*(-crRightHandSideBoundedVector100 - crRightHandSideBoundedVector101 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector58 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector67);
-const double crRightHandSideBoundedVector103 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector22 - crRightHandSideBoundedVector95;
-const double crRightHandSideBoundedVector104 =             2*crRightHandSideBoundedVector82;
-const double crRightHandSideBoundedVector105 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector22 - crRightHandSideBoundedVector75;
-const double crRightHandSideBoundedVector106 =             (crRightHandSideBoundedVector103 + crRightHandSideBoundedVector105)*(N(0)*data.beta_sc_nodes(0) + N(1)*data.beta_sc_nodes(1) + N(2)*data.beta_sc_nodes(2) + N(3)*data.beta_sc_nodes(3) - 0.66666666666666663*crRightHandSideBoundedVector78 - 0.66666666666666663*crRightHandSideBoundedVector79 - 0.66666666666666663*crRightHandSideBoundedVector80 - 0.66666666666666663*crRightHandSideBoundedVector81 - 0.66666666666666663*data.mu);
-const double crRightHandSideBoundedVector107 =             crRightHandSideBoundedVector103*crRightHandSideBoundedVector104 + crRightHandSideBoundedVector106;
-const double crRightHandSideBoundedVector108 =             DN_DX(0,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector109 =             crRightHandSideBoundedVector52 - 3.0;
-const double crRightHandSideBoundedVector110 =             crRightHandSideBoundedVector109*crRightHandSideBoundedVector51;
-const double crRightHandSideBoundedVector111 =             -crRightHandSideBoundedVector110*crRightHandSideBoundedVector23 + crRightHandSideBoundedVector77;
-const double crRightHandSideBoundedVector112 =             N(0)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector113 =             DN_DX(0,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector114 =             crRightHandSideBoundedVector113*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector115 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector75;
-const double crRightHandSideBoundedVector116 =             2*crRightHandSideBoundedVector115;
-const double crRightHandSideBoundedVector117 =             -crRightHandSideBoundedVector116*crRightHandSideBoundedVector25 + crRightHandSideBoundedVector68 + crRightHandSideBoundedVector69;
-const double crRightHandSideBoundedVector118 =             N(0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector119 =             1.0*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector120 =             crRightHandSideBoundedVector17*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector121 =             crRightHandSideBoundedVector110 + crRightHandSideBoundedVector119*crRightHandSideBoundedVector59 - 2*crRightHandSideBoundedVector120*crRightHandSideBoundedVector73;
-const double crRightHandSideBoundedVector122 =             DN_DX(0,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector123 =             crRightHandSideBoundedVector101*crRightHandSideBoundedVector23 - crRightHandSideBoundedVector63 - crRightHandSideBoundedVector64 - crRightHandSideBoundedVector65 - crRightHandSideBoundedVector66;
-const double crRightHandSideBoundedVector124 =             N(0)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector125 =             crRightHandSideBoundedVector52 - 1.0;
-const double crRightHandSideBoundedVector126 =             crRightHandSideBoundedVector100*crRightHandSideBoundedVector23 - crRightHandSideBoundedVector54 - crRightHandSideBoundedVector55 - crRightHandSideBoundedVector56 - crRightHandSideBoundedVector57;
-const double crRightHandSideBoundedVector127 =             N(0)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector128 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector98;
-const double crRightHandSideBoundedVector129 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector95;
-const double crRightHandSideBoundedVector130 =             -crRightHandSideBoundedVector11 - crRightHandSideBoundedVector12 + crRightHandSideBoundedVector129 - crRightHandSideBoundedVector13 - crRightHandSideBoundedVector14;
-const double crRightHandSideBoundedVector131 =             N(0)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector132 =             DN_DX(0,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector133 =             DN_DX(0,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector134 =             crRightHandSideBoundedVector115 - crRightHandSideBoundedVector6 - crRightHandSideBoundedVector7 - crRightHandSideBoundedVector8 - crRightHandSideBoundedVector9;
-const double crRightHandSideBoundedVector135 =             N(0)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector136 =             crRightHandSideBoundedVector133 - crRightHandSideBoundedVector135;
-const double crRightHandSideBoundedVector137 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector85;
-const double crRightHandSideBoundedVector138 =             (N(0)*data.lamb_sc_nodes(0) + N(1)*data.lamb_sc_nodes(1) + N(2)*data.lamb_sc_nodes(2) + N(3)*data.lamb_sc_nodes(3) + data.lambda)/data.c_v;
-const double crRightHandSideBoundedVector139 =             crRightHandSideBoundedVector22*crRightHandSideBoundedVector42;
-const double crRightHandSideBoundedVector140 =             crRightHandSideBoundedVector25*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector141 =             crRightHandSideBoundedVector27*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector142 =             crRightHandSideBoundedVector62*data.gamma;
-const double crRightHandSideBoundedVector143 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector144 =             crRightHandSideBoundedVector90*data.gamma;
-const double crRightHandSideBoundedVector145 =             crRightHandSideBoundedVector23*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector146 =             1.0*crRightHandSideBoundedVector92;
-const double crRightHandSideBoundedVector147 =             1.0*crRightHandSideBoundedVector68;
-const double crRightHandSideBoundedVector148 =             crRightHandSideBoundedVector147*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector149 =             crRightHandSideBoundedVector26*crRightHandSideBoundedVector60;
-const double crRightHandSideBoundedVector150 =             crRightHandSideBoundedVector32 + crRightHandSideBoundedVector33 + crRightHandSideBoundedVector34 + crRightHandSideBoundedVector35;
-const double crRightHandSideBoundedVector151 =             crRightHandSideBoundedVector38*(crRightHandSideBoundedVector150 - crRightHandSideBoundedVector23*(crRightHandSideBoundedVector30 + crRightHandSideBoundedVector31));
-const double crRightHandSideBoundedVector152 =             crRightHandSideBoundedVector150 + crRightHandSideBoundedVector151;
-const double crRightHandSideBoundedVector153 =             crRightHandSideBoundedVector28*crRightHandSideBoundedVector60;
-const double crRightHandSideBoundedVector154 =             -crRightHandSideBoundedVector151 + crRightHandSideBoundedVector36;
-const double crRightHandSideBoundedVector155 =             crRightHandSideBoundedVector154 + crRightHandSideBoundedVector39*crRightHandSideBoundedVector71;
-const double crRightHandSideBoundedVector156 =             crRightHandSideBoundedVector155*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector157 =             (N(0)*data.dUdt(0,3) + N(1)*data.dUdt(1,3) + N(2)*data.dUdt(2,3) + N(3)*data.dUdt(3,3) + crRightHandSideBoundedVector10*crRightHandSideBoundedVector23*(crRightHandSideBoundedVector152 - crRightHandSideBoundedVector153) - crRightHandSideBoundedVector139 - crRightHandSideBoundedVector140 - crRightHandSideBoundedVector141 + crRightHandSideBoundedVector142*crRightHandSideBoundedVector143 + crRightHandSideBoundedVector144*crRightHandSideBoundedVector145 - crRightHandSideBoundedVector146*crRightHandSideBoundedVector38*crRightHandSideBoundedVector96 - crRightHandSideBoundedVector148*crRightHandSideBoundedVector38*crRightHandSideBoundedVector70 + crRightHandSideBoundedVector15*crRightHandSideBoundedVector23*(-crRightHandSideBoundedVector149 + crRightHandSideBoundedVector152) + crRightHandSideBoundedVector155*crRightHandSideBoundedVector76 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector95)/(crRightHandSideBoundedVector138*crRightHandSideBoundedVector41*crRightHandSideBoundedVector83 + crRightHandSideBoundedVector47);
-const double crRightHandSideBoundedVector158 =             crRightHandSideBoundedVector119*crRightHandSideBoundedVector157;
-const double crRightHandSideBoundedVector159 =             crRightHandSideBoundedVector104*crRightHandSideBoundedVector105 + crRightHandSideBoundedVector106;
-const double crRightHandSideBoundedVector160 =             crRightHandSideBoundedVector109*crRightHandSideBoundedVector87;
-const double crRightHandSideBoundedVector161 =             -crRightHandSideBoundedVector160*crRightHandSideBoundedVector23 + crRightHandSideBoundedVector97;
-const double crRightHandSideBoundedVector162 =             N(0)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector163 =             crRightHandSideBoundedVector132*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector164 =             2*crRightHandSideBoundedVector129;
-const double crRightHandSideBoundedVector165 =             -crRightHandSideBoundedVector164*crRightHandSideBoundedVector27 + crRightHandSideBoundedVector91 + crRightHandSideBoundedVector92;
-const double crRightHandSideBoundedVector166 =             crRightHandSideBoundedVector20*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector167 =             crRightHandSideBoundedVector119*crRightHandSideBoundedVector88 + crRightHandSideBoundedVector160 - 2*crRightHandSideBoundedVector166*crRightHandSideBoundedVector93;
-const double crRightHandSideBoundedVector168 =             -crRightHandSideBoundedVector131 + crRightHandSideBoundedVector132;
-const double crRightHandSideBoundedVector169 =             crRightHandSideBoundedVector139 + crRightHandSideBoundedVector140 + crRightHandSideBoundedVector141;
-const double crRightHandSideBoundedVector170 =             crRightHandSideBoundedVector102*crRightHandSideBoundedVector145 + crRightHandSideBoundedVector107*crRightHandSideBoundedVector143 + crRightHandSideBoundedVector138*(crRightHandSideBoundedVector120*crRightHandSideBoundedVector26 + crRightHandSideBoundedVector120*crRightHandSideBoundedVector28 - crRightHandSideBoundedVector150*crRightHandSideBoundedVector17 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector62 - crRightHandSideBoundedVector51 - crRightHandSideBoundedVector59);
-const double crRightHandSideBoundedVector171 =             crRightHandSideBoundedVector102*crRightHandSideBoundedVector143 + crRightHandSideBoundedVector138*(-crRightHandSideBoundedVector150*crRightHandSideBoundedVector20 + crRightHandSideBoundedVector166*crRightHandSideBoundedVector26 + crRightHandSideBoundedVector166*crRightHandSideBoundedVector28 + crRightHandSideBoundedVector22*crRightHandSideBoundedVector90 - crRightHandSideBoundedVector87 - crRightHandSideBoundedVector88) + crRightHandSideBoundedVector145*crRightHandSideBoundedVector159;
-const double crRightHandSideBoundedVector172 =             crRightHandSideBoundedVector142*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector173 =             crRightHandSideBoundedVector144*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector174 =             crRightHandSideBoundedVector149 + crRightHandSideBoundedVector154;
-const double crRightHandSideBoundedVector175 =             crRightHandSideBoundedVector153 + crRightHandSideBoundedVector154;
-const double crRightHandSideBoundedVector176 =             -crRightHandSideBoundedVector10*crRightHandSideBoundedVector175 + crRightHandSideBoundedVector115*crRightHandSideBoundedVector155 + crRightHandSideBoundedVector129*crRightHandSideBoundedVector155 - crRightHandSideBoundedVector146*crRightHandSideBoundedVector27*crRightHandSideBoundedVector39 - crRightHandSideBoundedVector148*crRightHandSideBoundedVector39 - crRightHandSideBoundedVector15*crRightHandSideBoundedVector174 + crRightHandSideBoundedVector172 + crRightHandSideBoundedVector173;
-const double crRightHandSideBoundedVector177 =             N(0)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector178 =             -2.0*crRightHandSideBoundedVector115*crRightHandSideBoundedVector25 + crRightHandSideBoundedVector147 + 1.0*crRightHandSideBoundedVector69;
-const double crRightHandSideBoundedVector179 =             crRightHandSideBoundedVector118*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector180 =             crRightHandSideBoundedVector174*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector181 =             3.0*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector182 =             2.0*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector183 =             crRightHandSideBoundedVector155 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector26;
-const double crRightHandSideBoundedVector184 =             crRightHandSideBoundedVector120*crRightHandSideBoundedVector183 + crRightHandSideBoundedVector142 - crRightHandSideBoundedVector181*crRightHandSideBoundedVector51 + crRightHandSideBoundedVector61;
-const double crRightHandSideBoundedVector185 =             -2.0*crRightHandSideBoundedVector129*crRightHandSideBoundedVector27 + crRightHandSideBoundedVector146 + 1.0*crRightHandSideBoundedVector91;
-const double crRightHandSideBoundedVector186 =             crRightHandSideBoundedVector175*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector187 =             crRightHandSideBoundedVector155 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector28;
-const double crRightHandSideBoundedVector188 =             crRightHandSideBoundedVector144 + crRightHandSideBoundedVector166*crRightHandSideBoundedVector187 - crRightHandSideBoundedVector181*crRightHandSideBoundedVector87 + crRightHandSideBoundedVector89;
-const double crRightHandSideBoundedVector189 =             crRightHandSideBoundedVector157*crRightHandSideBoundedVector23*crRightHandSideBoundedVector52;
-const double crRightHandSideBoundedVector190 =             crRightHandSideBoundedVector154 + crRightHandSideBoundedVector29*crRightHandSideBoundedVector39;
-const double crRightHandSideBoundedVector191 =             crRightHandSideBoundedVector15*crRightHandSideBoundedVector183 - crRightHandSideBoundedVector164*crRightHandSideBoundedVector190 - crRightHandSideBoundedVector172 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector27*crRightHandSideBoundedVector92;
-const double crRightHandSideBoundedVector192 =             crRightHandSideBoundedVector10*crRightHandSideBoundedVector187 - crRightHandSideBoundedVector116*crRightHandSideBoundedVector190 - crRightHandSideBoundedVector173 + crRightHandSideBoundedVector182*crRightHandSideBoundedVector25*crRightHandSideBoundedVector68;
-const double crRightHandSideBoundedVector193 =             N(1)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector194 =             DN_DX(1,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector195 =             DN_DX(1,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector196 =             N(1)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector197 =             DN_DX(1,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector198 =             crRightHandSideBoundedVector197*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector199 =             N(1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector200 =             DN_DX(1,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector201 =             N(1)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector202 =             N(1)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector203 =             N(1)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector204 =             DN_DX(1,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector205 =             DN_DX(1,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector206 =             N(1)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector207 =             crRightHandSideBoundedVector205 - crRightHandSideBoundedVector206;
-const double crRightHandSideBoundedVector208 =             N(1)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector209 =             crRightHandSideBoundedVector204*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector210 =             -crRightHandSideBoundedVector203 + crRightHandSideBoundedVector204;
-const double crRightHandSideBoundedVector211 =             N(1)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector212 =             crRightHandSideBoundedVector199*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector213 =             N(2)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector214 =             DN_DX(2,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector215 =             DN_DX(2,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector216 =             N(2)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector217 =             DN_DX(2,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector218 =             crRightHandSideBoundedVector217*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector219 =             N(2)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector220 =             DN_DX(2,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector221 =             N(2)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector222 =             N(2)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector223 =             N(2)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector224 =             DN_DX(2,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector225 =             DN_DX(2,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector226 =             N(2)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector227 =             crRightHandSideBoundedVector225 - crRightHandSideBoundedVector226;
-const double crRightHandSideBoundedVector228 =             N(2)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector229 =             crRightHandSideBoundedVector224*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector230 =             -crRightHandSideBoundedVector223 + crRightHandSideBoundedVector224;
-const double crRightHandSideBoundedVector231 =             N(2)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector232 =             crRightHandSideBoundedVector219*crRightHandSideBoundedVector38;
-const double crRightHandSideBoundedVector233 =             N(3)*crRightHandSideBoundedVector4;
-const double crRightHandSideBoundedVector234 =             DN_DX(3,1)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector235 =             DN_DX(3,0)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector236 =             N(3)*crRightHandSideBoundedVector44;
-const double crRightHandSideBoundedVector237 =             DN_DX(3,1)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector238 =             crRightHandSideBoundedVector237*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector239 =             N(3)*crRightHandSideBoundedVector70;
-const double crRightHandSideBoundedVector240 =             DN_DX(3,0)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector241 =             N(3)*crRightHandSideBoundedVector123;
-const double crRightHandSideBoundedVector242 =             N(3)*crRightHandSideBoundedVector126;
-const double crRightHandSideBoundedVector243 =             N(3)*crRightHandSideBoundedVector130;
-const double crRightHandSideBoundedVector244 =             DN_DX(3,0)*crRightHandSideBoundedVector25;
-const double crRightHandSideBoundedVector245 =             DN_DX(3,1)*crRightHandSideBoundedVector27;
-const double crRightHandSideBoundedVector246 =             N(3)*crRightHandSideBoundedVector134;
-const double crRightHandSideBoundedVector247 =             crRightHandSideBoundedVector245 - crRightHandSideBoundedVector246;
-const double crRightHandSideBoundedVector248 =             N(3)*crRightHandSideBoundedVector45;
-const double crRightHandSideBoundedVector249 =             crRightHandSideBoundedVector244*crRightHandSideBoundedVector96;
-const double crRightHandSideBoundedVector250 =             -crRightHandSideBoundedVector243 + crRightHandSideBoundedVector244;
-const double crRightHandSideBoundedVector251 =             N(3)*crRightHandSideBoundedVector23;
-const double crRightHandSideBoundedVector252 =             crRightHandSideBoundedVector239*crRightHandSideBoundedVector38;
-            rRightHandSideBoundedVector[0] += DN_DX(0,0)*crRightHandSideBoundedVector19 - DN_DX(0,0)*crRightHandSideBoundedVector85 + DN_DX(0,1)*crRightHandSideBoundedVector21 - DN_DX(0,1)*crRightHandSideBoundedVector98 - N(0)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector49*crRightHandSideBoundedVector5 + crRightHandSideBoundedVector5;
-            rRightHandSideBoundedVector[1] += -DN_DX(0,0)*crRightHandSideBoundedVector158 - N(0)*crRightHandSideBoundedVector111 + N(0)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector99 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector108 - crRightHandSideBoundedVector128*(crRightHandSideBoundedVector113 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector122 - crRightHandSideBoundedVector124 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector127) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector131 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector132 + crRightHandSideBoundedVector136) - crRightHandSideBoundedVector48*(DN_DX(0,0)*crRightHandSideBoundedVector74 + crRightHandSideBoundedVector112 - crRightHandSideBoundedVector114 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector118 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector121);
-            rRightHandSideBoundedVector[2] += -DN_DX(0,1)*crRightHandSideBoundedVector158 - N(0)*crRightHandSideBoundedVector161 + N(0)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector108 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector133 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector135 + crRightHandSideBoundedVector168) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector113*crRightHandSideBoundedVector119 + crRightHandSideBoundedVector122 + crRightHandSideBoundedVector124*crRightHandSideBoundedVector125 - crRightHandSideBoundedVector127) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector99 - crRightHandSideBoundedVector48*(DN_DX(0,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector118*crRightHandSideBoundedVector165 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector167 + crRightHandSideBoundedVector162 - crRightHandSideBoundedVector163);
-            rRightHandSideBoundedVector[3] += N(0)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector108*crRightHandSideBoundedVector170 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector99 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector177 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector136 + crRightHandSideBoundedVector168) - crRightHandSideBoundedVector48*(N(0)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector191 + crRightHandSideBoundedVector118*crRightHandSideBoundedVector192 + crRightHandSideBoundedVector132*crRightHandSideBoundedVector156 + crRightHandSideBoundedVector133*crRightHandSideBoundedVector156) - crRightHandSideBoundedVector85*(-DN_DX(0,0)*crRightHandSideBoundedVector180 + crRightHandSideBoundedVector112 - crRightHandSideBoundedVector114*crRightHandSideBoundedVector119 + crRightHandSideBoundedVector177*crRightHandSideBoundedVector184 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector179) - crRightHandSideBoundedVector98*(-DN_DX(0,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector163 + crRightHandSideBoundedVector162 + crRightHandSideBoundedVector177*crRightHandSideBoundedVector188 - crRightHandSideBoundedVector179*crRightHandSideBoundedVector185);
-            rRightHandSideBoundedVector[4] += DN_DX(1,0)*crRightHandSideBoundedVector19 - DN_DX(1,0)*crRightHandSideBoundedVector85 + DN_DX(1,1)*crRightHandSideBoundedVector21 - DN_DX(1,1)*crRightHandSideBoundedVector98 - N(1)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector193*crRightHandSideBoundedVector49 + crRightHandSideBoundedVector193;
-            rRightHandSideBoundedVector[5] += -DN_DX(1,0)*crRightHandSideBoundedVector158 - N(1)*crRightHandSideBoundedVector111 + N(1)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector194 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector195 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector200 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector202 + crRightHandSideBoundedVector197 - crRightHandSideBoundedVector201) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector203 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector204 + crRightHandSideBoundedVector207) - crRightHandSideBoundedVector48*(DN_DX(1,0)*crRightHandSideBoundedVector74 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector121*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector196 - crRightHandSideBoundedVector198);
-            rRightHandSideBoundedVector[6] += -DN_DX(1,1)*crRightHandSideBoundedVector158 - N(1)*crRightHandSideBoundedVector161 + N(1)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector195 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector205 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector206 + crRightHandSideBoundedVector210) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector197 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector201 + crRightHandSideBoundedVector200 - crRightHandSideBoundedVector202) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector194 - crRightHandSideBoundedVector48*(DN_DX(1,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector208 - crRightHandSideBoundedVector209);
-            rRightHandSideBoundedVector[7] += N(1)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector195 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector194 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector211 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector207 + crRightHandSideBoundedVector210) - crRightHandSideBoundedVector48*(N(1)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector204 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector205 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector199 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector199) - crRightHandSideBoundedVector85*(-DN_DX(1,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector198 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector212 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector211 + crRightHandSideBoundedVector196) - crRightHandSideBoundedVector98*(-DN_DX(1,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector209 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector212 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector211 + crRightHandSideBoundedVector208);
-            rRightHandSideBoundedVector[8] += DN_DX(2,0)*crRightHandSideBoundedVector19 - DN_DX(2,0)*crRightHandSideBoundedVector85 + DN_DX(2,1)*crRightHandSideBoundedVector21 - DN_DX(2,1)*crRightHandSideBoundedVector98 - N(2)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector213*crRightHandSideBoundedVector49 + crRightHandSideBoundedVector213;
-            rRightHandSideBoundedVector[9] += -DN_DX(2,0)*crRightHandSideBoundedVector158 - N(2)*crRightHandSideBoundedVector111 + N(2)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector214 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector215 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector220 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector222 + crRightHandSideBoundedVector217 - crRightHandSideBoundedVector221) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector223 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector224 + crRightHandSideBoundedVector227) - crRightHandSideBoundedVector48*(DN_DX(2,0)*crRightHandSideBoundedVector74 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector121*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector216 - crRightHandSideBoundedVector218);
-            rRightHandSideBoundedVector[10] += -DN_DX(2,1)*crRightHandSideBoundedVector158 - N(2)*crRightHandSideBoundedVector161 + N(2)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector215 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector225 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector226 + crRightHandSideBoundedVector230) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector217 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector221 + crRightHandSideBoundedVector220 - crRightHandSideBoundedVector222) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector214 - crRightHandSideBoundedVector48*(DN_DX(2,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector228 - crRightHandSideBoundedVector229);
-            rRightHandSideBoundedVector[11] += N(2)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector215 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector214 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector231 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector227 + crRightHandSideBoundedVector230) - crRightHandSideBoundedVector48*(N(2)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector224 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector225 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector219 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector219) - crRightHandSideBoundedVector85*(-DN_DX(2,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector218 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector232 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector231 + crRightHandSideBoundedVector216) - crRightHandSideBoundedVector98*(-DN_DX(2,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector229 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector232 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector231 + crRightHandSideBoundedVector228);
-            rRightHandSideBoundedVector[12] += DN_DX(3,0)*crRightHandSideBoundedVector19 - DN_DX(3,0)*crRightHandSideBoundedVector85 + DN_DX(3,1)*crRightHandSideBoundedVector21 - DN_DX(3,1)*crRightHandSideBoundedVector98 - N(3)*crRightHandSideBoundedVector16 - crRightHandSideBoundedVector233*crRightHandSideBoundedVector49 + crRightHandSideBoundedVector233;
-            rRightHandSideBoundedVector[13] += -DN_DX(3,0)*crRightHandSideBoundedVector158 - N(3)*crRightHandSideBoundedVector111 + N(3)*crRightHandSideBoundedVector50 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector107*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector240 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector242 + crRightHandSideBoundedVector237 - crRightHandSideBoundedVector241) - crRightHandSideBoundedVector137*(crRightHandSideBoundedVector109*crRightHandSideBoundedVector243 - crRightHandSideBoundedVector109*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector247) - crRightHandSideBoundedVector48*(DN_DX(3,0)*crRightHandSideBoundedVector74 - crRightHandSideBoundedVector117*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector121*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector236 - crRightHandSideBoundedVector238);
-            rRightHandSideBoundedVector[14] += -DN_DX(3,1)*crRightHandSideBoundedVector158 - N(3)*crRightHandSideBoundedVector161 + N(3)*crRightHandSideBoundedVector86 - crRightHandSideBoundedVector102*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector128*(-crRightHandSideBoundedVector109*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector109*crRightHandSideBoundedVector246 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector137*(-crRightHandSideBoundedVector119*crRightHandSideBoundedVector237 + crRightHandSideBoundedVector125*crRightHandSideBoundedVector241 + crRightHandSideBoundedVector240 - crRightHandSideBoundedVector242) - crRightHandSideBoundedVector159*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector48*(DN_DX(3,1)*crRightHandSideBoundedVector94 - crRightHandSideBoundedVector165*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector167*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector248 - crRightHandSideBoundedVector249);
-            rRightHandSideBoundedVector[15] += N(3)*crRightHandSideBoundedVector169 - crRightHandSideBoundedVector170*crRightHandSideBoundedVector235 - crRightHandSideBoundedVector171*crRightHandSideBoundedVector234 - crRightHandSideBoundedVector176*crRightHandSideBoundedVector251 - crRightHandSideBoundedVector189*(crRightHandSideBoundedVector247 + crRightHandSideBoundedVector250) - crRightHandSideBoundedVector48*(N(3)*crRightHandSideBoundedVector42 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector244 + crRightHandSideBoundedVector156*crRightHandSideBoundedVector245 + crRightHandSideBoundedVector191*crRightHandSideBoundedVector239 + crRightHandSideBoundedVector192*crRightHandSideBoundedVector239) - crRightHandSideBoundedVector85*(-DN_DX(3,0)*crRightHandSideBoundedVector180 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector238 - crRightHandSideBoundedVector178*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector184*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector236) - crRightHandSideBoundedVector98*(-DN_DX(3,1)*crRightHandSideBoundedVector186 - crRightHandSideBoundedVector119*crRightHandSideBoundedVector249 - crRightHandSideBoundedVector185*crRightHandSideBoundedVector252 + crRightHandSideBoundedVector188*crRightHandSideBoundedVector251 + crRightHandSideBoundedVector248);
+            double detJ;
+            r_geometry.Jacobian(J, gauss_point.Coordinates());
+            MathUtils<double>::InvertMatrix(J, Jinv, detJ);
 
+            r_geometry.ShapeFunctionsLocalGradients(DN_De, gauss_point.Coordinates());
+            GeometryUtils::ShapeFunctionsGradients(DN_De, Jinv, DN_DX);
+
+            BoundedVector<double, DofSize> rhs_gauss(DofSize);
+
+            const double crhs_gauss0 = N(0)*data.m_ext(0);
+            const double crhs_gauss1 = N(1)*data.m_ext(1);
+            const double crhs_gauss2 = N(2)*data.m_ext(2);
+            const double crhs_gauss3 = N(3)*data.m_ext(3);
+            const double crhs_gauss4 = crhs_gauss0 + crhs_gauss1 + crhs_gauss2 + crhs_gauss3;
+            const double crhs_gauss5 = N(0)*crhs_gauss4;
+            const double crhs_gauss6 = DN_DX(0,1)*data.U(0,2);
+            const double crhs_gauss7 = DN_DX(1,1)*data.U(1,2);
+            const double crhs_gauss8 = DN_DX(2,1)*data.U(2,2);
+            const double crhs_gauss9 = DN_DX(3,1)*data.U(3,2);
+            const double crhs_gauss10 = crhs_gauss6 + crhs_gauss7 + crhs_gauss8 + crhs_gauss9;
+            const double crhs_gauss11 = DN_DX(0,0)*data.U(0,1);
+            const double crhs_gauss12 = DN_DX(1,0)*data.U(1,1);
+            const double crhs_gauss13 = DN_DX(2,0)*data.U(2,1);
+            const double crhs_gauss14 = DN_DX(3,0)*data.U(3,1);
+            const double crhs_gauss15 = crhs_gauss11 + crhs_gauss12 + crhs_gauss13 + crhs_gauss14;
+            const double crhs_gauss16 = crhs_gauss10 + crhs_gauss15;
+            const double crhs_gauss17 = DN_DX(0,0)*data.U(0,0) + DN_DX(1,0)*data.U(1,0) + DN_DX(2,0)*data.U(2,0) + DN_DX(3,0)*data.U(3,0);
+            const double crhs_gauss18 = N(0)*data.alpha_sc_nodes(0) + N(1)*data.alpha_sc_nodes(1) + N(2)*data.alpha_sc_nodes(2) + N(3)*data.alpha_sc_nodes(3);
+            const double crhs_gauss19 = crhs_gauss17*crhs_gauss18;
+            const double crhs_gauss20 = DN_DX(0,1)*data.U(0,0) + DN_DX(1,1)*data.U(1,0) + DN_DX(2,1)*data.U(2,0) + DN_DX(3,1)*data.U(3,0);
+            const double crhs_gauss21 = crhs_gauss18*crhs_gauss20;
+            const double crhs_gauss22 = N(0)*data.U(0,0) + N(1)*data.U(1,0) + N(2)*data.U(2,0) + N(3)*data.U(3,0);
+            const double crhs_gauss23 = 1.0/crhs_gauss22;
+            const double crhs_gauss24 = fabs(crhs_gauss22);
+            const double crhs_gauss25 = N(0)*data.U(0,1) + N(1)*data.U(1,1) + N(2)*data.U(2,1) + N(3)*data.U(3,1);
+            const double crhs_gauss26 = pow(crhs_gauss25, 2);
+            const double crhs_gauss27 = N(0)*data.U(0,2) + N(1)*data.U(1,2) + N(2)*data.U(2,2) + N(3)*data.U(3,2);
+            const double crhs_gauss28 = pow(crhs_gauss27, 2);
+            const double crhs_gauss29 = crhs_gauss26 + crhs_gauss28;
+            const double crhs_gauss30 = 0.5*crhs_gauss26;
+            const double crhs_gauss31 = 0.5*crhs_gauss28;
+            const double crhs_gauss32 = N(0)*data.U(0,3);
+            const double crhs_gauss33 = N(1)*data.U(1,3);
+            const double crhs_gauss34 = N(2)*data.U(2,3);
+            const double crhs_gauss35 = N(3)*data.U(3,3);
+            const double crhs_gauss36 = -crhs_gauss32 - crhs_gauss33 - crhs_gauss34 - crhs_gauss35;
+            const double crhs_gauss37 = crhs_gauss23*crhs_gauss30 + crhs_gauss23*crhs_gauss31 + crhs_gauss36;
+            const double crhs_gauss38 = data.gamma - 1;
+            const double crhs_gauss39 = crhs_gauss23*crhs_gauss38;
+            const double crhs_gauss40 = crhs_gauss37*crhs_gauss39;
+            const double crhs_gauss41 = 1.0/data.gamma;
+            const double crhs_gauss42 = N(0)*data.r_ext(0) + N(1)*data.r_ext(1) + N(2)*data.r_ext(2) + N(3)*data.r_ext(3);
+            const double crhs_gauss43 = pow(crhs_gauss42, 2);
+            const double crhs_gauss44 = N(0)*data.f_ext(0,0) + N(1)*data.f_ext(1,0) + N(2)*data.f_ext(2,0) + N(3)*data.f_ext(3,0);
+            const double crhs_gauss45 = N(0)*data.f_ext(0,1) + N(1)*data.f_ext(1,1) + N(2)*data.f_ext(2,1) + N(3)*data.f_ext(3,1);
+            const double crhs_gauss46 = crhs_gauss40*data.gamma*(pow(crhs_gauss44, 2) + pow(crhs_gauss45, 2));
+            const double crhs_gauss47 = 0.70710678118654757*crhs_gauss24*crhs_gauss41*stab_c3*sqrt((crhs_gauss43 - 2.0*crhs_gauss46 + 2.0*sqrt(0.25*crhs_gauss43 - crhs_gauss46)*fabs(crhs_gauss42))/(pow(crhs_gauss37, 2)*pow(crhs_gauss38, 2))) + stab_c2*(sqrt(data.gamma)*sqrt(-crhs_gauss40) + sqrt(crhs_gauss29)/crhs_gauss24)/data.h;
+            const double crhs_gauss48 = 1.0*(N(0)*data.dUdt(0,0) + N(1)*data.dUdt(1,0) + N(2)*data.dUdt(2,0) + N(3)*data.dUdt(3,0) - crhs_gauss0 - crhs_gauss1 + crhs_gauss16 - crhs_gauss2 - crhs_gauss3)/crhs_gauss47;
+            const double crhs_gauss49 = crhs_gauss23*crhs_gauss48;
+            const double crhs_gauss50 = crhs_gauss22*crhs_gauss44;
+            const double crhs_gauss51 = crhs_gauss15*crhs_gauss25;
+            const double crhs_gauss52 = 1.0*data.gamma;
+            const double crhs_gauss53 = crhs_gauss23*(3.0 - crhs_gauss52);
+            const double crhs_gauss54 = DN_DX(0,0)*data.U(0,2);
+            const double crhs_gauss55 = DN_DX(1,0)*data.U(1,2);
+            const double crhs_gauss56 = DN_DX(2,0)*data.U(2,2);
+            const double crhs_gauss57 = DN_DX(3,0)*data.U(3,2);
+            const double crhs_gauss58 = crhs_gauss54 + crhs_gauss55 + crhs_gauss56 + crhs_gauss57;
+            const double crhs_gauss59 = crhs_gauss27*crhs_gauss58;
+            const double crhs_gauss60 = 1.0*crhs_gauss39;
+            const double crhs_gauss61 = -crhs_gauss59*crhs_gauss60;
+            const double crhs_gauss62 = DN_DX(0,0)*data.U(0,3) + DN_DX(1,0)*data.U(1,3) + DN_DX(2,0)*data.U(2,3) + DN_DX(3,0)*data.U(3,3);
+            const double crhs_gauss63 = DN_DX(0,1)*data.U(0,1);
+            const double crhs_gauss64 = DN_DX(1,1)*data.U(1,1);
+            const double crhs_gauss65 = DN_DX(2,1)*data.U(2,1);
+            const double crhs_gauss66 = DN_DX(3,1)*data.U(3,1);
+            const double crhs_gauss67 = crhs_gauss63 + crhs_gauss64 + crhs_gauss65 + crhs_gauss66;
+            const double crhs_gauss68 = crhs_gauss27*crhs_gauss67;
+            const double crhs_gauss69 = crhs_gauss10*crhs_gauss25;
+            const double crhs_gauss70 = pow(crhs_gauss22, -2);
+            const double crhs_gauss71 = 0.5*crhs_gauss29;
+            const double crhs_gauss72 = crhs_gauss38*crhs_gauss71;
+            const double crhs_gauss73 = -crhs_gauss26 + crhs_gauss72;
+            const double crhs_gauss74 = crhs_gauss70*crhs_gauss73;
+            const double crhs_gauss75 = crhs_gauss20*crhs_gauss27;
+            const double crhs_gauss76 = crhs_gauss70*crhs_gauss75;
+            const double crhs_gauss77 = crhs_gauss17*crhs_gauss74 + crhs_gauss23*crhs_gauss68 + crhs_gauss23*crhs_gauss69 - crhs_gauss25*crhs_gauss76 + crhs_gauss38*crhs_gauss62 + crhs_gauss61;
+            const double crhs_gauss78 = N(0)*data.mu_sc_nodes(0);
+            const double crhs_gauss79 = N(1)*data.mu_sc_nodes(1);
+            const double crhs_gauss80 = N(2)*data.mu_sc_nodes(2);
+            const double crhs_gauss81 = N(3)*data.mu_sc_nodes(3);
+            const double crhs_gauss82 = crhs_gauss78 + crhs_gauss79 + crhs_gauss80 + crhs_gauss81 + data.mu;
+            const double crhs_gauss83 = crhs_gauss23*stab_c1/pow(data.h, 2);
+            const double crhs_gauss84 = 1.0/(crhs_gauss47 + 1.3333333333333333*crhs_gauss82*crhs_gauss83);
+            const double crhs_gauss85 = crhs_gauss84*(N(0)*data.dUdt(0,1) + N(1)*data.dUdt(1,1) + N(2)*data.dUdt(2,1) + N(3)*data.dUdt(3,1) - crhs_gauss50 + crhs_gauss51*crhs_gauss53 + crhs_gauss77);
+            const double crhs_gauss86 = crhs_gauss22*crhs_gauss45;
+            const double crhs_gauss87 = crhs_gauss10*crhs_gauss27;
+            const double crhs_gauss88 = crhs_gauss25*crhs_gauss67;
+            const double crhs_gauss89 = -crhs_gauss60*crhs_gauss88;
+            const double crhs_gauss90 = DN_DX(0,1)*data.U(0,3) + DN_DX(1,1)*data.U(1,3) + DN_DX(2,1)*data.U(2,3) + DN_DX(3,1)*data.U(3,3);
+            const double crhs_gauss91 = crhs_gauss15*crhs_gauss27;
+            const double crhs_gauss92 = crhs_gauss25*crhs_gauss58;
+            const double crhs_gauss93 = -crhs_gauss28 + crhs_gauss72;
+            const double crhs_gauss94 = crhs_gauss70*crhs_gauss93;
+            const double crhs_gauss95 = crhs_gauss17*crhs_gauss25;
+            const double crhs_gauss96 = crhs_gauss27*crhs_gauss70;
+            const double crhs_gauss97 = crhs_gauss20*crhs_gauss94 + crhs_gauss23*crhs_gauss91 + crhs_gauss23*crhs_gauss92 + crhs_gauss38*crhs_gauss90 + crhs_gauss89 - crhs_gauss95*crhs_gauss96;
+            const double crhs_gauss98 = crhs_gauss84*(N(0)*data.dUdt(0,2) + N(1)*data.dUdt(1,2) + N(2)*data.dUdt(2,2) + N(3)*data.dUdt(3,2) + crhs_gauss53*crhs_gauss87 - crhs_gauss86 + crhs_gauss97);
+            const double crhs_gauss99 = DN_DX(0,1)*crhs_gauss70;
+            const double crhs_gauss100 = crhs_gauss17*crhs_gauss27;
+            const double crhs_gauss101 = crhs_gauss20*crhs_gauss25;
+            const double crhs_gauss102 = crhs_gauss82*(-crhs_gauss100 - crhs_gauss101 + crhs_gauss22*crhs_gauss58 + crhs_gauss22*crhs_gauss67);
+            const double crhs_gauss103 = crhs_gauss15*crhs_gauss22 - crhs_gauss95;
+            const double crhs_gauss104 = 2*crhs_gauss82;
+            const double crhs_gauss105 = crhs_gauss10*crhs_gauss22 - crhs_gauss75;
+            const double crhs_gauss106 = (crhs_gauss103 + crhs_gauss105)*(N(0)*data.beta_sc_nodes(0) + N(1)*data.beta_sc_nodes(1) + N(2)*data.beta_sc_nodes(2) + N(3)*data.beta_sc_nodes(3) - 0.66666666666666663*crhs_gauss78 - 0.66666666666666663*crhs_gauss79 - 0.66666666666666663*crhs_gauss80 - 0.66666666666666663*crhs_gauss81 - 0.66666666666666663*data.mu);
+            const double crhs_gauss107 = crhs_gauss103*crhs_gauss104 + crhs_gauss106;
+            const double crhs_gauss108 = DN_DX(0,0)*crhs_gauss70;
+            const double crhs_gauss109 = crhs_gauss52 - 3.0;
+            const double crhs_gauss110 = crhs_gauss109*crhs_gauss51;
+            const double crhs_gauss111 = -crhs_gauss110*crhs_gauss23 + crhs_gauss77;
+            const double crhs_gauss112 = N(0)*crhs_gauss44;
+            const double crhs_gauss113 = DN_DX(0,1)*crhs_gauss25;
+            const double crhs_gauss114 = crhs_gauss113*crhs_gauss96;
+            const double crhs_gauss115 = crhs_gauss23*crhs_gauss75;
+            const double crhs_gauss116 = 2*crhs_gauss115;
+            const double crhs_gauss117 = -crhs_gauss116*crhs_gauss25 + crhs_gauss68 + crhs_gauss69;
+            const double crhs_gauss118 = N(0)*crhs_gauss70;
+            const double crhs_gauss119 = 1.0*crhs_gauss38;
+            const double crhs_gauss120 = crhs_gauss17*crhs_gauss23;
+            const double crhs_gauss121 = crhs_gauss110 + crhs_gauss119*crhs_gauss59 - 2*crhs_gauss120*crhs_gauss73;
+            const double crhs_gauss122 = DN_DX(0,0)*crhs_gauss27;
+            const double crhs_gauss123 = crhs_gauss101*crhs_gauss23 - crhs_gauss63 - crhs_gauss64 - crhs_gauss65 - crhs_gauss66;
+            const double crhs_gauss124 = N(0)*crhs_gauss123;
+            const double crhs_gauss125 = crhs_gauss52 - 1.0;
+            const double crhs_gauss126 = crhs_gauss100*crhs_gauss23 - crhs_gauss54 - crhs_gauss55 - crhs_gauss56 - crhs_gauss57;
+            const double crhs_gauss127 = N(0)*crhs_gauss126;
+            const double crhs_gauss128 = crhs_gauss23*crhs_gauss98;
+            const double crhs_gauss129 = crhs_gauss23*crhs_gauss95;
+            const double crhs_gauss130 = -crhs_gauss11 - crhs_gauss12 + crhs_gauss129 - crhs_gauss13 - crhs_gauss14;
+            const double crhs_gauss131 = N(0)*crhs_gauss130;
+            const double crhs_gauss132 = DN_DX(0,0)*crhs_gauss25;
+            const double crhs_gauss133 = DN_DX(0,1)*crhs_gauss27;
+            const double crhs_gauss134 = crhs_gauss115 - crhs_gauss6 - crhs_gauss7 - crhs_gauss8 - crhs_gauss9;
+            const double crhs_gauss135 = N(0)*crhs_gauss134;
+            const double crhs_gauss136 = crhs_gauss133 - crhs_gauss135;
+            const double crhs_gauss137 = crhs_gauss23*crhs_gauss85;
+            const double crhs_gauss138 = (N(0)*data.lamb_sc_nodes(0) + N(1)*data.lamb_sc_nodes(1) + N(2)*data.lamb_sc_nodes(2) + N(3)*data.lamb_sc_nodes(3) + data.lambda)/data.c_v;
+            const double crhs_gauss139 = crhs_gauss22*crhs_gauss42;
+            const double crhs_gauss140 = crhs_gauss25*crhs_gauss44;
+            const double crhs_gauss141 = crhs_gauss27*crhs_gauss45;
+            const double crhs_gauss142 = crhs_gauss62*data.gamma;
+            const double crhs_gauss143 = crhs_gauss23*crhs_gauss25;
+            const double crhs_gauss144 = crhs_gauss90*data.gamma;
+            const double crhs_gauss145 = crhs_gauss23*crhs_gauss27;
+            const double crhs_gauss146 = 1.0*crhs_gauss92;
+            const double crhs_gauss147 = 1.0*crhs_gauss68;
+            const double crhs_gauss148 = crhs_gauss147*crhs_gauss25;
+            const double crhs_gauss149 = crhs_gauss26*crhs_gauss60;
+            const double crhs_gauss150 = crhs_gauss32 + crhs_gauss33 + crhs_gauss34 + crhs_gauss35;
+            const double crhs_gauss151 = crhs_gauss38*(crhs_gauss150 - crhs_gauss23*(crhs_gauss30 + crhs_gauss31));
+            const double crhs_gauss152 = crhs_gauss150 + crhs_gauss151;
+            const double crhs_gauss153 = crhs_gauss28*crhs_gauss60;
+            const double crhs_gauss154 = -crhs_gauss151 + crhs_gauss36;
+            const double crhs_gauss155 = crhs_gauss154 + crhs_gauss39*crhs_gauss71;
+            const double crhs_gauss156 = crhs_gauss155*crhs_gauss70;
+            const double crhs_gauss157 = (N(0)*data.dUdt(0,3) + N(1)*data.dUdt(1,3) + N(2)*data.dUdt(2,3) + N(3)*data.dUdt(3,3) + crhs_gauss10*crhs_gauss23*(crhs_gauss152 - crhs_gauss153) - crhs_gauss139 - crhs_gauss140 - crhs_gauss141 + crhs_gauss142*crhs_gauss143 + crhs_gauss144*crhs_gauss145 - crhs_gauss146*crhs_gauss38*crhs_gauss96 - crhs_gauss148*crhs_gauss38*crhs_gauss70 + crhs_gauss15*crhs_gauss23*(-crhs_gauss149 + crhs_gauss152) + crhs_gauss155*crhs_gauss76 + crhs_gauss156*crhs_gauss95)/(crhs_gauss138*crhs_gauss41*crhs_gauss83 + crhs_gauss47);
+            const double crhs_gauss158 = crhs_gauss119*crhs_gauss157;
+            const double crhs_gauss159 = crhs_gauss104*crhs_gauss105 + crhs_gauss106;
+            const double crhs_gauss160 = crhs_gauss109*crhs_gauss87;
+            const double crhs_gauss161 = -crhs_gauss160*crhs_gauss23 + crhs_gauss97;
+            const double crhs_gauss162 = N(0)*crhs_gauss45;
+            const double crhs_gauss163 = crhs_gauss132*crhs_gauss96;
+            const double crhs_gauss164 = 2*crhs_gauss129;
+            const double crhs_gauss165 = -crhs_gauss164*crhs_gauss27 + crhs_gauss91 + crhs_gauss92;
+            const double crhs_gauss166 = crhs_gauss20*crhs_gauss23;
+            const double crhs_gauss167 = crhs_gauss119*crhs_gauss88 + crhs_gauss160 - 2*crhs_gauss166*crhs_gauss93;
+            const double crhs_gauss168 = -crhs_gauss131 + crhs_gauss132;
+            const double crhs_gauss169 = crhs_gauss139 + crhs_gauss140 + crhs_gauss141;
+            const double crhs_gauss170 = crhs_gauss102*crhs_gauss145 + crhs_gauss107*crhs_gauss143 + crhs_gauss138*(crhs_gauss120*crhs_gauss26 + crhs_gauss120*crhs_gauss28 - crhs_gauss150*crhs_gauss17 + crhs_gauss22*crhs_gauss62 - crhs_gauss51 - crhs_gauss59);
+            const double crhs_gauss171 = crhs_gauss102*crhs_gauss143 + crhs_gauss138*(-crhs_gauss150*crhs_gauss20 + crhs_gauss166*crhs_gauss26 + crhs_gauss166*crhs_gauss28 + crhs_gauss22*crhs_gauss90 - crhs_gauss87 - crhs_gauss88) + crhs_gauss145*crhs_gauss159;
+            const double crhs_gauss172 = crhs_gauss142*crhs_gauss25;
+            const double crhs_gauss173 = crhs_gauss144*crhs_gauss27;
+            const double crhs_gauss174 = crhs_gauss149 + crhs_gauss154;
+            const double crhs_gauss175 = crhs_gauss153 + crhs_gauss154;
+            const double crhs_gauss176 = -crhs_gauss10*crhs_gauss175 + crhs_gauss115*crhs_gauss155 + crhs_gauss129*crhs_gauss155 - crhs_gauss146*crhs_gauss27*crhs_gauss39 - crhs_gauss148*crhs_gauss39 - crhs_gauss15*crhs_gauss174 + crhs_gauss172 + crhs_gauss173;
+            const double crhs_gauss177 = N(0)*crhs_gauss23;
+            const double crhs_gauss178 = -2.0*crhs_gauss115*crhs_gauss25 + crhs_gauss147 + 1.0*crhs_gauss69;
+            const double crhs_gauss179 = crhs_gauss118*crhs_gauss38;
+            const double crhs_gauss180 = crhs_gauss174*crhs_gauss23;
+            const double crhs_gauss181 = 3.0*crhs_gauss39;
+            const double crhs_gauss182 = 2.0*crhs_gauss39;
+            const double crhs_gauss183 = crhs_gauss155 + crhs_gauss182*crhs_gauss26;
+            const double crhs_gauss184 = crhs_gauss120*crhs_gauss183 + crhs_gauss142 - crhs_gauss181*crhs_gauss51 + crhs_gauss61;
+            const double crhs_gauss185 = -2.0*crhs_gauss129*crhs_gauss27 + crhs_gauss146 + 1.0*crhs_gauss91;
+            const double crhs_gauss186 = crhs_gauss175*crhs_gauss23;
+            const double crhs_gauss187 = crhs_gauss155 + crhs_gauss182*crhs_gauss28;
+            const double crhs_gauss188 = crhs_gauss144 + crhs_gauss166*crhs_gauss187 - crhs_gauss181*crhs_gauss87 + crhs_gauss89;
+            const double crhs_gauss189 = crhs_gauss157*crhs_gauss23*crhs_gauss52;
+            const double crhs_gauss190 = crhs_gauss154 + crhs_gauss29*crhs_gauss39;
+            const double crhs_gauss191 = crhs_gauss15*crhs_gauss183 - crhs_gauss164*crhs_gauss190 - crhs_gauss172 + crhs_gauss182*crhs_gauss27*crhs_gauss92;
+            const double crhs_gauss192 = crhs_gauss10*crhs_gauss187 - crhs_gauss116*crhs_gauss190 - crhs_gauss173 + crhs_gauss182*crhs_gauss25*crhs_gauss68;
+            const double crhs_gauss193 = N(1)*crhs_gauss4;
+            const double crhs_gauss194 = DN_DX(1,1)*crhs_gauss70;
+            const double crhs_gauss195 = DN_DX(1,0)*crhs_gauss70;
+            const double crhs_gauss196 = N(1)*crhs_gauss44;
+            const double crhs_gauss197 = DN_DX(1,1)*crhs_gauss25;
+            const double crhs_gauss198 = crhs_gauss197*crhs_gauss96;
+            const double crhs_gauss199 = N(1)*crhs_gauss70;
+            const double crhs_gauss200 = DN_DX(1,0)*crhs_gauss27;
+            const double crhs_gauss201 = N(1)*crhs_gauss123;
+            const double crhs_gauss202 = N(1)*crhs_gauss126;
+            const double crhs_gauss203 = N(1)*crhs_gauss130;
+            const double crhs_gauss204 = DN_DX(1,0)*crhs_gauss25;
+            const double crhs_gauss205 = DN_DX(1,1)*crhs_gauss27;
+            const double crhs_gauss206 = N(1)*crhs_gauss134;
+            const double crhs_gauss207 = crhs_gauss205 - crhs_gauss206;
+            const double crhs_gauss208 = N(1)*crhs_gauss45;
+            const double crhs_gauss209 = crhs_gauss204*crhs_gauss96;
+            const double crhs_gauss210 = -crhs_gauss203 + crhs_gauss204;
+            const double crhs_gauss211 = N(1)*crhs_gauss23;
+            const double crhs_gauss212 = crhs_gauss199*crhs_gauss38;
+            const double crhs_gauss213 = N(2)*crhs_gauss4;
+            const double crhs_gauss214 = DN_DX(2,1)*crhs_gauss70;
+            const double crhs_gauss215 = DN_DX(2,0)*crhs_gauss70;
+            const double crhs_gauss216 = N(2)*crhs_gauss44;
+            const double crhs_gauss217 = DN_DX(2,1)*crhs_gauss25;
+            const double crhs_gauss218 = crhs_gauss217*crhs_gauss96;
+            const double crhs_gauss219 = N(2)*crhs_gauss70;
+            const double crhs_gauss220 = DN_DX(2,0)*crhs_gauss27;
+            const double crhs_gauss221 = N(2)*crhs_gauss123;
+            const double crhs_gauss222 = N(2)*crhs_gauss126;
+            const double crhs_gauss223 = N(2)*crhs_gauss130;
+            const double crhs_gauss224 = DN_DX(2,0)*crhs_gauss25;
+            const double crhs_gauss225 = DN_DX(2,1)*crhs_gauss27;
+            const double crhs_gauss226 = N(2)*crhs_gauss134;
+            const double crhs_gauss227 = crhs_gauss225 - crhs_gauss226;
+            const double crhs_gauss228 = N(2)*crhs_gauss45;
+            const double crhs_gauss229 = crhs_gauss224*crhs_gauss96;
+            const double crhs_gauss230 = -crhs_gauss223 + crhs_gauss224;
+            const double crhs_gauss231 = N(2)*crhs_gauss23;
+            const double crhs_gauss232 = crhs_gauss219*crhs_gauss38;
+            const double crhs_gauss233 = N(3)*crhs_gauss4;
+            const double crhs_gauss234 = DN_DX(3,1)*crhs_gauss70;
+            const double crhs_gauss235 = DN_DX(3,0)*crhs_gauss70;
+            const double crhs_gauss236 = N(3)*crhs_gauss44;
+            const double crhs_gauss237 = DN_DX(3,1)*crhs_gauss25;
+            const double crhs_gauss238 = crhs_gauss237*crhs_gauss96;
+            const double crhs_gauss239 = N(3)*crhs_gauss70;
+            const double crhs_gauss240 = DN_DX(3,0)*crhs_gauss27;
+            const double crhs_gauss241 = N(3)*crhs_gauss123;
+            const double crhs_gauss242 = N(3)*crhs_gauss126;
+            const double crhs_gauss243 = N(3)*crhs_gauss130;
+            const double crhs_gauss244 = DN_DX(3,0)*crhs_gauss25;
+            const double crhs_gauss245 = DN_DX(3,1)*crhs_gauss27;
+            const double crhs_gauss246 = N(3)*crhs_gauss134;
+            const double crhs_gauss247 = crhs_gauss245 - crhs_gauss246;
+            const double crhs_gauss248 = N(3)*crhs_gauss45;
+            const double crhs_gauss249 = crhs_gauss244*crhs_gauss96;
+            const double crhs_gauss250 = -crhs_gauss243 + crhs_gauss244;
+            const double crhs_gauss251 = N(3)*crhs_gauss23;
+            const double crhs_gauss252 = crhs_gauss239*crhs_gauss38;
+            rhs_gauss[0] = DN_DX(0,0)*crhs_gauss19 - DN_DX(0,0)*crhs_gauss85 + DN_DX(0,1)*crhs_gauss21 - DN_DX(0,1)*crhs_gauss98 - N(0)*crhs_gauss16 - crhs_gauss49*crhs_gauss5 + crhs_gauss5;
+            rhs_gauss[1] = -DN_DX(0,0)*crhs_gauss158 - N(0)*crhs_gauss111 + N(0)*crhs_gauss50 - crhs_gauss102*crhs_gauss99 - crhs_gauss107*crhs_gauss108 - crhs_gauss128*(crhs_gauss113 - crhs_gauss119*crhs_gauss122 - crhs_gauss124 + crhs_gauss125*crhs_gauss127) - crhs_gauss137*(crhs_gauss109*crhs_gauss131 - crhs_gauss109*crhs_gauss132 + crhs_gauss136) - crhs_gauss48*(DN_DX(0,0)*crhs_gauss74 + crhs_gauss112 - crhs_gauss114 - crhs_gauss117*crhs_gauss118 + crhs_gauss118*crhs_gauss121);
+            rhs_gauss[2] = -DN_DX(0,1)*crhs_gauss158 - N(0)*crhs_gauss161 + N(0)*crhs_gauss86 - crhs_gauss102*crhs_gauss108 - crhs_gauss128*(-crhs_gauss109*crhs_gauss133 + crhs_gauss109*crhs_gauss135 + crhs_gauss168) - crhs_gauss137*(-crhs_gauss113*crhs_gauss119 + crhs_gauss122 + crhs_gauss124*crhs_gauss125 - crhs_gauss127) - crhs_gauss159*crhs_gauss99 - crhs_gauss48*(DN_DX(0,1)*crhs_gauss94 - crhs_gauss118*crhs_gauss165 + crhs_gauss118*crhs_gauss167 + crhs_gauss162 - crhs_gauss163);
+            rhs_gauss[3] = N(0)*crhs_gauss169 - crhs_gauss108*crhs_gauss170 - crhs_gauss171*crhs_gauss99 - crhs_gauss176*crhs_gauss177 - crhs_gauss189*(crhs_gauss136 + crhs_gauss168) - crhs_gauss48*(N(0)*crhs_gauss42 + crhs_gauss118*crhs_gauss191 + crhs_gauss118*crhs_gauss192 + crhs_gauss132*crhs_gauss156 + crhs_gauss133*crhs_gauss156) - crhs_gauss85*(-DN_DX(0,0)*crhs_gauss180 + crhs_gauss112 - crhs_gauss114*crhs_gauss119 + crhs_gauss177*crhs_gauss184 - crhs_gauss178*crhs_gauss179) - crhs_gauss98*(-DN_DX(0,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss163 + crhs_gauss162 + crhs_gauss177*crhs_gauss188 - crhs_gauss179*crhs_gauss185);
+            rhs_gauss[4] = DN_DX(1,0)*crhs_gauss19 - DN_DX(1,0)*crhs_gauss85 + DN_DX(1,1)*crhs_gauss21 - DN_DX(1,1)*crhs_gauss98 - N(1)*crhs_gauss16 - crhs_gauss193*crhs_gauss49 + crhs_gauss193;
+            rhs_gauss[5] = -DN_DX(1,0)*crhs_gauss158 - N(1)*crhs_gauss111 + N(1)*crhs_gauss50 - crhs_gauss102*crhs_gauss194 - crhs_gauss107*crhs_gauss195 - crhs_gauss128*(-crhs_gauss119*crhs_gauss200 + crhs_gauss125*crhs_gauss202 + crhs_gauss197 - crhs_gauss201) - crhs_gauss137*(crhs_gauss109*crhs_gauss203 - crhs_gauss109*crhs_gauss204 + crhs_gauss207) - crhs_gauss48*(DN_DX(1,0)*crhs_gauss74 - crhs_gauss117*crhs_gauss199 + crhs_gauss121*crhs_gauss199 + crhs_gauss196 - crhs_gauss198);
+            rhs_gauss[6] = -DN_DX(1,1)*crhs_gauss158 - N(1)*crhs_gauss161 + N(1)*crhs_gauss86 - crhs_gauss102*crhs_gauss195 - crhs_gauss128*(-crhs_gauss109*crhs_gauss205 + crhs_gauss109*crhs_gauss206 + crhs_gauss210) - crhs_gauss137*(-crhs_gauss119*crhs_gauss197 + crhs_gauss125*crhs_gauss201 + crhs_gauss200 - crhs_gauss202) - crhs_gauss159*crhs_gauss194 - crhs_gauss48*(DN_DX(1,1)*crhs_gauss94 - crhs_gauss165*crhs_gauss199 + crhs_gauss167*crhs_gauss199 + crhs_gauss208 - crhs_gauss209);
+            rhs_gauss[7] = N(1)*crhs_gauss169 - crhs_gauss170*crhs_gauss195 - crhs_gauss171*crhs_gauss194 - crhs_gauss176*crhs_gauss211 - crhs_gauss189*(crhs_gauss207 + crhs_gauss210) - crhs_gauss48*(N(1)*crhs_gauss42 + crhs_gauss156*crhs_gauss204 + crhs_gauss156*crhs_gauss205 + crhs_gauss191*crhs_gauss199 + crhs_gauss192*crhs_gauss199) - crhs_gauss85*(-DN_DX(1,0)*crhs_gauss180 - crhs_gauss119*crhs_gauss198 - crhs_gauss178*crhs_gauss212 + crhs_gauss184*crhs_gauss211 + crhs_gauss196) - crhs_gauss98*(-DN_DX(1,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss209 - crhs_gauss185*crhs_gauss212 + crhs_gauss188*crhs_gauss211 + crhs_gauss208);
+            rhs_gauss[8] = DN_DX(2,0)*crhs_gauss19 - DN_DX(2,0)*crhs_gauss85 + DN_DX(2,1)*crhs_gauss21 - DN_DX(2,1)*crhs_gauss98 - N(2)*crhs_gauss16 - crhs_gauss213*crhs_gauss49 + crhs_gauss213;
+            rhs_gauss[9] = -DN_DX(2,0)*crhs_gauss158 - N(2)*crhs_gauss111 + N(2)*crhs_gauss50 - crhs_gauss102*crhs_gauss214 - crhs_gauss107*crhs_gauss215 - crhs_gauss128*(-crhs_gauss119*crhs_gauss220 + crhs_gauss125*crhs_gauss222 + crhs_gauss217 - crhs_gauss221) - crhs_gauss137*(crhs_gauss109*crhs_gauss223 - crhs_gauss109*crhs_gauss224 + crhs_gauss227) - crhs_gauss48*(DN_DX(2,0)*crhs_gauss74 - crhs_gauss117*crhs_gauss219 + crhs_gauss121*crhs_gauss219 + crhs_gauss216 - crhs_gauss218);
+            rhs_gauss[10] = -DN_DX(2,1)*crhs_gauss158 - N(2)*crhs_gauss161 + N(2)*crhs_gauss86 - crhs_gauss102*crhs_gauss215 - crhs_gauss128*(-crhs_gauss109*crhs_gauss225 + crhs_gauss109*crhs_gauss226 + crhs_gauss230) - crhs_gauss137*(-crhs_gauss119*crhs_gauss217 + crhs_gauss125*crhs_gauss221 + crhs_gauss220 - crhs_gauss222) - crhs_gauss159*crhs_gauss214 - crhs_gauss48*(DN_DX(2,1)*crhs_gauss94 - crhs_gauss165*crhs_gauss219 + crhs_gauss167*crhs_gauss219 + crhs_gauss228 - crhs_gauss229);
+            rhs_gauss[11] = N(2)*crhs_gauss169 - crhs_gauss170*crhs_gauss215 - crhs_gauss171*crhs_gauss214 - crhs_gauss176*crhs_gauss231 - crhs_gauss189*(crhs_gauss227 + crhs_gauss230) - crhs_gauss48*(N(2)*crhs_gauss42 + crhs_gauss156*crhs_gauss224 + crhs_gauss156*crhs_gauss225 + crhs_gauss191*crhs_gauss219 + crhs_gauss192*crhs_gauss219) - crhs_gauss85*(-DN_DX(2,0)*crhs_gauss180 - crhs_gauss119*crhs_gauss218 - crhs_gauss178*crhs_gauss232 + crhs_gauss184*crhs_gauss231 + crhs_gauss216) - crhs_gauss98*(-DN_DX(2,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss229 - crhs_gauss185*crhs_gauss232 + crhs_gauss188*crhs_gauss231 + crhs_gauss228);
+            rhs_gauss[12] = DN_DX(3,0)*crhs_gauss19 - DN_DX(3,0)*crhs_gauss85 + DN_DX(3,1)*crhs_gauss21 - DN_DX(3,1)*crhs_gauss98 - N(3)*crhs_gauss16 - crhs_gauss233*crhs_gauss49 + crhs_gauss233;
+            rhs_gauss[13] = -DN_DX(3,0)*crhs_gauss158 - N(3)*crhs_gauss111 + N(3)*crhs_gauss50 - crhs_gauss102*crhs_gauss234 - crhs_gauss107*crhs_gauss235 - crhs_gauss128*(-crhs_gauss119*crhs_gauss240 + crhs_gauss125*crhs_gauss242 + crhs_gauss237 - crhs_gauss241) - crhs_gauss137*(crhs_gauss109*crhs_gauss243 - crhs_gauss109*crhs_gauss244 + crhs_gauss247) - crhs_gauss48*(DN_DX(3,0)*crhs_gauss74 - crhs_gauss117*crhs_gauss239 + crhs_gauss121*crhs_gauss239 + crhs_gauss236 - crhs_gauss238);
+            rhs_gauss[14] = -DN_DX(3,1)*crhs_gauss158 - N(3)*crhs_gauss161 + N(3)*crhs_gauss86 - crhs_gauss102*crhs_gauss235 - crhs_gauss128*(-crhs_gauss109*crhs_gauss245 + crhs_gauss109*crhs_gauss246 + crhs_gauss250) - crhs_gauss137*(-crhs_gauss119*crhs_gauss237 + crhs_gauss125*crhs_gauss241 + crhs_gauss240 - crhs_gauss242) - crhs_gauss159*crhs_gauss234 - crhs_gauss48*(DN_DX(3,1)*crhs_gauss94 - crhs_gauss165*crhs_gauss239 + crhs_gauss167*crhs_gauss239 + crhs_gauss248 - crhs_gauss249);
+            rhs_gauss[15] = N(3)*crhs_gauss169 - crhs_gauss170*crhs_gauss235 - crhs_gauss171*crhs_gauss234 - crhs_gauss176*crhs_gauss251 - crhs_gauss189*(crhs_gauss247 + crhs_gauss250) - crhs_gauss48*(N(3)*crhs_gauss42 + crhs_gauss156*crhs_gauss244 + crhs_gauss156*crhs_gauss245 + crhs_gauss191*crhs_gauss239 + crhs_gauss192*crhs_gauss239) - crhs_gauss85*(-DN_DX(3,0)*crhs_gauss180 - crhs_gauss119*crhs_gauss238 - crhs_gauss178*crhs_gauss252 + crhs_gauss184*crhs_gauss251 + crhs_gauss236) - crhs_gauss98*(-DN_DX(3,1)*crhs_gauss186 - crhs_gauss119*crhs_gauss249 - crhs_gauss185*crhs_gauss252 + crhs_gauss188*crhs_gauss251 + crhs_gauss248);
+
+
+            rRightHandSideBoundedVector += w * detJ * rhs_gauss;
         }
     }
 
@@ -971,23 +1050,40 @@ void CompressibleNavierStokesExplicit<2,4>::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    constexpr double dof_weight = 1.0 / DofSize;
+    const auto& r_geometry = GetGeometry();
+    const auto& gauss_points = r_geometry.IntegrationPoints(GetIntegrationMethod());
 
-    rMassMatrix = ZeroMatrix(DofSize, DofSize);
+    Vector N;
+    Matrix J;
+    Matrix Jinv;
 
-    for(IndexType i=0; i<NumNodes; ++i)
+    c_matrix<double, NumNodes, NumNodes> M = ZeroMatrix(NumNodes, NumNodes);
+    for(const auto& gauss_point: gauss_points)
     {
-        for(IndexType j=i; j<NumNodes; ++j)
-        {
-            const IndexType dof = i + j * BlockSize;
+        const double w = gauss_point.Weight();
+        r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
 
-            rMassMatrix(i, dof) += dof_weight;
-            rMassMatrix(dof, i) += dof_weight;
-        }
+        double detJ;
+        r_geometry.Jacobian(J, gauss_point.Coordinates());
+        MathUtils<double>::InvertMatrix(J, Jinv, detJ);
+
+        noalias(M) += outer_prod(N, N) * detJ * w;
     }
 
-    // Here we assume that all the Gauss pt. have the same weight so we multiply by the volume
-    rMassMatrix *= GetGeometry().Area();
+    // Distributing 4x4 matrix to 16x16 matrix
+    rMassMatrix = ZeroMatrix(DofSize, DofSize);
+    for(std::size_t i_dof=0; i_dof < BlockSize; ++i_dof)
+    {
+        for(std::size_t i_node=0; i_node < NumNodes; ++i_node)
+        {
+            const std::size_t I = i_dof*BlockSize + i_node;
+            for(std::size_t j_node=0; j_node < NumNodes; ++j_node)
+            {
+                const std::size_t J = i_dof*BlockSize + j_node;
+                rMassMatrix(I, J) = M(i_node, j_node);
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

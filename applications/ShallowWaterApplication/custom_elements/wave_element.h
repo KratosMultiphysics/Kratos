@@ -335,11 +335,11 @@ protected:
         const std::size_t I,
         const std::size_t J);
 
-    static const array_1d<double,3> VectorProduct(
+    static array_1d<double,3> VectorProduct(
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
-    static const double VectorProduct(
+    static double VectorProduct(
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 

@@ -37,7 +37,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    array_1d<double, 3> TrussEmbeddedEdgeElement::GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration) 
+    array_1d<double, 3> TrussEmbeddedEdgeElement::GetActualBaseVector(const Matrix& r_DN_De, const ConfigurationType& rConfiguration)
     {
         const GeometryType& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
@@ -97,7 +97,7 @@ namespace Kratos
         // Prepare memory
         if (mReferenceBaseVector.size() != r_number_of_integration_points)
             mReferenceBaseVector.resize(r_number_of_integration_points);
-        
+
         //get properties
         array_1d<double, 3> tangents;
         GetGeometry().Calculate(LOCAL_TANGENT, tangents);
@@ -105,18 +105,18 @@ namespace Kratos
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
 
-        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
-        {   
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+        {
             // get integration data
             const double& integration_weight = r_integration_points[point_number].Weight();
             const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
 
             mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De, ConfigurationType::Reference);
-            const double reference_a = norm_2(mReferenceBaseVector[point_number]);    
+            const double reference_a = norm_2(mReferenceBaseVector[point_number]);
 
             // compute base vectors
             const array_1d<double, 3> actual_base_vector = GetActualBaseVector(r_DN_De, ConfigurationType::Current);
-    
+
             // green-lagrange strain
             const double e11_membrane = 0.5 * (inner_prod(actual_base_vector, actual_base_vector) - inner_prod(mReferenceBaseVector[point_number], mReferenceBaseVector[point_number]));
 
@@ -130,7 +130,7 @@ namespace Kratos
                 IndexType dirr = r % 3;
 
                 const double epsilon_var_r = actual_base_vector[dirr] *
-                    (r_DN_De(kr, 0) * tangents[0] 
+                    (r_DN_De(kr, 0) * tangents[0]
                     + r_DN_De(kr, 1) * tangents[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                 if (CalculateStiffnessMatrixFlag) {
@@ -152,8 +152,8 @@ namespace Kratos
                             const double epsilon_var_rs =
                             (r_DN_De(kr, 0) * tangents[0] + r_DN_De(kr, 1) * tangents[1]) *
                             (r_DN_De(ks, 0) * tangents[0] + r_DN_De(ks, 1) * tangents[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
-                     
-                            rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
+
+                            rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight;
                         }
                     }
                 }
@@ -249,7 +249,7 @@ namespace Kratos
 
             if (rMassMatrix.size1() != mat_size)
                 rMassMatrix.resize(mat_size, mat_size, false);
-                
+
             rMassMatrix = ZeroMatrix(mat_size, mat_size);
 
             for (unsigned int r = 0; r<number_of_nodes; r++)
@@ -291,7 +291,7 @@ namespace Kratos
 
         if (rVariable==FORCE_PK2_1D || rVariable==FORCE_CAUCHY_1D)
         {
-            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
             {
                 // get integration data
                 const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
@@ -307,7 +307,7 @@ namespace Kratos
                 const double e11_membrane = 0.5 * (actual_aa - reference_aa);
 
                 // normal force reference_aa
-                double normal_force = prestress * A + e11_membrane * A * E / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]); 
+                double normal_force = prestress * A + e11_membrane * A * E / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                 if (rVariable==FORCE_PK2_1D)
                 {
@@ -318,12 +318,12 @@ namespace Kratos
                 {
                     rValues[point_number] = normal_force * actual_a / reference_a;
                 }
-            }   
+            }
         }
         else
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
-            { 
+            {
                 rValues[point_number] = 0.0;
             }
         }
@@ -452,10 +452,6 @@ namespace Kratos
         }
         else
         {
-            // Verify that the constitutive law has the correct dimension
-            KRATOS_ERROR_IF_NOT(this->GetProperties().Has(THICKNESS))
-                << "THICKNESS not provided for element " << this->Id() << std::endl;
-
             // Check strain size
             KRATOS_ERROR_IF_NOT(this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() == 3)
                 << "Wrong constitutive law used. This is a 2D element! Expected strain size is 3 (el id = ) "

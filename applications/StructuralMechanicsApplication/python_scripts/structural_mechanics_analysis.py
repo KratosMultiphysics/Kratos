@@ -39,24 +39,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
 
     def Initialize(self):
         """ Initializing the Analysis """
-
-        # checking if "USE_CONSISTENT_MASS_MATRIX" is used in the materials file and correct it
-        mat_import_settings = self.project_parameters["solver_settings"]["material_import_settings"]
-        if mat_import_settings.Has("materials_filename"):
-            materials_filename = mat_import_settings["materials_filename"].GetString()
-            if materials_filename != "": # user specified the materials
-                # check if old variables are used
-                with open(materials_filename,'r') as mat_file:
-                    materials = KratosMultiphysics.Parameters(mat_file.read())
-                    for mat in materials["properties"]:
-                        if mat.Has("Material"):
-                            mat_spec = mat["Material"]
-                            if mat_spec.Has("Variables"):
-                                variables = mat_spec["Variables"]
-                                for var_name in variables.keys():
-                                    if var_name == "USE_CONSISTENT_MASS_MATRIX":
-                                        raise Exception('Variable "USE_CONSISTENT_MASS_MATRIX" found. This was replaced by "COMPUTE_LUMPED_MASS_MATRIX"! Please adapt your input')
-
         super().Initialize()
 
         # In case of contact problem
