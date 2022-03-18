@@ -37,7 +37,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<WssStatisticsUtilities>(m,"WssStatisticsUtilities")
         .def(py::init<>())
         .def("CalculateWSS", &WssStatisticsUtilities::CalculateWSS)
-        .def("CalculateTWSS", &WssStatisticsUtilities::CalculateTWSS)
         .def("CalculateOSI", &WssStatisticsUtilities::CalculateOSI)
         ;
 

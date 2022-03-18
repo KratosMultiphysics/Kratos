@@ -15,10 +15,6 @@ set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
   # utilities
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/wss_statistics_utilities.cpp
 
-  # elements (from FluidDynamicsApplication)
-  # conditions (from FluidDynamicsApplication)
-  # fluid constitutive laws (from FluidDynamicsApplication)
-  # processes (from FluidDynamicsApplication)
 )
 
 ## define python interface sources
@@ -27,7 +23,7 @@ set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_PYTHON_INTERFACE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_biomedical_python_application.cpp
 )
 
-## define fluid dynamics test sources
+## define fluid dynamics biomedical test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
  	file(GLOB_RECURSE KRATOS_FLUID_DYNAMICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -43,6 +39,12 @@ pybind11_add_module( KratosFluidDynamicsBiomedicalApplication MODULE THIN_LTO ${
 target_link_libraries( KratosFluidDynamicsBiomedicalApplication PRIVATE KratosFluidDynamicsBiomedicalCore)
 set_target_properties( KratosFluidDynamicsBiomedicalApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosFluidDynamicsBiomedicalCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosFluidDynamicsBiomedicalApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 ###############################################################################
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -54,42 +56,28 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsBiomedicalApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-###############################################################################
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosFluidDynamicsBiomedicalCore)
-    cotire(KratosFluidDynamicsBiomedicalApplication)
-endif(USE_COTIRE MATCHES ON)
-
-###############################################################################
-## installing the resulting libraries
-
-install(TARGETS KratosFluidDynamicsBiomedicalCore DESTINATION libs )
-install(TARGETS KratosFluidDynamicsBiomedicalApplication DESTINATION libs )
-
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsBiomedicalApplication.py" DESTINATION "KratosMultiphysics/FluidDynamicsBiomedicalApplication" RENAME "__init__.py")
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/FluidDynamicsBiomedicalApplication.py KratosMultiphysics/FluidDynamicsBiomedicalApplication/__init__.py )
 
-if(${INSTALL_PYTHON_FILES} MATCHES ON)
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
-endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+# Install python files
+get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
-  )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+        PATTERN "*.git" EXCLUDE
+        PATTERN "*.c" EXCLUDE
+        PATTERN "*.h" EXCLUDE
+        PATTERN "*.cpp" EXCLUDE
+        PATTERN "*.hpp" EXCLUDE
+      )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-###############################################################################
-## If trilinos is avaliable, switch on the Fluid trilinos extension
+# Install targets
+install(TARGETS KratosFluidDynamicsBiomedicalCore DESTINATION libs )
+install(TARGETS KratosFluidDynamicsBiomedicalApplication DESTINATION libs )
 
-if((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON))
-  message("Enabling trilinos extension for KratosFluidDynamicsBiomedicalApplication")
-  add_subdirectory(trilinos_extension)
-endif((${MPI_NEEDED} MATCHES ON) AND (${TRILINOS_APPLICATION} MATCHES ON) )
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidDynamicsBiomedicalCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFluidDynamicsBiomedicalApplication" PARENT_SCOPE)
