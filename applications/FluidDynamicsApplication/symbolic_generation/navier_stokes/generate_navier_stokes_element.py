@@ -1,5 +1,4 @@
-from random import gauss
-from sympy import *
+import sympy
 from KratosMultiphysics import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
@@ -146,7 +145,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         c = c[0]
     else:
         # With no weak-compressibility, the density (rho) is retrieved from the element properties and there is no speed of sound need
-        rho = Symbol('rho', positive = True)     # Density
+        rho = sympy.Symbol('rho', positive = True)     # Density
 
     ## Non-inertial frame of reference definitions
     if non_inertial_frame_of_reference_terms:
@@ -177,9 +176,9 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     stab_c3 = Symbol('stab_c3', positive = True)
 
     ## Backward differences coefficients
-    bdf0 = Symbol('bdf0')
-    bdf1 = Symbol('bdf1')
-    bdf2 = Symbol('bdf2')
+    bdf0 = sympy.Symbol('bdf0')
+    bdf1 = sympy.Symbol('bdf1')
+    bdf2 = sympy.Symbol('bdf2')
 
     ## Data interpolation to the Gauss points
     f_gauss = f.transpose()*N
@@ -371,8 +370,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         rv = rv_galerkin
 
     ## Define DOFs and test function vectors
-    dofs = Matrix( zeros(nnodes*(dim+1), 1) )
-    testfunc = Matrix( zeros(nnodes*(dim+1), 1) )
+    dofs = sympy.zeros(nnodes*(dim+1), 1)
+    testfunc = sympy.zeros(nnodes*(dim+1), 1)
 
     for i in range(0,nnodes):
 

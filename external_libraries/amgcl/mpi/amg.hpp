@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -107,10 +107,14 @@ class amg {
             /// Number of cycles to make as part of preconditioning.
             unsigned pre_cycles;
 
+            /// Keep matrices in internal format to allow for quick rebuild of the hierarchy
+            bool allow_rebuild;
+
             params() :
                 coarse_enough(DirectSolver::coarse_enough()), direct_coarse(true),
                 max_levels( std::numeric_limits<unsigned>::max() ),
-                npre(1), npost(1), ncycle(1), pre_cycles(1)
+                npre(1), npost(1), ncycle(1), pre_cycles(1),
+                allow_rebuild(false)
             {}
 
 #ifndef AMGCL_NO_BOOST
@@ -125,9 +129,13 @@ class amg {
                   AMGCL_PARAMS_IMPORT_VALUE(p, npre),
                   AMGCL_PARAMS_IMPORT_VALUE(p, npost),
                   AMGCL_PARAMS_IMPORT_VALUE(p, ncycle),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, pre_cycles)
+                  AMGCL_PARAMS_IMPORT_VALUE(p, pre_cycles),
+                  AMGCL_PARAMS_IMPORT_VALUE(p, allow_rebuild)
             {
-                check_params(p, {"coarsening", "relax", "direct", "repart", "coarse_enough",  "direct_coarse", "max_levels", "npre", "npost", "ncycle", "pre_cycles"});
+                check_params(p, {"coarsening", "relax", "direct", "repart",
+                        "coarse_enough",  "direct_coarse", "max_levels",
+                        "npre", "npost", "ncycle", "pre_cycles",
+                        "allow_rebuild"});
 
                 amgcl::precondition(max_levels > 0, "max_levels should be positive");
             }
@@ -148,6 +156,7 @@ class amg {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, npost);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, ncycle);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, pre_cycles);
+                AMGCL_PARAMS_EXPORT_VALUE(p, path, allow_rebuild);
             }
 #endif
         } prm;
@@ -158,19 +167,54 @@ class amg {
                 const Matrix &A,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
-           ) : prm(prm), repart(prm.repart)
+           ) : prm(prm), comm(comm), repart(prm.repart)
         {
             init(std::make_shared<matrix>(comm, A, backend::rows(A)), bprm);
         }
 
         amg(
-                communicator,
+                communicator comm,
                 std::shared_ptr<matrix> A,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
-           ) : prm(prm), repart(prm.repart)
+           ) : prm(prm), comm(comm), repart(prm.repart)
         {
             init(A, bprm);
+        }
+
+        /// Rebuild the hierarchy using the new system matrix.
+        /**
+         * This requires for prm.allow_rebuild to be set. The transfer
+         * operators created during the initial setup are reused.
+         */
+        template <class Matrix>
+        void rebuild(
+                const Matrix &M,
+                const backend_params &bprm = backend_params()
+                )
+        {
+            rebuild(std::make_shared<matrix>(comm, M, backend::rows(M)), bprm);
+        }
+
+        void rebuild(
+                std::shared_ptr<matrix> A,
+                const backend_params &bprm = backend_params()
+                )
+        {
+            precondition(prm.allow_rebuild,
+                    "allow_rebuild is not set!");
+            precondition(
+                    A->glob_rows() == system_matrix().glob_rows() &&
+                    A->glob_cols() == system_matrix().glob_cols(),
+                    "Matrix dimensions differ from the original ones!"
+                    );
+
+            AMGCL_TIC("rebuild");
+            Coarsening C(prm.coarsening);
+            for(auto &level : levels) {
+                A = level.rebuild(A, C, prm, bprm);
+            }
+            AMGCL_TOC("rebuild");
         }
 
         template <class Vec1, class Vec2>
@@ -273,11 +317,41 @@ class amg {
                 return Ac;
             }
 
-            void move_to_backend(const backend_params &bprm) {
+            std::shared_ptr<matrix> rebuild(
+                    std::shared_ptr<matrix> A,
+                    const Coarsening &C,
+                    const params &prm,
+                    const backend_params &bprm
+                    )
+            {
+                if (relax) {
+                    relax = std::make_shared<Relaxation>(*A, prm.relax, bprm);
+                }
+
+                if (solve) {
+                    solve = std::make_shared<DirectSolver>(A->comm(), *A, prm.direct);
+                }
+
+                if (this->A) {
+                    this->A = A;
+                }
+
+                if (P && R) {
+                    A = C.coarse_operator(*A, *P, *R);
+                }
+
+                if (this->A) {
+                    this->A->move_to_backend(bprm);
+                }
+
+                return A;
+            }
+
+            void move_to_backend(const backend_params &bprm, bool keep_src = false) {
                 AMGCL_TIC("move to backend");
                 if (A) A->move_to_backend(bprm);
-                if (P) P->move_to_backend(bprm);
-                if (R) R->move_to_backend(bprm);
+                if (P) P->move_to_backend(bprm, keep_src);
+                if (R) R->move_to_backend(bprm, keep_src);
                 AMGCL_TOC("move to backend");
             }
 
@@ -292,6 +366,7 @@ class amg {
 
         typedef typename std::list<level>::const_iterator level_iterator;
 
+        communicator comm;
         std::shared_ptr<matrix> A;
         Repartition repart;
         std::list<level> levels;
@@ -308,12 +383,12 @@ class amg {
                 levels.push_back( level(A, prm, bprm) );
 
                 if (levels.size() >= prm.max_levels) {
-                    levels.back().move_to_backend(bprm);
+                    levels.back().move_to_backend(bprm, prm.allow_rebuild);
                     break;
                 }
 
                 A = levels.back().step_down(C, repart);
-                levels.back().move_to_backend(bprm);
+                levels.back().move_to_backend(bprm, prm.allow_rebuild);
 
                 if (!A) {
                     // Zero-sized coarse level. Probably the system matrix on
@@ -331,7 +406,7 @@ class amg {
 
             if (A && need_coarse) {
                 levels.push_back(level(A, prm, bprm, prm.direct_coarse));
-                levels.back().move_to_backend(bprm);
+                levels.back().move_to_backend(bprm, prm.allow_rebuild);
             }
 
             AMGCL_TIC("move to backend");

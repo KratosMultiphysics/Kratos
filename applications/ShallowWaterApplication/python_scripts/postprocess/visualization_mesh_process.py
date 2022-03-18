@@ -111,6 +111,7 @@ class VisualizationMeshProcess(KM.Process):
 
     def _DuplicateModelPart(self):
         KM.MergeVariableListsUtility().Merge(self.computing_model_part, self.topographic_model_part)
+        self.topographic_model_part.ProcessInfo = self.computing_model_part.ProcessInfo
         element_num_nodes = len(self.computing_model_part.Elements.__iter__().__next__().GetNodes())
         condition_num_nodes = len(self.computing_model_part.Conditions.__iter__().__next__().GetNodes())
         reference_element = "Element2D{}N".format(element_num_nodes)
@@ -130,14 +131,11 @@ class VisualizationMeshProcess(KM.Process):
                 self.topographic_model_part,
                 0)
         for variable in self.nonhistorical_variables:
-            for node_src, node_dest in zip(self.computing_model_part.Nodes, self.topographic_model_part.Nodes):
-                node_dest.SetValue(variable, node_src.GetValue(variable))
-            #TODO: implement this function in VariableUtils
-            # KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
-            #     variable,
-            #     self.computing_model_part,
-            #     self.topographic_model_part,
-            #     KM.Flags(), False)
+            KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+                variable, variable,
+                self.computing_model_part,
+                self.topographic_model_part,
+                KM.Flags(), False)
 
 
     def _FlattenMeshCoordinates(self):
