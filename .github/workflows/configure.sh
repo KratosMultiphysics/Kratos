@@ -22,14 +22,14 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # Set applications to compile
 # add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication;
 # add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
-# add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 # add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication;
 # add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 # add_app ${KRATOS_APP_DIR}/DEMApplication;
 # add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 # add_app ${KRATOS_APP_DIR}/MetisApplication;
 # add_app ${KRATOS_APP_DIR}/TrilinosApplication;
-# add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
+add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 # add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
 # add_app ${KRATOS_APP_DIR}/CableNetApplication;
 # add_app ${KRATOS_APP_DIR}/RANSApplication;
@@ -43,8 +43,8 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 # add_app ${KRATOS_APP_DIR}/ParticleMechanicsApplication;
 # add_app ${KRATOS_APP_DIR}/ChimeraApplication;
 # add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
-# add_app ${KRATOS_APP_DIR}/StatisticsApplication;
-# add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+add_app ${KRATOS_APP_DIR}/StatisticsApplication;
+add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 # add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 # add_app ${KRATOS_APP_DIR}/RomApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
