@@ -1250,7 +1250,7 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
                                     * volumetric_fracture_energy * (segment_threshold - 1.0)) / yield_strain;
                 const double equivalent_stress_threshold = a + std::sqrt(std::pow(a, 2.0) + 2.0 * equivalent_stress_vector(0) * volumetric_fracture_energy * (1.0 - PlasticDissipation) / yield_strain);
                 rEquivalentPlasticStrain = plastic_strain_vector(points_hardening_curve - 1) + 1.0 / young_modulus * (equivalent_stress_vector(points_hardening_curve - 1) + a * (std::log(equivalent_stress_threshold / equivalent_stress_vector(points_hardening_curve - 1)) - 1.0)
-                                            - std::sqrt(std::pow(a, 2.0) - 2.0 * points_hardening_curve * volumetric_fracture_energy * (PlasticDissipation - 1.0)));
+                                            - std::sqrt(std::pow(a, 2.0) - 2.0 * equivalent_stress_vector(0) * volumetric_fracture_energy * (PlasticDissipation - 1.0) / yield_strain));
             } else { // Curve built in the plastic strain space
                 rEquivalentPlasticStrain = plastic_strain_vector(points_hardening_curve - 1) + volumetric_fracture_energy / equivalent_stress_vector(points_hardening_curve - 1) * (1.0 - segment_threshold)
                                             * std::log((1.0 - segment_threshold) / (1.0 - PlasticDissipation));
