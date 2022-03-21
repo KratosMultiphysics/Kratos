@@ -7,8 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla,
-//                   Eduardo Soudah
+//  Main authors:    Eduardo Soudah
+//                   Ruben Zorilla
 //
 
 #if !defined(KRATOS_PARABOLIC_PROFILE_UTILITIES_H )
@@ -28,7 +28,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A set of functions to compute the Wall Shear Stress (WSS) 
+/// A set of functions to compute the Wall Shear Stress (WSS)
 class KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) ParabolicProfileUtilities {
 public:
     ///@name Type Definitions
@@ -36,6 +36,8 @@ public:
 
     /// Pointer definition of ParabolicProfileUtilities
     KRATOS_CLASS_POINTER_DEFINITION(ParabolicProfileUtilities);
+
+    using NodeType = ModelPart::NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -82,16 +84,7 @@ public:
     double ComputeMaxDist(ModelPart &rModelPart);
     //, ModelPart &rSkinModelPart);
 
-    // /**
-    //  * @brief Calculate the Wall Shear Stress (WSS) using Gauss point
-    //  * This method computes the Wall Shear Stress (WSS).
-    //  * @param rModelPart Model part in where the WSS is computed
-    //  */
-    // static void CalculateWSSGauss(ModelPart &rModelPart);
-
-
     ///@}
-
 };  // Class ParabolicProfileUtilities
 
 ///@}
