@@ -974,6 +974,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         // Auxiliar stress vector
         const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
         Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
+        Vector undamaged_auxiliar_stress_vector  = ZeroVector(VoigtSize);
 
         // The rotation matrix
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
@@ -994,12 +995,60 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
             // we return the stress and constitutive tensor to the global coordinates
             rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            noalias(auxiliar_stress_vector) += factor * rValues.GetStressVector();
+            noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
 
             // we reset the properties and Strain
             rValues.SetMaterialProperties(r_material_properties);
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
+
+        //
+
+        // Damage initiation Criterion
+        const double T0n; // Interfacial Normal Strength
+        const double T0s; // Interfacial Shear Strength
+        const double T0t; // Interfacial Shear Strength
+        const double GIc; // Mode I Energy Release Rate
+        const double GIIc; // Mode II Energy Release Rate
+        const double Eta; // Benzeggagh-Kenane (B-K) Law Coefficient
+        double Gc = mGc; // Mix Mode Energy Release Rate
+        double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
+        double SERR = mSERR; // Strain Energy Release Rate 
+        double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
+        double Delta_eq = 0; // Equivalent Strain
+        double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
+        double T_eq = mT_eq; // Equivalent Stress
+        double DamageIndicator = mDamageIndicator; // Onset of Damage
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        double Fd = (undamaged_auxiliar_stress_vector[3]/T0n)^2+(undamaged_auxiliar_stress_vector[5]/T0s)^2+(undamaged_auxiliar_stress_vector[6]/T0t)^2; // Damage Initiation Criterion
+        if (Fd >= 1 || DamageIndicator >= 2) {
+            Delta_eq = std::sqrt(strain_vector[3]^2+strain_vector[5]^2+strain_vector[6]^2);
+            if (DamageIndicator == 1) { // We calculate Elastic energy and mode mix only at damage initiation
+                T_eq = std::sqrt(undamaged_auxiliar_stress_vector[3]^2+undamaged_auxiliar_stress_vector[5]^2+undamaged_auxiliar_stress_vector[6]^2);
+                Gn = undamaged_auxiliar_stress_vector[3] * strain_vector[3] / 2;
+                Gs = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2;
+                Gt = undamaged_auxiliar_stress_vector[6] * strain_vector[6] / 2;
+                double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
+                Elastic_energy = (T_eq * Delta_eq /2);
+                Gc = GIc + (GIIc - GIc) * (mode_mix_factor) ^ Eta; // Benzeggagh-Kenane (B-K) Law
+                Delta_eq_max = Delta_eq;
+            }
+            if (Delta_eq >= Delta_eq_max) { // Loading
+                SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
+                delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
+                Delta_eq_max = Delta_eq;
+            }
+            Vector delamination_damage_matrix {1, 1, 1-delamination_damage, 1, 1-delamination_damage, 1-delamination_damage};
+            auxiliar_stress_vector = inner_prod(delamination_damage_matrix, undamaged_auxiliar_stress_vector);
+            T_eq = std::sqrt(auxiliar_stress_vector[3]^2+auxiliar_stress_vector[5]^2+auxiliar_stress_vector[6]^2);
+            DamageIndicator += 1;
+        } else { // Undamaged Case
+            auxiliar_stress_vector = undamaged_auxiliar_stress_vector
+        }
+
+        //
+
+
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
         if (flag_const_tensor) {

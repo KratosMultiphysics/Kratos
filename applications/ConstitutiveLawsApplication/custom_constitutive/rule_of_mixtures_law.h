@@ -644,7 +644,13 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
     std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
-
+    double mT_eq = 0;                                        // Equivalent Stress
+    double mDamageIndicator = 1;                             // Onset of Damage
+    double mGc = 0;                                          // Mix Mode Energy Release Rate
+    double mElastic_energy = 0;                              // Elastic energy stored before damage initiation 
+    double mSERR = 0;                                        // Strain Energy Release Rate
+    double mdelamination_damage = 0;                         // Scalar delamination damage variable  
+    double mDelta_eq_max = 0;                                // Equivalent Strain History Variable
     ///@}
     ///@name Private Operators
     ///@{
