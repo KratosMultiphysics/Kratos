@@ -308,8 +308,37 @@ public:
     /**
      * @param rCurrentProcessInfo reference to the ProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
+    {
+        KRATOS_TRY
 
+        // Perform basic element checks
+        int error_code = Kratos::Condition::Check(rCurrentProcessInfo);
+        if (error_code != 0) {
+            return error_code;
+        }
+
+        // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY)) << "Missing DENSITY variable on solution step data for node " << this->GetGeometry()[i].Id();
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(MOMENTUM)) << "Missing MOMENTUM variable on solution step data for node " << this->GetGeometry()[i].Id();
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY variable on solution step data for node " << this->GetGeometry()[i].Id();
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE)) << "Missing BODY_FORCE variable on solution step data for node " << this->GetGeometry()[i].Id();
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(HEAT_SOURCE)) << "Missing HEAT_SOURCE variable on solution step data for node " << this->GetGeometry()[i].Id();
+
+            // Activate as soon as we start using the explicit DOF based strategy
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_X) || this->GetGeometry()[i].HasDofFor(MOMENTUM_Y)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
+            if (TDim == 3) {
+                KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_Z)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
+            }
+            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
+        }
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
 
     /// Provides the global indices for each one of this element's local rows.
     /** This determines the elemental equation ID vector for all elemental DOFs

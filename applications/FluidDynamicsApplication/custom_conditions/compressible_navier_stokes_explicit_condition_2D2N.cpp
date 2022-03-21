@@ -65,13 +65,13 @@ void CompressibleNavierStokesExplicitCondition<2, 2>::EquationIdVector(
 
 template <>
 void CompressibleNavierStokesExplicitCondition<2, 2>::GetDofList(
-    DofsVectorType& rResult,
+    DofsVectorType& ConditionDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    if (ElementalDofList.size() != DofSize) {
-        ElementalDofList.resize(DofSize);
+    if (ConditionDofList.size() != DofSize) {
+        ConditionDofList.resize(DofSize);
     }
 
     unsigned int local_index = 0;
@@ -80,10 +80,10 @@ void CompressibleNavierStokesExplicitCondition<2, 2>::GetDofList(
     const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
     const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
     for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(DENSITY, den_pos);
-        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_X, mom_pos);
-        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_Y, mom_pos + 1);
-        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(TOTAL_ENERGY, enr_pos);
+        ConditionDofList[local_index++] = r_geometry[i_node].pGetDof(DENSITY, den_pos);
+        ConditionDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_X, mom_pos);
+        ConditionDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_Y, mom_pos + 1);
+        ConditionDofList[local_index++] = r_geometry[i_node].pGetDof(TOTAL_ENERGY, enr_pos);
     }
 
     KRATOS_CATCH("");
