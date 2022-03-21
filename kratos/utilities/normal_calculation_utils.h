@@ -10,7 +10,7 @@
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
-//
+//                   Ruben Zorrilla
 //
 
 #if !defined(KRATOS_NORMAL_CALCULATION_UTILS )
@@ -80,6 +80,9 @@ public:
     /// Conditions array definition
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
+    /// Normal variable definition
+    using NormalVariableType = Variable<array_1d<double,3>>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -97,7 +100,9 @@ public:
      * @param rModelPart The model part to compute
      */
     template<class TContainerType>
-    void CalculateNormalsInContainer(ModelPart& rModelPart);
+    void CalculateNormalsInContainer(
+        ModelPart& rModelPart,
+        const NormalVariableType& rNormalVariable = NORMAL);
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes
@@ -105,13 +110,14 @@ public:
      * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
      * @param ConsiderUnitNormal In order to consider directly the unit normal instead of the area normal multiplied with a coefficient
      * @tparam TEntity The entity type considered
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TEntity>
+    template<class TEntity, bool TIsHistorical = true>
     void CalculateNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
-        const bool ConsiderUnitNormal = false
-        );
+        const bool ConsiderUnitNormal = false,
+        const NormalVariableType& rNormalVariable = NORMAL);
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes (unit normal version)
@@ -119,23 +125,29 @@ public:
      * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
      * @tparam TEntity The entity type considered
      */
-    template<class TEntity>
+    template<class TEntity, bool TIsHistorical = true>
     void CalculateUnitNormals(
         ModelPart& rModelPart,
-        const bool EnforceGenericGeometryAlgorithm = false
-        );
+        const bool EnforceGenericGeometryAlgorithm = false,
+        const NormalVariableType& rNormalVariable = NORMAL);
 
     /**
      * @brief Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
      * @details This is done on the base of the Conditions provided which should be understood as the surface elements of the area of interest.
      * @param rConditions A set of conditions defining the "skin" of a model
      * @param Dimension Spatial dimension (2 or 3)
+     * @param rNormalVariable Variable on which the normal values are to be stored
      * @note This function is not recommended for distributed (MPI) runs, as the user has to ensure that the calculated normals are assembled between processes. The overload of this function that takes a ModelPart is preferable in ths case, as it performs the required communication.
      */
     void CalculateOnSimplex(
         ConditionsArrayType& rConditions,
-        const std::size_t Dimension
-        );
+        const std::size_t Dimension,
+        const NormalVariableType& rNormalVariable = NORMAL);
+
+    void CalculateOnSimplexNonHistorical(
+        ConditionsArrayType& rConditions,
+        const std::size_t Dimension,
+        const NormalVariableType& rNormalVariable = NORMAL);
 
     /**
      * @brief Calculates nodal area normal shape sensitivities w.r.t. nodal coordinates of the condition.
@@ -157,8 +169,13 @@ public:
      */
     void CalculateOnSimplex(
         ModelPart& rModelPart,
-        const std::size_t Dimension
-        );
+        const std::size_t Dimension,
+        const NormalVariableType& rNormalVariable = NORMAL);
+
+    void CalculateOnSimplexNonHistorical(
+        ModelPart& rModelPart,
+        const std::size_t Dimension,
+        const NormalVariableType& rNormalVariable = NORMAL);
 
     /**
      * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
@@ -167,8 +184,12 @@ public:
      * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
      */
     void CalculateOnSimplex(
-        ModelPart& rModelPart
-        );
+        ModelPart& rModelPart,
+        const NormalVariableType& rNormalVariable = NORMAL);
+
+    void CalculateOnSimplexNonHistorical(
+        ModelPart& rModelPart,
+        const NormalVariableType& rNormalVariable = NORMAL);
 
     /**
      * @brief This function swaps the normal of all of the conditions in a model part
@@ -189,17 +210,17 @@ public:
     void CalculateOnSimplex(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        Variable<TValueType>& rVariable,
-        const TValueType Zero
-        )
+        const Variable<TValueType>& rVariable,
+        const TValueType Zero,
+        const NormalVariableType& rNormalVariable = NORMAL)
     {
         KRATOS_TRY;
 
         // Reset normals
+        //TODO: This can be parallel
         const array_1d<double,3> ZeroNormal(3,0.0);
-
         for(ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it !=rModelPart.NodesEnd(); it++) {
-            noalias(it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+            noalias(it->FastGetSolutionStepValue(rNormalVariable)) = ZeroNormal;
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
@@ -208,7 +229,7 @@ public:
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal2D(*itCond,An);
+                    CalculateNormal2D(*itCond,An,rNormalVariable);
             }
         } else if ( Dimension == 3 ) {
             array_1d<double,3> v1(3,0.0);
@@ -216,7 +237,7 @@ public:
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal3D(*itCond,An,v1,v2);
+                    CalculateNormal3D(*itCond,An,v1,v2,rNormalVariable);
             }
         }
 
@@ -224,13 +245,13 @@ public:
         for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
             Condition::GeometryType& rGeom = itCond->GetGeometry();
             const double Coef = 1.0 / rGeom.PointsNumber();
-            const array_1d<double,3>& rNormal = itCond->GetValue(NORMAL);
+            const auto& r_normal = itCond->GetValue(rNormalVariable);
             for ( Condition::GeometryType::iterator itNode = rGeom.begin(); itNode != rGeom.end(); ++itNode)
-                noalias( itNode->FastGetSolutionStepValue(NORMAL) ) += rNormal * Coef;
+                noalias(itNode->FastGetSolutionStepValue(rNormalVariable)) += r_normal * Coef;
         }
 
         // For MPI: correct values on partition boundaries
-        rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+        rModelPart.GetCommunicator().AssembleCurrentData(rNormalVariable);
 
         KRATOS_CATCH("");
     }
@@ -247,10 +268,9 @@ public:
     void CalculateOnSimplex(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        Variable<TValueType>& rVariable
-        )
+        const Variable<TValueType>& rVariable)
     {
-        CalculateOnSimplex(rModelPart,Dimension,rVariable,TValueType());
+        CalculateOnSimplex(rModelPart,Dimension,rVariable,TValueType(),NORMAL);
     }
 
     /**
@@ -265,16 +285,16 @@ public:
     void CalculateOnSimplex(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        Variable<TValueType>& rVariable,
+        const Variable<TValueType>& rVariable,
         const TValueType Zero,
-        const double rAlpha
-        )
+        const double rAlpha,
+        const NormalVariableType& rNormalVariable = NORMAL)
     {
         KRATOS_TRY;
 
         // Reset normals
+        //TODO: This can be parallel
         const array_1d<double,3> ZeroNormal(3,0.0);
-
         for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin(); it !=rModelPart.NodesEnd(); it++) {
             noalias(it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
             it->FastGetSolutionStepValue(NODAL_PAUX) = 0.0;
@@ -286,7 +306,7 @@ public:
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal2D(*itCond,An);
+                    CalculateNormal2D(*itCond,An,rNormalVariable);
             }
         } else if ( Dimension == 3 ) {
             array_1d<double,3> v1(3,0.0);
@@ -294,7 +314,7 @@ public:
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal3D(*itCond,An,v1,v2);
+                    CalculateNormal3D(*itCond,An,v1,v2,rNormalVariable);
             }
         }
 
@@ -309,7 +329,7 @@ public:
             if(ng_cond.size() != 0) {
                 for(GlobalPointersVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++) {
                     Condition::GeometryType& pGeom = ic->GetGeometry();
-                    const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);
+                    const auto& rNormal = ic->GetValue(rNormalVariable);
                     const double Coef = 1.0 / pGeom.PointsNumber();
                     double norm_normal = norm_2( rNormal );
 
@@ -347,7 +367,7 @@ public:
                 sum_Normal += N_Mat[ii];
             }
 
-            noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
+            noalias( it->FastGetSolutionStepValue(rNormalVariable) ) = sum_Normal;
             it->FastGetSolutionStepValue(NODAL_PAUX) = nodal_area;
             //assign IS_SLIP = 0 for vertices
             if(N_Mat.size() == 2) {
@@ -361,7 +381,7 @@ public:
         }
 
         // For MPI: correct values on partition boundaries
-        rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+        rModelPart.GetCommunicator().AssembleCurrentData(rNormalVariable);
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_PAUX);
 
         KRATOS_CATCH("");
@@ -379,16 +399,17 @@ public:
     void CalculateOnSimplexLowMemory(
         ModelPart& rModelPart,
         int Dimension,
-        Variable<TValueType>& rVariable,
-        const TValueType Zero,const double rAlpha)
+        const Variable<TValueType>& rVariable,
+        const TValueType Zero,const double rAlpha,
+        const NormalVariableType& rNormalVariable = NORMAL)
     {
         KRATOS_TRY;
 
         // Reset normals
+        //TODO: This can be parallel
         const array_1d<double,3> ZeroNormal(3,0.0);
-
         for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin(); it !=rModelPart.NodesEnd(); it++) {
-            noalias(it->GetValue(NORMAL)) = ZeroNormal;
+            noalias(it->GetValue(rNormalVariable)) = ZeroNormal;
             it->GetValue(NODAL_PAUX) = 0.0;
         }
 
@@ -398,7 +419,7 @@ public:
         if ( Dimension == 2 ) {
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal2D(*itCond,An);
+                    CalculateNormal2D(*itCond,An,rNormalVariable);
             }
         } else if ( Dimension == 3 ) {
             array_1d<double,3> v1(3,0.0);
@@ -406,7 +427,7 @@ public:
 
             for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond ) {
                 if ( itCond->GetValue(rVariable) != Zero )
-                    CalculateNormal3D(*itCond,An,v1,v2);
+                    CalculateNormal3D(*itCond,An,v1,v2,rNormalVariable);
             }
         }
 
@@ -421,7 +442,7 @@ public:
             if(ng_cond.size() != 0){
                 for(GlobalPointersVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++) {
                 Condition::GeometryType& pGeom = ic->GetGeometry();
-                const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);
+                const auto& rNormal = ic->GetValue(rNormalVariable);
                 const double Coef = 1.0 / pGeom.PointsNumber();
                 double norm_normal = norm_2( rNormal );
 
@@ -458,7 +479,7 @@ public:
                 sum_Normal += N_Mat[ii];
             }
 
-            noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
+            noalias( it->FastGetSolutionStepValue(rNormalVariable) ) = sum_Normal;
             it->FastGetSolutionStepValue(NODAL_PAUX) = nodal_area;
             //assign IS_SLIP = 0 for vertices
             if(N_Mat.size() == 2){
@@ -473,7 +494,7 @@ public:
         }
 
         // For MPI: correct values on partition boundaries
-        rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+        rModelPart.GetCommunicator().AssembleCurrentData(rNormalVariable);
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_PAUX);
 
         KRATOS_CATCH("");
@@ -499,15 +520,22 @@ private:
      * @brief It initializes the normal in the entites and in all the nodes
      * @param rModelPart The model part to compute
      * @tparam TEntity The entity type considered
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TEntity>
-    void InitializeNormals(ModelPart& rModelPart);
+    template<class TEntity, bool TIsHistorical>
+    void InitializeNormals(
+        ModelPart& rModelPart,
+        const NormalVariableType& rNormalVariable);
 
     /**
      * @brief It computes the unit normals from the area normals
      * @param rModelPart The model part to compute
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    void ComputeUnitNormalsFromAreaNormals(ModelPart& rModelPart);
+    template<bool TIsHistorical>
+    void ComputeUnitNormalsFromAreaNormals(
+        ModelPart& rModelPart,
+        const NormalVariableType& rNormalVariable);
 
     /**
      * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
@@ -516,8 +544,8 @@ private:
      */
     static void CalculateNormal2D(
         Condition& rCondition,
-        array_1d<double,3>& rAn
-        );
+        array_1d<double,3>& rAn,
+        const NormalVariableType& rNormalVariable);
 
     /**
      * @brief Calculates 2D condition area normals shape sensitivity
@@ -538,8 +566,8 @@ private:
         Condition& rCondition,
         array_1d<double,3>& rAn,
         array_1d<double,3>& rv1,
-        array_1d<double,3>& rv2
-        );
+        array_1d<double,3>& rv2,
+        const NormalVariableType& rNormalVariable);
 
     /**
      * @brief Calculates 3D condition area normals shape sensitivity
@@ -563,12 +591,28 @@ private:
      * @param rModelPart The modelpart with normals to compute
      * @param ConsiderUnitNormal In order to consider directly the unit normal instead of the area normal multiplied with a coefficient
      * @tparam TContainerType The container type
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TContainerType>
+    template<class TContainerType, bool TIsHistorical>
     void CalculateNormalsUsingGenericAlgorithm(
         ModelPart& rModelPart,
-        const bool ConsiderUnitNormal = false
-        );
+        const bool ConsiderUnitNormal,
+        const NormalVariableType& rNormalVariable);
+
+    template<bool TIsHistorical>
+    array_1d<double,3>& GetNormalValue(
+        NodeType& rNode,
+        const NormalVariableType& rNormalVariable);
+
+    bool CheckUseSimplex(
+        const ModelPart& rModelPart,
+        const bool EnforceGenericGeometryAlgorithm);
+
+    template<bool TIsHistorical>
+    void AuxiliaryCalculateOnSimplex(
+        ConditionsArrayType& rConditions,
+        const std::size_t Dimension,
+        const NormalVariableType& rNormalVariable);
 
     ///@}
     ///@name Private  Access
