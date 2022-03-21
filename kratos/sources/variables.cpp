@@ -871,8 +871,8 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(PR_ART_VISC)
 
     //normal velocity (with respect to the iso-distance contours)
-    KRATOS_REGISTER_VARIABLE( NORMAL_VELOCITY)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_VELOCITY_GRADIENT)
+    KRATOS_REGISTER_VARIABLE(NORMAL_VELOCITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(NORMAL_VELOCITY_GRADIENT)
 
     //--------------- Level Set Application -------------------//
 

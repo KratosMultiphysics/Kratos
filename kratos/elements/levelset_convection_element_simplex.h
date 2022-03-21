@@ -190,18 +190,26 @@ public:
         {
             noalias(N) = row(Ncontainer,igauss);
 
+            double normal_velocity_normal_gradient = 0.0;
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                normal_velocity_normal_gradient += N[i] * inner_prod( normal_vector,
+                    GetGeometry()[i].GetValue(NORMAL_VELOCITY_GRADIENT) );
+            }
+
             //obtain the velocity in the middle of the tiem step
             array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                 for(unsigned int k=0; k<TDim; k++){
+                const double coefficient = (N[i]*std::abs(phi[i]))*normal_velocity_normal_gradient;
+
+                for(unsigned int k=0; k<TDim; k++){
                     vel_gauss[k] += 0.5*N[i]*(v[i][k]+vold[i][k]);
 
-                    if (std::abs(phi[i]) < 0.1){
-                        vel_gauss[k] -= N[i] * std::abs(phi[i])*normal_vector[k]*inner_prod( normal_vector,
-                            GetGeometry()[i].FastGetSolutionStepValue(NORMAL_VELOCITY_GRADIENT) );
+                    if (std::abs(phi[i]) < 0.2){
+                        vel_gauss[k] -= coefficient*normal_vector[k];
                     }
-                 }
+                }
             }
             const double norm_vel = norm_2(vel_gauss);
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);

@@ -277,9 +277,11 @@ public:
                 it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = dist;
                 it_node->SetValue(mrLevelSetVar, dist);
 
-                it_node->SetValue( NORMAL_VELOCITY, inner_prod(
-                    it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT),
-                    0.5*( (Nold + Nold_before)*v_old + (Nnew + Nnew_before)*v ) ) );
+                if (true){ // regularize the level-set function
+                    it_node->SetValue( NORMAL_VELOCITY, inner_prod(
+                        it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT),
+                        0.5*( (Nold + Nold_before)*v_old + (Nnew + Nnew_before)*v ) ) );
+                }
             }
 
             if (true){ // regularize the level-set function

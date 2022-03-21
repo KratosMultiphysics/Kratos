@@ -136,6 +136,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.VELOCITY_STAR)                  # Last known velocity
         #self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_STAR)                  # Last known pressure
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PRESSURE_GRADIENT_AUX)          # Pressure gradient on positive and negative sides
+        #self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_VELOCITY)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Fluid solver variables added correctly.")
 
@@ -209,6 +210,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         #self.find_neighbouring_nodes_process = self._set_find_neighbouring_nodes_process()
         #(self.find_neighbouring_nodes_process).Execute()
+
+        for node in self.main_model_part.Nodes:
+            node.SetValue(KratosMultiphysics.NORMAL_VELOCITY, 0.0)
 
         self.level_set_convection_process = self._set_level_set_convection_process()
 
