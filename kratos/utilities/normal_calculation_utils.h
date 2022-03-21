@@ -102,7 +102,8 @@ public:
     template<class TContainerType>
     void CalculateNormalsInContainer(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes
@@ -117,7 +118,8 @@ public:
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
         const bool ConsiderUnitNormal = false,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes (unit normal version)
@@ -129,7 +131,8 @@ public:
     void CalculateUnitNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
@@ -142,12 +145,14 @@ public:
     void CalculateOnSimplex(
         ConditionsArrayType& rConditions,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     void CalculateOnSimplexNonHistorical(
         ConditionsArrayType& rConditions,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief Calculates nodal area normal shape sensitivities w.r.t. nodal coordinates of the condition.
@@ -170,12 +175,14 @@ public:
     void CalculateOnSimplex(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     void CalculateOnSimplexNonHistorical(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
@@ -185,11 +192,13 @@ public:
      */
     void CalculateOnSimplex(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     void CalculateOnSimplexNonHistorical(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief This function swaps the normal of all of the conditions in a model part
@@ -212,7 +221,8 @@ public:
         const std::size_t Dimension,
         const Variable<TValueType>& rVariable,
         const TValueType Zero,
-        const NormalVariableType& rNormalVariable = NORMAL)
+        const NormalVariableType& rNormalVariable = NORMAL
+        )
     {
         KRATOS_TRY;
 
@@ -268,7 +278,8 @@ public:
     void CalculateOnSimplex(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        const Variable<TValueType>& rVariable)
+        const Variable<TValueType>& rVariable
+        )
     {
         CalculateOnSimplex(rModelPart,Dimension,rVariable,TValueType(),NORMAL);
     }
@@ -288,7 +299,8 @@ public:
         const Variable<TValueType>& rVariable,
         const TValueType Zero,
         const double rAlpha,
-        const NormalVariableType& rNormalVariable = NORMAL)
+        const NormalVariableType& rNormalVariable = NORMAL
+        )
     {
         KRATOS_TRY;
 
@@ -401,7 +413,8 @@ public:
         int Dimension,
         const Variable<TValueType>& rVariable,
         const TValueType Zero,const double rAlpha,
-        const NormalVariableType& rNormalVariable = NORMAL)
+        const NormalVariableType& rNormalVariable = NORMAL
+        )
     {
         KRATOS_TRY;
 
@@ -525,7 +538,8 @@ private:
     template<class TEntity, bool TIsHistorical>
     void InitializeNormals(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief It computes the unit normals from the area normals
@@ -535,7 +549,8 @@ private:
     template<bool TIsHistorical>
     void ComputeUnitNormalsFromAreaNormals(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
@@ -545,7 +560,8 @@ private:
     static void CalculateNormal2D(
         Condition& rCondition,
         array_1d<double,3>& rAn,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief Calculates 2D condition area normals shape sensitivity
@@ -567,7 +583,8 @@ private:
         array_1d<double,3>& rAn,
         array_1d<double,3>& rv1,
         array_1d<double,3>& rv2,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief Calculates 3D condition area normals shape sensitivity
@@ -597,22 +614,26 @@ private:
     void CalculateNormalsUsingGenericAlgorithm(
         ModelPart& rModelPart,
         const bool ConsiderUnitNormal,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     template<bool TIsHistorical>
     array_1d<double,3>& GetNormalValue(
         NodeType& rNode,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     bool CheckUseSimplex(
         const ModelPart& rModelPart,
-        const bool EnforceGenericGeometryAlgorithm);
+        const bool EnforceGenericGeometryAlgorithm
+        );
 
     template<bool TIsHistorical>
     void AuxiliaryCalculateOnSimplex(
         ConditionsArrayType& rConditions,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     ///@}
     ///@name Private  Access
