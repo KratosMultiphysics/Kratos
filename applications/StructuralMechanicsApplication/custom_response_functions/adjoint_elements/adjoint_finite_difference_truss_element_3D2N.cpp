@@ -78,9 +78,14 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegration
         Vector adjoint_displacements(num_dofs);
         this->GetValuesVector(adjoint_displacements);
 
+        Vector particular_solution = ZeroVector(num_dofs);
+        if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT)) {
+            particular_solution = this->GetValue(ADJOINT_PARTICULAR_DISPLACEMENT);
+        }
+
         strain[0] = 0.00;
         for(IndexType i = 0; i < num_dofs; ++i) {
-            strain[0] += gl_strain_length_derivative * length_derivative_vector[i] * adjoint_displacements[i];
+            strain[0] += gl_strain_length_derivative * length_derivative_vector[i] * (adjoint_displacements[i] + particular_solution[i]);
         }
 
         strain[1] = 0.00;

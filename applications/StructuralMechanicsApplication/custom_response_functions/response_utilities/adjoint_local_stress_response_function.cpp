@@ -352,7 +352,9 @@ namespace Kratos
         std::string element_name;
         CompareElementsAndConditionsUtility::GetRegisteredName(*mpTracedElement, element_name);
 
-        if(element_name == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || element_name == "AdjointFiniteDifferenceTrussLinearElement3D2N") {
+        if(element_name == "AdjointFiniteDifferenceCrBeamElementLinear3D2N" || element_name == "AdjointFiniteDifferenceTrussLinearElement3D2N" ||
+        element_name == "AdjointFiniteDifferenceTrussElement3D2N") {
+
             Vector particular_solution;
             // delivers particular solution of influence function in local coordinates
             this->CalculateParticularSolutionLinearElement2N(particular_solution);
@@ -522,6 +524,10 @@ namespace Kratos
             {
                 rTracedDof = &ADJOINT_DISPLACEMENT_Z;
                 break;
+            }
+            case TracedStressType::PK2:
+            {
+                KRATOS_ERROR << "AdjointLocalStressResponseFunction::FindVariableComponent not available for TracedStressType::PK2!" << std::endl;
             }
             default:
                 KRATOS_ERROR << "Invalid stress type! Stress type not supported for particular solution!" << std::endl;
