@@ -70,6 +70,17 @@ End SubModelPart
 Begin SubModelPart Sensitivity_Truss // Group Truss1 // Subtree Parts_Truss
     Begin SubModelPartElements
             1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+            10
+            11
+            12
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions

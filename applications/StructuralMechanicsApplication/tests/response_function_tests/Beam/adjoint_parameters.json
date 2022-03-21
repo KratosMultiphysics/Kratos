@@ -35,7 +35,8 @@
         "response_function_settings"    :   {
             "response_type"        : "adjoint_eigenfrequency",
             "gradient_mode"        : "semi_analytic",
-            "step_size"            : 1.0e-5,
+            "step_size"            : 1.0e-3,
+            "adapt_step_size"      : true,
             "critical_part_name"   : "Parts_structure",
             "stress_type"          : "VON_MISES_STRESS",
             "stress_treatment"     : "mean",
@@ -73,7 +74,7 @@
                 "mesh_id"         : 0,
                 "model_part_name" : "model.PointLoad3D_load_point",
                 "variable_name"   : "POINT_LOAD",
-                "modulus"         : 5000000000.0,
+                "modulus"         : -50000000.0,
                 "direction"       : [0.0,1.0,0.0],
                 "interval"        : [0.0,"End"]
             }

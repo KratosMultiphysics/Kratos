@@ -228,6 +228,54 @@ Begin SubModelPart Parts_structure
     End SubModelPartConditions
 End SubModelPart
 
+Begin SubModelPart Almost_Whole_Beam
+    Begin SubModelPartNodes
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         1
+         2
+         3
+         4
+         5
+         6
+         7
+         8
+         9
+        10
+        11
+        12
+        13
+        14
+        15
+        16
+        17
+        18
+        19
+        20
+        21
+        22
+        23
+        24
+        25
+        26
+        27
+        28
+        29
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Special_Element_Beam
+    Begin SubModelPartNodes
+    End SubModelPartNodes
+    Begin SubModelPartElements
+         30
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
 Begin SubModelPart Sensitivity_Beam
     Begin SubModelPartNodes
     End SubModelPartNodes
