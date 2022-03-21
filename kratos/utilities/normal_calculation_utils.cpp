@@ -709,5 +709,7 @@ template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNorma
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Condition, false>(ModelPart&, const bool, const NormalVariableType&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Element, true>(ModelPart&, const bool, const NormalVariableType&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Element, false>(ModelPart&, const bool, const NormalVariableType&);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::AuxiliaryCalculateOnSimplex<true>(ConditionsArrayType&, const std::size_t, const NormalVariableType&);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::AuxiliaryCalculateOnSimplex<false>(ConditionsArrayType&, const std::size_t, const NormalVariableType&);
 
 } // namespace Kratos
