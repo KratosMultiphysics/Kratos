@@ -357,7 +357,10 @@ public:
     void Calculate(
         const Variable< array_1d<double,3> >& rVariable,
         array_1d<double,3>& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // TODO
+    }
 
     ///@}
     ///@name Access
