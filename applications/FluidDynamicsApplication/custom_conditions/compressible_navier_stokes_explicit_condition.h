@@ -170,7 +170,7 @@ public:
     ///@name Operations
     ///@{
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     /// Create a new CompressibleNavierStokesExplicitCondition object.
     /**
@@ -484,6 +484,8 @@ protected:
             data.U(i, TDim+1)    = r_tot_ener;
             data.dUdt(i, TDim+1) = aux_theta * (r_tot_ener - r_tot_ener_old);
         }
+
+        return data;
     }
 
     /**
