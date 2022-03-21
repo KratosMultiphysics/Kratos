@@ -85,10 +85,19 @@ public:
     constexpr static unsigned int BlockSize = Dim + 2;
     constexpr static unsigned int DofSize = NumNodes * BlockSize;
 
+    struct GradientData
+    {
+        array_1d<double, 3> density;
+        BoundedMatrix<double, 3, 3> momentum;
+        array_1d<double, 3> total_energy;
+    };
+
     struct ConditionDataStruct
     {
         BoundedMatrix<double, TNumNodes, BlockSize> U;
         BoundedMatrix<double, TNumNodes, BlockSize> dUdt;
+        std::array<GradientData, 1> gradients;
+
 
         array_1d<double, TNumNodes> alpha_sc_nodes;
         array_1d<double, TNumNodes> mu_sc_nodes;
@@ -102,6 +111,8 @@ public:
         double volume;      // In 2D: element area. In 3D: element volume
         double c_v;         // Heat capacity at constant volume
         double gamma;       // Heat capacity ratio
+        double mu;          // Dynamic viscosity
+        double lambda;      // Heat conductivity
     };
 
     ///@}
@@ -389,10 +400,10 @@ public:
                 "nodal_non_historical"   : ["ARTIFICIAL_MASS_DIFFUSIVITY","ARTIFICIAL_DYNAMIC_VISCOSITY","ARTIFICIAL_BULK_VISCOSITY","ARTIFICIAL_CONDUCTIVITY","DENSITY_PROJECTION","MOMENTUM_PROJECTION","TOTAL_ENERGY_PROJECTION"],
                 "entity"                 : []
             },
-            "required_variables"         : ["DENSITY","MOMENTUM","TOTAL_ENERGY","BODY_FORCE","HEAT_SOURCE"],
+            "required_variables"         : ["DENSITY","MOMENTUM","TOTAL_ENERGY"],
             "required_dofs"              : [],
             "flags_used"                 : [],
-            "compatible_geometries"      : ["Triangle2D3","Quadrilateral2D4","Tetrahedra3D4"],
+            "compatible_geometries"      : ["Line2D2"],
             "element_integrates_in_time" : true,
             "compatible_constitutive_laws": {
                 "type"        : [],
@@ -401,7 +412,7 @@ public:
             },
             "required_polynomial_degree_of_geometry" : 1,
             "documentation"   :
-                "This element implements a compressible Navier-Stokes formulation written in conservative variables. A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used. This element is compatible with both entropy-based and physics-based shock capturing techniques."
+                "This condition implements a compressible Navier-Stokes formulation written in conservative variables. This condition is compatible with both entropy-based and physics-based shock capturing techniques."
         })");
 
         std::vector<std::string> dofs(BlockSize, "");
@@ -477,6 +488,8 @@ protected:
 
         // Database access to all of the variables needed
         Properties &r_properties = this->GetProperties();
+        data.mu = r_properties.GetValue(DYNAMIC_VISCOSITY);
+        data.lambda = r_properties.GetValue(CONDUCTIVITY);
         data.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
         data.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
 
@@ -485,6 +498,25 @@ protected:
         const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
         const double aux_theta = theta > 0 ? 1.0 / (theta * time_step) : 0.0;
 
+        // Gradients
+        auto& parent_element = *GetValue(NEIGHBOUR_ELEMENTS).begin();
+        std::vector<array_1d<double, 3>> grad_density;
+        std::vector<array_1d<double, 3>> grad_total_energy;
+        std::vector<Matrix> grad_momentum;
+        parent_element.CalculateOnIntegrationPoints(DENSITY_GRADIENT, grad_density, rCurrentProcessInfo);
+        parent_element.CalculateOnIntegrationPoints(MOMENTUM_GRADIENT, grad_momentum, rCurrentProcessInfo);
+        parent_element.CalculateOnIntegrationPoints(TOTAL_ENERGY_GRADIENT, grad_total_energy, rCurrentProcessInfo);
+
+        // Gauss point data
+        static constexpr SizeType num_gauss_points = 1;
+        for(IndexType g=0; g < num_gauss_points; ++g)
+        {
+            data.gradients[g].density = grad_density[g];
+            data.gradients[g].momentum = grad_momentum[g];
+            data.gradients[g].total_energy = grad_total_energy[g];
+        }
+
+        // Nodal data
         for(SizeType i=0; i<NumNodes; ++i)
         {
             // Shock capturing data

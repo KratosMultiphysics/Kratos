@@ -273,6 +273,11 @@ public:
         std::vector<array_1d<double,3>>& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(
+            const Variable<Matrix >& rVariable,
+            std::vector< Matrix >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -462,10 +467,66 @@ private:
 
     /**
      * @brief Calculate the midpoint density gradient
-     * This method calculates the gradient of the density in the midpoint of the element
+     * This method calculates the gradient of the density or total energy in the midpoint
+     * of the element.
      * @return array_1d<double,3> Density gradient in the midpoint
      */
-    array_1d<double,3> CalculateMidPointDensityGradient() const;
+    template<Variable<double>& TVariable>
+    array_1d<double,3> CalculateMidPointDofGradient() const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF_NOT(TVariable == DENSITY || TVariable == TOTAL_ENERGY)
+            << "CalculateMidPointDofGradient is only valid for DOF scalar variables (DENSITY and TOTAL_ENERGY)";
+        
+        // Get geometry data
+        const auto& r_geom = GetGeometry();
+        const unsigned int NumNodes = r_geom.PointsNumber();
+        Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+        r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+        const auto& r_dNdX = dNdX_container[0];
+
+        // Calculate midpoint magnitudes
+        array_1d<double,3> midpoint_grad_variable = ZeroVector(3);
+        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+            auto& r_node = r_geom[i_node];
+            const auto node_dNdX = row(r_dNdX, i_node);
+            const double& r_variable = r_node.FastGetSolutionStepValue(TVariable);
+            for (unsigned int d1 = 0; d1 < TDim; ++d1) {
+                midpoint_grad_variable[d1] += node_dNdX(d1) * r_variable;
+            }
+        }
+
+        return midpoint_grad_variable;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Calculate the midpoint momentum gradient
+     * This method calculates the gradient of the momentum in the midpoint of the element
+     * grad_mom_(i,j) = dm_i / dx_j
+     * @return array_1d<double,3> Temperature gradient in the midpoint
+     */
+    Matrix CalculateMidPointMomentumGradient() const
+    {
+        const auto& r_geom = GetGeometry();
+        const unsigned int NumNodes = r_geom.PointsNumber();
+        Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+        r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
+        const auto& r_dNdX = dNdX_container[0];
+
+        // Calculate midpoint magnitudes
+        Matrix midpoint_grad_variable = ZeroMatrix(3, 3);
+        for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+            auto& r_node = r_geom[i_node];
+            const auto node_dNdX = row(r_dNdX, i_node);
+            const array_1d<double, 3>& r_variable = r_node.FastGetSolutionStepValue(MOMENTUM);
+            midpoint_grad_variable += outer_prod(r_variable, node_dNdX);
+        }
+
+        return midpoint_grad_variable;
+    }
 
     /**
      * @brief Calculate the midpoint temperature gradient
@@ -579,7 +640,9 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
     const ProcessInfo& rCurrentProcessInfo)
 {
     if (rVariable == DENSITY_GRADIENT) {
-        Output = CalculateMidPointDensityGradient();
+        Output = CalculateMidPointDofGradient<DENSITY>();
+    } else if (rVariable == TOTAL_ENERGY_GRADIENT) {
+        Output = CalculateMidPointDofGradient<TOTAL_ENERGY>();
     } else if (rVariable == TEMPERATURE_GRADIENT) {
         Output = CalculateMidPointTemperatureGradient();
     } else if (rVariable == VELOCITY_ROTATIONAL) {
@@ -600,6 +663,9 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
 {
     if (rVariable == VELOCITY_GRADIENT) {
         Output = CalculateMidPointVelocityGradient();
+    } else if(rVariable == MOMENTUM_GRADIENT)
+    {
+        Output = CalculateMidPointMomentumGradient();
     } else {
         KRATOS_ERROR << "Variable not implemented." << std::endl;
     }
@@ -654,8 +720,30 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
-    const Variable<array_1d<double,3>>& rVariable,
-    std::vector<array_1d<double,3>>& rOutput,
+    const Variable<Matrix>& rVariable,
+    std::vector<Matrix>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints();
+    if (rOutput.size() != r_integration_points.size()) {
+        rOutput.resize( r_integration_points.size() );
+    }
+
+    if (rVariable == MOMENTUM_GRADIENT) {
+        const Matrix mom_grad = CalculateMidPointMomentumGradient();
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = mom_grad;
+        }
+    } else {
+        KRATOS_ERROR << "Variable not implemented." << std::endl;
+    }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geometry = GetGeometry();
@@ -665,7 +753,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
     }
 
     if (rVariable == DENSITY_GRADIENT) {
-        const array_1d<double,3> rho_grad = CalculateMidPointDensityGradient();
+        const array_1d<double,3> rho_grad = CalculateMidPointDofGradient<DENSITY>();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rho_grad;
         }
@@ -834,30 +922,6 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::FillElementData(
             rData.lamb_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
         }
     }
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
-array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointDensityGradient() const
-{
-    // Get geometry data
-    const auto& r_geom = GetGeometry();
-    const unsigned int NumNodes = r_geom.PointsNumber();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
-    r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
-    const auto& r_dNdX = dNdX_container[0];
-
-    // Calculate midpoint magnitudes
-    array_1d<double,3> midpoint_grad_rho = ZeroVector(3);
-    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
-        auto& r_node = r_geom[i_node];
-        const auto node_dNdX = row(r_dNdX, i_node);
-        const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-        for (unsigned int d1 = 0; d1 < TDim; ++d1) {
-            midpoint_grad_rho[d1] += node_dNdX(d1) * r_rho;
-        }
-    }
-
-    return midpoint_grad_rho;
 }
 
 // TODO: IN HERE WE HAVE LINEARIZED THE DERIVATIVE... CHECK IF WE SHOULD PROPERLY COMPUTE IT

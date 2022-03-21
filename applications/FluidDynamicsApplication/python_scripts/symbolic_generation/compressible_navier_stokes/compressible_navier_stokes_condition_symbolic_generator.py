@@ -5,10 +5,14 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_diffusive_flux
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
+    .base_generator import CompressibleNavierStokesSymbolicGeneratorBase
+
+from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
     .defines import CompressibleNavierStokesDefines as defs
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
     .symbolic_parameters import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
+
 
 class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStokesSymbolicGeneratorBase):
     """
@@ -56,17 +60,19 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.beta, beta_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.lamb, lamb_sc_gauss)
 
+        return rv_gauss
+
     def _BuildGradientsMatrixArray(self):
         dim = self.geometry.ndims
         n_gauss = self.geometry.ngauss
         block_size = self.geometry.blocksize
 
-        grad_U = [defs.ZeroMatrix(block_size, dim, real=True) for _ in range(n_gauss)]
+        grad_U = [defs.ZeroMatrix(block_size, dim) for _ in range(n_gauss)]
 
         for g in range(n_gauss):
-            grad_U[g][   0,:] = defs.Vector('data.gradients[{}].grad_rho'.format(g),   1, dim).T
-            grad_U[g][1:-1,:] = defs.Matrix('data.gradients[{}].grad_mom'.format(g), dim, dim).T
-            grad_U[g][  -1,:] = defs.Vector('data.gradients[{}].grad_etot'.format(g),  1, dim).T
+            grad_U[g][   0, :] = defs.Vector('data.gradients[{}].density'.format(g),  dim).T
+            grad_U[g][1:-1, :] = defs.Matrix('data.gradients[{}].momentum'.format(g), dim, dim).T
+            grad_U[g][  -1, :] = defs.Vector('data.gradients[{}].total_energy'.format(g), dim).T
 
         return grad_U
 
@@ -102,16 +108,18 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
             rhs_name = "rhs_gauss"
             lhs_name = "lhs_gauss"
 
-        target = "//substitute_rhs_{}D".format(self.geometry.ndims)
+        target = "//substitute_rhs_{}D_fluxes".format(self.geometry.ndims)
         self.CollectAndReplace(target, rhs, rhs_name)
 
         if self.is_explicit:
             return
 
-        target = "//substitute_lhs_{}D".format(self.geometry.ndims)
+        target = "//substitute_rhs_{}D_fluxes".format(self.geometry.ndims)
         self.CollectAndReplace(target, lhs, lhs_name)
 
     def Generate(self):
+        self.WriteWarningMessage()
+
         KratosMultiphysics.Logger.Print("Computing geometry: {}".format(self.geometry))
 
         dim = self.geometry.ndims
@@ -149,7 +157,6 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
             sc_params = None
             KratosMultiphysics.Logger.Print(" - Compute diffusive flux (shock capturing OFF)")
             G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
-
 
         rv = self._ComputeVariationalFormulation(E, G, V, n)
 
