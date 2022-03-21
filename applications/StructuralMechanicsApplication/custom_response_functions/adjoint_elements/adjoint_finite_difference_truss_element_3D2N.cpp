@@ -25,6 +25,89 @@ namespace Kratos
 {
 
 template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const SizeType num_GP = (this->mpPrimalElement->GetGeometry().IntegrationPoints()).size();
+    if (rOutput.size() != num_GP) {
+        rOutput.resize(num_GP);
+    }
+
+    if(rVariable == VARIATIONAL_SENSITIVITY) {
+        std::vector<Vector> pseudo_stress;
+        this->CalculateOnIntegrationPoints(YOUNG_MODULUS_PSEUDO_PK2_STRESS_VECTOR, pseudo_stress, rCurrentProcessInfo);
+        std::vector<Vector> adjoint_strain;
+        this->CalculateOnIntegrationPoints(ADJOINT_STRAIN_VECTOR, adjoint_strain, rCurrentProcessInfo);
+        const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        rOutput[0] = -1 * pseudo_stress[0][0] * adjoint_strain[0][0] * l_0;
+    }
+    else {
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TPrimalElement>
+void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const SizeType num_GP = (this->mpPrimalElement->GetGeometry().IntegrationPoints()).size();
+    if (rOutput.size() != num_GP) {
+        rOutput.resize(num_GP);
+    }
+    const SizeType num_nodes = this->mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = this->mpPrimalElement->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs = num_nodes * dimension;
+
+    if(rVariable == ADJOINT_STRAIN_VECTOR) {
+        Vector strain = ZeroVector(dimension);
+
+        Vector length_derivative_vector;
+        this->CalculateCurrentLengthDisplacementDerivative(length_derivative_vector);
+
+        const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        const double gl_strain_length_derivative = l / (l_0 * l_0);
+
+        Vector adjoint_displacements(num_dofs);
+        this->GetValuesVector(adjoint_displacements);
+
+        strain[0] = 0.00;
+        for(IndexType i = 0; i < num_dofs; ++i) {
+            strain[0] += gl_strain_length_derivative * length_derivative_vector[i] * adjoint_displacements[i];
+        }
+
+        strain[1] = 0.00;
+        strain[2] = 0.00;
+        rOutput[0] = strain;
+    }
+    if(rVariable == YOUNG_MODULUS_PSEUDO_PK2_STRESS_VECTOR) {
+        Vector pseudo_stress = ZeroVector(dimension);
+
+        // we assume linear material, i.e., sigma_pk2 = E * epsilon_gl. Hence, the PK2-derivative w.r.t. to E is epsilon_gl.
+        std::vector<Vector> gl_strain_vector;
+        this->mpPrimalElement->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR, gl_strain_vector, rCurrentProcessInfo);
+        pseudo_stress[0] = gl_strain_vector[0][0];
+
+        // we assume pre-integration w.r.t. A in the internal virtual work.
+        const double A = this->mpPrimalElement->GetProperties()[CROSS_AREA];
+        pseudo_stress[0] *= A;
+        pseudo_stress[1] = 0.00;
+        pseudo_stress[2] = 0.00;
+        rOutput[0] = pseudo_stress;
+    }
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TPrimalElement>
 void AdjointFiniteDifferenceTrussElement<TPrimalElement>::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -231,5 +314,8 @@ template class AdjointFiniteDifferenceTrussElement<TrussElement3D2N>;
 template class AdjointFiniteDifferenceTrussElement<TrussElementLinear3D2N>;
 
 } // namespace Kratos.
+
+
+
 
 

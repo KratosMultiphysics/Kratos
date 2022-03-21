@@ -80,6 +80,12 @@ public:
             NewId, pGeometry, pProperties);
     }
 
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput,
+                        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput,
+                        const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
      * Calculates the derivative of stresses/stress resultants w.r.t primal displacement. The calculation is done analytically.
      * The derivative consists of two parts: The analytic derivative of the current length w.r.t. displacement
