@@ -37,6 +37,58 @@ GeometryData::IntegrationMethod CompressibleNavierStokesExplicitCondition<2,2>::
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
+template <>
+void CompressibleNavierStokesExplicitCondition<2, 2>::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    if (rResult.size() != DofSize) {
+        rResult.resize(DofSize);
+    }
+
+    unsigned int local_index = 0;
+    const auto& r_geometry = GetGeometry();
+    const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        rResult[local_index++] = r_geometry[i_node].GetDof(DENSITY, den_pos).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_X, mom_pos).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_Y, mom_pos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(TOTAL_ENERGY, enr_pos).EquationId();
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <>
+void CompressibleNavierStokesExplicitCondition<2, 2>::GetDofList(
+    DofsVectorType& rResult,
+    const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    if (ElementalDofList.size() != DofSize) {
+        ElementalDofList.resize(DofSize);
+    }
+
+    unsigned int local_index = 0;
+    const auto& r_geometry = GetGeometry();
+    const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
+    const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
+    const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
+    for (unsigned int i_node = 0; i_node < NumNodes; ++i_node) {
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(DENSITY, den_pos);
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_X, mom_pos);
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(MOMENTUM_Y, mom_pos + 1);
+        ElementalDofList[local_index++] = r_geometry[i_node].pGetDof(TOTAL_ENERGY, enr_pos);
+    }
+
+    KRATOS_CATCH("");
+}
+
 template<>
 BoundedVector<double, 8> CompressibleNavierStokesExplicitCondition<2,2>::CalculateRightHandSideInternal(
     const ProcessInfo& rCurrentProcessInfo)
