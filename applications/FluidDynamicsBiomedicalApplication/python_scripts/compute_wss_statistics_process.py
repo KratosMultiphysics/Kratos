@@ -2,11 +2,7 @@
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.FluidDynamicsBiomedicalApplication as FluidDynamicsBiomedicalApplication
-
-# # Import base class file
-# from FluidDynamicsBiomedicalApplication import WssStatisticsUtilities as wss_stadistics
-
+import KratosMultiphysics.FluidDynamicsBiomedicalApplication as KratosBio
 
 def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -44,26 +40,28 @@ class ComputeWssStatisticsProcess(KratosMultiphysics.Process):
         # Compute the normal on the nodes of interest
         # Note that this overwrites the existent nodal normal values
         # Also note that if there is a slip condition that shares part of the WSS model part the corner normals could be altered
-        # TODO: Improve the NormalCalculationUtils to accept alternative storage variables (to be discussed)
         skin_model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
         if self.settings["compute_normals"].GetBool():
-            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(
                 skin_model_part,
-                skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                KratosBio.WALL_NORMAL)
 
         # Initialize the WSS variables
-        FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.InitializeWSSVariables(skin_model_part)
+        KratosBio.WssStatisticsUtilities.InitializeWSSVariables(skin_model_part)
 
     def ExecuteBeforeOutputStep(self):
         skin_model_part = self.model.GetModelPart(self.settings["model_part_name"].GetString())
 
         if self.settings["compute_normals_at_each_step"].GetBool():
-            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
+            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplexNonHistorical(
                 skin_model_part,
-                skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+                skin_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],
+                KratosBio.WALL_NORMAL)
 
         if self.settings["calculate_wss"].GetBool():
-            FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateWSS(skin_model_part)
+            is_normal_historical = False
+            KratosBio.WssStatisticsUtilities.CalculateWSS(skin_model_part, KratosBio.WALL_NORMAL, is_normal_historical)
 
         if self.settings["calculate_osi"].GetBool():
-            FluidDynamicsBiomedicalApplication.WssStatisticsUtilities.CalculateOSI(skin_model_part)
+            KratosBio.WssStatisticsUtilities.CalculateOSI(skin_model_part)

@@ -24,18 +24,13 @@
 #include "fluid_dynamics_biomedical_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-
 // Project includes
-
-
 
 namespace Kratos
 {
 
 namespace Python
 {
-
-
 
 PYBIND11_MODULE(KratosFluidDynamicsBiomedicalApplication,m)
 {
@@ -59,9 +54,11 @@ PYBIND11_MODULE(KratosFluidDynamicsBiomedicalApplication,m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WSS_TANGENTIAL_STRESS);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WSS_NORMAL_STRESS);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TEMPORAL_OSI);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WALL_NORMAL);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INLET_NORMAL);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, OUTLET_NORMAL);
 
 }
-
 
 }  // namespace Python.
 

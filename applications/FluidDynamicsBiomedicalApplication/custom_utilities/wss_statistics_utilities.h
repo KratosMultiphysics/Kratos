@@ -76,8 +76,13 @@ public:
      * @brief Calculate the Wall Shear Stress (WSS)
      * This method computes the Wall Shear Stress (WSS).
      * @param rModelPart Model part in where the WSS is computed
+     * @param rNormalVariable Variable storing the wall nodal normal
+     * @param IsHistorical Bool variable indicating wether the historical or non-historical nodal database is used
      */
-    static void CalculateWSS(ModelPart &rModelPart);
+    static void CalculateWSS(
+        ModelPart &rModelPart,
+        const Variable<array_1d<double,3>>& rNormalVariable,
+        const bool IsHistorical);
 
     /**
      * @brief Calculate the Oscillatory Shear Index (OSI)

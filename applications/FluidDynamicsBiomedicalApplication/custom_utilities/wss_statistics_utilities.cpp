@@ -45,7 +45,10 @@ void WssStatisticsUtilities::InitializeWSSVariables(ModelPart& rModelPart)
     });
 }
 
-void WssStatisticsUtilities::CalculateWSS(ModelPart& rModelPart)
+void WssStatisticsUtilities::CalculateWSS(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double,3>>& rNormalVariable,
+    const bool IsHistorical)
 {
     // Check if buffer size is filled (we need REACTION to be already computed)
     // TODO: Remove this once https://github.com/KratosMultiphysics/Kratos/pull/9592 is merged
@@ -60,6 +63,14 @@ void WssStatisticsUtilities::CalculateWSS(ModelPart& rModelPart)
         VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(REACTION, rModelPart, rModelPart);
         VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rModelPart.Conditions(), REACTION, FACE_LOAD, tolerance, max_it);
 
+        // Set the nodal normal getter
+        std::function<const array_1d<double,3>&(const NodeType&)> normal_getter;
+        if (IsHistorical) {
+            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>&{return rNode.FastGetSolutionStepValue(rNormalVariable);};
+        } else {
+            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>&{return rNode.GetValue(rNormalVariable);};
+        }
+
         // Declare the auxiliary TLS container
         struct WSSTLS
         {
@@ -69,14 +80,14 @@ void WssStatisticsUtilities::CalculateWSS(ModelPart& rModelPart)
         };
 
         // Loop the WSS model part nodes
-        block_for_each(rModelPart.Nodes(), WSSTLS(), [](NodeType& rNode, WSSTLS& rAuxTLS){
+        block_for_each(rModelPart.Nodes(), WSSTLS(), [&normal_getter](NodeType& rNode, WSSTLS& rAuxTLS){
             // Get TLS arrays
             auto& normal = rAuxTLS.normal_tls;
             auto& normal_load = rAuxTLS.normal_load;
             auto& tangential_load = rAuxTLS.tangential_load;
 
             // Normalize nodal normal
-            normal = rNode.FastGetSolutionStepValue(NORMAL);
+            normal = normal_getter(rNode);
             const double normal_norm = norm_2(normal);
             if (normal_norm > 1.0e-12) {
                 normal /= normal_norm;
