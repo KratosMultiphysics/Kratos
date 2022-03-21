@@ -1,3 +1,4 @@
+import math
 import sympy
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src.defines \
     import CompressibleNavierStokesDefines as defs
@@ -5,6 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 def GeometryDataFactory(geometry_name, ngauss=None):
     geodata_dict = {
+        "line"  : LineData,
         "triangle":      TriangleData,
         "quadrilateral": QuadrilateralData,
         "tetrahedron":   TetrahedronData
@@ -73,6 +75,34 @@ class GeometryData:
         raise NotImplementedError("Calling base class GeometryData's _ComputeShapeFunctionsGradients.")
 
 
+class LineData(GeometryData):
+    nnodes = 3
+    ndims = 2
+    blocksize = ndims+2
+    ndofs = blocksize*nnodes
+    symbolic_integration = True
+    name = "line (2D2N)"
+
+    def __init__(self, ngauss=2):
+        super().__init__(ngauss)
+
+    def _ComputeShapeFunctions(self):
+        if self.ngauss == 1:
+            return sympy.Matrix(self.ngauss, self.nnodes, lambda *_: 1/self.nnodes)
+
+        if self.ngauss == 2:
+            mat_N = defs.ZeroMatrix(self.ngauss, self.nnodes)
+            mat_N[0, 0] = 1/2 + math.sqrt(3)/6
+            mat_N[0, 1] = 1/2 - math.sqrt(3)/6
+            mat_N[1, 0] = 1/2 - math.sqrt(3)/6
+            mat_N[1, 1] = 1/2 + math.sqrt(3)/6
+            return mat_N
+        msg = "Triangle with {} gauss points not implemented".format(self.ngauss)
+        raise NotImplementedError(msg)
+
+    def _ComputeShapeFunctionsGradients(self):
+        return defs.Matrix('DN_DX', self.nnodes, self.ndims)
+
 class TriangleData(GeometryData):
     nnodes = 3
     ndims = 2
@@ -87,7 +117,7 @@ class TriangleData(GeometryData):
     def _ComputeShapeFunctions(self):
         mat_N = defs.ZeroMatrix(self.ngauss, self.nnodes)
         if self.ngauss == 1:
-            return sympy.Matrix(self.ngauss, 3, lambda *_: 1/3)
+            return sympy.Matrix(self.ngauss, self.nnodes, lambda *_: 1/self.nnodes)
         if self.ngauss == 3:
             mat_N[0, 0] = 2.0 / 3.0
             mat_N[0, 1] = 1.0 / 6.0
@@ -137,7 +167,7 @@ class TetrahedronData(GeometryData):
 
     def _ComputeShapeFunctions(self):
         if self.ngauss == 1:
-            return sympy.Matrix(self.ngauss, self.nnodes, lambda *_: 0.25)
+            return sympy.Matrix(self.ngauss, self.nnodes, lambda *_: 1/self.nnodes)
         if self.ngauss == 4:
             mat_N = defs.ZeroMatrix(self.ngauss,  self.nnodes)
             mat_N[0, 0] = 0.58541020

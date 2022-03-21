@@ -3,7 +3,8 @@ import os
 
 import KratosMultiphysics
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
-    .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
+    .compressible_navier_stokes_element_symbolic_generator import CompressibleNavierStokesElementSymbolicGenerator
+
 
 parameters = KratosMultiphysics.Parameters("""
 {
@@ -16,6 +17,6 @@ parameters = KratosMultiphysics.Parameters("""
 path = pathlib.Path(__file__).parent
 os.chdir(path)
 
-generator = CompressibleNavierStokesSymbolicGenerator(parameters)
+generator = CompressibleNavierStokesElementSymbolicGenerator(parameters)
 generator.Generate()
 generator.Write()

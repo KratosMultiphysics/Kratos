@@ -8,16 +8,16 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src import generate_stabilization_matrix
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
-    .symbolic_parameters import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
+    .base_generator import CompressibleNavierStokesSymbolicGeneratorBase
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
-    .symbolic_geometry import GeometryDataFactory
+    .symbolic_parameters import FormulationParameters, ShockCapturingParameters, ShockCapturingNodalParameters
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes.src \
     .defines import CompressibleNavierStokesDefines as defs
 
 
-class CompressibleNavierStokesSymbolicGenerator:
+class CompressibleNavierStokesElementSymbolicGenerator(CompressibleNavierStokesSymbolicGeneratorBase):
     """
     This class is in charge of generating a element to solve the compressible
     Navier-Stokes using the conservative magnitudes (density, momentum, energy)
@@ -43,101 +43,23 @@ class CompressibleNavierStokesSymbolicGenerator:
     """
 
     def __init__(self, settings):
-        settings.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
-        self.write_language = settings["language"].GetString()
-        defs.SetFormat(self.write_language)
-
-        self.is_explicit = settings["explicit"].GetBool()
-        self.simplify = settings["do_simplifications"].GetBool()
-        self.shock_capturing = settings["shock_capturing"].GetBool()
-
-        echo_level = settings["echo_level"].GetInt()
-        severity = KratosMultiphysics.Logger.Severity(echo_level)
-        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(severity)
-
+        super().__init__(settings)
         self.subscales_types = [s for (s, enabled) in settings["subscales"].items() if enabled]
-
-        self.geometry = GeometryDataFactory(settings["geometry"].GetString())
-
-        self.template_filename = settings["template_filename"].GetString()
-        self.output_filename = settings["output_filename"].GetString()
-
-        self.outstring = None
-        self._GenerateFiles()
-
-        if int(severity) >= int(KratosMultiphysics.Logger.Severity.DETAIL):
-            KratosMultiphysics.Logger.PrintInfo(settings)
-
-    def _FindAndRemoveIndentation(self, target_substring):
-        end = self.outstring.find(target_substring)
-        begin = end
-        leading_spaces = 0
-        while begin > 0:
-            if self.outstring[begin] == '\n':
-                break
-            if self.outstring[begin] != ' ':
-                end = begin - 1
-            begin -= 1
-
-        leading_spaces = end - begin
-
-        if leading_spaces % 4 == 0:
-            self.outstring = self.outstring[:begin+1] + self.outstring[end+1:]
-            return int(leading_spaces / 4)
-
-        raise ValueError(
-            "Inconsistent indentation in source file! Substitution {} found {} leading spaces, which is not a multiple of four.".format(
-            target_substring, leading_spaces
-        ))
-
-    def _CollectAndReplace(self, target_substring, expression, name):
-        indentation_level  = self._FindAndRemoveIndentation(target_substring)
-
-        out = KratosSympy.OutputVector_CollectingFactors(expression, name, self.write_language, indentation_level=indentation_level, replace_indices=False, assignment_op=" = ")
-        self.outstring = self.outstring.replace(target_substring, out)
 
     @classmethod
     def GetDefaultParameters(cls):
-        return KratosMultiphysics.Parameters("""
+        default_parameters = KratosMultiphysics.Parameters("""
         {
-            "language": "c",
-            "explicit": true,
-            "do_simplifications": false,
-            "geometry": "triangle",
-            "shock_capturing": true,
             "subscales": {
                 "ASGS" : true,
                 "OSS" : true
             },
-            "template_filename" : "PLEASE PROVIDE A template_filename",
-            "output_filename"   : "symbolic_generator_name_not_provided.cpp",
-            "echo_level" : 1
         }""")
+        default_parameters.RecursivelyAddMissingParameters(super().GetDefaultParameters())
+        return default_parameters
 
-    def _GenerateFiles(self):
-        with open(self.template_filename, "r") as template:
-            self.outstring = template.read()
-
-        # Touching the outfile just to make sure it is available
-        with open(self.output_filename, "w") as tmp:
-            tmp.write("This file is currently being processed by" + __file__)
-
-    def _ComputeNonLinearOperator(self, A, H, S, Ug):
-        L = defs.ZeroVector(self.geometry.blocksize)
-        for j in range(self.geometry.ndims):
-            # Convective operator product (A x grad(U))
-            A_j = A[j]
-            H_j = H.col(j)
-            L += A_j * H_j
-            # Diffusive flux
-            # Note that the diffusive flux is not added as it will involve 2nd
-            # order derivatives that vanish when introducing the linear FE
-            # discretization
-
-        # Source term addition
-        L -= S * Ug
-        return L
+    def TouchFiles(self):
+        super()._TouchFiles(__file__)
 
     def _ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
         L_adj = defs.ZeroVector(self.geometry.blocksize)
@@ -246,9 +168,9 @@ class CompressibleNavierStokesSymbolicGenerator:
             mom_name = "mom_proj_gauss"
             ene_name = "tot_ener_proj_gauss"
 
-        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, rho_name)
-        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, mom_name)
-        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, ene_name)
+        self.CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, rho_name)
+        self.CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, mom_name)
+        self.CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, ene_name)
 
     def _SubstituteSubscales(self, res, res_proj, rv, subscales, subscales_type, Tau):
         rv_gauss = rv.copy()
@@ -359,37 +281,16 @@ class CompressibleNavierStokesSymbolicGenerator:
             lhs_name = "lhs_gauss"
 
         target = "//substitute_rhs_{}D_{}".format(self.geometry.ndims, subscales_type)
-        self._CollectAndReplace(target, rhs, rhs_name)
+        self.CollectAndReplace(target, rhs, rhs_name)
 
         if self.is_explicit:
             return
 
         target = "//substitute_lhs_{}D_{}".format(self.geometry.ndims, subscales_type)
-        self._CollectAndReplace(target, lhs, lhs_name)
-
-    def _ReplaceWarningMessage(self):
-        message = "\n".join([
-            "/**",
-            " *",
-            " *                          WARNING! THIS FILE IS READ-ONLY",
-            " *",
-            " * This file has been auto-generated by compressible_navier_stokes_symbolic_generator.py",
-            " * located in the symbolic_generation directories of the FluidDynamicsApplication",
-            " *",
-            " * Any modifications to this file will be overwritten if and when that script is run again.",
-            " *",
-            " * In order to do any lasting changes, modify the template used by the script:",
-            " * " + self.template_filename,
-            " * located in the symbolic_generation directories of the FluidDynamicsApplication.",
-            " *",
-            " * In order to change the formulation you will have to modify the script itself.",
-            " */"
-        ])
-
-        self.outstring = self.outstring.replace("//automated_message", message)
+        self.CollectAndReplace(target, lhs, lhs_name)
 
     def Generate(self):
-        self._ReplaceWarningMessage()
+        self.WriteWarningMessage()
 
         KratosMultiphysics.Logger.Print("Computing geometry: {}".format(self.geometry))
 
@@ -444,7 +345,6 @@ class CompressibleNavierStokesSymbolicGenerator:
         V   = defs.Vector('V', block_size, real=True)              # Test function
         Q   = defs.Matrix('Q', block_size, dim, real=True)         # Gradient of V
         acc = defs.Vector('acc', block_size, real=True)            # Derivative of Dofs/Time
-        G   = defs.Matrix('G', block_size, dim, real=True)         # Diffusive Flux matrix
         res_proj = defs.Vector('res_proj', block_size, real=True)  # Residuals projection for the OSS
 
         # Calculate the Gauss point residual
@@ -516,12 +416,3 @@ class CompressibleNavierStokesSymbolicGenerator:
 
             (lhs, rhs) = self._ComputeLHSandRHS(rv_tot, U, w)
             self._OutputLHSandRHS(lhs, rhs, subscales_type)
-
-    def Write(self):
-        KratosMultiphysics.Logger.Print(" - Writing {}".format(self.output_filename))
-
-        with open(self.output_filename, "w") as outputfile:
-            outputfile.write(self.outstring)
-            outputfile.close()
-
-        KratosMultiphysics.Logger.Print("Geometry {} done".format(self.geometry))
