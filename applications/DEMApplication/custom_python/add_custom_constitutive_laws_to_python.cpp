@@ -40,7 +40,6 @@
 #include "custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
 #include "custom_constitutive/DEM_KDEM_CamClay_CL.h"
 #include "custom_constitutive/dem_kdem_fissured_rock_cl.h"
-#include "custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_beam_constitutive_law.h"
 #include "custom_constitutive/DEM_ExponentialHC_CL.h"
@@ -200,10 +199,6 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_KDEM_with_damage_parallel_bond_Hertz, DEM_KDEM_with_damage_parallel_bond_Hertz::Pointer, DEM_KDEM_with_damage_parallel_bond>(m, "DEM_KDEM_with_damage_parallel_bond_Hertz")
-        .def(py::init<>())
-        ;
-
-    py::class_<DEM_sintering_continuum, DEM_sintering_continuum::Pointer, DEM_KDEM>(m, "DEM_sintering_continuum")
         .def(py::init<>())
         ;
 
