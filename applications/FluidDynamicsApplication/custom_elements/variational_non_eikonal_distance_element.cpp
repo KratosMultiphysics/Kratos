@@ -345,7 +345,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     // if ( radius > (0.1*element_size) ) source_coeff = 2.0/radius;
     // //const double dissipative_coefficient = 1.0e-8;
 
-    double source_coeff = 1.1*scale*mean_curvature;
+    double source_coeff = 1.0*scale*mean_curvature;
 
     // num_dof = 4*num_nodes
     if(rLeftHandSideMatrix.size1() != num_dof)

@@ -134,10 +134,11 @@ public:
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Volume);
         double h = ComputeH(DN_DX, Volume);
 
-
         //here we get all the variables we will need
         array_1d<double,TNumNodes> phi, phi_old;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
+
+        Vector normal_vector = ZeroVector(TDim);
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -147,12 +148,24 @@ public:
 
             v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
+
+            normal_vector += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
         }
+
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
 
-        //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
+        normal_vector = (1.0/norm_2(normal_vector))*normal_vector;
 
+        //for (unsigned int i = 0; i < TNumNodes; i++)
+        //{
+        //    normal_velocity[i] = 1.0/norm_grad * inner_prod(grad_phi_halfstep, 0.5*(v[i]+vold[i]));
+        //}
+
+        //array_1d<double,TDim> grad_normal_velocity = prod(trans(DN_DX), normal_velocity);
+        //const double correction_velocity_coefficient = 1.0/norm_grad/norm_grad * inner_prod(grad_phi_halfstep, grad_normal_velocity);
+
+        //here we use a term beta which takes into account a reaction term of the type "beta*div_v"
 
         //compute the divergence of v
         double div_v = 0.0;
@@ -181,8 +194,14 @@ public:
             array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                 for(unsigned int k=0; k<TDim; k++)
+                 for(unsigned int k=0; k<TDim; k++){
                     vel_gauss[k] += 0.5*N[i]*(v[i][k]+vold[i][k]);
+
+                    if (std::abs(phi[i]) < 0.1){
+                        vel_gauss[k] -= N[i] * std::abs(phi[i])*normal_vector[k]*inner_prod( normal_vector,
+                            GetGeometry()[i].FastGetSolutionStepValue(NORMAL_VELOCITY_GRADIENT) );
+                    }
+                 }
             }
             const double norm_vel = norm_2(vel_gauss);
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);

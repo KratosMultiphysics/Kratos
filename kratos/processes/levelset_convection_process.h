@@ -32,6 +32,8 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h"
 
+#include "processes/compute_nodal_gradient_process.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -71,6 +73,9 @@ public:
 
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+
+    typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> ComputeGradientProcessType;
+    typedef ComputeGradientProcessType::Pointer ComputeGradientProcessPointerType;
 
     ///@}
     ///@name Pointer Definitions
@@ -162,6 +167,15 @@ public:
 
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mpSolvingStrategy->Check();
+
+        if (true){ // regularize the level-set function
+            mpGradientCalculator = Kratos::make_unique<ComputeGradientProcessType>(
+            mrBaseModelPart,
+            NORMAL_VELOCITY,
+            NORMAL_VELOCITY_GRADIENT,
+            NODAL_AREA,
+            true); // the variable is also non-historical
+        }
 
         KRATOS_CATCH("")
     }
@@ -262,6 +276,14 @@ public:
                 const double dist = it_node->FastGetSolutionStepValue(mrLevelSetVar);
                 it_node->FastGetSolutionStepValue(mrLevelSetVar, 1) = dist;
                 it_node->SetValue(mrLevelSetVar, dist);
+
+                it_node->SetValue( NORMAL_VELOCITY, inner_prod(
+                    it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT),
+                    0.5*( (Nold + Nold_before)*v_old + (Nnew + Nnew_before)*v ) ) );
+            }
+
+            if (true){ // regularize the level-set function
+                mpGradientCalculator->Execute();
             }
 
             mpSolvingStrategy->Solve(); // phi_n+1
@@ -600,6 +622,8 @@ protected:
     std::vector< array_1d<double,3> > mVelocity, mVelocityOld;
 
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
+
+    ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
 
     ///@}
     ///@name Protected Operators

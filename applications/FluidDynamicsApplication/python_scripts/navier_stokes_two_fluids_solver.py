@@ -342,7 +342,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = TimeStep*DT/0.01*9.81#0.0#9.81#
+            gravity = 0.0#TimeStep*DT/0.01*9.81#9.81#
             if gravity > 9.81:
                 gravity = 9.81
 
@@ -419,13 +419,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             #     print(time.time())
 
-            if (TimeStep % 1 == 0):
+            print("Elliptic Redistancing Started")
+            print(time.time())
+
+            if (TimeStep % 10000 == 0):
                 (self.distance_gradient_process).Execute() # Always check if calculated above
                 (self.curvature_calculation_process).Execute()
                 (self.variational_non_eikonal_distance).Execute()
                 for node in self.main_model_part.Nodes:
                     smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
+
+            print("Elliptic Redistancing Finished")
 
             #########################################
             ##

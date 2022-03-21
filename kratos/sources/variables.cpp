@@ -279,6 +279,10 @@ KRATOS_CREATE_VARIABLE(double, MAX_DT)
 KRATOS_CREATE_VARIABLE(double, VEL_ART_VISC)
 KRATOS_CREATE_VARIABLE(double, PR_ART_VISC)
 
+//for Level Set application: normal velocity (with respect to the iso-distance contours)
+KRATOS_CREATE_VARIABLE(double, NORMAL_VELOCITY)
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_VELOCITY_GRADIENT)
+
 //for Vulcan application
 KRATOS_CREATE_VARIABLE(double, LATENT_HEAT)
 KRATOS_CREATE_VARIABLE(double, AMBIENT_TEMPERATURE)
@@ -865,6 +869,10 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(MAX_DT)
     KRATOS_REGISTER_VARIABLE(VEL_ART_VISC)
     KRATOS_REGISTER_VARIABLE(PR_ART_VISC)
+
+    //normal velocity (with respect to the iso-distance contours)
+    KRATOS_REGISTER_VARIABLE( NORMAL_VELOCITY)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NORMAL_VELOCITY_GRADIENT)
 
     //--------------- Level Set Application -------------------//
 

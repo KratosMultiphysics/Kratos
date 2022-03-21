@@ -294,6 +294,10 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, VEL_ART_VISC )
     KRATOS_DEFINE_VARIABLE( double, PR_ART_VISC )
 
+    //for Level Set application: normal velocity (with respect to the iso-distance contours)
+    KRATOS_DEFINE_VARIABLE( double, NORMAL_VELOCITY)
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( NORMAL_VELOCITY_GRADIENT)
+
     //for Vulcan application
     KRATOS_DEFINE_VARIABLE( double, LATENT_HEAT )
     KRATOS_DEFINE_VARIABLE( double, AMBIENT_TEMPERATURE )
