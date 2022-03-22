@@ -234,8 +234,7 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
-        auto p_properties = const_cast<Element&>(*this).pGetProperties(); // Necessary for backwards compatibility.
-        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), p_properties);
+        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this));
         return p_new_elem;
@@ -971,7 +970,8 @@ public:
         return mpProperties;
     }
 
-    PropertiesType::ConstPointer pGetProperties() const
+    // Backwards compatibility. Returning ::ConstPointer would break Clone
+    PropertiesType::Pointer pGetProperties() const
     {
         return mpProperties;
     }
