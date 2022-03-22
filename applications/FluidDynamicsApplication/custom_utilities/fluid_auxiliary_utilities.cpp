@@ -260,7 +260,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
                     cond_flow_rate = CalculateConditionFlowRate(r_geom);
                 } else if (IsSplit(rNodalDistancesTLS)){
                     // Get the current condition parent
-                    const auto p_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)(0);
+                    auto p_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)(0);
                     KRATOS_ERROR_IF_NOT(p_parent_element.get()) << "Condition " << rCondition.Id() << " has no parent element assigned." << std::endl;
                     const auto& r_parent_geom = p_parent_element->GetGeometry();
 

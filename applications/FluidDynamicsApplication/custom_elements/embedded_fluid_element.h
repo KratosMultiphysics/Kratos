@@ -304,11 +304,11 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    void InitializeGeometryData(EmbeddedElementData& rData) const;
+    void InitializeGeometryData(EmbeddedElementData& rData);
 
     void DefineStandardGeometryData(EmbeddedElementData& rData) const;
 
-    void DefineCutGeometryData(EmbeddedElementData& rData) const;
+    void DefineCutGeometryData(EmbeddedElementData& rData);
 
     void NormalizeInterfaceNormals(typename EmbeddedElementData::InterfaceNormalsType& rNormals, double Tolerance) const;
 
@@ -539,7 +539,7 @@ namespace Internals {
 
 template <size_t TDim, size_t TNumNodes>
 ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator(
-    const Element& rElement, const Vector& rDistance);
+    Element& rElement, const Vector& rDistance);
 
 }
 

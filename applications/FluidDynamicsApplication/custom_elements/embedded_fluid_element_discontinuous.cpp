@@ -329,7 +329,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::PrintInfo(std::ostream& rO
 // Operations
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(EmbeddedDiscontinuousElementData& rData) const
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::InitializeGeometryData(EmbeddedDiscontinuousElementData& rData)
 {
     rData.PositiveIndices.clear();
     rData.NegativeIndices.clear();
@@ -372,7 +372,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineStandardGeometryData
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData) const
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(EmbeddedDiscontinuousElementData& rData)
 {
     // Auxiliary distance vector for the element subdivision utility
     Vector elemental_distances = rData.ElementalDistances;
@@ -430,7 +430,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineCutGeometryData(Embe
 }
 
 template <class TBaseElement>
-void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData) const
+void EmbeddedFluidElementDiscontinuous<TBaseElement>::DefineIncisedGeometryData(EmbeddedDiscontinuousElementData& rData)
 {
     // Auxiliary distance vector for the element subdivision utility
     Vector elemental_distances = rData.ElementalDistances;
@@ -1135,7 +1135,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForce(
 template <class TBaseElement>
 void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateDragForceCenter(
     EmbeddedDiscontinuousElementData& rData,
-    array_1d<double,3>& rDragForceLocation) const
+    array_1d<double,3>& rDragForceLocation)
 {
     const auto &r_geometry = this->GetGeometry();
     array_1d<double,3> tot_drag = ZeroVector(3);
@@ -1289,7 +1289,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::load(Serializer& rSerializ
 namespace EmbeddedDiscontinuousInternals {
 
 template <>
-ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<2, 3>(const Element& rElement, const Vector& rElementalDistances)
+ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<2, 3>(Element& rElement, const Vector& rElementalDistances)
 {
     return Kratos::make_unique<Triangle2D3AusasModifiedShapeFunctions>(
         rElement.pGetGeometry(),
@@ -1297,7 +1297,7 @@ ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<2, 3>(const Ele
 }
 
 template <>
-ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<3, 4>(const Element& rElement, const Vector& rElementalDistances)
+ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<3, 4>(Element& rElement, const Vector& rElementalDistances)
 {
     return Kratos::make_unique<Tetrahedra3D4AusasModifiedShapeFunctions>(
         rElement.pGetGeometry(),
@@ -1306,7 +1306,7 @@ ModifiedShapeFunctions::UniquePointer GetShapeFunctionCalculator<3, 4>(const Ele
 
 template <>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<2, 3>(
-    const Element& rElement,
+    Element& rElement,
     const Vector& rElementalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
@@ -1314,7 +1314,7 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<2, 3>(
 
 template <>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
-    const Element& rElement,
+    Element& rElement,
     const Vector& rElementalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(), rElementalDistances));
@@ -1322,7 +1322,7 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
 
 template <>
 ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator<2, 3>(
-    const Element& rElement,
+    Element& rElement,
     const Vector& rElementalDistancesWithExtrapolated,
     const Vector& rElementalEdgeDistancesExtrapolated)
 {
@@ -1334,7 +1334,7 @@ ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator<2, 3>(
 
 template <>
 ModifiedShapeFunctions::UniquePointer GetIncisedShapeFunctionCalculator<3, 4>(
-    const Element& rElement,
+    Element& rElement,
     const Vector& rElementalDistancesWithExtrapolated,
     const Vector& rElementalEdgeDistancesExtrapolated)
 {

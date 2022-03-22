@@ -319,7 +319,7 @@ void EmbeddedFluidElement<TBaseElement>::PrintInfo(
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::InitializeGeometryData(
-    EmbeddedElementData& rData) const {
+    EmbeddedElementData& rData) {
 
     rData.PositiveIndices.clear();
     rData.NegativeIndices.clear();
@@ -357,7 +357,7 @@ void EmbeddedFluidElement<TBaseElement>::DefineStandardGeometryData(
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
-    EmbeddedElementData& rData) const {
+    EmbeddedElementData& rData) {
 
     // Auxiliary distance vector for the element subdivision utility
     Vector distances = rData.Distance;
@@ -1135,13 +1135,13 @@ namespace Internals {
 
 template <>
 ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<2, 3>(
-    const Element& rElement, const Vector& rDistance) {
+    Element& rElement, const Vector& rDistance) {
     return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
 }
 
 template <>
 ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
-    const Element& rElement, const Vector& rDistance) {
+    Element& rElement, const Vector& rDistance) {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(),rDistance));
 }
 
