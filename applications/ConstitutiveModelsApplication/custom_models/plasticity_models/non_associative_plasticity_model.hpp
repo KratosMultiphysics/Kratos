@@ -174,7 +174,7 @@ namespace Kratos
              */
             void SetValue(const Variable<Vector>& rVariable,
                   const Vector& rValue,
-                  const ProcessInfo& rCurrentProcessInfo) override
+                  const ProcessInfo& rCurrentProcessInfo) override 
             {
                KRATOS_TRY
 

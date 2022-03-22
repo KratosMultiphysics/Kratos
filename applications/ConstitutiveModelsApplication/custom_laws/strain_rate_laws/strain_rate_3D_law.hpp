@@ -108,7 +108,7 @@ namespace Kratos
      * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) const override;
+    int Check(const Properties& rProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access

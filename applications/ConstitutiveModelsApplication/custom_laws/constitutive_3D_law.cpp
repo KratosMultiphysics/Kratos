@@ -839,7 +839,7 @@ namespace Kratos
 
   int Constitutive3DLaw::Check(const Properties& rProperties,
 			       const GeometryType& rElementGeometry,
-			       const ProcessInfo& rCurrentProcessInfo) const
+			       const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
