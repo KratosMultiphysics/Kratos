@@ -1,0 +1,35 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    3  -1.0   1.0   0.0000000000
+    4  -1.0   -1.0   0.0000000000
+End Nodes
+
+Begin Elements SphericParticle3D// GUI group identifier: Define particle groups Auto3
+        5          0     3 
+        6          0     4 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: Define particle groups Auto3
+          3 0          1
+          4 0          1
+End NodalData
+
+Begin SubModelPart dem // Group Define particle groups Auto1 // Subtree DEMParts
+    Begin SubModelPartNodes
+            3
+            4
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            5
+            6
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+

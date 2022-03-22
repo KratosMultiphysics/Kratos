@@ -32,6 +32,7 @@ import test_DEM_search_flags
 import test_omp
 import test_erase_particles
 import test_search_nodes
+import test_fem_dofs
 
 def AssembleTestSuites():
 
@@ -55,6 +56,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
     #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
     #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_3"))
+    smallSuite.addTest(test_fem_dofs.TestFEMDofs("test_dofs"))
+
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
