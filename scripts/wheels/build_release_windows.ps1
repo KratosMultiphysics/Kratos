@@ -1,4 +1,4 @@
-$RELEASE_BRANCH="ci/updating-whell-app-descriptors"
+$RELEASE_BRANCH="v9.1.1"
 
 $HOST_SWAP="C:/data_swap_host"
 $GUEST_SWAP="C:/data_swap_guest"

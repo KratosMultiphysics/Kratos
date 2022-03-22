@@ -817,7 +817,7 @@ const std::unordered_set<std::string> GetNonHistoricalVariablesNames(ModelPart& 
         if(rContainer.size() == 0) {
             KRATOS_WARNING("DEBUG") << "Checking and empty container" << std::endl;
         } else {
-            for(auto & variable: rContainer.begin()->Data()) {
+            for(auto & variable: rContainer.begin()->GetData()) {
                 variable_names.insert(variable.first->Name());
             }
         }
@@ -826,7 +826,7 @@ const std::unordered_set<std::string> GetNonHistoricalVariablesNames(ModelPart& 
             KRATOS_WARNING("DEBUG") << "Checking and empty container" << std::endl;
         }
         for(auto & entity : rContainer) {
-            for(auto & variable: entity.Data()) {
+            for(auto & variable: entity.GetData()) {
                 variable_names.insert(variable.first->Name());
             }
         }
