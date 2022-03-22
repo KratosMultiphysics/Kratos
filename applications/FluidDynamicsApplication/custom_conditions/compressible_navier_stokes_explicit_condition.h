@@ -483,6 +483,9 @@ protected:
 
         ConditionDataStruct data;
 
+        // Element adjacent to this condition
+        auto& parent_element = *GetValue(NEIGHBOUR_ELEMENTS).begin();
+        
         // Getting data for the given geometry
         const auto& r_geometry = GetGeometry();
 
@@ -490,7 +493,7 @@ protected:
         ComputeGeometryData(r_geometry, data);
 
         // Database access to all of the variables needed
-        Properties &r_properties = this->GetProperties();
+        const Properties &r_properties = parent_element.GetProperties();
         data.mu = r_properties.GetValue(DYNAMIC_VISCOSITY);
         data.lambda = r_properties.GetValue(CONDUCTIVITY);
         data.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
@@ -502,7 +505,6 @@ protected:
         const double aux_theta = theta > 0 ? 1.0 / (theta * time_step) : 0.0;
 
         // Gradients
-        auto& parent_element = *GetValue(NEIGHBOUR_ELEMENTS).begin();
         std::vector<array_1d<double, 3>> grad_density;
         std::vector<array_1d<double, 3>> grad_total_energy;
         std::vector<Matrix> grad_momentum;
