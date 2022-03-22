@@ -82,7 +82,7 @@ void SplitInternalInterfacesProcess::SplitBoundary(
     std::vector< std::pair< Geometry< Node<3> >::Pointer, Geometry< Node<3> >::Pointer> > neighbouring_elements;
 
     for(auto& rElem : mrModelPart.Elements()) {
-        const auto& neighb = rElem.GetValue(NEIGHBOUR_ELEMENTS);
+        auto& neighb = rElem.GetValue(NEIGHBOUR_ELEMENTS);
 
         for(unsigned int i=0; i<rElem.GetGeometry().size(); ++i) {
 
