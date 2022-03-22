@@ -637,7 +637,7 @@ public:
         return SolutionStepData().pGetVariablesList();
     }
 
-    const VariablesList::Pointer pGetVariablesList() const
+    VariablesList::ConstPointer pGetVariablesList() const
     {
         return SolutionStepData().pGetVariablesList();
     }

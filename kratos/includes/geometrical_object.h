@@ -147,7 +147,7 @@ public:
      * @brief Returns the pointer to the geometry (const version)
      * @return The pointer of the geometry
      */
-    const GeometryType::Pointer pGetGeometry() const
+    GeometryType::ConstPointer pGetGeometry() const
     {
         return mpGeometry;
     }

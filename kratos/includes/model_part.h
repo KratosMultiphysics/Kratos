@@ -427,7 +427,7 @@ public:
     }
 
     /** Returns the Node::Pointer corresponding to it's identifier */
-    const NodeType::Pointer pGetNode(const IndexType NodeId, const IndexType ThisIndex = 0) const
+    NodeType::ConstPointer pGetNode(const IndexType NodeId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetNode(NodeId);
     }
@@ -1102,7 +1102,7 @@ public:
     }
 
     /** Returns the Element::Pointer  corresponding to it's identifier */
-    const ElementType::Pointer pGetElement(const IndexType ElementId, const IndexType ThisIndex = 0) const
+    ElementType::ConstPointer pGetElement(const IndexType ElementId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetElement(ElementId);
     }
@@ -1294,7 +1294,7 @@ public:
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
-    const ConditionType::Pointer pGetCondition(const IndexType ConditionId, const IndexType ThisIndex = 0) const
+    ConditionType::ConstPointer pGetCondition(const IndexType ConditionId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetCondition(ConditionId);
     }
@@ -1556,7 +1556,7 @@ public:
     }
 
     /// Returns the const Geometry::Pointer corresponding to the Id
-    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
+    typename GeometryType::ConstPointer pGetGeometry(IndexType GeometryId) const {
         return mGeometries.pGetGeometry(GeometryId);
     }
 
@@ -1566,7 +1566,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
+    typename GeometryType::ConstPointer pGetGeometry(std::string GeometryName) const {
         return mGeometries.pGetGeometry(GeometryName);
     }
 
@@ -1743,7 +1743,7 @@ public:
         return mpProcessInfo;
     }
 
-    const ProcessInfo::Pointer pGetProcessInfo() const
+    ProcessInfo::ConstPointer pGetProcessInfo() const
     {
         return mpProcessInfo;
     }
@@ -1768,7 +1768,7 @@ public:
         return mMeshes(ThisIndex);
     }
 
-    const MeshType::Pointer pGetMesh(IndexType ThisIndex = 0) const
+    MeshType::ConstPointer pGetMesh(IndexType ThisIndex = 0) const
     {
         return mMeshes(ThisIndex);
     }

@@ -927,7 +927,7 @@ public:
         return mpProperties;
     }
 
-    const PropertiesType::Pointer pGetProperties() const
+    PropertiesType::ConstPointer pGetProperties() const
     {
         return mpProperties;
     }

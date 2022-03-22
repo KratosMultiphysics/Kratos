@@ -55,6 +55,7 @@ public:
     typedef std::size_t SizeType;
 
     typedef typename TGeometryType::Pointer GeometryPointerType;
+    typedef typename TGeometryType::ConstPointer GeometryConstPointerType;
 
 
     /// Geometry Hash Map Container.
@@ -152,7 +153,7 @@ public:
     }
 
     /// Returns the const Geometry::Pointer corresponding to its Id
-    const GeometryPointerType pGetGeometry(IndexType GeometryId) const
+    GeometryConstPointerType pGetGeometry(IndexType GeometryId) const
     {
         auto i = mGeometries.find(GeometryId);
         KRATOS_ERROR_IF(i == mGeometries.end())
@@ -171,7 +172,7 @@ public:
     }
 
     /// Returns the Geometry::Pointer corresponding to its name
-    const GeometryPointerType pGetGeometry(std::string GeometryName) const
+    GeometryConstPointerType pGetGeometry(std::string GeometryName) const
     {
         auto hash_index = TGeometryType::GenerateId(GeometryName);
         auto i = mGeometries.find(hash_index);
