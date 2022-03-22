@@ -723,8 +723,6 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.step=1
         if(self.step==self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]):
             
-            print("juliiiiiiiiiiii")
-            
             for node in self.fluid_solver.main_model_part.Nodes:
                 if(node.IsFixed(KratosMultiphysics.VELOCITY_X)==True):
                     node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0) #NODES NOT 
