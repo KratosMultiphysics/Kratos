@@ -1008,7 +1008,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         const double T0n = 16000000; // Interfacial Normal Strength
         const double T0s = 27000000; // Interfacial Shear Strength
         const double T0t = 27000000; // Interfacial Shear Strength
-        const double GIc = 300000; // Mode I Energy Release Rate
+        const double GIc = 102; // Mode I Energy Release Rate
         const double GIIc = 194; // Mode II Energy Release Rate
         const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
         double Gc = mGc; // Mix Mode Energy Release Rate
@@ -1019,7 +1019,8 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
         double T_eq = mT_eq; // Equivalent Stress
         double DamageIndicator = mDamageIndicator; // Onset of Damage
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
+        const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
         double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2); // Damage Initiation Criterion
         if (Fd >= 1 || DamageIndicator >= 2) {
             Delta_eq = std::sqrt(std::pow(strain_vector[2],2)+std::pow(strain_vector[4],2)+std::pow(strain_vector[5],2));
@@ -1456,7 +1457,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         const double T0n = 16000000; // Interfacial Normal Strength
         const double T0s = 27000000; // Interfacial Shear Strength
         const double T0t = 27000000; // Interfacial Shear Strength
-        const double GIc = 300000; // Mode I Energy Release Rate
+        const double GIc = 102; // Mode I Energy Release Rate
         const double GIIc = 194; // Mode II Energy Release Rate
         const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
         double Gc = mGc; // Mix Mode Energy Release Rate
@@ -1467,7 +1468,8 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
         double T_eq = mT_eq; // Equivalent Stress
         double DamageIndicator = mDamageIndicator; // Onset of Damage
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
+        const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
         double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2); // Damage Initiation Criterion
         if (Fd >= 1 || DamageIndicator >= 2) {
             Delta_eq = std::sqrt(std::pow(strain_vector[2],2)+std::pow(strain_vector[4],2)+std::pow(strain_vector[5],2));
