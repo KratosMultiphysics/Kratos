@@ -1005,12 +1005,12 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         //
 
         // Delamination Damage Criterion
-        const double T0n = 1; // Interfacial Normal Strength
-        const double T0s = 1; // Interfacial Shear Strength
-        const double T0t = 1; // Interfacial Shear Strength
-        const double GIc = 1; // Mode I Energy Release Rate
-        const double GIIc = 1; // Mode II Energy Release Rate
-        const double Eta = 1; // Benzeggagh-Kenane (B-K) Law Coefficient
+        const double T0n = 16000000; // Interfacial Normal Strength
+        const double T0s = 27000000; // Interfacial Shear Strength
+        const double T0t = 27000000; // Interfacial Shear Strength
+        const double GIc = 300000; // Mode I Energy Release Rate
+        const double GIIc = 194; // Mode II Energy Release Rate
+        const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
         double Gc = mGc; // Mix Mode Energy Release Rate
         double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
         double SERR = mSERR; // Strain Energy Release Rate 
@@ -1052,7 +1052,8 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
         //
 
-
+        KRATOS_WATCH(delamination_damage);
+        
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
         if (flag_const_tensor) {
@@ -1452,12 +1453,12 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         //
 
         // Delamination Damage Criterion
-        const double T0n = 1; // Interfacial Normal Strength
-        const double T0s = 1; // Interfacial Shear Strength
-        const double T0t = 1; // Interfacial Shear Strength
-        const double GIc = 1; // Mode I Energy Release Rate
-        const double GIIc = 1; // Mode II Energy Release Rate
-        const double Eta = 1; // Benzeggagh-Kenane (B-K) Law Coefficient
+        const double T0n = 16000000; // Interfacial Normal Strength
+        const double T0s = 27000000; // Interfacial Shear Strength
+        const double T0t = 27000000; // Interfacial Shear Strength
+        const double GIc = 300000; // Mode I Energy Release Rate
+        const double GIIc = 194; // Mode II Energy Release Rate
+        const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
         double Gc = mGc; // Mix Mode Energy Release Rate
         double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
         double SERR = mSERR; // Strain Energy Release Rate 
