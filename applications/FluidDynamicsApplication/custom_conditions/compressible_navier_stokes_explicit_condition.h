@@ -29,6 +29,7 @@
 #include "includes/serializer.h"
 #include "includes/process_info.h"
 #include "utilities/element_size_calculator.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"

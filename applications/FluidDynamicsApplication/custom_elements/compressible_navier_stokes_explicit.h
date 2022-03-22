@@ -629,7 +629,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
     } else if (rVariable == SOUND_VELOCITY) {
         Output = CalculateMidPointSoundVelocity();
     } else {
-        KRATOS_ERROR << "Variable not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not implemented." << std::endl;
     }
 }
 
@@ -650,7 +650,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
     } else if (rVariable == MOMENTUM_PROJECTION) {
         CalculateMomentumProjection(rCurrentProcessInfo);
     } else {
-        KRATOS_ERROR << "Variable not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not implemented." << std::endl;
     }
 }
 
@@ -667,7 +667,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::Calculate(
     {
         Output = CalculateMidPointMomentumGradient();
     } else {
-        KRATOS_ERROR << "Variable not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not implemented." << std::endl;
     }
 }
 
@@ -714,7 +714,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
             rOutput[i_gauss] = div_v;
         }
     } else {
-        KRATOS_ERROR << "Variable not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not implemented." << std::endl;
     }
 }
 
@@ -736,7 +736,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
             rOutput[i_gauss] = mom_grad;
         }
     } else {
-        KRATOS_ERROR << "Variable not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not implemented." << std::endl;
     }
 }
 
@@ -757,6 +757,12 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rho_grad;
         }
+    } else if (rVariable == TOTAL_ENERGY_GRADIENT) {
+        const array_1d<double,3> temp_total_energy_grad = CalculateMidPointDofGradient<TOTAL_ENERGY>();
+
+        for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
+            rOutput[i_gauss] = temp_total_energy_grad;
+        }
     } else if (rVariable == TEMPERATURE_GRADIENT) {
         const array_1d<double,3> temp_grad = CalculateMidPointTemperatureGradient();
 
@@ -769,7 +775,7 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
             rOutput[i_gauss] = rot_v;
         }
     } else {
-        KRATOS_ERROR << "Variable not implemented." << std::endl;
+        KRATOS_ERROR << "Variable " << rVariable.Name() << " not implemented." << std::endl;
     }
 }
 
