@@ -31,7 +31,26 @@ BruteForcePointLocatorAdaptor::BruteForcePointLocatorAdaptor(ModelPart& rModelPa
 }
 
 
-const Element::WeakPointer BruteForcePointLocatorAdaptor::FindElement(const Point& rPoint) const
+Element::ConstWeakPointer BruteForcePointLocatorAdaptor::FindElement(const Point& rPoint) const
+{
+    KRATOS_TRY
+
+    Kratos::Vector shape_function_values;
+
+    const int element_id =  mLocator.FindElement(
+        rPoint,
+        shape_function_values,
+        mConfiguration,
+        mTolerance);
+
+    // Awkward syntax due to the intrusive pointers of Element
+
+    return -1 < element_id ? mrModelPart.pGetElement(element_id).get() : nullptr;
+
+    KRATOS_CATCH("");
+}
+
+Element::WeakPointer BruteForcePointLocatorAdaptor::FindElement(const Point& rPoint)
 {
     KRATOS_TRY
 

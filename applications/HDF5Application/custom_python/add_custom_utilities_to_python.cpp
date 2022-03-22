@@ -29,9 +29,21 @@ class PointLocatorAdaptorTrampoline : public HDF5::PointLocatorAdaptor
 public:
     using HDF5::PointLocatorAdaptor::PointLocatorAdaptor;
 
-    const Element::WeakPointer FindElement(const Point& rPoint) const override
+    Element::ConstWeakPointer FindElement(const Point& rPoint) const override
     {
-        using ReturnType = const Element::WeakPointer;
+        using ReturnType = Element::ConstWeakPointer;
+        using BaseType = const HDF5::PointLocatorAdaptor;
+
+        PYBIND11_OVERRIDE_PURE(
+            ReturnType,
+            BaseType,
+            FindElement,
+            rPoint);
+    }
+
+    Element::WeakPointer FindElement(const Point& rPoint) override
+    {
+        using ReturnType = Element::WeakPointer;
         using BaseType = HDF5::PointLocatorAdaptor;
 
         PYBIND11_OVERRIDE_PURE(
@@ -47,7 +59,7 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
 {
     pybind11::class_<HDF5::PointLocatorAdaptor, HDF5::PointLocatorAdaptor::Pointer, PointLocatorAdaptorTrampoline>(rModule, "PointLocatorAdaptor")
         .def(pybind11::init<>())
-        .def("FindElement", &HDF5::PointLocatorAdaptor::FindElement)
+        .def("FindElement", [](HDF5::PointLocatorAdaptor& self, const Point& rPoint) { return self.FindElement(rPoint); })
         ;
 
     pybind11::class_<HDF5::BruteForcePointLocatorAdaptor, HDF5::BruteForcePointLocatorAdaptor::Pointer, HDF5::PointLocatorAdaptor>(rModule, "BruteForcePointLocatorAdaptor")
