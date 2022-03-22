@@ -309,9 +309,11 @@ private:
     const SmallDisplacement mSmallDisplacement2D8N;
     const SmallDisplacement mSmallDisplacement2D9N;
     const SmallDisplacement mSmallDisplacement3D4N;
+    const SmallDisplacement mSmallDisplacement3D5N;
     const SmallDisplacement mSmallDisplacement3D6N;
     const SmallDisplacement mSmallDisplacement3D8N;
     const SmallDisplacement mSmallDisplacement3D10N;
+    const SmallDisplacement mSmallDisplacement3D13N;
     const SmallDisplacement mSmallDisplacement3D15N;
     const SmallDisplacement mSmallDisplacement3D20N;
     const SmallDisplacement mSmallDisplacement3D27N;
@@ -343,9 +345,11 @@ private:
     const TotalLagrangian mTotalLagrangian2D8N;
     const TotalLagrangian mTotalLagrangian2D9N;
     const TotalLagrangian mTotalLagrangian3D4N;
+    const TotalLagrangian mTotalLagrangian3D5N;
     const TotalLagrangian mTotalLagrangian3D6N;
     const TotalLagrangian mTotalLagrangian3D8N;
     const TotalLagrangian mTotalLagrangian3D10N;
+    const TotalLagrangian mTotalLagrangian3D13N;
     const TotalLagrangian mTotalLagrangian3D15N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
@@ -363,9 +367,11 @@ private:
     const UpdatedLagrangian mUpdatedLagrangian2D8N;
     const UpdatedLagrangian mUpdatedLagrangian2D9N;
     const UpdatedLagrangian mUpdatedLagrangian3D4N;
+    const UpdatedLagrangian mUpdatedLagrangian3D5N;
     const UpdatedLagrangian mUpdatedLagrangian3D6N;
     const UpdatedLagrangian mUpdatedLagrangian3D8N;
     const UpdatedLagrangian mUpdatedLagrangian3D10N;
+    const UpdatedLagrangian mUpdatedLagrangian3D13N;
     const UpdatedLagrangian mUpdatedLagrangian3D15N;
     const UpdatedLagrangian mUpdatedLagrangian3D20N;
     const UpdatedLagrangian mUpdatedLagrangian3D27N;

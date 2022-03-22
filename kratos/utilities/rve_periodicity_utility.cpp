@@ -16,7 +16,6 @@
 
 // Project includes
 #include "utilities/rve_periodicity_utility.h"
-#include "utilities/binbased_fast_point_locator_conditions.h"
 #include "constraints/linear_master_slave_constraint.h"
 
 namespace Kratos
@@ -29,11 +28,40 @@ void RVEPeriodicityUtility::AssignPeriodicity(
     const double SearchTolerance
     )
 {
+    // Get DOMAIN_SIZE from ProcessInfo container
+    const auto& r_process_info = rMasterModelPart.GetProcessInfo();
+    KRATOS_ERROR_IF_NOT(r_process_info.Has(DOMAIN_SIZE))
+        << "DOMAIN_SIZE not found in " << rMasterModelPart.FullName() << " model part ProcessInfo." << std::endl;
+    const std::size_t domain_size = r_process_info[DOMAIN_SIZE];
+
+    // Call the assign periodicity methods specialization
+    if (domain_size == 2) {
+        AuxiliaryAssignPeriodicity<2>(rMasterModelPart, rSlaveModelPart, rStrainTensor, rDirection, SearchTolerance);
+    } else if (domain_size == 3) {
+        AuxiliaryAssignPeriodicity<3>(rMasterModelPart, rSlaveModelPart, rStrainTensor, rDirection, SearchTolerance);
+    } else {
+        KRATOS_ERROR << "Wrong DOMAIN_SIZE value " << domain_size << " in " << rMasterModelPart.FullName() << " model part ProcessInfo." << std::endl;
+    }
+}
+
+template<std::size_t TDim>
+void RVEPeriodicityUtility::AuxiliaryAssignPeriodicity(
+    ModelPart& rMasterModelPart,
+    ModelPart& rSlaveModelPart,
+    const Matrix& rStrainTensor,
+    const Vector& rDirection,
+    const double SearchTolerance
+    )
+{
     KRATOS_ERROR_IF(rMasterModelPart.NumberOfConditions() == 0) << "The master is expected to have conditions and it is empty" << std::endl;
 
     const Vector translation = prod(rStrainTensor, rDirection);
+    array_1d<double,3> aux_direction = ZeroVector(3);
+    for (std::size_t i = 0; i < rDirection.size(); ++i) {
+        aux_direction(i) = rDirection[i];
+    }
 
-    BinBasedFastPointLocatorConditions<3> bin_based_point_locator(rMasterModelPart);
+    BinBasedFastPointLocatorConditions<TDim> bin_based_point_locator(rMasterModelPart);
     bin_based_point_locator.UpdateSearchDatabase();
 
     int max_search_results = 100;
@@ -46,7 +74,7 @@ void RVEPeriodicityUtility::AssignPeriodicity(
 
         Condition::Pointer p_host_cond;
         Vector N;
-        array_1d<double, 3> transformed_slave_coordinates = it_node->GetInitialPosition() - rDirection;
+        array_1d<double, 3> transformed_slave_coordinates = it_node->GetInitialPosition() - aux_direction;
 
         // Finding the host element for this node
         const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, N, p_host_cond, max_search_results, SearchTolerance);
@@ -168,11 +196,19 @@ MasterSlaveConstraint::Pointer RVEPeriodicityUtility::GenerateConstraint(
 
 void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVariable)
 {
+    // First get the problem domain size
+    const std::size_t domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
     // Get the components
+    std::vector<std::string> comp_list ({"_X","_Y"});
+    if (domain_size == 3) {
+        comp_list.push_back("_Z");
+    }
     const std::string& r_base_variable_name = rVariable.Name();
-    auto& r_var_x = KratosComponents<Variable<double>>::Get(r_base_variable_name + "_X");
-    auto& r_var_y = KratosComponents<Variable<double>>::Get(r_base_variable_name + "_Y");
-    auto& r_var_z = KratosComponents<Variable<double>>::Get(r_base_variable_name + "_Z");
+    std::vector<const Variable<double>*> var_comp_vect(domain_size);
+    for (std::size_t i = 0; i < domain_size; ++i) {
+        var_comp_vect[i] = &KratosComponents<Variable<double>>::Get(r_base_variable_name + comp_list[i]);
+    }
 
     for (auto& r_data : mAuxPairings) {
         auto& r_master_data = r_data.second;
@@ -211,9 +247,7 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
     constraint_id++;
 
     // Define translation vector
-    Vector xtranslation(1);
-    Vector ytranslation(1);
-    Vector ztranslation(1);
+    Vector aux_translation(1);
 
     ModelPart::MasterSlaveConstraintContainerType constraints;
 
@@ -250,14 +284,11 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>>& rVaria
             relation_matrix(0, i) = r_master_weights[i];
         }
 
-        xtranslation[0] = r_T[0];
-        constraints.push_back(GenerateConstraint(constraint_id, r_var_x, pslave_node, r_master_ids, relation_matrix, xtranslation));
-
-        ytranslation[0] = r_T[1];
-        constraints.push_back(GenerateConstraint(constraint_id, r_var_y, pslave_node, r_master_ids, relation_matrix, ytranslation));
-
-        ztranslation[0] = r_T[2];
-        constraints.push_back(GenerateConstraint(constraint_id, r_var_z, pslave_node, r_master_ids, relation_matrix, ztranslation));
+        // Generate the vector components constraints
+        for (std::size_t i = 0; i < domain_size; ++i) {
+            aux_translation[0] = r_T[i];
+            constraints.push_back(GenerateConstraint(constraint_id, *var_comp_vect[i], pslave_node, r_master_ids, relation_matrix, aux_translation));
+        }
     }
 
     mrModelPart.AddMasterSlaveConstraints(constraints.begin(), constraints.end());
