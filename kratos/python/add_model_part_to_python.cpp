@@ -786,12 +786,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("CreateNewProperties", [](ModelPart& rSelf, int Id) {return rSelf.CreateNewProperties(Id);})
         .def("GetProperties", [](ModelPart& rSelf, int Id) {return rSelf.pGetProperties(Id);})
         .def("GetProperties", [](ModelPart& rSelf, const std::string& rAddress) {return rSelf.pGetProperties(rAddress);})
-        // .def("GetProperties", [](ModelPart& rSelf, int Id, int MeshIndex) {
-        //     KRATOS_WARNING("DEPRECATION") << "This will be removed at the end of 2022. Please, remove the MeshIndex argument." << std::endl;
-        //     return rSelf.pGetProperties(Id, MeshIndex);})
-        .def("GetProperties", [](ModelPart& rSelf) {
-            KRATOS_WARNING("DEPRECATION") << "This will be removed at the end of 2022. Please, use GetProperties(id) to get a properties item or Properties to retrieve the properties container." << std::endl;
-            return rSelf.pProperties();})
+        .def("GetProperties", [](ModelPart& rSelf) {return rSelf.pProperties();})
         .def("AddProperties", [](ModelPart& rSelf, Properties::Pointer pProperties) {rSelf.AddProperties(pProperties);})
         .def("RemoveProperties", [](ModelPart& rSelf, int Id) {return rSelf.RemoveProperties(Id);})
         .def("RemoveProperties", [](ModelPart& rSelf, Properties::Pointer pProperties) {return rSelf.RemoveProperties(pProperties);})
