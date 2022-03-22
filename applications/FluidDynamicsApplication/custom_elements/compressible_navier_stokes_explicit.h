@@ -1051,6 +1051,8 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateLumpedMassVecto
 template <unsigned int TDim, unsigned int TNumNodes>
 void CompressibleNavierStokesExplicit<TDim, TNumNodes>::AddExplicitContribution(const ProcessInfo &rCurrentProcessInfo)
 {
+    KRATOS_TRY
+    
     // Calculate the explicit residual vector
     BoundedVector<double, DofSize> rhs;
     CalculateRightHandSideInternal(rhs, rCurrentProcessInfo);
@@ -1074,6 +1076,8 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::AddExplicitContribution(
 
         AtomicAdd(r_node.FastGetSolutionStepValue(REACTION_ENERGY),  rhs[i_dof]);
     }
+
+    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

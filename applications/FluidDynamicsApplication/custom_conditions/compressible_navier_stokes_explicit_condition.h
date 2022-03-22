@@ -479,6 +479,8 @@ protected:
      */
     ConditionDataStruct ConditionData(const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_TRY
+
         ConditionDataStruct data;
 
         // Getting data for the given geometry
@@ -551,6 +553,8 @@ protected:
         }
 
         return data;
+
+        KRATOS_CATCH("")
     }
 
     /**
