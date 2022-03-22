@@ -366,7 +366,7 @@ namespace EmbeddedLaplacianInternals {
 
 template <>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<2, 3>(
-    const Element& rElement,
+    Element& rElement,
     const Vector& rNodalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Triangle2D3ModifiedShapeFunctions(rElement.pGetGeometry(), rNodalDistances));
@@ -374,7 +374,7 @@ ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<2, 3>(
 
 template <>
 ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator<3, 4>(
-    const Element& rElement,
+    Element& rElement,
     const Vector& rNodalDistances)
 {
     return ModifiedShapeFunctions::Pointer(new Tetrahedra3D4ModifiedShapeFunctions(rElement.pGetGeometry(), rNodalDistances));

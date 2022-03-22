@@ -50,7 +50,7 @@ namespace EmbeddedLaplacianInternals {
 
     template <size_t TDim, size_t TNumNodes>
     ModifiedShapeFunctions::Pointer GetContinuousShapeFunctionCalculator(
-        const Element &rElement,
+        Element &rElement,
         const Vector &rNodalDistances);
 
     // Data container class
