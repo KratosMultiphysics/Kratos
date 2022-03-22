@@ -234,7 +234,8 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
-        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        auto p_properties = const_cast<Element&>(*this).pGetProperties(); // Necessary for backwards compatibility.
+        Element::Pointer p_new_elem = Kratos::make_intrusive<Element>(NewId, GetGeometry().Create(ThisNodes), p_properties);
         p_new_elem->SetData(this->GetData());
         p_new_elem->Set(Flags(*this));
         return p_new_elem;

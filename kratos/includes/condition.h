@@ -237,7 +237,8 @@ public:
     {
         KRATOS_TRY
         KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
-        Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        auto p_properties = const_cast<Condition&>(*this).pGetProperties(); // Necessary for backwards compatibility.
+        Condition::Pointer p_new_cond = Kratos::make_intrusive<Condition>(NewId, GetGeometry().Create(ThisNodes), p_properties);
         p_new_cond->SetData(this->GetData());
         p_new_cond->Set(Flags(*this));
         return p_new_cond;
