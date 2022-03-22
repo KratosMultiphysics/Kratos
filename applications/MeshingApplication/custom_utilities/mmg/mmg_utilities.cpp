@@ -4626,7 +4626,7 @@ void MmgUtilities<TMMGLibrary>::WriteReferenceEntitities(
     for (auto it_param = cond_ref_json.begin(); it_param != cond_ref_json.end(); ++it_param) {
         const std::size_t key = std::stoi(it_param.name());;
         Condition const& r_clone_element = KratosComponents<Condition>::Get(it_param->GetString());
-        rRefCondition[key] = r_clone_element.Create(0, const_cast<Element&>(r_clone_element).pGetGeometry(), p_auxiliar_prop);
+        rRefCondition[key] = r_clone_element.Create(0, const_cast<Condition&>(r_clone_element).pGetGeometry(), p_auxiliar_prop);
     }
 
     KRATOS_CATCH("");
