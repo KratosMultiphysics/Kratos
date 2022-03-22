@@ -610,7 +610,12 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
         //set to zero the nodal area
         bool inverted=false;
 	double vol=0.0;
+	array_1d<double,TDim+1> N;
 
+	//defining work arrays
+        //PointerVector< Element > elements_to_solve;
+        std::vector<GlobalPointersVector<Element>> nodal_neighbours;
+        //elements_to_solve.reserve(ThisModelPart.Elements().size());
 
         VariableUtils().SetFlag(TO_ERASE, false, ThisModelPart.Elements());
         
@@ -619,8 +624,6 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
         //rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);
         //rDestinationModelPart.RemoveElementsFromAllLevels(TO_ERASE);
         
-        
-
         if(domain_size == 2)
         {
 	    KRATOS_ERROR<<"error: this part is emptyyyy";
@@ -638,183 +641,136 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 		    {
 		        //calculating shape functions values
 		        Geometry< Node<3> >& geom = i->GetGeometry();
+
 		        //counting number of structural nodes
 		        vol = GeometryUtils::CalculateVolume3D(geom);
 
-			/*geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
-			geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
-			geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;
-			geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY)+=0.25*vol;*/
-
-	     	        if(vol <= 0)  {inverted=true;
-	     	        //ThisModelPart.RemoveElement(i->Id());
+	     	        if(vol <= 0)  
+// 	     	        if(vol > 0)  
+	     	        {
+	     	        	inverted=true;
 	     	            	        
-	     	        i->Set(TO_ERASE, true);
-	     	        /*geom[0].Set(TO_ERASE, true);
-	     	        geom[1].Set(TO_ERASE, true);
-	     	        geom[2].Set(TO_ERASE, true);
-	     	        geom[3].Set(TO_ERASE, true);*/
+	     	        	i->Set(TO_ERASE, true);
 
+	     	        	geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+				geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+				geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+				geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
+				
+				auto& r_nodes_current_element = i->GetGeometry();
 
-	     	        geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
-			geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
-			geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
-			geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY)=1.0;
-			
+    				auto& pNode0 = r_nodes_current_element[0];
+    				auto& pNode1 = r_nodes_current_element[1];
+    				auto& pNode2 = r_nodes_current_element[2];
+    				auto& pNode3 = r_nodes_current_element[3];
+    				
+				// Neighbour elements of each node of the current element
+				GlobalPointersVector<Element>& r_neigh_node_0 = pNode0.GetValue(NEIGHBOUR_ELEMENTS);
+				GlobalPointersVector<Element>& r_neigh_node_1 = pNode1.GetValue(NEIGHBOUR_ELEMENTS);
+				GlobalPointersVector<Element>& r_neigh_node_2 = pNode2.GetValue(NEIGHBOUR_ELEMENTS);
+				GlobalPointersVector<Element>& r_neigh_node_3 = pNode3.GetValue(NEIGHBOUR_ELEMENTS);
 
-	     	        
+           				    
+				nodal_neighbours.push_back(r_neigh_node_0);
+				nodal_neighbours.push_back(r_neigh_node_1);
+				nodal_neighbours.push_back(r_neigh_node_2);
+				nodal_neighbours.push_back(r_neigh_node_3);
+
+				bool is_inside_0 = false;
+		    		bool is_inside_1 = false;
+		    		bool is_inside_2 = false;
+		    		bool is_inside_3 = false;
+		    		bool all_neigh_0 =false;
+		    		bool all_neigh_1 =false;
+		    		bool all_neigh_2 =false;
+		    		bool all_neigh_3 =false;
+		    		
+				//first node
+           			 for (unsigned int neigh_elem = 0; neigh_elem < nodal_neighbours.size(); neigh_elem++) { //loop for nodes
+            			// Nodes of the neigh element
+            				for (unsigned int elem = 0; elem < nodal_neighbours[neigh_elem].size(); elem++) //loop for elements 
+            				{
+            				Element& parent = nodal_neighbours[neigh_elem][elem];
+            			
+            				/*auto& Node0 = parent.GetGeometry()[0];
+    					auto& Node1 = parent.GetGeometry()[1];
+    					auto& Node2 = parent.GetGeometry()[2];
+    					auto& Node3 = parent.GetGeometry()[3];*/
+    					is_inside_0 = false;
+		    			is_inside_1 = false;
+		    			is_inside_2 = false;
+		    			is_inside_3 = false;
+		    			
+            				is_inside_0 = CalculatePosition(parent.GetGeometry(),pNode0[0],pNode0[1],pNode0[2],N); //observe if node is inside the neighbours!
+            				is_inside_1 = CalculatePosition(parent.GetGeometry(),pNode1[0],pNode1[1],pNode1[2],N);
+            				is_inside_2 = CalculatePosition(parent.GetGeometry(),pNode2[0],pNode2[1],pNode2[2],N);
+            				is_inside_3 = CalculatePosition(parent.GetGeometry(),pNode3[0],pNode3[1],pNode3[2],N);
+            				/*if(is_inside_0 == true) parent.Set(TO_ERASE, true);
+            				if(is_inside_1 == true) parent.Set(TO_ERASE, true);
+            				if(is_inside_2 == true) parent.Set(TO_ERASE, true);
+            				if(is_inside_3 == true) parent.Set(TO_ERASE, true);*/
+            				
+            				if(is_inside_0 == true) all_neigh_0=true;
+            				if(is_inside_1 == true) all_neigh_1=true;
+            				if(is_inside_2 == true) all_neigh_2=true;
+            				if(is_inside_3 == true) all_neigh_3=true;
+            				
+            				//KRATOS_WATCH("--------------------------->")
+            				//KRATOS_WATCH("--------------------------->")
+            				//KRATOS_WATCH("--------------------------->")
+          				//KRATOS_WATCH("NODOSSSS PADRESSSSSSSSSSSSSSSSSSS")    				
+            				//KRATOS_WATCH(pNode0)
+            				//KRATOS_WATCH(pNode1)
+            				//KRATOS_WATCH(pNode2)
+            				//KRATOS_WATCH(pNode3)
+            				//KRATOS_WATCH("ELEMENTOOOOOOOOOO VECINOOOOOOOOOOOO")   
+            				//KRATOS_WATCH(parent.GetGeometry())
+                			}
+
+                		}
+                		if(all_neigh_0==true)
+                		{
+                		for (unsigned int elem = 0; elem < nodal_neighbours[0].size(); elem++) //loop for elements 
+            				{
+            					Element& parent = nodal_neighbours[0][elem];
+            					parent.Set(TO_ERASE, true);
+            				}
+                		}
+                		
+                		if(all_neigh_1==true)
+                		{
+                		for (unsigned int elem = 0; elem < nodal_neighbours[1].size(); elem++) //loop for elements 
+            				{
+            					Element& parent = nodal_neighbours[1][elem];
+            					parent.Set(TO_ERASE, true);
+            				}
+                		}
+                		if(all_neigh_2==true)
+                		{
+                		for (unsigned int elem = 0; elem < nodal_neighbours[2].size(); elem++) //loop for elements 
+            				{
+            					Element& parent = nodal_neighbours[2][elem];
+            					parent.Set(TO_ERASE, true);
+            				}
+                		}
+                		if(all_neigh_3==true)
+                		{
+                		for (unsigned int elem = 0; elem < nodal_neighbours[3].size(); elem++) //loop for elements 
+            				{
+            					Element& parent = nodal_neighbours[3][elem];
+            					parent.Set(TO_ERASE, true);
+            				}
+                		}
+				//KRATOS_THROW_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
+				
+					
+			nodal_neighbours.clear();
 	     	        }
-	     	        
-	     	        //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
+	     	        //KRATOS_THROW_ERROR(std::logic_error,"pressure calculation 3D not implemented","");
 		    }
-		    
-		    
-		    //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
-		    
-		/*for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
-                    i!=ThisModelPart.ElementsEnd(); i++)
-		    {
-		        //calculating shape functions values
-		        Geometry< Node<3> >& geom = i->GetGeometry();
-		        //counting number of structural nodes
-
-	     	            	        
-	     	        if(i->FastGetSolutionStepValue(TO_ERASE)==true) double pepe;
-
-	     	        }
-	     	        
-	     	        //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
-		    }
-		    */
 	}
 	
-	
-	
-	//BinBasedFastPointLocator<TDim> SearchStructure(ThisModelPart);
-	//SearchStructure.UpdateSearchDatabase();
-
-	//do movement
-	//array_1d<double, 3 > veulerian;
-	//double temperature=0.0;
-	//array_1d<double, 3 > acc_particle;
-
-        //array_1d<double, 3 > v1,v2,v3,v4,vtot,x;
-
-	//array_1d<double, TDim + 1 > N;
-
-	//const int max_results = 10000;
-
-	//typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-
-	const int nparticles = ThisModelPart.Nodes().size();
-
-	//#pragma omp parallel for firstprivate(results,N,veulerian,v1,v2,v3,v4,x)
-
-	for (int i = 0; i < nparticles; i++)
-	  {
-
-
-	   //typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-	    ModelPart::NodesContainerType::iterator iparticle = ThisModelPart.NodesBegin() + i;
-
-
-	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
-
-		if(iparticle->FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) {
- 
- 
-        
-                	
-               //initial_position = pparticle->GetInitialPosition() + pparticle->FastGetSolutionStepValue(DISPLACEMENT);
-
-		//Element::Pointer pelement;
-
-		//STEP1
-		//noalias(current_position) =  initial_position;
-		
-		for (GlobalPointersVector< Element >::iterator ie = iparticle->GetValue(NEIGHBOUR_ELEMENTS).begin(); ie != iparticle->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
-                             //ie->GetValue(IS_VISITED)=1;
-                             {
-
- 				Geometry<Node<3> >&geom = ie->GetGeometry();
-        			array_1d<double,TDim+1> N;
-        			
-        			 bool is_inside = false;
-            			is_inside = CalculatePosition(geom,	iparticle->X(),iparticle->Y(),iparticle->Z(),N);
-            	
-            			if(is_inside == true)
-            			{
-            				ie->Set(TO_ERASE, true);
-            			}
-
-        			//double xc, yc, zc,  radius;
-        			//CalculateCenterAndSearchRadius( geom, xc,yc,zc, radius,N);
-
-
-
-                             		//double julio=0.0;
-                             		//is_found1 = SearchStructure.FindPointOnMesh(initial_position, N, pelement, result_begin, max_results);
-                             		//is_found1 = SearchStructure.FindPointOnMesh(initial_position, N, ie, result_begin, max_results);
-                             		
-                             
-                             }
-	}
-	}
-		
-		/*
-		if(in->FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) 
-		{
-
-				//if (it->GetValue(IS_VISITED) != 1) //it was not possible to calculate the distance
-                     {
-                         for (GlobalPointersVector< Element >::iterator ie = in->GetValue(NEIGHBOUR_ELEMENTS).begin(); ie != in->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
-                             //ie->GetValue(IS_VISITED)=1;
-                             {
-                             		double julio=0.0;
-                             
-                             }
-                             	
-
-			}			
-			
-			
-		}*/
-
-//			if( (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0)
-//			    //in->FastGetSolutionStepValue(IS_BOUNDARY) = 1.0;
-//			    in->Set(TO_ERASE, true);
-        
-
-
-///////////////////////
-///////////////////////
-
-
-
-	
-
-/*	for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
-                    i!=ThisModelPart.ElementsEnd(); i++)
-		    {
-		        //calculating shape functions values
-		        Geometry< Node<3> >& geom = i->GetGeometry();
-		        //counting number of structural nodes
-		        //if(i->Get(TO_ERASE)==true)
-				//{
-				int number=0;
-				if(geom[0].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
-				if(geom[1].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
-				if(geom[2].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
-				if(geom[3].FastGetSolutionStepValue(RADIATIVE_INTENSITY) == 1.0) number +=1;
-				if(number>=1)  i->Set(TO_ERASE, true);
-				//}	     	        
-	     	        }
-*/	     	        
 	  ThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-	  //ThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-	     	        //VariableUtils().SetFlag(TO_ERASE, true, i->Id());
-		    
 		    
 	
 	

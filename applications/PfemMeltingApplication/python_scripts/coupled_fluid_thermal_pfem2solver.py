@@ -205,7 +205,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         read_materials_utility = KratosMultiphysics.ReadMaterialsUtility(self.model)
 
         read_materials_utility.AssignVariablesToProperty(mat, self.fluid_solver.main_model_part.GetProperties()[0])
-        read_materials_utility.AssignVariablesToProperty(mat, self.fluid_solver.main_model_part.GetProperties()[1])
+        #read_materials_utility.AssignVariablesToProperty(mat, self.fluid_solver.main_model_part.GetProperties()[1])
 
         '''self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.DYNAMIC_VISCOSITY]=self.values_aux[6].GetDouble()
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.DENSITY]=self.values_aux[5].GetDouble()
@@ -214,7 +214,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.CONVECTION_COEFFICIENT]=self.values_aux[4].GetDouble()'''
 
 
-        self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.ambient_temperature.GetDouble()
+        #self.fluid_solver.main_model_part.GetProperties()[0][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.ambient_temperature.GetDouble()
         self.fluid_solver.main_model_part.GetProperties()[1][KratosMultiphysics.AMBIENT_TEMPERATURE]=self.ambient_temperature.GetDouble()
 
         self.new_table_aux = KratosMultiphysics.PiecewiseLinearTable()
@@ -495,23 +495,32 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         transfer_process.Execute()
 
 
-        #neighbor_searcht = KratosMultiphysics.FindNodalNeighboursProcess(thermal_computing_domain)
+        #kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
+        #neighbor_searcht = KratosMultiphysics.FindGlobalNodalNeighboursProcess(kratos_comm,thermal_computing_domain)
         #neighbor_searcht.Execute()
 
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        neighbor_searcht = KratosMultiphysics.FindGlobalNodalNeighboursProcess(kratos_comm,thermal_computing_domain)
-        neighbor_searcht.Execute()
-
-        #neighbor_elements_searcht = KratosMultiphysics.FindElementalNeighboursProcess(thermal_computing_domain, 3, 20)
+        #neighbor_elements_searcht = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(kratos_comm,thermal_computing_domain)
         #neighbor_elements_searcht.Execute()
 
-        neighbor_elements_searcht = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(kratos_comm,thermal_computing_domain)
-        neighbor_elements_searcht.Execute()
+
+        #neighbor_condition_searcht = KratosMultiphysics.FindConditionsNeighboursProcess(thermal_computing_domain,3, 20)
+        #neighbor_condition_searcht.Execute()
 
 
-        neighbor_condition_searcht = KratosMultiphysics.FindConditionsNeighboursProcess(thermal_computing_domain,3, 20)
-        neighbor_condition_searcht.Execute()
 
+        #neighbor_search = KratosMultiphysics.FindNodalNeighboursProcess(thermal_computing_domain)
+        #neighbor_search.Execute()
+
+        #neighbor_elements_search = KratosMultiphysics.FindElementalNeighboursProcess(thermal_computing_domain, 3, 30)
+        #neighbor_elements_search.Execute()
+
+        neighbor_search = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(thermal_computing_domain)
+        neighbor_search.Execute()
+
+        neighbor_condition_search = KratosMultiphysics.FindConditionsNeighboursProcess(thermal_computing_domain,3, 20)
+        neighbor_condition_search.Execute()
+        
+        
 
 
 
@@ -551,20 +560,23 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #LagrangianFluidVMS3D
         #VMS3D
         #neighbor_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_solver.main_model_part)
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        neighbor_search = KratosMultiphysics.FindGlobalNodalNeighboursProcess(kratos_comm,self.fluid_solver.main_model_part)
-
+        #neighbor_search.Execute()
+        #kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
+        #neighbor_search = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.fluid_solver.main_model_part)
+        #jhkhkjhkjhkjh
+        neighbor_search = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.fluid_solver.main_model_part)
         neighbor_search.Execute()
         #neighbor_elements_search = KratosMultiphysics.FindElementalNeighboursProcess(self.fluid_solver.main_model_part, 3, 20)
-        neighbor_elements_search = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(kratos_comm,self.fluid_solver.main_model_part)
+        #neighbor_elements_search = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(kratos_comm,self.fluid_solver.main_model_part)
 
-
+        #neighbor_elements_search = KratosMultiphysics.FindElementalNeighboursProcess(self.fluid_solver.main_model_part, 3, 30)
+        #neighbor_elements_search.Execute()
         #neighbor_elements_search = KratosMultiphysics.FindGlobalElementalNeighboursProcess(self.fluid_solver.main_model_part, 3, 20)
-        neighbor_elements_search.Execute()
+        #neighbor_elements_search.Execute()
         neighbor_condition_search = KratosMultiphysics.FindConditionsNeighboursProcess(self.fluid_solver.main_model_part,3, 20)
         neighbor_condition_search.Execute()
 
-
+        
         (self.PfemM_apply_bc_process).Execute();
 
 
@@ -704,7 +716,22 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-
+    
+        ##poner aca
+        
+        #print(self.fluid_solver._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        self.step=1
+        if(self.step==self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]):
+            
+            print("juliiiiiiiiiiii")
+            
+            for node in self.fluid_solver.main_model_part.Nodes:
+                if(node.IsFixed(KratosMultiphysics.VELOCITY_X)==True):
+                    node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0) #NODES NOT 
+                    node.Fix(KratosMultiphysics.TEMPERATURE)                    
+                    
+        
+        
         self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
 
         #inverted=self.Streamline.CheckInvertElement(self.fluid_solver.main_model_part,self.domain_size )
@@ -731,7 +758,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
     def SolveSolutionStep(self):
 
 
-
+        
         for node in self.fluid_solver.main_model_part.Nodes:
             node.Free(KratosMultiphysics.VELOCITY_X)
             node.Free(KratosMultiphysics.VELOCITY_Y)
@@ -760,7 +787,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         #print("BEFORE THERMAL SOLVING")
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
         #print("AFTER T SOLVING")
-        #self.CalculateViscosityaux()
+        self.CalculateViscosityaux()
 
         return (fluid_is_converged and thermal_is_converged)
 
