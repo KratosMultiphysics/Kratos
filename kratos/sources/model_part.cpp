@@ -760,7 +760,7 @@ bool ModelPart::HasProperties(
     const std::vector<IndexType> component_name = TrimComponentName(rAddress);
     if (HasProperties(component_name[0], MeshIndex)) {
         bool has_properties = true;
-        Properties::Pointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        Properties::ConstPointer p_prop = pGetProperties(component_name[0], MeshIndex);
         for (IndexType i = 1; i < component_name.size(); ++i) {
             if (p_prop->HasSubProperties(component_name[i])) {
                 p_prop = p_prop->pGetSubProperties(component_name[i]);
@@ -801,7 +801,7 @@ Properties::Pointer ModelPart::pGetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Properties::Pointer ModelPart::pGetProperties(
+const Properties::ConstPointer ModelPart::pGetProperties(
     const std::string& rAddress,
     IndexType MeshIndex
     ) const

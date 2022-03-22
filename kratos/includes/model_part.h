@@ -917,7 +917,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    const PropertiesType::Pointer pGetProperties(
+    PropertiesType::ConstPointer pGetProperties(
         const std::string& rAddress,
         IndexType MeshIndex = 0
         ) const;
