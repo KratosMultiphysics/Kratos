@@ -76,7 +76,7 @@ class GeometryData:
 
 
 class LineData(GeometryData):
-    nnodes = 3
+    nnodes = 2
     ndims = 2
     blocksize = ndims+2
     ndofs = blocksize*nnodes
