@@ -685,7 +685,7 @@ ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
+const ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
     IndexType PropertiesId,
     IndexType MeshIndex
     ) const
@@ -731,7 +731,7 @@ ModelPart::PropertiesType& ModelPart::GetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::PropertiesType& ModelPart::GetProperties(
+const ModelPart::PropertiesType& ModelPart::GetProperties(
     IndexType PropertiesId,
     IndexType MeshIndex
     ) const
