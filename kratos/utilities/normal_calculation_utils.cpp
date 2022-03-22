@@ -650,7 +650,7 @@ KRATOS_API(KRATOS_CORE) bool NormalCalculationUtils::CheckUseSimplex(
 /***********************************************************************************/
 
 template<bool TIsHistorical>
-KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::AuxiliaryCalculateOnSimplex(
+void NormalCalculationUtils::AuxiliaryCalculateOnSimplex(
     ConditionsArrayType& rConditions,
     const std::size_t Dimension,
     const NormalVariableType& rNormalVariable
