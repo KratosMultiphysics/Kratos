@@ -42,7 +42,7 @@ namespace
 
 void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     const Parameters HRomWeights,
-    const ModelPart& rOriginModelPart,
+    ModelPart& rOriginModelPart,
     ModelPart& rHRomComputingModelPart)
 {
     // Ensure that the provided destination model part is empty
