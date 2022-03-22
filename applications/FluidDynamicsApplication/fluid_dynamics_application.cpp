@@ -134,6 +134,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mCompressibleNavierStokesExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressibleNavierStokesExplicit2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mCompressibleNavierStokesExplicit3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+    // Compressible Navier-Stokes symbolic conditions
+    mCompressibleNavierStokesExplicitCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
     // Two-Fluid Navier-Stokes symbolic elements
     mTwoFluidNavierStokes2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoFluidNavierStokes3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -342,6 +344,9 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D3N",mCompressibleNavierStokesExplicit2D3N);
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit2D4N",mCompressibleNavierStokesExplicit2D4N);
     KRATOS_REGISTER_ELEMENT("CompressibleNavierStokesExplicit3D4N",mCompressibleNavierStokesExplicit3D4N);
+
+    // Compressible Navier-Stokes symbolic conditions
+    KRATOS_REGISTER_CONDITION("CompressibleNavierStokesExplicitCondition2D2N",mCompressibleNavierStokesExplicitCondition2D2N);
 
     // Adjoint elements
     KRATOS_REGISTER_ELEMENT("VMSAdjointElement2D", mVMSAdjointElement2D);
