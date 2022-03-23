@@ -116,7 +116,7 @@ void CalculateB(
 
     rB.clear();
 
-    if(strain_size == 2) {
+    if(strain_size == 3) {
         for ( IndexType i = 0; i < number_of_nodes; ++i ) {
             const IndexType initial_index = i*2;
             rB(0, initial_index    ) = rDN_DX(i, 0);

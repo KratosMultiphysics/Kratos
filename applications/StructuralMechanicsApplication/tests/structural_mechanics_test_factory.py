@@ -76,309 +76,309 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
-class SimpleMeshMovingTest(StructuralMechanicsTestFactory):
-    file_name = "mesh_moving_test/simple_mesh_moving_test"
+# class SimpleMeshMovingTest(StructuralMechanicsTestFactory):
+#     file_name = "mesh_moving_test/simple_mesh_moving_test"
 
-class SDTwoDShearQuaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_2D_shear_qua"
+# class SDTwoDShearQuaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_2D_shear_qua"
 
-class SDTwoDShearTriPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_2D_shear_tri"
+# class SDTwoDShearTriPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_2D_shear_tri"
 
-class SDTwoDTensionQuaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_2D_tension_qua"
+# class SDTwoDTensionQuaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_2D_tension_qua"
 
-class SDTwoDTensionTriPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_2D_tension_tri"
+# class SDTwoDTensionTriPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_2D_tension_tri"
 
-class SDThreeDShearHexaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_3D_shear_hexa"
+# class SDThreeDShearHexaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_3D_shear_hexa"
 
-class SDThreeDShearTetraPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_3D_shear_tetra"
+# class SDThreeDShearTetraPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_3D_shear_tetra"
 
-class SDThreeDTensionHexaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_3D_tension_hexa"
+# class SDThreeDTensionHexaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_3D_tension_hexa"
 
-class SDThreeDTensionTetraPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/small_disp/patch_test_3D_tension_tetra"
+# class SDThreeDTensionTetraPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/small_disp/patch_test_3D_tension_tetra"
 
-class TLTwoDShearQuaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_2D_shear_qua"
+# class TLTwoDShearQuaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_2D_shear_qua"
 
-class TLTwoDShearTriPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_2D_shear_tri"
+# class TLTwoDShearTriPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_2D_shear_tri"
 
-class TLTwoDTensionQuaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_2D_tension_qua"
+# class TLTwoDTensionQuaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_2D_tension_qua"
 
-class TLTwoDTensionTriPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_2D_tension_tri"
+# class TLTwoDTensionTriPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_2D_tension_tri"
 
-class TLThreeDShearHexaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_3D_shear_hexa"
+# class TLThreeDShearHexaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_3D_shear_hexa"
 
-class TLThreeDShearTetraPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_3D_shear_tetra"
+# class TLThreeDShearTetraPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_3D_shear_tetra"
 
-class TLThreeDTensionHexaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_3D_tension_hexa"
+# class TLThreeDTensionHexaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_3D_tension_hexa"
 
-class TLThreeDTensionTetraPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/total_lagrangian/patch_test_3D_tension_tetra"
+# class TLThreeDTensionTetraPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/total_lagrangian/patch_test_3D_tension_tetra"
 
-class ULTwoDShearQuaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_2D_shear_qua"
+# class ULTwoDShearQuaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_2D_shear_qua"
 
-class ULTwoDShearTriPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_2D_shear_tri"
+# class ULTwoDShearTriPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_2D_shear_tri"
 
-class ULTwoDTensionQuaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_2D_tension_qua"
+# class ULTwoDTensionQuaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_2D_tension_qua"
 
-class ULTwoDTensionTriPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_2D_tension_tri"
+# class ULTwoDTensionTriPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_2D_tension_tri"
 
-class ULThreeDShearHexaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_3D_shear_hexa"
+# class ULThreeDShearHexaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_3D_shear_hexa"
 
-class ULThreeDShearTetraPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_3D_shear_tetra"
+# class ULThreeDShearTetraPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_3D_shear_tetra"
 
-class ULThreeDTensionHexaPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_3D_tension_hexa"
+# class ULThreeDTensionHexaPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_3D_tension_hexa"
 
-class ULThreeDTensionTetraPatchTest(StructuralMechanicsTestFactory):
-    file_name = "patch_test/updated_lagrangian/patch_test_3D_tension_tetra"
+# class ULThreeDTensionTetraPatchTest(StructuralMechanicsTestFactory):
+#     file_name = "patch_test/updated_lagrangian/patch_test_3D_tension_tetra"
 
-class SprismMembranePatchTests(StructuralMechanicsTestFactory):
-    file_name = "sprism_test/patch_membrane_test"
+# class SprismMembranePatchTests(StructuralMechanicsTestFactory):
+#     file_name = "sprism_test/patch_membrane_test"
 
-class SprismBendingPatchTests(StructuralMechanicsTestFactory):
-    file_name = "sprism_test/patch_bending_test"
+# class SprismBendingPatchTests(StructuralMechanicsTestFactory):
+#     file_name = "sprism_test/patch_bending_test"
 
-class ExplicitSolidBeam(StructuralMechanicsTestFactory):
-    file_name = "explicit_tests/explicit_solid_beam_test"
+# class ExplicitSolidBeam(StructuralMechanicsTestFactory):
+#     file_name = "explicit_tests/explicit_solid_beam_test"
 
-class EigenQ4Thick2x2PlateTests(StructuralMechanicsTestFactory):
-    file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
+# class EigenQ4Thick2x2PlateTests(StructuralMechanicsTestFactory):
+#     file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
 
-class EigenTL3D8NCubeTests(StructuralMechanicsTestFactory):
-    file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
+# class EigenTL3D8NCubeTests(StructuralMechanicsTestFactory):
+#     file_name = "eigen_test/Eigen_TL_3D8N_Cube_test"
 
-class Eigen3D3NThinCircleTests(StructuralMechanicsTestFactory):
-    file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
+# class Eigen3D3NThinCircleTests(StructuralMechanicsTestFactory):
+#     file_name = "eigen_test/Eigen_3D3N_Thin_Circle_test"
 
-class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
-    file_name = "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test"
+# class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
+#     file_name = "formfinding_test/Formfinding_Four_Point_Membrane_With_Cable_test"
 
-class MembraneHemisphereTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_hemisphere_test"
+# class MembraneHemisphereTests(StructuralMechanicsTestFactory):
+#     file_name = "membrane_test/Membrane_hemisphere_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class MembraneOrthotropicDiagonalTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_orthotropic_diagonal_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class MembraneOrthotropicDiagonalTests(StructuralMechanicsTestFactory):
+#     file_name = "membrane_test/Membrane_orthotropic_diagonal_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class MembraneOrthotropicHorizontalTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_orthotropic_horizontal_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class MembraneOrthotropicHorizontalTests(StructuralMechanicsTestFactory):
+#     file_name = "membrane_test/Membrane_orthotropic_horizontal_test"
 
-class MembranePreStressHorizontalTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_prestress_horizontal_test"
+# class MembranePreStressHorizontalTests(StructuralMechanicsTestFactory):
+#     file_name = "membrane_test/Membrane_prestress_horizontal_test"
 
-class MembranePreStressDiagonalTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/Membrane_prestress_diagonal_test"
+# class MembranePreStressDiagonalTests(StructuralMechanicsTestFactory):
+#     file_name = "membrane_test/Membrane_prestress_diagonal_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class MembraneMultiLinearIsotropicPlaneStressTests(StructuralMechanicsTestFactory):
-    file_name = "membrane_test/multi_linear_plane_stress_isotropic_membrane_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class MembraneMultiLinearIsotropicPlaneStressTests(StructuralMechanicsTestFactory):
+#     file_name = "membrane_test/multi_linear_plane_stress_isotropic_membrane_test"
 
-class Simple3D2NTrussTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/nonlinear_3D2NTruss_test"
+# class Simple3D2NTrussTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/nonlinear_3D2NTruss_test"
 
-class Simple3D2NTrussLinearTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/linear_3D2NTruss_test"
+# class Simple3D2NTrussLinearTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/linear_3D2NTruss_test"
 
-class Simple3D2NTrussDynamicTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/dynamic_3D2NTruss_test"
+# class Simple3D2NTrussDynamicTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/dynamic_3D2NTruss_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/linear_3D2NTruss_plastic_compression_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/linear_3D2NTruss_plastic_compression_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
 
-class Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
+# class Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
-    file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
+#     file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
 
-class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
-    file_name = "beam_test/nonlinear_3D2NBeamCr_test"
+# class Simple3D2NBeamCrTest(StructuralMechanicsTestFactory):
+#     file_name = "beam_test/nonlinear_3D2NBeamCr_test"
 
-class Simple3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
-    file_name = "beam_test/linear_3D2NBeamCr_test"
+# class Simple3D2NBeamCrLinearTest(StructuralMechanicsTestFactory):
+#     file_name = "beam_test/linear_3D2NBeamCr_test"
 
-class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
-    file_name = "beam_test/nonlinear_force_3D2NBeamCr_test"
+# class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
+#     file_name = "beam_test/nonlinear_force_3D2NBeamCr_test"
 
-class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
-    file_name = "beam_test/dynamic_3D2NBeamCr_test"
+# class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
+#     file_name = "beam_test/dynamic_3D2NBeamCr_test"
 
-class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
-    file_name = "beam_test/nonlinear_2D2NBeamCr_test"
+# class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
+#     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
-class InitialStateElasticityTest(StructuralMechanicsTestFactory):
-    file_name = "InitialStateElasticity/initial_state_test"
+# class InitialStateElasticityTest(StructuralMechanicsTestFactory):
+#     file_name = "InitialStateElasticity/initial_state_test"
 
-class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
-    file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"
+# class InitialStrainShellQ4ThickTest(StructuralMechanicsTestFactory):
+#     file_name = "InitialStateElasticity/initial_strain_shell_Q4_thick_test"
 
-class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
+# class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
 
-class ShellT3AndQ4LinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_scordelis_lo_roof"
+# class ShellT3AndQ4LinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_struct_scordelis_lo_roof"
 
-class ShellT3AndQ4LinearStaticStructPinchedCylinderTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_pinched_cylinder"
+# class ShellT3AndQ4LinearStaticStructPinchedCylinderTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_struct_pinched_cylinder"
 
-class ShellT3AndQ4LinearStaticStructPinchedHemisphereTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_pinched_hemisphere"
+# class ShellT3AndQ4LinearStaticStructPinchedHemisphereTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_struct_pinched_hemisphere"
 
-class ShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_clamped_cylinder_orthotropic"
+# class ShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_struct_clamped_cylinder_orthotropic"
 
-class ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_struct_hinged_cyl_roof_snapthrough"
+# class ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_static_struct_hinged_cyl_roof_snapthrough"
 
-class ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_struct_hinged_cyl_roof_snapthrough_orthotropic"
+# class ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_static_struct_hinged_cyl_roof_snapthrough_orthotropic"
 
-class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate"
+# class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate"
 
-class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_lumped"
+# class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_lumped"
 
-class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
-    file_name = "rigid_test/rigid_test"
+# class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
+#     file_name = "rigid_test/rigid_test"
 
-class RigidBlockTest(StructuralMechanicsTestFactory):
-    file_name = "rigid_test/test_block_mpc"
+# class RigidBlockTest(StructuralMechanicsTestFactory):
+#     file_name = "rigid_test/test_block_mpc"
 
-class RigidEliminationTest(StructuralMechanicsTestFactory):
-    file_name = "rigid_test/test_elimination_mpc"
+# class RigidEliminationTest(StructuralMechanicsTestFactory):
+#     file_name = "rigid_test/test_elimination_mpc"
 
-class RigidSphereFailing(StructuralMechanicsTestFactory):
-    file_name = "rigid_test/sphere_failing"
+# class RigidSphereFailing(StructuralMechanicsTestFactory):
+#     file_name = "rigid_test/sphere_failing"
 
-class RigidSphereFailingExplicit(StructuralMechanicsTestFactory):
-    file_name = "rigid_test/sphere_failing_explicit"
+# class RigidSphereFailingExplicit(StructuralMechanicsTestFactory):
+#     file_name = "rigid_test/sphere_failing_explicit"
 
-### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
-class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
-class ShellQ4ThickDrillingRollUpTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
+# ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
+# class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
+# class ShellQ4ThickDrillingRollUpTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class ShellQ4ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thick_orthotropic_laminate_linear_static_test"
-class ShellT3ThinBendingRollUpTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
-class ShellT3ThinDrillingRollUpTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class ShellQ4ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thick_orthotropic_laminate_linear_static_test"
+# class ShellT3ThinBendingRollUpTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
+# class ShellT3ThinDrillingRollUpTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class ShellT3ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thin_orthotropic_laminate_linear_static_test"
-class ShellT3IsotropicScordelisTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
-class ShellT3ThickLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thick_linear_static_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class ShellT3ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thin_orthotropic_laminate_linear_static_test"
+# class ShellT3IsotropicScordelisTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
+# class ShellT3ThickLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thick_linear_static_test"
 
-class ShellT3ThickNonLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thick_nonlinear_static_test"
-class ShellT3ThickLinearDynamicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thick_linear_dynamic_test"
-class ShellT3ThickNonLinearDynamicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thick_nonlinear_dynamic_test"
+# class ShellT3ThickNonLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thick_nonlinear_static_test"
+# class ShellT3ThickLinearDynamicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thick_linear_dynamic_test"
+# class ShellT3ThickNonLinearDynamicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thick_nonlinear_dynamic_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class ShellT3ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test"
-class ShellQ4ThinLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thin_linear_static_test"
-class ShellQ4ThinNonLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thin_nonlinear_static_test"
-class ShellQ4ThinLinearDynamicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thin_linear_dynamic_test"
-class ShellQ4ThinNonLinearDynamicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class ShellT3ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test"
+# class ShellQ4ThinLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thin_linear_static_test"
+# class ShellQ4ThinNonLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thin_nonlinear_static_test"
+# class ShellQ4ThinLinearDynamicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thin_linear_dynamic_test"
+# class ShellQ4ThinNonLinearDynamicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class ShellQ4ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_Q4_Thin_orthotropic_laminate_linear_static_test"
-### ---| OLD Tests End
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class ShellQ4ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_Q4_Thin_orthotropic_laminate_linear_static_test"
+# ### ---| OLD Tests End
 
-class SprismPanTests(StructuralMechanicsTestFactory):
-    file_name = "sprism_test/pan_test"
+# class SprismPanTests(StructuralMechanicsTestFactory):
+#     file_name = "sprism_test/pan_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class PendulusTLTest(StructuralMechanicsTestFactory):
-    file_name = "pendulus_test/pendulus_TL_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class PendulusTLTest(StructuralMechanicsTestFactory):
+#     file_name = "pendulus_test/pendulus_TL_test"
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
-class PendulusULTest(StructuralMechanicsTestFactory):
-    file_name = "pendulus_test/pendulus_UL_test"
+# @KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+# class PendulusULTest(StructuralMechanicsTestFactory):
+#     file_name = "pendulus_test/pendulus_UL_test"
 
-class RayleighProcessTest(StructuralMechanicsTestFactory):
-    file_name = "rayleigh_process_test/test_rayleigh"
+# class RayleighProcessTest(StructuralMechanicsTestFactory):
+#     file_name = "rayleigh_process_test/test_rayleigh"
 
-class ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_scordelis_lo_roof"
+# class ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_scordelis_lo_roof"
 
-class ShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_cylinder"
+# class ShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_cylinder"
 
-class ShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_hemisphere"
+# class ShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_hemisphere"
 
-class ShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_clamped_cylinder_orthotropic"
+# class ShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_clamped_cylinder_orthotropic"
 
-class ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough"
+# class ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough"
 
-class ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough_orthotropic"
+# class ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough_orthotropic"
 
-class ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_oscillating_plate"
+# class ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_oscillating_plate"
 
-class ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_oscillating_plate_lumped"
+# class ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_oscillating_plate_lumped"
 
-class ShellT3AndQ4NonLinearDynamicStructPendulusTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_pendulus"
+# class ShellT3AndQ4NonLinearDynamicStructPendulusTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_pendulus"
 
-class ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_pendulus_lumped"
+# class ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_pendulus_lumped"
 
-class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus"
+# class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus"
 
-class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
-    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
+# class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
+#     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
 
 class Solid2p5DElementTest(StructuralMechanicsTestFactory):
     file_name = "solid_2p5d_test/solid_2p5d"

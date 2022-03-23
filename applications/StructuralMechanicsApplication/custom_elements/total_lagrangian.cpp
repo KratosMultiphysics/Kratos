@@ -261,19 +261,23 @@ void TotalLagrangian::CalculateKinematicVariables(
 
     Matrix J;
     J = this->GetGeometry().Jacobian(J, PointNumber, rIntegrationMethod);
-    if (IsAxissymmetric()) {
-        CalculateAxisymmetricF(J, rThisKinematicVariables.InvJ0,
-                               rThisKinematicVariables.N,
-                               rThisKinematicVariables.F);
-        CalculateAxisymmetricB(
-            rThisKinematicVariables.B, rThisKinematicVariables.F,
-            rThisKinematicVariables.DN_DX, rThisKinematicVariables.N);
-    } else {
-        GeometryUtils::DeformationGradient(J, rThisKinematicVariables.InvJ0,
-                                           rThisKinematicVariables.F);
-        CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
-                   rThisKinematicVariables.DN_DX);
-    }
+    // if (IsAxissymmetric()) {
+    //     CalculateAxisymmetricF(J, rThisKinematicVariables.InvJ0,
+    //                            rThisKinematicVariables.N,
+    //                            rThisKinematicVariables.F);
+    //     CalculateAxisymmetricB(
+    //         rThisKinematicVariables.B, rThisKinematicVariables.F,
+    //         rThisKinematicVariables.DN_DX, rThisKinematicVariables.N);
+    // } else {
+    //     GeometryUtils::DeformationGradient(J, rThisKinematicVariables.InvJ0,
+    //                                        rThisKinematicVariables.F);
+    //     CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
+    //                rThisKinematicVariables.DN_DX);
+    // }
+    GeometryUtils::DeformationGradient(J, rThisKinematicVariables.InvJ0,
+                                        rThisKinematicVariables.F);
+    CalculateB(rThisKinematicVariables.B, rThisKinematicVariables.F,
+                rThisKinematicVariables.DN_DX);
 
     rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
@@ -299,17 +303,30 @@ void TotalLagrangian::Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& r
 
     const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
     const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
 
-    for (IndexType i = 0; i < number_of_nodes; ++i)
-    {
-        const auto index = dimension * i;
-        rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
-        rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
-        rB(1, index + 0) = rF(0, 1) * rDN_DX(i, 1);
-        rB(1, index + 1) = rF(1, 1) * rDN_DX(i, 1);
-        rB(2, index + 0) = rF(0, 0) * rDN_DX(i, 1) + rF(0, 1) * rDN_DX(i, 0);
-        rB(2, index + 1) = rF(1, 0) * rDN_DX(i, 1) + rF(1, 1) * rDN_DX(i, 0);
+    if (strain_size == 3) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const auto index = dimension * i;
+            rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
+            rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
+            rB(1, index + 0) = rF(0, 1) * rDN_DX(i, 1);
+            rB(1, index + 1) = rF(1, 1) * rDN_DX(i, 1);
+            rB(2, index + 0) = rF(0, 0) * rDN_DX(i, 1) + rF(0, 1) * rDN_DX(i, 0);
+            rB(2, index + 1) = rF(1, 0) * rDN_DX(i, 1) + rF(1, 1) * rDN_DX(i, 0);
+        }
+    } else if (strain_size == 4) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const auto index = dimension * i;
+            rB(0, index + 0) = rF(0, 0) * rDN_DX(i, 0);
+            rB(0, index + 1) = rF(1, 0) * rDN_DX(i, 0);
+            rB(1, index + 0) = rF(0, 1) * rDN_DX(i, 1);
+            rB(1, index + 1) = rF(1, 1) * rDN_DX(i, 1);
+            rB(3, index + 0) = rF(0, 0) * rDN_DX(i, 1) + rF(0, 1) * rDN_DX(i, 0);
+            rB(3, index + 1) = rF(1, 0) * rDN_DX(i, 1) + rF(1, 1) * rDN_DX(i, 0);
+        }
     }
+
 
     KRATOS_CATCH( "" )
 }

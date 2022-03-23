@@ -209,7 +209,14 @@ void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Constitu
 
     E_tensor *= 0.5;
 
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    BoundedMatrix<double,3,3> final_E_tensor = ZeroMatrix(3,3);
+    for (unsigned int i = 0; i < 2; ++i) {
+        for (unsigned int j = 0; j < 2; ++j) {
+            final_E_tensor(i,j) = E_tensor(i,j);
+        }
+    }
+
+    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(final_E_tensor);
 }
 
 } // Namespace Kratos

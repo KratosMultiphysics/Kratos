@@ -713,9 +713,9 @@ int ShellCrossSection::Check(const Properties& rMaterialProperties,
             iPointLaw->GetLawFeatures(iPointLawFeatures);
 
             const int strain_size = iPointLawFeatures.mStrainSize;
-            KRATOS_ERROR_IF(strain_size != 3 && strain_size != 6)
+            KRATOS_ERROR_IF(strain_size != 3 && strain_size != 6 && strain_size != 4)
                     << "The Constitutive law of a ShellCrossSection.IntegrationPoint needs a "
-                    << "ConstitutiveLaw with 3 or 6 components, instead of " << strain_size << std::endl;
+                    << "ConstitutiveLaw with 3, 4 or 6 components, instead of " << strain_size << std::endl;
 
             //bool correct_strain_measure = false;
             //for(unsigned int i=0; i<iPointLawFeatures.mStrainMeasures.size(); i++)
@@ -855,10 +855,12 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
 
     rVariables.DeterminantF = 1.0;
 
+    const std::size_t voigt_size = rValues.GetMaterialProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+
     rVariables.DeformationGradientF_2D = IdentityMatrix(2);
-    rVariables.StrainVector_2D.resize(3, false);
-    rVariables.StressVector_2D.resize(3, false);
-    rVariables.ConstitutiveMatrix_2D.resize(3,3, false);
+    rVariables.StrainVector_2D.resize(voigt_size, false);
+    rVariables.StressVector_2D.resize(voigt_size, false);
+    rVariables.ConstitutiveMatrix_2D.resize(voigt_size,voigt_size, false);
 
     if (mNeedsOOPCondensation) { // avoid useless allocations
         rVariables.DeformationGradientF_3D = IdentityMatrix(3);
@@ -890,7 +892,7 @@ void ShellCrossSection::InitializeParameters(SectionParameters& rValues, Constit
 
 void ShellCrossSection::UpdateIntegrationPointParameters(const IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables)
 {
-    if (rPoint.GetConstitutiveLaw()->GetStrainSize() == 3) {
+    if (rPoint.GetConstitutiveLaw()->GetStrainSize() == 3 || rPoint.GetConstitutiveLaw()->GetStrainSize() == 4) {
         // use 2D matrices and vectors
         rMaterialValues.SetStrainVector(rVariables.StrainVector_2D);
         rMaterialValues.SetStressVector(rVariables.StressVector_2D);
@@ -974,6 +976,11 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
         materialStrainVector(0) = generalizedStrainVector(0) + z * generalizedStrainVector(3); //  e.xx
         materialStrainVector(1) = generalizedStrainVector(1) + z * generalizedStrainVector(4); //  e.yy
         materialStrainVector(2) = generalizedStrainVector(2) + z * generalizedStrainVector(5); //  e.xy
+    } else if (material_strain_size == 4) {
+        materialStrainVector(0) = generalizedStrainVector(0) + z * generalizedStrainVector(3); //  e.xx
+        materialStrainVector(1) = generalizedStrainVector(1) + z * generalizedStrainVector(4); //  e.yy
+        materialStrainVector(2) = 0.0;	                                   //  e.zz
+        materialStrainVector(3) = generalizedStrainVector(2) + z * generalizedStrainVector(5); //  e.xy
     } else { // full 3D case
         materialStrainVector(0) = generalizedStrainVector(0) + z * generalizedStrainVector(3);	//  e.xx
         materialStrainVector(1) = generalizedStrainVector(1) + z * generalizedStrainVector(4);	//  e.yy
@@ -996,6 +1003,12 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
         F(0, 0) = materialStrainVector(0) + 1.0;
         F(1, 1) = materialStrainVector(1) + 1.0;
         F(0, 1) = F(1, 0) = materialStrainVector(2) * 0.5;
+        rVariables.DeterminantF = MathUtils<double>::Det2(F);
+    } else if (material_strain_size == 4) {
+        Matrix& F = rVariables.DeformationGradientF_2D;
+        F(0, 0) = materialStrainVector(0) + 1.0;
+        F(1, 1) = materialStrainVector(1) + 1.0;
+        F(0, 1) = F(1, 0) = materialStrainVector(3) * 0.5;
         rVariables.DeterminantF = MathUtils<double>::Det2(F);
     } else { // 6
         Matrix& F = rVariables.DeformationGradientF_3D;
@@ -1022,6 +1035,18 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
             generalizedStressVector(3) += h * z * materialStressVector(0);		// M.xx
             generalizedStressVector(4) += h * z * materialStressVector(1);		// M.yy
             generalizedStressVector(5) += h * z * materialStressVector(2);		// M.xy
+            if (mBehavior == Thick) {
+                // here the transverse shear is treated elastically
+                generalizedStressVector(6) += cs * h * rVariables.GYZ * ce * generalizedStrainVector(6) * stenbergShearStabilization;		// V.yz
+                generalizedStressVector(7) += cs * h * rVariables.GXZ * ce * generalizedStrainVector(7)* stenbergShearStabilization;		// V.xz
+            }
+        } else if (material_strain_size == 4) {
+            generalizedStressVector(0) += h * materialStressVector(0);			// N.xx
+            generalizedStressVector(1) += h * materialStressVector(1);			// N.yy
+            generalizedStressVector(2) += h * materialStressVector(3);			// N.xy
+            generalizedStressVector(3) += h * z * materialStressVector(0);		// M.xx
+            generalizedStressVector(4) += h * z * materialStressVector(1);		// M.yy
+            generalizedStressVector(5) += h * z * materialStressVector(3);		// M.xy
             if (mBehavior == Thick) {
                 // here the transverse shear is treated elastically
                 generalizedStressVector(6) += cs * h * rVariables.GYZ * ce * generalizedStrainVector(6) * stenbergShearStabilization;		// V.yz
@@ -1095,6 +1120,69 @@ void ShellCrossSection::CalculateIntegrationPointResponse(const IntegrationPoint
             D(5,0) += h*z*C(2,0);
             D(5,1) += h*z*C(2,1);
             D(5,2) += h*z*C(2,2);
+
+            if (mBehavior == Thick) {
+                // here the transverse shear is treated elastically
+                D(6, 6) += h * cs * ce * rVariables.GYZ*stenbergShearStabilization;
+                D(7, 7) += h * cs * ce * rVariables.GXZ*stenbergShearStabilization;
+            }
+
+            if (mStorePlyConstitutiveMatrices) {
+                for (unsigned int i = 0; i < 3; i++) {
+                    for (unsigned int j = 0; j < 3; j++) {
+                        mPlyConstitutiveMatrices[plyNumber](i, j) = 1.0*C(i, j);
+                    }
+                }
+                if (mBehavior == Thick) {
+                    // include transverse moduli and add in shear stabilization
+                    mPlyConstitutiveMatrices[plyNumber](6, 6) = cs * ce * rVariables.GYZ *stenbergShearStabilization;
+                    mPlyConstitutiveMatrices[plyNumber](7, 7) = cs * ce * rVariables.GXZ *stenbergShearStabilization;
+                }
+            }
+        } else if (material_strain_size == 4) {
+            // membrane part
+            D(0,0) += h*C(0,0);
+            D(0,1) += h*C(0,1);
+            D(0,2) += h*C(0,3);
+            D(1,0) += h*C(1,0);
+            D(1,1) += h*C(1,1);
+            D(1,2) += h*C(1,3);
+            D(2,0) += h*C(3,0);
+            D(2,1) += h*C(3,1);
+            D(2,2) += h*C(3,3);
+
+            // bending part
+            D(3,3) += h*z*z*C(0,0);
+            D(3,4) += h*z*z*C(0,1);
+            D(3,5) += h*z*z*C(0,3);
+            D(4,3) += h*z*z*C(1,0);
+            D(4,4) += h*z*z*C(1,1);
+            D(4,5) += h*z*z*C(1,3);
+            D(5,3) += h*z*z*C(3,0);
+            D(5,4) += h*z*z*C(3,1);
+            D(5,5) += h*z*z*C(3,3);
+
+            // membrane-bending part
+            D(0,3) += h*z*C(0,0);
+            D(0,4) += h*z*C(0,1);
+            D(0,5) += h*z*C(0,3);
+            D(1,3) += h*z*C(1,0);
+            D(1,4) += h*z*C(1,1);
+            D(1,5) += h*z*C(1,3);
+            D(2,3) += h*z*C(3,0);
+            D(2,4) += h*z*C(3,1);
+            D(2,5) += h*z*C(3,3);
+
+            // bending-membrane part
+            D(3,0) += h*z*C(0,0);
+            D(3,1) += h*z*C(0,1);
+            D(3,2) += h*z*C(0,3);
+            D(4,0) += h*z*C(1,0);
+            D(4,1) += h*z*C(1,1);
+            D(4,2) += h*z*C(1,3);
+            D(5,0) += h*z*C(3,0);
+            D(5,1) += h*z*C(3,1);
+            D(5,2) += h*z*C(3,3);
 
             if (mBehavior == Thick) {
                 // here the transverse shear is treated elastically

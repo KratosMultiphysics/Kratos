@@ -67,7 +67,8 @@ class KRATOS_API(KRATOS_CORE) InitialState
         {}
 
         /// Only defining Dimension constructor.
-        InitialState(const SizeType Dimension);
+        InitialState(const SizeType Dimension,
+                     const SizeType VoigtSize);
 
         // Full constructor
         InitialState(const Vector& rInitialStrainVector,
@@ -76,14 +77,17 @@ class KRATOS_API(KRATOS_CORE) InitialState
 
         // Selective constructor for vectors
         InitialState(const Vector& rImposingEntity,
+                     const SizeType Dimension,
                      const InitialImposingType InitialImposition = InitialImposingType::STRAIN_ONLY);
 
         // Selective constructor for vectors (E, S)
         InitialState(const Vector& rInitialStrainVector,
-                     const Vector& rInitialStressVector);
+                     const Vector& rInitialStressVector,
+                     const SizeType Dimension);
 
         // Selective constructor for Deformation Gradient only
-        InitialState(const Matrix& rInitialDeformationGradientMatrix);
+        InitialState(const Matrix& rInitialDeformationGradientMatrix,
+                     const SizeType VoigtSize);
 
         /// Destructor.
         virtual ~InitialState() {}

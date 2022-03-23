@@ -1749,7 +1749,14 @@ void BaseSolidElement::CalculateAndAddKg(
     KRATOS_TRY
 
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    const Matrix stress_tensor_x_weigth = IntegrationWeight * MathUtils<double>::StressVectorToTensor( StressVector );
+    Matrix stress_tensor_x_weigth = IntegrationWeight * MathUtils<double>::StressVectorToTensor( StressVector );
+    if (StressVector.size() == 4) {
+        stress_tensor_x_weigth.resize(2,2,false);
+        stress_tensor_x_weigth(0,0) = IntegrationWeight * StressVector[0];
+        stress_tensor_x_weigth(0,1) = IntegrationWeight * StressVector[3];
+        stress_tensor_x_weigth(1,0) = IntegrationWeight * StressVector[3];
+        stress_tensor_x_weigth(1,1) = IntegrationWeight * StressVector[1];
+    }
     Matrix reduced_Kg(DN_DX.size1(), DN_DX.size1());
     MathUtils<double>::BDBtProductOperation(reduced_Kg, stress_tensor_x_weigth, DN_DX);
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, reduced_Kg, dimension );

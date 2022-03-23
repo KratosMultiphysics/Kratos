@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     initial_strain_w(4) = 0.000004;
     initial_strain_w(5) = 0.000005;
     InitialState::Pointer p_initial_state = Kratos::make_intrusive<InitialState>
-	    (initial_strain_w, InitialState::InitialImposingType::STRAIN_ONLY);
+	    (initial_strain_w,3, InitialState::InitialImposingType::STRAIN_ONLY);
     cl.SetInitialState(p_initial_state);
     Vector initial_strain_r;  // Should be accordingly resized in the CL
     cl.CalculateValue(cl_parameters, INITIAL_STRAIN_VECTOR, initial_strain_r);

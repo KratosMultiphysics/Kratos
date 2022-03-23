@@ -27,16 +27,16 @@ namespace Kratos
 ///@{
 
     /// Only defining Dimension constructor.
-    InitialState::InitialState(const SizeType Dimension)
+    InitialState::InitialState(const SizeType Dimension,
+                    const SizeType VoigtSize)
         : mReferenceCounter(0)
     {
-        const SizeType voigt_size = (Dimension == 3) ? 6 : 3;
-        mInitialStressVector.resize(voigt_size, false);
-        mInitialStrainVector.resize(voigt_size, false);
+        mInitialStressVector.resize(VoigtSize, false);
+        mInitialStrainVector.resize(VoigtSize, false);
         mInitialDeformationGradientMatrix.resize(Dimension, Dimension, false);
 
-        noalias(mInitialStressVector) = ZeroVector(voigt_size);
-        noalias(mInitialStrainVector) = ZeroVector(voigt_size);
+        noalias(mInitialStressVector) = ZeroVector(VoigtSize);
+        noalias(mInitialStrainVector) = ZeroVector(VoigtSize);
         noalias(mInitialDeformationGradientMatrix) = ZeroMatrix(Dimension, Dimension);
     }
 
@@ -62,17 +62,16 @@ namespace Kratos
 
     // Selective constructor for vectors
     InitialState::InitialState(const Vector& rImposingEntity,
+                    const SizeType Dimension,
                     const InitialImposingType InitialImposition)
         : mReferenceCounter(0)
     {
         const SizeType voigt_size = rImposingEntity.size();
-        const SizeType dimension = (voigt_size == 6) ? 3 : 2;
-
         mInitialStrainVector.resize(voigt_size, false);
         mInitialStressVector.resize(voigt_size, false);
-        mInitialDeformationGradientMatrix.resize(dimension, dimension, false);
+        mInitialDeformationGradientMatrix.resize(Dimension, Dimension, false);
 
-        noalias(mInitialDeformationGradientMatrix) = ZeroMatrix(dimension, dimension);
+        noalias(mInitialDeformationGradientMatrix) = ZeroMatrix(Dimension, Dimension);
         noalias(mInitialStrainVector) = ZeroVector(voigt_size);
         noalias(mInitialStressVector) = ZeroVector(voigt_size);
 
@@ -85,38 +84,38 @@ namespace Kratos
 
     // Selective constructor for vectors (E, S)
     InitialState::InitialState(const Vector& rInitialStrainVector,
-                    const Vector& rInitialStressVector)
+                    const Vector& rInitialStressVector,
+                    const SizeType Dimension)
         : mReferenceCounter(0)
     {
         const SizeType voigt_size_1 = rInitialStrainVector.size();
         const SizeType voigt_size_2 = rInitialStressVector.size();
-        const SizeType dimension = (voigt_size_1 == 6) ? 3 : 2;
         KRATOS_ERROR_IF(voigt_size_1 <= 0 || voigt_size_2 <= 0) << "The imposed vector is null..." << std::endl;
 
         mInitialStressVector.resize(voigt_size_1, false);
         mInitialStrainVector.resize(voigt_size_1, false);
-        mInitialDeformationGradientMatrix.resize(dimension, dimension, false);
+        mInitialDeformationGradientMatrix.resize(Dimension, Dimension, false);
 
-        noalias(mInitialDeformationGradientMatrix) = ZeroMatrix(dimension, dimension);
+        noalias(mInitialDeformationGradientMatrix) = ZeroMatrix(Dimension, Dimension);
         noalias(mInitialStressVector) = rInitialStressVector;
         noalias(mInitialStrainVector) = rInitialStrainVector;
     }
 
     // Selective constructor for Deformation Gradient only
-    InitialState::InitialState(const Matrix& rInitialDeformationGradientMatrix)
+    InitialState::InitialState(const Matrix& rInitialDeformationGradientMatrix,
+                    const SizeType VoigtSize)
         : mReferenceCounter(0)
     {
         const SizeType dimension = rInitialDeformationGradientMatrix.size1();
-        const SizeType voigt_size = (dimension == 3) ? 6 : 3;
         KRATOS_ERROR_IF(dimension <= 0) << "The imposed Matrix is null..." << std::endl;
 
         mInitialDeformationGradientMatrix.resize(dimension, dimension, false);
         noalias(mInitialDeformationGradientMatrix) = rInitialDeformationGradientMatrix;
 
-        mInitialStressVector.resize(voigt_size, false);
-        mInitialStrainVector.resize(voigt_size, false);
-        noalias(mInitialStrainVector) = ZeroVector(voigt_size);
-        noalias(mInitialStressVector) = ZeroVector(voigt_size);
+        mInitialStressVector.resize(VoigtSize, false);
+        mInitialStrainVector.resize(VoigtSize, false);
+        noalias(mInitialStrainVector) = ZeroVector(VoigtSize);
+        noalias(mInitialStressVector) = ZeroVector(VoigtSize);
     }
 
 

@@ -943,14 +943,23 @@ void SmallDisplacementMixedVolumetricStrainElement::CalculateAnisotropyTensor(co
     // The k_iso and mu_iso coefficients are obtained from the Frobenius norm minimization of the closest isotropic tensor to C
     // Such minimization is constrained such that the compressibility of the new C_iso is equivalent to the input anisotropic C one
     Vector u = ZeroVector(strain_size);
-    for (IndexType i = 0; i < dim; ++i) {
-        u(i) = 1.0 / std::sqrt(dim);
+    Matrix I = ZeroMatrix(strain_size);
+    if (strain_size == 4) {
+        for (IndexType i = 0; i < dim+1; ++i) {
+            u(i) = 1.0 / std::sqrt(dim);
+        }
+        for (IndexType i = 0; i < strain_size; ++i){
+            I(i, i) = i < dim+1 ? 1.0 : 0.5;
+        }
+    } else {
+        for (IndexType i = 0; i < dim; ++i) {
+            u(i) = 1.0 / std::sqrt(dim);
+        }
+        for (IndexType i = 0; i < strain_size; ++i){
+            I(i, i) = i < dim ? 1.0 : 0.5;
+        }
     }
     const Matrix J = outer_prod(u, u);
-    Matrix I = ZeroMatrix(strain_size);
-    for (IndexType i = 0; i < strain_size; ++i){
-        I(i, i) = i < dim ? 1.0 : 0.5;
-    }
     const Matrix K = I - J;
     const Matrix &rC = constitutive_variables.D;
     const double k_iso = CalculateBulkModulus(rC);
@@ -1006,9 +1015,14 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateBulkModulus(const
 double SmallDisplacementMixedVolumetricStrainElement::CalculateShearModulus(const Matrix &rC) const
 {
     const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    return (strain_size == 3) ?
-        0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2)) :
-        (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
+    if (strain_size == 3) {
+        return 0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(2,2));
+    } else if (strain_size == 4) {
+        return 0.2 * (rC(0,0) - 2.0*rC(0,1) + rC(1,1) + rC(3,3));
+    } else {
+        return (4.0 / 33.0)*(rC(0,0) - rC(0,1) - rC(0,2) + rC(1,1) - rC(1,2) + rC(2,2) + (3.0/4.0)*(rC(3,3) + rC(4,4) + rC(5,5)));
+
+    }
 }
 
 /***********************************************************************************/
