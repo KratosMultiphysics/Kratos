@@ -50,18 +50,6 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__DumpUpdatedCFDSettings()
             self._runTest()
 
-    def test_mok_fsi_jacobi(self):
-        self.accelerator_type = "mvqn"
-
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fsi_mok", "cosim_mok_fsi")
-            self.__ManipulateCFDSettings()
-            self.cosim_parameters["solver_settings"]["type"].SetString("coupled_solvers.jacobi_strong")
-            self.__RemoveOutputFromCFD() # comment to get output
-            self.__AddTestingToCFD("jacobi")
-            self.__DumpUpdatedCFDSettings()
-            self._runTest()
-
     def test_mok_fsi_mvqn_external_structure(self):
         self.accelerator_type = "mvqn"
 
