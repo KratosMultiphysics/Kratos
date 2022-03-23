@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnitTest
 
 from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
-    .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
+    .compressible_navier_stokes_element_symbolic_generator import CompressibleNavierStokesElementSymbolicGenerator
 
 import KratosMultiphysics.FluidDynamicsApplication
 
@@ -53,7 +53,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
     def _Generate(cls, geometry):
         """Generates the code to be tested, and stores it in a file."""
         params = cls._GetGeneratorSettings(geometry)
-        generator = CompressibleNavierStokesSymbolicGenerator(params)
+        generator = CompressibleNavierStokesElementSymbolicGenerator(params)
         generator.Generate()
         generator.Write()
 
