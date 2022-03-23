@@ -26,7 +26,6 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 **Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
-
 # Main Features
 **Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
 
@@ -51,9 +50,7 @@ Some main modules are:
 Here you can find the basic documentation of the project:
 ## Getting Started
 * Getting Kratos (Last compiled Release)
-    * [Kratos for Linux](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Linux)
-    * [Kratos for Windows](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-Binaries-for-Windows)
-    <!-- * [Kratos for Mac](https://github.com/KratosMultiphysics/Kratos/wiki/MacOS-install) -->
+    * [Kratos from `pip`](https://pypi.org/project/KratosMultiphysics/): Just simply type on terminal `pip install KratosMultiphysics-all`
     * [Kratos for GiD](https://github.com/KratosMultiphysics/Kratos/wiki/Getting-Kratos-binaries-(via-GiD))
 * Compiling Kratos
     * [See INSTALL.md](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md)

@@ -169,7 +169,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    const Parameters GetDefaultParameters() const;
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
 

@@ -95,7 +95,7 @@ public:
         const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         for(auto& r_element : rModelPart.Elements()){
             r_element.Calculate(MEMBRANE_PRESTRESS,output_matrix,r_process_info);
-            r_element.Data().Clear();
+            r_element.GetData().Clear();
             r_element.SetValue(MEMBRANE_PRESTRESS,output_matrix);
         }
 

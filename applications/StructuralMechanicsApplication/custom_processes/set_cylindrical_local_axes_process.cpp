@@ -64,12 +64,23 @@ void SetCylindricalLocalAxesProcess::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SetCylindricalLocalAxesProcess::ExecuteInitializeSolutionStep()
+{
+    if (mThisParameters["update_at_each_step"].GetBool()) {
+        ExecuteInitialize();
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 const Parameters SetCylindricalLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
         "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
-        "cylindrical_generatrix_point"  : [0.0,0.0,0.0]
+        "cylindrical_generatrix_point"  : [0.0,0.0,0.0],
+        "update_at_each_step"           : false
     })");
 
     return default_parameters;
