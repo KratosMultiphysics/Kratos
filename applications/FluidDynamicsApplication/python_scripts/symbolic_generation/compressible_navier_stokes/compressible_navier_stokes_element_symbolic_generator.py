@@ -53,13 +53,29 @@ class CompressibleNavierStokesElementSymbolicGenerator(CompressibleNavierStokesS
             "subscales": {
                 "ASGS" : true,
                 "OSS" : true
-            },
+            }
         }""")
         default_parameters.RecursivelyAddMissingParameters(super().GetDefaultParameters())
         return default_parameters
 
     def TouchFiles(self):
         super()._TouchFiles(__file__)
+
+    def _ComputeNonLinearOperator(self, A, H, S, Ug):
+        L = defs.ZeroVector(self.geometry.blocksize)
+        for j in range(self.geometry.ndims):
+            # Convective operator product (A x grad(U))
+            A_j = A[j]
+            H_j = H.col(j)
+            L += A_j * H_j
+            # Diffusive flux
+            # Note that the diffusive flux is not added as it will involve 2nd
+            # order derivatives that vanish when introducing the linear FE
+            # discretization
+
+        # Source term addition
+        L -= S * Ug
+        return L
 
     def _ComputeNonLinearAdjointOperator(self, A, H, Q, S, Ug, V):
         L_adj = defs.ZeroVector(self.geometry.blocksize)
