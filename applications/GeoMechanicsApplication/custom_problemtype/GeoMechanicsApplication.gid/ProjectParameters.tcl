@@ -471,27 +471,27 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     # Record_VELOCITY
     set Groups [GiD_Info conditions Record_VELOCITY groups]
-    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+    WriteResultVectorProcess FileVar iGroup $Groups points VELOCITY $NumGroups
 
     # Record_ACCELERATION
     set Groups [GiD_Info conditions Record_ACCELERATION groups]
-    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+    WriteResultVectorProcess FileVar iGroup $Groups points ACCELERATION $NumGroups
 
     # Record_VOLUME_ACCELERATION
     set Groups [GiD_Info conditions Record_VOLUME_ACCELERATION groups]
-    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+    WriteResultVectorProcess FileVar iGroup $Groups points VOLUME_ACCELERATION $NumGroups
 
     # Record_POINT_LOAD
     set Groups [GiD_Info conditions Record_POINT_LOAD groups]
-    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+    WriteResultVectorProcess FileVar iGroup $Groups points POINT_LOAD $NumGroups
 
     # Record_LINE_LOAD
     set Groups [GiD_Info conditions Record_LINE_LOAD groups]
-    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+    WriteResultVectorProcess FileVar iGroup $Groups points LINE_LOAD $NumGroups
 
     # Record_SURFACE_LOAD
     set Groups [GiD_Info conditions Record_SURFACE_LOAD groups]
-    WriteResultVectorProcess FileVar iGroup $Groups points DISPLACEMENT $NumGroups
+    WriteResultVectorProcess FileVar iGroup $Groups points SURFACE_LOAD $NumGroups
 
 
     puts $FileVar "    \}\],"
