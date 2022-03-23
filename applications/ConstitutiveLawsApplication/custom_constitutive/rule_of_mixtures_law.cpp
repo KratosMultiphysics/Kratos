@@ -1053,7 +1053,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
         //
 
-        KRATOS_WATCH(delamination_damage);
+        // KRATOS_WATCH(delamination_damage);
         
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
@@ -1513,9 +1513,9 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         mdelamination_damage = delamination_damage;          // Scalar delamination damage variable  
         mDelta_eq_max = Delta_eq_max;                        // Equivalent Strain History Variable
 
-        if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
-        }
+        // if (flag_const_tensor) {
+        //     this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+        // }
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
