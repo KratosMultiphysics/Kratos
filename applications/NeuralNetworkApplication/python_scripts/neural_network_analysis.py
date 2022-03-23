@@ -365,7 +365,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
         It can be overridden by derived classes
         """
         while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
+            self.time = self._GetNeuralNetworkSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
             self._GetNeuralNetworkSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
