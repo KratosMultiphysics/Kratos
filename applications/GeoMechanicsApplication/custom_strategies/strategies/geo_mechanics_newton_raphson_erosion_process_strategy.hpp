@@ -97,115 +97,157 @@ public:
 	
 
     void FinalizeSolutionStep() override
-	{
-    	KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
-    	
-        int PipeIter = 0;
+    {
+        KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
+
         int openPipeElements = 0;
-        bool Equilibrium = false;
+        bool grow = true;
 
-        double amax = 0.02; //todo calculate this value
-        double da = 0.00001; // todo calculate this value
-
+        // get piping elements
         std::vector<Element*> PipeElements = GetPipingElements();
+        unsigned int n_el = PipeElements.size(); // number of piping elements
 
-        unsigned int n_el = PipeElements.size();
-        //PipeElements.size()
-        std::vector<double> prev_pipe_heights;
+        // calculate max pipe height and pipe increment
+        double amax = CalculateMaxPipeHeight(PipeElements);
+        double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
 
-
-        for (unsigned int i = 0; i < PipeElements.size(); ++i)
+        
+        // continue this loop, while the pipe is growing in length
+        while (grow)
         {
-            prev_pipe_heights.push_back(0);
-        }
-        // Open tip element of pipe (activate next pipe element)
-        Element* test_element = PipeElements.at(0);
-        test_element->Set(ACTIVE, true);
+            bool Equilibrium = false;
+            bool converged = true;
+            int PipeIter = 0;
 
+            // get tip element and open with 1 pipe height increment
+            Element* tip_element = PipeElements.at(openPipeElements);
+            openPipeElements += 1;
+            tip_element->Set(ACTIVE, true);
+            tip_element->SetValue(PIPE_HEIGHT, da);
 
-    	// Implement Piping Loop (non-lin picard iteration)
-    	while (PipeIter < mPipingIterations && !Equilibrium)
-        {
-            
-    		// Update the pipe_height by the pipe increment
-    		
-    		// Sellmeijer Piping Method 
-            Equilibrium = true;
-    		
-            // Loop over open pipe elements
-            auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
-            KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
-			
-            // Check if elements are in equilibrium
-    		for (auto OpenPipeElement : OpenPipeElements)
+            // non-lin picard iteration, for deepening the pipe
+            while (PipeIter < mPipingIterations && !Equilibrium && converged)
             {
-                SteadyStatePwPipingElement* pElement = static_cast<SteadyStatePwPipingElement*>(OpenPipeElement);
-                if (!pElement->InEquilibrium(OpenPipeElement->GetProperties(), OpenPipeElement->GetGeometry()))
+
+                // set equilibirum on true
+                Equilibrium = true;
+
+                // Get all open pipe elements
+                auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
+                KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
+
+                // todo check if this part can be removed/refactored
+                // Check if elements are in equilibrium
+                for (auto OpenPipeElement : OpenPipeElements)
                 {
-                    Equilibrium = false;
-                    break;
-                }          
+                    SteadyStatePwPipingElement* pElement = static_cast<SteadyStatePwPipingElement*>(OpenPipeElement);
+                    if (!pElement->InEquilibrium(OpenPipeElement->GetProperties(), OpenPipeElement->GetGeometry()))
+                    {
+                        Equilibrium = false;
+                        break;
+                    }
+                }
+
+                // perform a flow calculation and stop growing if the calculation doesnt converge
+                converged = Recalculate();
+                if (!converged)
+                {
+                    grow = false;
+                }
+
+                if (converged)
+                {
+                    // Update depth of open piping Elements 
+                    Equilibrium = true;
+                    for (auto OpenPipeElement : OpenPipeElements)
+                    {
+                        auto pElement = static_cast<SteadyStatePwPipingElement*>(OpenPipeElement);
+
+                        // get open pipe element geometry and properties
+                        auto& Geom = OpenPipeElement->GetGeometry();
+                        auto& prop = OpenPipeElement->GetProperties();
+
+                        // todo set this property in the input
+                        prop.SetValue(PIPE_MODEL_FACTOR, 1);
+
+                        // calculate equilibrium pipe height and get current pipe height
+                        double eq_height = pElement->CalculateEquilibriumPipeHeight(prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
+                        double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
+
+                        // set erosion on true if current pipe height is greater than the equilibirum height
+                        if (current_height > eq_height)
+                        {
+                            OpenPipeElement->SetValue(PIPE_EROSION, true);
+                        }
+
+                        
+                        // check this if statement, I dont understand the check for pipe erosion
+                        if (((!OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax))
+                        {
+                            OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT) + da);
+                            Equilibrium = false;
+                        }
+
+                        // check if equilibrium height and current pipe heights are diverging, stop picard iterations if this is the case and set pipe height on zero
+                        if (!OpenPipeElement->GetValue(PIPE_EROSION) && (PipeIter > 1) && ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT)))
+                        {
+                            Equilibrium = true;
+                            OpenPipeElement->SetValue(PIPE_HEIGHT, 0);
+                        }
+
+                        // calculate difference between equilibrium height and current pipe height
+                        OpenPipeElement->SetValue(DIFF_PIPE_HEIGHT, eq_height - current_height);
+
+                    }
+                    // increment piping iteration number
+                    PipeIter += 1;
+                }
+
+
             }
 
+            // get open pipe elements
+            auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
 
-
-    		if (!Equilibrium)
+            // check status of tip element, stop growing if pipe_height is zero or greater than maximum pipe height or if all elements are open
+            if (openPipeElements < n_el)
             {
-                // Update Piping Elements 
-            	for (auto OpenPipeElement : OpenPipeElements)
+                tip_element = PipeElements.at(openPipeElements-1);
+                double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
+                if ((pipe_height > amax + 1e-10) || (pipe_height < 1e-10))
                 {
-                    auto pElement = static_cast<SteadyStatePwPipingElement*>(OpenPipeElement);
+                    // stable element found; pipe length does not increase during current time step
+                    grow = false;
+                    tip_element->SetValue(PIPE_EROSION, false);
+                    tip_element->Set(ACTIVE, false);
+                    openPipeElements -= 1;
+                    auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
 
-                    // Update here
-                    auto& Geom = OpenPipeElement->GetGeometry();
-                    auto& prop = OpenPipeElement->GetProperties();
-
-                    // todo set this property in the input
-                    prop.SetValue(PIPE_MODEL_FACTOR, 1);
-
-                    // calculate eq height
-                    double eq_height = pElement->CalculateEquilibriumPipeHeight(prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
-                    double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
-
-                    if (current_height > eq_height)
-                    {
-                        OpenPipeElement->SetValue(PIPE_EROSION, true);
-                    }
-
-                    // todo check max pipe height
-
-                    // check this if statement, I dont understand the check for pipe erosion
-                    if (((!OpenPipeElement->GetValue(PIPE_EROSION) ||(current_height > eq_height)) && current_height < amax))
-                    {
-                        OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT)+da);
-                        Equilibrium = false;
-                    }
-
-                    //// check divergence
-                    //if (!activeSecondary[pp] && (k > 1) && ((cc - aa) > d[pp]))
-                    //{
-                    //    equilibrium = true;
-                    //    *converged = true;
-                    //    a[pp] = primaryErosionSelected ? b[pp] : -1.0;
-                    //}
-
-
-                    double test = OpenPipeElement->GetValue(PIPE_HEIGHT);
-                    /*prop[MINIMUM_JOINT_WIDTH] = prop[MINIMUM_JOINT_WIDTH + 0.2;*/
-                    double a = 1 + 1;
-                       
                 }
-            	bool converged = Recalculate();
-                PipeIter += 1;  
             }
             else
             {
-                // open new piping element
-                openPipeElements += 1;
-            	PipeElements.at(openPipeElements)->Set(ACTIVE, true);
+                grow = false;
             }
-    		
-        }
+
+            // save pipe height current growing iteration or reset to previous iteration in case the pipe should not grow.
+            if (openPipeElements < n_el)
+            {
+                for (auto OpenPipeElement : OpenPipeElements)
+                {
+                    if (grow)
+                    {
+                        OpenPipeElement->SetValue(PREV_PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT));
+                    }
+                    else
+                    {
+                        OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PREV_PIPE_HEIGHT));
+                    }
+                }
+            }
+
+            converged = Recalculate();
+        }          
 
         GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
         
@@ -222,6 +264,41 @@ protected:
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+
+    double CalculateParticleDiameter(const PropertiesType& Prop)
+    {
+        double diameter;
+
+        if (Prop[PIPE_MODIFIED_D])
+            diameter = 2.08e-4 * pow((Prop[PIPE_D_70] / 2.08e-4), 0.4);
+        else
+            diameter = Prop[PIPE_D_70];
+        return diameter;
+    }
+
+    double CalculateMaxPipeHeight(std::vector<Element*> pipe_elements)
+    {
+        double max_diameter = 0;
+        double particle_diameter = 0;
+        double height_factor = 100;
+
+        for (Element* pipe_element : pipe_elements)
+        {
+            PropertiesType prop = pipe_element->GetProperties();
+            particle_diameter = this->CalculateParticleDiameter(prop);
+            if (particle_diameter > max_diameter)
+            {
+                max_diameter = particle_diameter;
+            }
+        }
+        return max_diameter * height_factor;
+    }
+
+    double CalculatePipeHeightIncrement(double max_pipe_height, const unsigned int n_steps)
+    {
+        return max_pipe_height / (n_steps - 1);
+    }
+
 
     bool Recalculate()
     {
@@ -256,6 +333,9 @@ private:
             {
                // ModelPart::ElementsContainerType::iterator element_it = rModelPart.ElementsBegin()
                 element.Set(ACTIVE, false);
+                element.SetValue(PREV_PIPE_HEIGHT, 0);
+                element.SetValue(DIFF_PIPE_HEIGHT, 0);
+
                 PipeElements.push_back(&element);
                 
                 auto startElement = element.GetProperties()[PIPE_START_ELEMENT];

@@ -59,7 +59,8 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     this->CalculateLength(this->GetGeometry());
     this->SetValue(PIPE_EROSION, false);
-    this->SetValue(PIPE_HEIGHT, Prop[MINIMUM_JOINT_WIDTH]);
+    this->SetValue(PIPE_HEIGHT, 0);
+    this->SetValue(PREV_PIPE_HEIGHT, 0);
 
     this->Set(ACTIVE, false);
 
@@ -216,7 +217,6 @@ double SteadyStatePwPipingElement<TDim, TNumNodes>::CalculateParticleDiameter(co
         diameter = Prop[PIPE_D_70];
     return diameter;
 }
-
 
 /// <summary>
 /// Calculates the equilibrium pipe height of a piping element according to Sellmeijers rule
