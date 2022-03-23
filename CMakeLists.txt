@@ -608,6 +608,7 @@ message("\t Update of Element, Condition and Scheme Interface: https://github.co
 message("\t Make Check() method of ConstitutiveLaw const: https://github.com/KratosMultiphysics/Kratos/pull/7948")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
+message("\t Changed pGetters return type from const shared<a> to shared<const a>: https://github.com/KratosMultiphysics/Kratos/pull/9783")
 
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
