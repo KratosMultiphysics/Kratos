@@ -77,7 +77,7 @@ namespace Kratos
         array_1d<double,3> delta_xg = ZeroVector(3);
         array_1d<double, 3 > MPC_velocity = ZeroVector(3);
         
-        MPMShapeFunctionPointValues(Variables.N);
+        MPMShapeFunctionPointValuesKinematic(Variables.N);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -192,6 +192,27 @@ namespace Kratos
         return 1.0;
     }
 
+    void MPMParticlePointLoadCondition::MPMShapeFunctionPointValuesKinematic( Vector& rResult) const
+    {
+        KRATOS_TRY
+
+        MPMParticleBaseCondition::MPMShapeFunctionPointValues(rResult);
+
+        // Additional check to eliminate loss of point load quantity
+        const GeometryType& r_geometry = GetGeometry();
+        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+        double denominator = 1.0;
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+                rResult[i] = 0;
+            }
+        }
+
+        KRATOS_CATCH( "" )
+    }
+
     void MPMParticlePointLoadCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
     {
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -205,7 +226,7 @@ namespace Kratos
         array_1d<double, 3 > MPC_velocity = ZeroVector(3);
         
 
-        MPMShapeFunctionPointValues(Variables.N);
+        MPMShapeFunctionPointValuesKinematic(Variables.N);
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
