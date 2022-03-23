@@ -71,10 +71,15 @@ class NeuralNetworkSolver(PythonSolver):
         except RuntimeError:
             self.reorder_partitions = 1
 
-        self.input_variables = [ KratosMultiphysics.KratosGlobals.GetVariable( var ) for var in variable_names ]
+        output_var_names = project_parameters["output_variables"]
+        output_sources_names = project_parameters["output_sources"]
+        output_variable_names = [ output_var_names[i].GetString() for i in range( output_var_names.size() ) ]
+        self.output_sources = [ output_sources_names[i].GetString() for i in range( output_sources_names.size() ) ]
+        self.output_variables = [ KratosMultiphysics.KratosGlobals.GetVariable( var ) for var in output_variable_names ]
+
 
     def Initialize(self):
-
+        self.LoadGeometry()
         self.input_data_structure = InputDataclasses.NeuralNetworkData()
 
         self.preprocessed_data_structure = InputDataclasses.NeuralNetworkData()
@@ -85,16 +90,11 @@ class NeuralNetworkSolver(PythonSolver):
 
 
     def InitializeSolutionStep(self):
-        current_time = self.model.ProcessInfo[KratosMultiphysics.TIME]
-        input_value_list=[]
-
         model_input_value_list = []
-
-        for node in self.model.Nodes:
-            model_input_value_list.append([node.X, node.Y, node.Z, current_time])
+        for node in self.model_geometry.Nodes:
+            model_input_value_list.append([node.X, node.Y, self.time])
     
-        self.input_from_modelpart = np.array(input_value_list)
-
+        self.input_from_modelpart = np.array(model_input_value_list)
 
     def SolveSolutionStep(self):
 
@@ -110,24 +110,21 @@ class NeuralNetworkSolver(PythonSolver):
         if self.time >= self.time_buffer: # TODO: Check for consistency with timesteps nad time
             output_value_index = 0
 
-            for node, node_id in zip(self.model.Nodes, range(self.model.NumberOfNodes())):
-                node.SetSolutionStepValue(self.variable,0, output_value_list[node_id])
+        for variable in self.output_variables:
+            for node, node_id in zip(self.model_geometry.Nodes, range(self.model_geometry.NumberOfNodes())):
+                node.SetSolutionStepValue(variable,0, output_value_list[node_id])
                 output_value_index += 1
 
 
     def PredictNeuralNetwork(self, data_structure_in = None):
        
         data_out = NeuralNetworkData()
-        
         self._PrintInfo("Predicting with the Physics Informed Neural Network...")
 
         if self.external_model:
-        # NOTE: This is needed due to unexpected bug with the predict process.
-        # In normal conditions, it is not necessary, but it must be used if there are 
-        # processes that parse from a function in string form.
             output = self.neural_network_model.predict(data_structure_in.ExportAsArray())
             if not output is None:
-                        data_out.UpdateData(output)
+                data_out.UpdateData(output)
         else:
             for process in self._GetListOfProcesses():
                 try:
@@ -136,7 +133,6 @@ class NeuralNetworkSolver(PythonSolver):
                         data_out.UpdateData(output)
                 except AttributeError:
                     pass
-
         return data_out
 
     def FinalizeSolutionStep(self):

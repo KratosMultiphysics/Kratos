@@ -4,7 +4,7 @@ from KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities import I
 import numpy as np
 import matplotlib.pyplot as plt
 import keras.models
-
+import torch 
 
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
@@ -36,7 +36,13 @@ class PredictEntryFromModelProcess(NeuralNetworkProcess):
 
     def Predict(self, model, data_in):
 
-        predictions = model.predict(data_in.ExportElementAsArray(0))
+        """
+        Choose the prediction method according to the library used, presently try and except used for convenience
+        """
+        try:
+            predictions = model.predict(data_in.ExportElementAsArray(0))
+        except:
+            predictions = model(torch.tensor(data_in.ExportElementAsArray(0)))
 
         if self.write_output:
 

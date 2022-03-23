@@ -1,5 +1,7 @@
 import tensorflow.keras as keras
 import numpy as np
+import torch
+from KratosMultiphysics.NeuralNetworkApplication.neural_net import Fullyconnected
 
 class MachineLearningModel():
     """
@@ -16,6 +18,16 @@ class MachineLearningModel():
             self.model = keras.models.load_model(file_name)
             self.model.compile()
             self.model.summary()
+
+        elif self.library_name=="pytorch":
+            device = torch.device('cpu')
+            """ Need a method to automate this part, presently the best architecture is hardcoded here"""
+            print("Network architecture is hardcoded here, please update this to automate")
+            self.model = Fullyconnected(128, 4)
+            self.model.load_state_dict(torch.load(file_name, map_location=device))
+        else: 
+            print("Please use either keras or pytorch model")
+        
         return self.model
 
     def create_model(self, inputs, outputs):
