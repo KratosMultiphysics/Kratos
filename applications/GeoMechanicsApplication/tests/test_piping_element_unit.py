@@ -28,7 +28,9 @@ class TestUnitPipingElements(KratosUnittest.TestCase):
         exitcode = Tester.RunTestCases("TestCalculateEquilibriumPipeHeight")
         self.assertTrue(exitcode == 0)
 
-
+    def test_ErosionProcessStrategy(self):
+        exitcode = Tester.RunTestCases("TestErosionProcessStrategy")
+        self.assertTrue(exitcode == 0)		
 
 if __name__ == '__main__':
     # Tester.RunTestSuite("KratosGeoMechanicsFastSuite")

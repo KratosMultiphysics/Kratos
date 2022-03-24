@@ -28,6 +28,7 @@ from test_settlement import KratosGeoMechanicsSettlementTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_piping_elements import TestPipingElements
 from test_piping_element_unit import TestUnitPipingElements
+from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.
@@ -62,7 +63,8 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsSettlementTests,
         KratosGeoMechanicsCurvedBeamElementTests,
         TestPipingElements,
-        TestUnitPipingElements
+        TestUnitPipingElements,
+        TestElementaryGroundWaterFlow
         ]
 
     # Create an array with the selected tests
