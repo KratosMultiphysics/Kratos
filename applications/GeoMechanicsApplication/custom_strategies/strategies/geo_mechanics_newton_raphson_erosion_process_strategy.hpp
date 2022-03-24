@@ -25,13 +25,17 @@
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "boost/range/adaptor/filtered.hpp"
 
+#include <iostream>
+#include <chrono>
+#include <ctime> 
+
 namespace Kratos
 {
 
 bool isOpen(Element* element) {
-    if (element->IsDefined(ACTIVE))
+    if (element->Has(PIPE_ACTIVE))
     {
-        return element->Is(ACTIVE);
+        return element->GetValue(PIPE_ACTIVE);
     }
     else
         return true;
@@ -122,8 +126,8 @@ public:
             // get tip element and open with 1 pipe height increment
             Element* tip_element = PipeElements.at(openPipeElements);
             openPipeElements += 1;
-            tip_element->Set(ACTIVE, true);
-            tip_element->SetValue(PIPE_HEIGHT, da);
+            tip_element->SetValue(PIPE_ACTIVE, true);
+            //tip_element->SetValue(PIPE_HEIGHT, da);
 
             // non-lin picard iteration, for deepening the pipe
             while (PipeIter < mPipingIterations && !Equilibrium && converged)
@@ -149,7 +153,28 @@ public:
                 }
 
                 // perform a flow calculation and stop growing if the calculation doesnt converge
-                converged = Recalculate();
+
+                // get underlying buffer
+                //std::streambuf* orig_buf = std::cout.rdbuf();
+
+                // set null
+               // auto start = std::chrono::system_clock::now();
+                //std::cout.rdbuf(NULL);
+                //int t = 0;
+               // while (t < 100)
+                //{
+                    converged = Recalculate();
+                  //  t += 1;
+                //}
+
+
+                // restore buffer
+               // std::cout.rdbuf(orig_buf);
+                //auto end = std::chrono::system_clock::now();
+                //std::chrono::duration<double> elapsed_seconds = end - start;
+                //std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+
+                //converged = Recalculate();
                 if (!converged)
                 {
                     grow = false;
@@ -192,7 +217,7 @@ public:
                         if (!OpenPipeElement->GetValue(PIPE_EROSION) && (PipeIter > 1) && ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT)))
                         {
                             Equilibrium = true;
-                            OpenPipeElement->SetValue(PIPE_HEIGHT, 0);
+                            OpenPipeElement->SetValue(PIPE_HEIGHT, 1e-10);
                         }
 
                         // calculate difference between equilibrium height and current pipe height
@@ -202,8 +227,6 @@ public:
                     // increment piping iteration number
                     PipeIter += 1;
                 }
-
-
             }
 
             // get open pipe elements
@@ -214,12 +237,12 @@ public:
             {
                 tip_element = PipeElements.at(openPipeElements-1);
                 double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
-                if ((pipe_height > amax + 1e-10) || (pipe_height < 1e-10))
+                if ((pipe_height > amax + 1e-10) || (pipe_height < 1e-9))
                 {
                     // stable element found; pipe length does not increase during current time step
                     grow = false;
                     tip_element->SetValue(PIPE_EROSION, false);
-                    tip_element->Set(ACTIVE, false);
+                    tip_element->SetValue(PIPE_ACTIVE, false);
                     openPipeElements -= 1;
                     auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
 
@@ -246,14 +269,20 @@ public:
                 }
             }
 
+            // get underlying buffer
+            std::streambuf* orig_buf = std::cout.rdbuf();
+
+            // set null
+            std::cout.rdbuf(NULL);
             converged = Recalculate();
+
+            // restore buffer
+            std::cout.rdbuf(orig_buf);
         }          
 
         GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
         
 	}
-
-   
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -304,14 +333,14 @@ private:
     {
 
         KRATOS_INFO("PipingLoop") << "Recalculating" << std::endl;
-    	ModelPart& CurrentModelPart = this->GetModelPart();
-        this->Clear();
+    	//ModelPart& CurrentModelPart = this->GetModelPart();
+        //this->Clear();
 
         // Reset displacements to the initial (Assumes Water Pressure is the convergence criteria)
-        block_for_each(CurrentModelPart.Nodes(), [&](Node<3>& rNode) {
+       /* block_for_each(CurrentModelPart.Nodes(), [&](Node<3>& rNode) {
             auto dold = rNode.GetSolutionStepValue(WATER_PRESSURE, 1);
             rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
-            });
+            });*/
 
     	GeoMechanicsNewtonRaphsonStrategy::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy::Predict();
@@ -332,16 +361,13 @@ private:
         	if (element.GetProperties().Has(PIPE_START_ELEMENT))
             {
                // ModelPart::ElementsContainerType::iterator element_it = rModelPart.ElementsBegin()
-                element.Set(ACTIVE, false);
-                element.SetValue(PREV_PIPE_HEIGHT, 0);
+                element.SetValue(PIPE_ACTIVE, false);
+                element.SetValue(PREV_PIPE_HEIGHT, 1e-10);
                 element.SetValue(DIFF_PIPE_HEIGHT, 0);
 
                 PipeElements.push_back(&element);
                 
                 auto startElement = element.GetProperties()[PIPE_START_ELEMENT];
-
-                // Debug Statement
-        		// startElement = 217;
 
         		KRATOS_INFO("PipingLoop") << element.Id() << " " << startElement << std::endl;
 

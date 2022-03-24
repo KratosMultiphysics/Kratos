@@ -59,10 +59,10 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     this->CalculateLength(this->GetGeometry());
     this->SetValue(PIPE_EROSION, false);
-    this->SetValue(PIPE_HEIGHT, 0);
-    this->SetValue(PREV_PIPE_HEIGHT, 0);
+    this->SetValue(PIPE_HEIGHT, 1e-10);
+    this->SetValue(PREV_PIPE_HEIGHT, 1e-10);
 
-    this->Set(ACTIVE, false);
+    this->SetValue(PIPE_ACTIVE, false);
 
     KRATOS_CATCH("");
 }
