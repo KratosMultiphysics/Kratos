@@ -74,9 +74,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "dynamic_tau": 1.0,
                 "surface_tension": false,
                 "mass_source":false,
-                "energy_preserving_momentum_term":true,
-                "momentum_correction":false
+                "energy_preserving":false
             },
+            "energy_preserving_settings":{
+                "particle_layer_thickness":0.0,
+                "particle_searching_factor":2
+
+            }
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
@@ -173,6 +177,20 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, smoothing_coefficient)
 
         self._apply_acceleration_limitation = self.settings["acceleration_limitation"].GetBool()
+
+        self.energy_preserving = False
+        if self.settings["formulation"].Has("energy_preserving"):
+            self.energy_preserving = self.settings["formulation"]["energy_preserving"].GetBool()
+
+        if self.energy_preserving:
+            if self.settings.Has["energy_preserving_settings"]:
+                if self.settings["energy_preserving_settings"].Has("particle_layer_thickness"):
+                    self.particle_layer_thickness = self.settings["energy_preserving_settings"]["particle_layer_thickness"].GeDouble()
+                if self.settings["energy_preserving_settings"].Has("particle_searching_factor"):
+                    self.particle_searching_factor = self.settings["energy_preserving_settings"]["particle_searching_factor"].GetDouble()
+            else:
+                raise Exception(
+                    "In order to preserve energy particle_layer_thickness and particle_searching_factor settings have to be indicated")
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -334,20 +352,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
-            # for node in self.GetComputingModelPart().Nodes:
-            #     new_density=node.GetSolutionStepValue(KratosMultiphysics.DENSITY,0)
-            #     old_density = node.GetSolutionStepValue(KratosMultiphysics.DENSITY,1)
-            #     if (abs(new_density-old_density)>1e-10):
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,1,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,1,0.0)
-            #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,1,0.0)
 
             print("Before history projection")
             start = time.time()
-            KratosCFD.TwoFluidHistoryProjectionUtility.CalculateHistoryProjection(self.GetComputingModelPart(),True)
+            # Particle based fm-ale technique is used in order to preserve energy.
+            if self.energy_preserving:
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, " Particle based fm-ale energy preserving method has initialized")
+                KratosCFD.TwoFluidHistoryProjectionUtility.CalculateHistoryProjection(self.GetComputingModelPart(), True,  self.particle_layer_thickness, self.particle_searching_factor)
+
             end = time.time()
             print("After history projection. Took {} seconds.".format(end-start))
 
