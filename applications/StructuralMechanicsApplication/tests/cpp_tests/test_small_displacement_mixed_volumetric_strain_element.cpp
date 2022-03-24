@@ -450,7 +450,6 @@ namespace Testing
             calculate_reactions,
             reform_dof_at_each_iteration,
             calculate_norm_dx);
-
         p_solving_strategy->Check();
 
         // Fix the boundary nodes

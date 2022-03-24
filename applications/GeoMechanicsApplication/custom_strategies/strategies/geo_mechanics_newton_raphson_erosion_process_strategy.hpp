@@ -111,6 +111,12 @@ public:
         std::vector<Element*> PipeElements = GetPipingElements();
         unsigned int n_el = PipeElements.size(); // number of piping elements
 
+        if (PipeElements.size()==0)
+        {
+            KRATOS_INFO("PipingLoop") << "No Pipe Elements -> Finalizing Solution " << std::endl;
+        	GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
+            return;
+        }
         // calculate max pipe height and pipe increment
         double amax = CalculateMaxPipeHeight(PipeElements);
         double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
@@ -283,6 +289,26 @@ public:
         GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
         
 	}
+
+    /**
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
+     */
+    int Check() override
+    {
+        KRATOS_TRY
+
+            BaseType::Check();
+
+        GetBuilderAndSolver()->Check(BaseType::GetModelPart());
+
+        GetScheme()->Check(BaseType::GetModelPart());
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+   
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
