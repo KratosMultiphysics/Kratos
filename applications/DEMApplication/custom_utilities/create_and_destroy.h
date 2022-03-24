@@ -328,18 +328,18 @@ private:
 
 }; // Class ParticleCreatorDestructor
 
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart&);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart&);
-KRATOS_API(DEM_APPLICATION) extern template bool ParticleCreatorDestructor::CheckParticlePreservationCriteria<SphericParticle>(const Element::Pointer, const double);
-KRATOS_API(DEM_APPLICATION) extern template bool ParticleCreatorDestructor::CheckParticlePreservationCriteria<Cluster3D>(const Element::Pointer, const double);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart::MeshType&, const double);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart::MeshType&, const double);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::MarkDistantParticlesForErasing<SphericParticle>(ModelPart&);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::MarkDistantParticlesForErasing<Cluster3D>(ModelPart&);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<SphericParticle>(ModelPart&);
-KRATOS_API(DEM_APPLICATION) extern template void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<Cluster3D>(ModelPart&);
+extern template void ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart&);
+extern template void ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart&);
+extern template bool ParticleCreatorDestructor::CheckParticlePreservationCriteria<SphericParticle>(const Element::Pointer, const double);
+extern template bool ParticleCreatorDestructor::CheckParticlePreservationCriteria<Cluster3D>(const Element::Pointer, const double);
+extern template void ParticleCreatorDestructor::DestroyParticles<SphericParticle>(ModelPart::MeshType&, const double);
+extern template void ParticleCreatorDestructor::DestroyParticles<Cluster3D>(ModelPart::MeshType&, const double);
+extern template void ParticleCreatorDestructor::MarkDistantParticlesForErasing<SphericParticle>(ModelPart&);
+extern template void ParticleCreatorDestructor::MarkDistantParticlesForErasing<Cluster3D>(ModelPart&);
+extern template void ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<SphericParticle>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
+extern template void ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox<Cluster3D>(ModelPart&, array_1d<double, 3 >, array_1d<double, 3 >);
+extern template void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<SphericParticle>(ModelPart&);
+extern template void ParticleCreatorDestructor::DestroyParticlesOutsideBoundingBox<Cluster3D>(ModelPart&);
 
 } // namespace Kratos
 
