@@ -1469,17 +1469,17 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DVonMisesVonMises").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DVonMises").def(py::init<>());
 
     py::class_< AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DDruckerPragerDruckerPrager").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DDruckerPrager").def(py::init<>());
 
     py::class_< AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DModifiedMohrCoulomb").def(py::init<>());
 
     // Thermal CL
     py::class_< ThermalElasticIsotropic3D, typename ThermalElasticIsotropic3D::Pointer, ConstitutiveLaw >
@@ -1494,7 +1494,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_< AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>,
     typename AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
-    (m,"AssociativePlasticDamageModel3DRankineRankine").def(py::init<>());
+    (m,"AssociativePlasticDamageModel3DRankine").def(py::init<>());
 }
 
 }  // namespace Python.

@@ -103,8 +103,8 @@ const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() c
     {
         "model_part_name" : "",
         "calculate_nodal_area_at_each_step" : false,
-        "entropy_constant"  : 0.0,
-        "energy_constant"   : 0.0,
+        "entropy_constant"  : 1.0,
+        "energy_constant"   : 0.25,
         "artificial_mass_viscosity_Prandtl"   : 0.1,
         "artificial_conductivity_Prandtl"     : 0.1
     }
@@ -304,7 +304,7 @@ void ShockCapturingEntropyViscosityProcess::ComputeArtificialMagnitudes()
 
 void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
     Element& rElement,
-    const double ArtificialBulkViscosity,
+    const double ArtificialDynamicViscosity,
     const double ArtificialMassDiffusivity,
     const double ArtificialConductivity,
     const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const
@@ -317,7 +317,7 @@ void ShockCapturingEntropyViscosityProcess::DistributeVariablesToNodes(
         auto& r_node = r_geometry[i];
         const double weight = element_volume / r_node.GetValue(NODAL_AREA);
         r_node.SetLock();
-        r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY) += weight * ArtificialBulkViscosity;
+        r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) += weight * ArtificialDynamicViscosity;
         r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY) += weight * ArtificialMassDiffusivity;
         r_node.GetValue(ARTIFICIAL_CONDUCTIVITY) += weight * ArtificialConductivity;
         r_node.UnSetLock();
