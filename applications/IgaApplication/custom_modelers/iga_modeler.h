@@ -23,8 +23,7 @@
 #include "includes/properties.h"
 #include "includes/define.h"
 
-// brep surface for constexpression of SURFACE_INDEX
-#include "geometries/brep_surface.h"
+#include "integration/integration_info.h"
 
 namespace Kratos
 {
@@ -139,7 +138,8 @@ private:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
-        const Parameters rParameters) const;
+        const Parameters rParameters,
+        std::string GeometryType) const;
 
     ///@}
     ///@name CAD functionalities

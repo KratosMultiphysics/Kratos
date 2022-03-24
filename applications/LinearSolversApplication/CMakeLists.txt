@@ -144,3 +144,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install( TARGETS KratosLinearSolversCore DESTINATION libs )
 install( TARGETS KratosLinearSolversApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosLinearSolversCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosLinearSolversApplication" PARENT_SCOPE)

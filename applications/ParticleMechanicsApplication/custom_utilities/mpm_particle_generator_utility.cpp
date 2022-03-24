@@ -90,7 +90,7 @@ namespace MPMParticleGeneratorUtility
                     const Geometry< Node < 3 > >& r_geometry = i->GetGeometry(); // current element's geometry
 
                     // Get integration method and shape function values
-                    IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
+                    IntegrationMethod int_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
                     Matrix shape_functions_values;
                     bool is_equal_int_volumes = false;
                     DetermineIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_element,
@@ -110,7 +110,7 @@ namespace MPMParticleGeneratorUtility
                     // Set element type
                     std::string element_type_name = "UpdatedLagrangian";
                     if (IsMixedFormulation) {
-                        if (background_geo_type == GeometryData::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
+                        if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
                         else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
@@ -225,11 +225,11 @@ namespace MPMParticleGeneratorUtility
         const unsigned int number_nodes = rBackgroundGridModelPart.NumberOfNodes();
         unsigned int last_condition_id;
         if (number_elements > number_nodes && number_elements > number_conditions)
-            last_condition_id = number_elements + 1;
+            last_condition_id = number_elements;
         else if (number_nodes > number_elements && number_nodes > number_conditions)
-            last_condition_id = number_nodes + 1;
+            last_condition_id = number_nodes;
         else
-            last_condition_id = number_conditions + 1;
+            last_condition_id = number_conditions;
 
         BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
         SearchStructure.UpdateSearchDatabase();
@@ -268,7 +268,7 @@ namespace MPMParticleGeneratorUtility
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
                         const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
-                        
+
 
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
@@ -292,7 +292,7 @@ namespace MPMParticleGeneratorUtility
                         Matrix shape_functions_values;
 
                         // Get integration method and shape function values
-                        IntegrationMethod int_method = GeometryData::GI_GAUSS_1;
+                        IntegrationMethod int_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
                         bool is_equal_int_volumes = false;
 
                         DetermineConditionIntegrationMethodAndShapeFunctionValues(r_geometry, particles_per_condition,
@@ -340,7 +340,7 @@ namespace MPMParticleGeneratorUtility
                             }
                             else{
                                 KRATOS_ERROR << "Particle line load / surface load condition is not yet implemented." << std::endl;
-                            }   
+                            }
                         }
                         // Get new condition
                         const Condition& new_condition = KratosComponents<Condition>::Get(condition_type_name);
@@ -354,21 +354,21 @@ namespace MPMParticleGeneratorUtility
                         if (condition_type_name == "MPMParticlePointLoadCondition" ){
                             // create point load condition
                             mpc_area[0] = 1;
-                            
+
 
                             // Create new material point condition
                             new_condition_id = last_condition_id + 1;
-                        
+
                             mpc_xg[0].clear();
-                            
+
                             for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
                                 mpc_xg[0][dimension] = r_geometry[0].Coordinates()[dimension];
                             }
-                            
+
                             typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                             Element::Pointer pelem;
                             Vector N;
-                            
+
 
                             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
@@ -399,7 +399,8 @@ namespace MPMParticleGeneratorUtility
                             p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                             // Mark as boundary condition
                             p_condition->Set(BOUNDARY, true);
-                            
+
+                            last_condition_id += 1;
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -433,7 +434,7 @@ namespace MPMParticleGeneratorUtility
                                     mpc_area[0]);
 
                                 // Create new material point condition
-                                new_condition_id = last_condition_id + point_number;
+                                new_condition_id = last_condition_id + point_number +1 ;
                                 Condition::Pointer p_condition = new_condition.Create(new_condition_id, p_new_geometry, properties);
 
                                 ProcessInfo process_info = ProcessInfo();
@@ -444,7 +445,7 @@ namespace MPMParticleGeneratorUtility
                                 p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
 
-                                
+
                                 p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
@@ -458,7 +459,7 @@ namespace MPMParticleGeneratorUtility
                                 {
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
                                 }
-                                    
+
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
@@ -472,7 +473,7 @@ namespace MPMParticleGeneratorUtility
 
                                 // Add the MP Condition to the model part
                                 rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-                                
+
                             }
                             last_condition_id += integration_point_per_conditions;
 
@@ -487,7 +488,7 @@ namespace MPMParticleGeneratorUtility
         }
 
 
-    
+
     }
 
 /***********************************************************************************/
@@ -759,7 +760,7 @@ namespace MPMParticleGeneratorUtility
         DenseVector<Matrix> jac_vec(int_points.size());
         rGeom.Jacobian(jac_vec, IntegrationMethod);
         for (size_t i = 0; i < int_points.size(); ++i) {
-            rIntVolumes[i] = MathUtils<double>::DetMat(jac_vec[i]) * int_points[i].Weight();
+            rIntVolumes[i] = MathUtils<double>::Det(jac_vec[i]) * int_points[i].Weight();
         }
     }
 
@@ -767,16 +768,16 @@ namespace MPMParticleGeneratorUtility
     {
         auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
         if (rIntVolumes.size() != int_points.size()) rIntVolumes.resize(int_points.size(),false);
-        
+
         // Computing the Jacobian
         Vector jac_vec(int_points.size());
         rGeom.DeterminantOfJacobian(jac_vec,IntegrationMethod);
-        
+
         for (size_t i = 0; i < int_points.size(); ++i) {
             rIntVolumes[i] = jac_vec[i] * int_points[i].Weight();
-            
+
         }
-        
+
     }
 
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
@@ -785,21 +786,21 @@ namespace MPMParticleGeneratorUtility
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
         const SizeType domain_size = rGeom.WorkingSpaceDimension();
 
-        if (geo_type == GeometryData::Kratos_Tetrahedra3D4 || geo_type == GeometryData::Kratos_Triangle2D3)
+        if (geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4 || geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
         {
             switch (ParticlesPerElement)
             {
             case 1:
-                rIntegrationMethod = GeometryData::GI_GAUSS_1;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 3:
-                rIntegrationMethod = GeometryData::GI_GAUSS_2;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 6:
-                rIntegrationMethod = GeometryData::GI_GAUSS_4;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 12:
-                rIntegrationMethod = GeometryData::GI_GAUSS_5;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             case 16:
                 if (domain_size == 2) {
@@ -818,7 +819,7 @@ namespace MPMParticleGeneratorUtility
                     break;
                 }
             default:
-                rIntegrationMethod = GeometryData::GI_GAUSS_2; // default to 3 particles per tri
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 3 particles per tri
 
                 std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(ParticlesPerElement);
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
@@ -828,24 +829,24 @@ namespace MPMParticleGeneratorUtility
                 break;
             }
         }
-        else if (geo_type == GeometryData::Kratos_Hexahedra3D8 || geo_type == GeometryData::Kratos_Quadrilateral2D4)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Hexahedra3D8 || geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
         {
             switch (ParticlesPerElement)
             {
             case 1:
-                rIntegrationMethod = GeometryData::GI_GAUSS_1;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 4:
-                rIntegrationMethod = GeometryData::GI_GAUSS_2;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 9:
-                rIntegrationMethod = GeometryData::GI_GAUSS_3;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
                 break;
             case 16:
-                rIntegrationMethod = GeometryData::GI_GAUSS_4;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             default:
-                rIntegrationMethod = GeometryData::GI_GAUSS_2; // default to 4 particles per quad
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2; // default to 4 particles per quad
 
                 std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(ParticlesPerElement);
                 warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
@@ -866,7 +867,7 @@ namespace MPMParticleGeneratorUtility
         const GeometryData::KratosGeometryType geo_type = rGeom.GetGeometryType();
         const SizeType domain_size = rGeom.WorkingSpaceDimension();
 
-        if (geo_type == GeometryData::Kratos_Point2D  || geo_type == GeometryData::Kratos_Point3D)
+        if (geo_type == GeometryData::KratosGeometryType::Kratos_Point2D  || geo_type == GeometryData::KratosGeometryType::Kratos_Point3D)
         {
             switch (ParticlesPerCondition)
             {
@@ -889,27 +890,27 @@ namespace MPMParticleGeneratorUtility
                     break;
             }
 
-            
+
 
         }
-        else if (geo_type == GeometryData::Kratos_Line2D2  || geo_type == GeometryData::Kratos_Line3D2)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Line2D2  || geo_type == GeometryData::KratosGeometryType::Kratos_Line3D2)
         {
             switch (ParticlesPerCondition)
             {
             case 1:
-                rIntegrationMethod = GeometryData::GI_GAUSS_1;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 2:
-                rIntegrationMethod = GeometryData::GI_GAUSS_2;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 3:
-                rIntegrationMethod = GeometryData::GI_GAUSS_3;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
                 break;
             case 4:
-                rIntegrationMethod = GeometryData::GI_GAUSS_4;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 5:
-                rIntegrationMethod = GeometryData::GI_GAUSS_5;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             default:
                 std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(ParticlesPerCondition);
@@ -919,24 +920,24 @@ namespace MPMParticleGeneratorUtility
                 KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                 break;
             }
-            
+
 
         }
-        else if (geo_type == GeometryData::Kratos_Triangle3D3)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3)
         {
             switch (ParticlesPerCondition)
             {
             case 1:
-                rIntegrationMethod = GeometryData::GI_GAUSS_1;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 3:
-                rIntegrationMethod = GeometryData::GI_GAUSS_2;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 6:
-                rIntegrationMethod = GeometryData::GI_GAUSS_4;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             case 12:
-                rIntegrationMethod = GeometryData::GI_GAUSS_5;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_5;
                 break;
             case 16:
                 IsEqualVolumes = true;
@@ -958,23 +959,23 @@ namespace MPMParticleGeneratorUtility
                 KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                 break;
             }
-            
+
         }
-        else if (geo_type == GeometryData::Kratos_Quadrilateral3D4)
+        else if (geo_type == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4)
         {
             switch (ParticlesPerCondition)
             {
             case 1:
-                rIntegrationMethod = GeometryData::GI_GAUSS_1;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
                 break;
             case 4:
-                rIntegrationMethod = GeometryData::GI_GAUSS_2;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
                 break;
             case 9:
-                rIntegrationMethod = GeometryData::GI_GAUSS_3;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_3;
                 break;
             case 16:
-                rIntegrationMethod = GeometryData::GI_GAUSS_4;
+                rIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_4;
                 break;
             default:
                 std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(ParticlesPerCondition);
@@ -984,7 +985,7 @@ namespace MPMParticleGeneratorUtility
                 KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                 break;
             }
-           
+
         }
 
         // Get shape function values
@@ -1004,7 +1005,7 @@ namespace MPMParticleGeneratorUtility
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
                                         bool IsMixedFormulation);
-    
+
     template void GenerateMaterialPointCondition<2>(ModelPart& rBackgroundGridModelPart,
                                             ModelPart& rInitialModelPart,
                                             ModelPart& rMPMModelPart);
@@ -1014,6 +1015,3 @@ namespace MPMParticleGeneratorUtility
 
 } // end namespace MPMParticleGeneratorUtility
 } // end namespace Kratos
-
-
-

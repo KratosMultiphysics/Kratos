@@ -7,6 +7,7 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
+              "IGNORE_UNDRAINED"         :  true,
               "YOUNG_MODULUS"            :  30000000,
               "POISSON_RATIO"            :  0.2,
               "DENSITY_SOLID"            :  2.0e3,
@@ -46,6 +47,7 @@
               "name"             :  "SmallStrainUDSM2DInterfaceLaw" 
           },
           "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
               "DENSITY_SOLID"            :  2.0e3,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.3,
@@ -76,6 +78,7 @@
               "name"             :  "SmallStrainUDSM2DInterfaceLaw" 
           },
           "Variables": {
+              "IGNORE_UNDRAINED"         :  false,
               "DENSITY_SOLID"            :  2.0e3,
               "DENSITY_WATER"            :  1.0e3,
               "POROSITY"                 :  0.3,

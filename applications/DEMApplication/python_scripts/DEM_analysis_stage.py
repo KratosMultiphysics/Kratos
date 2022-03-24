@@ -80,11 +80,10 @@ class DEMAnalysisStage(AnalysisStage):
             self.write_mdpa_from_results = False
         else:
             self.write_mdpa_from_results = self.DEM_parameters["WriteMdpaFromResults"].GetBool()
-        self.creator_destructor = self.SetParticleCreatorDestructor()
+        self.creator_destructor = self.SetParticleCreatorDestructor(DEM_parameters["creator_destructor_settings"])
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.PreUtilities = PreUtilities()
-        self.aux = AuxiliaryUtilities()
 
         # Set the print function TO_DO: do this better...
         self.KratosPrintInfo = self.procedures.KratosPrintInfo
@@ -169,13 +168,13 @@ class DEMAnalysisStage(AnalysisStage):
     def GetParticleHistoryWatcher(self):
         return None
 
-    def SetParticleCreatorDestructor(self):
+    def SetParticleCreatorDestructor(self, creator_destructor_settings):
 
         self.watcher = self.GetParticleHistoryWatcher()
 
         if self.watcher is None:
-            return ParticleCreatorDestructor()
-        return ParticleCreatorDestructor(self.watcher)
+            return ParticleCreatorDestructor(creator_destructor_settings)
+        return ParticleCreatorDestructor(self.watcher, creator_destructor_settings)
 
     def SelectTranslationalScheme(self):
         if self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Forward_Euler':
@@ -280,10 +279,7 @@ class DEMAnalysisStage(AnalysisStage):
         #Setting up the BoundingBox
         self.bounding_box_time_limits = self.procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
 
-        #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
-        #max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)   # TODO this seems not be longer required
-        #self.creator_destructor.SetMaxNodeId(max_Id)
-        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
+        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)
 
         self.DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(self.DEM_parameters, self.graphs_path, self.spheres_model_part, self.rigid_face_model_part)
 
@@ -519,7 +515,6 @@ class DEMAnalysisStage(AnalysisStage):
                 if self.spheres_model_part.ProcessInfo[IMPOSED_Z_STRAIN_OPTION]:
                     t = self.time
                     self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, eval(self.DEM_parameters["ZStrainValue"].GetString()))
-
 
     def UpdateIsTimeToPrintInModelParts(self, is_time_to_print):
         self.UpdateIsTimeToPrintInOneModelPart(self.spheres_model_part, is_time_to_print)

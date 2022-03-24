@@ -18,6 +18,7 @@
         }
     ],
     "adjoint_parameters_path": "adjoint_parameters.json",
+    "auxiliary_mdpa_path": "current_design",
     "design_surface_sub_model_part_name": "Body2D_Body",
     "problem_data": {
         "echo_level": 0,

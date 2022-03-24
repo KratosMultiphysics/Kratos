@@ -31,15 +31,37 @@ add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
 add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
+add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
+add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
+# add_app ${KRATOS_APP_DIR}/FemToDemApplication;
+# add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
+add_app ${KRATOS_APP_DIR}/DelaunayMeshingApplication;
+add_app ${KRATOS_APP_DIR}/MeshingApplication;
+add_app ${KRATOS_APP_DIR}/DemStructuresCouplingApplication;
+add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
+add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
+add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
+add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
+# add_app ${KRATOS_APP_DIR}/CableNetApplication;
+add_app ${KRATOS_APP_DIR}/RANSApplication;
+add_app ${KRATOS_APP_DIR}/MappingApplication;
+add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
+# add_app ${KRATOS_APP_DIR}/HDF5Application;
+add_app ${KRATOS_APP_DIR}/IgaApplication;
+add_app ${KRATOS_APP_DIR}/ChimeraApplication;
+add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
+add_app ${KRATOS_APP_DIR}/StatisticsApplication;
+add_app ${KRATOS_APP_DIR}/RomApplication;
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
-${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+-DCMAKE_INSTALL_PREFIX=$2                                              \
+-DUSE_TRIANGLE_NONFREE_TPL=ON                                          \
 -DUSE_MPI=OFF                                                          \
 -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc               \
 -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++             \
@@ -48,4 +70,7 @@ ${CMAKE} -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DBOOST_ROOT="/workspace/boost/boost_1_71_0"                           \
 -DLAPACK_LIBRARIES="/usr/lib64/liblapack.so.3"                         \
 -DBLAS_LIBRARIES="/usr/lib64/libblas.so.3"                             \
+-DINCLUDE_MMG=ON                                                       \
+-DMMG_ROOT="/workspace/external_libraries/mmg/mmg_5_5_1"               \
+-DKRATOS_BUILD_TESTING=OFF                                             \
 -DINSTALL_RUNKRATOS=OFF

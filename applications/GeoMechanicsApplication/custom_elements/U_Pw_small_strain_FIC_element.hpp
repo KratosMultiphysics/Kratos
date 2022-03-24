@@ -29,7 +29,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainFICElement : public UPwSmallStrainElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainFICElement :
+    public UPwSmallStrainElement<TDim,TNumNodes>
 {
 
 public:
@@ -46,7 +47,10 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
+
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
+    using UPwSmallStrainElement<TDim,TNumNodes>::VoigtSize;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 
@@ -82,6 +86,8 @@ public:
     Element::Pointer Create(IndexType NewId,
                             GeometryType::Pointer pGeom,
                             PropertiesType::Pointer pProperties) const override;
+
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 

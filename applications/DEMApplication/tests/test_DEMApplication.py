@@ -28,6 +28,9 @@ import test_clusters
 import test_DEM_schemes
 import test_random_variable
 import test_DEM_search_tolerance
+import test_DEM_search_flags
+import test_erase_particles
+import test_search_nodes
 
 def AssembleTestSuites():
 
@@ -58,7 +61,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
-    smallSuite.addTest(test_inlet.TestDEMInlet("test_piecewise_linear_inlet"))
+    smallSuite.addTest(test_inlet.TestPieceWiseLinearDEMInlet("test_piecewise_linear_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
@@ -80,6 +83,11 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
     smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
     smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
+    smallSuite.addTest(test_DEM_search_flags.TestDEM3DSearchFlag("test_DEM3D_search"))
+    smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_no_delay"))
+    smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_little_delay"))
+    smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
+    smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

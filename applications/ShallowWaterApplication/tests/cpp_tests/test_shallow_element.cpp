@@ -45,8 +45,8 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     model_part.AddNodalSolutionStepVariable(HEIGHT);
     model_part.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
     model_part.AddNodalSolutionStepVariable(TOPOGRAPHY);
-    model_part.AddNodalSolutionStepVariable(PROJECTED_VECTOR1);
-    model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
+    model_part.AddNodalSolutionStepVariable(PROJECTED_VECTOR);
+    model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR);
     model_part.AddNodalSolutionStepVariable(RAIN);
     model_part.AddNodalSolutionStepVariable(MANNING);
 
@@ -58,7 +58,6 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     model_part.GetProcessInfo().SetValue(STABILIZATION_FACTOR, stab_factor);
     model_part.GetProcessInfo().SetValue(GRAVITY_Z, gravity);
     model_part.GetProcessInfo().SetValue(DRY_HEIGHT, 0.1);
-    model_part.GetProcessInfo().SetValue(PERMEABILITY, 0.1);
     model_part.GetProcessInfo().SetValue(DRY_DISCHARGE_PENALTY, 0.1);
 
     // Set the element properties
@@ -88,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     {
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface(i);
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1) = free_surface(i) + 1;
-        element->GetGeometry()[i].FastGetSolutionStepValue(PROJECTED_SCALAR1   ) = free_surface(i) + 1;
+        element->GetGeometry()[i].FastGetSolutionStepValue(PROJECTED_SCALAR   ) = free_surface(i) + 1;
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography(i);
         element->GetGeometry()[i].FastGetSolutionStepValue(MANNING) = manning;
     }
@@ -149,7 +148,7 @@ void PerformSteadyStateTest(
     model_part.GetProcessInfo().SetValue(STABILIZATION_FACTOR, stab_factor);
     model_part.GetProcessInfo().SetValue(SHOCK_STABILIZATION_FACTOR, shock_stab_factor);
     model_part.GetProcessInfo().SetValue(RELATIVE_DRY_HEIGHT, relative_dry_height);
-    model_part.GetProcessInfo().SetValue(DENSITY_WATER, density_water);
+    model_part.GetProcessInfo().SetValue(DENSITY, density_water);
     model_part.GetProcessInfo().SetValue(DENSITY_AIR, density_air);
 
     // Geometry creation
@@ -229,7 +228,7 @@ KRATOS_TEST_CASE_IN_SUITE(SteadySubcriticalSkewShallowWater2D3N, ShallowWaterApp
 }
 
 /**
- * @brief Check the ShallowWater2D3N element with subcritical flow (Froude = 2.72789)
+ * @brief Check the ShallowWater2D3N element with supercritical flow (Froude = 2.72789)
  */
 KRATOS_TEST_CASE_IN_SUITE(SteadySupercriticalShallowWater2D3N, ShallowWaterApplicationFastSuite)
 {
@@ -249,18 +248,17 @@ KRATOS_TEST_CASE_IN_SUITE(SteadySupercriticalShallowWater2D3N, ShallowWaterAppli
  */
 KRATOS_TEST_CASE_IN_SUITE(SteadyVariableFreeSurfaceShallowWater2D3N, ShallowWaterApplicationFastSuite)
 {
-    const double manning = 0.0;
+    const double manning = 0.01;
     const double height = 5.0;
     array_1d<double,3> height_grad = ZeroVector(3);
     array_1d<double,3> momentum = ZeroVector(3);
     height_grad[0] = .05;
     momentum[0] = 5.0;
-    momentum[1] = 0.0;
     const double gravity = 9.81;
     const double central_height = height + height_grad[0] / 3.; // at the barycenter of the element
     const array_1d<double,3> friction = std::pow(manning, 2.) * norm_2(momentum) * momentum / std::pow(central_height, 10./3.);
     const array_1d<double,3> slope = (inner_prod(momentum, momentum) / (gravity * std::pow(central_height, 3.)) -1.) * height_grad - friction;
-    const double tolerance = 1e-3;
+    const double tolerance = 1e-6;
 
     PerformSteadyStateTest(manning, height, momentum, slope, height_grad, tolerance);
 }

@@ -74,7 +74,7 @@ namespace Kratos
 
             auto paux = pelem->Create(pelem->Id(), tmp, pelem->pGetProperties());
 
-            paux->Data() = pelem->Data();
+            paux->GetData() = pelem->GetData();
 
             pelem = paux;
         });
@@ -89,7 +89,7 @@ namespace Kratos
 
             auto paux = pcond->Create(pcond->Id(), tmp, pcond->pGetProperties());
 
-            paux->Data() = pcond->Data();
+            paux->GetData() = pcond->GetData();
 
             pcond = paux;
         });
@@ -189,15 +189,6 @@ namespace Kratos
                     for(unsigned int l=0; l<geom.size(); ++l)
                         graph[geom[k].Id()-1].insert(geom[l].Id()-1); //the -1 is because the ids of our nodes start in 1
             }
-
-
-            unsigned int nnz = 0; //number of nonzeros in the graph
-            for(unsigned int i=0; i<n; ++i)
-            {
-                //if(graph[i].size() == 0) KRATOS_ERROR << "node with Id " << i+1 << "has zero neighbours " << std::endl;
-                nnz += graph[i].size();
-            }
-
 
             CompressedMatrix graph_csr(n,n);
             for(unsigned int i=0; i<n; ++i)

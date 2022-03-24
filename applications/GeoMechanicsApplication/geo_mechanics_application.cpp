@@ -56,6 +56,40 @@ typedef Node<3> NodeType;
 KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     KratosApplication("GeoMechanicsApplication"),
 
+    // transient one-phase flow elements:
+    mTransientPwElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mTransientPwElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientPwElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientPwElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
+    mTransientPwElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mTransientPwElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mTransientPwElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mTransientPwElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mTransientPwElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
+    mTransientPwElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+
+    mTransientPwInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientPwInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mTransientPwInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
+    // Steady-State one-phase flow elements:
+    mSteadyStatePwElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mSteadyStatePwElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mSteadyStatePwElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mSteadyStatePwElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
+    mSteadyStatePwElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mSteadyStatePwElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mSteadyStatePwElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mSteadyStatePwElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mSteadyStatePwElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
+    mSteadyStatePwElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+
+    mSteadyStatePwInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mSteadyStatePwInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mSteadyStatePwInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
     // small strain elements
     mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
     mUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
@@ -94,6 +128,18 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSmallStrainUPwDiffOrderElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
     mSmallStrainUPwDiffOrderElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
     mSmallStrainUPwDiffOrderElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+
+    // small strain axisymmtric elements:
+    mUPwSmallStrainAxisymmetricElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mUPwSmallStrainAxisymmetricElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mUPwSmallStrainAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mUPwSmallStrainAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mUPwSmallStrainAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mUPwSmallStrainAxisymmetricFICElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mUPwSmallStrainAxisymmetricFICElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mSmallStrainUPwDiffOrderAxisymmetricElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
 
     // small strain interface elements
     mUPwSmallStrainInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
@@ -135,9 +181,13 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mGeoCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElementLinear2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCrBeamElementLinear3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
-    mGeoTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoLinearTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoLinearTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoCableElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
     mGeoCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+    mGeoCurvedBeamElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
 
     // conditions
     mUPwForceCondition2D1N( 0, Condition::GeometryType::Pointer( new Point2D<NodeType >( Condition::GeometryType::PointsArrayType(1)))),
@@ -174,7 +224,11 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mSurfaceNormalLoadDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <NodeType >( Condition::GeometryType::PointsArrayType(9)))),
     mSurfaceNormalFluidFluxDiffOrderCondition3D6N( 0, Condition::GeometryType::Pointer( new Triangle3D6 <NodeType >( Condition::GeometryType::PointsArrayType(6)))),
     mSurfaceNormalFluidFluxDiffOrderCondition3D8N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D8 <NodeType >( Condition::GeometryType::PointsArrayType(8)))),
-    mSurfaceNormalFluidFluxDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <NodeType >( Condition::GeometryType::PointsArrayType(9))))
+    mSurfaceNormalFluidFluxDiffOrderCondition3D9N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D9 <NodeType >( Condition::GeometryType::PointsArrayType(9)))),
+
+    mAxisymmetricUPwNormalFaceLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
+    mAxisymmetricLineNormalLoadDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
+    mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3))))
 
     {}
 
@@ -192,6 +246,40 @@ void KratosGeoMechanicsApplication::Register() {
 
 
     //Register Elements
+    // transient one-phase flow elements:
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D3N", mTransientPwElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D4N", mTransientPwElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D4N", mTransientPwElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D8N", mTransientPwElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D6N", mTransientPwElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D8N", mTransientPwElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D9N", mTransientPwElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D10N", mTransientPwElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D20N", mTransientPwElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D27N", mTransientPwElement3D27N )
+
+    KRATOS_REGISTER_ELEMENT( "TransientPwInterfaceElement2D4N", mTransientPwInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwInterfaceElement3D6N", mTransientPwInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwInterfaceElement3D8N", mTransientPwInterfaceElement3D8N )
+
+    // Steady-State one-phase flow elements:
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D3N", mSteadyStatePwElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D4N", mSteadyStatePwElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D4N", mSteadyStatePwElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D8N", mSteadyStatePwElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D6N", mSteadyStatePwElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D8N", mSteadyStatePwElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D9N", mSteadyStatePwElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D10N", mSteadyStatePwElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D20N", mSteadyStatePwElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D27N", mSteadyStatePwElement3D27N )
+
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement2D4N", mSteadyStatePwInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement3D6N", mSteadyStatePwInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwInterfaceElement3D8N", mSteadyStatePwInterfaceElement3D8N )
+
     // Small strain elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D4N", mUPwSmallStrainElement2D4N )
@@ -231,6 +319,20 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N )
 
+    // small strain axisymmtric elements:
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D3N", mUPwSmallStrainAxisymmetricElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D4N", mUPwSmallStrainAxisymmetricElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D6N", mUPwSmallStrainAxisymmetricElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D8N", mUPwSmallStrainAxisymmetricElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricElement2D9N", mUPwSmallStrainAxisymmetricElement2D9N )
+
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricFICElement2D3N", mUPwSmallStrainAxisymmetricFICElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UPwSmallStrainAxisymmetricFICElement2D4N", mUPwSmallStrainAxisymmetricFICElement2D4N )
+
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D6N", mSmallStrainUPwDiffOrderAxisymmetricElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D8N", mSmallStrainUPwDiffOrderAxisymmetricElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SmallStrainUPwDiffOrderAxisymmetricElement2D9N", mSmallStrainUPwDiffOrderAxisymmetricElement2D9N )
+
     // Small strain interface elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
@@ -268,13 +370,17 @@ void KratosGeoMechanicsApplication::Register() {
 
 
     // Register geo structural elements
+    KRATOS_REGISTER_ELEMENT("GeoTrussElement2D2N", mGeoTrussElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoTrussElement3D2N", mGeoTrussElement3D2N)
-    KRATOS_REGISTER_ELEMENT("GeoTrussLinearElement3D2N", mGeoTrussLinearElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement2D2N", mGeoLinearTrussElement2D2N)
+    KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement3D2N", mGeoLinearTrussElement3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoCableElement2D2N", mGeoCableElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCableElement3D2N", mGeoCableElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement3D2N", mGeoCrBeamElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElement2D2N", mGeoCrBeamElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear2D2N", mGeoCrBeamElementLinear2D2N)
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
+    KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
 
     //Register Conditions
     KRATOS_REGISTER_CONDITION( "UPwForceCondition2D1N", mUPwForceCondition2D1N )
@@ -313,15 +419,19 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D8N", mSurfaceNormalFluidFluxDiffOrderCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceNormalFluidFluxDiffOrderCondition3D9N", mSurfaceNormalFluidFluxDiffOrderCondition3D9N )
 
+    KRATOS_REGISTER_CONDITION( "AxisymmetricUPwNormalFaceLoadCondition2D2N",            mAxisymmetricUPwNormalFaceLoadCondition2D2N )
+    KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalLoadDiffOrderCondition2D3N",      mAxisymmetricLineNormalLoadDiffOrderCondition2D3N )
+    KRATOS_REGISTER_CONDITION( "AxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N", mAxisymmetricLineNormalFluidFluxDiffOrderCondition2D3N )
+
     //Register Constitutive Laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",           mBilinearCohesive3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",           mBilinearCohesive2DLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw", mLinearPlaneStrainK0Law)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw",            mElasticIsotropicK03DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStress2DLaw",          mLinearPlaneStress2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw",  mLinearPlaneStrainK0Law)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw",             mElasticIsotropicK03DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw",mLinearPlaneStrain2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM3DLaw",            mSmallStrainUDSM3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM2DPlaneStrainLaw", mSmallStrainUDSM2DPlaneStrainLaw)
@@ -333,12 +443,21 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT2DInterfaceLaw",   mSmallStrainUMAT2DInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT3DInterfaceLaw",   mSmallStrainUMAT3DInterfaceLaw)
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DInterfaceLaw",   mLinearElastic2DInterfaceLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw",   mLinearElastic3DInterfaceLaw)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_PRESSURE_COEFFICIENT )
 
     KRATOS_REGISTER_VARIABLE( DT_WATER_PRESSURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_FLUID_FLUX )
+
+    KRATOS_REGISTER_VARIABLE( HYDRAULIC_HEAD )
+
+    KRATOS_REGISTER_VARIABLE( HYDRAULIC_DISCHARGE )
 
     KRATOS_REGISTER_VARIABLE( DENSITY_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_SOLID )
@@ -389,10 +508,15 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE( NODAL_SMOOTHING )
     KRATOS_REGISTER_VARIABLE( NODAL_CAUCHY_STRESS_TENSOR )
+    KRATOS_REGISTER_VARIABLE( ENGINEERING_STRAIN_TENSOR )
+    KRATOS_REGISTER_VARIABLE( ENGINEERING_STRAIN_VECTOR )
     KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE_VARIABLE )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_AREA )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_WIDTH )
     KRATOS_REGISTER_VARIABLE( NODAL_JOINT_DAMAGE )
+
+    KRATOS_REGISTER_VARIABLE( BIOT_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( PLATE_SHAPE_CORRECTION_FACTOR )
 
     KRATOS_REGISTER_VARIABLE( RESET_DISPLACEMENTS )
     KRATOS_REGISTER_VARIABLE( CONSIDER_GEOMETRIC_STIFFNESS )
@@ -402,6 +526,14 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( USE_CONSISTENT_MASS_MATRIX)
 
     KRATOS_REGISTER_VARIABLE( IGNORE_UNDRAINED )
+    KRATOS_REGISTER_VARIABLE( USE_HENCKY_STRAIN )
+
+    KRATOS_REGISTER_VARIABLE( MEAN_EFFECTIVE_STRESS )
+    KRATOS_REGISTER_VARIABLE( MEAN_STRESS )
+    KRATOS_REGISTER_VARIABLE( ENGINEERING_VOLUMETRIC_STRAIN )
+    KRATOS_REGISTER_VARIABLE( ENGINEERING_VON_MISES_STRAIN )
+    KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_VOLUMETRIC_STRAIN )
+    KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_VON_MISES_STRAIN )
 
     KRATOS_REGISTER_VARIABLE( SATURATED_SATURATION )
     KRATOS_REGISTER_VARIABLE( RESIDUAL_SATURATION )
@@ -413,7 +545,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( RETENTION_LAW )
     KRATOS_REGISTER_VARIABLE( DEGREE_OF_SATURATION )
     KRATOS_REGISTER_VARIABLE( EFFECTIVE_SATURATION )
-    KRATOS_REGISTER_VARIABLE( BISHOP_COEFICIENT )
+    KRATOS_REGISTER_VARIABLE( BISHOP_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DERIVATIVE_OF_SATURATION )
     KRATOS_REGISTER_VARIABLE( RELATIVE_PERMEABILITY )
 

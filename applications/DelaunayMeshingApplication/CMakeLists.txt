@@ -10,8 +10,13 @@ include(pybind11Tools)
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
-  set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/triangle")
+  # Compiling the triangle library
+  if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    set(INCLUDE_TRIANGLE ON)
+    set(TRIANGLE_DIR "${KRATOS_SOURCE_DIR}/external_libraries/triangle")
+  else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+    message(FATAL_ERROR "INCLUDE_TRIANGLE not defined, neither USE_TRIANGLE_NONFREE_TPL=ON is defined. The application DelaunayMeshingApplication will not compile")
+  endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
@@ -24,7 +29,6 @@ if(${INCLUDE_TRIANGLE} MATCHES ON)
   include_directories(${TRIANGLE_DIR})
   list(APPEND MESHER_LIBRARIES triangle)
 endif(${INCLUDE_TRIANGLE} MATCHES ON)
-
 
 if(${INCLUDE_TETGEN} MATCHES ON)
   set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
@@ -133,3 +137,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosDelaunayMeshingCore DESTINATION libs )
 install(TARGETS KratosDelaunayMeshingApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosDelaunayMeshingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosDelaunayMeshingApplication" PARENT_SCOPE)

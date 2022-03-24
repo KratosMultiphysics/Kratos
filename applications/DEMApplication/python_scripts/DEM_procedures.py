@@ -136,13 +136,14 @@ class SetOfModelParts():
 
 class GranulometryUtils():
 
-    def __init__(self, domain_volume, model_part):
+    def __init__(self, domain_volume, model_part, do_print_results_option=False):
 
         if domain_volume <= 0.0:
             raise ValueError(
                 "Error: The input domain volume must be strictly positive!")
 
         self.spheres_model_part = model_part
+        self.do_print_results_option = do_print_results_option
         self.UpdateData(domain_volume)
 
     def UpdateData(self, domain_volume):
@@ -159,8 +160,8 @@ class GranulometryUtils():
 
         self.voids_volume = domain_volume - self.solid_volume
         self.global_porosity = self.voids_volume / domain_volume
-
-        self.PrintCurrentData()
+        if self.do_print_results_option:
+            self.PrintCurrentData()
 
     def PrintCurrentData(self):
 
@@ -368,7 +369,6 @@ class Procedures():
 
         # MODEL
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
-        self.aux = AuxiliaryUtilities()
 
     def Barrier(self):
         pass
@@ -412,8 +412,8 @@ class Procedures():
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
 
         self.solver = weakref.proxy(solver)
-        self.translational_scheme = weakref.proxy(translational_scheme)
-        self.rotational_scheme = weakref.proxy(rotational_scheme)
+        #self.translational_scheme = weakref.proxy(translational_scheme)
+        #self.rotational_scheme = weakref.proxy(rotational_scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)
@@ -507,6 +507,8 @@ class Procedures():
         if "PostStressStrainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 model_part.AddNodalSolutionStepVariable(DEM_STRESS_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_STRAIN_TENSOR)
+                model_part.AddNodalSolutionStepVariable(DEM_DIFFERENTIAL_STRAIN_TENSOR)
 
         if self.solver.poisson_ratio_option:
             model_part.AddNodalSolutionStepVariable(POISSON_VALUE)
@@ -884,8 +886,6 @@ class DEMFEMProcedures():
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
         self.rigid_face_model_part = rigid_face_model_part
-        #self.solver = solver
-        self.aux = AuxiliaryUtilities()
 
         self.fem_mesh_nodes = []
 
@@ -897,7 +897,6 @@ class DEMFEMProcedures():
             # that means it is not possible to print results with a higher frequency than the computations delta time
             self.graph_frequency = 1
 
-        self.mesh_motion = DEMFEMUtilities()
 
         def Flush(self, a):
             a.flush()
@@ -1334,8 +1333,6 @@ class DEMIo():
         self.PostTangentialElasticForces = self.DEM_parameters["PostTangentialElasticForces"].GetBool()
         self.PostShearStress = self.DEM_parameters["PostShearStress"].GetBool()
         self.PostNodalArea = self.DEM_parameters["PostNodalArea"].GetBool()
-        self.PostTemperature = GetBoolParameterIfItExists(self.DEM_parameters, "PostTemperature")
-        self.PostHeatFlux = GetBoolParameterIfItExists(self.DEM_parameters, "PostHeatFlux")
         self.PostNeighbourSize = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
         self.PostBrokenRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostBrokenRatio")
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
@@ -1486,8 +1483,6 @@ class DEMIo():
         self.PushPrintVar(self.PostDampForces, DAMP_FORCES, self.spheres_variables)
         self.PushPrintVar(self.PostRadius, RADIUS, self.spheres_variables)
         self.PushPrintVar(self.PostExportId, EXPORT_ID, self.spheres_variables)
-        self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.spheres_variables)
-        self.PushPrintVar(self.PostHeatFlux, HEATFLUX, self.spheres_variables)
         self.PushPrintVar(self.PostNormalImpactVelocity, NORMAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostTangentialImpactVelocity, TANGENTIAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostFaceNormalImpactVelocity, FACE_NORMAL_IMPACT_VELOCITY, self.spheres_variables)
@@ -1521,6 +1516,8 @@ class DEMIo():
             if self.DEM_parameters["PostStressStrainOption"].GetBool():
                 self.PushPrintVar(1, REPRESENTATIVE_VOLUME, self.spheres_variables)
                 self.PushPrintVar(1, DEM_STRESS_TENSOR, self.spheres_variables)
+                self.PushPrintVar(1, DEM_STRAIN_TENSOR, self.spheres_variables)
+                self.PushPrintVar(1, DEM_DIFFERENTIAL_STRAIN_TENSOR, self.spheres_variables)
 
         if "PostReactions" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostReactions"].GetBool():

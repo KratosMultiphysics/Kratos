@@ -22,7 +22,7 @@
 
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_define.h"
+#include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_backend.h"
 
 #include "geometries/point_3d.h"
@@ -30,10 +30,11 @@
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
 
-#include "custom_utilities/mapper_factory.h"
+#include "factories/mapper_factory.h"
 
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
+#include "custom_mappers/barycentric_mapper.h"
 #include "custom_mappers/coupling_geometry_mapper.h"
 
 // Macros for registering mappers
@@ -81,6 +82,8 @@ void KratosMappingApplication::Register()
 
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestNeighborMapper, "nearest_neighbor");
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestElementMapper,  "nearest_element");
+    KRATOS_REGISTER_MAPPER_WITH_BACKEND(BarycentricMapper,     "barycentric");
+
     KRATOS_REGISTER_MAPPER(CouplingGeometryMapper,  "coupling_geometry");
 
     KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);

@@ -129,7 +129,7 @@
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+            "python_module" : "processes.apply_kinematic_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Surface1",
@@ -146,7 +146,7 @@
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+            "python_module" : "processes.apply_kinematic_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Surface2",

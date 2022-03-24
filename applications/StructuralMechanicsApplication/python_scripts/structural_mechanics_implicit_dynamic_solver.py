@@ -65,11 +65,11 @@ class ImplicitMechanicalSolver(MechanicalSolver):
         process_info = self.main_model_part.ProcessInfo
         if process_info[KratosMultiphysics.STEP] == 1 and process_info[StructuralMechanicsApplication.RESET_EQUATION_IDS]:
             # Resetting the global equations ids
-            self.get_builder_and_solver().SetUpSystem(self.GetComputingModelPart())
+            self._GetBuilderAndSolver().SetUpSystem(self.GetComputingModelPart())
 
     #### Private functions ####
 
-    def _create_solution_scheme(self):
+    def _CreateScheme(self):
         scheme_type = self.settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters

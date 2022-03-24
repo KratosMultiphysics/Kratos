@@ -62,7 +62,7 @@
         "line_search_tolerance":              0.5,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
-            "solver_type":   "sparse_lu",
+            "solver_type":   "LinearSolversApplication.sparse_lu",
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["sand","dike"],
