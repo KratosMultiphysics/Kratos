@@ -2,7 +2,11 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import numpy as np 
+try:
+    import numpy as np 
+    numpy_availabe = True
+except ImportError:
+    numpy_availabe = False
 
 try:
     import scipy
@@ -50,6 +54,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         self.assertEqual(y[1],0.0)
         self.assertEqual(y[2],13.0)
 
+    @KratosUnittest.skipIf(not numpy_availabe, "This test requires numpy")
     def test_matrix_assembly(self):
         #data to be assembled
         values = np.array([[1.0,-1.0],[-1.0,1.0]])
