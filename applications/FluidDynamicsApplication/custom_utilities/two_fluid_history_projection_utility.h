@@ -49,6 +49,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief
+ *In two fluid problems close to the interface between both fluid, elements have phase change and therefore the hystory of variables
+ *ej:VELOCITY) is not well defined since a mix information between both fluid is storaged.This lack of precision involve some problems *regarding to the system energy preserving and in order to solve it the TwoFluidHistoryProjectionUtility has been developed. It is a
+ *particle based fm-ale technique which predicts a new value for the velocity for the previous time step if the node has a phase change
+ *(between two time step the node has different density).
+ */
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) TwoFluidHistoryProjectionUtility
 {
 public:
@@ -56,17 +63,25 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /**
+     * @brief ParticleData class storages the coordinates and the new predicted velocities of the lagrangian particles and also the coordinates of the nodes that have changed its density.
+     *
+     */
     struct ParticleData
     {
+        /// Pointer definition of ParticleData
         KRATOS_CLASS_POINTER_DEFINITION(ParticleData);
 
-        ParticleData(){}
+        /// Default constructor (required by the dynamic bins)
+        ParticleData() = default;
 
+        /// Auxiliary constructor with coordinates (required to create a fake particle representing the node of interest)
         ParticleData(
             const array_1d<double,3>& rCoordinates)
             : Coordinates(rCoordinates)
         {}
 
+        /// Main constructor to be used in the creation of the Lagrangian particles
         ParticleData(
             const array_1d<double,3>& rCoordinates,
             const array_1d<double,3>& rOldVelocity)
@@ -74,17 +89,20 @@ public:
             , OldVelocity(rOldVelocity)
         {}
 
+        /// Assignment operator (required by the dynamic bins)
         ParticleData& operator=(const ParticleData& rOther) {return *this;}
 
+        /// Access operator (required by the dynamic bins)
         double& operator[](std::size_t i) {return Coordinates[i];}
 
+        /// Access const operator (required by the dynamic bins)
         const double& operator[](std::size_t i) const {return Coordinates[i];}
 
+        /// Particle data
         array_1d<double,3> Coordinates;
         array_1d<double,3> OldVelocity;
     };
 
-    // using ParticleDataContainerType = std::vector<std::pair<array_1d<double,3>, array_1d<double,3>>>;
     using ParticleDataType = ParticleData;
     using ParticleDataContainerType = std::vector<ParticleData::Pointer>;
 
@@ -110,9 +128,20 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Calculates a new value of the previous step velocity for those nodes that have changed its density.
+     *
+     * @param rModelPart Reference to the model part of interest
+     * @param ComputeNodalH Bool to calculate nodal edge in order to stablish particle searching radius.
+     * @param ParticleLayerThickness Equidistance to previous free surface in order to defining define the are where lagrangian particles are going to be set.
+     * @param SearchFactor a factor that multiplies the nodal edge in order to define the lagrangian particles searching radius.
+     */
     static void CalculateHistoryProjection(
         ModelPart& rModelPart,
-        const bool ComputeNodalH = false);
+        const bool ComputeNodalH = false,
+        double ParticleLayerThickness,
+        double SearchFactor
+        );
 
     ///@}
     ///@name Access
@@ -162,16 +191,39 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Identifies the nodes that have changed its density and the elemets that
+     * @param rModelPart Reference to the model part of interest
+     * @param ComputeNodalH Boolto calculate nodal edge in order to stablish particle searching radius.
+     * @param ParticleLayerThickness Equidistance to previous free surface in order to define the area where lagrangian particles are going to be set.
+     */
     static void FlagElementsAndNodes(
         ModelPart& rModelPart,
-        double MaximumDistance);
+        double ParticleLayerThickness);
 
+    /**
+     * @brief Velocity and coordinates of the lagrangian particles are calculated and storaged in a particle data container.
+     * @param rModelPart Reference to the model part of interest
+     * @return ParticleDataContainerType
+     */
     static ParticleDataContainerType SeedAndConvectParticles(ModelPart& rModelPart);
 
+    /**
+     * @brief This calculates the new velocity interpolation
+     *
+     * @tparam TDim DOMAIN_SIZE
+     * @param rModelPart Reference to the model part of interest
+     * @param rParticleData Vector containing the Lagrangian particle data (see ParticleData class)
+     * @param ParticleLayerThickness Equidistance to previous free surface in order to defining define the are where lagrangian
+     *        particles are going to be set.
+     */
+    template<std::size_t TDim>
     static void CalculateLagrangianVelocityInterpolation(
         ModelPart& rModelPart,
         ParticleDataContainerType& rParticleData,
-        double MaximumDistance);
+        double ParticleLayerThickness,
+        double SearchFactor
+        );
 
     ///@}
     ///@name Private  Access

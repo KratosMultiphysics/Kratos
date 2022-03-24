@@ -183,8 +183,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Two fluid velocity history projection utilities
     py::class_<TwoFluidHistoryProjectionUtility>(m, "TwoFluidHistoryProjectionUtility")
-        .def_static("CalculateHistoryProjection", [&](ModelPart& rModelPart){TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(rModelPart);})
-        .def_static("CalculateHistoryProjection", [&](ModelPart& rModelPart, const bool ComputeNodalH){TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(rModelPart, ComputeNodalH);})
+        .def_static("CalculateHistoryProjection", [&](ModelPart& rModelPart,double ParticleLayerThickness,double SearchFactor){TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(rModelPart,ParticleLayerThickness,SearchFactor);})
+        .def_static("CalculateHistoryProjection", [&](ModelPart& rModelPart, const bool ComputeNodalH,double ParticleLayerThickness,double SearchFactor){TwoFluidHistoryProjectionUtility::CalculateHistoryProjection(rModelPart, ComputeNodalH,ParticleLayerThickness,SearchFactor);})
         ;
 
 }
