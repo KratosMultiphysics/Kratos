@@ -35,7 +35,7 @@
         "response_function_settings"    :   {
             "response_type"        : "adjoint_eigenfrequency",
             "gradient_mode"        : "semi_analytic",
-            "step_size"            : 1.0e-5,
+            "step_size"            : 1e-3,
             "adapt_step_size"      : true,
             "echo_level"           : 1,
             "primal_data_transfer_with_python": true,

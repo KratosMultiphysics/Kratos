@@ -23,11 +23,15 @@
             "time_step"       : 1.1
         },
         "line_search"                     : false,
-        "convergence_criterion"           : "displacement_criterion",
+        "solving_strategy_settings"       : {
+            "type"                        : "newton_raphson",
+            "advanced_settings"           : { }
+        },
+        "convergence_criterion"           : "residual_criterion",
         "displacement_relative_tolerance" : 1e-10,
         "displacement_absolute_tolerance" : 1e-9,
         "residual_relative_tolerance"     : 1e-10,
-        "residual_absolute_tolerance"     : 1e-9,
+        "residual_absolute_tolerance"     : 1e-5,
         "max_iteration"                   : 20,
         "rotation_dofs"                   : false
     },
