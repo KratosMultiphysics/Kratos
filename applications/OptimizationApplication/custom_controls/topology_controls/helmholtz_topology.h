@@ -8,8 +8,8 @@
 //
 // ==============================================================================
 
-#ifndef HELMHOLTZ_THICKNESS_H
-#define HELMHOLTZ_THICKNESS_H
+#ifndef HELMHOLTZ_TOPOLOGY_H
+#define HELMHOLTZ_TOPOLOGY_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -30,8 +30,8 @@
 #include "input_output/vtk_output.h"
 #include "containers/model.h"
 #include "utilities/variable_utils.h"
-#include "custom_controls/thickness_controls/thickness_control.h"
-#include "custom_elements/helmholtz_surf_thickness_element.h"
+#include "custom_controls/topology_controls/topology_control.h"
+#include "custom_elements/helmholtz_bulk_topology_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
 
 
@@ -63,7 +63,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzThickness : public ThicknessControl
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzTopology : public TopologyControl
 {
 public:
     ///@name Type Definitions
@@ -85,23 +85,23 @@ public:
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
-    /// Pointer definition of HelmholtzThickness
-    KRATOS_CLASS_POINTER_DEFINITION(HelmholtzThickness);
+    /// Pointer definition of HelmholtzTopology
+    KRATOS_CLASS_POINTER_DEFINITION(HelmholtzTopology);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HelmholtzThickness( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
-        :  ThicknessControl(ControlName,rModel,ControlSettings){
+    HelmholtzTopology( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
+        :  TopologyControl(ControlName,rModel,ControlSettings){
             for(int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
                 rLinearSystemSolvers.push_back(rLinearSolvers[lin_i]);
             mTechniqueSettings = ControlSettings["technique_settings"];
         }
 
     /// Destructor.
-    virtual ~HelmholtzThickness()
+    virtual ~HelmholtzTopology()
     {
     }
 
@@ -118,7 +118,7 @@ public:
     void Initialize() override {
 
         BuiltinTimer timer;
-        KRATOS_INFO("HelmholtzThickness:Initialize ") << "Starting initialization of thickness control "<<mControlName<<" ..." << std::endl;
+        KRATOS_INFO("HelmholtzTopology:Initialize ") << "Starting initialization of topology control "<<mControlName<<" ..." << std::endl;
 
         CreateModelParts();
 
@@ -132,25 +132,22 @@ public:
 
         AdjustFilterSizes();
 
-        //initialize control thicknesses with 
-        t_min = mTechniqueSettings["min_thickness"].GetInt();
-        t_max = mTechniqueSettings["max_thickness"].GetInt();
-        t_initial = mTechniqueSettings["initial_thickness"].GetDouble();
+        //initialize control topology
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++)
-            SetVariable(mpVMModelParts[model_i],CT,t_initial);
+            SetVariable(mpVMModelParts[model_i],CD,0.5);
 
-        //now compute physical thicknesses
+        //now compute physical density
         beta = mTechniqueSettings["beta"].GetDouble();
         sigmoid_projection = mTechniqueSettings["sigmoid_projection"].GetBool();
         penalization = mTechniqueSettings["penalization"].GetBool();
-        ComputePhyiscalThickness();
+        ComputePhyiscalDensity();
 
-        KRATOS_INFO("HelmholtzThickness:Initialize") << "Finished initialization of thickness control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("HelmholtzTopology:Initialize") << "Finished initialization of desnity control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 
     };
     // --------------------------------------------------------------------------
     void Update() override {
-        ComputePhyiscalThickness();
+        ComputePhyiscalDensity();
     };  
     // --------------------------------------------------------------------------
     void MapControlUpdate(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) override{};
@@ -160,36 +157,19 @@ public:
 
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
-        KRATOS_INFO("HelmholtzThickness:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
+        KRATOS_INFO("HelmholtzTopology:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
 
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             //do the inverse projection and penalization
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
-                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
+                const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
                 const auto& derivative = node_i.FastGetSolutionStepValue(rDerivativeVariable);
-                auto& helmholtz_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE_THICKNESS);
+                auto& helmholtz_source = node_i.FastGetSolutionStepValue(HELMHOLTZ_SOURCE_DENSITY);
                 if(sigmoid_projection)
                 {
-
-                    double reference_thickness = 0;
-                    if (filtered_thickness<=t_min)
-                        reference_thickness = t_min;
-                    else if (filtered_thickness>=t_max)
-                        reference_thickness = t_max-1;
-                    else
-                    {
-                        for(int t=t_min;t<t_max;t++){                        
-                            if (filtered_thickness>=t && filtered_thickness<=t+1)
-                            {
-                                reference_thickness = t;
-                                break;
-                            }
-                        }
-                    }
-
-                    double value = -2*beta*(filtered_thickness-(reference_thickness+0.5));
+                    double value = -2*beta*(filtered_density-0.5);
                     if(value<-600)
                         value = -600;
                     if(value>600)
@@ -199,23 +179,22 @@ public:
                 }
                 else if(penalization)
                 {
-                    helmholtz_source = 3 * filtered_thickness * filtered_thickness * derivative;
+                    helmholtz_source = 3 * filtered_density * filtered_density * derivative;
                 }
                 else
                     helmholtz_source = derivative;
-
             }
 
-            SetVariable(mpVMModePart,HELMHOLTZ_VAR_THICKNESS,0.0);
+            SetVariable(mpVMModePart,HELMHOLTZ_VAR_DENSITY,0.0);
 
             //now solve 
             mpStrategies[model_i]->Solve();
 
-            SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VAR_THICKNESS,rMappedDerivativeVariable);
+            SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VAR_DENSITY,rMappedDerivativeVariable);
         }
 
     
-        KRATOS_INFO("HelmholtzThickness:MapFirstDerivative") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
+        KRATOS_INFO("HelmholtzTopology:MapFirstDerivative") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
 
     };  
 
@@ -236,13 +215,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "HelmholtzThickness";
+        return "HelmholtzTopology";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "HelmholtzThickness";
+        rOStream << "HelmholtzTopology";
     }
 
     /// Print object's data.
@@ -271,13 +250,11 @@ protected:
     std::vector<LinearSolverType::Pointer> rLinearSystemSolvers;
     std::vector<StrategyType*>mpStrategies;
     std::vector<ModelPart*> mpVMModelParts;
+    std::vector<Properties::Pointer> mpVMModelPartsProperties;
     Parameters mTechniqueSettings;
     double beta;
     bool sigmoid_projection;
     bool penalization;
-    double t_min;
-    double t_max;
-    double t_initial;
     
     ///@}
     ///@name Protected Operators
@@ -382,15 +359,24 @@ private:
         for(auto& control_obj : mControlSettings["controlling_objects"]){
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
             ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
-            std::string vm_model_part_name =  root_model_part.Name()+"_Helmholtz_Thickness_Part";
+            std::string vm_model_part_name =  root_model_part.Name()+"_HELMHOLTZ_TOPOLOGY_Part";
             ModelPart* p_vm_model_part;
+            Properties::Pointer p_vm_model_part_property;
 
-            if (root_model_part.HasSubModelPart(vm_model_part_name))
+            if (root_model_part.HasSubModelPart(vm_model_part_name)){
                 p_vm_model_part = &(root_model_part.GetSubModelPart(vm_model_part_name));
+                for(int i =0; i<mpVMModelParts.size(); i++)
+                    if(mpVMModelParts[i]->Name()==p_vm_model_part->Name())
+                        p_vm_model_part_property = mpVMModelPartsProperties[i];
+            }
             else{
                 p_vm_model_part = &(root_model_part.CreateSubModelPart(vm_model_part_name));
+                p_vm_model_part_property = p_vm_model_part->CreateNewProperties(root_model_part.NumberOfProperties()+1);
+                mpVMModelPartsProperties.push_back(p_vm_model_part_property);
                 mpVMModelParts.push_back(p_vm_model_part);
             }
+
+            p_vm_model_part_property->SetValue(HELMHOLTZ_RADIUS_DENSITY,mTechniqueSettings["filter_radius"].GetDouble());
 
             for(auto& node : r_controlling_object.Nodes())
                 p_vm_model_part->AddNode(&node);
@@ -398,22 +384,18 @@ private:
             // creating elements
             ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();   
 
-            //check if the controlling model part has elements which have thickness value
+            //check if the controlling model part has elements which have desnity value
             if(!r_controlling_object.Elements().size()>0)
-                KRATOS_ERROR << "HelmholtzThickness:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
+                KRATOS_ERROR << "HelmholtzTopology:CreateModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
 
             for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 const Properties& elem_i_prop = it->GetProperties();
-                if(!elem_i_prop.Has(THICKNESS))
-                    KRATOS_ERROR << "HelmholtzThickness:CreateModelParts : element " << it->Id()<<" of controlling model part "<<control_obj.GetString()<<" does not have thickness property !"<<std::endl;
-                Properties::Pointer model_part_new_prop = r_controlling_object.CreateNewProperties(r_controlling_object.NumberOfProperties()+1);
-                *model_part_new_prop = elem_i_prop;
-                model_part_new_prop->SetValue(HELMHOLTZ_RADIUS_THICKNESS,mTechniqueSettings["filter_radius"].GetDouble());
-                it->SetProperties(model_part_new_prop);
-                Element::Pointer p_element = new HelmholtzSurfThicknessElement(it->Id(), it->pGetGeometry(), model_part_new_prop);
+                if(!elem_i_prop.Has(DENSITY))
+                    KRATOS_ERROR << "HelmholtzTopology:CreateModelParts : element " << it->Id()<<" of controlling model part "<<control_obj.GetString()<<" does not have desnity property !"<<std::endl;
+                Element::Pointer p_element = new HelmholtzBulkTopologyElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                 rmesh_elements.push_back(p_element);
-            }  
+            }   
         }
 
         // now add dofs
@@ -422,7 +404,7 @@ private:
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             for(auto& node_i : mpVMModePart->Nodes())
             {
-                node_i.AddDof(HELMHOLTZ_VAR_THICKNESS);
+                node_i.AddDof(HELMHOLTZ_VAR_DENSITY);
             }
         }
 
@@ -435,7 +417,7 @@ private:
             for(auto& control_obj : mControlSettings["controlling_objects"]){
                 ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
                 ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
-                std::string vm_model_part_name =  root_model_part.Name()+"_Helmholtz_Thickness_Part";
+                std::string vm_model_part_name =  root_model_part.Name()+"_HELMHOLTZ_TOPOLOGY_Part";
                 ModelPart* mpVMModePart = &(root_model_part.GetSubModelPart(vm_model_part_name));
 
                 double max_detJ = 0.0;
@@ -457,109 +439,67 @@ private:
 
                 double surface_filter_size = sqrt(std::pow(max_detJ/min_detJ, 0.5));
                 for(auto& elem_i : mpVMModePart->Elements())
-                    elem_i.GetProperties().SetValue(HELMHOLTZ_RADIUS_THICKNESS,surface_filter_size);
+                    elem_i.GetProperties().SetValue(HELMHOLTZ_RADIUS_DENSITY,surface_filter_size);
 
-                KRATOS_INFO("HelmholtzThickness:AdjustFilterSizes") << " Surface filter of "<<control_obj.GetString() <<" is adjusted to " << surface_filter_size << std::endl;
+                KRATOS_INFO("HelmholtzTopology:AdjustFilterSizes") << " Surface filter of "<<control_obj.GetString() <<" is adjusted to " << surface_filter_size << std::endl;
             }
         }    
     }
 
-    void ComputePhyiscalThickness(){
+    void ComputePhyiscalDensity(){
 
-        //now initialize control and physical thicknesses
+        //now initialize control and physical density
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
-            //first update control thicknesses
-            AddVariable1ToVarible2(mpVMModelParts[model_i],D_CT,CT);
 
-            //now filter nodal control thickness 
+            //first update control density
+            AddVariable1ToVarible2(mpVMModelParts[model_i],D_CD,CD);
+
+            //now filter nodal control desnity 
             //first we need to multiply with mass matrix 
-            SetVariable(mpVMModelParts[model_i],HELMHOLTZ_VAR_THICKNESS,0.0);
-            SetVariable(mpVMModelParts[model_i],HELMHOLTZ_SOURCE_THICKNESS,0.0);
+            SetVariable(mpVMModelParts[model_i],HELMHOLTZ_VAR_DENSITY,0.0);
+            SetVariable(mpVMModelParts[model_i],HELMHOLTZ_SOURCE_DENSITY,0.0);
             //now we need to multiply with the mass matrix 
             for(auto& elem_i : mpVMModelParts[model_i]->Elements())
             {
                 VectorType origin_values;
-                GetElementVariableValuesVector(elem_i,CT,origin_values);
+                GetElementVariableValuesVector(elem_i,CD,origin_values);
                 MatrixType mass_matrix;
-                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModelParts[model_i]->GetProcessInfo());            
+                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModelParts[model_i]->GetProcessInfo());           
                 VectorType int_vals = prod(mass_matrix,origin_values);
-                AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_THICKNESS,int_vals);
+                AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_DENSITY,int_vals);
             }
 
             mpStrategies[model_i]->Solve();
 
-            SetVariable1ToVarible2(mpVMModelParts[model_i],HELMHOLTZ_VAR_THICKNESS,FT);
+            SetVariable1ToVarible2(mpVMModelParts[model_i],HELMHOLTZ_VAR_DENSITY,FD);
 
-            //now do the projection and then set the PT
+            //now do the projection and then set the PD
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
-                const auto& filtered_thickness = node_i.FastGetSolutionStepValue(FT);
-                auto& physical_thickness = node_i.FastGetSolutionStepValue(PT);
+                const auto& filtered_density = node_i.FastGetSolutionStepValue(FD);
+                auto& physical_density = node_i.FastGetSolutionStepValue(PD);
+                auto& density = node_i.FastGetSolutionStepValue(DENSITY);
                 if (sigmoid_projection)
                 {
-                    double reference_thickness = 0;
-                    if (filtered_thickness<=t_min)
-                        reference_thickness = t_min;
-                    else if (filtered_thickness>=t_max)
-                        reference_thickness = t_max-1;
-                    else
-                    {
-                        for(int t=t_min;t<t_max;t++){                        
-                            if (filtered_thickness>=t && filtered_thickness<=t+1)
-                            {
-                                reference_thickness = t;
-                                break;
-                            }
-                        }
-                    }
-
-                    double value = -2*beta*(filtered_thickness-(reference_thickness+0.5)); 
+                    double value = -2*beta*(filtered_density-0.5); 
                     if(value<-600)
                         value = -600;
                     if(value>600)
                         value = 600;                    
-                    physical_thickness = (1.0/(1+std::exp(value)))+reference_thickness;
-                    if(physical_thickness<0.001)
-                        physical_thickness = 0.001;
+                    physical_density = (1.0/(1+std::exp(value)))+1;
+                    if(physical_density<0.001)
+                        physical_density = 0.001;
 
                 }
                 else if(penalization){
-                    physical_thickness = std::pow(filtered_thickness,3);
+                    physical_density = std::pow(filtered_density,3);
                 }
                 else
-                    physical_thickness = filtered_thickness;
+                    physical_density = filtered_density;
+
+                density = physical_density;
+
             }
-            //now compute element thicknesses
-            for(auto& elem_i : mpVMModelParts[model_i]->Elements()){
-
-                const auto& r_geom = elem_i.GetGeometry();	
-                const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
-                const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-                const unsigned int NumGauss = integration_points.size();
-                Vector GaussPtsJDet = ZeroVector(NumGauss);
-                r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
-                const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method); 
-
-                double elem_area = 0.0; 
-                for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-                    elem_area += integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-
-                double element_thickness = 0;
-                for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
-                {
-                	const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
-                	const auto& rN = row(Ncontainer,i_point);
-                	int node_index = 0;
-                	for (auto& node_i : r_geom){
-                        const auto& nodal_thickness = node_i.FastGetSolutionStepValue(PT);
-                        element_thickness += nodal_thickness * rN[node_index] * IntToReferenceWeight / elem_area;
-                		node_index++;
-                	}						
-                }
-                elem_i.GetProperties().SetValue(THICKNESS,element_thickness);                                    
-            }
-
         }
-
     }  
 
     void GetElementVariableValuesVector(const Element& rElement,
@@ -666,15 +606,15 @@ private:
     ///@{
 
     /// Assignment operator.
-//      HelmholtzThickness& operator=(HelmholtzThickness const& rOther);
+//      HelmholtzTopology& operator=(HelmholtzTopology const& rOther);
 
     /// Copy constructor.
-//      HelmholtzThickness(HelmholtzThickness const& rOther);
+//      HelmholtzTopology(HelmholtzTopology const& rOther);
 
 
     ///@}
 
-}; // Class HelmholtzThickness
+}; // Class HelmholtzTopology
 
 ///@}
 
@@ -691,4 +631,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // HELMHOLTZ_THICKNESS_H
+#endif // HELMHOLTZ_TOPOLOGY_H

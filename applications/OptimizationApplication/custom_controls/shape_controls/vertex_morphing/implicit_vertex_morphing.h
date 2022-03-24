@@ -323,7 +323,6 @@ private:
 
     void CalculateNodeNeighbourCount()
     {
-
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];

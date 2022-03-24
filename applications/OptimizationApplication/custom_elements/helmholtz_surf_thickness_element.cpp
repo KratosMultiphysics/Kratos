@@ -94,11 +94,7 @@ void HelmholtzSurfThicknessElement::CalculateLocalSystem(MatrixType& rLeftHandSi
     MatrixType A;
     CalculateSurfaceStiffnessMatrix(A,rCurrentProcessInfo);
 
-    MatrixType K;
-    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE])
-        K = M;
-    else
-        K = M + A;
+    MatrixType K = M + A;
 
     const unsigned int number_of_points = r_geometry.size();
     Vector nodal_vals(number_of_points);

@@ -69,6 +69,7 @@ namespace Kratos
 
     // density control
     KRATOS_CREATE_VARIABLE(double,PD);
+    KRATOS_CREATE_VARIABLE(double,FD);    
     KRATOS_CREATE_VARIABLE(double,CD);
     KRATOS_CREATE_VARIABLE(double,D_CD);  
     KRATOS_CREATE_VARIABLE(double,D_PD);            

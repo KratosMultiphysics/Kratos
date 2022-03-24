@@ -101,6 +101,8 @@ public:
 				thickness_grad = true;
 			if (control_type.GetString()=="shape")
 				shape_grad = true;
+			if (control_type.GetString()=="topology")
+				density_grad = true;				
 		}
 	}
 
@@ -186,7 +188,8 @@ public:
 			VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
 		if(thickness_grad)
 			VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
-		// VariableUtils().SetHistoricalVariableToZero(YOUNG_MODULUS_SENSITIVITY, mrModelPart.Nodes());
+		if(density_grad)
+			VariableUtils().SetHistoricalVariableToZero(YOUNG_MODULUS_SENSITIVITY, mrModelPart.Nodes());
 
 
 		// Gradient calculation
@@ -199,6 +202,11 @@ public:
 			CalculateResponseDerivativePartByFiniteDifferencing();
 		CalculateAdjointField();
 		CalculateStateDerivativePartByFiniteDifferencing();
+
+
+		// exact sensitivities for density
+		if(density_grad)
+			CalculateStateDensityDerivative();	
 
 		KRATOS_CATCH("");
 	}
@@ -262,6 +270,46 @@ protected:
 		KRATOS_TRY;
 
 		// Adjoint field may be directly obtained from state solution
+
+		KRATOS_CATCH("");
+	}
+
+	// --------------------------------------------------------------------------
+	void CalculateStateDensityDerivative()
+	{
+		KRATOS_TRY;
+
+		// Working variables
+		const ProcessInfo &CurrentProcessInfo = mrModelPart.GetProcessInfo();
+
+		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
+		for (auto& elem_i : mrModelPart.Elements())
+		{
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			if(element_is_active)
+			{
+				Vector u;
+				Vector lambda;
+				Vector RHS;
+
+				// Get state solution
+				const auto& rConstElemRef = elem_i;
+				rConstElemRef.GetValuesVector(u,0);
+
+				// Get adjoint variables (Corresponds to 1/2*u)
+				lambda = 0.5*u;
+
+				// Get element sensitivity
+				Matrix elem_density_sens;
+				elem_i.Calculate(DENSITY_SENSITIVITY,elem_density_sens,CurrentProcessInfo);
+
+				std::size_t node_index=0;
+				for (auto& node_i : elem_i.GetGeometry()){
+					node_i.FastGetSolutionStepValue(YOUNG_MODULUS_SENSITIVITY) += inner_prod(lambda,column(elem_density_sens,node_index));
+					node_index++;
+				}	
+			}
+		}
 
 		KRATOS_CATCH("");
 	}
@@ -557,6 +605,7 @@ private:
 	double mDelta;
 	bool shape_grad = false;
 	bool thickness_grad = false;
+	bool density_grad = false;
 
 	///@}
 ///@name Private Operators

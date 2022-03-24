@@ -38,6 +38,7 @@ namespace Kratos
         mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzSurfThickness3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
         /* CONDITIONS */            
         mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))              
     {}
@@ -102,6 +103,7 @@ namespace Kratos
 
         // density control
         KRATOS_REGISTER_VARIABLE(PD);
+        KRATOS_REGISTER_VARIABLE(FD);
         KRATOS_REGISTER_VARIABLE(CD);
         KRATOS_REGISTER_VARIABLE(D_CD);  
         KRATOS_REGISTER_VARIABLE(D_PD);               
@@ -128,7 +130,10 @@ namespace Kratos
 
         // Shape optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzSurfShape3D3N", mHelmholtzSurfShape3D3N); 
-        KRATOS_REGISTER_ELEMENT("HelmholtzBulkShape3D4N", mHelmholtzBulkShape3D4N); 
+        KRATOS_REGISTER_ELEMENT("HelmholtzBulkShape3D4N", mHelmholtzBulkShape3D4N);
+
+        // Topology optimization elements 
+        KRATOS_REGISTER_ELEMENT("HelmholtzBulkTopology3D4N", mHelmholtzBulkTopology3D4N);
 
         // Thickness optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzSurfThickness3D3N", mHelmholtzSurfThickness3D3N);        

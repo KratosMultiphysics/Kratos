@@ -16,6 +16,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication.controls.shape.explicit_vertex_morphing as evm
 import KratosMultiphysics.OptimizationApplication.controls.shape.implicit_vertex_morphing as ivm
 import KratosMultiphysics.OptimizationApplication.controls.thickness.helmholtz_thickness as hlt
+import KratosMultiphysics.OptimizationApplication.controls.topology.helmholtz_topology as thp
 import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, math
@@ -57,8 +58,7 @@ class ControlsController:
             self.controls_settings[itr]["settings"].ValidateAndAssignDefaults(default_settings["settings"])  
 
 
-        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing","implicit_vertex_morphing"],"topology":[],"thickness":["helmholtz_thickness"]}
-        self.supported_control_types_variable_names = {"shape":"CX","thickness":"CT","topology":"CD"}
+        self.supported_control_types_techniques = {"shape":["explicit_vertex_morphing","implicit_vertex_morphing"],"topology":["helmholtz_topology"],"thickness":["helmholtz_thickness"]}
         # sanity checks
         self.controls_types_vars_dict = {"shape":[],"topology":[],"thickness":[]}
         self.controls = {}
@@ -103,7 +103,10 @@ class ControlsController:
                     control = ivm.ImplicitVertexMorphing(control_name,model,control_settings["settings"])  
             elif control_type == "thickness":
                 if control_technique == "helmholtz_thickness":
-                    control = hlt.HelmholtzThickness(control_name,model,control_settings["settings"])                                        
+                    control = hlt.HelmholtzThickness(control_name,model,control_settings["settings"])    
+            elif control_type == "topology":
+                if control_technique == "helmholtz_topology":
+                    control = thp.HelmholtzTopology(control_name,model,control_settings["settings"])                                                          
 
             self.controls[control_name] = control
             self.controls_types_vars_dict[control_type].extend(control_controlling_objects_list)
@@ -180,10 +183,6 @@ class ControlsController:
                 raise RuntimeError("ControlsController:GetControlControllingObjects: Control {} does not exist.".format(control_name))
        
         return self.controls[control_name].GetControllingObjects()            
-
-    # --------------------------------------------------------------------------
-    def GetSupportedControlTypesVariablesName(self):
-        return self.supported_control_types_variable_names
 
     # --------------------------------------------------------------------------
     def MapControlFirstDerivative(self, control_name, derivative_variable_name, mapped_derivative_variable_name, raise_error=True):   

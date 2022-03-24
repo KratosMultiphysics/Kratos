@@ -35,8 +35,8 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         else:
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
-        self.supported_control_types = ["shape","thickness","density"]
-        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X","thickness":"D_STRAIN_ENERGY_D_PT","density":"D_STRAIN_ENERGY_D_PD"}
+        self.supported_control_types = ["shape","thickness","topology"]
+        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X","thickness":"D_STRAIN_ENERGY_D_PT","topology":"D_STRAIN_ENERGY_D_PD"}
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -53,9 +53,9 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             if control_type == "thickness":
                 self.analysis_model_part.AddNodalSolutionStepVariable(KSM.THICKNESS_SENSITIVITY)
                 self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
-            # if control_type == "density":
-                # self.analysis_model_part.AddNodalSolutionStepVariable(KSM.YOUNG_MODULUS_SENSITIVITY)
-                # self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
+            if control_type == "topology":
+                self.analysis_model_part.AddNodalSolutionStepVariable(KSM.YOUNG_MODULUS_SENSITIVITY)
+                self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
 
         # create response
         self.response_function_utility = KSM.StrainEnergyResponseFunctionUtility(self.analysis_model_part, self.response_settings)
@@ -117,7 +117,10 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
                     node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_X, shape_gradient)
                 if control_type == "thickness":
                     thickness_gradient = node.GetSolutionStepValue(KSM.THICKNESS_SENSITIVITY)
-                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PT, thickness_gradient)                
+                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PT, thickness_gradient)
+                if control_type == "topology":
+                    density_gradient = node.GetSolutionStepValue(KSM.YOUNG_MODULUS_SENSITIVITY)
+                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PD, density_gradient)                                    
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
 
     def GetGradients(self):
@@ -154,8 +157,8 @@ class MassResponseFunction(BaseResponseFunction):
         else:
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
-        self.supported_control_types = ["shape","thickness","density"]
-        self.gradients_variables = {"shape":"D_MASS_D_X","thickness":"D_MASS_D_PT","density":"D_MASS_D_PD"}
+        self.supported_control_types = ["shape","thickness","topology"]
+        self.gradients_variables = {"shape":"D_MASS_D_X","thickness":"D_MASS_D_PT","topology":"D_MASS_D_PD"}
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("MassResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -179,9 +182,9 @@ class MassResponseFunction(BaseResponseFunction):
             if control_type == "thickness":
                 self.root_model_part.AddNodalSolutionStepVariable(KSM.THICKNESS_SENSITIVITY)
                 self.root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
-            # if control_type == "density":
-                # self.analysis_model_part.AddNodalSolutionStepVariable(KSM.YOUNG_MODULUS_SENSITIVITY)
-                # self.analysis_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
+            if control_type == "topology":
+                self.root_model_part.AddNodalSolutionStepVariable(KSM.YOUNG_MODULUS_SENSITIVITY)
+                self.root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
 
         # create response
         self.response_function_utility = KSM.MassResponseFunctionUtility(self.root_model_part, self.response_settings)
@@ -233,6 +236,9 @@ class MassResponseFunction(BaseResponseFunction):
                     node.SetSolutionStepValue(KOA.D_MASS_D_X, shape_gradient)
                 if control_type == "thickness":
                     thickness_gradient = node.GetSolutionStepValue(KSM.THICKNESS_SENSITIVITY)
-                    node.SetSolutionStepValue(KOA.D_MASS_D_PT, thickness_gradient)                
+                    node.SetSolutionStepValue(KOA.D_MASS_D_PT, thickness_gradient)   
+                if control_type == "topology":
+                    topology_gradient = node.GetSolutionStepValue(KSM.YOUNG_MODULUS_SENSITIVITY)
+                    node.SetSolutionStepValue(KOA.D_MASS_D_PD, topology_gradient)               
         Logger.PrintInfo("MassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
        
