@@ -172,7 +172,7 @@ class CompressibleNavierStokesElementSymbolicGenerator(CompressibleNavierStokesS
                 projections["momentum"][i_mom] += N[i_node] * res_gauss[1 + d]
             projections["energy"][i_node] += N[i_node] * res_gauss[self.geometry.ndims + 1]
 
-    def _OutputProjections(self, res_rho_proj, res_mom_proj, res_tot_ener_proj):
+    def _OutputProjections(self, rho, momentum, energy):
         dim = self.geometry.ndims
 
         if self.geometry.symbolic_integration:
@@ -184,9 +184,9 @@ class CompressibleNavierStokesElementSymbolicGenerator(CompressibleNavierStokesS
             mom_name = "mom_proj_gauss"
             ene_name = "tot_ener_proj_gauss"
 
-        self.CollectAndReplace("//substitute_rho_proj_{}D".format(dim), res_rho_proj, rho_name)
-        self.CollectAndReplace("//substitute_mom_proj_{}D".format(dim), res_mom_proj, mom_name)
-        self.CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), res_tot_ener_proj, ene_name)
+        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), rho, rho_name)
+        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), momentum, mom_name)
+        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), energy, ene_name)
 
     def _SubstituteSubscales(self, res, res_proj, rv, subscales, subscales_type, Tau):
         rv_gauss = rv.copy()
@@ -415,7 +415,7 @@ class CompressibleNavierStokesElementSymbolicGenerator(CompressibleNavierStokesS
             self._ComputeOSSProjectionsAtGaussPoint(acc, bdf, dUdt, f, forcing_terms, H, i_gauss, mg, projections, res, rg, U, Ug, Un, Unn)
 
         # Output the projections
-        self._OutputProjections(*projections.values())
+        self._OutputProjections(**projections)
 
         # Algebraic form calculation #
         for subscales_type in self.subscales_types:
