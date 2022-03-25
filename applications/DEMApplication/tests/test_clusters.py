@@ -30,7 +30,7 @@ class ClustersTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.
             if node.Id == 21:
                 velz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
                 self.assertAlmostEqual(velz, -0.3888113323025093, delta=tol)
-            if node.Id == 30:
+            if node.Id == 31:
                 velz = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
                 self.assertAlmostEqual(velz, 0.029044273544728355, delta=tol)
 
