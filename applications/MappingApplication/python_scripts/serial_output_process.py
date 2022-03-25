@@ -58,7 +58,7 @@ class SerialOutputProcess(KM.OutputProcess):
 
         self.destination_rank = settings["destination_rank"].GetInt()
         if self.destination_rank >= self.data_comm.Size():
-            raise Exception(f'Destination rank {self.destination_rank} larger than avilable size {self.data_comm.Size()}')
+            raise Exception("Destination rank %i larger than available size %i" %(self.destination_rank, self.data_comm.Size()))
 
         if self.data_comm.Rank() == self.destination_rank:
             if mdpa_file_name_destination != "":
