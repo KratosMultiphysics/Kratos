@@ -78,18 +78,26 @@ namespace Kratos
             gravity_array[1] = 9.81;
             gravity_array[2] = 0;
 
-            // set water pressure values to node 1 and 2
+            // set water pressure values to nodes
             p_node_1->SetLock();
             p_node_2->SetLock();
+            p_node_3->SetLock();
+            p_node_4->SetLock();
 
             p_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
             p_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 500;
+            p_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 500;
+            p_node_4->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
 
             p_node_1->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
             p_node_2->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
+            p_node_3->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
+            p_node_4->FastGetSolutionStepValue(VOLUME_ACCELERATION) = gravity_array;
 
             p_node_1->UnSetLock();
             p_node_2->UnSetLock();
+            p_node_3->UnSetLock();
+            p_node_4->UnSetLock();
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> element_nodes{ 1,2,3,4 };
@@ -139,15 +147,23 @@ namespace Kratos
             auto p_node_3 = r_model_part.CreateNewNode(3, 1.0, 0.1, 0.0);
             auto p_node_4 = r_model_part.CreateNewNode(4, 0.0, 0.1, 0.0);
 
-            // set water pressure values to node 1 and 2
+            // set water pressure values to nodes
             p_node_1->SetLock();
             p_node_2->SetLock();
+            p_node_3->SetLock();
+            p_node_4->SetLock();
 
             p_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
             p_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 2;
+            p_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 2;
+            p_node_4->FastGetSolutionStepValue(WATER_PRESSURE) = 0;
 
             p_node_1->UnSetLock();
             p_node_2->UnSetLock();
+            p_node_3->UnSetLock();
+            p_node_4->UnSetLock();
+
+
 
             // Create the test piping element
             std::vector<ModelPart::IndexType> element_nodes{ 1,2,3,4};
