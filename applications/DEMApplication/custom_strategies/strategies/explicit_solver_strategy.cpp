@@ -761,9 +761,13 @@ namespace Kratos {
                     reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_MASS][2];
                 }
 
-                int Node_Id_1 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(fem_model_part);
+                int max_fem_node_id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(fem_model_part);
+                int max_dem_node_id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(GetModelPart());
+                int max_id_across_mps = std::max(max_fem_node_id, max_dem_node_id);
+                int max_cluster_node_id = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(GetClusterModelPart());
+                max_id_across_mps = std::max(max_id_across_mps, max_cluster_node_id);
 
-                mpParticleCreatorDestructor->CentroidCreatorForRigidBodyElements(fem_model_part, central_node, Node_Id_1 + 1, reference_coordinates);
+                mpParticleCreatorDestructor->CentroidCreatorForRigidBodyElements(fem_model_part, central_node, max_id_across_mps + 1, reference_coordinates);
 
                 central_node_list.push_back(central_node);
 
