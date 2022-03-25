@@ -238,6 +238,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
         analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         self.analytic_model_part.AddElements(analytic_particle_ids)
+        analytic_node_ids = [node.Id for node in self.spheres_model_part.Nodes]
+        self.analytic_model_part.AddNodes(analytic_node_ids)
 
     def FillAnalyticSubModelPartsWithNewParticles(self):
         self.analytic_model_part = self.spheres_model_part.GetSubModelPart('AnalyticParticlesPart')
