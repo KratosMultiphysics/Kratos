@@ -1102,6 +1102,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         const double current_time = r_model_part.GetProcessInfo()[TIME];
         DestroyParticles<TParticleType>(r_model_part.GetCommunicator().LocalMesh(), current_time);
         DestroyParticles<TParticleType>(r_model_part.GetCommunicator().GhostMesh(), current_time);
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = r_model_part.SubModelPartsBegin(); sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
+            DestroyParticles<TParticleType>(*sub_model_part);
+        }
 
         KRATOS_CATCH("")
     }
