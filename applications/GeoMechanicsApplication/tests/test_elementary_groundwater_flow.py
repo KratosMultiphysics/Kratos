@@ -1,5 +1,6 @@
 import sys
 import os
+from functools import reduce
 
 sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
 sys.path.append(os.path.join('..', '..', '..'))
@@ -18,7 +19,7 @@ class FlowCalculations:
         self.hydraulic_conductivity = self.intrinsic_permeability * self.density_water * self.gravity / self.viscosity
 
     def specific_dicharge(self, dphidz):
-        return -1 * self.hydraulic_conductivity * dphidz
+        return self.hydraulic_conductivity * dphidz
 
     def flow_rate(self, specific_dicharge, width):
         return specific_dicharge * width / 2
@@ -38,9 +39,14 @@ class LatexWriterFile:
             for result_pair in result_list:
                 error = abs(result_pair['kratos_results'] - result_pair['test_result']) / \
                         (abs(result_pair['test_result']) + 1e-60)
-                output_latex_file.write(
-                    f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
-                    f"{round(result_pair['kratos_results'], 2)} & {round(error, 2)}  \\\\ \hline \n")
+                if result_pair["round"]:
+                    output_latex_file.write(
+                        f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
+                        f"{round(result_pair['kratos_results'], 2)} & {round(error, 2)}  \\\\ \hline \n")
+                else:
+                    output_latex_file.write(
+                        f"{result_pair['value_name']} & {result_pair['test_result']} & "
+                        f"{result_pair['kratos_results']} & {round(error, 2)}  \\\\ \hline \n")
         for result_pair in result_list:
             assert abs(result_pair['test_result'] - result_pair['kratos_results']) < 1e-5
 
@@ -59,21 +65,67 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
     def test_hydrostatic_conditions(self):
         test_name = 'test_elementary_groundwater_flow/benchmark_1_hydrostatic.gid'
         self.latex_writer.filename = \
-            test_helper.get_file_path("test_elementary_groundwater_flow/benchmark_1_hydrostatic.gid/benchmark_1_hydrostatic.tex")
+            test_helper.get_file_path(
+                "test_elementary_groundwater_flow/benchmark_1_hydrostatic.gid/benchmark_1_hydrostatic.tex")
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
         p3 = {"value_name": "water pressure at n3 [kPa]", "test_result": -20,
-              "kratos_results": test_helper.get_water_pressure(simulation)[0]}
+              "kratos_results": test_helper.get_water_pressure(simulation)[0], "round": True}
         p4 = {"value_name": "water pressure at n4 [kPa]", "test_result": -20,
-              "kratos_results": test_helper.get_water_pressure(simulation)[1]}
+              "kratos_results": test_helper.get_water_pressure(simulation)[1], "round": True}
         phi4_value = test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][11]
         phi3_value = test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][8]
         phi2_value = test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][0]
         phi1_value = test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][1]
-        phi4 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi4_value}
-        phi3 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi3_value}
-        phi2 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi2_value}
-        phi1 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi1_value}
+        phi4 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi4_value, "round": True}
+        phi3 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi3_value, "round": True}
+        phi2 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi2_value, "round": True}
+        phi1 = {"value_name": "head at n3 [m]", "test_result": 0, "kratos_results": phi1_value, "round": True}
         hydraylic_disc = {"value_name": "specific discharge [m/s]", "test_result": 0,
-                          "kratos_results": sum(test_helper.get_hydraulic_discharge(simulation))}
+                          "kratos_results": sum(test_helper.get_hydraulic_discharge(simulation)), "round": True}
         self.latex_writer.write_latex_file_and_assert([p3, p4, phi1, phi2, phi3, phi4, hydraylic_disc])
+
+    def test_saturated_flow_pressure_bound(self):
+        test_name = 'test_elementary_groundwater_flow/benchmark_1_saturated_flow_pressure_bound.gid'
+        self.latex_writer.filename = \
+            test_helper.get_file_path("test_elementary_groundwater_flow/benchmark_1_saturated_flow_pressure_bound.gid/"
+                                      "benchmark_1_saturated_flow_pressure_bound.tex")
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        flow_rate_1 = test_helper.get_hydraulic_discharge(simulation)[0]
+        flow_rate_2 = test_helper.get_hydraulic_discharge(simulation)[1]
+        flow_rate_3 = test_helper.get_hydraulic_discharge(simulation)[3]
+        flow_rate_4 = test_helper.get_hydraulic_discharge(simulation)[4]
+        x, y, head_list = test_helper.get_hydraylic_head_with_intergration_points(simulation)
+        specific_discharge = reduce(lambda a, b: a + b if b > 0 else a, test_helper.get_hydraulic_discharge(simulation),
+                                    0)
+
+        analytical_flow_rate = self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)
+        flow_rate_1_value = {"value_name": "flow rate Q1 [$m^{3}/s$]", "test_result": analytical_flow_rate,
+                             "kratos_results": flow_rate_1, "round": False}
+        flow_rate_2_value = {"value_name": "flow rate Q2 [$m^{3}/s$]", "test_result": analytical_flow_rate,
+                             "kratos_results": flow_rate_2, "round": False}
+        flow_rate_3_value = {"value_name": "flow rate Q3 [$m^{3}/s$]", "test_result": -1 * analytical_flow_rate,
+                             "kratos_results": flow_rate_3, "round": False}
+        flow_rate_4_value = {"value_name": "flow rate Q4 [$m^{3}/s$]", "test_result": -1 * analytical_flow_rate,
+                             "kratos_results": flow_rate_4, "round": False}
+        head_g1 = {"value_name": "hydraylic head g1 [m]", "test_result": y[3], "kratos_results": head_list[3],
+                   "round": True}
+        head_g2 = {"value_name": "hydraylic head g2 [m]", "test_result": y[4], "kratos_results": head_list[4],
+                   "round": True}
+        head_g5 = {"value_name": "hydraylic head g5 [m]", "test_result": y[0], "kratos_results": head_list[0],
+                   "round": True}
+        head_g6 = {"value_name": "hydraylic head g6 [m]", "test_result": y[1], "kratos_results": head_list[1],
+                   "round": True}
+        specific_discharge = {"value_name": "specific discharge [m/s]",
+                              "test_result": self.flow_calculations.specific_dicharge(1),
+                              "kratos_results": specific_discharge, "round": False}
+        self.latex_writer.write_latex_file_and_assert([flow_rate_1_value,
+                                                       flow_rate_2_value,
+                                                       flow_rate_3_value,
+                                                       flow_rate_4_value,
+                                                       head_g1,
+                                                       head_g2,
+                                                       head_g5,
+                                                       head_g6,
+                                                       specific_discharge])
