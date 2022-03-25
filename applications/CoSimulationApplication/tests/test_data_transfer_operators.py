@@ -8,6 +8,8 @@ from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import C
 
 mapping_app_available = kratos_utils.CheckIfApplicationsAvailable("MappingApplication")
 
+if KM.IsDistributedRun():
+    import KratosMultiphysics.mpi as KratosMPI
 
 class TestDataTransferOperators(KratosUnittest.TestCase):
 
@@ -18,22 +20,37 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         mp_d_nm = self.model.CreateModelPart("mp_destination_non_matching", 2)
         mp_one_n = self.model.CreateModelPart("mp_single_node", 2)
 
+        self.data_comm = KM.Testing.GetDefaultDataCommunicator()
+        self.my_pid = self.data_comm.Rank()
+
         mp_o.AddNodalSolutionStepVariable(KM.PRESSURE)
         mp_o.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        mp_o.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
+
         mp_d_m.AddNodalSolutionStepVariable(KM.TEMPERATURE)
         mp_d_m.AddNodalSolutionStepVariable(KM.FORCE)
+        mp_d_m.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
+
         mp_d_nm.AddNodalSolutionStepVariable(KM.TEMPERATURE)
         mp_d_nm.AddNodalSolutionStepVariable(KM.FORCE)
+        mp_d_nm.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
+
         mp_one_n.AddNodalSolutionStepVariable(KMC.SCALAR_DISPLACEMENT)
         mp_one_n.AddNodalSolutionStepVariable(KMC.SCALAR_FORCE)
+        mp_one_n.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
 
         mp_o.ProcessInfo[KM.DOMAIN_SIZE] = 2
         mp_d_m.ProcessInfo[KM.DOMAIN_SIZE] = 2
         mp_d_nm.ProcessInfo[KM.DOMAIN_SIZE] = 2
         mp_one_n.ProcessInfo[KM.DOMAIN_SIZE] = 2
 
-        num_nodes_matching = 5
-        num_nodes_non_matching = 8
+        num_nodes_matching = self.my_pid % 5 + 3 # num_nodes in range (3 ... 7)
+        num_nodes_non_matching = self.my_pid % 5 + 5 # num_nodes in range (3 ... 7)
+
+        if self.my_pid == 3:
+            num_nodes_matching = 0 # in order to emulate one partition not having local nodes
+        if self.my_pid == 2:
+            num_nodes_non_matching = 0 # in order to emulate one partition not having local nodes
 
         for i in range(num_nodes_matching):
             node_id = i+1
@@ -50,8 +67,18 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             node_id = i+15
             mp_d_nm.CreateNewNode(node_id, 0.0, 0.0, i+1.1)
 
-        mp_one_n.CreateNewNode(1, 0.0, 0.0, 0.0)
+        if self.my_pid == 0:
+            mp_one_n.CreateNewNode(1, 0.0, 0.0, 0.0)
 
+        for node in mp_o.Nodes:
+            node.SetSolutionStepValue(KM.PARTITION_INDEX, self.my_pid)
+        for node in mp_d_m.Nodes:
+            node.SetSolutionStepValue(KM.PARTITION_INDEX, self.my_pid)
+        for node in mp_d_nm.Nodes:
+            node.SetSolutionStepValue(KM.PARTITION_INDEX, self.my_pid)
+        for node in mp_one_n.Nodes:
+            node.SetSolutionStepValue(KM.PARTITION_INDEX, self.my_pid)
+            
         origin_data_settings_scalar = KM.Parameters("""{
             "model_part_name" : "mp_origin",
             "variable_name"   : "PRESSURE"
@@ -114,6 +141,12 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.destination_non_matching_data_scalar = CouplingInterfaceData(destination_non_matching_data_settings_scalar, self.model)
         self.destination_non_matching_data_vector = CouplingInterfaceData(destination_non_matching_data_settings_vector, self.model)
+
+        if KM.IsDistributedRun():
+            KratosMPI.ParallelFillCommunicator(mp_o, self.data_comm).Execute()
+            KratosMPI.ParallelFillCommunicator(mp_d_m, self.data_comm).Execute()
+            KratosMPI.ParallelFillCommunicator(mp_d_nm, self.data_comm).Execute()
+            KratosMPI.ParallelFillCommunicator(mp_one_n, self.data_comm).Execute()
 
     def test_copy_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -295,7 +328,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 0.2)
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, 1/self.data_comm.SumAll(self.destination_matching_data_scalar.Size()))
 
     def test_copy_single_to_dist_transfer_operator_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -342,7 +375,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.2)
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -1/self.data_comm.SumAll(self.destination_matching_data_scalar.Size()))
 
     def test_copy_single_to_dist_transfer_operator_distribute_values_swap_sign_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -362,7 +395,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.2)
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -1/self.data_comm.SumAll(self.destination_matching_data_scalar.Size()))
 
         data_transfer_op.TransferData(self.origin_data_single_node,
                                       self.destination_matching_data_scalar,
@@ -370,7 +403,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_single_node.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -0.4)
+                                        KM.TEMPERATURE, KMC.SCALAR_DISPLACEMENT, -2/self.data_comm.SumAll(self.destination_matching_data_scalar.Size()))
 
     def test_sum_dist_to_single(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -389,7 +422,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KMC.SCALAR_FORCE, KM.PRESSURE, 5)
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, self.data_comm.SumAll(self.destination_matching_data_scalar.Size()))
 
         # Test with false input
         # with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
@@ -415,7 +448,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KMC.SCALAR_FORCE, KM.PRESSURE, -5)
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, -self.data_comm.SumAll(self.destination_matching_data_scalar.Size()))
 
 
     def test_sum_dist_to_single_add_values(self):
@@ -424,21 +457,28 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
-        transfer_options = KM.Parameters(""" ["add_values"] """)
+        transfer_options_empty = KM.Parameters(""" [] """)
+        transfer_options_add = KM.Parameters(""" ["add_values"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
             node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
 
-        for node in self.destination_data_single_node.GetModelPart().Nodes:
-            node.SetSolutionStepValue(KMC.SCALAR_FORCE, 0, 500.0)
-
         data_transfer_op.TransferData(self.origin_data_scalar,
                                       self.destination_data_single_node,
-                                      transfer_options)
+                                      transfer_options_empty)
 
         self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KMC.SCALAR_FORCE, KM.PRESSURE, 10.0)
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, self.data_comm.SumAll(self.destination_matching_data_scalar.Size()) )
+
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                            self.destination_data_single_node,
+                                            transfer_options_add)
+
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, 2*self.data_comm.SumAll(self.destination_matching_data_scalar.Size()) )
+
 
     def test_sum_dist_to_single_add_values_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -446,17 +486,23 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings, KM.Testing.GetDefaultDataCommunicator())
-        transfer_options = KM.Parameters(""" ["add_values", "swap_sign"] """)
+        transfer_options_empty = KM.Parameters(""" [] """)
+        transfer_options_add = KM.Parameters(""" ["add_values", "swap_sign"] """)
 
         for node in self.origin_data_scalar.GetModelPart().Nodes:
             node.SetSolutionStepValue(KM.PRESSURE, 0, 100.0)
 
-        for node in self.destination_data_single_node.GetModelPart().Nodes:
-            node.SetSolutionStepValue(KMC.SCALAR_FORCE, 0, 500.0)
+        data_transfer_op.TransferData(self.origin_data_scalar,
+                                      self.destination_data_single_node,
+                                      transfer_options_empty)
+
+        self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
+                                        self.origin_data_scalar.GetModelPart().Nodes,
+                                        KMC.SCALAR_FORCE, KM.PRESSURE, self.data_comm.SumAll(self.destination_matching_data_scalar.Size()))
 
         data_transfer_op.TransferData(self.origin_data_scalar,
                                       self.destination_data_single_node,
-                                      transfer_options)
+                                      transfer_options_add)
 
         self.__CompareScalarNodalValues(self.destination_data_single_node.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
@@ -479,7 +525,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, self.origin_data_scalar.Size())
+                                        KM.TEMPERATURE, KM.PRESSURE, self.data_comm.SumAll(self.origin_data_scalar.Size()))
      
         # Test with false input
         # with self.assertRaisesRegex(Exception, 'Interface data "default" of solver "default_solver" requires to be of size 1, got: 5'):
@@ -504,7 +550,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+                                        KM.TEMPERATURE, KM.PRESSURE, self.data_comm.SumAll(self.origin_data_scalar.Size()) / self.data_comm.SumAll(self.destination_non_matching_data_scalar.Size()) )
 
     def test_sum_dist_to_dist_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -524,7 +570,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, self.origin_data_scalar.Size() )
+                                        KM.TEMPERATURE, KM.PRESSURE, self.data_comm.SumAll(self.origin_data_scalar.Size()) )
 
         data_transfer_op.TransferData(self.origin_data_scalar,
                                       self.destination_non_matching_data_scalar,
@@ -532,7 +578,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, 2 * self.origin_data_scalar.Size() )
+                                        KM.TEMPERATURE, KM.PRESSURE, 2 * self.data_comm.SumAll(self.origin_data_scalar.Size()) )
 
     def test_sum_dist_to_dist_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -551,7 +597,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, -self.origin_data_scalar.Size())
+                                        KM.TEMPERATURE, KM.PRESSURE, -self.data_comm.SumAll(self.origin_data_scalar.Size()))
 
     def test_sum_dist_to_dist_distribute_values_swap_sign(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -570,7 +616,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, -self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+                                        KM.TEMPERATURE, KM.PRESSURE, -self.data_comm.SumAll(self.origin_data_scalar.Size()) / self.data_comm.SumAll(self.destination_non_matching_data_scalar.Size()) )
 
     def test_sum_dist_to_dist_distribute_values_swap_sign_add_values(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -590,7 +636,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, -self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+                                        KM.TEMPERATURE, KM.PRESSURE, -self.data_comm.SumAll(self.origin_data_scalar.Size()) / self.data_comm.SumAll(self.destination_non_matching_data_scalar.Size()) )
 
         data_transfer_op.TransferData(self.origin_data_scalar,
                                       self.destination_non_matching_data_scalar,
@@ -598,7 +644,7 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.__CompareScalarNodalValues(self.destination_non_matching_data_scalar.GetModelPart().Nodes,
                                         self.origin_data_scalar.GetModelPart().Nodes,
-                                        KM.TEMPERATURE, KM.PRESSURE, -2 * self.origin_data_scalar.Size() / self.destination_non_matching_data_scalar.Size() )
+                                        KM.TEMPERATURE, KM.PRESSURE, -2 * self.data_comm.SumAll(self.origin_data_scalar.Size()) / self.data_comm.SumAll(self.destination_non_matching_data_scalar.Size()) )
         
     def test_sum_dist_to_single_check_var(self):
         data_transfer_op_settings = KM.Parameters("""{
