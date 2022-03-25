@@ -148,13 +148,14 @@ public:
 					const auto& r_geom = elem_i.GetGeometry();	
 					const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
 					const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-					const unsigned int NumGauss = integration_points.size();
-					Vector GaussPtsJDet = ZeroVector(NumGauss);
-					r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
 					const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 					for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
 					{
-						const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+						Matrix J0,InvJ0;
+						GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
+						double detJ0;
+						MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+						const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
 						const auto& rN = row(Ncontainer,i_point);
 						int node_index = 0;
 						for (auto& node_i : r_geom){
@@ -317,13 +318,16 @@ public:
 				const auto& r_geom = elem_i.GetGeometry();	
 				const auto& integration_method = r_geom.GetDefaultIntegrationMethod();
 				const auto& integration_points = r_geom.IntegrationPoints(integration_method);
-				const unsigned int NumGauss = integration_points.size();
-				Vector GaussPtsJDet = ZeroVector(NumGauss);
-				r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
 				const auto& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 				for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
 				{
-					const double IntToReferenceWeight = integration_points[i_point].Weight() * GaussPtsJDet[i_point];
+
+					Matrix J0,InvJ0;
+					GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
+					double detJ0;
+					MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+
+					const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
 					const auto& rN = row(Ncontainer,i_point);
 					int node_index = 0;
 					for (auto& node_i : r_geom){

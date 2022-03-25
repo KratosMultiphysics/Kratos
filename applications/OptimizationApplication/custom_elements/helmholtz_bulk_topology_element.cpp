@@ -235,7 +235,10 @@ void HelmholtzBulkTopologyElement::CalculateBulkMassMatrix(
 
 
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-        const double detJ0 = r_geom.DeterminantOfJacobian(point_number,integration_method);
+        Matrix J0,InvJ0;
+        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[point_number], J0);
+        double detJ0;
+        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
         const double integration_weight = integration_points[point_number].Weight() * detJ0;
         const Vector& rN = row(Ncontainer,point_number);
 
@@ -275,25 +278,16 @@ void HelmholtzBulkTopologyElement::CalculateBulkStiffnessMatrix(
     const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();    
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(this_integration_method);
     GeometryType::ShapeFunctionsGradientsType DN_De = r_geom.ShapeFunctionsLocalGradients(this_integration_method);    
-    Element::GeometryType::JacobiansType J0;
-    GeometryType::JacobiansType invJ0;
-    VectorType detJ0;
-
-    if (invJ0.size() != integration_points.size()) {
-    invJ0.resize(integration_points.size());
-    }
-    if (detJ0.size() != integration_points.size()) {
-    detJ0.resize(integration_points.size());
-    }
-
-    J0 = r_geom.Jacobian(J0, this_integration_method);
     Matrix DN_DX(number_of_nodes,dimension);
     const double r_helmholtz = r_prop[HELMHOLTZ_RADIUS_DENSITY];
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
     {
-        MathUtils<double>::InvertMatrix(J0[i_point], invJ0[i_point],detJ0[i_point]);
-        DN_DX = prod(DN_De[i_point], invJ0[i_point]);        
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0[i_point];
+        Matrix J0,InvJ0;
+        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
+        double detJ0;
+        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+        DN_DX = prod(DN_De[i_point], InvJ0);        
+        const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
         noalias(rStiffnessMatrix) += IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX, trans(DN_DX));
     }
 

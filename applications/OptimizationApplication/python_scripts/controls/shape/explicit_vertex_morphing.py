@@ -47,11 +47,11 @@ class ExplicitVertexMorphing(ShapeControl):
             for node in model_part.Nodes:
                 shape_update = node.GetSolutionStepValue(KOA.D_X)
                 node.X0 += shape_update[0]
+                node.X = node.X0
                 node.Y0 += shape_update[1]
+                node.Y = node.Y0
                 node.Z0 += shape_update[2]
-                node.X += shape_update[0]
-                node.Y += shape_update[1]
-                node.Z += shape_update[2]   
+                node.Z = node.Z0     
 
         for mapper in self.ex_vm_mapper.values():
             mapper.Update()  

@@ -22,7 +22,7 @@ class TopologyControl():
 
         self.control_variable_name = "CD"
         self.control_update_name = "D_CD"
-        self.output_names = ["CD","PD","FD","D_CD"]
+        self.output_names = ["CD","PD","FD","D_CD","YOUNG_MODULUS_SENSITIVITY"]
 
         # add vars
         for model_part_name in self.controlling_objects:
