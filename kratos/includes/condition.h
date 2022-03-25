@@ -283,14 +283,9 @@ public:
      * @return default integration method of the used Geometry
      * this method is: OPTIONAL ( is recommended to reimplement it in the derived class )
      */
-    virtual IntegrationMethod GetIntegrationMethod() const
+    virtual IntegrationMethod GetIntegrationMethod()
     {
         return pGetGeometry()->GetDefaultIntegrationMethod();
-    }
-
-    KRATOS_DEPRECATED virtual IntegrationMethod GetIntegrationMethod()
-    {
-        return const_cast<const Condition&>(*this).GetIntegrationMethod();
     }
 
     /**

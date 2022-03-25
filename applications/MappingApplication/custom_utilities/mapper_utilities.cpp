@@ -329,7 +329,7 @@ void RestoreCurrentConfiguration(ModelPart& rModelPart)
 
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             noalias(rNode.Coordinates()) = rNode.GetValue(CURRENT_COORDINATES);
-            rNode.Data().Erase(CURRENT_COORDINATES);
+            rNode.GetData().Erase(CURRENT_COORDINATES);
         });
     }
 
