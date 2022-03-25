@@ -98,17 +98,20 @@ public:
     /**
      * @brief It computes the normal in the conditions
      * @param rModelPart The model part to compute
+     * @param rNormalVariable Component variable storing the normal value
      */
     template<class TContainerType>
     void CalculateNormalsInContainer(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes
      * @param rModelPart The model part to compute
      * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
      * @param ConsiderUnitNormal In order to consider directly the unit normal instead of the area normal multiplied with a coefficient
+     * @param rNormalVariable Component variable storing the normal value
      * @tparam TEntity The entity type considered
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
@@ -117,37 +120,51 @@ public:
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
         const bool ConsiderUnitNormal = false,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief It computes the mean of the normal in the entities and in all the nodes (unit normal version)
      * @param rModelPart The model part to compute
      * @param EnforceGenericGeometryAlgorithm If enforce the generic algorithm for any kind of geometry
+     * @param rNormalVariable Component variable storing the normal value
      * @tparam TEntity The entity type considered
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
     template<class TEntity, bool TIsHistorical = true>
     void CalculateUnitNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
      * @details This is done on the base of the Conditions provided which should be understood as the surface elements of the area of interest.
      * @param rConditions A set of conditions defining the "skin" of a model
      * @param Dimension Spatial dimension (2 or 3)
-     * @param rNormalVariable Variable on which the normal values are to be stored
+     * @param rNormalVariable Component variable storing the normal value
      * @note This function is not recommended for distributed (MPI) runs, as the user has to ensure that the calculated normals are assembled between processes. The overload of this function that takes a ModelPart is preferable in ths case, as it performs the required communication.
      */
     void CalculateOnSimplex(
         ConditionsArrayType& rConditions,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
+    /**
+     * @brief Calculates the "area normal" in the non-historical database (vector oriented as the normal with a dimension proportional to the area).
+     * @details This is done on the base of the Conditions provided which should be understood as the surface elements of the area of interest.
+     * @param rConditions A set of conditions defining the "skin" of a model
+     * @param Dimension Spatial dimension (2 or 3)
+     * @param rNormalVariable Component variable storing the normal value
+     * @note This function is not recommended for distributed (MPI) runs, as the user has to ensure that the calculated normals are assembled between processes. The overload of this function that takes a ModelPart is preferable in ths case, as it performs the required communication.
+     */
     void CalculateOnSimplexNonHistorical(
         ConditionsArrayType& rConditions,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief Calculates nodal area normal shape sensitivities w.r.t. nodal coordinates of the condition.
@@ -162,34 +179,55 @@ public:
 
     /**
      * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
-     * @details This is done on the base of the Conditions provided which should be  understood as the surface elements of the area of interest.
+     * @details This is done on the base of the Conditions provided which should be understood as the surface elements of the area of interest.
      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
      * @param Dimension Spatial dimension (2 or 3)
+     * @param rNormalVariable Component variable storing the normal value
      * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
      */
     void CalculateOnSimplex(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
+    /**
+     * @brief Calculates the area normal in the non-historical database (vector oriented as the normal with a dimension proportional to the area).
+     * @details This is done on the base of the Conditions provided which should be understood as the surface elements of the area of interest.
+     * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
+     * @param Dimension Spatial dimension (2 or 3)
+     * @param rNormalVariable Component variable storing the normal value
+     * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
+     */
     void CalculateOnSimplexNonHistorical(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
      * @details This is done on the base of the Conditions provided which should be  understood as the surface elements of the area of interest.
      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
+     * @param rNormalVariable Component variable storing the normal value
      * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
      */
     void CalculateOnSimplex(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
+    /**
+     * @brief Calculates the area normal in the non-historical database (vector oriented as the normal with a dimension proportional to the area).
+     * @details This is done on the base of the Conditions provided which should be  understood as the surface elements of the area of interest.
+     * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
+     * @param rNormalVariable Component variable storing the normal value
+     * @note Use this fuction instead of its overload taking a Conditions array for MPI applications, as it will take care of communication between partitions.
+     */
     void CalculateOnSimplexNonHistorical(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable = NORMAL);
+        const NormalVariableType& rNormalVariable = NORMAL
+        );
 
     /**
      * @brief This function swaps the normal of all of the conditions in a model part
@@ -205,6 +243,7 @@ public:
      * @param Dimension Spatial dimension (2 or 3).
      * @param rVariable The Kratos::Variable used to indicate which parts of the boundary will be used to calculate the normals.
      * @param Zero The 'off' value for the flag. Conditions where rVariable == Zero will be skipped for normal calculation.
+     * @param rNormalVariable Component variable storing the normal value
      */
     template<class TValueType>
     void CalculateOnSimplex(
@@ -212,7 +251,8 @@ public:
         const std::size_t Dimension,
         const Variable<TValueType>& rVariable,
         const TValueType Zero,
-        const NormalVariableType& rNormalVariable = NORMAL)
+        const NormalVariableType& rNormalVariable = NORMAL
+        )
     {
         KRATOS_TRY;
 
@@ -268,7 +308,8 @@ public:
     void CalculateOnSimplex(
         ModelPart& rModelPart,
         const std::size_t Dimension,
-        const Variable<TValueType>& rVariable)
+        const Variable<TValueType>& rVariable
+        )
     {
         CalculateOnSimplex(rModelPart,Dimension,rVariable,TValueType(),NORMAL);
     }
@@ -280,6 +321,7 @@ public:
      * @param Dimension Spatial dimension (2 or 3).
      * @param rVariable The Kratos::Variable used to indicate which parts of the boundary will be used to calculate the normals. Conditions where rVariable == Zero will be skipped.
      * @param rAlpha the maximum angle to distinguish normals.
+     * @param rNormalVariable Component variable storing the normal value
      */
     template<class TValueType>
     void CalculateOnSimplex(
@@ -288,7 +330,8 @@ public:
         const Variable<TValueType>& rVariable,
         const TValueType Zero,
         const double rAlpha,
-        const NormalVariableType& rNormalVariable = NORMAL)
+        const NormalVariableType& rNormalVariable = NORMAL
+        )
     {
         KRATOS_TRY;
 
@@ -394,6 +437,7 @@ public:
      * @param Dimension Spatial dimension (2 or 3).
      * @param rVariable The Kratos::Variable used to indicate which parts of the boundary will be used to calculate the normals. Conditions where rVariable == Zero will be skipped.
      * @param rAlpha the maximum angle to distinguish normals.
+     * @param rNormalVariable Component variable storing the normal value
      */
     template< class TValueType >
     void CalculateOnSimplexLowMemory(
@@ -401,7 +445,8 @@ public:
         int Dimension,
         const Variable<TValueType>& rVariable,
         const TValueType Zero,const double rAlpha,
-        const NormalVariableType& rNormalVariable = NORMAL)
+        const NormalVariableType& rNormalVariable = NORMAL
+        )
     {
         KRATOS_TRY;
 
@@ -519,37 +564,43 @@ private:
     /**
      * @brief It initializes the normal in the entites and in all the nodes
      * @param rModelPart The model part to compute
+     * @param rNormalVariable Component variable storing the normal value
      * @tparam TEntity The entity type considered
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
     template<class TEntity, bool TIsHistorical>
     void InitializeNormals(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief It computes the unit normals from the area normals
      * @param rModelPart The model part to compute
+     * @param rNormalVariable Component variable storing the normal value
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
     template<bool TIsHistorical>
     void ComputeUnitNormalsFromAreaNormals(
         ModelPart& rModelPart,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief This function adds the Contribution of one of the geometries to the corresponding nodes
      * @param rCondition Reference to the target condition
      * @param rAn Area normal
+     * @param rNormalVariable Component variable storing the normal value
      */
     static void CalculateNormal2D(
         Condition& rCondition,
         array_1d<double,3>& rAn,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief Calculates 2D condition area normals shape sensitivity
-     * @param rCondition    Reference to the targe condition
+     * @param rCondition Reference to the target condition
      */
     static void CalculateNormalShapeDerivative2D(
         ConditionType& rCondition
@@ -567,11 +618,12 @@ private:
         array_1d<double,3>& rAn,
         array_1d<double,3>& rv1,
         array_1d<double,3>& rv2,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     /**
      * @brief Calculates 3D condition area normals shape sensitivity
-     * @param rCondition    Reference to the targe condition
+     * @param rCondition Reference to the target condition
      */
     static void CalculateNormalShapeDerivative3D(
         ConditionType& rCondition
@@ -590,6 +642,7 @@ private:
      * @brief This method computes the normals considering generic algorithm
      * @param rModelPart The modelpart with normals to compute
      * @param ConsiderUnitNormal In order to consider directly the unit normal instead of the area normal multiplied with a coefficient
+     * @param rNormalVariable Component variable storing the normal value
      * @tparam TContainerType The container type
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
@@ -597,22 +650,50 @@ private:
     void CalculateNormalsUsingGenericAlgorithm(
         ModelPart& rModelPart,
         const bool ConsiderUnitNormal,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
+    /**
+     * @brief Get the Normal Value object
+     * Returns a reference to the nodal normal value
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
+     * @param rNode Reference to the target node
+     * @param rNormalVariable Component variable storing the normal value
+     * @return array_1d<double,3>& Reference to the normal value
+     */
     template<bool TIsHistorical>
     array_1d<double,3>& GetNormalValue(
         NodeType& rNode,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
+    /**
+     * @brief Checks if the simplex geometry normal calculation can be used
+     * This method checks if the simplex geometry normal calculation can be applied to the current model part conditions
+     * @param rModelPart Model part with the conditions from which the normal is computed
+     * @param EnforceGenericGeometryAlgorithm True if the generic algorithm is enforced
+     * @return true If the simplex geometries calculation can be used
+     * @return false If the generic geometries algorithm is to be used
+     */
     bool CheckUseSimplex(
         const ModelPart& rModelPart,
-        const bool EnforceGenericGeometryAlgorithm);
+        const bool EnforceGenericGeometryAlgorithm
+        );
 
+    /**
+     * @brief Auxiliary calculate on simplex method without specialization
+     * Auxiliary method to be specialized
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
+     * @param rConditions A set of conditions defining the "skin" of a model
+     * @param Dimension Spatial dimension (2 or 3)
+     * @param rNormalVariable Component variable storing the normal value
+     */
     template<bool TIsHistorical>
     void AuxiliaryCalculateOnSimplex(
         ConditionsArrayType& rConditions,
         const std::size_t Dimension,
-        const NormalVariableType& rNormalVariable);
+        const NormalVariableType& rNormalVariable
+        );
 
     ///@}
     ///@name Private  Access

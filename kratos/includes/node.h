@@ -420,12 +420,18 @@ public:
         return mNodalData.GetSolutionStepData();
     }
 
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use 'GetData()' instead.")
     DataValueContainer& Data()
     {
         return mData;
     }
 
-    const DataValueContainer& Data() const
+    DataValueContainer& GetData()
+    {
+        return mData;
+    }
+
+    const DataValueContainer& GetData() const
     {
         return mData;
     }
@@ -722,11 +728,11 @@ public:
     {
         return mDofs;
     }
-    
+
     const DofsContainerType& GetDofs() const
     {
         return mDofs;
-    }    
+    }
 
     /**
      * @brief Get DoF counted pointer for a given variable
