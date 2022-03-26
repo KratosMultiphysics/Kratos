@@ -99,17 +99,24 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         if raise_error:
             for itr in range(len(controlled_objects)):
                 controlled_object = controlled_objects[itr]
-                controlled_object_index = self.controlled_model_parts.index(controlled_object)
-                if not control_types[itr] == self.control_types[controlled_object_index]:
+                control_type = control_types[itr]
+                found = False
+                for itr_2 in range(len(self.controlled_model_parts)):
+                    controlled_model_part = self.controlled_model_parts[itr_2]
+                    controlled_type = self.control_types[itr_2]
+                    if controlled_type==control_type and controlled_model_part==controlled_object:
+                        found = True
+                        break
+                if not found:
                     raise RuntimeError("StrainEnergyResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
 
         Logger.PrintInfo("StrainEnergyResponse", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)        
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
         # copy values from SHAPE_SENSITIVITY to D_STRAIN_ENERGY_D_X
+        controlle_object_index = 0
         for controlle_object in controlled_objects:
             model_part = self.model.GetModelPart(controlle_object)
-            controlle_object_index = controlled_objects.index(controlle_object)
             control_type = control_types[controlle_object_index]         
             for node in model_part.Nodes:
                 if control_type == "shape":
@@ -120,7 +127,8 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
                     node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PT, thickness_gradient)
                 if control_type == "topology":
                     density_gradient = node.GetSolutionStepValue(KSM.YOUNG_MODULUS_SENSITIVITY)
-                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PD, density_gradient)                                    
+                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PD, density_gradient)   
+            controlle_object_index += 1                                 
         Logger.PrintInfo("StrainEnergyResponse", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
 
     def GetGradients(self):
@@ -218,17 +226,24 @@ class MassResponseFunction(BaseResponseFunction):
         if raise_error:
             for itr in range(len(controlled_objects)):
                 controlled_object = controlled_objects[itr]
-                controlled_object_index = self.controlled_model_parts.index(controlled_object)
-                if not control_types[itr] == self.control_types[controlled_object_index]:
+                control_type = control_types[itr]
+                found = False
+                for itr_2 in range(len(self.controlled_model_parts)):
+                    controlled_model_part = self.controlled_model_parts[itr_2]
+                    controlled_type = self.control_types[itr_2]
+                    if controlled_type==control_type and controlled_model_part==controlled_object:
+                        found = True
+                        break
+                if not found:
                     raise RuntimeError("MassResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
 
         Logger.PrintInfo("MassResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
         self.response_function_utility.CalculateGradient()
 
+        controlle_object_index = 0
         for controlle_object in controlled_objects:
             model_part = self.model.GetModelPart(controlle_object)
-            controlle_object_index = controlled_objects.index(controlle_object)
             control_type = control_types[controlle_object_index]           
             for node in model_part.Nodes:
                 if control_type == "shape":
@@ -239,6 +254,8 @@ class MassResponseFunction(BaseResponseFunction):
                     node.SetSolutionStepValue(KOA.D_MASS_D_PT, thickness_gradient)   
                 if control_type == "topology":
                     topology_gradient = node.GetSolutionStepValue(KSM.YOUNG_MODULUS_SENSITIVITY)
-                    node.SetSolutionStepValue(KOA.D_MASS_D_PD, topology_gradient)               
+                    node.SetSolutionStepValue(KOA.D_MASS_D_PD, topology_gradient)
+
+            controlle_object_index += 1               
         Logger.PrintInfo("MassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  
        

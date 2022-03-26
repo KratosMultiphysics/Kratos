@@ -72,9 +72,10 @@ class OptimizationAlgorithm:
                 control_output_names = self.controls_controller.GetControlOutputNames(control)
                 control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
                 for control_controlling_object in control_controlling_objects:
-                    if control_controlling_object in response_controlled_objects:
-                        index = response_controlled_objects.index(control_controlling_object)
-                        if control_type == response_control_types[index]:
+                    response_controlled_object_index = 0
+                    for response_controlled_object in response_controlled_objects:
+                        response_controlled_object_type = response_control_types[response_controlled_object_index]
+                        if control_controlling_object == response_controlled_object and response_controlled_object_type == control_type:
                             response_gradient_name = self.responses_controller.GetResponseGradientVariableNameForType(response,control_type)
                             response_control_gradient_field = "D_"+response_variable_name+"_D_"+control_variable_name
                             if response in self.responses_controlled_objects.keys():
@@ -115,7 +116,9 @@ class OptimizationAlgorithm:
                                 self.controls_responses[control] = [response]
                                 self.controls_response_var_names[control] = [response_variable_name]
                                 self.controls_response_gradient_names[control]= [response_gradient_name]
-                                self.controls_response_control_gradient_names[control] = [response_control_gradient_field]                            
+                                self.controls_response_control_gradient_names[control] = [response_control_gradient_field]  
+                        
+                        response_controlled_object_index +=1                          
         
         # compile settings for c++ optimizer
         self.opt_parameters = Parameters()

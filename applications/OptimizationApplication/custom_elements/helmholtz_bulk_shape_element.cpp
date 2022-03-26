@@ -288,7 +288,7 @@ void HelmholtzBulkShapeElement::CalculateBulkMassMatrix(
 
     Matrix J0(dimension, dimension);
 
-    IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
+    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
     const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
 
@@ -343,21 +343,19 @@ void HelmholtzBulkShapeElement::CalculateBulkStiffnessMatrix(
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(r_geom.GetDefaultIntegrationMethod());
 
-    Element::GeometryType::JacobiansType J0;
-    Matrix DN_DX(number_of_nodes,dimension);
-    Matrix InvJ0(dimension,dimension);
-    r_geom.Jacobian(J0,r_geom.GetDefaultIntegrationMethod());
-    double DetJ0;
 
     for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
     {
-        //calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
+
+        Matrix J0,InvJ0;
+        GeometryUtils::JacobianOnInitialConfiguration(r_geom, integration_points[i_point], J0);
+        double detJ0;
+        MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
 
         MatrixType B = CalculateBMatrix(dimension, i_point);
 
         MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(dimension, i_point);
-        const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
+        const double IntToReferenceWeight = integration_points[i_point].Weight() * detJ0;
 
         noalias(rStiffnessMatrix) += prod(trans(B), IntToReferenceWeight * Matrix(prod(constitutive_matrix, B)));
         
@@ -373,33 +371,22 @@ HelmholtzBulkShapeElement::SetAndModifyConstitutiveLaw(
     const int Dimension, const int PointNumber) const {
   KRATOS_TRY;
 
-  GeometryType::JacobiansType J0;
-  GeometryType::JacobiansType invJ0;
-  VectorType detJ0;
   const GeometryType &rgeom = this->GetGeometry();
-  const IntegrationMethod this_integration_method =
-      rgeom.GetDefaultIntegrationMethod();
-
-
+  const IntegrationMethod this_integration_method = rgeom.GetDefaultIntegrationMethod();
   const auto& r_integration_points = rgeom.IntegrationPoints(this_integration_method);
-  if (invJ0.size() != r_integration_points.size()) {
-    invJ0.resize(r_integration_points.size());
-  }
-  if (detJ0.size() != r_integration_points.size()) {
-    detJ0.resize(r_integration_points.size());
-  }
+  GeometryType::ShapeFunctionsGradientsType DN_De = rgeom.ShapeFunctionsLocalGradients(this_integration_method);
 
-  J0 = GetGeometry().Jacobian(J0, this_integration_method);
-
-  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
-                                  detJ0[PointNumber]);
+  Matrix J0,InvJ0;
+  GeometryUtils::JacobianOnInitialConfiguration(rgeom, r_integration_points[PointNumber], J0);
+  double detJ0;
+  MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
 
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
   const double r_helmholtz = this->pGetProperties()->GetValue(HELMHOLTZ_BULK_RADIUS_SHAPE);
   const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
-  const double quotient = r_helmholtz / detJ0[PointNumber];
+  const double quotient = r_helmholtz / detJ0;
   const double weighting_factor = std::pow(quotient, xi);
   const double poisson_coefficient = this->pGetProperties()->Has(HELMHOLTZ_BULK_POISSON_RATIO_SHAPE)
     ? this->pGetProperties()->GetValue(HELMHOLTZ_BULK_POISSON_RATIO_SHAPE) : 0.3;
@@ -454,27 +441,17 @@ HelmholtzBulkShapeElement::CalculateBMatrix(const int Dimension,
   KRATOS_TRY;
 
   const GeometryType &rgeom = this->GetGeometry();
-  const IntegrationMethod this_integration_method =
-      rgeom.GetDefaultIntegrationMethod();
-  GeometryType::ShapeFunctionsGradientsType DN_De =
-      rgeom.ShapeFunctionsLocalGradients(this_integration_method);
-  GeometryType::JacobiansType J0;
-  GeometryType::JacobiansType invJ0;
-  VectorType detJ0;
-
+  const IntegrationMethod this_integration_method = rgeom.GetDefaultIntegrationMethod();
   const auto& r_integration_points = rgeom.IntegrationPoints(this_integration_method);
-  if (invJ0.size() != r_integration_points.size()) {
-    invJ0.resize(r_integration_points.size());
-  }
-  if (detJ0.size() != r_integration_points.size()) {
-    detJ0.resize(r_integration_points.size());
-  }
+  GeometryType::ShapeFunctionsGradientsType DN_De = rgeom.ShapeFunctionsLocalGradients(this_integration_method);
 
-  J0 = GetGeometry().Jacobian(J0, this_integration_method);
-  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
-                                  detJ0[PointNumber]);
+  Matrix J0,InvJ0;
+  GeometryUtils::JacobianOnInitialConfiguration(rgeom, r_integration_points[PointNumber], J0);
+  double detJ0;
+  MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
 
-  Matrix DN_DX = prod(DN_De[PointNumber], invJ0[PointNumber]);
+
+  Matrix DN_DX = prod(DN_De[PointNumber], InvJ0);
 
   const SizeType num_nodes = rgeom.PointsNumber();
 

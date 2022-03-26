@@ -97,7 +97,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                     if constraint["name"].GetString() == name:
                         constraint["value"].SetDouble(value)
 
-            # calculate gradients
+            # calculate gradients       
             for response in self.responses_controlled_objects.keys():
                 self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
 

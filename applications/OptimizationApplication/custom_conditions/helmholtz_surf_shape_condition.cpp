@@ -308,13 +308,13 @@ void HelmholtzSurfShapeCondition::CalculateNormal(VectorType & r_n) const
     const auto& r_cond_geom = GetGeometry();
 
     array_1d<double,3> v1,v2;
-    v1[0] = r_cond_geom[1].X() - r_cond_geom[0].X();
-    v1[1] = r_cond_geom[1].Y() - r_cond_geom[0].Y();
-    v1[2] = r_cond_geom[1].Z() - r_cond_geom[0].Z();
+    v1[0] = r_cond_geom[1].X0() - r_cond_geom[0].X0();
+    v1[1] = r_cond_geom[1].Y0() - r_cond_geom[0].Y0();
+    v1[2] = r_cond_geom[1].Z0() - r_cond_geom[0].Z0();
 
-    v2[0] = r_cond_geom[2].X() - r_cond_geom[0].X();
-    v2[1] = r_cond_geom[2].Y() - r_cond_geom[0].Y();
-    v2[2] = r_cond_geom[2].Z() - r_cond_geom[0].Z();
+    v2[0] = r_cond_geom[2].X0() - r_cond_geom[0].X0();
+    v2[1] = r_cond_geom[2].Y0() - r_cond_geom[0].Y0();
+    v2[2] = r_cond_geom[2].Z0() - r_cond_geom[0].Z0();
 
     r_n.resize(3);
     MathUtils<double>::CrossProduct(r_n,v1,v2);
@@ -341,19 +341,17 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceMassMatrix(
         rMassMatrix.resize( mat_size, mat_size, false );
     rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
-    IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
+    IntegrationMethod integration_method = r_cond_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_cond_geom.IntegrationPoints( integration_method );
     MatrixType Ncontainer;
     GetParentElementShapeFunctionsValues(Ncontainer,integration_method,rCurrentProcessInfo);
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_cond_geom.IntegrationPoints(integration_method);
-    const unsigned int NumGauss = IntegrationPoints.size();
-    Vector GaussPtsJDet = ZeroVector(NumGauss);
-    r_cond_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
-
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+        Matrix J0;
+        GeometryUtils::JacobianOnInitialConfiguration(r_cond_geom, integration_points[point_number], J0);
+        double detJ0 = MathUtils<double>::GeneralizedDet(J0);     
 
-        const double integration_weight = integration_points[point_number].Weight() * GaussPtsJDet[point_number];
+        const double integration_weight = integration_points[point_number].Weight() * detJ0;
         const Vector& rN = row(Ncontainer,point_number);
 
         for ( IndexType i = 0; i < number_of_nodes; ++i ) {
@@ -439,11 +437,9 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceStiffnessMatrix(
         rStiffnessMatrix.resize( mat_size, mat_size, false );
     rStiffnessMatrix = ZeroMatrix( mat_size, mat_size );
 
-    IntegrationMethod integration_method = GeometryData::IntegrationMethod::GI_GAUSS_4;
+    const IntegrationMethod& integration_method = r_cond_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points = r_cond_geom.IntegrationPoints(integration_method);
-    const unsigned int NumGauss = integration_points.size();
-    Vector GaussPtsJDet = ZeroVector(NumGauss);
-    r_cond_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
+
 
     // get the normal
     VectorType n_surf;
@@ -453,7 +449,11 @@ void HelmholtzSurfShapeCondition::CalculateSurfaceStiffnessMatrix(
     MatrixType A_dirc = ZeroMatrix(number_of_nodes,number_of_nodes);
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
 
-        const double integration_weight = integration_points[point_number].Weight() * GaussPtsJDet[point_number];
+        Matrix J0;
+        GeometryUtils::JacobianOnInitialConfiguration(r_cond_geom, integration_points[point_number], J0);
+        double detJ0 = MathUtils<double>::GeneralizedDet(J0);
+
+        const double integration_weight = integration_points[point_number].Weight() * detJ0;
         MatrixType DN_DX;
         GetParentElementShapeFunctionsGlobalGradients(DN_DX,point_number,integration_method,rCurrentProcessInfo);
         MatrixType DN_DX_t = prod(DN_DX,tangent_projection_matrix);
@@ -504,8 +504,11 @@ void HelmholtzSurfShapeCondition::GetParentElementShapeFunctionsGlobalGradients(
     MatrixType DN_De;
     r_elem_geom.ShapeFunctionsLocalGradients(DN_De,elem_cond__gp_local_pt);
 
-    MatrixType InvJ0;
-    r_elem_geom.InverseOfJacobian(InvJ0,elem_cond__gp_local_pt);
+    Matrix J0,InvJ0;
+    GeometryUtils::JacobianOnInitialConfiguration(r_elem_geom, elem_cond__gp_local_pt, J0);
+    double detJ0;
+    MathUtils<double>::InvertMatrix(J0, InvJ0, detJ0);
+
 
     MatrixType elem_DN_DX = prod(DN_De,InvJ0);
 
