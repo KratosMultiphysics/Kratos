@@ -85,8 +85,8 @@ ModelPart& GenerateModel(Model& rModel)
 }
 
 /**
- * @brief Test the 2D explicit compressible Navier-Stokes element RHS
- * This test checks the residual calculation of the explicit compressible Navier-Stokes triangular element
+ * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
+ * This is a conservation test.
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N, FluidDynamicsApplicationFastSuite)
 {
