@@ -20,8 +20,8 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 // Application includes
+#include "custom_utilities/parabolic_profile_utilities.h"
 #include "custom_utilities/wss_statistics_utilities.h"
-
 
 namespace Kratos
 {
@@ -41,6 +41,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateOSI", &WssStatisticsUtilities::CalculateOSI)
         ;
 
+    // Parabolic profile utilities
+    py::class_<ParabolicProfileUtilities>(m,"ParabolicProfileUtilities")
+        .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const double rMaxParabolaValue){
+            ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, rMaxParabolaValue);})
+        .def_static("ImposeParabolicInlet", [](ModelPart& rModelPart, const GenericFunctionUtility::Pointer rMaxParabolaValue){
+            ParabolicProfileUtilities::ImposeParabolicInlet(rModelPart, rMaxParabolaValue);})
+        .def_static("FreeParabolicInlet", &ParabolicProfileUtilities::FreeParabolicInlet)
+        ;
 }
 
 }  // namespace Python.

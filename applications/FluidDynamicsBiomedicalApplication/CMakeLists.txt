@@ -13,6 +13,7 @@ set( KRATOS_FLUID_DYNAMICS_BIOMEDICAL_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_biomedical_application_variables.cpp
 
   # utilities
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/parabolic_profile_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/wss_statistics_utilities.cpp
 
 )

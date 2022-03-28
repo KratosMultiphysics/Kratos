@@ -14,22 +14,29 @@
 #if !defined(KRATOS_PARABOLIC_PROFILE_UTILITIES_H )
 #define  KRATOS_PARABOLIC_PROFILE_UTILITIES_H
 
+// System includes
+
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/function_parser_utility.h"
+
+// Application includes
 
 namespace Kratos
 {
-///@addtogroup FluidDynamicsApplication
+
+///@addtogroup FluidDynamicsBiomedicalApplication
 ///@{
 
 ///@name Kratos Classes
 ///@{
 
 /// A set of functions to compute the Wall Shear Stress (WSS)
-class KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) ParabolicProfileUtilities {
+class KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) ParabolicProfileUtilities
+{
 public:
     ///@name Type Definitions
     ///@{
@@ -63,26 +70,31 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Impose parabolic profile based on the distance map
-     * This method compute the parabolic profile.
-     * @param rModelPart Model part in where the parabolic profile is computed
-     * @param rSkinModelPart Model part in where the parabolic profile is computed
-     */
-    static void ParabolicProfileMain(ModelPart &rModelPart, const ValueIn);
-    //, ModelPart &rSkinModelPart);
+    static void ImposeParabolicInlet(
+        ModelPart &rModelPart,
+        const double rMaxParabolaValue);
 
-    /**
-     * @brief Impose parabolic profile based on the distance map
-     * This method compute the parabolic profile.
-     * @param rModelPart Model part in where the parabolic profile is computed
-     * @param rSkinModelPart Model part in where the parabolic profile is computed
-     */
-    static void ImposeParabolic(ModelPart &rModelPart);
-    //, ModelPart &rSkinModelPart);
+    static void ImposeParabolicInlet(
+        ModelPart &rModelPart,
+        const GenericFunctionUtility::Pointer rMaxParabolaValue);
 
-    double ComputeMaxDist(ModelPart &rModelPart);
-    //, ModelPart &rSkinModelPart);
+    static void FreeParabolicInlet(ModelPart& rModelPart);
+
+    ///@}
+private:
+    ///@name Private Operations
+    ///@{
+
+    template<class TInputType>
+    static void ImposeParabolicProfile(
+        ModelPart &rModelPart,
+        const TInputType& rMaxParabolaValue);
+
+    template<class TInputType>
+    static double GetMaxParabolaValue(
+        const double Time,
+        const NodeType& rNode,
+        const TInputType& rMaxParabolaValue);
 
     ///@}
 };  // Class ParabolicProfileUtilities

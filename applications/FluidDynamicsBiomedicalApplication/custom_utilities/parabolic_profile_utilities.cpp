@@ -16,85 +16,106 @@
 // External includes
 
 // Project includes
-#include "includes/variables.h"
-#include "utilities/body_normal_calculation_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "fluid_dynamics_biomedical_application_variables.h"
 #include "parabolic_profile_utilities.h"
 
 namespace Kratos {
 
-void CalculateParabolicProfile::ParabolicProfileMain(
-    ModelPart &rModelPart,
-    const double ValueIn)
+void ParabolicProfileUtilities::ImposeParabolicInlet(
+    ModelPart& rModelPart,
+    const double MaxParabolaValue)
 {
+    // Impose the parabolic inlet profile
+    ImposeParabolicProfile(rModelPart, MaxParabolaValue);
+}
+
+void ParabolicProfileUtilities::ImposeParabolicInlet(
+    ModelPart& rModelPart,
+    const GenericFunctionUtility::Pointer MaxParabolaValue)
+{
+    // Impose the parabolic inlet profile
+    ImposeParabolicProfile(rModelPart, MaxParabolaValue);
+}
+
+template<class TInputType>
+void ParabolicProfileUtilities::ImposeParabolicProfile(
+    ModelPart &rModelPart,
+    const TInputType& rMaxParabolaValue)
+{
+    // Get time value from model part ProcessInfo
+    const auto& r_process_info = rModelPart.GetProcessInfo();
+    KRATOS_ERROR_IF_NOT(r_process_info.Has(TIME)) << "TIME is not present in '" << rModelPart.FullName() << "' ProcessInfo." << std::endl;
+    const double time = r_process_info[TIME];
+
     // Get the maximum distance to the wall
     const double max_dist = block_for_each<MaxReduction<double>>(rModelPart.Nodes(), [](NodeType& rNode){
-        return rNode.GetValue(DISTANCE);
+        return rNode.GetValue(WALL_DISTANCE);
     });
-    // const double max_dist = ComputeMaxDist(rModelPart);
+    KRATOS_ERROR_IF(std::abs(max_dist) < 1.0e-12) << "WALL_DISTANCE is close to zero." << std::endl;
 
-    ImposeParabolic(rModelPart, max_dist, ValueIn);
-}
+    // Impose the parabolic profile values
+    block_for_each(rModelPart.Nodes(), array_1d<double,3>(), [time, max_dist, &rMaxParabolaValue](NodeType& rNode, array_1d<double,3>& rTLSValue){
+        //Calculate distance for each node
+        const double wall_dist = rNode.GetValue(WALL_DISTANCE) < 0.0 ? 0.0 : rNode.GetValue(WALL_DISTANCE);
 
-// double CalculateParabolicProfile::ComputeMaxDist(ModelPart &rModelPart)
-// {
-//     // Initialize parabolic profile variables
-//     double dist_min=100000000000000000000.0;
-//     double dist_max=0.0;
-//     double dist_aux=0.0;
-
-//      // Get the step counter
-//     const unsigned int step = rModelPart.GetProcessInfo()[STEP];
-//     const unsigned int buffer_size = rModelPart.GetBufferSize();
-//     if (step > buffer_size) {
-//         const unsigned int n_nodes = rModelPart.NumberOfNodes();
-//         #pragma omp parallel for
-//         for (int i_node = 0; i_node < n_nodes; ++i_node)
-//         {
-//             auto it_node = rModelPart.NodesBegin() + i_node;
-//             //Calculate distance for each node
-//             dist_aux=it_node->GetValue(DISTANCE);
-//             if(dist_aux<dist_min){
-//                 dist_min=dist_aux;}
-//             if(dist_aux>dist_min){
-//                 dist_max=dist_aux;}
-//         }
-//     return dist_max;
-// }
-
-void CalculateParabolicProfile::ImposeParabolic(
-    ModelPart &rModelPart,
-    const double MaxDist,
-    const double ValueIn)
-//ModelPart &rSkinModelPart)
-{
-    // INPUT:Skin Inlet, value_in(Velocity or Flow)
-    // OUTPUT: Value_out (velocity or Flow)
-     // Get the step counter
-    const unsigned int step = rModelPart.GetProcessInfo()[STEP];
-    const unsigned int buffer_size = rModelPart.GetBufferSize();
-    if (step > buffer_size) {
-        const unsigned int n_nodes = rModelPart.NumberOfNodes();
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; ++i_node)
-        {
-            array_1d<double,3> value_out =ZeroVector(3);
-            auto it_node = rModelPart.NodesBegin() + i_node;
-            //Calculate distance for each node
-            const double dist_aux = it_node->FastGetSolutionStepValue(DISTANCE);
-            const auto& normals_in = it_node->GetValue(NORMAL);
-            if (dist_aux < 0.0):
-                dist_aux=0.0
-            if (dist_aux > maxdist):
-                dist_aux=MaxDist
-
-            value_out = ValueIn * (1-((MaxDist-dist_aux)**2/(MaxDist**2)))
-            const double nnorm = norm_2(normals_in);
-            value_final *=-value_out/nnorm;
-            it_node->FastGetSolutionStepValue(VELOCITY) = value_final;
-            KRATOS_WATCH(value_final)
+        // Calculate the inlet direction
+        const auto& r_n = rNode.GetValue(INLET_NORMAL);
+        const double n_norm = norm_2(r_n);
+        if (n_norm > 1.0e-12) {
+            rTLSValue = -r_n / n_norm;
+        } else {
+            KRATOS_WARNING("ImposeParabolicProfile") << "Node " << rNode.Id() << " INLET_NORMAL is close to zero." << std::endl;
+            rTLSValue = -r_n;
         }
 
+        // Calculate the inlet value module
+        const double value_in = GetMaxParabolaValue(time, rNode, rMaxParabolaValue) * (1.0-(std::pow(max_dist-wall_dist,2)/std::pow(max_dist,2)));
+        rTLSValue *= value_in;
+
+        // Set and fix the VELOCITY DOFs
+        rNode.FastGetSolutionStepValue(VELOCITY) = rTLSValue;
+        rNode.Fix(VELOCITY_X);
+        rNode.Fix(VELOCITY_Y);
+        rNode.Fix(VELOCITY_Z);
+    });
 }
+
+void ParabolicProfileUtilities::FreeParabolicInlet(ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](NodeType& rNode){
+        rNode.Free(VELOCITY_X);
+        rNode.Free(VELOCITY_Y);
+        rNode.Free(VELOCITY_Z);
+    });
+}
+
+template<>
+double ParabolicProfileUtilities::GetMaxParabolaValue<double>(
+    const double Time,
+    const NodeType& rNode,
+    const double& rMaxParabolaValue)
+{
+    return rMaxParabolaValue;
+}
+
+template<>
+double ParabolicProfileUtilities::GetMaxParabolaValue<GenericFunctionUtility::Pointer>(
+    const double Time,
+    const NodeType& rNode,
+    const GenericFunctionUtility::Pointer& rMaxParabolaValue)
+{
+    if(!rMaxParabolaValue->UseLocalSystem()) {
+        return rMaxParabolaValue->CallFunction(rNode.X(), rNode.Y(), rNode.Z(), Time, rNode.X0(), rNode.Y0(), rNode.Z0());
+    } else {
+        return rMaxParabolaValue->RotateAndCallFunction(rNode.X(), rNode.Y(), rNode.Z(), Time, rNode.X0(), rNode.Y0(), rNode.Z0());
+    }
+}
+
+template KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) void ParabolicProfileUtilities::ImposeParabolicProfile<double>(ModelPart&, const double&);
+template KRATOS_API(FLUID_DYNAMICS_BIOMEDICAL_APPLICATION) void ParabolicProfileUtilities::ImposeParabolicProfile<GenericFunctionUtility::Pointer>(ModelPart&, const GenericFunctionUtility::Pointer&);
+
+} //namespace Kratos

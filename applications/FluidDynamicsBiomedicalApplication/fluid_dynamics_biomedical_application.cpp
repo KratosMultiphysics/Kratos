@@ -41,6 +41,7 @@ void KratosFluidDynamicsBiomedicalApplication::Register() {
 	KRATOS_REGISTER_VARIABLE(ECAP);  // Endothelial cell activation potential (OSI/TAWSS)
 	KRATOS_REGISTER_VARIABLE(RRT);   //  Relative Residence Time
 	KRATOS_REGISTER_VARIABLE(OSI);   //  Oscillatory Shear Index
+	KRATOS_REGISTER_VARIABLE(WALL_DISTANCE); // Signed distance to the wall
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WSS_TANGENTIAL_STRESS) //  Tangential Shear Stress
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(WSS_NORMAL_STRESS)     //  Normal Shear Stress
 	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TEMPORAL_OSI);         // Temporal OSI

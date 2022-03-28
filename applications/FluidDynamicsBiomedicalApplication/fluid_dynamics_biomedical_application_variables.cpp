@@ -22,6 +22,7 @@ KRATOS_CREATE_VARIABLE( double, ECAP )   // Endothelial cell activation potentia
 KRATOS_CREATE_VARIABLE( double, RRT )    // Relative Residence Time
 KRATOS_CREATE_VARIABLE( double, OSI )    // Oscillatory Shear Index
 KRATOS_CREATE_VARIABLE( double, WSS )    // Wall Shear Stress
+KRATOS_CREATE_VARIABLE( double, WALL_DISTANCE ) // Signed distance to the wall
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WSS_TANGENTIAL_STRESS) //  Tangential Shear Stress
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WSS_NORMAL_STRESS)     //  Normal Shear Stress
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TEMPORAL_OSI )         // Temporal OSI
