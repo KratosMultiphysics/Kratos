@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Diffu
     constexpr double cv = 722.14;
     
     const auto temp = [](Node<3>& r_node) { return 300 + 5 * r_node.X(); };
-    const auto density = [](Node<3>& r_node) { return 1.2 + 0.1 * r_node.Y(); };
+    const auto density = [](Node<3>& r_node) { return 1.2 + 0.2*r_node.X() + 0.1*r_node.Y(); };
     const auto total_energy = [&](const double density, const double T) { return density * cv*T; };
 
     for (auto &r_node : r_model_part.Nodes())
