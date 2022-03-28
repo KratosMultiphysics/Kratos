@@ -460,6 +460,24 @@ class DEMAnalysisStage(AnalysisStage):
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
         self.ConvertClusterFileNamesFromRelativePathToAbsolutePath()
+        self.CheckConsistencyOfElementsAndNodesInEverySubModelPart()
+
+    def CheckConsistencyOfElementsAndNodesInEverySubModelPart(self):
+        def ErrorMessage(name):
+            raise Exception(" ModelPart (or SubModelPart) "+ name + " has a different number of nodes and elements (particles)! \n")
+
+        if self.spheres_model_part.NumberOfNodes(0) != self.spheres_model_part.NumberOfElements(0):
+            ErrorMessage(self.spheres_model_part.Name)
+        if self.cluster_model_part.NumberOfNodes(0) != self.cluster_model_part.NumberOfElements(0):
+            ErrorMessage(self.cluster_model_part.Name)
+
+        for submp in self.spheres_model_part.SubModelParts:
+            if submp.NumberOfNodes(0) != submp.NumberOfElements(0):
+                ErrorMessage(submp.Name)
+
+        for submp in self.cluster_model_part.SubModelParts:
+            if submp.NumberOfNodes(0) != submp.NumberOfElements(0):
+                ErrorMessage(submp.Name)
 
     def ConvertClusterFileNamesFromRelativePathToAbsolutePath(self):
         for properties in self.cluster_model_part.Properties:
