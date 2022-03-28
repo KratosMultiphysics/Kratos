@@ -29,8 +29,10 @@ import test_DEM_schemes
 import test_random_variable
 import test_DEM_search_tolerance
 import test_DEM_search_flags
+import test_omp
 import test_erase_particles
 import test_search_nodes
+import test_fem_dofs
 
 def AssembleTestSuites():
 
@@ -54,6 +56,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
     #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_2"))
     #smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_3"))
+    smallSuite.addTest(test_fem_dofs.TestFEMDofs("test_dofs"))
+
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
@@ -67,6 +71,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_1"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_2"))
+
     smallSuite.addTest(test_DEM_3D_continuum.TestDEM3DContinuum("test_DEM3D_continuum"))
 
     smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2D_control_module"))
@@ -88,6 +93,11 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_little_delay"))
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
     smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
+
+    smallSuite.addTest(test_omp.TestOMP("test_omp_1"))
+    smallSuite.addTest(test_omp.TestOMP("test_omp_2"))
+    smallSuite.addTest(test_omp.TestOMP("test_omp_3"))
+    smallSuite.addTest(test_omp.TestOMP("test_omp_4"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

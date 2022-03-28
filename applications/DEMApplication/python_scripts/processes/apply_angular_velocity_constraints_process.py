@@ -16,19 +16,22 @@ def Factory(settings, Model):
         "help"                 : "This process applies constraints to the particles in a certain submodelpart, for a certain time interval",
         "mesh_id"              : 0,
         "model_part_name"      : "please_specify_model_part_name",
-        "velocity_constraints_settings" : {
-            "constrained"          : [true,true,true],
-            "value"                : [10.0, "3*t", "x+y"],
-            "table"                : [0, 0, 0]
-        },
-        "angular_velocity_constraints_settings" : {
-            "constrained"          : [true,true,true],
-            "value"                : [10.0, "3*t", "x+y"],
-            "table"                : [0, 0, 0]
-        },
+        "variable_name"        : "object",
+        "constrained"          : [true,true,true],
+        "value"                : [10.0, "3*t", "x+y"],
+        "table"                : [0, 0, 0],
         "interval"             : [0.0, 1e30]
     }
     """)
+
+    # Detect "End" as a tag and replace it by a large number
+    if process_settings.Has("interval"):
+        if process_settings["interval"][1].IsString():
+            if process_settings["interval"][1].GetString() == "End":
+                process_settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
+            else:
+                raise Exception("The second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
+
 
     process_settings.AddMissingParameters(folder_settings)
 
@@ -39,4 +42,4 @@ def Factory(settings, Model):
 
     process_settings.RemoveValue("help")
 
-    return DEM.ApplyKinematicConstraintsProcess(computing_model_part, process_settings)
+    return DEM.ApplyAngularVelocityConstraintsProcess(computing_model_part, process_settings)

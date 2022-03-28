@@ -241,9 +241,7 @@ namespace Kratos {
         void SetFlagAndVariableToNodes(const Kratos::Flags& r_flag_name, ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void SetVariableToNodes(ComponentOf3ComponentsVariableType& r_variable_to_set, const double value, NodesArrayType& r_nodes_array);
         void ResetPrescribedMotionFlagsRespectingImposedDofs();
-        void ApplyPrescribedBoundaryConditions();
-        void ApplyInitialConditions();
-        virtual void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
+        void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         void SetNormalRadiiOnAllParticles(ModelPart& r_model_part);
         virtual void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
@@ -264,6 +262,10 @@ namespace Kratos {
         void CleanEnergies();
         void Check_MPI(bool& has_mpi);
 
+        template<class TDataType> void CheckIfSubModelPartHasVariable(ModelPart& smp, const Variable<TDataType>& rThisVariable) {
+            if(!smp.Has(rThisVariable)) KRATOS_ERROR<<"The SubModelPart '"<<smp.Name()<<"' does not have the required variable '"<<rThisVariable.Name()<<"'";
+        }
+
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
         ModelPart& GetContactModelPart() { return (*mpContact_model_part);}
@@ -275,7 +277,7 @@ namespace Kratos {
         VectorDistanceType& GetResultsDistances() { return (mResultsDistances);}
         RadiusArrayType& GetArrayOfAmplifiedRadii() { return (mArrayOfAmplifiedRadii);}
         int& GetNStepSearch() { return (mNStepSearch);}
-        int& GetSearchControl() { return mSearchControl;}
+        int& GetSearchControl() { return GetModelPart().GetProcessInfo()[SEARCH_CONTROL];}
         int& GetNumberOfThreads() { return (mNumberOfThreads);}
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
@@ -298,7 +300,6 @@ namespace Kratos {
         VectorDistanceType mResultsDistances;
         RadiusArrayType mArrayOfAmplifiedRadii;
         int mNStepSearch;
-        int mSearchControl;
         int mNumberOfThreads;
         double mMaxTimeStep;
         double mSafetyFactor;

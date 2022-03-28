@@ -51,6 +51,11 @@ class ExplicitStrategy():
         else:
             self.compute_stress_tensor_option = DEM_parameters["ComputeStressTensorOption"].GetBool()
 
+        if not "ComputeReactionsInFixedParticles" in DEM_parameters.keys():
+            self.compute_reactions_in_fixed_particles_option = 0
+        else:
+            self.compute_reactions_in_fixed_particles_option = DEM_parameters["compute_reactions_on_fixed_particles"].GetBool()
+
         if "PostStressStrainOption" in DEM_parameters.keys() and DEM_parameters["PostStressStrainOption"].GetBool():
             self.compute_stress_tensor_option = 1
             self.print_stress_tensor_option = 1
@@ -242,6 +247,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_START_TIME, self.bounding_box_start_time)
         self.spheres_model_part.ProcessInfo.SetValue(BOUNDING_BOX_STOP_TIME, self.bounding_box_stop_time)
         self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, self.compute_stress_tensor_option)
+        self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_REACTIONS_OPTION, self.compute_reactions_in_fixed_particles_option)
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
         self.spheres_model_part.ProcessInfo.SetValue(IMPOSED_Z_STRAIN_VALUE, 0.0) # A default value
@@ -368,13 +374,9 @@ class ExplicitStrategy():
 
     def Predict(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
-        self._MoveAllMeshes(time, self.dt)
 
     def Check(self):
         pass
-
-    def Solve(self): # deprecated
-        self.SolveSolutionStep()
 
     def SolveSolutionStep(self):
         self.cplusplus_strategy.SolveSolutionStep()
@@ -387,15 +389,6 @@ class ExplicitStrategy():
         self._UpdateTimeInModelParts(time)
 
         return time
-
-    def _MoveAllMeshes(self, time, dt):
-        spheres_model_part = self.all_model_parts.Get("SpheresPart")
-        dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
-        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
-
-        self.dem_fem_utils.MoveAllMeshes(spheres_model_part, time, dt)
-        self.dem_fem_utils.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.dem_fem_utils.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")

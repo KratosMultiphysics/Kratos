@@ -30,7 +30,7 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
-    @classmethod
+
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
 
@@ -107,6 +107,34 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [5, 6, 3], self.rigid_face_model_part.GetProperties()[0])
         self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [3, 6, 4], self.rigid_face_model_part.GetProperties()[0])
 
+        self.rigid_face_model_part.CreateSubModelPart('RigidFacePart')
+        self.rigid_face_submpart = self.rigid_face_model_part.GetSubModelPart('RigidFacePart')
+        rigid_face_part_nodes_id = [node.Id for node in self.rigid_face_model_part.Nodes]
+        self.rigid_face_submpart.AddNodes(rigid_face_part_nodes_id)
+        rigid_face_part_elements_id = [elem.Id for elem in self.rigid_face_model_part.Elements]
+        self.rigid_face_submpart.AddElements(rigid_face_part_elements_id)
+        rigid_face_part_conditions_id = [cond.Id for cond in self.rigid_face_model_part.Conditions]
+        self.rigid_face_submpart.AddConditions(rigid_face_part_conditions_id)
+
+        self.rigid_face_submpart.SetValue(DEM.COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT, True)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_OPTION, True)
+
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_MASS, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_X, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_Y, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_Z, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_X, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_Y, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_Z, 0.0)
+
+        orientation = KratosMultiphysics.Quaternion()
+        orientation.X= 0.0
+        orientation.Y = 0.0
+        orientation.Z = 0.0
+        orientation.W = 1.0
+        self.rigid_face_submpart.SetValue(KratosMultiphysics.ORIENTATION, orientation)
+
+
 class DEM3D_TaylorTestSolution(DEM3D_ForwardEulerTestSolution):
 
     def CheckValues(self, x_vel, dem_pressure):
@@ -137,28 +165,28 @@ class DEM3D_VerletTestSolution(DEM3D_ForwardEulerTestSolution):
         self.assertAlmostEqual(dem_pressure, dem_pressure_ref, delta=tol)
 class TestDEMSchemes(KratosUnittest.TestCase):
 
-    @classmethod
+
     def test_ForwardEuler(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_ForwardEuler.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ForwardEulerTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
+
     def test_Taylor(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_Taylor.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_TaylorTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
+
     def test_Symplectic(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_Symplectic.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SymplecticTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
+
     def test_Verlet(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM_Verlet.json")

@@ -7,37 +7,37 @@ End Properties
 
 Begin Table 1 TIME VALUE
     0.0 0.0
-    0.1 10000.0
+    0.1 1000.0
 End Table
 
 Begin Table 2 TIME VALUE
     0.0 0.0
-    0.1 300.0
+    0.1 500.0
 End Table
 
 Begin Table 3 TIME VALUE
     0.0 0.0
-    0.1 6000.0
+    0.1 200.0
 End Table
 
 Begin Table 4 TIME VALUE
     0.0 0.0
-    0.1 50000.0
+    0.1 1000.0
 End Table
 
 Begin Table 5 TIME VALUE
     0.0 0.0
-    0.1 600.0
+    0.1 500.0
 End Table
 
 Begin Table 6 TIME VALUE
     0.0 0.0
-    0.1 7000.0
+    0.1 200.0
 End Table
 
 Begin Nodes
-    1 0.0 0.0 2.0
-    2 10.0 0.0 2.0
+    1 0.0 0.0 4.0
+    2 10.0 0.0 4.0
 End Nodes
 
 Begin Elements SphericParticle3D

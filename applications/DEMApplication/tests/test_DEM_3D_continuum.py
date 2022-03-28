@@ -20,7 +20,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
-    @classmethod
+
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
 
@@ -117,12 +117,39 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [5, 6, 3], self.rigid_face_model_part.GetProperties()[0])
         self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [3, 6, 4], self.rigid_face_model_part.GetProperties()[0])
 
+        self.rigid_face_model_part.CreateSubModelPart('RigidFacePart')
+        self.rigid_face_submpart = self.rigid_face_model_part.GetSubModelPart('RigidFacePart')
+        rigid_face_part_nodes_id = [node.Id for node in self.rigid_face_model_part.Nodes]
+        self.rigid_face_submpart.AddNodes(rigid_face_part_nodes_id)
+        rigid_face_part_elements_id = [elem.Id for elem in self.rigid_face_model_part.Elements]
+        self.rigid_face_submpart.AddElements(rigid_face_part_elements_id)
+        rigid_face_part_conditions_id = [cond.Id for cond in self.rigid_face_model_part.Conditions]
+        self.rigid_face_submpart.AddConditions(rigid_face_part_conditions_id)
+
+        self.rigid_face_submpart.SetValue(DEM.COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT, True)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_OPTION, True)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_MASS, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_X, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_Y, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_CENTER_OF_ROTATION_Z, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_X, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_Y, 0.0)
+        self.rigid_face_submpart.SetValue(DEM.RIGID_BODY_INERTIAS_Z, 0.0)
+
+        orientation = KratosMultiphysics.Quaternion()
+        orientation.X= 0.0
+        orientation.Y = 0.0
+        orientation.Z = 0.0
+        orientation.W = 1.0
+        self.rigid_face_submpart.SetValue(KratosMultiphysics.ORIENTATION, orientation)
+
+
 class TestDEM3DContinuum(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
-    @classmethod
+
     def test_DEM3D_continuum(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")

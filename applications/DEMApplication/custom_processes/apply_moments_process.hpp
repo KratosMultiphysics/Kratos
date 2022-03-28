@@ -10,8 +10,8 @@
 //  Main author:     Joaquín Irazábal González
 //
 
-#if !defined(KRATOS_APPLY_FORCES_AND_MOMENTS_PROCESS )
-#define  KRATOS_APPLY_FORCES_AND_MOMENTS_PROCESS
+#if !defined(KRATOS_APPLY_MOMENTS_PROCESS )
+#define  KRATOS_APPLY_MOMENTS_PROCESS
 
 
 
@@ -55,18 +55,14 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Auxiliary process to apply forces and moments to particles.
-  /** This process sets the EXTERNAL_APPLIED_FORCE and EXTERNAL_APPLIED_MOMENT variables
-      over particles.
-   */
-  class KRATOS_API(DEM_APPLICATION) ApplyForcesAndMomentsProcess: public Process
+  class KRATOS_API(DEM_APPLICATION) ApplyMomentsProcess: public Process
   {
   public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of ApplyForcesAndMomentsProcess
-      KRATOS_CLASS_POINTER_DEFINITION(ApplyForcesAndMomentsProcess);
+      /// Pointer definition of ApplyMomentsProcess
+      KRATOS_CLASS_POINTER_DEFINITION(ApplyMomentsProcess);
 
       /// Defining a table with double argument and result type as table type.
       typedef Table<double,double> TableType;
@@ -76,10 +72,10 @@ namespace Kratos
       ///@{
 
       /// Constructor
-      ApplyForcesAndMomentsProcess(ModelPart& rModelPart, Parameters rParameters);
+      ApplyMomentsProcess(ModelPart& rModelPart, Parameters rParameters);
 
       /// Destructor.
-      ~ApplyForcesAndMomentsProcess() override;
+      ~ApplyMomentsProcess() override;
 
 
       ///@}
@@ -176,15 +172,10 @@ namespace Kratos
       ModelPart& mrModelPart;
       Parameters mParameters;
       IntervalUtility mInterval;
-      array_1d<bool, 3> mForceValueIsNumeric;
       array_1d<bool, 3> mMomentValueIsNumeric;
-      array_1d<double, 3> mForceValues;
       array_1d<double, 3> mMomentValues;
-      std::vector<GenericFunctionUtility> mForceFunctions;
       std::vector<GenericFunctionUtility> mMomentFunctions;
-      array_1d<int, 3> mForceTableId;
       array_1d<int, 3> mMomentTableId;
-      std::vector<TableType::Pointer> mpForceTable;
       std::vector<TableType::Pointer> mpMomentTable;
 
       ///@}
@@ -212,15 +203,15 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      ApplyForcesAndMomentsProcess& operator=(ApplyForcesAndMomentsProcess const& rOther);
+      ApplyMomentsProcess& operator=(ApplyMomentsProcess const& rOther);
 
       /// Copy constructor.
-      ApplyForcesAndMomentsProcess(ApplyForcesAndMomentsProcess const& rOther);
+      ApplyMomentsProcess(ApplyMomentsProcess const& rOther);
 
 
       ///@}
 
-    }; // Class ApplyForcesAndMomentsProcess
+    }; // Class ApplyMomentsProcess
 
   ///@}
 
@@ -236,7 +227,7 @@ namespace Kratos
   /// output stream function
   inline std::ostream& operator << (
       std::ostream& rOStream,
-      const ApplyForcesAndMomentsProcess& rThis);
+      const ApplyMomentsProcess& rThis);
 
   ///@}
 
@@ -244,4 +235,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_APPLY_FORCES_AND_MOMENTS_PROCESS  defined
+#endif // KRATOS_APPLY_MOMENTS_PROCESS  defined

@@ -397,6 +397,7 @@ class DEMAnalysisStage(AnalysisStage):
             return max_node_id, max_elem_id, max_cond_id
 
         def ReadModelPart(model_part, file_tag, max_node_id, max_elem_id, max_cond_id):
+
             file_path = self.GetInputFilePath(file_tag)
 
             if not os.path.isfile(file_path + '.mdpa'):
@@ -488,9 +489,6 @@ class DEMAnalysisStage(AnalysisStage):
         if self.IsTimeToPrintPostProcess():
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
-
-    def SolverSolve(self):
-        self._GetSolver().SolveSolutionStep()
 
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():

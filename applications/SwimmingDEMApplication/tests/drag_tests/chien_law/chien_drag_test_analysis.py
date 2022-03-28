@@ -29,8 +29,7 @@ class ChienDragAnalysis(SwimmingDEMAnalysis, KratosUnittest.TestCase):
         for node in self.spheres_model_part.Nodes:
             if node.Id == 111:
                 x_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
-                print(x_vel)
+                self.CheckValues(x_vel)
 
-        self.CheckValues(x_vel)
         self.procedures.RemoveFoldersWithResults(str(dir_path), str('chien_drag_test'), '')
         super().Finalize()

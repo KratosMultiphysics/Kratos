@@ -63,17 +63,17 @@ namespace Kratos {
         auto& central_node = GetGeometry()[0];
 
         if (central_node.GetDof(VELOCITY_X).IsFixed())          central_node.Set(DEMFlags::FIXED_VEL_X, true);
-        else                                                        central_node.Set(DEMFlags::FIXED_VEL_X, false);
+        else                                                    central_node.Set(DEMFlags::FIXED_VEL_X, false);
         if (central_node.GetDof(VELOCITY_Y).IsFixed())          central_node.Set(DEMFlags::FIXED_VEL_Y, true);
-        else                                                        central_node.Set(DEMFlags::FIXED_VEL_Y, false);
+        else                                                    central_node.Set(DEMFlags::FIXED_VEL_Y, false);
         if (central_node.GetDof(VELOCITY_Z).IsFixed())          central_node.Set(DEMFlags::FIXED_VEL_Z, true);
-        else                                                        central_node.Set(DEMFlags::FIXED_VEL_Z, false);
+        else                                                    central_node.Set(DEMFlags::FIXED_VEL_Z, false);
         if (central_node.GetDof(ANGULAR_VELOCITY_X).IsFixed())  central_node.Set(DEMFlags::FIXED_ANG_VEL_X, true);
-        else                                                        central_node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
+        else                                                    central_node.Set(DEMFlags::FIXED_ANG_VEL_X, false);
         if (central_node.GetDof(ANGULAR_VELOCITY_Y).IsFixed())  central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, true);
-        else                                                        central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
+        else                                                    central_node.Set(DEMFlags::FIXED_ANG_VEL_Y, false);
         if (central_node.GetDof(ANGULAR_VELOCITY_Z).IsFixed())  central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, true);
-        else                                                        central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
+        else                                                    central_node.Set(DEMFlags::FIXED_ANG_VEL_Z, false);
 
         DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
         DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];

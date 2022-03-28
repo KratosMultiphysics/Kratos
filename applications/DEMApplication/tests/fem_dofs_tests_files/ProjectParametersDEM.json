@@ -1,0 +1,115 @@
+{
+    "Dimension"                      : 3,
+    "PeriodicDomainOption"           : false,
+    "BoundingBoxOption"              : false,
+    "AutomaticBoundingBoxOption"     : false,
+    "BoundingBoxEnlargementFactor"   : 1.1,
+    "BoundingBoxStartTime"           : 0.0,
+    "BoundingBoxStopTime"            : 1000.0,
+    "BoundingBoxMaxX"                : 10,
+    "BoundingBoxMaxY"                : 10,
+    "BoundingBoxMaxZ"                : 10,
+    "BoundingBoxMinX"                : -10,
+    "BoundingBoxMinY"                : -10,
+    "BoundingBoxMinZ"                : -10,
+    "dem_inlet_option"               : false,
+    "GravityX"                       : 0.0,
+    "GravityY"                       : 0.0,
+    "GravityZ"                       : 0.0,
+    "RotationOption"                 : true,
+    "CleanIndentationsOption"        : true,
+    "solver_settings"                : {
+        "RemoveBallsInitiallyTouchingWalls" : false,
+        "strategy"                          : "sphere_strategy",
+        "material_import_settings"          : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
+    },
+    "processes"                      : {
+        "constraints_process_list" : [
+        {
+            "python_module" : "processes.apply_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "FEMVelocity-Process",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.up",
+                "variable_name"   : "WALL",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,false],
+                "value"           : [0.0,1.0,0.0]
+            }
+        },{
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "FEMAngularVelocity-Process",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.up",
+                "variable_name"   : "WALL",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "FEMVelocity-Process",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.down",
+                "variable_name"   : "WALL",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,false],
+                "value"           : [0.0,-1.0,0.0]
+            }
+        },{
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "FEMAngularVelocity-Process",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.down",
+                "variable_name"   : "WALL",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,false,false],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }]
+    },
+    "VirtualMassCoefficient"         : 1.0,
+    "RollingFrictionOption"          : false,
+    "GlobalDamping"                  : 0.0,
+    "ContactMeshOption"              : false,
+    "OutputFileType"                 : "Binary",
+    "Multifile"                      : "multiple_files",
+    "ElementType"                    : "SphericPartDEMElement3D",
+    "TranslationalIntegrationScheme" : "Symplectic_Euler",
+    "RotationalIntegrationScheme"    : "Direct_Integration",
+    "MaxTimeStep"                    : 1e-6,
+    "FinalTime"                      : 1e-5,
+    "NeighbourSearchFrequency"       : 1,
+    "SearchTolerance"                : 1e-8,
+    "GraphExportFreq"                : 0.1,
+    "VelTrapGraphExportFreq"         : 0.1,
+    "OutputTimeStep"                 : 1e-6,
+    "PostBoundingBox"                : false,
+    "PostLocalContactForce"          : false,
+    "PostDisplacement"               : true,
+    "PostRadius"                     : false,
+    "PostVelocity"                   : true,
+    "PostAngularVelocity"            : false,
+    "PostElasticForces"              : false,
+    "PostContactForces"              : false,
+    "PostRigidElementForces"         : false,
+    "PostStressStrainOption"         : false,
+    "PostTangentialElasticForces"    : false,
+    "PostTotalForces"                : false,
+    "PostPressure"                   : false,
+    "PostShearStress"                : false,
+    "PostNonDimensionalVolumeWear"   : false,
+    "PostParticleMoment"             : false,
+    "PostEulerAngles"                : false,
+    "PostRollingResistanceMoment"    : false,
+    "problem_name"                   : "dofs"
+}

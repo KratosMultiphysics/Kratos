@@ -36,8 +36,8 @@ Begin Nodes
 End Nodes
 
 Begin Elements SphericContinuumParticle3D // GUI group identifier: dems
-        1          1     1 
-        2          1     2 
+        1          1     1
+        2          1     2
 End Elements
 
 Begin NodalData RADIUS // GUI group identifier: dems
@@ -75,7 +75,7 @@ Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
     IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
     VELOCITY_START_TIME 0.0
     VELOCITY_STOP_TIME 100.0
-    RIGID_BODY_MOTION 0
+    RIGID_BODY_OPTION 1
     FORCE_INTEGRATION_GROUP 0
     IDENTIFIER right
   End SubModelPartData
@@ -94,7 +94,7 @@ Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier
     IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
     VELOCITY_START_TIME 0.0
     VELOCITY_STOP_TIME 100.0
-    RIGID_BODY_MOTION 0
+    RIGID_BODY_OPTION 1
     FORCE_INTEGRATION_GROUP 0
     IDENTIFIER left
   End SubModelPartData

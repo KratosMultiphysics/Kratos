@@ -27,139 +27,163 @@
     },
     "processes"        : {
         "constraints_process_list" : [{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball1",
-		"velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball1",
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball2",
-		"velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.1, 0.0, -0.1],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.1, 0.0, -0.1],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball2",
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball3",
-		"velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.1, 0.0, -0.1],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.1, 0.0, -0.1],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball3",
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball4",
-		"velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball4",
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball5",
-		"velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.1, 0.0, -0.1],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.1, 0.0, -0.1],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball5",
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "SpheresPart.Ball6",
-		"velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.1, 0.0, -0.1],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.1, 0.0, -0.1],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball6",
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Surface1",
-		"velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                "constrained"          : [true,true,true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         },{
-            "python_module" : "processes.apply_kinematic_constraints_process",
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Surface1",
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_velocity_constraints_process",
             "kratos_module" : "KratosMultiphysics.DEMApplication",
             "Parameters"    : {
                 "model_part_name" : "RigidFacePart.Surface2",
-		"velocity_constraints_settings" : {
+                "constrained"          : [true,true,true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null],
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_angular_velocity_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Surface2",
                     "constrained"          : [true,true,true],
                     "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
-                "angular_velocity_constraints_settings" : {
-                    "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0],
-                    "table"                : [null, null, null]
-                },
+                    "table"                : [null, null, null],
                 "interval"             : [0.0, 1.0e30]
             }
         }],

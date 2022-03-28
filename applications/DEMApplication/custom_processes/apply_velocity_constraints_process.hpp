@@ -10,18 +10,12 @@
 //  Main author:     Miguel Angel Celigueta
 //
 
-#if !defined(KRATOS_APPLY_KINEMATIC_CONSTRAINTS_PROCESS )
-#define  KRATOS_APPLY_KINEMATIC_CONSTRAINTS_PROCESS
-
-
+#if !defined(KRATOS_APPLY_VELOCITY_CONSTRAINTS_PROCESS )
+#define  KRATOS_APPLY_VELOCITY_CONSTRAINTS_PROCESS
 
 // System includes
 #include <string>
 #include <iostream>
-
-
-// External includes
-
 
 // Project includes
 #include "includes/table.h"
@@ -62,14 +56,14 @@ namespace Kratos
    */
 
 
-  class KRATOS_API(DEM_APPLICATION) ApplyKinematicConstraintsProcess: public Process
+  class KRATOS_API(DEM_APPLICATION) ApplyVelocityConstraintsProcess: public Process
   {
   public:
       ///@name Type Definitions
       ///@{
 
-      /// Pointer definition of ApplyKinematicConstraintsProcess
-      KRATOS_CLASS_POINTER_DEFINITION(ApplyKinematicConstraintsProcess);
+      /// Pointer definition of ApplyVelocityConstraintsProcess
+      KRATOS_CLASS_POINTER_DEFINITION(ApplyVelocityConstraintsProcess);
 
       /// Defining a table with double argument and result type as table type.
       typedef Table<double,double> TableType;
@@ -79,10 +73,10 @@ namespace Kratos
       ///@{
 
       /// Constructor
-      ApplyKinematicConstraintsProcess(ModelPart& rModelPart, Parameters rParameters);
+      ApplyVelocityConstraintsProcess(ModelPart& rModelPart, Parameters rParameters);
 
       /// Destructor.
-      ~ApplyKinematicConstraintsProcess() override;
+      ~ApplyVelocityConstraintsProcess() override;
 
 
       ///@}
@@ -95,6 +89,8 @@ namespace Kratos
       ///@{
 
       void Execute() override;
+
+      void ExecuteInitialize() override;
 
       void ExecuteInitializeSolutionStep() override;
 
@@ -180,17 +176,11 @@ namespace Kratos
       Parameters mParameters;
       IntervalUtility mInterval;
       array_1d<bool, 3> mVelocityIsConstrained;
-      array_1d<bool, 3> mAngularVelocityIsConstrained;
       array_1d<bool, 3> mVelocityValueIsNumeric;
-      array_1d<bool, 3> mAngularVelocityValueIsNumeric;
       array_1d<double, 3> mVelocityValues;
-      array_1d<double, 3> mAngularVelocityValues;
       std::vector<GenericFunctionUtility> mVelocityFunctions;
-      std::vector<GenericFunctionUtility> mAngularVelocityFunctions;
       array_1d<int, 3> mVelocityTableId;
-      array_1d<int, 3> mAngularVelocityTableId;
       std::vector<TableType::Pointer> mpVelocityTable;
-      std::vector<TableType::Pointer> mpAngularVelocityTable;
 
       ///@}
       ///@name Private Operators
@@ -217,15 +207,15 @@ namespace Kratos
       ///@{
 
       /// Assignment operator.
-      ApplyKinematicConstraintsProcess& operator=(ApplyKinematicConstraintsProcess const& rOther);
+      ApplyVelocityConstraintsProcess& operator=(ApplyVelocityConstraintsProcess const& rOther);
 
       /// Copy constructor.
-      ApplyKinematicConstraintsProcess(ApplyKinematicConstraintsProcess const& rOther);
+      ApplyVelocityConstraintsProcess(ApplyVelocityConstraintsProcess const& rOther);
 
 
       ///@}
 
-    }; // Class ApplyKinematicConstraintsProcess
+    }; // Class ApplyVelocityConstraintsProcess
 
   ///@}
 
@@ -241,7 +231,7 @@ namespace Kratos
   /// output stream function
   inline std::ostream& operator << (
       std::ostream& rOStream,
-      const ApplyKinematicConstraintsProcess& rThis);
+      const ApplyVelocityConstraintsProcess& rThis);
 
   ///@}
 
@@ -249,4 +239,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_APPLY_KINEMATIC_CONSTRAINTS_PROCESS  defined
+#endif // KRATOS_APPLY_VELOCITY_CONSTRAINTS_PROCESS  defined

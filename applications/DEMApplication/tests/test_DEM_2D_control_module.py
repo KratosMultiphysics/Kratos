@@ -52,15 +52,15 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
         self.multiaxial_control_module.PrintResults()
 
     def Finalize(self):
-        tolerance = 1.001
+        tolerance = 1e-3
         for node in self.rigid_face_model_part.Nodes:
             if node.Id == 5:
                 node_force_x = node.GetSolutionStepValue(DEM.CONTACT_FORCES_X)
-                expected_value = 316.79
+                expected_value = 316.714
                 self.assertAlmostEqual(node_force_x, expected_value, delta=tolerance)
             elif node.Id == 6:
                 node_force_y = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
-                expected_value = 150.1
+                expected_value = 150.067
                 self.assertAlmostEqual(node_force_y, expected_value, delta=tolerance)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()

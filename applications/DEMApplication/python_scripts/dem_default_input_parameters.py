@@ -38,6 +38,7 @@ def GetDefaultInputParameters():
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
+            "compute_reactions_on_fixed_particles" : false,
             "solver_settings" : {},
             "creator_destructor_settings" : {},
             "echo_level"                  : 1,
