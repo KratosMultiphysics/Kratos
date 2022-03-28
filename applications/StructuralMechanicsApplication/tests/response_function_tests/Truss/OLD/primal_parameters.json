@@ -23,10 +23,6 @@
             "time_step"       : 1.1
         },
         "line_search"                     : false,
-        "solving_strategy_settings"       : {
-            "type"                        : "newton_raphson",
-            "advanced_settings"           : { }
-        },
         "convergence_criterion"           : "residual_criterion",
         "displacement_relative_tolerance" : 1e-10,
         "displacement_absolute_tolerance" : 1e-9,
@@ -72,7 +68,7 @@
                 "model_part_name" : "model.PointLoad3D_Load",
                 "variable_name"   : "POINT_LOAD",
                 "interval"        : [0.0,"End"],
-                "modulus"         : -5000000000.0,
+                "modulus"         : -10000000000.0,
                 "direction"       : [0.0,1.0,0.0]
             }
         }]

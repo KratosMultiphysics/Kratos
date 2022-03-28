@@ -32,7 +32,7 @@
         "residual_relative_tolerance"     : 1e-10,
         "residual_absolute_tolerance"     : 1e-9,
         "max_iteration"                   : 10,
-        "rotation_dofs"                   : true
+        "rotation_dofs"                   : false
     },
     "processes"        : {
         "constraints_process_list" : [{

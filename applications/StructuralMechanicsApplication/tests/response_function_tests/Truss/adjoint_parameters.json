@@ -35,7 +35,7 @@
         "response_function_settings"    :   {
             "response_type"        : "adjoint_eigenfrequency",
             "gradient_mode"        : "semi_analytic",
-            "step_size"            : 1e-3,
+            "step_size"            : 1e-4,
             "adapt_step_size"      : true,
             "echo_level"           : 1,
             "primal_data_transfer_with_python": true,
@@ -80,7 +80,7 @@
                 "model_part_name" : "model.PointLoad3D_Load",
                 "variable_name"   : "POINT_LOAD",
                 "interval"        : [0.0,"End"],
-                "modulus"         : -10000000000.0,
+                "modulus"         : -5000000000.0,
                 "direction"       : [0.0,1.0,0.0]
             }
         }]

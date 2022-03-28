@@ -26,7 +26,7 @@
                 "use_block_builder" : true
         },
         "convergence_criterion"           : "residual_criterion",
-        "rotation_dofs"                   : true,
+        "rotation_dofs"                   : false,
         "compute_reactions" :   false,
         "move_mesh_flag" :   false,
         "sensitivity_settings"  : {

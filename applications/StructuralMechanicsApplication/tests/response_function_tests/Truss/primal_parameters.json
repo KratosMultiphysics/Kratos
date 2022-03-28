@@ -22,12 +22,15 @@
         "time_stepping" : {
             "time_step"       : 1.1
         },
+        "builder_and_solver_settings" : {
+            "use_block_builder" : true
+        },
         "line_search"                     : false,
-        "convergence_criterion"           : "residual_criterion",
+        "convergence_criterion"           : "displacement_criterion",
         "displacement_relative_tolerance" : 1e-10,
         "displacement_absolute_tolerance" : 1e-9,
         "residual_relative_tolerance"     : 1e-10,
-        "residual_absolute_tolerance"     : 1e-5,
+        "residual_absolute_tolerance"     : 1e-9,
         "max_iteration"                   : 20,
         "rotation_dofs"                   : false
     },
@@ -68,7 +71,7 @@
                 "model_part_name" : "model.PointLoad3D_Load",
                 "variable_name"   : "POINT_LOAD",
                 "interval"        : [0.0,"End"],
-                "modulus"         : -10000000000.0,
+                "modulus"         : -5000000000.0,
                 "direction"       : [0.0,1.0,0.0]
             }
         }]

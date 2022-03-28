@@ -80,7 +80,7 @@
                 "model_part_name" : "model.PointLoad3D_Load",
                 "variable_name"   : "POINT_LOAD",
                 "interval"        : [0.0,"End"],
-                "modulus"         : -5000000000.0,
+                "modulus"         : -10000000000.0,
                 "direction"       : [0.0,1.0,0.0]
             }
         }]

@@ -28,7 +28,7 @@
             "solver_type"           : "eigen_eigensystem",
             "max_iteration"         : 1000,
             "tolerance"             : 1e-4,
-            "number_of_eigenvalues" : 3,
+            "number_of_eigenvalues" : 1,
             "normalize_eigenvectors": true,
             "echo_level"            : 0        },
         "rotation_dofs"            : false
