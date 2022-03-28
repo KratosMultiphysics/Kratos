@@ -86,9 +86,9 @@ ModelPart& GenerateModel(Model& rModel)
 
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
- * This is a conservation test.
+ * This is a conservation test. There is no diffusion, so only advection is tested.
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Advection, FluidDynamicsApplicationFastSuite)
 {
     // Create the test geometry
     Model model;
@@ -114,6 +114,70 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N, Flui
         r_node.FastGetSolutionStepValue(DENSITY, 1) = density;
         r_node.FastGetSolutionStepValue(MOMENTUM, 1) = momentum;
         r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = total_energy;
+
+        // Set shock capturing values
+        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, r_node.Id() * 1e-3);
+        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, r_node.Id() * 2e-3);
+        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, r_node.Id() * 3e-3);
+    }
+
+    // Compute explicit RHS
+    const auto &r_process_info = r_model_part.GetProcessInfo();
+
+    for(auto& r_elem: r_model_part.Elements())   { r_elem.Check(r_process_info); }
+    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Check(r_process_info); }
+
+    for(auto& r_elem: r_model_part.Elements())   { r_elem.Initialize(r_process_info); }
+    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Initialize(r_process_info); }
+
+    for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); }
+    for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }
+
+    // Check obtained RHS values
+    std::vector<double> RHS_ref(12, 0.0);
+    std::vector<double> RHS_expl(12);
+
+    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
+        const auto it_node = r_model_part.NodesBegin() + i_node;
+        RHS_expl[i_node * 4    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
+        RHS_expl[i_node * 4 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
+        RHS_expl[i_node * 4 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
+        RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
+    }
+
+    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+}
+
+/**
+ * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
+ * This is a conservation test. There is no transport, so only diffusion is tested.
+ */
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Diffusion, FluidDynamicsApplicationFastSuite)
+{
+    // Create the test geometry
+    Model model;
+    ModelPart& r_model_part = GenerateModel(model);
+
+    // Define and set the nodal values
+    constexpr double cv = 722.14;
+    
+    const auto temp = [](Node<3>& r_node) { return 300 + 5 * r_node.X(); };
+    const auto density = [](Node<3>& r_node) { return 1.2 + 0.1 * r_node.Y(); };
+    const auto total_energy = [&](const double density, const double T) { return density * cv*T; };
+
+    for (auto &r_node : r_model_part.Nodes())
+    {
+        const double rho = density(r_node);
+        const double etot = total_energy(rho, temp(r_node));
+
+        // Set DOF values
+        r_node.FastGetSolutionStepValue(DENSITY) = rho;
+        r_node.FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = etot;
+
+        r_node.FastGetSolutionStepValue(DENSITY, 1) = rho;
+        r_node.FastGetSolutionStepValue(MOMENTUM, 1) = ZeroVector(3);
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = etot;
 
         // Set shock capturing values
         r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, r_node.Id() * 1e-3);
