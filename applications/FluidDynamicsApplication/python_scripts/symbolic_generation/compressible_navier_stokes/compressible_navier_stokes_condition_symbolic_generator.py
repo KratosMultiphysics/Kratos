@@ -33,7 +33,7 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
     def _ComputeVariationalFormulation(self, E, G, V, n):
         KratosMultiphysics.Logger.Print(" - Compute variational formulation")
         flux = (E + G) * n
-        return V.transpose()*flux
+        return - V.transpose()*flux
 
     def _ComputeResidualAtGaussPoint(self, grad_U, H, i_gauss, rv_gauss, sc_nodes, sc_params, U, Ug, V, w):
         KratosMultiphysics.Logger.Print("    Gauss point: {}".format(i_gauss))
