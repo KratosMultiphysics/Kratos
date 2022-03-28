@@ -62,12 +62,16 @@ ModelPart& GenerateModel(Model& rModel)
     model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
     std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3};
-    auto p_elem_expl = model_part.CreateNewElement("CompressibleNavierStokesExplicit2D3N", 1, elem_nodes, p_properties);
+    auto p_elem = model_part.CreateNewElement("CompressibleNavierStokesExplicit2D3N", 1, elem_nodes, p_properties);
+
+    auto neighbour_elems = NEIGHBOUR_ELEMENTS.Zero();
+    neighbour_elems.push_back(p_elem);
 
     for(std::size_t i=1; i<=3; ++i)
     {
         std::vector<std::size_t> node_ids = {i, i%3 + 1};
-        model_part.CreateNewCondition("CompressibleNavierStokesExplicitCondition2D2N", i, node_ids, p_properties);
+        auto p_cond = model_part.CreateNewCondition("CompressibleNavierStokesExplicitCondition2D2N", i, node_ids, p_properties);
+        p_cond->SetValue(NEIGHBOUR_ELEMENTS, neighbour_elems);
     }
 
     for(auto& r_node: model_part.Nodes())
