@@ -347,6 +347,10 @@ public:
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
         }
 
+        KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS)) << "Missing NEIGHBOUR_ELEMENTS variable in condition #" << this->Id();
+        KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0) << "Empty NEIGHBOUR_ELEMENTS container in condition #" << this->Id();
+        KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 1) << "NEIGHBOUR_ELEMENTS has more than one entry in condition #" << this->Id();
+
         return 0;
 
         KRATOS_CATCH("");
