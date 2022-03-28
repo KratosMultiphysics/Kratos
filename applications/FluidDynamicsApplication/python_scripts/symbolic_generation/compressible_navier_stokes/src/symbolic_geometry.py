@@ -6,7 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressibl
 
 def GeometryDataFactory(geometry_name, ngauss=None):
     geodata_dict = {
-        "line"  :        LineData,
+        "line":          LineData,
         "triangle":      TriangleData,
         "quadrilateral": QuadrilateralData,
         "tetrahedron":   TetrahedronData
@@ -102,6 +102,7 @@ class LineData(GeometryData):
 
     def _ComputeShapeFunctionsGradients(self):
         return defs.Matrix('DN_DX', self.nnodes, self.ndims)
+
 
 class TriangleData(GeometryData):
     nnodes = 3
