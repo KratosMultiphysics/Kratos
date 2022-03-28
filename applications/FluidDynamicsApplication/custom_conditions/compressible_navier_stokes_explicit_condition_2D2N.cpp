@@ -167,8 +167,7 @@ BoundedVector<double, 8> CompressibleNavierStokesExplicitCondition<2,2>::Calcula
     rRightHandSideBoundedVector[7] = crRightHandSideBoundedVector43;
 
 
-    // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-    rRightHandSideBoundedVector *= data.volume / static_cast<double>(NumNodes);
+    rRightHandSideBoundedVector *= data.volume; // TODO: This only works for 1 gauss point
 
     return rRightHandSideBoundedVector;
     KRATOS_CATCH("")
