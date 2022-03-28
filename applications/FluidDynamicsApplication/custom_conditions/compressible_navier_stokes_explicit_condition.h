@@ -106,7 +106,7 @@ public:
         array_1d<double, TNumNodes> lamb_sc_nodes;
 
         array_1d<double, TNumNodes> N;
-        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
+        array_1d<double, 3> unit_normal {3, 0.0};
 
         double h;           // Element size
         double volume;      // In 2D: element area. In 3D: element volume
@@ -679,7 +679,7 @@ namespace CompressibleNavierStokesExplicitConditionInternal
 
     constexpr bool IsSimplex(const unsigned int Dimensions, const unsigned int NNodes)
     {
-        return Dimensions == NNodes-1;
+        return Dimensions == NNodes;
     }
 
     // Specialization for simplex geometries
@@ -688,8 +688,9 @@ namespace CompressibleNavierStokesExplicitConditionInternal
         const Geometry<Node<3>> & rGeometry,
         ConditionDataStruct<TDim, TNumNodes>& rData)
     {
-        GeometryUtils::CalculateGeometryData(rGeometry, rData.DN_DX, rData.N, rData.volume);
-        //rData.h = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rData.DN_DX);
+        BoundedMatrix<double, TNumNodes, 1> DN_DX; // unused
+        GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, rData.N, rData.volume);
+        rData.unit_normal = rGeometry.UnitNormal(0);
     }
 
     /**
@@ -703,7 +704,7 @@ namespace CompressibleNavierStokesExplicitConditionInternal
         ConditionDataStruct<TDim, TNumNodes>& rData)
     {
         rData.volume = rGeometry.DomainSize();
-        //rData.h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(rGeometry);
+        // Normal must be computed at each Gauss point
     }
 }
 

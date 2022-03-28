@@ -98,7 +98,6 @@ BoundedVector<double, 8> CompressibleNavierStokesExplicitCondition<2,2>::Calcula
     BoundedVector<double, BlockSize*NumNodes> rRightHandSideBoundedVector = ZeroVector(BlockSize*NumNodes);
 
     const auto data = ConditionData(rCurrentProcessInfo);
-    const array_1d<double, 3>& normal = GetValue(NORMAL);
 
     //substitute_rhs_2D_fluxes
 

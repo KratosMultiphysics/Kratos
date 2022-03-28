@@ -139,7 +139,7 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
         Ug  = defs.Vector('Ug', block_size, real=True)             # Dofs vector
         H   = defs.Matrix('H', block_size, dim, real=True)         # Gradient of Ug
         V   = defs.Vector('V', block_size, real=True)              # Test function
-        n   = defs.Vector('normal', dim, real=True)                # Normal vector
+        n   = defs.Vector('data.unit_normal', dim, real=True)      # Normal vector
 
         # Test functions defintion
         w = defs.Matrix('w', n_nodes, block_size, real=True)
