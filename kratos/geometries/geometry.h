@@ -454,7 +454,7 @@ public:
         return mPoints(i);
     }
 
-    const PointPointerType operator()(const SizeType& i) const
+    PointerToConstPointType operator()(const SizeType& i) const
     {
         return mPoints(i);
     }
