@@ -1022,16 +1022,16 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         double DamageIndicator = mDamageIndicator; // Onset of Damage
         // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
         const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-        double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2); // Damage Initiation Criterion
-        if (Fd >= 1 || DamageIndicator >= 2) {
-            Delta_eq = std::sqrt(std::pow(strain_vector[2],2)+std::pow(strain_vector[4],2)+std::pow(strain_vector[5],2));
-            if (DamageIndicator == 1) { // We calculate Elastic energy and mode mix only at damage initiation
-                T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2)+std::pow(undamaged_auxiliar_stress_vector[4],2)+std::pow(undamaged_auxiliar_stress_vector[5],2));
-                double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2;
-                double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2;
-                double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2;
+        double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        if (Fd >= 1.0 || DamageIndicator >= 2.0) {
+            Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
+            if (DamageIndicator == 1.0) { // We calculate Elastic energy and mode mix only at damage initiation
+                T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+                double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+                double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
+                double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
                 double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-                Elastic_energy = (T_eq * Delta_eq /2);
+                Elastic_energy = (T_eq * Delta_eq /2.0);
                 Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
                 Delta_eq_max = Delta_eq;
             }
@@ -1042,78 +1042,18 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             }
             auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
             auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-            auxiliar_stress_vector[2] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[2];
+            auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
             auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-            auxiliar_stress_vector[4] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-            auxiliar_stress_vector[5] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-            T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2)+std::pow(auxiliar_stress_vector[4],2)+std::pow(auxiliar_stress_vector[5],2));
-            DamageIndicator += 1;
+            auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
+            auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
+            T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2.0)+std::pow(auxiliar_stress_vector[4],2.0)+std::pow(auxiliar_stress_vector[5],2.0));
+            DamageIndicator += 1.0;
         } else { // Undamaged Case
             auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
         }
 
         // End Delamination Damage Criterion V1
 
-        // 
-        
-        // Delamination Damage Criterion V2
-        // const double T0n = 16000000; // Interfacial Normal Strength
-        // const double T0s = 27000000; // Interfacial Shear Strength
-        // const double T0t = 27000000; // Interfacial Shear Strength
-        // const double GIc = 102; // Mode I Energy Release Rate
-        // const double GIIc = 194; // Mode II Energy Release Rate
-        // const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
-        // double Gc = mGc; // Mix Mode Energy Release Rate
-        // double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
-        // double SERR = mSERR; // Strain Energy Release Rate 
-        // double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
-        // double Delta_eq = 0; // Equivalent Strain
-        // double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
-        // double T_eq = mT_eq; // Equivalent Stress
-        // double DamageIndicator = mDamageIndicator; // Onset of Damage
-        // Vector strain_vector_internal = strain_vector;
-        // Vector stress_vector_internal = undamaged_auxiliar_stress_vector;
-        // if(strain_vector_internal[2] < 0) {
-        //     strain_vector_internal[2] = 0;
-        // }
-        // if(stress_vector_internal[2] < 0) {
-        //     stress_vector_internal[2] = 0;
-        // }
-        // // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
-        // const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-        // double Fd = (stress_vector_internal[2] * stress_vector_internal[2] / T0n) + (stress_vector_internal[4] * stress_vector_internal[4] / T0s) + (stress_vector_internal[5] * stress_vector_internal[5] / T0t); // Damage Initiation Criterion
-        // if (Fd >= 1 || DamageIndicator >= 2) {
-        //     Delta_eq = std::sqrt(strain_vector_internal[2] * strain_vector_internal[2] + strain_vector_internal[4] * strain_vector_internal[4] + strain_vector_internal[5] * strain_vector_internal[5]);
-        //     if (DamageIndicator == 1) { // We calculate Elastic energy and mode mix only at damage initiation
-        //         T_eq = std::sqrt(stress_vector_internal[2] * stress_vector_internal[2] + stress_vector_internal[4] * stress_vector_internal[4] + stress_vector_internal[5] * stress_vector_internal[5]);
-        //         double Gn = stress_vector_internal[2] * strain_vector_internal[2] / 2;
-        //         double Gs = stress_vector_internal[4] * strain_vector_internal[4] / 2;
-        //         double Gt = stress_vector_internal[5] * strain_vector_internal[5] / 2;
-        //         double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-        //         Elastic_energy = (T_eq * Delta_eq /2);
-        //         Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-        //         Delta_eq_max = Delta_eq;
-        //     }
-        //     if (Delta_eq >= Delta_eq_max) { // Loading
-        //         SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
-        //         delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
-        //         Delta_eq_max = Delta_eq;
-        //     }
-        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-        //     auxiliar_stress_vector[2] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-        //     auxiliar_stress_vector[4] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-        //     auxiliar_stress_vector[5] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-        //     T_eq = std::sqrt(stress_vector_internal[2] * stress_vector_internal[2] + stress_vector_internal[4] * stress_vector_internal[4] + stress_vector_internal[5] * stress_vector_internal[5]);
-        //     DamageIndicator += 1;
-        // } else { // Undamaged Case
-        //     auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
-        // }
-
-        // End Delamination Damage Criterion V2
-
-        //
 
         // KRATOS_WATCH(delamination_damage);
         
@@ -1544,7 +1484,8 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
 
         //
 
-        // Delamination Damage Criterion
+        // Delamination Damage Criterion V1
+
         const double T0n = 16000000; // Interfacial Normal Strength
         const double T0s = 27000000; // Interfacial Shear Strength
         const double T0t = 27000000; // Interfacial Shear Strength
@@ -1561,16 +1502,16 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         double DamageIndicator = mDamageIndicator; // Onset of Damage
         // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
         const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-        double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2); // Damage Initiation Criterion
-        if (Fd >= 1 || DamageIndicator >= 2) {
-            Delta_eq = std::sqrt(std::pow(strain_vector[2],2)+std::pow(strain_vector[4],2)+std::pow(strain_vector[5],2));
-            if (DamageIndicator == 1) { // We calculate Elastic energy and mode mix only at damage initiation
-                T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2)+std::pow(undamaged_auxiliar_stress_vector[4],2)+std::pow(undamaged_auxiliar_stress_vector[5],2));
-                double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2;
-                double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2;
-                double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2;
+        double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        if (Fd >= 1.0 || DamageIndicator >= 2.0) {
+            Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
+            if (DamageIndicator == 1.0) { // We calculate Elastic energy and mode mix only at damage initiation
+                T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+                double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+                double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
+                double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
                 double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-                Elastic_energy = (T_eq * Delta_eq /2);
+                Elastic_energy = (T_eq * Delta_eq /2.0);
                 Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
                 Delta_eq_max = Delta_eq;
             }
@@ -1581,19 +1522,21 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             }
             auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
             auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-            auxiliar_stress_vector[2] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[2];
+            auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
             auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-            auxiliar_stress_vector[4] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-            auxiliar_stress_vector[5] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[5];
-            T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2)+std::pow(auxiliar_stress_vector[4],2)+std::pow(auxiliar_stress_vector[5],2));
-            DamageIndicator += 1;
+            auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
+            auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
+            T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2.0)+std::pow(auxiliar_stress_vector[4],2.0)+std::pow(auxiliar_stress_vector[5],2.0));
+            DamageIndicator += 1.0;
         } else { // Undamaged Case
             auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
         }
 
-        //
+        // End Delamination Damage Criterion V1
 
 
+        // KRATOS_WATCH(delamination_damage);
+        
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
         mT_eq = T_eq;                                        // Equivalent Stress
@@ -1608,7 +1551,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         //     this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
         // }
 
-        // KRATOS_WATCH(mdelamination_damage);
+        KRATOS_WATCH(mdelamination_damage);
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
@@ -1620,162 +1563,6 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
 
 
     // Until here, we finilaze delamination damage V1
-
-
-
-
-    // From here, we finilaze delamination damage V2
-
-    // KRATOS_TRY;
-
-    // // Get Values to compute the constitutive law:
-    // Flags& r_flags = rValues.GetOptions();
-
-    // // Previous flags saved
-    // const bool flag_strain       = r_flags.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-    // const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-    // const bool flag_stress       = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
-
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-    // // The deformation gradient
-    // if (rValues.IsSetDeterminantF()) {
-    //     const double determinant_f = rValues.GetDeterminantF();
-    //     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
-    // }
-
-    // // All the strains must be the same, therefore we can just simply compute the strain in the first layer
-    // if (r_flags.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    //     CalculateGreenLagrangeStrain(rValues);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    // }
-
-    // // The global strain vector, constant
-    // const Vector strain_vector = rValues.GetStrainVector();
-
-    // if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-    //     // Set new flags
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-    //     // Auxiliar stress vector
-    //     const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
-    //     Vector auxiliar_stress_vector  = ZeroVector(VoigtSize);
-    //     Vector undamaged_auxiliar_stress_vector  = ZeroVector(VoigtSize);
-
-    //     // The rotation matrix
-    //     BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
-
-    //     for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-
-    //         this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
-
-    //         Properties& r_prop             = *(it_prop_begin + i_layer);
-    //         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-    //         const double factor            = mCombinationFactors[i_layer];
-
-    //         // We rotate to local axes the strain
-    //         noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
-
-    //         rValues.SetMaterialProperties(r_prop);
-    //         p_law->CalculateMaterialResponsePK2(rValues);
-
-    //         // we return the stress and constitutive tensor to the global coordinates
-    //         rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-    //         noalias(undamaged_auxiliar_stress_vector) += factor * rValues.GetStressVector();
-
-    //         // we reset the properties and Strain
-    //         rValues.SetMaterialProperties(r_material_properties);
-    //         noalias(rValues.GetStrainVector()) = strain_vector;
-    //     }
-
-        
-    //     // Delamination Damage Criterion V2
-    //     const double T0n = 16000000; // Interfacial Normal Strength
-    //     const double T0s = 27000000; // Interfacial Shear Strength
-    //     const double T0t = 27000000; // Interfacial Shear Strength
-    //     const double GIc = 102; // Mode I Energy Release Rate
-    //     const double GIIc = 194; // Mode II Energy Release Rate
-    //     const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
-    //     double Gc = mGc; // Mix Mode Energy Release Rate
-    //     double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
-    //     double SERR = mSERR; // Strain Energy Release Rate 
-    //     double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
-    //     double Delta_eq = 0; // Equivalent Strain
-    //     double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
-    //     double T_eq = mT_eq; // Equivalent Stress
-    //     double DamageIndicator = mDamageIndicator; // Onset of Damage
-    //     Vector strain_vector_internal = strain_vector;
-    //     Vector stress_vector_internal = undamaged_auxiliar_stress_vector;
-    //     if(strain_vector_internal[2] < 0) {
-    //         strain_vector_internal[2] = 0;
-    //     }
-    //     if(stress_vector_internal[2] < 0) {
-    //         stress_vector_internal[2] = 0;
-    //     }
-    //     // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
-    //     const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-    //     double Fd = (stress_vector_internal[2] * stress_vector_internal[2] / T0n) + (stress_vector_internal[4] * stress_vector_internal[4] / T0s) + (stress_vector_internal[5] * stress_vector_internal[5] / T0t); // Damage Initiation Criterion
-    //     if (Fd >= 1 || DamageIndicator >= 2) {
-    //         Delta_eq = std::sqrt(strain_vector_internal[2] * strain_vector_internal[2] + strain_vector_internal[4] * strain_vector_internal[4] + strain_vector_internal[5] * strain_vector_internal[5]);
-    //         if (DamageIndicator == 1) { // We calculate Elastic energy and mode mix only at damage initiation
-    //             T_eq = std::sqrt(stress_vector_internal[2] * stress_vector_internal[2] + stress_vector_internal[4] * stress_vector_internal[4] + stress_vector_internal[5] * stress_vector_internal[5]);
-    //             double Gn = stress_vector_internal[2] * strain_vector_internal[2] / 2;
-    //             double Gs = stress_vector_internal[4] * strain_vector_internal[4] / 2;
-    //             double Gt = stress_vector_internal[5] * strain_vector_internal[5] / 2;
-    //             double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-    //             Elastic_energy = (T_eq * Delta_eq /2);
-    //             Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-    //             Delta_eq_max = Delta_eq;
-    //         }
-    //         if (Delta_eq >= Delta_eq_max) { // Loading
-    //             SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
-    //             delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
-    //             Delta_eq_max = Delta_eq;
-    //         }
-    //         auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-    //         auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-    //         auxiliar_stress_vector[2] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-    //         auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-    //         auxiliar_stress_vector[4] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-    //         auxiliar_stress_vector[5] = (1-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-    //         T_eq = std::sqrt(stress_vector_internal[2] * stress_vector_internal[2] + stress_vector_internal[4] * stress_vector_internal[4] + stress_vector_internal[5] * stress_vector_internal[5]);
-    //         DamageIndicator += 1;
-    //     } else { // Undamaged Case
-    //         auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
-    //     }
-
-    //     // End Delamination Damage Criterion V2
-
-    //     //
-
-    //     // KRATOS_WATCH(delamination_damage);
-        
-    //     noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
-
-
-    //     mT_eq = T_eq;                                        // Equivalent Stress
-    //     mDamageIndicator = DamageIndicator;                  // Onset of Damage
-    //     mGc = Gc;                                            // Mix Mode Energy Release Rate
-    //     mElastic_energy = Elastic_energy;                    // Elastic energy stored before damage initiation 
-    //     mSERR = SERR;                                        // Strain Energy Release Rate
-    //     mdelamination_damage = delamination_damage;          // Scalar delamination damage variable  
-    //     mDelta_eq_max = Delta_eq_max;                        // Equivalent Strain History Variable
-
-    //     // if (flag_const_tensor) {
-    //     //     this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
-    //     // }
-
-    //     // Previous flags restored
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
-    //     r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
-    //     r_flags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain);
-    // }
-
-    // KRATOS_CATCH("");
-
-
-    // Until here, we finilaze delamination damage V2
 
 
 }
