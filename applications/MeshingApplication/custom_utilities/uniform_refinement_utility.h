@@ -312,7 +312,7 @@ private:
      * @param rTagNodes  The map with the vector of Id's associated to the tag
      */
     typename NodeType::Pointer GetNodeInEdge(
-        const EdgeType& rEdge,
+        EdgeType& rEdge,
         const int& rNumberOfDivisions,
         IndexIndexVectorMapType& rTagNodes,
         const IndexType& rCollectionTag
@@ -328,7 +328,7 @@ private:
      * @param rNodeKey The pair of Id's of the edge nodes
      */
     typename NodeType::Pointer CreateNodeInEdge(
-        const EdgeType& rEdge,
+        EdgeType& rEdge,
         const int& rNumberOfDivisions,
         const EdgeKeyType& rNodeKey
         );
@@ -341,7 +341,7 @@ private:
      * @param rTagNodes The map with the vector of Id's associated to the tag
      */
     typename NodeType::Pointer GetNodeInFace(
-        const FaceType& rFace,
+        FaceType& rFace,
         const int& rNumberOfDivisions,
         IndexIndexVectorMapType& rTagNodes,
         const IndexType& rCollectionTag
@@ -356,7 +356,7 @@ private:
      * @param rNodeKey The pair of Id's of the edge nodes
      */
     typename NodeType::Pointer CreateNodeInFace(
-        const FaceType& rFace,
+        FaceType& rFace,
         const int& rNumberOfDivisions,
         const FaceKeyType& rNodeKey
         );
@@ -384,8 +384,8 @@ private:
      */
     void CalculateNodalStepData(
         NodeType::Pointer pNewNode,
-        const NodeType::Pointer pNode0,
-        const NodeType::Pointer pNode1
+        NodeType::Pointer pNode0,
+        NodeType::Pointer pNode1
         );
 
     /**
@@ -399,10 +399,10 @@ private:
      */
     void CalculateNodalStepData(
         NodeType::Pointer pNewNode,
-        const NodeType::Pointer pNode0,
-        const NodeType::Pointer pNode1,
-        const NodeType::Pointer pNode2,
-        const NodeType::Pointer pNode3
+        NodeType::Pointer pNode0,
+        NodeType::Pointer pNode1,
+        NodeType::Pointer pNode2,
+        NodeType::Pointer pNode3
         );
 
     /**

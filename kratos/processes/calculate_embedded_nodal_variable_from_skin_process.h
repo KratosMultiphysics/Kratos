@@ -515,7 +515,7 @@ protected:
             if (r_int_obj_vect[i_elem].size() != 0) {
                 // Initialize the element values
                 auto &r_geom = it_elem->GetGeometry();
-                const auto edges = r_geom.GenerateEdges();
+                auto edges = r_geom.GenerateEdges();
 
                 // Loop the edges
                 for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
@@ -716,7 +716,7 @@ private:
     }
 
     void AddEdgeNodes(
-        const Geometry<Node<3>> &rEdgeGeometry,
+        Geometry<Node<3>> &rEdgeGeometry,
         ModelPart &rModelPart) const
     {
         // Loop the edge nodes

@@ -404,9 +404,9 @@ private:
      */
     template<class TDataType, bool IsHistorical>
     void InterpolateVariablesListValues(
-        const Node<3>::Pointer& rpNode,
-        const Node<3>::Pointer& rpNodeI,
-        const Node<3>::Pointer& rpNodeJ,
+        Node<3>& rpNode,
+        Node<3>& rpNodeI,
+        Node<3>& rpNodeJ,
         const double WeightI,
         const double WeightJ,
         const std::vector<const Variable<TDataType>*>& rVariablesList);

@@ -59,14 +59,14 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
     for (auto it = r_elem_weights.begin(); it != r_elem_weights.end(); ++it) {
         // Get element from origin mesh
         const IndexType elem_id = stoi(it.name());
-        const auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
+        auto p_elem = rOriginModelPart.pGetElement(elem_id + 1); //FIXME: WHY THIS +1?
 
         // Add the element to the auxiliary container and to the main HROM model part
         hrom_elems_vect.push_back(p_elem);
         rHRomComputingModelPart.AddElement(p_elem);
 
         // Add the element nodes to the auxiliary set and to the main HROM model part
-        const auto& r_geom = p_elem->GetGeometry();
+        auto& r_geom = p_elem->GetGeometry();
         const SizeType n_nodes = r_geom.PointsNumber();
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             NodeType::Pointer p_node = r_geom(i_node);
@@ -88,7 +88,7 @@ void RomAuxiliaryUtilities::SetHRomComputingModelPart(
         rHRomComputingModelPart.AddCondition(p_cond);
 
         // Add the condition nodes to the auxiliary set and to the main HROM model part
-        const auto& r_geom = p_cond->GetGeometry();
+        auto& r_geom = p_cond->GetGeometry();
         const SizeType n_nodes = r_geom.PointsNumber();
         for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
             auto p_node = r_geom(i_node);
@@ -232,7 +232,7 @@ void RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart(
             skin_geom_prototypes.push_back(p_bd_geom_prot);
 
             // Add current boundary face nodes to the auxiliary set
-            const auto& r_geom = *p_bd_geom_prot;
+            auto& r_geom = *p_bd_geom_prot;
             const SizeType n_face_nodes = r_geom.PointsNumber();
             for (IndexType i_node = 0; i_node < n_face_nodes; ++i_node) {
                 auto p_node = r_geom(i_node);

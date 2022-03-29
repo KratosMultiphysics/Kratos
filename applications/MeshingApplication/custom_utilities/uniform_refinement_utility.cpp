@@ -257,8 +257,10 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(3); // 3 edges
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.GenerateEdges())
-                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
+            for (auto edge : geom.GenerateEdges()) {
+                EdgeType tmp {edge};
+                middle_nodes[i_node++] = GetNodeInEdge(tmp, step_divisions_level, rTagNodes, collection_tag);
+            }
 
             // Split the triangle
             PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
@@ -275,9 +277,12 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(5); // 4 edges and the quadrilateral itself
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.GenerateEdges())
-                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
-            middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes, collection_tag);
+            for (auto edge : geom.GenerateEdges()) {
+                EdgeType tmp{edge};
+                middle_nodes[i_node++] = GetNodeInEdge(tmp, step_divisions_level, rTagNodes, collection_tag);
+            }
+            FaceType tmp{geom};
+            middle_nodes[i_node++] = GetNodeInFace(tmp, step_divisions_level, rTagNodes, collection_tag);
 
             // Split the quadrilateral
             PointerVector<NodeType> sub_element_nodes(4);    // a quadrilateral is defined by 4 nodes
@@ -294,8 +299,10 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(6); // 6 edges
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.GenerateEdges())
-                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
+            for (auto edge : geom.GenerateEdges()) {
+                EdgeType tmp {edge};
+                middle_nodes[i_node++] = GetNodeInEdge(tmp, step_divisions_level, rTagNodes, collection_tag);
+            }
 
             // Split the tetrahedra
             PointerVector<NodeType> sub_element_nodes(4);    // a tetrahedra is defined by 4 nodes
@@ -312,10 +319,14 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(19); // 12 edges, 6 faces and the hexahedra itself
 
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.GenerateEdges())
-                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
-            for (auto face : geom.GenerateFaces())
-                middle_nodes[i_node++] = GetNodeInFace(FaceType{face}, step_divisions_level, rTagNodes, collection_tag);
+            for (auto edge : geom.GenerateEdges()) {
+                EdgeType tmp{edge};
+                middle_nodes[i_node++] = GetNodeInEdge(tmp, step_divisions_level, rTagNodes, collection_tag);
+            }
+            for (auto face : geom.GenerateFaces()) {
+                FaceType tmp{face};
+                middle_nodes[i_node++] = GetNodeInFace(tmp, step_divisions_level, rTagNodes, collection_tag);
+            }
             middle_nodes[i_node++] = GetNodeInBody(BodyType{geom}, step_divisions_level, rTagNodes,collection_tag);
 
             // Split the hexahedra
@@ -353,7 +364,8 @@ void UniformRefinementUtility::ExecuteDivision(
 
         if (geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
         {
-            NodeType::Pointer middle_node = GetNodeInEdge(EdgeType{geom}, step_divisions_level, rTagNodes, collection_tag);
+            EdgeType tmp{geom};
+            NodeType::Pointer middle_node = GetNodeInEdge(tmp, step_divisions_level, rTagNodes, collection_tag);
 
             // Create the sub conditions
             PointerVector<NodeType> sub_condition_nodes(2);
@@ -369,8 +381,10 @@ void UniformRefinementUtility::ExecuteDivision(
             IndexType i_node = 0;
             std::vector<NodeType::Pointer> middle_nodes(3);
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.GenerateEdges())
-                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
+            for (auto edge : geom.GenerateEdges()) {
+                EdgeType tmp {edge};
+                middle_nodes[i_node++] = GetNodeInEdge(tmp, step_divisions_level, rTagNodes, collection_tag);
+            }
 
             PointerVector<NodeType> sub_condition_nodes(3);    // a triangle is defined by 3 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub triangles
@@ -385,9 +399,12 @@ void UniformRefinementUtility::ExecuteDivision(
             IndexType i_node = 0;
             std::vector<NodeType::Pointer> middle_nodes(5);
             // Loop the edges to get or create the middle nodes
-            for (auto edge : geom.GenerateEdges())
-                middle_nodes[i_node++] = GetNodeInEdge(EdgeType{edge}, step_divisions_level, rTagNodes, collection_tag);
-            middle_nodes[i_node++] = GetNodeInFace(FaceType{geom}, step_divisions_level, rTagNodes, collection_tag);
+            for (auto edge : geom.GenerateEdges()) {
+                EdgeType tmp {edge};
+                middle_nodes[i_node++] = GetNodeInEdge(tmp, step_divisions_level, rTagNodes, collection_tag);
+            }
+            FaceType tmp{geom};
+            middle_nodes[i_node++] = GetNodeInFace(tmp, step_divisions_level, rTagNodes, collection_tag);
 
             PointerVector<NodeType> sub_condition_nodes(4);    // a quadrilateral is defined by 4 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub quadrilaterals
@@ -412,7 +429,7 @@ void UniformRefinementUtility::ExecuteDivision(
 
 /// Get the middle node on an edge
 typename NodeType::Pointer UniformRefinementUtility::GetNodeInEdge(
-    const EdgeType& rEdge,
+    EdgeType& rEdge,
     const int& rNumberOfDivisions,
     IndexIndexVectorMapType& rTagNodes,
     const IndexType& rCollectionTag
@@ -449,7 +466,7 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInEdge(
 
 /// Create a middle node on an edge. If the node does not exist, it creates one
 typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
-    const EdgeType& rEdge,
+    EdgeType& rEdge,
     const int& rNumberOfDivisions,
     const EdgeKeyType& rNodeKey
 )
@@ -486,7 +503,7 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
 typename NodeType::Pointer UniformRefinementUtility::GetNodeInFace(
-    const FaceType& rFace,
+    FaceType& rFace,
     const int& rNumberOfDivisions,
     IndexIndexVectorMapType& rTagNodes,
     const IndexType& rCollectionTag
@@ -523,7 +540,7 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInFace(
 
 /// Get the middle node on a face defined by four nodes. If the node does not exist, it creates one
 typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
-    const FaceType& rFace,
+    FaceType& rFace,
     const int& rNumberOfDivisions,
     const FaceKeyType& rNodeKey
 )
@@ -603,8 +620,8 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInBody(
 /// Compute the nodal data of a node
 void UniformRefinementUtility::CalculateNodalStepData(
     NodeType::Pointer pNewNode,
-    const NodeType::Pointer pNode0,
-    const NodeType::Pointer pNode1
+    NodeType::Pointer pNode0,
+    NodeType::Pointer pNode1
     )
 {
     for (IndexType step = 0; step < mBufferSize; step++)
@@ -635,9 +652,9 @@ void UniformRefinementUtility::CalculateNodalStepData(
 void UniformRefinementUtility::CalculateNodalStepData(
     NodeType::Pointer pNewNode,
     const NodeType::Pointer pNode0,
-    const NodeType::Pointer pNode1,
-    const NodeType::Pointer pNode2,
-    const NodeType::Pointer pNode3
+    NodeType::Pointer pNode1,
+    NodeType::Pointer pNode2,
+    NodeType::Pointer pNode3
 )
 {
     for (IndexType step = 0; step < mBufferSize; step++)
