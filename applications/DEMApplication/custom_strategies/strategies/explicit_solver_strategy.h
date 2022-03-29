@@ -41,6 +41,7 @@
 
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/rigid_body_element.h"
+#include "custom_elements/inlet_element.h"
 ////Cfeng
 #include "custom_utilities/dem_fem_search.h"
 #include "custom_utilities/discrete_particle_configure.h"
@@ -230,6 +231,7 @@ namespace Kratos {
         void InitializeElements();
         void InitializeDEMElements();
         void InitializeFEMElements();
+        void InitializeInletElements();
         //void InitializeRigidBodyElements();
         void InitializeFEMWallsAsRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part);
         void MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart);

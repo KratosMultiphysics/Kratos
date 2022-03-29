@@ -158,8 +158,9 @@ namespace Kratos {
         GetSearchControl() = r_process_info[SEARCH_CONTROL];
 
         InitializeDEMElements();
-
         InitializeFEMElements();
+        InitializeInletElements();
+
         UpdateMaxIdOfCreatorDestructor();
         InitializeClusters(); // This adds elements to the balls modelpart
 
@@ -696,7 +697,7 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::InitializeElements() {
+    void ExplicitSolverStrategy::InitializeElements() { // Is it being used?
         KRATOS_TRY
         ModelPart& r_model_part = GetModelPart();
         const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -722,6 +723,133 @@ namespace Kratos {
             mListOfSphericParticles[i]->Initialize(r_process_info);
             total_mass += mListOfSphericParticles[i]->GetMass();
         });
+
+        KRATOS_CATCH("")
+    }
+
+
+    void ExplicitSolverStrategy::InitializeInletElements() {
+        /*
+        no ens fan falta els elements pero si que sha de crear un node central per cada inlet. Volem que es comporti com un element pero al crear els injectors els agreguem al model part de spheres ja que han de interactuar amb les esferes que sstan inyectan.
+        Agregar el node central al smp de inlet?
+        */
+
+        KRATOS_TRY
+
+        //ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
+        ModelPart& inlet_model_part = GetInletModelPart();
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+
+        if (inlet_model_part.NumberOfSubModelParts()) {
+
+            // per cada grup de injectors|inlet:
+            for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_model_part.SubModelPartsBegin(); sub_model_part != inlet_model_part.SubModelPartsEnd(); ++sub_model_part) {
+
+                ModelPart& submp = *sub_model_part;
+                NodesArrayType& pNodes = sub_model_part->Nodes();
+
+                if (submp.Has(RIGID_BODY_OPTION)) {
+                    if (submp[RIGID_BODY_OPTION] == false) {
+                        continue;
+                    } else {
+                        CheckIfSubModelPartHasVariable(submp, RIGID_BODY_MASS);
+                        CheckIfSubModelPartHasVariable(submp, RIGID_BODY_CENTER_OF_ROTATION);
+                        CheckIfSubModelPartHasVariable(submp, RIGID_BODY_INERTIAS);
+                        CheckIfSubModelPartHasVariable(submp, ORIENTATION);
+                    }
+                } else {
+                    continue;
+                }
+
+                // block_for_each(pTConditions, [&](ModelPart::ConditionType& rTCondition){
+                //     rTCondition.Initialize(r_process_info);
+                // });
+
+                if (!r_process_info[IS_RESTARTED]){
+                    // Central Node
+                    Node<3>::Pointer central_node;
+                    Geometry<Node<3> >::PointsArrayType central_node_list;
+
+                    array_1d<double, 3> reference_coordinates = ZeroVector(3);
+
+                    if (submp.Has(RIGID_BODY_CENTER_OF_ROTATION)) {
+                        reference_coordinates[0] = submp[RIGID_BODY_CENTER_OF_ROTATION][0];
+                        reference_coordinates[1] = submp[RIGID_BODY_CENTER_OF_ROTATION][1];
+                        reference_coordinates[2] = submp[RIGID_BODY_CENTER_OF_ROTATION][2];
+                    }
+                    // busquem el maxim id actual i creem el seguent. al agregarlo al mp, multiples inlets crearan centrals amb ids cada cop mes grans.
+
+                    int Node_Id_1 = mpParticleCreatorDestructor->FindMaxNodeIdInModelPart(inlet_model_part);
+
+                    mpParticleCreatorDestructor->CentroidCreatorForRigidBodyElements(inlet_model_part, central_node, Node_Id_1 + 1, reference_coordinates);
+
+                    // llista amb els nodes centrals dels diferents inlets smp
+                    central_node_list.push_back(central_node);
+
+                    int Element_Id_1 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(inlet_model_part);
+
+                    Properties::Pointer properties;
+                    KRATOS_ERROR_IF(!submp.Has(PROPERTIES_ID))<<"PROPERTIES_ID is not set for SubModelPart "<<submp.Name()<<" . Make sure the Materials file contains material assignation for this SubModelPart"<<std::endl;
+                    properties = GetModelPart().GetMesh().pGetProperties(submp[PROPERTIES_ID]);
+
+                    std::string ElementNameString = "InletElement3D";
+
+                    // es crea el element de referencia a les coordenades pasades amb node_id definit a dalt.
+                    const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+                    Element::Pointer InletElement3D_Kratos = r_reference_element.Create(Element_Id_1 + 1, central_node_list, properties);
+                    InletElement3D* inlet_element = dynamic_cast<InletElement3D*>(InletElement3D_Kratos.get());
+
+                    inlet_model_part.AddElement(InletElement3D_Kratos);
+                    submp.AddElement(InletElement3D_Kratos);
+
+                    std::size_t element_id = Element_Id_1 + 1;
+
+                    bool do_compute_forces = false;
+
+                    if (central_node->Is(DEMFlags::FIXED_VEL_X) && central_node->Is(DEMFlags::FIXED_VEL_Y) && central_node->Is(DEMFlags::FIXED_VEL_Z) && central_node->Is(DEMFlags::FIXED_ANG_VEL_X) && central_node->Is(DEMFlags::FIXED_ANG_VEL_Y) && central_node->Is(DEMFlags::FIXED_ANG_VEL_Z)){
+                        do_compute_forces = false;
+                    } else {do_compute_forces = true;}
+
+                    if (do_compute_forces) {central_node->Set(DEMFlags::INTEGRATE_FORCES_AND_MOMENTS, true);}
+
+                    std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
+                    thread_vectors_of_node_pointers.resize(mNumberOfThreads);
+                    std::vector<std::vector<array_1d<double, 3> > > thread_vectors_of_coordinates;
+                    thread_vectors_of_coordinates.resize(mNumberOfThreads);
+
+                    #pragma omp parallel for
+                    for (int k = 0; k < (int)pNodes.size(); k++) {
+                        ModelPart::NodeIterator i = pNodes.ptr_begin() + k;
+                        thread_vectors_of_node_pointers[OpenMPUtils::ThisThread()].push_back(*(i.base()));
+                        thread_vectors_of_coordinates[OpenMPUtils::ThisThread()].push_back(i->Coordinates() - reference_coordinates);
+                    }
+                    for (int i = 0; i < mNumberOfThreads; i++) {
+                        inlet_element->mListOfNodes.insert(inlet_element->mListOfNodes.end(), thread_vectors_of_node_pointers[i].begin(), thread_vectors_of_node_pointers[i].end());
+                        inlet_element->mListOfCoordinates.insert(inlet_element->mListOfCoordinates.end(), thread_vectors_of_coordinates[i].begin(), thread_vectors_of_coordinates[i].end());
+                    }
+
+                    inlet_element->Initialize(r_process_info);
+
+                    // com agreguem els elements de inlet al modelpart de sferes?
+                    //al old inlet.cpp ho feien al initialize via ElementCreatorWithPhysicalParameters + dynamic cast
+                    //inlet_element.CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part, p_fast_properties, continuum_strategy);
+
+
+                // } else { // revisar el restart per inlet_elements
+
+                //     // There is no need to create the rigid body elements, they already there
+                //     // But they need to be initialized
+                //     ElementsArrayType& pFemElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
+
+                //     for (int k = 0; k < (int) pFemElements.size(); k++) {
+                //         ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
+                //         RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
+                //         rigid_body_element.Initialize(r_process_info);
+                //         rigid_body_element.CustomInitialize(submp);
+                //     }
+                }
+            }
+        }
 
         KRATOS_CATCH("")
     }

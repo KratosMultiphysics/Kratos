@@ -26,6 +26,7 @@
 #include "custom_processes/apply_moments_process.hpp"
 #include "custom_processes/control_module_2d_process.hpp"
 #include "custom_processes/automatic_dt_process.hpp"
+#include "custom_processes/apply_particle_injection_process.hpp"
 
 namespace Kratos
 {
@@ -62,6 +63,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<AutomaticDTProcess, AutomaticDTProcess::Pointer, Process>
     (m, "AutomaticDTProcess")
     .def( py::init< ModelPart&, Parameters>());
+
+    py::class_<ApplyParticleInjectionProcess, ApplyParticleInjectionProcess::Pointer, Process>
+    (m, "ApplyParticleInjectionProcess")
+    .def(py::init < ModelPart&, Parameters >());
 
 }
 

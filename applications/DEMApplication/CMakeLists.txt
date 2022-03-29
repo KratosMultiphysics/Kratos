@@ -24,8 +24,10 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cylinder_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cluster3D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rigid_body_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/ship_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/inlet_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/contact_info_spheric_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/polyhedron_skin_spheric_particle.cpp
     #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/analytic_rigid_body_element.cpp
@@ -37,7 +39,6 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/symplectic_euler_scheme.cpp
@@ -98,6 +99,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_generalized_2d_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_velocity_constraints_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_angular_velocity_constraints_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_particle_injection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_moments_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/random_variable.cpp

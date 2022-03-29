@@ -27,6 +27,7 @@
 #include "custom_elements/cluster3D.h"
 #include "custom_elements/rigid_body_element.h"
 #include "custom_elements/ship_element.h"
+#include "custom_elements/inlet_element.h"
 #include "custom_elements/contact_info_spheric_particle.h"
 #include "custom_elements/bonding_spheric_continuum_particle.h"
 #include "custom_elements/custom_clusters/singlespherecluster3D.h"
@@ -106,6 +107,7 @@ private:
     const RigidEdge2D  mRigidEdge2D1N;
     const RigidBodyElement3D mRigidBodyElement3D;
     const ShipElement3D mShipElement3D;
+    const InletElement3D mInletElement3D;
     const ContactInfoSphericParticle mContactInfoSphericParticle3D;
     const Cluster3D  mCluster3D;
     const SingleSphereCluster3D  mSingleSphereCluster3D;
