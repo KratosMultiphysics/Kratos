@@ -24,7 +24,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 # Find trilinos solver package -- this is our own find package!!
 IF(NOT TRILINOS_FOUND)
     MESSAGE( FATAL_ERROR "Could not find Trilinos or one of its packages. Please set the cmake var TRILINOS_ROOT or the environment vars TRILINOS_INCLUDE_DIR and TRILINOS_LIBRARY_DIR, note also that if in your system the library have a prefix, like \"libtrilinos_epetra.so\" instead of \"libepetra.so\" you can specify the prefix by the variable -DTRILINOS_LIBRARY_PREFIX=\"trilinos_\" "    )
-ENDIF(TRILINOS_FOUND)
+ENDIF(NOT TRILINOS_FOUND)
 
 # Amesos2 is currenlty under development and is disabled by default. This can be removed in the future to enable it by default.
 OPTION ( TRILINOS_EXCLUDE_AMESOS2_SOLVER "Exclude Amesos2 Solver" ON )

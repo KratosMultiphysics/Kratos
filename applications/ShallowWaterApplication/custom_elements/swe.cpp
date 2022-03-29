@@ -187,7 +187,7 @@ void SWE<TNumNodes, TFramework>::InitializeElementVariables(
     rVariables.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rVariables.manning2 = 0.0;
     rVariables.porosity = 0.0;
-    rVariables.permeability = rCurrentProcessInfo[PERMEABILITY];
+    rVariables.permeability = 1e-4;  // This is Legacy. The variable PERMEABILITY has been removed to avoid conflict with other applications
     rVariables.discharge_penalty = rCurrentProcessInfo[DRY_DISCHARGE_PENALTY];
 
     const GeometryType& rGeom = GetGeometry();
