@@ -50,6 +50,9 @@ endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 # Setting the libs folder for the shared objects built in kratos
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
 
+# C++ tests (disabled by default)
+OPTION ( KRATOS_BUILD_TESTING "Building the C++ tests" OFF )
+
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
 	message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
@@ -106,9 +109,6 @@ if(NOT CMAKE_BUILD_TYPE)
   endif(DEFINED ENV{KRATOS_BUILD_TYPE})
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-
-# C++ tests (disabled by default)
-OPTION ( KRATOS_BUILD_TESTING "Building the C++ tests" OFF )
 
 # Unitary builds with version is lower than 3.16 deactivate
 IF(CMAKE_VERSION VERSION_LESS "3.16.0")
