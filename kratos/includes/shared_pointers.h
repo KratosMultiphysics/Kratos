@@ -68,27 +68,27 @@ std::ostream& operator <<(std::ostream& rOStream, const Kratos::intrusive_ptr<T>
 } // namespace Kratos
 
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a)                \
-typedef Kratos::shared_ptr<a > Pointer;                   \
-typedef Kratos::shared_ptr<const a > ConstPointer;        \
-typedef Kratos::shared_ptr<a > SharedPointer;             \
-typedef Kratos::shared_ptr<const a > ConstSharedPointer;  \
-typedef Kratos::weak_ptr<a > WeakPointer;                 \
-typedef Kratos::weak_ptr<const a > ConstWeakPointer;      \
-typedef Kratos::unique_ptr<a > UniquePointer;             \
-typedef Kratos::unique_ptr<const a > ConstUniquePointer;
+#define KRATOS_CLASS_POINTER_DEFINITION(a)                  \
+typedef Kratos::shared_ptr<a > Pointer;                     \
+typedef Kratos::shared_ptr<const a > PointerToConst;        \
+typedef Kratos::shared_ptr<a > SharedPointer;               \
+typedef Kratos::shared_ptr<const a > SharedPointerToConst;  \
+typedef Kratos::weak_ptr<a > WeakPointer;                   \
+typedef Kratos::weak_ptr<const a > WeakPointerToConst;      \
+typedef Kratos::unique_ptr<a > UniquePointer;               \
+typedef Kratos::unique_ptr<const a > UniquePointerToConst;
 
 namespace Kratos {
 template< class T > class GlobalPointer;
 }
 
-#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a)            \
-typedef typename Kratos::intrusive_ptr<a > Pointer;             \
-typedef typename Kratos::intrusive_ptr<const a > ConstPointer;  \
-typedef Kratos::GlobalPointer<a > WeakPointer;                  \
-typedef Kratos::GlobalPointer<const a > ConstWeakPointer;       \
-typedef Kratos::unique_ptr<a > UniquePointer;                   \
-typedef Kratos::unique_ptr<const a > ConstUniquePointer;        \
+#define KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(a)              \
+typedef typename Kratos::intrusive_ptr<a > Pointer;               \
+typedef typename Kratos::intrusive_ptr<const a > PointerToConst;  \
+typedef Kratos::GlobalPointer<a > WeakPointer;                    \
+typedef Kratos::GlobalPointer<const a > WeakPointerToConst;       \
+typedef Kratos::unique_ptr<a > UniquePointer;                     \
+typedef Kratos::unique_ptr<const a > UniquePointerToConst;        \
 typename a::Pointer shared_from_this(){ return a::Pointer(this); }
 
 #endif /* KRATOS_MEMORY_H_INCLUDED  defined */

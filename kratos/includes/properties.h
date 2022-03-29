@@ -351,7 +351,7 @@ public:
      * @param SubPropertyIndex The index of the subproperty to be get
      * @return The pointer to the subproperty of interest
      */
-    Properties::ConstPointer pGetSubProperties(const IndexType SubPropertyIndex) const
+    Properties::PointerToConst pGetSubProperties(const IndexType SubPropertyIndex) const
     {
         // Looking into the database
         SubPropertiesConstantIterator property_iterator = mSubPropertiesList.find(SubPropertyIndex);

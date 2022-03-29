@@ -425,7 +425,7 @@ public:
         return mpVariablesList;
     }
 
-    VariablesList::ConstPointer pGetVariablesList() const
+    VariablesList::PointerToConst pGetVariablesList() const
     {
         return mpVariablesList;
     }

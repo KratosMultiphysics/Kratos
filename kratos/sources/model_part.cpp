@@ -685,7 +685,7 @@ ModelPart::PropertiesType::Pointer ModelPart::pGetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-ModelPart::PropertiesType::ConstPointer ModelPart::pGetProperties(
+ModelPart::PropertiesType::PointerToConst ModelPart::pGetProperties(
     IndexType PropertiesId,
     IndexType MeshIndex
     ) const
@@ -760,7 +760,7 @@ bool ModelPart::HasProperties(
     const std::vector<IndexType> component_name = TrimComponentName(rAddress);
     if (HasProperties(component_name[0], MeshIndex)) {
         bool has_properties = true;
-        Properties::ConstPointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        Properties::PointerToConst p_prop = pGetProperties(component_name[0], MeshIndex);
         for (IndexType i = 1; i < component_name.size(); ++i) {
             if (p_prop->HasSubProperties(component_name[i])) {
                 p_prop = p_prop->pGetSubProperties(component_name[i]);
@@ -801,14 +801,14 @@ Properties::Pointer ModelPart::pGetProperties(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Properties::ConstPointer ModelPart::pGetProperties(
+Properties::PointerToConst ModelPart::pGetProperties(
     const std::string& rAddress,
     IndexType MeshIndex
     ) const
 {
     const std::vector<IndexType> component_name = TrimComponentName(rAddress);
     if (HasProperties(component_name[0], MeshIndex)) {
-        Properties::ConstPointer p_prop = pGetProperties(component_name[0], MeshIndex);
+        Properties::PointerToConst p_prop = pGetProperties(component_name[0], MeshIndex);
         for (IndexType i = 1; i < component_name.size(); ++i) {
             if (p_prop->HasSubProperties(component_name[i])) {
                 p_prop = p_prop->pGetSubProperties(component_name[i]);
