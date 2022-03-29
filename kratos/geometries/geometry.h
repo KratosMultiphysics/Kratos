@@ -205,7 +205,7 @@ public:
 
     /// data type stores in this container.
     typedef typename PointType::Pointer PointPointerType;
-    typedef const PointPointerType ConstPointPointerType;
+    typedef typename PointType::PointerToConst PointerToConstPointType;
     typedef TPointType& PointReferenceType;
     typedef const TPointType& ConstPointReferenceType;
     typedef std::vector<PointPointerType> PointPointerContainerType;
@@ -454,7 +454,7 @@ public:
         return mPoints(i);
     }
 
-    ConstPointPointerType& operator()(const SizeType& i) const
+    const PointPointerType operator()(const SizeType& i) const
     {
         return mPoints(i);
     }
