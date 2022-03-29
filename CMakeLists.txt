@@ -107,11 +107,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-# If no test policy enable by default (only in non-release builds)
-if(NOT DEFINED KRATOS_BUILD_TESTING AND NOT KratosMultiphysics_BUILD_TYPE STREQUAL "Release")
-message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
-SET (KRATOS_BUILD_TESTING ON)
-endif()
+# C++ tests (disabled by default)
+OPTION ( KRATOS_BUILD_TESTING "Building the C++ tests" OFF )
 
 # Unitary builds with version is lower than 3.16 deactivate
 IF(CMAKE_VERSION VERSION_LESS "3.16.0")
