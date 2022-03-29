@@ -61,6 +61,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             Logger.Print("===============================================================================\n")
 
             self.model_parts_controller.UpdateTimeStep(self.optimization_iteration)
+            self.opt_parameters["opt_itr"].SetInt(self.optimization_iteration)
 
             # update controls
             for control in self.controls:

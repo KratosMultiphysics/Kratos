@@ -124,6 +124,7 @@ class OptimizationAlgorithm:
         self.opt_parameters = Parameters()
         self.opt_parameters.AddEmptyArray("objectives")
         self.opt_parameters.AddEmptyArray("constraints")
+        self.opt_parameters.AddInt("opt_itr",0)
         for response in self.responses_controlled_objects.keys():
             response_settings = Parameters()
             response_settings.AddString("name",response)
@@ -169,10 +170,12 @@ class OptimizationAlgorithm:
             control_max_update = self.controls_maximum_updates[control_index]
             control_type = self.controls_controller.GetControlType(control)
             control_update_name = self.controls_controller.GetControlUpdateName(control)
+            control_variable_name = self.controls_controller.GetControlVariableName(control)
             control_settings = Parameters()
             control_settings.AddString("name",control)
             control_settings.AddString("type",control_type)
             control_settings.AddString("update_name",control_update_name)
+            control_settings.AddString("variable_name",control_variable_name)
             control_settings.AddDouble("max_update",control_max_update)
             if control_type == "shape":
                 control_settings.AddInt("size",3)
@@ -189,7 +192,7 @@ class OptimizationAlgorithm:
             for control_controlling_object in control_controlling_objects:
                 control_settings["controlling_objects"].Append(control_controlling_object) 
 
-            self.opt_parameters["controls"].Append(control_settings)           
+            self.opt_parameters["controls"].Append(control_settings) 
 
         Logger.PrintInfo("::[OptimizationAlgorithm]:: ", "Variables ADDED")
 

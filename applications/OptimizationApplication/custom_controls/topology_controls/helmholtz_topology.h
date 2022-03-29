@@ -140,6 +140,7 @@ public:
         beta = mTechniqueSettings["beta"].GetDouble();
         sigmoid_projection = mTechniqueSettings["sigmoid_projection"].GetBool();
         penalization = mTechniqueSettings["penalization"].GetBool();
+        opt_itr = 0;
         ComputePhyiscalDensity();
 
         KRATOS_INFO("HelmholtzTopology:Initialize") << "Finished initialization of desnity control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -253,6 +254,7 @@ protected:
     std::vector<Properties::Pointer> mpVMModelPartsProperties;
     Parameters mTechniqueSettings;
     double beta;
+    int opt_itr;
     bool sigmoid_projection;
     bool penalization;
     
@@ -446,7 +448,7 @@ private:
         }    
     }
 
-    void ComputePhyiscalDensity(){
+    void ComputePhyiscalDensity(){            
 
         //now initialize control and physical density
         for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
@@ -485,7 +487,7 @@ private:
                         value = -600;
                     if(value>600)
                         value = 600;                    
-                    physical_density = (1.0/(1+std::exp(value)))+1;
+                    physical_density = (1.0/(1+std::exp(value)));
                     if(physical_density<0.001)
                         physical_density = 0.001;
 
@@ -500,6 +502,21 @@ private:
 
             }
         }
+        opt_itr++;
+        
+        // if(opt_itr==20)
+        //     beta *=1.5;
+        // if(opt_itr==40)
+        //     beta *=1.5;
+        // if(opt_itr==80)
+        //     beta *=1.5;
+        // if(opt_itr==160)
+        //     beta *=1.5; 
+        // if(opt_itr==300)
+        //     beta *=1.5; 
+        // if(opt_itr==600)
+        //     beta *=1.5;           
+
     }  
 
     void GetElementVariableValuesVector(const Element& rElement,
