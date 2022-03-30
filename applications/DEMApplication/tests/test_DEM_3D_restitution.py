@@ -20,7 +20,6 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         for node in self.spheres_model_part.Nodes:
             self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
 
@@ -84,7 +83,6 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [5, 6, 3], self.rigid_face_model_part.GetProperties()[0])
         self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [3, 6, 4], self.rigid_face_model_part.GetProperties()[0])
 
-    @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
         self.coeff = 1.0
 
@@ -96,7 +94,6 @@ class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
         with open(materials_file_abs_path, 'r') as materials_file:
             self.DEM_material_parameters = KratosMultiphysics.Parameters(materials_file.read())
 
-    @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
         self.coeff = 0.5
 
@@ -105,14 +102,12 @@ class TestDEM3DRestitution(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    @classmethod
     def test_DEM3D_restitution_1(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    @classmethod
     def test_DEM3D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
