@@ -172,6 +172,66 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS2D3N, FluidDynamics
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitRHS2D3N_conservation, FluidDynamicsApplicationFastSuite)
+{
+    // Create the test geometry
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("Main", 2);
+    CreateCompressibleNavierStokesExplicit2D3NElement(r_model_part);
+
+    // Define and set the nodal values
+    for (auto &r_node : r_model_part.Nodes())
+    {
+        const double density      = 1.0  + 0.2*r_node.X() + 0.1*r_node.Y();
+        const double total_energy = 1000 + 200*r_node.X() + 100*r_node.Y();
+
+        // Set DOF values
+        r_node.FastGetSolutionStepValue(DENSITY) = density;
+        r_node.FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = total_energy;
+
+        r_node.FastGetSolutionStepValue(DENSITY, 1) = density;
+        r_node.FastGetSolutionStepValue(MOMENTUM, 1) = ZeroVector(3);
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = total_energy;
+
+        // Set source terms
+        r_node.FastGetSolutionStepValue(MASS_SOURCE) = 0.0;
+        r_node.FastGetSolutionStepValue(BODY_FORCE) = ZeroVector(3);
+        r_node.FastGetSolutionStepValue(HEAT_SOURCE) = 0.0;
+
+        // Set shock capturing values
+        r_node.SetValue(ARTIFICIAL_MASS_DIFFUSIVITY, 0.0);
+        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
+        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
+        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
+    }
+
+    // No diffusion
+    auto& properties = r_model_part.GetProperties(0);
+    properties.SetValue(CONDUCTIVITY,  0.0);
+    properties.SetValue(DYNAMIC_VISCOSITY, 0.0);
+
+    // Compute explicit RHS
+    const auto &r_process_info = r_model_part.GetProcessInfo();
+    auto p_elem_expl = r_model_part.pGetElement(1);
+    p_elem_expl->Initialize(r_process_info);
+    p_elem_expl->AddExplicitContribution(r_process_info);
+
+    // Check obtained RHS values
+    // We check against the RHS obtained with the original implicit element without the intertial terms and the shock capturing
+    std::vector<double> RHS_ref(12, 0.0);
+    std::vector<double> RHS_expl(12);
+    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
+        const auto it_node = r_model_part.NodesBegin() + i_node;
+        RHS_expl[i_node * 4    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
+        RHS_expl[i_node * 4 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
+        RHS_expl[i_node * 4 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
+        RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
+    }
+
+    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+}
+
 /**
  * @brief Test the 3D explicit compressible Navier-Stokes element RHS
  * This test checks the residual calculation of the explicit compressible Navier-Stokes tetrahedra element
