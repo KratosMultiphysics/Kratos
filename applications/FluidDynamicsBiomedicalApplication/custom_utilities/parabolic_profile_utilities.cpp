@@ -162,17 +162,18 @@ void ParabolicProfileUtilities::ImposeParabolicProfile(
         const double wall_dist = rNode.GetValue(WALL_DISTANCE) < 0.0 ? 0.0 : rNode.GetValue(WALL_DISTANCE);
 
         // Calculate the inlet direction
-        const auto& r_n = rNode.GetValue(INLET_NORMAL);
-        const double n_norm = norm_2(r_n);
+        rTLSValue = rNode.GetValue(INLET_NORMAL);
+        const double n_norm = norm_2(rTLSValue);
         if (n_norm > 1.0e-12) {
-            rTLSValue = -r_n / n_norm;
+            rTLSValue /= -n_norm;
         } else {
             KRATOS_WARNING("ImposeParabolicProfile") << "Node " << rNode.Id() << " INLET_NORMAL is close to zero." << std::endl;
-            rTLSValue = -r_n;
+            rTLSValue /= -1.0;
         }
 
         // Calculate the inlet value module
-        const double value_in = GetMaxParabolaValue(time, rNode, rMaxParabolaValue) * (1.0-(std::pow(max_dist-wall_dist,2)/std::pow(max_dist,2)));
+        const double max_value = GetMaxParabolaValue(time, rNode, rMaxParabolaValue);
+        const double value_in = max_value * (1.0-(std::pow(max_dist-wall_dist,2)/std::pow(max_dist,2)));
         rTLSValue *= value_in;
 
         // Set and fix the VELOCITY DOFs
