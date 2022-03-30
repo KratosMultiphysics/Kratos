@@ -60,7 +60,8 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
             "inlet_model_part_name": "",
             "parabola_vertex_value" : 0.0,
             "interval" : [0.0,"End"],
-            "local_axes" : {}
+            "local_axes" : {},
+            "parallel_distance_max_levels" : 25
         }""")
         return default_settings
 
@@ -82,21 +83,11 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
             domain_size,
             KratosBio.INLET_NORMAL)
 
-        # Calculate the distance to the wall
-        # This will be used to calculate the inlet parabolic profile
-        #FIXME: HERE WE SHOULD USE THE PARALLEL DISTANCE CALCULATOR
+        # Prepare skin for wall distance calculation
+        max_levels = self.settings["parallel_distance_max_levels"].GetInt()
         wall_model_part = self.model.GetModelPart(self.settings["wall_model_part_name"].GetString())
         root_model_part = wall_model_part.GetRootModelPart()
-        distance_settings = KratosMultiphysics.Parameters("""{
-            "distance_variable" : "WALL_DISTANCE",
-			"distance_database" : "nodal_non_historical"
-        }""")
-        distance_process = self._ReturnDistanceProcessPrototype(domain_size)(
-            root_model_part,
-            wall_model_part,
-            distance_settings
-        )
-        distance_process.Execute()
+        KratosBio.ParabolicProfileUtilities.CalculateWallParallelDistance(wall_model_part, root_model_part, max_levels)
 
     def ExecuteBeforeSolutionLoop(self):
         self.ExecuteInitializeSolutionStep()
@@ -121,6 +112,6 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
     @classmethod
     def _ReturnDistanceProcessPrototype(cls, domain_size):
         if domain_size == 2:
-            return KratosMultiphysics.CalculateDistanceToSkinProcess2D
+            return KratosMultiphysics.ParallelDistanceCalculationProcess2D
         else:
-            return KratosMultiphysics.CalculateDistanceToSkinProcess3D
+            return KratosMultiphysics.ParallelDistanceCalculationProcess3D

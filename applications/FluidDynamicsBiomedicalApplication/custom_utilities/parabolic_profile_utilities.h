@@ -44,7 +44,7 @@ public:
     /// Pointer definition of ParabolicProfileUtilities
     KRATOS_CLASS_POINTER_DEFINITION(ParabolicProfileUtilities);
 
-    using NodeType = ModelPart::NodeType;
+    using NodeType = typename ModelPart::NodeType;
 
     ///@}
     ///@name Life Cycle
@@ -69,6 +69,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    static void CalculateWallParallelDistance(
+        ModelPart& rWallModelPart,
+        ModelPart& rFluidModelPart,
+        const std::size_t WallDistanceLevels);
 
     static void ImposeParabolicInlet(
         ModelPart &rModelPart,
@@ -95,6 +100,8 @@ private:
         const double Time,
         const NodeType& rNode,
         const TInputType& rMaxParabolaValue);
+
+    static double CalculateBoundingBoxCharacteristicLength(const ModelPart& rModelPart);
 
     ///@}
 };  // Class ParabolicProfileUtilities
