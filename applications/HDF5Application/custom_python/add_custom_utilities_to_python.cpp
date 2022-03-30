@@ -29,9 +29,9 @@ class PointLocatorAdaptorTrampoline : public HDF5::PointLocatorAdaptor
 public:
     using HDF5::PointLocatorAdaptor::PointLocatorAdaptor;
 
-    Element::ConstWeakPointer FindElement(const Point& rPoint) const override
+    Element::WeakPointerToConst FindElement(const Point& rPoint) const override
     {
-        using ReturnType = Element::ConstWeakPointer;
+        using ReturnType = Element::WeakPointerToConst;
         using BaseType = const HDF5::PointLocatorAdaptor;
 
         PYBIND11_OVERRIDE_PURE(
