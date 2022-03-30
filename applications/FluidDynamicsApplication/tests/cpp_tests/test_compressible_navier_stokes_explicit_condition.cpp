@@ -86,7 +86,11 @@ ModelPart& GenerateModel(Model& rModel)
 
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
- * This is a conservation test. There is no diffusion, so only advection is tested.
+ * This is a conservation test.
+ *
+ * N-S equations say that with:
+ *  - ∇U = 0  (Rigid movement)
+ * then the time derivatives should be zero.
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Advection, FluidDynamicsApplicationFastSuite)
 {
@@ -150,9 +154,15 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Advec
 
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
- * This is a conservation test. There is no transport, so only diffusion is tested.
+ * This is a conservation test.
+ * 
+ * N-S equations say that with:
+ *  - V = 0
+ *  - ∇ e_total = 0
+ *  - μ, β, λ = 0   (Euler equations)
+ * then the time derivatives should be zero
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Diffusion, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_EulerSteady, FluidDynamicsApplicationFastSuite)
 {
     // Create the test geometry
     Model model;
