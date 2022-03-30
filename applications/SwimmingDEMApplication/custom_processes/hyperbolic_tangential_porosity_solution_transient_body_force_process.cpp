@@ -156,6 +156,7 @@ void HyperbolicTangentialPorositySolutionTransientBodyForceProcess::ExecuteFinal
 void HyperbolicTangentialPorositySolutionTransientBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
     const double time = mrModelPart.GetProcessInfo()[TIME];
+    const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double rho = mDensity;
     const double nu = mViscosity;
@@ -195,7 +196,15 @@ void HyperbolicTangentialPorositySolutionTransientBodyForceProcess::SetInitialBo
 
         r_u1 = u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1));
 
+        double u1_1 = u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-(time-delta_time))*std::cos(Globals::Pi*(time-delta_time))/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1));
+
+        double u1_2 = u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-(time-2*delta_time))*std::cos(Globals::Pi*(time-2*delta_time))/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1));
+
         r_u2 = u_char*std::pow(x2,2)*std::pow((1 - x2),2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1));
+
+        double u2_1 = u_char*std::pow(x2,2)*std::pow((1 - x2),2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))*std::exp(-(time-delta_time))*std::cos(Globals::Pi*(time-delta_time))/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1));
+
+        double u2_2 = u_char*std::pow(x2,2)*std::pow((1 - x2),2)*(-u_char*std::pow(x1,2)*(2*x1 - 2) - 2*u_char*x1*std::pow((1 - x1),2))*std::exp(-(time-2*delta_time))*std::cos(Globals::Pi*(time-2*delta_time))/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1));
 
         du1dt = -Globals::Pi*u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::sin(Globals::Pi*time)/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1)) - u_char*std::pow(x1,2)*std::pow((1 - x1),2)*(u_char*std::pow(x2,2)*(2*x2 - 2) + 2*u_char*x2*std::pow((1 - x2),2))*std::exp(-time)*std::cos(Globals::Pi*time)/(-c + mean_alpha*(height*std::tanh(b*(x1 - 0.5)) + 1));
 
@@ -278,8 +287,10 @@ void HyperbolicTangentialPorositySolutionTransientBodyForceProcess::SetInitialBo
 
         it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
         it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
-        it_node->FastGetSolutionStepValue(VELOCITY_X,1) = r_u1;
-        it_node->FastGetSolutionStepValue(VELOCITY_Y,1) = r_u2;
+        it_node->FastGetSolutionStepValue(VELOCITY_X,1) = u1_1;
+        it_node->FastGetSolutionStepValue(VELOCITY_Y,1) = u2_1;
+        it_node->FastGetSolutionStepValue(VELOCITY_X,2) = u1_2;
+        it_node->FastGetSolutionStepValue(VELOCITY_Y,2) = u2_2;
         it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
         it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
     }
@@ -408,17 +419,6 @@ void HyperbolicTangentialPorositySolutionTransientBodyForceProcess::SetBodyForce
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-        if (mInitialConditions == true){
-            if (mrModelPart.GetProcessInfo()[STEP] == 1)
-            {
-                it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
-                it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
-                it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
-            }
-        }
-        else if(mInitialConditions == false && mrModelPart.GetProcessInfo()[STEP] == 1){
-            it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
-        }
     }
 
 }
