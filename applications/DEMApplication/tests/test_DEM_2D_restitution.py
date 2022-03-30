@@ -26,12 +26,6 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    '''def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        for node in self.spheres_model_part.Nodes:
-            final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-            print(final_vel)'''
-
     def Finalize(self):
         tolerance = 0.1
         for node in self.spheres_model_part.Nodes:
@@ -44,7 +38,9 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             Logger.PrintInfo("upper bound:", restitution_coefficient*tolerance)
             Logger.PrintInfo("lower bound:", restitution_coefficient/tolerance)
             self.assertAlmostEqual(self.coeff, restitution_coefficient, delta=tolerance)
+            check_mark_1 = True
 
+        self.assertTrue(check_mark_1)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 

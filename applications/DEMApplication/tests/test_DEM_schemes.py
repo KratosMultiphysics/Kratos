@@ -27,8 +27,6 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
 
     def Initialize(self):
         super().Initialize()
-        for node in self.spheres_model_part.Nodes:
-            self.initial_normal_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)
 
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_schemes")
@@ -45,13 +43,11 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         self.assertAlmostEqual(dem_pressure, dem_pressure_ref, delta=tol)
 
     def Finalize(self):
-        for node in self.spheres_model_part.Nodes:
-            if node.Id == 1:
-                x_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
+        node = self.spheres_model_part.GetNode(1)
+        x_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
 
-        for node in self.rigid_face_model_part.Nodes:
-            if node.Id == 5:
-                dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
+        node = self.rigid_face_model_part.GetNode(5)
+        dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
 
         self.CheckValues(x_vel, dem_pressure)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
@@ -89,12 +85,11 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         for node in self.spheres_model_part.Nodes:
             node.SetSolutionStepValue(DEM.COHESIVE_GROUP, 1)
 
-        for node in self.spheres_model_part.Nodes:
-            if node.Id == 2:
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
-            if node.Id == 1:
-                node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.1)
+        node = self.spheres_model_part.GetNode(2)
+        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
 
+        node = self.spheres_model_part.GetNode(1)
+        node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.1)
 
         self.rigid_face_model_part.CreateNewNode(3, -5, 5, -1.008)
         self.rigid_face_model_part.CreateNewNode(4, 5, 5, -1.008)

@@ -24,19 +24,23 @@ class DEM3D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         tolerance = 1.001
-        for node in self.rigid_face_model_part.Nodes:
+        if self.time > 0.35:
+            node = self.rigid_face_model_part.GetNode(9)
             dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
             contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Z)
-            if node.Id == 9:
-                if self.time > 0.35:
-                    self.assertAlmostEqual(dem_pressure, 1621, delta=tolerance)
-                    self.assertAlmostEqual(contact_force, -6484, delta=tolerance)
-            if node.Id == 13:
-                if self.time > 0.35:
-                    self.assertAlmostEqual(dem_pressure, 841, delta=tolerance)
-                    self.assertAlmostEqual(contact_force, -3366, delta=tolerance)
+            self.assertAlmostEqual(dem_pressure, 1621, delta=tolerance)
+            self.assertAlmostEqual(contact_force, -6484, delta=tolerance)
+
+            node = self.rigid_face_model_part.GetNode(13)
+            dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
+            contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Z)
+            self.assertAlmostEqual(dem_pressure, 841, delta=tolerance)
+            self.assertAlmostEqual(contact_force, -3366, delta=tolerance)
+
+            self.check_mark_1 = True
 
     def Finalize(self):
+        self.assertTrue(self.check_mark_1)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
