@@ -14,6 +14,12 @@
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
 
+#ifdef KRATOS_INTEL_TBB
+    /* OneTbb */
+    #define NOMINMAX // Fix for windows.h
+    #include "tbb/scalable_allocator.h"
+#endif
+
 /* System includes */
 #include <unordered_set>
 
@@ -34,6 +40,8 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
+
+using namespace memory::literals;
 
 namespace Kratos
 {
@@ -126,6 +134,18 @@ public:
     typedef Node<3> NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
+
+    /// Large Structure definitions
+#ifdef KRATOS_INTEL_TBB
+    typedef std::vector<std::unordered_set<
+        std::size_t, std::hash<std::size_t>, 
+        std::equal_to<std::size_t>, 
+        tbb::scalable_allocator<std::size_t>
+    >> IndicesType;
+#else 
+    typedef std::vector<std::unordered_set<std::size_t>> IndicesType;
+#endif
+    
 
     ///@}
     ///@name Life Cycle
@@ -1517,9 +1537,9 @@ protected:
 
         std::vector< LockObject > lock_array(equation_size);
 
-        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
+        IndicesType indices(equation_size);
 
-        block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
+        block_for_each(indices, [](IndicesType& rIndices){
             rIndices.reserve(40);
         });
 
