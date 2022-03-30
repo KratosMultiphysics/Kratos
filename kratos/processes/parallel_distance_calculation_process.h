@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "process.h"
 
 namespace Kratos
@@ -68,7 +69,7 @@ public:
     };
 
     /// Node type from model part
-    using NodeType = ModelPart::NodeType;
+    using NodeType = typename ModelPart::NodeType;
 
     /// Lambda type to retrieve a scalar variable from a node
     using NodeScalarGetFunctionType = std::function<double&(NodeType& rNode)>;
