@@ -61,7 +61,17 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    /// Nodal databases auxiliary enum
+    enum class NodalDatabase {
+        NodeHistorical,
+        NodeNonHistorical
+    };
+
+    /// Node type from model part
+    using NodeType = ModelPart::NodeType;
+
+    /// Lambda type to retrieve a scalar variable from a node
+    using NodeScalarGetFunctionType = std::function<double&(NodeType& rNode)>;
 
     /// Pointer definition of ParallelDistanceCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(ParallelDistanceCalculationProcess);
@@ -90,6 +100,7 @@ public:
 
     void Execute() override;
 
+    //TODO: This method must be removed as it does not match the base process API
     double FindMaximumEdgeSize();
 
     ///@}
@@ -191,6 +202,13 @@ private:
     ///@name Member Variables
     ///@{
 
+    const Variable<double>* mpAuxDistanceVar;
+
+    NodalDatabase mDistanceDatabase;
+
+    NodeScalarGetFunctionType mDistanceGetter;
+    NodeScalarGetFunctionType mAuxDistanceGetter;
+    NodeScalarGetFunctionType mNodalAreaGetter;
 
     ///@}
     ///@name Private Operators
