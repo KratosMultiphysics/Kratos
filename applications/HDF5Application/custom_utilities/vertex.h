@@ -94,7 +94,7 @@ public:
 private:
     std::size_t mID;
 
-    Element::ConstWeakPointer mpContainingElement;
+    Element::WeakPointerToConst mpContainingElement;
 
     const NodalVariableGetter* mpVariableGetter;
 

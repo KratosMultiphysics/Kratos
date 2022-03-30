@@ -31,7 +31,7 @@ BruteForcePointLocatorAdaptor::BruteForcePointLocatorAdaptor(ModelPart& rModelPa
 }
 
 
-Element::ConstWeakPointer BruteForcePointLocatorAdaptor::FindElement(const Point& rPoint) const
+Element::WeakPointerToConst BruteForcePointLocatorAdaptor::FindElement(const Point& rPoint) const
 {
     KRATOS_TRY
 

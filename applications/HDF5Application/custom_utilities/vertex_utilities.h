@@ -133,7 +133,7 @@ struct KRATOS_API(HDF5Application) PointLocatorAdaptor
 
     virtual ~PointLocatorAdaptor() {}
 
-    virtual Element::ConstWeakPointer FindElement(const Point& rPoint) const = 0;
+    virtual Element::WeakPointerToConst FindElement(const Point& rPoint) const = 0;
     virtual Element::WeakPointer FindElement(const Point& rPoint) = 0;
 }; // struct PointLocatorAdaptor
 
@@ -148,7 +148,7 @@ public:
                                   const Globals::Configuration configuration,
                                   const double tolerance);
 
-    Element::ConstWeakPointer FindElement(const Point& rPoint) const override;
+    Element::WeakPointerToConst FindElement(const Point& rPoint) const override;
     Element::WeakPointer FindElement(const Point& rPoint) override;
 
 private:
