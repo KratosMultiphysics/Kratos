@@ -274,7 +274,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
                 self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
             )
-            if gradient_norm == 0.0:
+            if gradient_norm <= 1e-16:
                 KM.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
                 return False
             return True
