@@ -272,7 +272,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         constraint_value = self.communicator.getStandardizedValue(identifier)
         if constraint["type"].GetString() == "=" or constraint_value >= 0:
             gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
-                self.design_surface, self.constraint_gradient_variables[identifier]
+                self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
             )
             if gradient_norm == 0.0:
                 KM.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
