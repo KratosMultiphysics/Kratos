@@ -205,7 +205,6 @@ private:
     const Variable<double>* mpAuxDistanceVar;
 
     NodalDatabase mDistanceDatabase;
-    NodalDatabase mNodalAreaDatabase;
 
     NodeScalarGetFunctionType mDistanceGetter;
     NodeScalarGetFunctionType mAuxDistanceGetter;

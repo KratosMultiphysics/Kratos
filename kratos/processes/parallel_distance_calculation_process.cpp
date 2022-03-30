@@ -53,24 +53,14 @@ ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
     if (distance_database == "nodal_historical") {
         mDistanceDatabase = NodalDatabase::NodeHistorical;
         mDistanceGetter = [this](NodeType& rNode)->double&{return rNode.FastGetSolutionStepValue(*mpDistanceVar);};
+        mNodalAreaGetter = [this](NodeType& rNode)->double&{return rNode.FastGetSolutionStepValue(*mpAreaVar);};
     } else if (distance_database == "nodal_non_historical") {
         mDistanceDatabase = NodalDatabase::NodeNonHistorical;
         mDistanceGetter = [this](NodeType& rNode)->double&{return rNode.GetValue(*mpDistanceVar);};
+        mNodalAreaGetter = [this](NodeType& rNode)->double&{return rNode.GetValue(*mpAreaVar);};
     } else {
         KRATOS_ERROR << "Provided 'distance_database' is '" << distance_database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
     }
-
-    const std::string nodal_area_database = Settings["nodal_area_database"].GetString();
-    if (nodal_area_database == "nodal_historical") {
-        mNodalAreaDatabase = NodalDatabase::NodeHistorical;
-        mNodalAreaGetter = [this](NodeType& rNode)->double&{return rNode.FastGetSolutionStepValue(*mpAreaVar);};
-    } else if (nodal_area_database == "nodal_non_historical") {
-        mNodalAreaDatabase = NodalDatabase::NodeNonHistorical;
-        mNodalAreaGetter = [this](NodeType& rNode)->double&{return rNode.GetValue(*mpAreaVar);};
-    } else {
-        KRATOS_ERROR << "Provided 'nodal_area_database' is '" << nodal_area_database << "'. Available options are 'nodal_historical' and 'nodal_non_historical'." <<  std::endl;
-    }
-
     mAuxDistanceGetter = [this](NodeType& rNode)->double&{return rNode.GetValue(*mpAuxDistanceVar);};
 }
 
@@ -83,7 +73,6 @@ const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters(
         "auxiliary_distance_variable" : "AUX_DISTANCE",
         "nodal_area_variable" : "NODAL_AREA",
         "distance_database" : "nodal_historical",
-        "nodal_area_database" : "nodal_historical",
         "max_levels" : 25,
         "max_distance" : 1.0,
         "calculate_exact_distances_to_plane" : false
@@ -306,6 +295,14 @@ void ParallelDistanceCalculationProcess<TDim>::ResetVariables()
 {
     KRATOS_TRY
 
+    // Nodal area initializer
+    std::function<void(NodeType&)> nodal_area_initializer;
+    if (mDistanceDatabase == NodalDatabase::NodeHistorical) {
+        nodal_area_initializer = [this](NodeType& rNode){rNode.FastGetSolutionStepValue(*mpAreaVar) = 0.0;};
+    } else {
+        nodal_area_initializer = [this](NodeType& rNode){rNode.SetValue(*mpAreaVar, 0.0);};
+    }
+
     // Reset the variables and flags needed
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode) {
         // Save the current distance in the non-historical database
@@ -313,6 +310,10 @@ void ParallelDistanceCalculationProcess<TDim>::ResetVariables()
         // double& r_dist = rNode.FastGetSolutionStepValue(*mpDistanceVar);
         double& r_dist = mDistanceGetter(rNode);
         rNode.SetValue(*mpAuxDistanceVar, r_dist); //here we copy the distance function to the fixed database
+
+        // Initialize nodal area
+        // Note that in the non-historical database case this also allocates memory
+        nodal_area_initializer(rNode);
 
         // Initialize nodal flags
         rNode.Set(VISITED,false);

@@ -27,12 +27,13 @@ namespace ParallelDistanceCalculationProcessTestInternals
 {
     void SetUpDistanceField(
         ModelPart& rModelPart,
-        std::function<double(Node<3>& rNode)>& rDistanceFunction)
+        std::function<double(Node<3>& rNode)>& rDistanceFunction,
+        std::function<double&(Node<3>& rNode)>& rDistanceGetter)
     {
         // Set the intersected elements
         // First set an auxiliary level set field
         for (auto& r_node : rModelPart.Nodes()) {
-            r_node.FastGetSolutionStepValue(DISTANCE) = rDistanceFunction(r_node);
+            rDistanceGetter(r_node) = rDistanceFunction(r_node);
         }
 
         // Tag the nodes belonging to an intersected element0
@@ -42,7 +43,7 @@ namespace ParallelDistanceCalculationProcessTestInternals
             n_pos = 0;
             n_neg = 0;
             for (auto& r_node : r_element.GetGeometry()) {
-                if (r_node.FastGetSolutionStepValue(DISTANCE) > 0) {
+                if (rDistanceGetter(r_node) > 0) {
                     n_pos++;
                 } else {
                     n_neg++;
@@ -59,7 +60,7 @@ namespace ParallelDistanceCalculationProcessTestInternals
         // Remove the nodal values from the non-intersected elements nodes and reset the flag
         for (auto& r_node : rModelPart.Nodes()) {
             if (!r_node.Is(SELECTED)) {
-                double& r_dist = r_node.FastGetSolutionStepValue(DISTANCE);
+                double& r_dist = rDistanceGetter(r_node);
                 r_dist = r_dist < 0.0 ? -1.0 : 1.0;
             } else {
                 r_node.Set(SELECTED, false);
@@ -90,7 +91,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateral2D, KratosCoreFast
 
     // Set up the intersected elements distance
     std::function<double(Node<3>& rNode)> nodal_value_function = [](Node<3>& rNode){return rNode.X() + rNode.Y() - 100.0/9.9;};
-    ParallelDistanceCalculationProcessTestInternals::SetUpDistanceField(r_model_part, nodal_value_function);
+    std::function<double&(Node<3>& rNode)> distance_getter = [](Node<3>& rNode)->double&{return rNode.FastGetSolutionStepValue(DISTANCE);};
+    ParallelDistanceCalculationProcessTestInternals::SetUpDistanceField(r_model_part, nodal_value_function, distance_getter);
 
     // Compute distance
     Parameters parallel_distance_settings(R"({
@@ -98,7 +100,6 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateral2D, KratosCoreFast
         "distance_variable" : "DISTANCE",
         "nodal_area_variable" : "NODAL_AREA",
         "distance_database" : "nodal_historical",
-        "nodal_area_database" : "nodal_historical",
         "max_levels" : 10.0,
         "max_distance" : 10.0,
         "calculate_exact_distances_to_plane" : false
@@ -147,7 +148,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateralNonHistorical2D, K
 
     // Set up the intersected elements distance
     std::function<double(Node<3>& rNode)> nodal_value_function = [](Node<3>& rNode){return rNode.X() + rNode.Y() - 100.0/9.9;};
-    ParallelDistanceCalculationProcessTestInternals::SetUpDistanceField(r_model_part, nodal_value_function);
+    std::function<double&(Node<3>& rNode)> distance_getter = [](Node<3>& rNode)->double&{return rNode.GetValue(DISTANCE);};
+    ParallelDistanceCalculationProcessTestInternals::SetUpDistanceField(r_model_part, nodal_value_function, distance_getter);
 
     // Compute distance
     Parameters parallel_distance_settings(R"({
@@ -155,7 +157,6 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateralNonHistorical2D, K
         "distance_variable" : "DISTANCE",
         "nodal_area_variable" : "NODAL_AREA",
         "distance_database" : "nodal_non_historical",
-        "nodal_area_database" : "nodal_non_historical",
         "max_levels" : 10.0,
         "max_distance" : 10.0,
         "calculate_exact_distances_to_plane" : false
