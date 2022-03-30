@@ -43,14 +43,13 @@ class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
         for mpc in model_part.Conditions:
             if (mpc.Is(KM.INTERFACE)):
                 coupling_id   = mpc.Id
-                delta_x = mpc.CalculateOnIntegrationPoints(KPM.MPC_DISPLACEMENT, model_part.ProcessInfo)[0]
 
-                node = coupling_model_part.GetNode(coupling_id)
-                du = (node.X-node.X0) + delta_x[0]
-                dw = (node.Y-node.Y0) + delta_x[1]
-                dz = (node.Z -node.Z0) + delta_x[2]
-                displacement = [du,dw,dz]
+                # Update displacement
+                delta_x = mpc.CalculateOnIntegrationPoints(KPM.MPC_DELTA_DISPLACEMENT, model_part.ProcessInfo)[0]
+                displacement = coupling_model_part.GetNode(coupling_id).GetSolutionStepValue(KM.DISPLACEMENT)
+                displacement += delta_x
                 coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KM.DISPLACEMENT,0,displacement)
 
+                # Update velocity
                 velocity = mpc.CalculateOnIntegrationPoints(KPM.MPC_VELOCITY, model_part.ProcessInfo)[0]
                 coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KM.VELOCITY,0,velocity)

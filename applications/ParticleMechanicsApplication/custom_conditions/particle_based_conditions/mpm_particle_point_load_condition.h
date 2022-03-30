@@ -224,6 +224,7 @@ private:
 
     array_1d<double, 3> m_point_load;
     array_1d<double, 3> m_delta_xg;
+    array_1d<double, 3> m_displacement;
     array_1d<double, 3> m_velocity;
 
     ///@}

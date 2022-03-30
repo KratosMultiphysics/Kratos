@@ -202,7 +202,6 @@ namespace Kratos
         const GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-        double denominator = 1.0;
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
@@ -246,6 +245,7 @@ namespace Kratos
         
         // Update the Material Point Condition Position
         m_xg += delta_xg ;
+        m_displacement += delta_xg ;
         m_velocity = MPC_velocity;
     }
 
@@ -266,6 +266,9 @@ namespace Kratos
             rValues[0] = m_velocity;
         }
         else if (rVariable == MPC_DISPLACEMENT) {
+            rValues[0] = m_displacement;
+        }
+        else if (rVariable == MPC_DELTA_DISPLACEMENT) {
             rValues[0] = m_delta_xg;
         }
         else {
@@ -292,6 +295,9 @@ namespace Kratos
             m_velocity = rValues[0];
         }
         else if (rVariable == MPC_DISPLACEMENT) {
+            m_displacement = rValues[0];
+        }
+        else if (rVariable == MPC_DELTA_DISPLACEMENT) {
             m_delta_xg = rValues[0];
         }
         else {

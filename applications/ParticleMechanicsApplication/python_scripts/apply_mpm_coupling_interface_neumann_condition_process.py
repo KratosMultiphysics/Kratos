@@ -54,13 +54,8 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 node_id         = mpc.Id
                 node_coordinate = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
-                coupling_node   = self.coupling_model_part.CreateNewNode(node_id, node_coordinate[0], node_coordinate[1], node_coordinate[2])
+                self.coupling_model_part.CreateNewNode(node_id, node_coordinate[0], node_coordinate[1], node_coordinate[2])
 
-
-                coupling_node.X0 = node_coordinate[0]
-                coupling_node.Y0 = node_coordinate[1]
-                coupling_node.Z0 = node_coordinate[2]
-                
 
     def ExecuteInitializeSolutionStep(self):
         ### Clone delta time
@@ -82,24 +77,10 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
             if (mpc.Is(KratosMultiphysics.INTERFACE)):
                 coupling_id   = mpc.Id
 
-                coord = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_COORD, self.model_part.ProcessInfo)[0]
-                     
-                node = self.coupling_model_part.GetNode(coupling_id)
-                node.X =coord[0]
-                node.Y =coord[1]
-                node.Z =coord[2]
-
-
-                du = (node.X-node.X0)
-                dw = (node.Y-node.Y0)
-                dz = (node.Z -node.Z0)
-                displacement = [du,dw,dz]
-
-                
+                displacement = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_DISPLACEMENT, self.model_part.ProcessInfo)[0]
                 velocity = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_VELOCITY, self.model_part.ProcessInfo)[0]
+                
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
-                
-                
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,displacement)
 
     # Local functions

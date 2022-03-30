@@ -208,6 +208,7 @@ namespace MPMParticleGeneratorUtility
         std::vector<array_1d<double, 3>> mpc_xg = { ZeroVector(3) };
         array_1d<double,3> mpc_normal = ZeroVector(3);
         std::vector<array_1d<double, 3>> mpc_displacement = { ZeroVector(3) };
+        std::vector<array_1d<double, 3>> mpc_delta_displacement = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_imposed_displacement = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_velocity = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mpc_imposed_velocity = { ZeroVector(3) };
@@ -395,6 +396,7 @@ namespace MPMParticleGeneratorUtility
                             p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, process_info);
                             p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
                             p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_DELTA_DISPLACEMENT, { mpc_delta_displacement }, process_info);
                             p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
                             p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                             // Mark as boundary condition
