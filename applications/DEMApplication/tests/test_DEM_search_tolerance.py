@@ -43,17 +43,17 @@ class DEM3D_SearchToleranceMain(KratosMultiphysics.DEMApplication.DEM_analysis_s
         #reference data with freq=1 searchtolerance=0.0
         tol = 1.0e-15
 
-        if np.isclose(self.time, 0.02002, rtol=0.0, atol=1e-06):
+        if self.spheres_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] == 572:
             y_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             self.DoCheck1(y_vel, tol)
             self.check_mark_1 = True
 
-        if np.isclose(self.time, 0.11500999999999056, rtol=0.0, atol=1e-06):
+        if self.spheres_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] == 3286:
             y_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             self.DoCheck2(y_vel, tol)
             self.check_mark_2 = True
 
-        if np.isclose(self.time, 0.22001000000000834, rtol=0.0, atol=1e-06):
+        if self.spheres_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] == 6286:
             y_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             self.DoCheck3(y_vel, tol)
             self.check_mark_3 = True
