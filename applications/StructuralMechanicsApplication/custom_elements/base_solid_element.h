@@ -178,7 +178,7 @@ public:
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
     {
         // This is needed to prevent uninitiased integration method in inactive elements
-        mThisIntegrationMethod = this->GetDefaultIntegrationMethod();
+        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     };
 
     // Copy constructor
