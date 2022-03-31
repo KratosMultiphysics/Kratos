@@ -88,12 +88,12 @@ public:
      * Computes the QR Decomposition (QR) of the given imput matrix
      * @param rInputMatrix Matrix to compute the QR decomposition
      */
-    virtual void Compute(MatrixType& rInputMatrix)
+    void Compute(MatrixType& rInputMatrix) override
     {
         // Set input data
         // Note that we need a copy as QR decomposition is modifying the input
         mpA = make_unique<MatrixType>(rInputMatrix);
-        DataType *p_0_0 = &(*mpA)(0, 0);
+        DataType *p_0_0 = &((*mpA)(0,0));
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
 
@@ -108,15 +108,15 @@ public:
      * @param rMatrixQ Unitary matrix
      * @param rMatrixR Upper triangular matrix
      */
-    virtual void Compute(
+    void Compute(
         MatrixType& rInputMatrix,
         MatrixType& rMatrixQ,
-        MatrixType& rMatrixR)
+        MatrixType& rMatrixR) override
     {
         // Set input data
         // Note that we need a copy as QR decomposition is modifying the input
         mpA = make_unique<MatrixType>(rInputMatrix);
-        DataType *p_0_0 = &(*mpA)(0, 0);
+        DataType *p_0_0 = &((*mpA)(0,0));
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
 
@@ -143,16 +143,16 @@ public:
      * @param rB The Right Hand Side (RHS) matrix
      * @param rX The solution matrix
      */
-    virtual void Solve(
+    void Solve(
         MatrixType& rB,
-        MatrixType& rX) const
+        MatrixType& rX) const override
     {
         // Check that QR decomposition has been already computed
         KRATOS_ERROR_IF(!mpA) << "QR decomposition not computed yet. Please call 'Compute' before 'Solve'." << std::endl;
 
         // Set input data
-        DataType* p_b_0 = &(rB)(0);
-        DataType* p_x_0 = &(rX)(0);
+        DataType* p_b_0 = &((rB)(0));
+        DataType* p_x_0 = &((rX)(0));
         DataType *p_A_0_0 = &((*mpA)(0,0));
         const std::size_t m = mpA->size1();
         const std::size_t n = mpA->size2();
@@ -169,16 +169,16 @@ public:
      * @param rB The Right Hand Side (RHS) vector
      * @param rX The solution vector
      */
-    virtual void Solve(
+    void Solve(
         const VectorType& rB,
-        VectorType& rX) const
+        VectorType& rX) const override
     {
         // Check that QR decomposition has been already computed
         KRATOS_ERROR_IF(!mpA) << "QR decomposition not computed yet. Please call 'Compute' before 'Solve'." << std::endl;
 
         // Set input data
-        DataType* p_b_0 = &(const_cast<VectorType&>(rB))(0);
-        DataType* p_x_0 = &(rX)(0);
+        DataType* p_b_0 = &((const_cast<VectorType&>(rB))(0));
+        DataType* p_x_0 = &((rX)(0));
         DataType *p_A_0_0 = &((*mpA)(0,0));
         const std::size_t m = mpA->size1();
         const std::size_t n = mpA->size2();
@@ -194,7 +194,7 @@ public:
      * If computed, this method sets the unitary matrix in the provided array
      * @param rMatrixQ Unitary matrix
      */
-    virtual void MatrixQ(MatrixType& rMatrixQ) const
+    void MatrixQ(MatrixType& rMatrixQ) const override
     {
         // We intentionally avoid to implement this method as it requires to call the factorize of QR include
         // Otherwise we would need to always do the factorize call, which is more expensive than the simpler compute one
@@ -206,7 +206,7 @@ public:
      * If computed, this method sets the upper triangular matrix in the provided array
      * @param rMatrixR Upper triangular matrix
      */
-    virtual void MatrixR(MatrixType& rMatrixR) const
+    void MatrixR(MatrixType& rMatrixR) const override
     {
         // Check that QR has been already computed
         KRATOS_ERROR_IF(!mpA) << "QR decomposition not computed yet. Please call 'Compute' before 'MatrixR'." << std::endl;
@@ -230,7 +230,7 @@ public:
      * If computed, this method sets the pivoting matrix
      * @param rMatrixP Pivoting matrix
      */
-    virtual void MatrixP(MatrixType& rMatrixP) const
+    void MatrixP(MatrixType& rMatrixP) const override
     {
         KRATOS_ERROR << "Householder QR decomposition does not implement the P matrix return" << std::endl;
     }
@@ -240,7 +240,7 @@ public:
      * Calculates and returns the rank of the array decomposed with the QR
      * @return std::size_t Rank of the provided array
      */
-    virtual std::size_t Rank() const
+    std::size_t Rank() const override
     {
         KRATOS_ERROR << "Householder QR decomposition is not rank revealing." << std::endl;
     }
@@ -250,7 +250,7 @@ public:
      * Outputs the QR class information
      * @param rOStream Information output
      */
-    virtual void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream &rOStream) const override
     {
         rOStream << "Decomposition <" << Name() << "> finished.";
     }
