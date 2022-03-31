@@ -1,12 +1,21 @@
 FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
-
 # Restore the default Windows shell for correct batch processing below.
 SHELL ["cmd", "/S", "/C"]
 
+# Temp dir
+RUN mkdir c:\TEMP;
+
+# MKL
+COPY w_onemkl_p_2022.0.3.171_offline.exe C:\\TEMP\\mkl.exe
+RUN C:\TEMP\mkl.exe -s -a --silent --eula accept
+
+# TBB
+COPY w_tbb_oneapi_p_2021.5.2.785_offline.exe C:\\TEMP\\tbb.exe
+RUN C:\TEMP\tbb.exe -s -a --silent --eula accept
+
 # Download the Build Tools bootstrapper.
 RUN powershell.exe -Command \
-	mkdir c:\TEMP; \
     wget https://aka.ms/vs/16/release/vs_buildtools.exe -OutFile c:\TEMP\vs_buildtools.exe
 
 # Install Build Tools
@@ -40,7 +49,7 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
