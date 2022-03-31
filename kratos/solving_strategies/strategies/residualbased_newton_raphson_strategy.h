@@ -134,6 +134,8 @@ class ResidualBasedNewtonRaphsonStrategy
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
     {
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
         this->AssignSettings(ThisParameters);
@@ -151,9 +153,9 @@ class ResidualBasedNewtonRaphsonStrategy
             KRATOS_WARNING("ResidualBasedNewtonRaphsonStrategy") << "BuilderAndSolver is not initialized. Please assign one before settings flags" << std::endl;
         }
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
     }
 
     /**
@@ -188,6 +190,8 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
@@ -205,9 +209,9 @@ class ResidualBasedNewtonRaphsonStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
 
         KRATOS_CATCH("");
     }
@@ -245,6 +249,8 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY
 
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+
         // Getting builder and solver
         auto p_builder_and_solver = GetBuilderAndSolver();
 
@@ -261,9 +267,9 @@ class ResidualBasedNewtonRaphsonStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
 
         KRATOS_CATCH("")
     }
@@ -330,6 +336,8 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+
         // Setting up the default builder and solver
         mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer(
             new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSolver));
@@ -347,9 +355,9 @@ class ResidualBasedNewtonRaphsonStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
 
         KRATOS_CATCH("");
     }
@@ -378,6 +386,9 @@ class ResidualBasedNewtonRaphsonStrategy
           mKeepSystemConstantDuringIterations(false)
     {
         KRATOS_TRY
+
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+
         // Validate and assign defaults
         Settings = this->ValidateAndAssignParameters(Settings, this->GetDefaultParameters());
         this->AssignSettings(Settings);
@@ -397,9 +408,9 @@ class ResidualBasedNewtonRaphsonStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpb = TSparseSpace::CreateEmptyVectorPointer();
+        mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
 
         KRATOS_CATCH("")
     }

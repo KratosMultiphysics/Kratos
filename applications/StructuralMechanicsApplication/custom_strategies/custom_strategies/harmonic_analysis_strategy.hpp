@@ -95,6 +95,7 @@ public:
         : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
     {
         KRATOS_TRY
+        const DataCommunicator &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
 
         mpScheme = pScheme;
 
@@ -103,8 +104,8 @@ public:
         // ensure initialization of system matrices in InitializeSolutionStep()
         mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
-        mpForceVector = SparseSpaceType::CreateEmptyVectorPointer();
-        mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer();
+        mpForceVector = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+        mpModalMatrix = DenseSpaceType::CreateEmptyMatrixPointer(r_comm);
 
         this->SetUseMaterialDampingFlag(UseMaterialDampingFlag);
 
@@ -310,13 +311,14 @@ public:
                 mMaterialDampingRatios = ZeroVector( n_modes );
 
                 //initialize dummy vectors
-                auto pDx = SparseSpaceType::CreateEmptyVectorPointer();
-                auto pb = SparseSpaceType::CreateEmptyVectorPointer();
+                const DataCommunicator &r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
+                auto pDx = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+                auto pb = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
                 auto& rDx = *pDx;
                 auto& rb = *pb;
-                SparseSpaceType::Resize(rDx,system_size);
+                // SparseSpaceType::Resize(rDx,system_size);
                 SparseSpaceType::Set(rDx,0.0);
-                SparseSpaceType::Resize(rb,system_size);
+                // SparseSpaceType::Resize(rb,system_size);
                 SparseSpaceType::Set(rb,0.0);
 
                 //loop over all modes and initialize the material damping ratio per mode
@@ -339,7 +341,7 @@ public:
                         }
 
                         //initialize the submodelpart stiffness matrix
-                        auto temp_stiffness_matrix = SparseSpaceType::CreateEmptyMatrixPointer();
+                        auto temp_stiffness_matrix = SparseSpaceType::CreateEmptyMatrixPointer(r_comm);
                         p_builder_and_solver->ResizeAndInitializeVectors(p_scheme,
                             temp_stiffness_matrix,
                             pDx,

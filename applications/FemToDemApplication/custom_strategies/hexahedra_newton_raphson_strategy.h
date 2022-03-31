@@ -155,9 +155,10 @@ class HexahedraNewtonRaphsonStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        BaseType::mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        BaseType::mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        BaseType::mpb = TSparseSpace::CreateEmptyVectorPointer();
+        const DataCommunicator &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        BaseType::mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        BaseType::mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        BaseType::mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
 
         KRATOS_CATCH("");
     }
@@ -225,9 +226,10 @@ class HexahedraNewtonRaphsonStrategy
         // By default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        BaseType::mpA = TSparseSpace::CreateEmptyMatrixPointer();
-        BaseType::mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        BaseType::mpb = TSparseSpace::CreateEmptyVectorPointer();
+        const DataCommunicator &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        BaseType::mpA = TSparseSpace::CreateEmptyMatrixPointer(r_comm);
+        BaseType::mpDx = TSparseSpace::CreateEmptyVectorPointer(r_comm);
+        BaseType::mpb = TSparseSpace::CreateEmptyVectorPointer(r_comm);
 
         KRATOS_CATCH("")
     }
