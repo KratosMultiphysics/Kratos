@@ -146,6 +146,8 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
+            "fluid_manufactured"         : false,
+            "relax_alpha"                : 1.0,
             "linear_solver_settings"        : {
                 "solver_type" : "amgcl"
             },
@@ -188,6 +190,8 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
 
         # Set up the auxiliary class with the formulation settings
         self._SetFormulation()
+        self.alpha = custom_settings["relax_alpha"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.RELAXATION_ALPHA, self.alpha)
 
         super(NavierStokesSolverMonolithicDEM,self)._SetTimeSchemeBufferSize()
 
