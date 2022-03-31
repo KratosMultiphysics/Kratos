@@ -648,6 +648,7 @@ private:
     double mDamageIndicator = 1;                             // Onset of Damage
     double mGc = 0;                                          // Mix Mode Energy Release Rate
     double mElastic_energy = 0;                              // Elastic energy stored before damage initiation 
+    double mDelta_G = 0;
     double mSERR = 0;                                        // Strain Energy Release Rate
     double mdelamination_damage = 0;                         // Scalar delamination damage variable  
     double mDelta_eq_max = 0;                                // Equivalent Strain History Variable
