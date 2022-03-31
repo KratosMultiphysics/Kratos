@@ -92,7 +92,7 @@ public:
     {
         // Set input data
         // Note that we need a copy as QR decomposition is modifying the input
-        mpA = make_unique<MatrixType>(rInputMatrix);
+        mpA = std::make_unique<MatrixType>(rInputMatrix);
         DataType *p_0_0 = &((*mpA)(0,0));
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
@@ -115,7 +115,7 @@ public:
     {
         // Set input data
         // Note that we need a copy as QR decomposition is modifying the input
-        mpA = make_unique<MatrixType>(rInputMatrix);
+        mpA = std::make_unique<MatrixType>(rInputMatrix);
         DataType *p_0_0 = &((*mpA)(0,0));
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
