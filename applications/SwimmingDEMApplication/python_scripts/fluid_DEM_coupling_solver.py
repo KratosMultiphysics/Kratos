@@ -17,7 +17,7 @@ class FluidDEMSolver(FluidSolver):
 
     def _TimeBufferIsInitialized(self):
         # We always have one extra old step if we are not using a manufactured solution (step 0, read from input)
-        if self.settings["fluid_manufactured"].GetBool():
+        if self.main_model_part.ProcessInfo[KratosSDEM.MANUFACTURED]:
             return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 2 >= self.GetMinimumBufferSize()
         else:
             return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()

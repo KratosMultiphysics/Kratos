@@ -139,8 +139,59 @@ public:
     {
         ProcessInfo CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
-        this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+        this->SetTimeCoefficients(rModelPart.GetProcessInfo());
+
+        // Base function initializes elements and conditions
+        BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
+
+        // Recalculate mesh velocity (to account for variable time step)
+        const double tol = 1.0e-12;
+        const double Dt = rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double OldDt = rModelPart.GetProcessInfo().GetPreviousSolutionStepInfo(1)[DELTA_TIME];
+        if(std::abs(Dt - OldDt) > tol) {
+            const int n_nodes = rModelPart.NumberOfNodes();
+            const Vector& BDFcoefs = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
+
+#pragma omp parallel for
+            for(int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto it_node = rModelPart.NodesBegin() + i_node;
+                auto& rMeshVel = it_node->FastGetSolutionStepValue(MESH_VELOCITY);
+                const auto& rDisp0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+                const auto& rDisp1 = it_node->FastGetSolutionStepValue(DISPLACEMENT,1);
+                const auto& rDisp2 = it_node->FastGetSolutionStepValue(DISPLACEMENT,2);
+                rMeshVel = BDFcoefs[0] * rDisp0 + BDFcoefs[1] * rDisp1 + BDFcoefs[2] * rDisp2;
+            }
+        }
+        //this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+    }
+
+    void SetTimeCoefficients(ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+
+        //calculate the BDF coefficients
+        double OldDt;
+        double Dt = rCurrentProcessInfo[DELTA_TIME];
+        double step = rCurrentProcessInfo[STEP];
+        // Initialization of the previous delta time at the beginning of the simulation (when using adaptive delta time)
+        if (rCurrentProcessInfo[MANUFACTURED] && step < 2){
+            OldDt = rCurrentProcessInfo[DELTA_TIME];
+        }
+        else {
+            OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        }
+
+        double Rho = OldDt / Dt;
+        double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
+
+        Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        BDFcoeffs.resize(3, false);
+
+        BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
+        BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+        BDFcoeffs[2] = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+
+        KRATOS_CATCH("");
     }
 
     void InitializeNonLinIteration(
@@ -190,6 +241,7 @@ public:
             double& fluid_fraction_1 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD);
             double& fluid_fraction_2 = rNode.FastGetSolutionStepValue(FLUID_FRACTION_OLD_2);
 
+            // This condition is needed to avoid large time variation of the porosity at the beginning of the simulation that can induce fluid instabilities
             if (step <= 2){
                 fluid_fraction_2 = fluid_fraction_0;
                 fluid_fraction_1 = fluid_fraction_0;

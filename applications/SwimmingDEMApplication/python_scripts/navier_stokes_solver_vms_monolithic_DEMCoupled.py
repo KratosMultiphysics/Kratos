@@ -2,6 +2,7 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 
 # Import applications
 from KratosMultiphysics.FluidDynamicsApplication import navier_stokes_solver_vmsmonolithic as NavierMonolithic
@@ -193,6 +194,8 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         self._SetFormulation()
         self.alpha = custom_settings["relax_alpha"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.RELAXATION_ALPHA, self.alpha)
+        self.is_manufactured = custom_settings["fluid_manufactured"].GetBool()
+        self.main_model_part.ProcessInfo.SetValue(SDEM.MANUFACTURED, self.is_manufactured)
 
         super(NavierStokesSolverMonolithicDEM,self)._SetTimeSchemeBufferSize()
 
