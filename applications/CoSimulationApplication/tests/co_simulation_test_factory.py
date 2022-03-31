@@ -17,6 +17,7 @@ have_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("FluidDynamics
 have_potential_fsi_dependencies = kratos_utils.CheckIfApplicationsAvailable("CompressiblePotentialFlowApplication", "StructuralMechanicsApplication", "MappingApplication", "MeshMovingApplication", "LinearSolversApplication")
 have_mpm_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("ParticleMechanicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication")
+have_mpm_dem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "ParticleMechanicsApplication", "MappingApplication", "LinearSolversApplication")
 have_fem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication", "MappingApplication")
 have_pfem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("PfemFluidDynamicsApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "ConstitutiveLawsApplication")
 
@@ -108,16 +109,22 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fem_fem/small_2d_plate", "cosim_fem_fem_small_2d_plate_full_mortar")
             self._runTest()
 
-    def test_FEM_FEM_Neumann_Neumann_Jacobi_Solver(self):
+    def test_MPMDEMCoupling(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
-        if not have_fem_fem_dependencies:
-            self.skipTest("FEM-FEM dependencies are not available!")
+        if not have_mpm_dem_dependencies:
+            self.skipTest("MPM DEM dependencies are not available!")
 
-        self.name = "test_FEM_FEM_neumann_neumann_jacobi_solver"
         with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("fem_fem/static_2d_cantilever", "cosim_fem_fem_neumann_neumann_jacobi_solver")
+            self._createTest("mpm_dem","cosim_mpm_dem")
             self._runTest()
+
+        # removing superfluous dem files after test
+        self.addCleanup(kratos_utils.DeleteFileIfExisting, GetFilePath("mpm_dem/dempart.post.lst"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Graphs"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_MPI_results"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Post_Files"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Results_and_Data"))
 
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
     #    if not numpy_available:
