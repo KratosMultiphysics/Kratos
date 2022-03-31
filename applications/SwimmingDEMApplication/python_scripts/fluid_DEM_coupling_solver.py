@@ -15,6 +15,13 @@ class FluidDEMSolver(FluidSolver):
 
     ## FluidDEMSolver specific methods.
 
+    def _TimeBufferIsInitialized(self):
+        # We always have one extra old step if we are not using a manufactured solution (step 0, read from input)
+        if self.settings["fluid_manufactured"].GetBool():
+            return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 2 >= self.GetMinimumBufferSize()
+        else:
+            return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
+
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         # Cases in which the element manages the time integration

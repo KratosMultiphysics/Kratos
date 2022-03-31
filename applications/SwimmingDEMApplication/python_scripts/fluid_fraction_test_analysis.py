@@ -1,3 +1,4 @@
+import KratosMultiphysics as Kratos
 from KratosMultiphysics import Model, Parameters, Logger
 
 import os
@@ -26,6 +27,9 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         super().__init__(model, varying_parameters)
         self.project_parameters = varying_parameters
         self.GetModelAttributes()
+        self.max_iteration = self.project_parameters['fluid_parameters']['solver_settings']['maximum_iterations'].GetInt()
+        # This model analysis is created to validate formulations so we have to make sure the fluid is computed in every time step
+        self.project_parameters['fluid_parameters']['solver_settings']['fluid_manufactured'].SetBool(True)
 
     def InitializeVariablesWithNonZeroValues(self):
         pass
@@ -68,8 +72,12 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                 self.project_parameters["fluid_domain_volume"].GetDouble())
 
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
-
+        self.n_iteration_number = self.fluid_model_part.ProcessInfo[Kratos.NL_ITERATION_NUMBER]
+        #self.linear_convergence = self.fluid_model_part.ProcessInfo[Kratos.LINEAR_CONVERGENCE]
+        self.linear_convergence = True
+        self.relax_alpha = self.fluid_model_part.ProcessInfo[Kratos.RELAXATION_ALPHA]
         self.velocity_error_projected, self.pressure_error_projected, self.error_model_part, self.reynolds_number, self.porosity_mean = self._GetSolver().CalculateL2Error()
+
         self.projector_post_process.WriteData(self.error_model_part,
                                             self.velocity_error_projected,
                                             self.pressure_error_projected,
@@ -77,7 +85,13 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                                             self.model_type,
                                             self.subscale_type,
                                             self.reynolds_number,
-                                            self.porosity_mean)
+                                            self.porosity_mean,
+                                            self.n_iteration_number,
+                                            self.max_iteration,
+                                            self.linear_convergence,
+                                            self.relax_alpha)
+
+        return self.velocity_error_projected
 
     def TransferBodyForceFromDisperseToFluid(self):
         pass
