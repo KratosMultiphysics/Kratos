@@ -177,7 +177,7 @@ public:
     // Constructor using an array of nodes with properties
     BaseSolidElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ):Element(NewId,pGeometry,pProperties)
     {
-        // This is needed to prevent uninitiased integration method in inactive elements
+        // This is needed to prevent uninitialised integration method in inactive elements
         mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     };
 
