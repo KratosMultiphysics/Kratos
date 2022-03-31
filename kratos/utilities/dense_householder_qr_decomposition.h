@@ -91,8 +91,9 @@ public:
     virtual void Compute(MatrixType& rInputMatrix)
     {
         // Set input data
-        mpA = &rInputMatrix;
-        DataType* p_0_0 = &(rInputMatrix)(0, 0);
+        // Note that we need a copy as QR decomposition is modifying the input
+        mpA = make_unique<MatrixType>(rInputMatrix);
+        DataType *p_0_0 = &(*mpA)(0, 0);
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
 
@@ -113,8 +114,9 @@ public:
         MatrixType& rMatrixR)
     {
         // Set input data
-        mpA = &rInputMatrix;
-        DataType *p_0_0 = &(rInputMatrix)(0, 0);
+        // Note that we need a copy as QR decomposition is modifying the input
+        mpA = make_unique<MatrixType>(rInputMatrix);
+        DataType *p_0_0 = &(*mpA)(0, 0);
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
 
@@ -283,9 +285,9 @@ private:
     ///@name Private member Variables
     ///@{
 
-    MatrixType* mpA = nullptr;
-
     AMGCLQRType mHouseholderQR;
+
+    std::unique_ptr<MatrixType> mpA = nullptr;
 
     ///@}
     ///@name Private Operators
