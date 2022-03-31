@@ -21,6 +21,8 @@ class PotentialFlowFormulation(object):
                 self._SetUpEmbeddedIncompressibleElement(formulation_settings)
             elif element_type == "embedded_compressible":
                 self._SetUpEmbeddedCompressibleElement(formulation_settings)
+            elif element_type == "embedded_perturbation_transonic":
+                self._SetUpEmbeddedTransonicPerturbationElement(formulation_settings)
             elif element_type == "perturbation_incompressible":
                 self._SetUpIncompressiblePerturbationElement(formulation_settings)
             elif element_type == "perturbation_compressible":
@@ -102,6 +104,19 @@ class PotentialFlowFormulation(object):
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
+        self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
+    def _SetUpEmbeddedTransonicPerturbationElement(self, formulation_settings):
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "embedded_perturbation_transonic",
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = "EmbeddedTransonicPerturbationPotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
         self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
@@ -222,7 +237,10 @@ class PotentialFlowSolver(FluidSolver):
             strategy_type = None
         return strategy_type
 
-    @classmethod
+    def _CreateBuilderAndSolver(self):
+        linear_solver = self._GetLinearSolver()
+        return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+
     def _CreateScheme(self):
         # Fake scheme creation to do the solution update
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
@@ -239,11 +257,13 @@ class PotentialFlowSolver(FluidSolver):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
         linear_solver = self._GetLinearSolver()
+        builder_and_solver = self._GetBuilderAndSolver()
         if strategy_type == "linear":
             solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
                 computing_model_part,
                 time_scheme,
                 linear_solver,
+                builder_and_solver,
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),
                 self.settings["calculate_solution_norm"].GetBool(),
@@ -255,6 +275,7 @@ class PotentialFlowSolver(FluidSolver):
                 time_scheme,
                 linear_solver,
                 convergence_criterion,
+                builder_and_solver,
                 self.settings["maximum_iterations"].GetInt(),
                 self.settings["compute_reactions"].GetBool(),
                 self.settings["reform_dofs_at_each_step"].GetBool(),

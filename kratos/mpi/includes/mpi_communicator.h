@@ -722,12 +722,7 @@ public:
     , mpVariables_list(rOther.mpVariables_list)
     {}
 
-
-
-    Communicator::Pointer Create() const override
-    {
-        return Create(DataCommunicator::GetDefault());
-    }
+    using BaseType::Create;
 
     Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const override
     {

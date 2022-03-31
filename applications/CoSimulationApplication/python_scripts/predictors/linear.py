@@ -10,6 +10,8 @@ def Create(settings, solver_wrapper):
 
 class LinearPredictor(CoSimulationPredictor):
     def Predict(self):
+        if not self.interface_data.IsDefinedOnThisRank(): return
+
         current_data  = self.interface_data.GetData(0)
         previous_data  = self.interface_data.GetData(1)
 

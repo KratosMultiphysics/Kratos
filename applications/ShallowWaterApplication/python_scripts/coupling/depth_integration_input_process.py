@@ -147,6 +147,10 @@ class DepthIntegrationInputProcess(KM.Process):
     def _CheckInputCoordinates(self):
         if self.settings["swap_yz_axis"].GetBool():
             SW.ShallowWaterUtilities().SwapYZCoordinates(self.input_model_part)
+            SW.ShallowWaterUtilities().SwapY0Z0Coordinates(self.input_model_part)
+        if self.settings["ignore_vertical_component"].GetBool():
+            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.input_model_part)
+            SW.ShallowWaterUtilities().SetMeshZ0CoordinateToZero(self.input_model_part)
 
 
     def _CheckInputVariables(self):

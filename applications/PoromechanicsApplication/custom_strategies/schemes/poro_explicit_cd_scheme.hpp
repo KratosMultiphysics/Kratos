@@ -616,7 +616,7 @@ public:
     {
         KRATOS_TRY
 
-        // rCurrentCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
         rCurrentCondition.AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, REACTION, rCurrentProcessInfo);
 
         KRATOS_CATCH("")
