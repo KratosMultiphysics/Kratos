@@ -295,7 +295,13 @@ protected:
      * Calculation of Specific variables: pressure and gradient pressure 
      */
 
-    void SetSpecificVariables(GeneralVariables& rVariables);
+    void SetSpecificVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+     /*
+     * Compute coefficients for dynamic terms (only for stabilization and for Newmark scheme integration)
+     */
+
+    void ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**

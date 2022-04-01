@@ -230,6 +230,9 @@ protected:
         double tau1;
         double tau2;
 
+        double DynamicCoefficient;
+        Vector DynamicRHS;
+
         // Pressure at gauss points and pressure gradient
         double PressureGP;
         Vector PressureGradient;
@@ -237,6 +240,7 @@ protected:
         // Matrix VolumetricConstitutiveMatrix;
         Matrix Identity;
         Matrix TensorIdentityMatrix;
+        
         
         //Modulus
         double ShearModulus;
