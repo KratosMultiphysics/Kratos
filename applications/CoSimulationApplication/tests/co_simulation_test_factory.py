@@ -213,6 +213,7 @@ class TestCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
 
             self._runTest()
 
+    @KratosUnittest.skipUnless(False, "this test result is not evaluated")
     def test_PFEM_FEM_water_slide_2d(self):
         if not numpy_available:
             self.skipTest("Numpy not available")
