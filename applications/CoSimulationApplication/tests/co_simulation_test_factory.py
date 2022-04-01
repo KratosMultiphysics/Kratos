@@ -137,8 +137,6 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fem_fem/static_2d_cantilever", "cosim_fem_fem_neumann_neumann_jacobi_solver")
             self._runTest()
 
-    
-
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
     #    if not numpy_available:
     #        self.skipTest("Numpy not available")
