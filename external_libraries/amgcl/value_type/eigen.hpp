@@ -65,6 +65,12 @@ struct rhs_of< Eigen::Matrix<T, N, N> > {
     typedef Eigen::Matrix<T, N, 1> type;
 };
 
+/// Element type of a non-scalar type
+template <class T, int N, int M>
+struct element_of< Eigen::Matrix<T, N, M> > {
+    typedef T type;
+};
+
 /// Whether the value type is a statically sized matrix.
 template <class T, int N, int M>
 struct is_static_matrix< Eigen::Matrix<T, N, M> > : std::true_type {};

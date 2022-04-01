@@ -197,6 +197,12 @@ struct rhs_of< static_matrix<T, N, N> > {
     typedef static_matrix<T, N, 1> type;
 };
 
+/// Element type of a non-scalar type
+template <class T, int N, int M>
+struct element_of< static_matrix<T, N, M> > {
+    typedef T type;
+};
+
 /// Whether the value type is a statically sized matrix.
 template <class T, int N, int M>
 struct is_static_matrix< static_matrix<T, N, M> > : std::true_type {};

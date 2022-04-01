@@ -102,7 +102,7 @@ class DepthIntegrationInputProcess(KM.Process):
         directory = file.parent
         file_names = [str(f) for f in directory.glob("*.h5")]
         if len(file_names) == 0:
-            msg = "DepthIntegrationInputProcess: The specified path is empty or odes not exist: '{}'"
+            msg = self.__class__.__name__ + ": The specified path is empty or does not exist: '{}'"
             raise Exception(msg.format(directory))
 
         # Find the common parts (prefix and suffix) of the found names and the file pattern
@@ -117,14 +117,23 @@ class DepthIntegrationInputProcess(KM.Process):
         for f in file_names:
             f = f.replace(prefix, '')
             f = f.replace(suffix, '')
-            self.times.append(float(f))
+            try:
+                self.times.append(float(f))
+            except ValueError:
+                msg = self.__class__.__name__
+                msg += ": Trying to extract the time stamp from the input file name:\n"
+                msg += "\tExpected pattern: {}\n"
+                msg += "\tFound pattern:    {}<{}>{}"
+                KM.Logger.PrintInfo(msg.format(file_pattern, prefix, f, suffix))
+                raise
         self.times.sort()
 
 
     def _SetCurrentTime(self):
         current_time = self.interface_model_part.ProcessInfo.GetValue(KM.TIME)
         if current_time > self.times[-1]:
-            msg = 'DepthIntegrationInputProcess. Looking for an input file at time {}. However, the input files end at time {}.'
+            msg = self.__class__.__name__
+            msg += ": Looking for an input file at time {}. However, the input files end at time {}."
             raise Exception(msg.format(current_time, self.times[-1]))
         closest_time = next(filter(lambda x: x>current_time, self.times))
         self.input_model_part.ProcessInfo.SetValue(KM.TIME, closest_time)
@@ -138,6 +147,10 @@ class DepthIntegrationInputProcess(KM.Process):
     def _CheckInputCoordinates(self):
         if self.settings["swap_yz_axis"].GetBool():
             SW.ShallowWaterUtilities().SwapYZCoordinates(self.input_model_part)
+            SW.ShallowWaterUtilities().SwapY0Z0Coordinates(self.input_model_part)
+        if self.settings["ignore_vertical_component"].GetBool():
+            SW.ShallowWaterUtilities().SetMeshZCoordinateToZero(self.input_model_part)
+            SW.ShallowWaterUtilities().SetMeshZ0CoordinateToZero(self.input_model_part)
 
 
     def _CheckInputVariables(self):
@@ -197,7 +210,9 @@ class DepthIntegrationInputProcess(KM.Process):
                 "echo_level" : 0
             }""")
         else:
-            raise Exception("DepthIntegrationInputProcess._CreateMapper: The domain size of the input_model_part is: {}".format(domain_size))
+            msg = self.__class__.__name__
+            msg += "._CreateMapper: The domain size of the input_model_part is: {}"
+            raise Exception(msg.format(domain_size))
 
         self.mapper = KM.MapperFactory.CreateMapper(
             self.input_model_part,

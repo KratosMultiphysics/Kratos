@@ -37,10 +37,9 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"MPI model reading finished.")
 
     def PrepareModelPart(self):
+        super(NavierStokesMPITwoFluidsSolver,self).PrepareModelPart()
         ## Construct the MPI communicators
         self.distributed_model_part_importer.CreateCommunicators()
-
-        super(NavierStokesMPITwoFluidsSolver,self).PrepareModelPart()
 
     def _GetEpetraCommunicator(self):
         if not hasattr(self, '_epetra_communicator'):

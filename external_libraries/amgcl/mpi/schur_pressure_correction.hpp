@@ -57,6 +57,7 @@ class schur_pressure_correction {
         typedef typename USolver::backend_type backend_type;
 
         typedef typename backend_type::value_type value_type;
+        typedef typename math::scalar_of<value_type>::type scalar_type;
         typedef typename backend_type::matrix     bmatrix;
         typedef typename backend_type::vector     vector;
         typedef typename backend_type::params     backend_params;
@@ -509,9 +510,12 @@ class schur_pressure_correction {
 
         template <class Vec1, class Vec2>
         void apply(const Vec1 &rhs, Vec2 &&x) const {
+            const auto one = math::identity<scalar_type>();
+            const auto zero = math::zero<scalar_type>();
+
             AMGCL_TIC("split variables");
-            backend::spmv(1, *x2u, rhs, 0, *rhs_u);
-            backend::spmv(1, *x2p, rhs, 0, *rhs_p);
+            backend::spmv(one, *x2u, rhs, zero, *rhs_u);
+            backend::spmv(one, *x2p, rhs, zero, *rhs_p);
             AMGCL_TOC("split variables");
 
             // Ai u = rhs_u
@@ -522,7 +526,7 @@ class schur_pressure_correction {
 
             // rhs_p -= Kpu u
             AMGCL_TIC("solve P");
-            backend::spmv(-1, *Kpu, *u, 1, *rhs_p);
+            backend::spmv(-one, *Kpu, *u, one, *rhs_p);
 
             // S p = rhs_p
             backend::clear(*p);
@@ -531,7 +535,7 @@ class schur_pressure_correction {
 
             // rhs_u -= Kup p
             AMGCL_TIC("Update U");
-            backend::spmv(-1, *Kup, *p, 1, *rhs_u);
+            backend::spmv(-one, *Kup, *p, one, *rhs_u);
 
             // Ai u = rhs_u
             backend::clear(*u);
@@ -539,25 +543,28 @@ class schur_pressure_correction {
             AMGCL_TOC("Update U");
 
             AMGCL_TIC("merge variables");
-            backend::spmv(1, *u2x, *u, 0, x);
-            backend::spmv(1, *p2x, *p, 1, x);
+            backend::spmv(one, *u2x, *u, zero, x);
+            backend::spmv(one, *p2x, *p, one, x);
             AMGCL_TOC("merge variables");
         }
 
         template <class Alpha, class Vec1, class Beta, class Vec2>
         void spmv(Alpha alpha, const Vec1 &x, Beta beta, Vec2 &y) const {
+            const auto one = math::identity<scalar_type>();
+            const auto zero = math::zero<scalar_type>();
+
             // y = beta y + alpha S x, where S = Kpp - Kpu Kuu^-1 Kup
             AMGCL_TIC("matrix-free spmv");
             backend::spmv(alpha, P->system_matrix(), x, beta, y);
 
-            backend::spmv(1, *Kup, x, 0, *tmp);
+            backend::spmv(one, *Kup, x, zero, *tmp);
             if (prm.approx_schur) {
-                backend::vmul(1, *M, *tmp, 0, *u);
+                backend::vmul(one, *M, *tmp, zero, *u);
             } else {
                 backend::clear(*u);
                 (*U)(*tmp, *u);
             }
-            backend::spmv(-alpha, *Kpu, *u, 1, y);
+            backend::spmv(-alpha, *Kpu, *u, one, y);
             AMGCL_TOC("matrix-free spmv");
         }
     private:

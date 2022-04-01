@@ -18,6 +18,8 @@
 #include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/plastic_potentials/rankine_plastic_potential.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+
 
 namespace Kratos
 {
@@ -120,15 +122,13 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
-        double I1, J2, J3, lode_angle;
-        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
-
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
-        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
-
-        rEquivalentStress = 2.0 * std::sqrt(3 * J2) / 3.0 * std::cos(lode_angle + Globals::Pi / 6.0) + I1 / 3.0;
+        array_1d<double, Dimension> principal_stress_vector = ZeroVector(Dimension);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
+        // The rEquivalentStress is the maximum principal stress
+        if (Dimension == 3)  // TODO: Add constexpr with C++17
+            rEquivalentStress = std::max(std::max(principal_stress_vector[0], principal_stress_vector[1]), principal_stress_vector[2]);
+        else // 2D
+            rEquivalentStress = std::max(principal_stress_vector[0], principal_stress_vector[1]);
     }
 
     /**
