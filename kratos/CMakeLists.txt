@@ -1,7 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-find_package(TBB REQUIRED)
-
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/triangle )
 else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -91,6 +89,7 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 # Set Intel TBB on if selected
 if(${USE_INTEL_TBB} MATCHES ON)
+  find_package(TBB REQUIRED)
   set(KRATOS_INTEL_TBB "TBB::tbb TBB::tbbmalloc")
   add_definitions(-DKRATOS_INTEL_TBB)
 endif(${USE_INTEL_TBB} MATCHES ON)
