@@ -151,16 +151,29 @@ public:
         KRATOS_ERROR_IF(!mpA) << "QR decomposition not computed yet. Please call 'Compute' before 'Solve'." << std::endl;
 
         // Set input data
-        DataType* p_b_0 = &(rB(0));
-        DataType* p_x_0 = &(rX(0));
-        DataType *p_A_0_0 = &((*mpA)(0,0));
+        DataType* p_A_0_0 = &((*mpA)(0,0));
         const std::size_t m = mpA->size1();
         const std::size_t n = mpA->size2();
 
-        // Call the QR solve method
+        // Check output matrix size
+        const std::size_t l = rB.size2();
+        if (rX.size1() != n || rX.size2() != l) {
+            rX.resize(n, l);
+        }
+
+        // Call the QR solve method for each column
+        VectorType aux_B_col(l);
+        VectorType aux_X_col(l);
         const bool qr_computed = true;
         auto storage_order = amgcl::detail::storage_order::row_major;
-        const_cast<AMGCLQRType&>(mHouseholderQR).solve(m, n, p_A_0_0, p_b_0, p_x_0, storage_order, qr_computed);
+        for (std::size_t i_col = 0; i_col < l; ++i_col) {
+            TDenseSpaceType::GetColumn(i_col, rB, aux_B_col);
+            TDenseSpaceType::GetColumn(i_col, rX, aux_X_col);
+            DataType* p_b_0 = &(aux_B_col(0));
+            DataType* p_x_0 = &(aux_X_col(0));
+            const_cast<AMGCLQRType&>(mHouseholderQR).solve(m, n, p_A_0_0, p_b_0, p_x_0, storage_order, qr_computed);
+            TDenseSpaceType::SetColumn(i_col, rX, aux_X_col);
+        }
     }
 
     /**
@@ -182,6 +195,11 @@ public:
         DataType *p_A_0_0 = &((*mpA)(0,0));
         const std::size_t m = mpA->size1();
         const std::size_t n = mpA->size2();
+
+        // Check output vector size
+        if (rX.size() != n) {
+            rX.resize(n);
+        }
 
         // Call the QR solve method
         const bool qr_computed = true;
