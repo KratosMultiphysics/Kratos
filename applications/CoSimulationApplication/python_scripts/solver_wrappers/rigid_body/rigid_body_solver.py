@@ -1,5 +1,6 @@
 # Kratos imports
 import KratosMultiphysics as KM
+import KratosMultiphysics.CoSimulationApplication as KMC
 
 # RigidBody imports
 from . import rigid_body_process
@@ -37,9 +38,13 @@ class RigidBodySolver(object):
 
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.FORCE)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
 
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
 
         self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
         self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
@@ -186,10 +191,10 @@ class RigidBodySolver(object):
         # Other variables that are used in SolveSolutionStep()
         self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
         self.total_load = np.zeros(self.system_size)
-        self.prescribed_load = np.zeros(self.system_size)
-        self.prescribed_root_point_displ = np.zeros(self.system_size)
+        #self.prescribed_load = np.zeros(self.system_size)
+        #self.prescribed_root_point_displ = np.zeros(self.system_size)
         #self.external_load = np.zeros(self.system_size)
-        self.external_root_point_displ = np.zeros(self.system_size)
+        #self.external_root_point_displ = np.zeros(self.system_size)
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
         # Apply initial conditions
@@ -310,15 +315,17 @@ class RigidBodySolver(object):
         # Variables that need to be reseted. They might not be overwriten later so they
         # need to be zero to avoid values from previous time steps ar not continously used.
         self.total_load = np.zeros(self.system_size)
-        self.prescribed_load = np.zeros(self.system_size)
-        self.prescribed_root_point_displ = np.zeros(self.system_size)
+        #self.prescribed_load = np.zeros(self.system_size)
+        #self.prescribed_root_point_displ = np.zeros(self.system_size)
         #self.external_load = np.zeros(self.system_size)
-        self.external_root_point_displ = np.zeros(self.system_size)
+        #self.external_root_point_displ = np.zeros(self.system_size)
 
         # Update the time of the simulation
         self.time = current_time + self.delta_t
         self.main_model_part.CloneTimeStep(self.time)
         self.main_model_part.ProcessInfo[KM.STEP] += 1
+        self._ResetExternalVariables()
+
         return self.time
 
 
@@ -409,10 +416,13 @@ class RigidBodySolver(object):
         # Calculate the total load
         self_weight = self.CalculateSelfWeight()
         external_load = self._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT)
-        self.total_load = external_load + self.prescribed_load + self_weight
+        prescribed_load = self._GetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT)
+        self.total_load = external_load + prescribed_load + self_weight
 
         # Calculate the total root point displacement and the equivalent force it generates
-        self.total_root_point_displ[:,0] = self.external_root_point_displ + self.prescribed_root_point_displ
+        external_root_point_displ = self._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION)
+        prescribed_root_point_displ = self._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION)
+        self.total_root_point_displ[:,0] = external_root_point_displ + prescribed_root_point_displ
         self._UpdateDisplacement("root_point", self.total_root_point_displ[:,0])
         root_point_force = self._CalculateEquivalentForceFromRootPointDisplacement()
         
@@ -525,6 +535,13 @@ class RigidBodySolver(object):
 
         return expected_size
 
+    
+    def _ResetExternalVariables(self):
+        zero_vector = np.zeros(self.system_size)
+        self._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, zero_vector)
+        self._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, zero_vector)
+        self._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, zero_vector)
+        self._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, zero_vector)
     
     def _GetCompleteVector(self, model_part_name, linear_variable, angular_variable, buffer=0):
 
