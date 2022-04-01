@@ -305,7 +305,7 @@ private:
 
     AMGCLQRType mHouseholderQR;
 
-    Kratos::unique_ptr<MatrixType> mpA = nullptr;
+    Kratos::unique_ptr<MatrixType> mpA = Kratos::unique_ptr<MatrixType>(nullptr);
 
     ///@}
     ///@name Private Operators
