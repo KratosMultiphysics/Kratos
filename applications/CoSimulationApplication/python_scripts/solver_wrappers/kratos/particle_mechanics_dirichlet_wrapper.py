@@ -15,17 +15,17 @@ from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis
 import math
 
 def Create(settings, model, solver_name):
-    return ParticleMechanicsWrapper(settings, model, solver_name)
+    return ParticleMechanicsDirichletWrapper(settings, model, solver_name)
 
-class ParticleMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
+class ParticleMechanicsDirichletWrapper(kratos_base_wrapper.KratosBaseWrapper):
     """This class is the interface to the ParticleMechanicsApplication of Kratos"""
 
     def _CreateAnalysisStage(self):
         return ParticleMechanicsAnalysis(self.model, self.project_parameters)
 
     def SolveSolutionStep(self):
-        coupling_model_part = self.model.GetModelPart("MPM_Coupling_Interface")
-        model_part_name = self.project_parameters["coupling_settings"]["interface_model_part_name"].GetString() # TODO this should be specified in "solver_wrapper_settings" in teh cosim-json
+        coupling_model_part = self.model.GetModelPart("MPM_Coupling_Dirichlet_Interface")
+        model_part_name = self.settings["solver_wrapper_settings"]["interface_model_part_name"].GetString()
         model_part = self.model.GetModelPart(model_part_name)
 
         ## Transfer information from coupling_mp to mp
