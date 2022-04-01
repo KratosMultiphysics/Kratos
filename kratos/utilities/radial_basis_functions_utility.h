@@ -30,7 +30,7 @@ namespace Kratos
  * This class uses Gaussian raidal basis functions to calculate
  * the shape function values for a given value (i.e. norm of a point) with partition of unity.
  */
-class RadialBasisFunctionsUtility
+class KRATOS_API(KRATOS_CORE) RadialBasisFunctionsUtility
 {
 
 public:
