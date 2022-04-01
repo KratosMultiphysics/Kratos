@@ -73,7 +73,7 @@ class TestCase(TestCase):
         msg = self._formatMessage(msg, standardMsg)
         raise self.failureException(msg)
 
-    def assertVectorAlmostEqual(self, vector1, vector2, prec=7, msg=None):
+    def assertVectorAlmostEqual(self, vector1, vector2, places=7, msg=None, delta=None):
         class LazyErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
             def __init__(self, mismatch_idx, aux_message=None):
@@ -89,9 +89,9 @@ class TestCase(TestCase):
 
         self.assertEqual(len(vector1), len(vector2), msg="\nCheck failed because vector arguments do not have the same size")
         for i, (v1, v2) in enumerate(zip(vector1, vector2)):
-            self.assertAlmostEqual(v1, v2, prec, msg=LazyErrMsg(i, msg))
+            self.assertAlmostEqual(v1, v2, places, LazyErrMsg(i, msg), delta)
 
-    def assertMatrixAlmostEqual(self, matrix1, matrix2, prec=7, msg=None):
+    def assertMatrixAlmostEqual(self, matrix1, matrix2, places=7, msg=None, delta=None):
         class LazyDimErrMsg:
             '''Since potentially expensive, this class delays printing the error message until it is actually needed'''
             def __init__(self, aux_message=None):
@@ -124,7 +124,7 @@ class TestCase(TestCase):
 
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
-                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], prec, msg=LazyValErrMsg(i,j,msg))
+                self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], places, LazyValErrMsg(i,j,msg), delta)
 
 
 def skipIfApplicationsNotAvailable(*application_names):
