@@ -25,10 +25,9 @@ class ParticleMechanicsNeumannWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def SolveSolutionStep(self):
         coupling_model_part = self.model.GetModelPart("MPM_Coupling_Neumann_Interface")
-        model_part_name = self.project_parameters["coupling_settings"]["interface_model_part_name"].GetString() # TODO this should be specified in "solver_wrapper_settings" in teh cosim-json
+        model_part_name = self.settings["solver_wrapper_settings"]["interface_model_part_name"].GetString()
         model_part = self.model.GetModelPart(model_part_name)
         
-        # calculate_mpm=False
         ## Transfer information from coupling_mp to mp
         for coupling_node in coupling_model_part.Nodes:
             coupling_id  = coupling_node.Id

@@ -40,9 +40,6 @@
     },
     "auxiliary_variables_list": [ "NORMAL", "IS_STRUCTURE" ]
   },
-  "coupling_settings": {
-    "interface_model_part_name": "MPM_Material.INTERFACE_coupling_to_fem"
-  },
   "processes": {
     "constraints_process_list": [
       {
@@ -63,7 +60,7 @@
         "python_module": "apply_mpm_coupling_interface_neumann_condition_process",
         "kratos_module": "KratosMultiphysics.ParticleMechanicsApplication",
         "Parameters": {
-          "model_part_name": "Background_Grid.INTERFACE_coupling_to_fem",
+          "model_part_name": "Background_Grid.INTERFACE_coupling_to_dem",
           "particles_per_condition": 1
         }
       }

@@ -1430,7 +1430,7 @@ Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 /
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart INTERFACE_coupling_to_fem // Group coupling_interface // Subtree PointLoad2D
+Begin SubModelPart INTERFACE_coupling_to_dem // Group coupling_interface // Subtree PointLoad2D
     Begin SubModelPartNodes
            86
            90
