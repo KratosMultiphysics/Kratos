@@ -1015,6 +1015,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         double Gc = mGc; // Mix Mode Energy Release Rate
         double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
         double Delta_G = mDelta_G;
+        double Delta_epsilon_one = mDelta_epsilon_one;
         double SERR = mSERR; // Strain Energy Release Rate 
         double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
         double Delta_eq = 0; // Equivalent Strain
@@ -1036,13 +1037,14 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
                 Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
                 Delta_G = (Gc / characteristic_length) / (((2.0 * Gc / characteristic_length) / T_eq) - Delta_eq);
                 Delta_eq_max = Delta_eq;
+                Delta_epsilon_one = Delta_eq;
             }
             if (Delta_eq >= Delta_eq_max) { // Loading
                 // SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
                 // delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
                 // Delta_eq_max = Delta_eq;
 
-                SERR += (Delta_eq - Delta_eq_max) * Delta_G; // Strain Energy Release Rate
+                SERR = (Delta_eq - Delta_epsilon_one) * Delta_G; // Strain Energy Release Rate
                 delamination_damage = std::min(SERR / (Gc / characteristic_length),1.0);
                 Delta_eq_max = Delta_eq;
             }
@@ -1065,36 +1067,36 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
-        // if (flag_const_tensor) {
-        //     this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
-        // }
+        if (flag_const_tensor) {
+            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+        }
 
         // test for tangent tensor
 
-        const double E  = 800000000;
-        const double NU = 0.0;
+        // const double E  = 800000000;
+        // const double NU = 0.0;
 
-        const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
-        const double c2 = c1 * ( 1 - NU );
-        const double c3 = c1 * NU;
-        const double c4 = c1 * 0.5 * ( 1 - 2 * NU );
+        // const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
+        // const double c2 = c1 * ( 1 - NU );
+        // const double c3 = c1 * NU;
+        // const double c4 = c1 * 0.5 * ( 1 - 2 * NU );
 
-        Matrix test_tangent_tensor = ZeroMatrix(6,6);
+        // Matrix test_tangent_tensor = ZeroMatrix(6,6);
 
-        test_tangent_tensor( 0, 0 ) = c2;
-        test_tangent_tensor( 0, 1 ) = c3;
-        test_tangent_tensor( 0, 2 ) = c3;
-        test_tangent_tensor( 1, 0 ) = c3;
-        test_tangent_tensor( 1, 1 ) = c2;
-        test_tangent_tensor( 1, 2 ) = c3;
-        test_tangent_tensor( 2, 0 ) = c3;
-        test_tangent_tensor( 2, 1 ) = c3;
-        test_tangent_tensor( 2, 2 ) = c2;
-        test_tangent_tensor( 3, 3 ) = c4;
-        test_tangent_tensor( 4, 4 ) = c4;
-        test_tangent_tensor( 5, 5 ) = c4;
+        // test_tangent_tensor( 0, 0 ) = c2;
+        // test_tangent_tensor( 0, 1 ) = c3;
+        // test_tangent_tensor( 0, 2 ) = c3;
+        // test_tangent_tensor( 1, 0 ) = c3;
+        // test_tangent_tensor( 1, 1 ) = c2;
+        // test_tangent_tensor( 1, 2 ) = c3;
+        // test_tangent_tensor( 2, 0 ) = c3;
+        // test_tangent_tensor( 2, 1 ) = c3;
+        // test_tangent_tensor( 2, 2 ) = c2;
+        // test_tangent_tensor( 3, 3 ) = c4;
+        // test_tangent_tensor( 4, 4 ) = c4;
+        // test_tangent_tensor( 5, 5 ) = c4;
 
-        rValues.GetConstitutiveMatrix() = test_tangent_tensor;
+        // rValues.GetConstitutiveMatrix() = test_tangent_tensor;
 
         // test for tangent tensor
 
@@ -1501,6 +1503,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         double Gc = mGc; // Mix Mode Energy Release Rate
         double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
         double Delta_G = mDelta_G;
+        double Delta_epsilon_one = mDelta_epsilon_one;
         double SERR = mSERR; // Strain Energy Release Rate 
         double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
         double Delta_eq = 0; // Equivalent Strain
@@ -1522,13 +1525,14 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
                 Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
                 Delta_G = (Gc / characteristic_length) / (((2.0 * Gc / characteristic_length) / T_eq) - Delta_eq);
                 Delta_eq_max = Delta_eq;
+                Delta_epsilon_one = Delta_eq;
             }
             if (Delta_eq >= Delta_eq_max) { // Loading
                 // SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
                 // delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
                 // Delta_eq_max = Delta_eq;
 
-                SERR += (Delta_eq - Delta_eq_max) * Delta_G; // Strain Energy Release Rate
+                SERR = (Delta_eq - Delta_epsilon_one) * Delta_G; // Strain Energy Release Rate
                 delamination_damage = std::min(SERR / (Gc / characteristic_length),1.0);
                 Delta_eq_max = Delta_eq;
             }
@@ -1555,6 +1559,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         mDamageIndicator = DamageIndicator;                  // Onset of Damage
         mGc = Gc;                                            // Mix Mode Energy Release Rate
         mElastic_energy = Elastic_energy;                    // Elastic energy stored before damage initiation
+        mDelta_epsilon_one = Delta_epsilon_one;
         mDelta_G = Delta_G; 
         mSERR = SERR;                                        // Strain Energy Release Rate
         mdelamination_damage = delamination_damage;          // Scalar delamination damage variable  
@@ -1564,7 +1569,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         //     this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
         // }
 
-        KRATOS_WATCH(mSERR);
+        KRATOS_WATCH(Delta_eq);
 
         // Previous flags restored
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
