@@ -71,6 +71,23 @@ class TestTinyFetiCoSimulationCases(co_simulation_test_case.CoSimulationTestCase
             self._createTest("fem_fem/small_2d_plate_feti/implicit_explicit_mixed", "cosim_fem_fem_small_2d_plate_feti_implicit_explicit_mixed")
             self._runTest()
 
+    def test_MPMDEMCoupling(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
+        if not have_mpm_dem_dependencies:
+            self.skipTest("MPM DEM dependencies are not available!")
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("mpm_dem","cosim_mpm_dem")
+            self._runTest()
+
+        # removing superfluous dem files after test
+        self.addCleanup(kratos_utils.DeleteFileIfExisting, GetFilePath("mpm_dem/dempart.post.lst"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Graphs"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_MPI_results"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Post_Files"))
+        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Results_and_Data"))
+
 
 class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
     '''This class contains "small" CoSimulation-Cases, small enough to run in the nightly suite
@@ -120,22 +137,7 @@ class TestSmallCoSimulationCases(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fem_fem/static_2d_cantilever", "cosim_fem_fem_neumann_neumann_jacobi_solver")
             self._runTest()
 
-    def test_MPMDEMCoupling(self):
-        if not numpy_available:
-            self.skipTest("Numpy not available")
-        if not have_mpm_dem_dependencies:
-            self.skipTest("MPM DEM dependencies are not available!")
-
-        with KratosUnittest.WorkFolderScope(".", __file__):
-            self._createTest("mpm_dem","cosim_mpm_dem")
-            self._runTest()
-
-        # removing superfluous dem files after test
-        self.addCleanup(kratos_utils.DeleteFileIfExisting, GetFilePath("mpm_dem/dempart.post.lst"))
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Graphs"))
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_MPI_results"))
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Post_Files"))
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, GetFilePath("mpm_dem/dempart_Results_and_Data"))
+    
 
     #def test_FEM_FEM_dynamic_2d_cantilever_implicit_implicit(self):
     #    if not numpy_available:
