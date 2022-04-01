@@ -2,28 +2,6 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
-def PostProcess(model_part, output_name):
-    gid_output = GiDOutputProcess(
-        model_part,
-        output_name,
-        KratosMultiphysics.Parameters("""{
-            "result_file_configuration" : {
-                "gidpost_flags": {
-                    "GiDPostMode": "GiD_PostBinary",
-                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                    "WriteConditionsFlag": "WriteConditions",
-                    "MultiFileFlag": "SingleFile"
-                },
-                "nodal_results" : ["TEMPERATURE"]
-            }
-        }"""))
-    gid_output.ExecuteInitialize()
-    gid_output.ExecuteBeforeSolutionLoop()
-    gid_output.ExecuteInitializeSolutionStep()
-    gid_output.PrintOutput()
-    gid_output.ExecuteFinalizeSolutionStep()
-    gid_output.ExecuteFinalize()
-
 class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -64,7 +42,7 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
         N_container = KratosMultiphysics.Vector()
         h = 1 #Shape parameter for the kernel function (radial basis function, inverse multiquadratic)
         input_shape_parameter = False
-        if InputShapeParameter:
+        if input_shape_parameter:
             KratosMultiphysics.RadialBasisFunctionsUtility.CalculateShapeFunctions(
                 pts_coord,
                 midpoint,
@@ -76,6 +54,8 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
                 midpoint,
                 N_container)
 
+        '''
+        For debugging:
         # Save the obtained results in TEMPERATURE variable and visualize
         output_results = False
         if output_results:
@@ -83,11 +63,12 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
             for node in self.main_model_part.Nodes:
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, N_container[i])
                 i += 1
-            PostProcess(self.main_model_part, "test_radial_basis_functions_utility_1x1_square")
+            self.PostProcess("test_radial_basis_functions_utility_1x1_square")
+        '''
 
         # Check results
         N_tot = sum(N_container)
-        if InputShapeParameter:
+        if input_shape_parameter:
             self.assertAlmostEqual(N_tot, 1.0, 8)
             self.assertAlmostEqual(N_container[0], -0.00044077745800828917, 8)
             self.assertAlmostEqual(N_container[9], -0.08250832642936118, 8)
@@ -97,6 +78,28 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
             self.assertAlmostEqual(N_container[0], -0.000584922796671384, 8)
             self.assertAlmostEqual(N_container[9], -0.04990247800841474, 8)
             self.assertAlmostEqual(N_container[15], 0.332227735376926, 8)
+        
+    def PostProcess(self, output_name):
+        gid_output = GiDOutputProcess(
+            self.main_model_part,
+            output_name,
+            KratosMultiphysics.Parameters("""{
+                "result_file_configuration" : {
+                    "gidpost_flags": {
+                        "GiDPostMode": "GiD_PostBinary",
+                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                        "WriteConditionsFlag": "WriteConditions",
+                        "MultiFileFlag": "SingleFile"
+                    },
+                    "nodal_results" : ["TEMPERATURE"]
+                }
+            }"""))
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()
