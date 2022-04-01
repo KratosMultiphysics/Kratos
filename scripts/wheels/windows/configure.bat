@@ -56,6 +56,7 @@ echo %KRATOS_SOURCE%
 echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
 
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DCMAKE_PREFIX_PATH="C:\Program Files (x86)\Intel\oneAPI\tbb\2021.5.2\lib\cmake\tbb"        ^
 -DCMAKE_INSTALL_PREFIX=%3                                                                   ^
 -DUSE_TRIANGLE_NONFREE_TPL=ON                                                               ^
 -DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
