@@ -275,7 +275,7 @@ class RigidBodySolver(object):
 
                 # Calculate the reaction for the output
                 # TODO: this sould be calculated elsewhere or not outputed
-                reaction = self.CalculateReaction()
+                reaction = self._GetCompleteVector("root_point", KM.REACTION, KM.REACTION_MOMENT)
 
                 x, v, a = self._GetKinematics("rigid_body")
                 x_root, v_root, a_root = self._GetKinematics("root_point")
@@ -372,7 +372,10 @@ class RigidBodySolver(object):
          
         #self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, x)
 
+        reaction = self.CalculateReaction()
+        self._SetCompleteVector("root_point", KM.REACTION, KM.REACTION_MOMENT, reaction)
 
+    '''
     def _UpdateRootPointDisplacement(self, displ):
         # Save root point displacement
         self.x_root[:,0] = displ
@@ -381,6 +384,7 @@ class RigidBodySolver(object):
             self.v_root[:,1] + self.a3v * self.a_root[:,1]
         self.a_root[:,0] = self.a1a * (self.x_root[:,0] - self.x_root[:,1]) + self.a2a * \
             self.v_root[:,1] + self.a3a * self.a_root[:,1]
+    '''
 
     def _UpdateDisplacement(self, model_part_name, x):
 
@@ -452,7 +456,7 @@ class RigidBodySolver(object):
         self_weight = self.M.dot(self.modulus_self_weight)
         return self_weight
 
-
+    
     # CAN BE ERASED
     def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
 
@@ -534,7 +538,7 @@ class RigidBodySolver(object):
             expected_size = self.system_size
 
         return expected_size
-
+    
     
     def _ResetExternalVariables(self):
         zero_vector = np.zeros(self.system_size)
