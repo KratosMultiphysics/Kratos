@@ -569,8 +569,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::MassProjTerm(
             {
                 rMassRHS -= fluid_fraction * rData.DN_DX(i, d) * velocities(i, d) + fluid_fraction_gradient[d] * rData.N[i] * velocities(i,d);
             }
-            rMassRHS += mass_source - fluid_fraction_rate;
         }
+        rMassRHS += mass_source - fluid_fraction_rate;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,4 +1,5 @@
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.SwimmingDEMApplication as SDEM
 from KratosMultiphysics import Model, Parameters, Logger
 
 import os
@@ -29,7 +30,6 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         self.GetModelAttributes()
         self.max_iteration = self.project_parameters['fluid_parameters']['solver_settings']['maximum_iterations'].GetInt()
         # This model analysis is created to validate formulations so we have to make sure the fluid is computed in every time step
-        self.project_parameters['fluid_parameters']['solver_settings']['fluid_manufactured'].SetBool(True)
 
     def InitializeVariablesWithNonZeroValues(self):
         pass
