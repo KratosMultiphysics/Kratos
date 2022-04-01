@@ -151,8 +151,8 @@ public:
         KRATOS_ERROR_IF(!mpA) << "QR decomposition not computed yet. Please call 'Compute' before 'Solve'." << std::endl;
 
         // Set input data
-        DataType* p_b_0 = &((rB)(0));
-        DataType* p_x_0 = &((rX)(0));
+        DataType* p_b_0 = &(rB(0));
+        DataType* p_x_0 = &(rX(0));
         DataType *p_A_0_0 = &((*mpA)(0,0));
         const std::size_t m = mpA->size1();
         const std::size_t n = mpA->size2();
@@ -178,7 +178,7 @@ public:
 
         // Set input data
         DataType* p_b_0 = &((const_cast<VectorType&>(rB))(0));
-        DataType* p_x_0 = &((rX)(0));
+        DataType* p_x_0 = &(rX(0));
         DataType *p_A_0_0 = &((*mpA)(0,0));
         const std::size_t m = mpA->size1();
         const std::size_t n = mpA->size2();
