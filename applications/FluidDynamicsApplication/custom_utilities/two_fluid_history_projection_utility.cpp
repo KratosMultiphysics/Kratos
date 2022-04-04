@@ -52,9 +52,9 @@ namespace Kratos
         // 3. New previous velocity is predicted after interpolating velocity of the lagrangian particles.
         std::size_t domain_size = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
         if (domain_size == 2) {
-            CalculateLagrangianVelocityInterpolation<2>(rModelPart, particle_data, ParticleLayerThickness);
+            CalculateLagrangianVelocityInterpolation<2>(rModelPart, particle_data, ParticleLayerThickness,SearchFactor);
         } else if (domain_size == 3) {
-            CalculateLagrangianVelocityInterpolation<3>(rModelPart, particle_data, ParticleLayerThickness);
+            CalculateLagrangianVelocityInterpolation<3>(rModelPart, particle_data, ParticleLayerThickness,SearchFactor);
         } else {
             KRATOS_ERROR << "Wrong 'DOMAIN_SIZE' " << domain_size << "." << std::endl;
         }
@@ -231,7 +231,7 @@ namespace Kratos
                                 // Slope is calculated : Water in this case is limited by the previous free surface as an upper band
                                 distance_ratio=std::abs(old_distance)/ParticleLayerThickness;
                             }
-                            else
+                            else{
                                 //Slope is calculated : Air in this case is limited by the actual free surface as an lower band
                                  distance_ratio=std::abs(distance)/ParticleLayerThickness;
                             }
@@ -248,10 +248,11 @@ namespace Kratos
                                  distance_ratio=std::abs(old_distance)/ParticleLayerThickness;
                             }
                         }
-                    } else {
-                        // For free surface nodes the old step velocity will exactly the velocity predicted using the particle based fm-ale
-                        distance_ratio = 1.0;
                     }
+                }
+                else {
+                    // For free surface nodes the old step velocity will exactly the velocity predicted using the particle based fm-ale
+                    distance_ratio = 1.0;
                 }
 
                 const array_1d<double, 3> original_velocity=r_node.FastGetSolutionStepValue(VELOCITY);
@@ -262,35 +263,35 @@ namespace Kratos
                 // Set new interpolated velocity such that the interface is Lagrangian in an approximate sense.
                 // It should be considered the fixity. For that nodes that ones of each components is fixed it is not applied false fm-ale to that component.Same procedure has been  for SLIP CONDITION,
 
-                double simulation_time= rModelPart.GetProcessInfo()[TIME];
-                if(simulation_time<45.220000){
-                    if (r_node.IsNot(SLIP)) {
-                        if (!r_node.IsFixed(VELOCITY_X)){
-                            r_node.FastGetSolutionStepValue(VELOCITY_X) = v_n[0];
-                            r_node.FastGetSolutionStepValue(VELOCITY_X, 1) = v_n[0];
-                            r_node.FastGetSolutionStepValue(MESH_VELOCITY_X) = v_n[0];
-                        }
+                // double simulation_time= rModelPart.GetProcessInfo()[TIME];
 
-                        if (!r_node.IsFixed(VELOCITY_Y)){
-                            r_node.FastGetSolutionStepValue(VELOCITY_Y) = v_n[1];
-                            r_node.FastGetSolutionStepValue(VELOCITY_Y, 1) = v_n[1];
-                            r_node.FastGetSolutionStepValue(MESH_VELOCITY_Y) = v_n[1];
-                        }
-
-                        if (!r_node.IsFixed(VELOCITY_Z)){
-                            r_node.FastGetSolutionStepValue(VELOCITY_Z) = v_n[2];
-                            r_node.FastGetSolutionStepValue(VELOCITY_Z, 1) = v_n[2];
-                            r_node.FastGetSolutionStepValue(MESH_VELOCITY_Z) = v_n[2];
-                        }
-                    } else {
-                        const auto& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
-                        const array_1d<double,3> v_n_norm = inner_prod(v_n, r_normal) * r_normal;
-                        const array_1d<double,3> v_n_tang = v_n - v_n_norm;
-                        r_node.FastGetSolutionStepValue(VELOCITY) = v_n_tang;
-                        r_node.FastGetSolutionStepValue(VELOCITY, 1) = v_n_tang;
-                        r_node.FastGetSolutionStepValue(MESH_VELOCITY) = v_n_tang;
+                if (r_node.IsNot(SLIP)) {
+                    if (!r_node.IsFixed(VELOCITY_X)){
+                        r_node.FastGetSolutionStepValue(VELOCITY_X) = v_n[0];
+                        r_node.FastGetSolutionStepValue(VELOCITY_X, 1) = v_n[0];
+                        r_node.FastGetSolutionStepValue(MESH_VELOCITY_X) = v_n[0];
                     }
+
+                    if (!r_node.IsFixed(VELOCITY_Y)){
+                        r_node.FastGetSolutionStepValue(VELOCITY_Y) = v_n[1];
+                        r_node.FastGetSolutionStepValue(VELOCITY_Y, 1) = v_n[1];
+                        r_node.FastGetSolutionStepValue(MESH_VELOCITY_Y) = v_n[1];
+                    }
+
+                    if (!r_node.IsFixed(VELOCITY_Z)){
+                        r_node.FastGetSolutionStepValue(VELOCITY_Z) = v_n[2];
+                        r_node.FastGetSolutionStepValue(VELOCITY_Z, 1) = v_n[2];
+                        r_node.FastGetSolutionStepValue(MESH_VELOCITY_Z) = v_n[2];
+                    }
+                } else {
+                    const auto& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
+                    const array_1d<double,3> v_n_norm = inner_prod(v_n, r_normal) * r_normal;
+                    const array_1d<double,3> v_n_tang = v_n - v_n_norm;
+                    r_node.FastGetSolutionStepValue(VELOCITY) = v_n_tang;
+                    r_node.FastGetSolutionStepValue(VELOCITY, 1) = v_n_tang;
+                    r_node.FastGetSolutionStepValue(MESH_VELOCITY) = v_n_tang;
                 }
+
             }
         }
     }

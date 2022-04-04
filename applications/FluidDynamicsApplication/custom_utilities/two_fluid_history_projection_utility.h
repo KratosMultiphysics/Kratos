@@ -138,7 +138,7 @@ public:
      */
     static void CalculateHistoryProjection(
         ModelPart& rModelPart,
-        const bool ComputeNodalH = false,
+        const bool ComputeNodalH,
         double ParticleLayerThickness,
         double SearchFactor
         );

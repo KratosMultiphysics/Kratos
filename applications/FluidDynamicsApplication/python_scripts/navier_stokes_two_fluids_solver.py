@@ -80,7 +80,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "particle_layer_thickness":0.0,
                 "particle_searching_factor":2
 
-            }
+            },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
@@ -183,9 +183,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self.energy_preserving = self.settings["formulation"]["energy_preserving"].GetBool()
 
         if self.energy_preserving:
-            if self.settings.Has["energy_preserving_settings"]:
+            if self.settings.Has("energy_preserving_settings"):
                 if self.settings["energy_preserving_settings"].Has("particle_layer_thickness"):
-                    self.particle_layer_thickness = self.settings["energy_preserving_settings"]["particle_layer_thickness"].GeDouble()
+                    self.particle_layer_thickness = self.settings["energy_preserving_settings"]["particle_layer_thickness"].GetDouble()
                 if self.settings["energy_preserving_settings"].Has("particle_searching_factor"):
                     self.particle_searching_factor = self.settings["energy_preserving_settings"]["particle_searching_factor"].GetDouble()
             else:
