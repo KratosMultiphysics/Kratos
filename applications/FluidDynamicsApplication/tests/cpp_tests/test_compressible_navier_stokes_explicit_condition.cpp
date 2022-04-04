@@ -88,8 +88,9 @@ ModelPart& GenerateModel(Model& rModel)
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
  *
+ * RIGID BODY TRANSLATION
  * N-S equations say that with:
- *  - ∇U = 0  (Rigid movement)
+ *  - ∇U = 0
  * then the time derivatives should be zero.
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Advection, FluidDynamicsApplicationFastSuite)
@@ -156,13 +157,13 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Advec
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
  * 
- * N-S equations say that with:
+ * N-S equations say that given the following conditions:
  *  - V = 0
  *  - ∇ e_total = 0
- *  - μ, β, λ = 0   (Euler equations)
- * then the time derivatives should be zero
+ *  - λ = 0
+ * the time derivatives should be zero
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_EulerSteady, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Steady, FluidDynamicsApplicationFastSuite)
 {
     // Create the test geometry
     Model model;
@@ -185,8 +186,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Euler
 
         // Set shock capturing values
         r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
-        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 0.0);
-        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 0.0);
+        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 1.0);
+        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 1.0);
     }
 
     // Compute explicit RHS
@@ -215,6 +216,90 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Euler
 
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
+
+
+/**
+ * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
+ * This is a conservation test.
+ * 
+ * RIGID BODY ROTATION
+ * N-S equations say that given the following conditions:
+ *  - ∇ρ = 0
+ *  - V = (-y, x)^T
+ *  - λ = 0
+ *  - p = ½ρω²r²+p0
+ * the time derivatives should be zero.
+ */
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_RigidRotation, FluidDynamicsApplicationFastSuite)
+{
+    // Create the test geometry
+    Model model;
+    ModelPart& r_model_part = GenerateModel(model);
+    
+    constexpr double rho = 1.2;
+    constexpr double c_v = 722.14;
+    constexpr double gamma = 1.4;
+    constexpr double R = c_v * (gamma - 1);
+    constexpr double omega = 3;   // Angular frequency, radians per second
+    constexpr double p0 = 101325; // Pressure at center of rotation, Pa
+
+    // Define and set the nodal values
+    for (auto &r_node : r_model_part.Nodes())
+    {
+        const double Vx = - r_node.Y();
+        const double Vy = r_node.X();
+
+        const double r2 = inner_prod(r_node, r_node);
+        const double pressure = 0.5*rho*omega*omega*r2 + p0;
+
+        const double T = pressure / rho * R;
+        const double V2 = Vx*Vx + Vy*Vy;
+        const double etot = rho * (0.5*V2 + c_v*T);
+
+        // Set DOF values
+        r_node.FastGetSolutionStepValue(DENSITY) = rho;
+        r_node.FastGetSolutionStepValue(MOMENTUM_X) = rho * Vx;
+        r_node.FastGetSolutionStepValue(MOMENTUM_Y) = rho * Vy;
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = etot;
+
+        r_node.FastGetSolutionStepValue(DENSITY, 1) = rho;
+        r_node.FastGetSolutionStepValue(MOMENTUM_X, 1) = rho * Vx;
+        r_node.FastGetSolutionStepValue(MOMENTUM_Y, 1) = rho * Vy;
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = etot;
+
+        // Set shock capturing values
+        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
+        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 1.0);
+        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 1.0);
+    }
+
+    // Compute explicit RHS
+    const auto &r_process_info = r_model_part.GetProcessInfo();
+
+    for(auto& r_elem: r_model_part.Elements())   { r_elem.Check(r_process_info); }
+    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Check(r_process_info); }
+
+    for(auto& r_elem: r_model_part.Elements())   { r_elem.Initialize(r_process_info); }
+    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Initialize(r_process_info); }
+
+    for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); }
+    /*for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }*/
+
+    // Check obtained RHS values
+    std::vector<double> RHS_ref(12, 0.0);
+    std::vector<double> RHS_expl(12);
+
+    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
+        const auto it_node = r_model_part.NodesBegin() + i_node;
+        RHS_expl[i_node * 4    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
+        RHS_expl[i_node * 4 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
+        RHS_expl[i_node * 4 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
+        RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
+    }
+
+    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+}
+
 
 } // Namespace Testing
 } // Namespace Kratos
