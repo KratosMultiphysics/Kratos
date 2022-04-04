@@ -1,6 +1,4 @@
-
-from __future__ import print_function, absolute_import, division
-
+import copy
 import random
 
 import KratosMultiphysics
@@ -70,11 +68,13 @@ class TestEigenDenseDecompositions(KratosUnittest.TestCase):
         A_cols = A.Size2()
 
         # Compute the decomposition
+        # Note that we create a copy to do the test check since the QR is done inplace
+        A0 = copy.deepcopy(A)
         decomposition.Compute(A)
 
         # Solve with the input matrix as RHS
         aux_sol = KratosMultiphysics.Matrix()
-        decomposition.Solve(A, aux_sol)
+        decomposition.Solve(A0, aux_sol)
 
         # Check that the obtained solution equals the identity
         m = aux_sol.Size1()

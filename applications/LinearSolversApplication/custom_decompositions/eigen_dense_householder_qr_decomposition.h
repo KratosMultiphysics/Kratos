@@ -88,8 +88,10 @@ public:
         KRATOS_ERROR_IF(m < n) << "Householder QR decomposition requires m >= n. Input matrix size is (" << m << "," << n << ")." << std::endl;
 
         // Compute the Householder QR decomposition
+        KRATOS_WATCH(rInputMatrix)
         Eigen::Map<EigenMatrix> eigen_input_matrix_map(rInputMatrix.data().begin(), m, n);
-        mHouseholderQR.compute(eigen_input_matrix_map);
+        mpHouseholderQR = Kratos::make_unique<Eigen::HouseholderQR<Eigen::Ref<EigenMatrix>>>(eigen_input_matrix_map);
+        KRATOS_WATCH(rInputMatrix)
     }
 
     void Compute(
@@ -106,7 +108,7 @@ public:
     {
         // Solve the problem Ax = b
         Eigen::Map<EigenMatrix> eigen_rhs_map(rB.data().begin(), rB.size1(), rB.size2());
-        const auto& r_x = mHouseholderQR.solve(eigen_rhs_map);
+        const auto& r_x = mpHouseholderQR->solve(eigen_rhs_map);
 
         // Set the output matrix
         std::size_t m = r_x.rows();
@@ -122,23 +124,23 @@ public:
         const VectorType& rB,
         VectorType& rX) const override
     {
-        // Convert the vector data to matrix type
-        std::size_t n_rows = rB.size();
-        MatrixType aux_input(n_rows, 1);
-        MatrixType aux_output(n_rows, 1);
-        IndexPartition<std::size_t>(n_rows).for_each([&](std::size_t i){aux_input(i,0) = rB(i);});
+        // Solve the problem Ax = b
+        Eigen::Map<EigenMatrix> eigen_rhs_map(const_cast<VectorType&>(rB).data().begin(), rB.size(), 1);
+        const auto& r_x = mpHouseholderQR->solve(eigen_rhs_map);
 
-        // Call the matrix type method
-        Solve(aux_input, aux_output);
-
-        // Convert the matrix output data to vector type
-        IndexPartition<std::size_t>(n_rows).for_each([&](std::size_t i){rX(i) = aux_output(i,0);});
+        // Set the output matrix
+        std::size_t m = r_x.rows();
+        if (rX.size() != m) {
+            rX.resize(m,false);
+        }
+        Eigen::Map<EigenMatrix> eigen_x_map(rX.data().begin(), m, 1);
+        eigen_x_map = r_x;
     }
 
     void MatrixQ(MatrixType& rMatrixQ) const override
     {
         // Get the complete unitary matrix
-        const auto& r_Q = mHouseholderQR.householderQ();
+        const auto& r_Q = mpHouseholderQR->householderQ();
         const std::size_t Q_rows = r_Q.rows();
         const std::size_t Q_cols = r_Q.cols();
         MatrixType complete_Q(Q_rows, Q_cols);
@@ -146,7 +148,7 @@ public:
         matrix_Q_map = r_Q;
 
         // Calculate the thin Q to be returned
-        const std::size_t n = mHouseholderQR.matrixQR().cols();
+        const std::size_t n = mpHouseholderQR->matrixQR().cols();
         const MatrixType aux_identity = IdentityMatrix(Q_cols,n);
         if (rMatrixQ.size1() != Q_rows || rMatrixQ.size2() != n) {
             rMatrixQ.resize(Q_rows,n);
@@ -204,7 +206,7 @@ private:
     ///@name Private member Variables
     ///@{
 
-    Eigen::HouseholderQR<EigenMatrix> mHouseholderQR;
+    std::unique_ptr<Eigen::HouseholderQR<Eigen::Ref<EigenMatrix>>> mpHouseholderQR = nullptr;
 
     ///@}
     ///@name Private Operators
