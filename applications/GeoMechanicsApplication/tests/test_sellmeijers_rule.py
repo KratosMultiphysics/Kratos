@@ -132,7 +132,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
     def critical_head_loop(self, file_path, test_name, counter, search_type='linear'):
         self.change_material_parameters(file_path, self.test_lists["kappa"][counter], self.test_lists["d70"][counter])
-        heads = [x * 0.1 for x in range(0, int(self.test_lists["Hc"][counter] * 10 + 3))]
+        heads = [x * 0.1 for x in range(int(self.test_lists["Hc"][counter] * 10 - 1), int(self.test_lists["Hc"][counter] * 10 + 2))]
         if search_type == 'linear':
             critical_head_found = self.linear_search(file_path, heads)
         elif search_type == 'bisection':
