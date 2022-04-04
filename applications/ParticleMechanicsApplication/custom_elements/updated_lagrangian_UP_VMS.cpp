@@ -562,13 +562,17 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
     
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
     {
-    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-    rVariables.ShearModulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
-    rVariables.BulkModulus  = young_modulus / (3.0 * (1.0 - 2.0 * poisson_ratio));
+        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+        const double& poisson_ratio = GetProperties()[POISSON_RATIO];
+        rVariables.ShearModulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
+        rVariables.BulkModulus  = young_modulus / (3.0 * (1.0 - 2.0 * poisson_ratio));
 
-    if (rVariables.BulkModulus!=rVariables.BulkModulus)
-        rVariables.BulkModulus= 1e16;
+        const double tolerance = 10.e-7;
+        const bool check = bool( (poisson_ratio > 0.5-tolerance ) || (poisson_ratio < (-1.0 + tolerance)) );
+        if (POISSON_RATIO.Key() == 0 || check==true)  rVariables.BulkModulus= 1e16;
+
+        if (rVariables.BulkModulus!=rVariables.BulkModulus)
+            rVariables.BulkModulus= 1e16;
 
     }
     else if (GetProperties().Has(DYNAMIC_VISCOSITY))
@@ -745,11 +749,11 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
     {
         // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
         array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
+        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION)) 
             nodal_acceleration = r_geometry[j].GetSolutionStepValue(ACCELERATION,1);
 
         array_1d<double, 3 > nodal_velocity = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
+        if (r_geometry[j].SolutionStepsDataHas(VELOCITY)) 
             nodal_velocity = r_geometry[j].GetSolutionStepValue(VELOCITY,1);
 
         array_1d<double, 3 > nodal_displacement = ZeroVector(3);
