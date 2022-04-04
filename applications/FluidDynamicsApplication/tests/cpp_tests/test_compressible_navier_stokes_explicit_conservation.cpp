@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "containers/model.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
+#include <iomanip>
 
 
 namespace Kratos {
@@ -101,6 +102,27 @@ std::vector<double> AssembleReactionVector(ModelPart const& rModelPart)
 
     return values;
 }
+
+void PrintReactions(ModelPart const& rModelPart)
+{
+    std::cout << "\nNode #    DENSITY           MOMENTUM_X       MOMENTUM_Y    TOTAL_ENERGY\n";
+
+    for(auto const& r_node: rModelPart.Nodes())
+    {
+        std::cout << r_node.Id() << "    "
+                  << std::setfill(' ') << std::right << std::setw(14)
+                  << r_node.FastGetSolutionStepValue(REACTION_DENSITY) << "   "
+                  << std::setfill(' ') << std::right << std::setw(14)
+                  << r_node.FastGetSolutionStepValue(REACTION_X) << "   "
+                  << std::setfill(' ') << std::right << std::setw(14)
+                  << r_node.FastGetSolutionStepValue(REACTION_Y) << "   "
+                  << std::setfill(' ') << std::right << std::setw(14)
+                  << r_node.FastGetSolutionStepValue(REACTION_ENERGY) << "   \n";
+    }
+    std::cout << std::endl;
+}
+}
+
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
@@ -173,7 +195,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTr
  *  - λ = 0
  * the time derivatives should be zero
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Steady, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic, FluidDynamicsApplicationFastSuite)
 {
     // Create the test geometry
     Model model;
@@ -286,6 +308,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
 
     for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }
     for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); }
+
+    //CompressibleNSConservation::PrintReactions(r_model_part);
 
     // Check obtained RHS values
     const std::vector<double> RHS_ref(12, 0.0);
