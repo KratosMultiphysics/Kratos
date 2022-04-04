@@ -24,6 +24,8 @@ from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
+import math
+
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
