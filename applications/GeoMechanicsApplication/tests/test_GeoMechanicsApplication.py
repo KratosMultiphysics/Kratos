@@ -29,7 +29,8 @@ from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_piping_elements import TestPipingElements
 from test_piping_element_unit import TestUnitPipingElements
 from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
-from test_sellmeijers_rule import TestSellmeijersRule 
+from test_sellmeijers_rule import TestSellmeijersRule
+
 
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.

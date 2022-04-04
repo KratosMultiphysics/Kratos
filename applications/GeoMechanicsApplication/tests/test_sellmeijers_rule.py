@@ -62,7 +62,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
 
     def csv_file_reader(self):
-        with open('test_compare_sellmeijer/tests.csv', 'r') as file:
+        with open(test_helper.get_file_path(os.path.join('.', 'test_compare_sellmeijer/tests.csv')), 'r') as file:
             results = {"name": [], "L": [], "D": [], "d70": [], "kappa": [], "Hc": [], "Hc_kratos": []}
             reader = csv.reader(file, delimiter=';')
             for counter, row in enumerate(reader):
