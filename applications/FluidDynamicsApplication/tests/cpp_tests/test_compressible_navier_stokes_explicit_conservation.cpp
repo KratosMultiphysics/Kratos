@@ -136,7 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTr
 {
     // Create the test geometry
     Model model;
-    ModelPart& r_model_part = GenerateModel(model);
+    ModelPart& r_model_part = CompressibleNSConservation::GenerateModel(model);
 
     // Define and set the nodal values
     constexpr double cv = 722.14;
@@ -199,7 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic,
 {
     // Create the test geometry
     Model model;
-    ModelPart& r_model_part = GenerateModel(model);
+    ModelPart& r_model_part = CompressibleNSConservation::GenerateModel(model);
 
     // Define and set the nodal values
     for (auto &r_node : r_model_part.Nodes())
@@ -258,7 +258,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
 {
     // Create the test geometry
     Model model;
-    ModelPart& r_model_part = GenerateModel(model);
+    ModelPart& r_model_part = CompressibleNSConservation::GenerateModel(model);
     
     constexpr double rho = 1.2;
     constexpr double c_v = 722.14;
