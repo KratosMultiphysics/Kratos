@@ -22,7 +22,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             
         elif (solver_type == "Withoumesh"):
             
-            solver_module_name = "coupled_fluid_thermal_withoutmeshsolver"
+            solver_module_name = "coupled_fluid_thermal_solverwithoutmeshgeneration"
             
             
         # Coupled mechanical-thermal solver
