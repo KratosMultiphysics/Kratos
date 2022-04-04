@@ -26,7 +26,7 @@ class _PrescribedValueProcess(_RigidBodyProcess):
             msg += 'be activated in the field "active_dofs" in the project parameters.'
             raise Exception(msg)
 
-    def ExecuteBeforeSolutionLoop(self):
+    def ExecuteInitializeSolutionStep(self):
         if self.solver.time >= self.interval[0] and self.solver.time < self.interval[1]:
             index = self.solver.available_dofs.index(self.dof)
             scope_vars = {'t' : self.solver.time}

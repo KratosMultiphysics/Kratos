@@ -35,12 +35,25 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
     def Initialize(self):
         super().Initialize()
         self._rigid_body_solver.Initialize()
+    
+    def Finalize(self):
+        super().Finalize()
+        self._rigid_body_solver.Finalize()
 
     def OutputSolutionStep(self):
         self._rigid_body_solver.OutputSolutionStep()
 
     def AdvanceInTime(self, current_time):
         return self._rigid_body_solver.AdvanceInTime(current_time)
+
+    def Predict(self):
+        self._rigid_body_solver.Predict()
+
+    def InitializeSolutionStep(self):
+        self._rigid_body_solver.InitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        self._rigid_body_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         #self._rigid_body_solver.SetSolutionStepValue("ROOT_POINT_DISPLACEMENT", self._rigid_body_solver.root_point_model_part[KM.DISPLACEMENT], 0)
@@ -56,6 +69,7 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         #self._rigid_body_solver.root_point_model_part[KM.REACTION_MOMENT] = self._rigid_body_solver.GetSolutionStepValue("REACTION_MOMENT", 0)
 
     def Check(self):
+        '''
         # making sure only a set of vaiables can be used
         admissible_variables = [
             "ROOT_POINT_DISPLACEMENT",
@@ -70,6 +84,9 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
         for data in self.data_dict.values():
             if data.variable.Name() not in admissible_variables:
                 raise Exception('Variable "{}" of interface data "{}" of solver "{}" cannot be used for the Rigid Body Solver!\nOnly the following variables are allowed: {}'.format(data.variable.Name(), data.name, data.solver_name, admissible_variables))
+        '''
+        for process in self._rigid_body_solver._list_of_processes:
+            process.Check()
     
     def _GetDataCommunicator(self):
         # this solver does not support MPI

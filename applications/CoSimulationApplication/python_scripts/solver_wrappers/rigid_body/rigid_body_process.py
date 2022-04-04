@@ -13,6 +13,9 @@ class _RigidBodyProcess():
         parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
         self.parameters = parameters
         self.solver = solver
+    
+    def Check(self):
+        pass
 
     def ExecuteInitialize(self):
         pass

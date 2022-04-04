@@ -75,13 +75,13 @@ class RigidBodySolver(object):
         # Create all the processes stated in the project parameters
         parameters_json = json.loads(parameters.WriteJsonString())
         if "processes" in parameters_json:
-            self.process_list = []
+            self._list_of_processes = []
             for process in parameters_json["processes"]:
                 python_module = process["python_module"]
                 kratos_module = process["kratos_module"]
                 process_module = import_module(kratos_module + "." + python_module)
                 process_settings = KM.Parameters(json.dumps(process["Parameters"]))
-                self.process_list.append(process_module.Factory(self, process_settings))
+                self._list_of_processes.append(process_module.Factory(self, process_settings))
         
         # Safe all the filled data in their respective class variables
         self._InitializeDofsVariables(dof_params)
@@ -171,12 +171,15 @@ class RigidBodySolver(object):
         self.a1a = self.a1v / (self.delta_t * self.gamma)
         self.a2a = -1.0 / (self.beta * self.delta_t)
         self.a3a = 1.0 - 1.0 / (2.0 * self.beta)
-        
+
 
     def Initialize(self):
 
         # Initialize the time
         self.time = self.start_time
+
+        for process in self._list_of_processes:
+            process.ExecuteInitialize()
 
         # Initialize total displacement, velocity and acceleration
         #self.x = np.zeros((self.system_size, self.buffer_size))
@@ -219,11 +222,15 @@ class RigidBodySolver(object):
         if self.write_output_file:
             self.InitializeOutput()
 
+        for process in self._list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+
 
     def InitializeOutput(self):
 
         # Carry out this task only in the first rank (for parallel computing)
         data_comm = KM.DataCommunicator.GetDefault()
+        # TODO: This might not be necessary anymore, since it doesn't run in MPI
         if data_comm.Rank()==0:
 
             # Create the directory where the results will be stored
@@ -266,8 +273,12 @@ class RigidBodySolver(object):
 
     def OutputSolutionStep(self):
 
+        for process in self._list_of_processes:
+            process.ExecuteBeforeOutputStep()
+
         # Carry out this task only in the first rank (for parallel computing)
         data_comm = KM.DataCommunicator.GetDefault()
+        # TODO: This might not be necessary anymore, since it doesn't run in MPI
         if data_comm.Rank()==0:
 
             # Only write if the output is enabled
@@ -295,6 +306,9 @@ class RigidBodySolver(object):
                                                     str(v[index] - v_root[index]) + " " +
                                                     str(a[index] - a_root[index]) + " " +
                                                     str(reaction[index]) + "\n")
+
+        for process in self._list_of_processes:
+            process.ExecuteAfterOutputStep()
 
 
     def AdvanceInTime(self, current_time):
@@ -328,13 +342,18 @@ class RigidBodySolver(object):
 
         return self.time
 
+    
+    def Predict(self):
+        pass
+
+    
+    def InitializeSolutionStep(self):
+        
+        for process in self._list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
 
     def SolveSolutionStep(self):
-        
-        # Execute all generated processes
-        # TODO: Call the corresponding methods in other places
-        for process in self.process_list:
-            process.ExecuteBeforeSolutionLoop()
         
         # Calculate the effective load which considers both actual loads
         # and the equivalent load from the root point displacement
@@ -374,6 +393,12 @@ class RigidBodySolver(object):
 
         reaction = self.CalculateReaction()
         self._SetCompleteVector("root_point", KM.REACTION, KM.REACTION_MOMENT, reaction)
+
+    
+    def FinalizeSolutionStep(self):
+        
+        for process in self._list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
 
     '''
     def _UpdateRootPointDisplacement(self, displ):
@@ -457,6 +482,12 @@ class RigidBodySolver(object):
         return self_weight
 
     
+    def Finalize(self):
+
+        for process in self._list_of_processes:
+            process.ExecuteFinalize()
+
+
     # CAN BE ERASED
     def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
 
