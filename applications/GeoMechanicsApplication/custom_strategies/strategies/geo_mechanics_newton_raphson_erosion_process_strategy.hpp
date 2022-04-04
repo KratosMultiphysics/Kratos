@@ -122,8 +122,6 @@ public:
         }
         // calculate max pipe height and pipe increment
         double amax = CalculateMaxPipeHeight(PipeElements);
-        //double da = CalculatePipeHeightIncrement(amax, mPipingIterations);
-
         
         // continue this loop, while the pipe is growing in length
         while (grow)
@@ -132,11 +130,10 @@ public:
             bool converged = true;
             int PipeIter = 0;
 
-            // get tip element and open with 1 pipe height increment
+            // get tip element and activate
             Element* tip_element = PipeElements.at(openPipeElements);
             openPipeElements += 1;
             tip_element->SetValue(PIPE_ACTIVE, true);
-            //tip_element->SetValue(PIPE_HEIGHT, da);
 
             // Get all open pipe elements
             auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
@@ -155,15 +152,8 @@ public:
                 save_or_reset_pipe_heights(OpenPipeElements, grow);
             }
 
-            // get underlying buffer
-            std::streambuf* orig_buf = std::cout.rdbuf();
-
-            // set null
-            std::cout.rdbuf(NULL);
+            // recalculate ground water flow
             converged = Recalculate();
-
-            // restore buffer
-            std::cout.rdbuf(orig_buf);
         }          
 
         GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
@@ -195,11 +185,20 @@ public:
 protected:
 
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
+    double small_pipe_height = 1e-10;
+    double pipe_height_accuracy = small_pipe_height * 10; 
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
 
+
+    /// <summary>
+    /// Calculates the pipe particle diamter according to the modified sellmeijer rule if selected. Else the pipe particle diameter is
+    /// equal to the d70.
+    /// </summary>
+    /// <param name="Prop"></param>
+    /// <returns></returns>
     double CalculateParticleDiameter(const PropertiesType& Prop)
     {
         double diameter;
@@ -211,24 +210,41 @@ private:
         return diameter;
     }
 
+    /// <summary>
+    /// Calculates the maximum pipe height which the algorithm will allow
+    /// </summary>
+    /// <param name="pipe_elements"> vector of all pipe elements</param>
+    /// <returns></returns>
     double CalculateMaxPipeHeight(std::vector<Element*> pipe_elements)
     {
         double max_diameter = 0;
         double particle_diameter = 0;
         double height_factor = 100;
 
+        // loop over all elements
         for (Element* pipe_element : pipe_elements)
         {
+            // calculate pipe particle diameter of pipe element
             PropertiesType prop = pipe_element->GetProperties();
             particle_diameter = this->CalculateParticleDiameter(prop);
+
+            // get maximum pipe particle diameter of all pipe elements
             if (particle_diameter > max_diameter)
             {
                 max_diameter = particle_diameter;
             }
         }
+
+        // max pipe height is maximum pipe particle diameter * a constant
         return max_diameter * height_factor;
     }
 
+    /// <summary>
+    /// Calculates the pipe height increment. 
+    /// </summary>
+    /// <param name="max_pipe_height"> maximum allowed pipe height</param>
+    /// <param name="n_steps"> number of non lineair piping iteration steps</param>
+    /// <returns></returns>
     double CalculatePipeHeightIncrement(double max_pipe_height, const unsigned int n_steps)
     {
         return max_pipe_height / (n_steps - 1);
@@ -237,8 +253,8 @@ private:
 
     bool Recalculate()
     {
-
-        KRATOS_INFO("PipingLoop") << "Recalculating" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0) << "Recalculating" << std::endl;
+        //KRATOS_INFO("PipingLoop") << "Recalculating" << std::endl;
     	//ModelPart& CurrentModelPart = this->GetModelPart();
         //this->Clear();
 
@@ -266,9 +282,8 @@ private:
         {
         	if (element.GetProperties().Has(PIPE_START_ELEMENT))
             {
-               // ModelPart::ElementsContainerType::iterator element_it = rModelPart.ElementsBegin()
                 element.SetValue(PIPE_ACTIVE, false);
-                element.SetValue(PREV_PIPE_HEIGHT, 1e-10);
+                element.SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
                 element.SetValue(DIFF_PIPE_HEIGHT, 0);
 
                 PipeElements.push_back(&element);
@@ -351,33 +366,9 @@ private:
             // set equilibirum on true
             equilibrium = true;
 
-            //// todo check if this part can be removed/refactored
-            //// Check if elements are in equilibrium
-            //for (auto OpenPipeElement : open_pipe_elements)
-            //{
-            //    SteadyStatePwPipingElement* pElement = static_cast<SteadyStatePwPipingElement*>(OpenPipeElement);
-            //    if (!pElement->InEquilibrium(OpenPipeElement->GetProperties(), OpenPipeElement->GetGeometry()))
-            //    {
-            //        equilibrium = false;
-            //        break;
-            //    }
-            //}
-
-            // get underlying buffer
-            std::streambuf* orig_buf = std::cout.rdbuf();
-
-            // set null
-            std::cout.rdbuf(NULL);
             // perform a flow calculation and stop growing if the calculation doesnt converge
             converged = Recalculate();
-            // restore buffer
-            std::cout.rdbuf(orig_buf);
 
-            //auto end = std::chrono::system_clock::now();
-            //std::chrono::duration<double> elapsed_seconds = end - start;
-            //std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
-
-            //converged = Recalculate();
             if (!converged)
             {
                 grow = false;
@@ -408,7 +399,6 @@ private:
                         OpenPipeElement->SetValue(PIPE_EROSION, true);
                     }
 
-
                     // check this if statement, I dont understand the check for pipe erosion
                     if (((!OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax))
                     {
@@ -420,7 +410,7 @@ private:
                     if (!OpenPipeElement->GetValue(PIPE_EROSION) && (PipeIter > 1) && ((eq_height - current_height) > OpenPipeElement->GetValue(DIFF_PIPE_HEIGHT)))
                     {
                         equilibrium = true;
-                        OpenPipeElement->SetValue(PIPE_HEIGHT, 1e-10);
+                        OpenPipeElement->SetValue(PIPE_HEIGHT, small_pipe_height);
                     }
 
                     // calculate difference between equilibrium height and current pipe height
@@ -434,7 +424,14 @@ private:
         return equilibrium;
     }
 
-
+    /// <summary>
+    /// Checks the status of the tip element and checks if it should continue or stop growing
+    /// </summary>
+    /// <param name="n_open_elements"> number of open pipe elements</param>
+    /// <param name="n_elements"> number of pipe elements</param>
+    /// <param name="max_pipe_height"> maximum allowed pipe height</param>
+    /// <param name="PipeElements"> vector of all pipe elements</param>
+    /// <returns>tuple of grow bool and number of open pipe elements</returns>
     std::tuple<bool, int> check_status_tip_element(unsigned int n_open_elements, unsigned int n_elements, double max_pipe_height, std::vector<Element*> PipeElements)
     {
         bool grow = true;
@@ -443,7 +440,7 @@ private:
         {
             Element* tip_element = PipeElements.at(n_open_elements - 1);
             double pipe_height = tip_element->GetValue(PIPE_HEIGHT);
-            if ((pipe_height > max_pipe_height + 1e-10) || (pipe_height < 1e-9))
+            if ((pipe_height > max_pipe_height + DBL_EPSILON) || (pipe_height < pipe_height_accuracy))
             {
                 // stable element found; pipe length does not increase during current time step
                 grow = false;
@@ -452,8 +449,6 @@ private:
                 n_open_elements -= 1;
 
                 KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << n_open_elements << std::endl;
-                //auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
-                //KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
             }
         }
         else
@@ -463,10 +458,15 @@ private:
         return std::make_tuple(grow, n_open_elements);
     }
 
-
+    /// <summary>
+    /// Saves pipe heights if pipe grows, else reset pipe hieghts to previous grow step.
+    /// </summary>
+    /// <param name="open_pipe_elements"> open pipe elements</param>
+    /// <param name="grow"> boolean to check if pipe grows</param>
+    /// <returns></returns>
     void save_or_reset_pipe_heights(filtered_elements open_pipe_elements, bool grow)
     {
-        for (auto OpenPipeElement : open_pipe_elements)
+        for (Element* OpenPipeElement : open_pipe_elements)
         {
             if (grow)
             {

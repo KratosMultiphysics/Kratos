@@ -59,6 +59,8 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
 
     this->CalculateLength(this->GetGeometry());
     this->SetValue(PIPE_EROSION, false);
+
+    // initialise pipe height with a small value
     this->SetValue(PIPE_HEIGHT, 1e-10);
     this->SetValue(PREV_PIPE_HEIGHT, 1e-10);
 
@@ -71,6 +73,7 @@ Initialize(const ProcessInfo& rCurrentProcessInfo)
 template< >
 void SteadyStatePwPipingElement<2, 4>::CalculateLength(const GeometryType& Geom)
 {
+    // currently length is only calculated in x direction
     KRATOS_TRY
         //this->pipe_length = abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]);
         this->SetValue(PIPE_ELEMENT_LENGTH, abs(Geom.GetPoint(1)[0] - Geom.GetPoint(0)[0]));
@@ -121,10 +124,7 @@ void SteadyStatePwPipingElement<TDim,TNumNodes>::
                                      Prop,
                                      CurrentProcessInfo);
 
-	
-    // VG: TODO
-    // Perhaps a new parameter to get join width and not minimum joint width
-    //Variables.JointWidth = Prop[MINIMUM_JOINT_WIDTH];
+    // Set joint width as pipe height
     Variables.JointWidth = this->GetValue(PIPE_HEIGHT);
 	
     //Auxiliary variables
