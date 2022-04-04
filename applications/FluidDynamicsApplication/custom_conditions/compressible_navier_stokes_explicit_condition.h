@@ -95,10 +95,11 @@ public:
 
     struct ConditionDataStruct
     {
+        static constexpr SizeType NGauss = TNumNodes; // TODO: Not necessarily true
+
         BoundedMatrix<double, TNumNodes, BlockSize> U;
         BoundedMatrix<double, TNumNodes, BlockSize> dUdt;
-        std::array<GradientData, 1> gradients;
-
+        std::array<GradientData, NGauss> gradients;
 
         array_1d<double, TNumNodes> alpha_sc_nodes;
         array_1d<double, TNumNodes> mu_sc_nodes;
@@ -475,6 +476,30 @@ protected:
         const GeometryType& r_geometry,
         ConditionDataStruct& rData);
 
+    
+    /// TODO: This only works for simplex elements
+    static void ComputeGradientData(
+        Element& rParentElement,
+        ConditionDataStruct& rData,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        std::vector<array_1d<double, 3>> grad_density;
+        std::vector<array_1d<double, 3>> grad_total_energy;
+        std::vector<Matrix> grad_momentum;
+
+        rParentElement.CalculateOnIntegrationPoints(DENSITY_GRADIENT, grad_density, rCurrentProcessInfo);
+        rParentElement.CalculateOnIntegrationPoints(MOMENTUM_GRADIENT, grad_momentum, rCurrentProcessInfo);
+        rParentElement.CalculateOnIntegrationPoints(TOTAL_ENERGY_GRADIENT, grad_total_energy, rCurrentProcessInfo);
+
+        // Gauss point data
+        for(IndexType g=0; g < ConditionDataStruct::NGauss; ++g)
+        {
+            rData.gradients[g].density = grad_density[0];
+            rData.gradients[g].momentum = grad_momentum[0];
+            rData.gradients[g].total_energy = grad_total_energy[0];
+        }
+    }
+
     /**
      * @brief Fill condition data
      * Auxiliary function to fill the element data structure
@@ -488,16 +513,17 @@ protected:
         ConditionDataStruct data;
 
         // Element adjacent to this condition
-        auto& parent_element = *GetValue(NEIGHBOUR_ELEMENTS).begin();
+        auto& r_parent_element = *GetValue(NEIGHBOUR_ELEMENTS).begin();
         
         // Getting data for the given geometry
         const auto& r_geometry = GetGeometry();
 
         // Loads shape function info only if jacobian is uniform
         ComputeGeometryData(r_geometry, data);
+        ComputeGradientData(r_parent_element, data, rCurrentProcessInfo);
 
         // Database access to all of the variables needed
-        const Properties &r_properties = parent_element.GetProperties();
+        const Properties &r_properties = r_parent_element.GetProperties();
         data.mu = r_properties.GetValue(DYNAMIC_VISCOSITY);
         data.lambda = r_properties.GetValue(CONDUCTIVITY);
         data.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
@@ -507,23 +533,6 @@ protected:
         const double time_step = rCurrentProcessInfo[DELTA_TIME];
         const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
         const double aux_theta = theta > 0 ? 1.0 / (theta * time_step) : 0.0;
-
-        // Gradients
-        std::vector<array_1d<double, 3>> grad_density;
-        std::vector<array_1d<double, 3>> grad_total_energy;
-        std::vector<Matrix> grad_momentum;
-        parent_element.CalculateOnIntegrationPoints(DENSITY_GRADIENT, grad_density, rCurrentProcessInfo);
-        parent_element.CalculateOnIntegrationPoints(MOMENTUM_GRADIENT, grad_momentum, rCurrentProcessInfo);
-        parent_element.CalculateOnIntegrationPoints(TOTAL_ENERGY_GRADIENT, grad_total_energy, rCurrentProcessInfo);
-
-        // Gauss point data
-        static constexpr SizeType num_gauss_points = 1;
-        for(IndexType g=0; g < num_gauss_points; ++g)
-        {
-            data.gradients[g].density = grad_density[g];
-            data.gradients[g].momentum = grad_momentum[g];
-            data.gradients[g].total_energy = grad_total_energy[g];
-        }
 
         // Nodal data
         for(SizeType i=0; i<NumNodes; ++i)

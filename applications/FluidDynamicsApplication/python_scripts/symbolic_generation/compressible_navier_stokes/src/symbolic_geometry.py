@@ -83,7 +83,7 @@ class LineData(GeometryData):
     symbolic_integration = True
     name = "line (2D2N)"
 
-    def __init__(self, ngauss=1):
+    def __init__(self, ngauss=2):
         super().__init__(ngauss)
 
     def _ComputeShapeFunctions(self):
