@@ -86,13 +86,14 @@ public:
     /**
      * @brief Compute the QR
      * Computes the QR Decomposition (QR) of the given imput matrix
+     * Note that the input matrix is modidifed
      * @param rInputMatrix Matrix to compute the QR decomposition
      */
     void Compute(MatrixType& rInputMatrix) override
     {
         // Set input data
         // Note that we need a copy as QR decomposition is modifying the input
-        mpA = Kratos::make_unique<MatrixType>(rInputMatrix);
+        mpA = &rInputMatrix;
         DataType *p_0_0 = &((*mpA)(0,0));
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
@@ -104,6 +105,7 @@ public:
     /**
      * @brief Compute the QR
      * Computes the QR (QR) of the given input matrix
+     * Note that the input matrix is modidifed
      * @param rInputMatrix Matrix to compute the QR decomposition
      * @param rMatrixQ Unitary matrix
      * @param rMatrixR Upper triangular matrix
@@ -115,7 +117,7 @@ public:
     {
         // Set input data
         // Note that we need a copy as QR decomposition is modifying the input
-        mpA = Kratos::make_unique<MatrixType>(rInputMatrix);
+        mpA = &rInputMatrix;
         DataType *p_0_0 = &((*mpA)(0,0));
         const std::size_t m = rInputMatrix.size1();
         const std::size_t n = rInputMatrix.size2();
@@ -125,7 +127,7 @@ public:
 
         // Check sizes and fill Q values
         if (rMatrixQ.size1() != m || rMatrixQ.size2() != n) {
-            rMatrixQ.resize(m,n);
+            rMatrixQ.resize(m,n,false);
         }
         for (std::size_t i = 0; i < m; ++i) {
             for (std::size_t j = 0; j < n; ++j) {
@@ -158,7 +160,7 @@ public:
         // Check output matrix size
         const std::size_t l = rB.size2();
         if (rX.size1() != n || rX.size2() != l) {
-            rX.resize(n, l);
+            rX.resize(n, l, false);
         }
 
         // Call the QR solve method for each column
@@ -198,7 +200,7 @@ public:
 
         // Check output vector size
         if (rX.size() != n) {
-            rX.resize(n);
+            rX.resize(n, false);
         }
 
         // Call the QR solve method
@@ -232,7 +234,7 @@ public:
         // Check input size
         const std::size_t n = mpA->size2();
         if (rMatrixR.size1() != n || rMatrixR.size2() != n) {
-            rMatrixR.resize(n,n);
+            rMatrixR.resize(n,n,false);
         }
 
         // Get R values from QR util
@@ -305,7 +307,7 @@ private:
 
     AMGCLQRType mHouseholderQR;
 
-    Kratos::unique_ptr<MatrixType> mpA = Kratos::unique_ptr<MatrixType>(nullptr);
+    MatrixType* mpA = nullptr;
 
     ///@}
     ///@name Private Operators
