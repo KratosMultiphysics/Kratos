@@ -89,6 +89,77 @@ Element::Pointer AlternativeDVMSDEMCoupled<TElementData>::Create(
     return Kratos::make_intrusive<AlternativeDVMSDEMCoupled>(NewId, pGeom, pProperties);
 }
 
+template <class TElementData>
+void AlternativeDVMSDEMCoupled<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>>& rVariable,
+    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
+    // Lumped projection terms
+    if (rVariable == ADVPROJ) {
+        this->CalculateProjections(rCurrentProcessInfo);
+    }
+    else if (rVariable == SUBSCALE_VELOCITY){
+        // Get Shape function data
+        Vector GaussWeights;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+        const unsigned int NumGauss = GaussWeights.size();
+
+        array_1d<double,NumNodes*Dim> momentum_rhs = ZeroVector(NumNodes*Dim);
+        VectorType MassRHS = ZeroVector(NumNodes);
+        VectorType NodalArea = ZeroVector(NumNodes);
+
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        for (unsigned int g = 0; g < NumGauss; g++)
+        {
+            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+
+            array_1d<double, 3> MomentumRes = ZeroVector(3);
+            double MassRes = 0.0;
+
+            array_1d<double,3> convective_velocity = this->GetAtCoordinate(data.Velocity,data.N) - this->GetAtCoordinate(data.MeshVelocity,data.N);
+
+            this->MomentumProjTerm(data, convective_velocity, MomentumRes);
+            this->MassProjTerm(data,MassRes);
+
+            for (unsigned int i = 0; i < NumNodes; i++)
+            {
+                double W = data.Weight*data.N[i];
+                unsigned int row = i*Dim;
+                for (unsigned int d = 0; d < Dim; d++)
+                    momentum_rhs[row+d] += W*MomentumRes[d];
+                NodalArea[i] += W;
+                MassRHS[i] += W*MassRes;
+                }
+        }
+            /* Projections of the elemental residual are computed with
+                * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
+                */
+            // Carefully write results to nodal variables, to avoid parallelism problems
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+            double W = data.Weight*data.N[i];
+            // Write nodal area
+            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) +=NodalArea[i];
+
+            // Substract M(consistent)*x(i-1) from RHS
+            for(unsigned int j = 0; j < NumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
+            {
+                for(unsigned int d = 0; d < Dim; ++d)
+                    momentum_rhs[d] -= W * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
+                MassRHS[j] -= W * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
+            }
+            for(unsigned int d = 0; d < Dim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
+                momentum_rhs[d] -= W * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
+            MassRHS[i] -= W * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+            this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+        }
+
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
