@@ -71,7 +71,7 @@ ModelPart& GenerateModel(Model& rModel)
     for(std::size_t i=1; i<=3; ++i)
     {
         std::vector<std::size_t> node_ids = {i, i%3 + 1};
-        auto p_cond = model_part.CreateNewCondition("LineCondition2D2N", i, node_ids, p_properties);
+        auto p_cond = model_part.CreateNewCondition("CompressibleNavierStokesExplicitCondition2D2N", i, node_ids, p_properties);
         p_cond->SetValue(NEIGHBOUR_ELEMENTS, neighbour_elems);
     }
 
