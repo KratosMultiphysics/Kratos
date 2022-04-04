@@ -26,6 +26,7 @@
 
 namespace Kratos {
 namespace Testing {
+namespace CompressibleNSConservation {
 
 ModelPart& GenerateModel(Model& rModel)
 {
@@ -84,6 +85,22 @@ ModelPart& GenerateModel(Model& rModel)
     return model_part;
 }
 
+std::vector<double> AssembleReactionVector(ModelPart const& rModelPart)
+{
+    std::vector<double> values;
+    std::size_t ndofs = rModelPart.NumberOfNodes() == 0 ? 0 : rModelPart.NumberOfNodes() * rModelPart.NodesBegin()->GetDofs().size();
+    values.reserve(ndofs);
+
+    for(auto const& r_node: rModelPart.Nodes())
+    {
+        values.push_back(r_node.FastGetSolutionStepValue(REACTION_DENSITY));
+        values.push_back(r_node.FastGetSolutionStepValue(REACTION_X));
+        values.push_back(r_node.FastGetSolutionStepValue(REACTION_Y));
+        values.push_back(r_node.FastGetSolutionStepValue(REACTION_ENERGY));
+    }
+
+    return values;
+}
 /**
  * @brief Test the 2D explicit compressible Navier-Stokes element and condition RHS
  * This is a conservation test.
@@ -93,7 +110,7 @@ ModelPart& GenerateModel(Model& rModel)
  *  - ∇U = 0
  * then the time derivatives should be zero.
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Advection, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTranslation, FluidDynamicsApplicationFastSuite)
 {
     // Create the test geometry
     Model model;
@@ -139,16 +156,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Advec
     for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }
 
     // Check obtained RHS values
-    std::vector<double> RHS_ref(12, 0.0);
-    std::vector<double> RHS_expl(12);
+    const std::vector<double> RHS_ref(12, 0.0);
+    std::vector<double> RHS_expl = CompressibleNSConservation::AssembleReactionVector(r_model_part);
 
-    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
-        const auto it_node = r_model_part.NodesBegin() + i_node;
-        RHS_expl[i_node * 4    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
-        RHS_expl[i_node * 4 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
-        RHS_expl[i_node * 4 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
-        RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
-    }
 
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
@@ -203,16 +213,8 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Stead
     for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }
 
     // Check obtained RHS values
-    std::vector<double> RHS_ref(12, 0.0);
-    std::vector<double> RHS_expl(12);
-
-    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
-        const auto it_node = r_model_part.NodesBegin() + i_node;
-        RHS_expl[i_node * 4    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
-        RHS_expl[i_node * 4 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
-        RHS_expl[i_node * 4 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
-        RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
-    }
+    const std::vector<double> RHS_ref(12, 0.0);
+    std::vector<double> RHS_expl = CompressibleNSConservation::AssembleReactionVector(r_model_part);
 
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
@@ -230,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Stead
  *  - p = ½ρω²r²+p0
  * the time derivatives should be zero.
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_RigidRotation, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRotation, FluidDynamicsApplicationFastSuite)
 {
     // Create the test geometry
     Model model;
@@ -282,20 +284,12 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicitConditionRHS2D2N_Rigid
     for(auto& r_elem: r_model_part.Elements())   { r_elem.Initialize(r_process_info); }
     for(auto& r_cond: r_model_part.Conditions()) { r_cond.Initialize(r_process_info); }
 
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); }
     for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }
+    for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); }
 
     // Check obtained RHS values
-    std::vector<double> RHS_ref(12, 0.0);
-    std::vector<double> RHS_expl(12);
-
-    for (unsigned int i_node = 0; i_node < r_model_part.NumberOfNodes(); ++i_node) {
-        const auto it_node = r_model_part.NodesBegin() + i_node;
-        RHS_expl[i_node * 4    ] = it_node->FastGetSolutionStepValue(REACTION_DENSITY);
-        RHS_expl[i_node * 4 + 1] = it_node->FastGetSolutionStepValue(REACTION_X);
-        RHS_expl[i_node * 4 + 2] = it_node->FastGetSolutionStepValue(REACTION_Y);
-        RHS_expl[i_node * 4 + 3] = it_node->FastGetSolutionStepValue(REACTION_ENERGY);
-    }
+    const std::vector<double> RHS_ref(12, 0.0);
+    const std::vector<double> RHS_expl = CompressibleNSConservation::AssembleReactionVector(r_model_part);
 
     KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
 }
