@@ -240,7 +240,10 @@ protected:
         // Matrix VolumetricConstitutiveMatrix;
         Matrix Identity;
         Matrix TensorIdentityMatrix;
-        
+
+        //Variables for OSGS variable
+        Vector ResidualU;
+        double ResidualP;
         
         //Modulus
         double ShearModulus;

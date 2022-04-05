@@ -290,7 +290,7 @@ protected:
 
     // To compute vector in voigt notation to multiply
 
-    void ConvertPressureGradient(Vector& PressureGradientVoigt,Vector& PressureGradient);
+    void ConvertPressureGradientInVoigt(Vector& PressureGradient, Vector& PressureGradientVoigt);
     /*
      * Calculation of Specific variables: pressure and gradient pressure 
      */
@@ -302,6 +302,14 @@ protected:
      */
 
     void ComputeDynamicTerms(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    
+    
+    /*
+     * Compute coefficients for dynamic terms (only for stabilization and for Newmark scheme integration)
+     */
+
+    void ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualU, double& rResidualP);
+
 
 
     /**

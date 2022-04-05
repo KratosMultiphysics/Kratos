@@ -229,21 +229,19 @@ void UpdatedLagrangianUPVMS::CalculateElementalSystem(
         call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
         mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-        // Compute pressure and pressure gradient
-        SetSpecificVariables(Variables,rCurrentProcessInfo);
-
-        // Compute stabilization parameters
-        CalculateTaus(rCurrentProcessInfo.GetValue(STABILIZATION_OPTION),Variables);
-
-        //Variables.tau1=0;
-        //Variables.tau2=0;
-
-
         /* NOTE:
         The material points will have constant mass as defined at the beginning.
         However, the density and volume (integration weight) are changing every time step.*/
         // Update MP_Density
         mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
+
+
+        // Compute other variables needed for stabilization
+        SetSpecificVariables(Variables,rCurrentProcessInfo);
+
+        // Compute stabilization parameters
+        CalculateTaus(rCurrentProcessInfo.GetValue(STABILIZATION_OPTION),Variables);
+
     }
 
     // The MP_Volume (integration weight) is evaluated
@@ -536,7 +534,6 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
     // Set Pressure and Pressure Gradient in gauss points
-
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
         rVariables.PressureGP += r_N(0,j) * r_geometry[j].GetSolutionStepValue(PRESSURE);
@@ -546,14 +543,14 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
         }
     }
 
-    ConvertPressureGradient(rVariables.PressureGradientVoigt,rVariables.PressureGradient);
+    ConvertPressureGradientInVoigt(rVariables.PressureGradient,rVariables.PressureGradientVoigt);
 
     CalculateTensorIdentityMatrix(rVariables,rVariables.TensorIdentityMatrix);
 
+    // Set dynamic terms for stabilization
     ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
 
     // Compute Shear modulus and Bulk Modulus
-    
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
     {
         const double& young_modulus = GetProperties()[YOUNG_MODULUS];
@@ -571,9 +568,19 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
     }
     else if (GetProperties().Has(DYNAMIC_VISCOSITY))
     {
-    rVariables.ShearModulus = GetProperties()[DYNAMIC_VISCOSITY];
-    rVariables.BulkModulus = 1e16;
+        rVariables.ShearModulus = GetProperties()[DYNAMIC_VISCOSITY];
+        rVariables.BulkModulus = 1e16;
     }
+
+
+
+    // Compute Residual if the stabilization is OSGS type
+    if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION)==3)
+    {
+     Vector volume_force = mMP.volume_acceleration * mMP.mass;   
+     ComputeResidual(rVariables,volume_force,rVariables.ResidualU,rVariables.ResidualP);
+    }
+
     KRATOS_CATCH("")
 } 
 
@@ -688,7 +695,7 @@ double& UpdatedLagrangianUPVMS::TensorIdentityComponent (double& rCabcd, General
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPVMS::ConvertPressureGradient(Vector& PressureGradientVoigt,Vector& PressureGradient)
+void UpdatedLagrangianUPVMS::ConvertPressureGradientInVoigt(Vector& PressureGradient,Vector& PressureGradientVoigt)
 {
     KRATOS_TRY
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -774,6 +781,18 @@ void UpdatedLagrangianUPVMS::ComputeDynamicTerms(GeneralVariables& rVariables, c
      
 
  KRATOS_CATCH( "" )
+}
+
+
+void UpdatedLagrangianUPVMS::ComputeResidual(GeneralVariables& rVariables, Vector& rVolumeForce, Vector& rResidualU, double& rResidualP)
+{
+    // Only for OSGS stabilization
+    KRATOS_TRY
+    
+    rResidualU = rVolumeForce - rVariables.PressureGradient + mMP.density *mMP.acceleration;
+    rResidualP = rVariables.PressureGP/rVariables.BulkModulus -(1.0 - 1.0 / rVariables.detFT);  
+
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
