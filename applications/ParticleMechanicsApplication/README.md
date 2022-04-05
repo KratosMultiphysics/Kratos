@@ -40,7 +40,7 @@ Some use-cases and validation examples are available in the Particle Mechanics s
 ### GiD Interface
 A GiD user interface for the MPM application is also available. It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).
 
-It rquires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
+It requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
 
 ## Theory
 
