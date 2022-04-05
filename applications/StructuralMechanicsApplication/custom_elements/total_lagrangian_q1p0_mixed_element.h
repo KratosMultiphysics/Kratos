@@ -226,7 +226,15 @@ protected:
     //     const GeometryType::IntegrationMethod& rIntegrationMethod
     //     ) override;
 
+    /**
+     * @brief It initializes the material
+     */
     void InitializeMaterial() override;
+
+    /**
+     * @brief It computes the current volume of the element
+     */
+    double GetCurrentVolume() const;
 
     ///@}
     ///@name Protected Operations

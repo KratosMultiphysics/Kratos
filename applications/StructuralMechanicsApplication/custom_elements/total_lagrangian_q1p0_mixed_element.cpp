@@ -252,12 +252,20 @@ void TotalLagrangianQ1P0MixedElement::InitializeMaterial()
 
     BaseType::InitializeMaterial();
 
-    if (GetGeometry().WorkingSpaceDimension() == 3)
-        mInitialVolume = GetGeometry().Volume();
-    else
-        mInitialVolume = GetGeometry().Area();
+    mInitialVolume = GetCurrentVolume();
 
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double TotalLagrangianQ1P0MixedElement::GetCurrentVolume() const
+{
+    if (GetGeometry().WorkingSpaceDimension() == 3)
+        return GetGeometry().Volume();
+    else
+        return GetGeometry().Area();
 }
 
 // void TotalLagrangian::CalculateKinematicVariables(
