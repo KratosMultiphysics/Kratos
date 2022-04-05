@@ -1,10 +1,11 @@
 import sys
 import os
 from functools import reduce
+import math
 
-sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
-sys.path.append(os.path.join('..', '..', '..'))
-sys.path.append(os.path.join('..', 'python_scripts'))
+# sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
+# sys.path.append(os.path.join('..', '..', '..'))
+# sys.path.append(os.path.join('..', 'python_scripts'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -48,7 +49,7 @@ class LatexWriterFile:
                         f"{result_pair['value_name']} & {result_pair['test_result']} & "
                         f"{result_pair['kratos_results']} & {round(error, 2)}  \\\\ \hline \n")
         for result_pair in result_list:
-            assert abs(result_pair['test_result'] - result_pair['kratos_results']) < 1e-5
+            assert math.isclose(result_pair['test_result'], result_pair['kratos_results'])
 
 
 class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
@@ -176,3 +177,18 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
                                                        pore_pressure_3_value,
                                                        pore_pressure_4_value,
                                                        specific_discharge])
+
+    def test_saturated_flux_bound(self):
+        test_name = 'test_elementary_groundwater_flow/benchmark_4_saturated_flux_bound.gid'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        flow_rate_1 = test_helper.get_hydraulic_discharge(simulation)[0]
+        flow_rate_2 = test_helper.get_hydraulic_discharge(simulation)[1]
+        flow_rate_3 = test_helper.get_hydraulic_discharge(simulation)[3]
+        flow_rate_4 = test_helper.get_hydraulic_discharge(simulation)[4]
+        assert math.isclose(abs(flow_rate_1), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
+        assert math.isclose(abs(flow_rate_2), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
+        assert math.isclose(abs(flow_rate_3), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
+        assert math.isclose(abs(flow_rate_4), abs(self.flow_calculations.flow_rate(self.flow_calculations.specific_dicharge(1), 1)))
+        assert math.isclose(test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][8], -1.5)
+        assert math.isclose(test_helper.get_hydraylic_head_with_intergration_points(simulation)[2][11], -1.5)

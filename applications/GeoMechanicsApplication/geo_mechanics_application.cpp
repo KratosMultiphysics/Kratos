@@ -7,7 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Vahid Galavi
+//  Main authors:    Vahid Galavi,
+//                   Aron Noordam
 //
 
 
@@ -206,6 +207,9 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwNormalFluxCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<NodeType >( Condition::GeometryType::PointsArrayType(2)))),
     mUPwNormalFluxCondition3D3N( 0, Condition::GeometryType::Pointer( new Triangle3D3 <NodeType >( Condition::GeometryType::PointsArrayType(3)))),
     mUPwNormalFluxCondition3D4N( 0, Condition::GeometryType::Pointer( new Quadrilateral3D4 <NodeType >( Condition::GeometryType::PointsArrayType(4)))),
+    mPwNormalFluxCondition2D2N(0, Condition::GeometryType::Pointer(new Line2D2<NodeType >(Condition::GeometryType::PointsArrayType(2)))),
+    mPwNormalFluxCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3 <NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+    mPwNormalFluxCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4 <NodeType >(Condition::GeometryType::PointsArrayType(4)))),
 
     mUPwFaceLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3<NodeType >( Condition::GeometryType::PointsArrayType(3)))),
 
@@ -403,6 +407,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N )
     KRATOS_REGISTER_CONDITION( "UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition2D2N", mPwNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION( "PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
 
     KRATOS_REGISTER_CONDITION( "UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N )
 
