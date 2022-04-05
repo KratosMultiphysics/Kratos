@@ -223,9 +223,10 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
             }
 
             const double I1 = this_constitutive_variables.StressVector[0] + this_constitutive_variables.StressVector[1] + this_constitutive_variables.StressVector[2];
-            this_constitutive_variables.StressVector[0] -= I1 / 3.0;
-            this_constitutive_variables.StressVector[1] -= I1 / 3.0;
-            this_constitutive_variables.StressVector[2] -= I1 / 3.0;
+            const double p = I1 / 3.0;
+            this_constitutive_variables.StressVector[0] -= p;
+            this_constitutive_variables.StressVector[1] -= p;
+            this_constitutive_variables.StressVector[2] -= p;
             // ----------------------------------------------------------------
             // ----------------------------------------------------------------
             // noalias(this_kinematic_variables.B) = spatial_B;
@@ -238,10 +239,10 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
                 // this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight);
 
                 /* Geometric stiffness matrix */
-                // this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
                 this->CalculateAndAddKg(rLeftHandSideMatrix, DN_Dx, this_constitutive_variables.StressVector + I * pressure * this_kinematic_variables.detF, int_to_reference_weight);
+                // this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
 
-                noalias(rLeftHandSideMatrix) += int_to_reference_weight * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2) / mInitialVolume;
+                noalias(rLeftHandSideMatrix) += std::pow(int_to_reference_weight, 2) * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2) / mInitialVolume;
             }
 
         if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
