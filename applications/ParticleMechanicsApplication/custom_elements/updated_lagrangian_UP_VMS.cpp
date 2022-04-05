@@ -535,13 +535,7 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-    //const unsigned int voigt_dimension = (dimension-1)*(dimension-1)+2;
-    //rVariables.Identity = IdentityMatrix(dimension);
-
     // Set Pressure and Pressure Gradient in gauss points
-    //rVariables.PressureGP = 0;
-    //rVariables.PressureGradient = ZeroVector(dimension);
-    //rVariables.TensorIdentityMatrix = ZeroMatrix(voigt_dimension,voigt_dimension);
 
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
@@ -922,8 +916,8 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedDisplacement(VectorType& r
         
         for ( unsigned int jdim = 0; jdim < dimension; jdim ++ )
         {
-            rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (-rVolumeForce[jdim] + rVariables.PressureGradient[jdim] + mMP.density * rVariables.DynamicRHS[jdim]) * Testf1(i) * rIntegrationWeight;
-            rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (-rVolumeForce[jdim] + rVariables.PressureGradient[jdim] + mMP.density * rVariables.DynamicRHS[jdim]) * Testf2(indexi)  * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (rVolumeForce[jdim] - rVariables.PressureGradient[jdim] - mMP.density * rVariables.DynamicRHS[jdim]) * Testf1(i) * rIntegrationWeight;
+            rRightHandSideVector[index_up + jdim] += rVariables.tau1 * (rVolumeForce[jdim] - rVariables.PressureGradient[jdim] - mMP.density * rVariables.DynamicRHS[jdim]) * Testf2(indexi)  * rIntegrationWeight;
 
             rRightHandSideVector[index_up + jdim] += rVariables.tau2  * (-(1.0 - 1.0 / rVariables.detFT)) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
             rRightHandSideVector[index_up + jdim] += rVariables.tau2  * ((rVariables.PressureGP/rVariables.BulkModulus)) * rVariables.DN_DX(i,jdim) *rIntegrationWeight;
@@ -952,7 +946,7 @@ void UpdatedLagrangianUPVMS::CalculateAndAddStabilizedPressure(VectorType& rRigh
     unsigned int index_p = dimension;
     Vector aux_vector;
 
-    aux_vector = rVariables.PressureGradient - rVolumeForce + mMP.density* rVariables.DynamicRHS;
+    aux_vector =  rVariables.PressureGradient - rVolumeForce + mMP.density* rVariables.DynamicRHS;
 
 
     Vector Stab1 = prod(rVariables.DN_DX,aux_vector);
