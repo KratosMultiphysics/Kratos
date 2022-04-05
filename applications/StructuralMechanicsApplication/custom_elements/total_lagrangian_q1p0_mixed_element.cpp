@@ -148,11 +148,6 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     // Some declarations
     array_1d<double, 3> body_force;
     double int_to_reference_weight;
-    Vector Bv;
-    Bv.resize(dimension * number_of_nodes, false);
-
-    Matrix spatial_B(strain_size, dimension * number_of_nodes);
-    noalias(spatial_B) = ZeroMatrix(strain_size, dimension * number_of_nodes);
 
     const double E = r_props[YOUNG_MODULUS];
     const double nu = r_props[POISSON_RATIO];
@@ -173,6 +168,12 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         // Computing in all integrations points
         for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
         {
+            Vector Bv;
+            Bv.resize(dimension * number_of_nodes, false);
+
+            Matrix spatial_B(strain_size, dimension * number_of_nodes);
+            noalias(spatial_B) = ZeroMatrix(strain_size, dimension * number_of_nodes);
+
             // Contribution to external forces
             noalias(body_force) = this->GetBodyForce(integration_points, point_number);
 
@@ -221,10 +222,10 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
                 spatial_B( 5, index + 2 ) = DN_Dx( i, 0 );
             }
 
-            // const double I1 = this_constitutive_variables.StressVector[0] + this_constitutive_variables.StressVector[1] + this_constitutive_variables.StressVector[2];
-            // this_constitutive_variables.StressVector[0] -= I1 / 3.0;
-            // this_constitutive_variables.StressVector[1] -= I1 / 3.0;
-            // this_constitutive_variables.StressVector[2] -= I1 / 3.0;
+            const double I1 = this_constitutive_variables.StressVector[0] + this_constitutive_variables.StressVector[1] + this_constitutive_variables.StressVector[2];
+            this_constitutive_variables.StressVector[0] -= I1 / 3.0;
+            this_constitutive_variables.StressVector[1] -= I1 / 3.0;
+            this_constitutive_variables.StressVector[2] -= I1 / 3.0;
             // ----------------------------------------------------------------
             // ----------------------------------------------------------------
             // noalias(this_kinematic_variables.B) = spatial_B;
@@ -233,20 +234,21 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
             { // Calculation of the matrix is required
                 // Contributions to stiffness matrix calculated on the reference config
                 /* Material stiffness matrix */
-                // this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D + pressure * this_kinematic_variables.detF * (outer_prod(I, I) - 2.0 * Emat), int_to_reference_weight);
-                this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight);
+                this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D + pressure * this_kinematic_variables.detF * (outer_prod(I, I) - 2.0 * Emat), int_to_reference_weight);
+                // this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight);
 
                 /* Geometric stiffness matrix */
-                this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
-                // this->CalculateAndAddKg(rLeftHandSideMatrix, DN_Dx, this_constitutive_variables.StressVector + I * pressure * this_kinematic_variables.detF, int_to_reference_weight);
+                // this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
+                this->CalculateAndAddKg(rLeftHandSideMatrix, DN_Dx, this_constitutive_variables.StressVector + I * pressure * this_kinematic_variables.detF, int_to_reference_weight);
 
-                // noalias(rLeftHandSideMatrix) += int_to_reference_weight * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2) / mInitialVolume;
+                noalias(rLeftHandSideMatrix) += int_to_reference_weight * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2) / mInitialVolume;
             }
 
         if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
+            noalias(this_kinematic_variables.B) = spatial_B;
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
 
-            // noalias(rRightHandSideVector) -= int_to_reference_weight * this_kinematic_variables.detF * Bv * pressure;
+            noalias(rRightHandSideVector) -= int_to_reference_weight * this_kinematic_variables.detF * Bv * pressure;
 
             // const Vector f = int_to_reference_weight * this_kinematic_variables.detF * Bv * pressure;
             // const Vector f2 = int_to_reference_weight * prod(trans(this_kinematic_variables.B), this_constitutive_variables.StressVector);
