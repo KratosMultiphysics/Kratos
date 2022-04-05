@@ -148,7 +148,7 @@ class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
 
         self.primal_analysis = StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
         self.primal_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
-        self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.YOUNGS_MODULUS_SENSITIVITY)
+        self.primal_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.YOUNG_MODULUS_SENSITIVITY)
 
 
         self.response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionUtility(self.primal_model_part, response_settings)
