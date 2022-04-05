@@ -141,37 +141,37 @@ class KratosTextTestResult(TextTestResult):
     def addError(self, test, err):
         self.__stop_time = time.perf_counter()-self.__start_time
         if self.show_test_times:
-            self.stream.write(f"{self.__stop_time:>4.3f}s ...")
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
         super().addError(test, err)
 
     def addExpectedFailure(self, test, err):
         self.__stop_time = time.perf_counter()-self.__start_time
         if self.show_test_times:
-            self.stream.write(f"{self.__stop_time:>4.3f}s ...")
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
         super().addExpectedFailure(test, err)
 
     def addFailure(self, test, err):
         self.__stop_time = time.perf_counter()-self.__start_time
         if self.show_test_times:
-            self.stream.write(f"{self.__stop_time:>4.3f}s ...")
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
         super().addFailure(test, err)
 
     def addSkip(self, test, reason):
         self.__stop_time = time.perf_counter()-self.__start_time
         if self.show_test_times:
-            self.stream.write(f"{self.__stop_time:>4.3f}s ...")
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
         super().addSkip(test, reason)
 
     def addSuccess(self, test):
         self.__stop_time = time.perf_counter()-self.__start_time
         if self.show_test_times:
-            self.stream.write(f"{self.__stop_time:>4.3f}s ...")
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
         super().addSuccess(test)
 
     def addUnexpectedSuccess(self, test):
         self.__stop_time = time.perf_counter()-self.__start_time
         if self.show_test_times:
-            self.stream.write(f"{self.__stop_time:>4.2f}s ...")
+            self.stream.write("{0:>4.3f}s ...".format(self.__stop_time))
         super().addUnexpectedSuccess(test)
 
     def getDescription(slef, test):
