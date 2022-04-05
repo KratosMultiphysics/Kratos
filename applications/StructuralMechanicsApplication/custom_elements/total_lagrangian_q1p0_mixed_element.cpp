@@ -246,6 +246,20 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TotalLagrangianQ1P0MixedElement::InitializeMaterial()
+{
+    KRATOS_TRY
+
+    BaseType::InitializeMaterial();
+
+    if (GetGeometry().WorkingSpaceDimension() == 3)
+        mInitialVolume = GetGeometry().Volume();
+    else
+        mInitialVolume = GetGeometry().Area();
+
+    KRATOS_CATCH( "" );
+}
+
 // void TotalLagrangian::CalculateKinematicVariables(
 //     KinematicVariables& rThisKinematicVariables,
 //     const IndexType PointNumber,

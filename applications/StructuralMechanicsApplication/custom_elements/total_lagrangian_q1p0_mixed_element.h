@@ -226,6 +226,8 @@ protected:
     //     const GeometryType::IntegrationMethod& rIntegrationMethod
     //     ) override;
 
+    void InitializeMaterial() override;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -247,6 +249,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    double mInitialVolume = 0.0;
 
     ///@}
     ///@name Private Operators
