@@ -181,23 +181,9 @@ class RigidBodySolver(object):
         for process in self._list_of_processes:
             process.ExecuteInitialize()
 
-        # Initialize total displacement, velocity and acceleration
-        #self.x = np.zeros((self.system_size, self.buffer_size))
-        #self.v = np.zeros((self.system_size, self.buffer_size))
-        #self.a = np.zeros((self.system_size, self.buffer_size))
-
-        # Initialize the displacement, velocity and accelerration of the root point
-        #self.x_root = np.zeros((self.system_size, self.buffer_size))
-        #self.v_root = np.zeros((self.system_size, self.buffer_size))
-        #self.a_root = np.zeros((self.system_size, self.buffer_size))
-
         # Other variables that are used in SolveSolutionStep()
         self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
         self.total_load = np.zeros(self.system_size)
-        #self.prescribed_load = np.zeros(self.system_size)
-        #self.prescribed_root_point_displ = np.zeros(self.system_size)
-        #self.external_load = np.zeros(self.system_size)
-        #self.external_root_point_displ = np.zeros(self.system_size)
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
         # Apply initial conditions
@@ -210,9 +196,6 @@ class RigidBodySolver(object):
         self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, initial_disp+initial_rot)
         self._SetCompleteVector("rigid_body", KM.VELOCITY, KM.ANGULAR_VELOCITY, initial_disp+initial_rot)
         self._SetCompleteVector("rigid_body", KM.ACCELERATION, KM.ANGULAR_ACCELERATION, initial_disp+initial_rot)
-        #self.x[:,0] = self.initial_displacement
-        #self.v[:,0] = self.initial_velocity
-        #self.a[:,0] = self.initial_acceleration
 
         # Apply external load as an initial impulse
         self.total_load = self.load_impulse
@@ -317,22 +300,12 @@ class RigidBodySolver(object):
         # Column 0 is the current time step, column 1 the previous one...
 
         # Variables whith buffer. Column 0 will be overwriten later
-        #self.x = np.roll(self.x,1,axis=1)
-        #self.x_root = np.roll(self.x_root,1,axis=1)
-        #self.v = np.roll(self.v,1,axis=1)
-        #self.v_root = np.roll(self.v_root,1,axis=1)
-        #self.a = np.roll(self.a,1,axis=1)
-        #self.a_root = np.roll(self.a_root,1,axis=1)
         self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
         self.effective_load = np.roll(self.effective_load,1,axis=1)
 
         # Variables that need to be reseted. They might not be overwriten later so they
         # need to be zero to avoid values from previous time steps ar not continously used.
         self.total_load = np.zeros(self.system_size)
-        #self.prescribed_load = np.zeros(self.system_size)
-        #self.prescribed_root_point_displ = np.zeros(self.system_size)
-        #self.external_load = np.zeros(self.system_size)
-        #self.external_root_point_displ = np.zeros(self.system_size)
 
         # Update the time of the simulation
         self.time = current_time + self.delta_t
@@ -384,12 +357,6 @@ class RigidBodySolver(object):
 
         # Update velocity and acceleration according to the gen-alpha method
         self._UpdateDisplacement("rigid_body", x)
-        #self.v[:,0] = self.a1v * (x - x_prev) + self.a2v * \
-        #                self.v[:,1] + self.a3v * self.a[:,1]
-        #self.a[:,0] = self.a1a * (x - x_prev) + self.a2a * \
-        #                self.v[:,1] + self.a3a * self.a[:,1]
-         
-        #self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, x)
 
         reaction = self.CalculateReaction()
         self._SetCompleteVector("root_point", KM.REACTION, KM.REACTION_MOMENT, reaction)
@@ -400,16 +367,6 @@ class RigidBodySolver(object):
         for process in self._list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
-    '''
-    def _UpdateRootPointDisplacement(self, displ):
-        # Save root point displacement
-        self.x_root[:,0] = displ
-        # Update the velocity and acceleration according to the gen-alpha method
-        self.v_root[:,0] = self.a1v * (self.x_root[:,0] - self.x_root[:,1]) + self.a2v * \
-            self.v_root[:,1] + self.a3v * self.a_root[:,1]
-        self.a_root[:,0] = self.a1a * (self.x_root[:,0] - self.x_root[:,1]) + self.a2a * \
-            self.v_root[:,1] + self.a3a * self.a_root[:,1]
-    '''
 
     def _UpdateDisplacement(self, model_part_name, x):
 
@@ -459,15 +416,7 @@ class RigidBodySolver(object):
         effective_load = self.total_load + root_point_force
 
         return effective_load
-    
-    '''
-    def _UpdateVelocityAndAcceleration(self, x):
-        # Update the velocity and acceleration according to the gen-alpha method
-        self.v[:,0] = self.a1v * (x - self.x[:,1]) + self.a2v * \
-                        self.v[:,1] + self.a3v * self.a[:,1]
-        self.a[:,0] = self.a1a * (x - self.x[:,1]) + self.a2a * \
-                        self.v[:,1] + self.a3a * self.a[:,1]
-    '''
+
 
     def CalculateReaction(self, buffer=0):
         x, v, a = self._GetKinematics("rigid_body", buffer=buffer)
@@ -486,90 +435,7 @@ class RigidBodySolver(object):
 
         for process in self._list_of_processes:
             process.ExecuteFinalize()
-
-
-    # CAN BE ERASED
-    def SetSolutionStepValue(self, identifier, values, buffer_idx=0):
-
-        # Check that the selected buffer value is OK
-        input_check._CheckBufferId(buffer_idx,identifier)
-        
-        # Check that the input's size is the expected one
-        expected_size = self._ExpectedDataSize(identifier)
-        if len(values) != expected_size:
-            msg = 'The variable "' + identifier + '" does not have the '
-            msg += 'right size. It has size ' + str(len(values))
-            msg += ' but it should be of size ' + str(expected_size)
-            raise Exception(msg)
-
-        x = np.zeros(expected_size)
-
-        # Loop through input active DOFs saving the values
-        for index, value in enumerate(values):
-            # Increase the index so it fits with the angular terms (if necessary)
-            if identifier in self.angular_variables:
-                index += self.linear_size
-            # Save input variables in their corresponding spots
-            if self.available_dofs[index] in self.active_dofs:
-                if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
-                    x[index] = value
-                elif identifier == "VELOCITY":
-                    self.v[index, buffer_idx] = value
-                elif identifier == "ACCELERATION":
-                    self.a[index, buffer_idx] = value
-                elif identifier in ["FORCE", "MOMENT", "FORCE_ALL"]:
-                    self.external_load[index] = value
-                elif identifier in ["ROOT_POINT_DISPLACEMENT", "ROOT_POINT_ROTATION", "ROOT_POINT_DISPLACEMENT_ALL"]:
-                    self.external_root_point_displ[index] = value
-                else:
-                    raise Exception("Identifier is unknown!")
-        
-        #self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, x)
-
-
-    # CAN BE ERASED
-    def GetSolutionStepValue(self, identifier, buffer_idx=0):
-
-        # Check that the selected buffer value is OK
-        input_check._CheckBufferId(buffer_idx, identifier)
-
-        # Initialize output as a KM vector
-        output = KM.Vector(self._ExpectedDataSize(identifier))
-
-        x = self._GetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION)
-
-        # Save all the values from the active DOFs
-        for index in range(len(output)):
-            out_index = index
-            # Increase the index so it fits with the angular terms (if necessary)
-            if identifier in self.angular_variables:
-                index += self.linear_size
-            # Fill the output with its corresponding values
-            if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
-                output[out_index] = x[index]
-            elif identifier == "VELOCITY":
-                output[out_index] = self.v[index, buffer_idx]
-            elif identifier == "ACCELERATION":
-                output[out_index] = self.a[index, buffer_idx]
-            elif identifier in ["REACTION", "REACTION_MOMENT", "REACTION_ALL"]:
-                output[out_index] = self.CalculateReaction(buffer=buffer_idx)[index]
-            else:
-                raise Exception("Identifier is unknown!")
-        return output
-
-    
-    # CAN BE ERASED
-    def _ExpectedDataSize(self, identifier):
-
-        if identifier in self.linear_variables:
-            expected_size = self.linear_size
-        elif identifier in self.angular_variables:
-            expected_size = self.angular_size
-        else:
-            expected_size = self.system_size
-
-        return expected_size
-    
+            
     
     def _ResetExternalVariables(self):
         zero_vector = np.zeros(self.system_size)
