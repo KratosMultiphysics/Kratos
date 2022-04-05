@@ -103,7 +103,6 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         gradient = {}
         for element in self.primal_model_part.Elements:
             gradient[element.Id] = element.GetValue(variable)
-            #gradient[element.Id] = element.GetSolutionStepValue(variable)
         return gradient
 
 # ==============================================================================
@@ -334,7 +333,6 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         gradient = {}
         for element in self.adjoint_model_part.Elements:
             gradient[element.Id] = element.GetValue(variable)
-            #gradient[element.Id] = element.GetSolutionStepValue(variable)
         return gradient
 
 
