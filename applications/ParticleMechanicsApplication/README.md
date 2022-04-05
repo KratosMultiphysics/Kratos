@@ -18,18 +18,19 @@ This application is part of the Kratos Multiphysics Platform. Instructions on ho
 Build Kratos and check the [configuration files](https://github.com/KratosMultiphysics/Kratos/blob/master/INSTALL.md#configuration-scripts-examples)
 
 
-in LINUX check that in the /path_to_kratos/scripts/configure.sh the followinglines are written:
+In LINUX: check that in the /path_to_kratos/scripts/configure.sh the followinglines are written:
 
 ``` cmake
 -DPARTICLE_MECHANICS_APPLICATION=ON
 -DLINEAR_SOLVERS_APPLICATION=ON
 ```
 
-inWINDOWS check that in the /path_to_kratos/scripts/configute.bat the following lines appears: 
-set KRATOS_APPLICATIONS=
+In WINDOWS: check that in the /path_to_kratos/scripts/configute.bat the following lines appears: 
+
+```set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
-
+```
 
 so the Particle Mechanics application is compiled along with auxiliary linear solvers required.
 
@@ -37,9 +38,9 @@ so the Particle Mechanics application is compiled along with auxiliary linear so
 Some use-cases and validation examples are available in the Particle Mechanics section of the [Examples](https://kratosmultiphysics.github.io/Examples/) repository. Also, some unit tests of the main features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
 
 ### GiD Interface
-It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).
+A GiD user interface for the MPM application is also available. It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysics/GiDInterface/tree/master/).
 
-Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
+It rquires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
 
 ## Theory
 
@@ -51,9 +52,8 @@ The MPM is an hybrid thechnique which uses a fixed background grid (or mesh) for
 
 Recommended references for implementation details of MPM in Kratos:
 
-
-
-
+- Chandra, B., Singer, V., Teschemacher, T., Wuechner, R., & Larese, A. (2021). Nonconforming Dirichlet boundary conditions in implicit material point method by means of penalty augmentation. Acta Geotechnica, 16(8), 2315-2335.
+- Wilson, P., Wüchner, R., & Fernando, D. (2021). Distillation of the material point method cell crossing error leading to a novel quadrature‐based C 0 remedy. International Journal for Numerical Methods in Engineering, 122(6), 1513-1537.
 - Iaconeta, I., Larese, A., Rossi, R., & Oñate, E. (2018). A stabilized mixed implicit Material Point Method for non-linear incompressible solid mechanics. *Computational Mechanics*, 1-18.
 - Iaconeta, I., Larese, A., Rossi, R., & Zhiming, G. (2016). Comparison of a material point method and a Galerkin meshfree method for the simulation of cohesive-frictional materials. *Materials*, 10(10), p. 1150.
 - 
