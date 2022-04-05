@@ -100,10 +100,11 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
     const auto strain_size = GetStrainSize();
-    const auto &r_geometry = GetGeomtry();
+    const auto &r_props = GetProperties();
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -127,9 +128,9 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     }
 
     // Reading integration points
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+    ConstitutiveLaw::Parameters Values(r_geometry,r_props,rCurrentProcessInfo);
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
@@ -157,15 +158,15 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
         // Compute material reponse
-        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Kirchhoff);
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
 
-        if ( dimension == 2 && this->GetProperties().Has( THICKNESS ))
-            int_to_reference_weight *= this->GetProperties()[THICKNESS];
+        if ( dimension == 2 && r_props.Has( THICKNESS ))
+            int_to_reference_weight *= r_props[THICKNESS];
 
-        if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
+        if ( CalculateStiffnessMatrixFlag ) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
             /* Material stiffness matrix */
             this->CalculateAndAddKm( rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight );
@@ -174,7 +175,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
             this->CalculateAndAddKg( rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight );
         }
 
-        if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
+        if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
         }
     }
