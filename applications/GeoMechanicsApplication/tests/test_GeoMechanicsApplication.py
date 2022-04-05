@@ -27,10 +27,12 @@ from test_soil_weight import KratosGeoMechanicsSoilWeightTests
 from test_settlement import KratosGeoMechanicsSettlementTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_piping_elements import TestPipingElements
-from test_piping_element_unit import TestUnitPipingElements
 from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
 
+# cpp tests
+from test_piping_element_unit import TestUnitPipingElements
+from test_normal_flux_condition import TestNormalFluxCondition
 
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.
@@ -67,7 +69,8 @@ def AssambleTestSuites(is_team_city):
         TestPipingElements,
         TestUnitPipingElements,
         TestElementaryGroundWaterFlow,
-        TestSellmeijersRule
+        TestSellmeijersRule,
+        TestNormalFluxCondition
         ]
 
     # Create an array with the selected tests
