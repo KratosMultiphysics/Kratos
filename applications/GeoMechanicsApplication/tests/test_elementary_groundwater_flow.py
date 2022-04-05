@@ -3,9 +3,9 @@ import os
 from functools import reduce
 import math
 
-sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
-sys.path.append(os.path.join('..', '..', '..'))
-sys.path.append(os.path.join('..', 'python_scripts'))
+# sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
+# sys.path.append(os.path.join('..', '..', '..'))
+# sys.path.append(os.path.join('..', 'python_scripts'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
