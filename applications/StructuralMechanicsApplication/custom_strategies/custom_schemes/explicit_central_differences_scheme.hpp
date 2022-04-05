@@ -261,7 +261,7 @@ public:
         const array_1d<double, 3> zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVariable(FORCE_RESIDUAL, zero_array,r_nodes);
-        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+        const bool has_dof_for_rot_z = !r_nodes.empty() && r_nodes.begin()->HasDofFor(ROTATION_Z);
         if (has_dof_for_rot_z)
             VariableUtils().SetVariable(MOMENT_RESIDUAL,zero_array,r_nodes);
 
@@ -283,58 +283,60 @@ public:
         /// The array of ndoes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        // The first iterator of the array of nodes
-        const auto it_node_begin = rModelPart.NodesBegin();
+        if (!r_nodes.empty()) {
+            // The first iterator of the array of nodes
+            const auto it_node_begin = rModelPart.NodesBegin();
 
-        /// Initialise the database of the nodes
-        const array_1d<double, 3> zero_array = ZeroVector(3);
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_node_begin + i);
-            it_node->SetValue(NODAL_MASS, 0.0);
-            array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
-            r_middle_velocity  = ZeroVector(3);
-        }
-        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
-        if (has_dof_for_rot_z) {
+            /// Initialise the database of the nodes
+            const array_1d<double, 3> zero_array = ZeroVector(3);
             #pragma omp parallel for schedule(guided,512)
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
                 auto it_node = (it_node_begin + i);
-                it_node->SetValue(NODAL_INERTIA, zero_array);
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
-                r_middle_angular_velocity  = ZeroVector(3);
+                it_node->SetValue(NODAL_MASS, 0.0);
+                array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+                r_middle_velocity  = ZeroVector(3);
             }
-        }
-
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_node_begin + i);
-
-            array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
-            const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-//             array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-            for (IndexType j = 0; j < DomainSize; j++) {
-                r_middle_velocity[j] = r_current_velocity[j];
-                r_current_residual[j] = 0.0;
-//                 r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement // NOTE: then you should check if the dof is fixed
-            }
-
+            const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
             if (has_dof_for_rot_z) {
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
-                const array_1d<double, 3>& r_current_angular_velocity = it_node->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-//                 array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
-
-                const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
-                for (IndexType j = initial_j; j < 3; j++) {
-                    r_middle_angular_velocity[j] = r_current_angular_velocity[j];
-                    r_current_residual_moment[j] = 0.0;
-                    // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
+                #pragma omp parallel for schedule(guided,512)
+                for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                    auto it_node = (it_node_begin + i);
+                    it_node->SetValue(NODAL_INERTIA, zero_array);
+                    array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+                    r_middle_angular_velocity  = ZeroVector(3);
                 }
             }
-        }
+
+            #pragma omp parallel for schedule(guided,512)
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                auto it_node = (it_node_begin + i);
+
+                array_1d<double, 3>& r_middle_velocity = it_node->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+                const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+                array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+                //array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+                for (IndexType j = 0; j < DomainSize; j++) {
+                    r_middle_velocity[j] = r_current_velocity[j];
+                    r_current_residual[j] = 0.0;
+                    //r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement // NOTE: then you should check if the dof is fixed
+                }
+
+                if (has_dof_for_rot_z) {
+                    array_1d<double, 3>& r_middle_angular_velocity = it_node->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+                    const array_1d<double, 3>& r_current_angular_velocity = it_node->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                    array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+                    //array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
+
+                    const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
+                    for (IndexType j = initial_j; j < 3; j++) {
+                        r_middle_angular_velocity[j] = r_current_angular_velocity[j];
+                        r_current_residual_moment[j] = 0.0;
+                        // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
+                    }
+                }
+            }
+        } // if not nodes.empty()
 
         KRATOS_CATCH("")
     }
@@ -356,47 +358,48 @@ public:
         ) override
     {
         KRATOS_TRY
-        // The current process info
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
-        const SizeType dim = r_current_process_info[DOMAIN_SIZE];
+        if (!r_nodes.empty()) {
+            // The current process info
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Step Update
-        // The first step is time =  initial_time ( 0.0) + delta time
-        mTime.Current = r_current_process_info[TIME];
-        mTime.Delta = r_current_process_info[DELTA_TIME];
+            /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
+            const SizeType dim = r_current_process_info[DOMAIN_SIZE];
 
-        mTime.Middle   = mTime.Current - 0.50*mTime.Delta;
-        mTime.Previous = mTime.Current - 1.00*mTime.Delta;
-        mTime.PreviousMiddle = mTime.Middle - 1.00*mTime.Delta;
+            // Step Update
+            // The first step is time =  initial_time ( 0.0) + delta time
+            mTime.Current = r_current_process_info[TIME];
+            mTime.Delta = r_current_process_info[DELTA_TIME];
 
-        if (mTime.Previous<0.0) mTime.Previous=0.00;
-        if (mTime.PreviousMiddle<0.0) mTime.PreviousMiddle=0.00;
-        // The iterator of the first node
-        const auto it_node_begin = rModelPart.NodesBegin();
-        const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
+            mTime.Middle   = mTime.Current - 0.50*mTime.Delta;
+            mTime.Previous = mTime.Current - 1.00*mTime.Delta;
+            mTime.PreviousMiddle = mTime.Middle - 1.00*mTime.Delta;
 
-        // Getting dof position
-        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
-        const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
+            if (mTime.Previous<0.0) mTime.Previous=0.00;
+            if (mTime.PreviousMiddle<0.0) mTime.PreviousMiddle=0.00;
+            // The iterator of the first node
+            const auto it_node_begin = rModelPart.NodesBegin();
+            const bool has_dof_for_rot_z = it_node_begin->HasDofFor(ROTATION_Z);
 
-        #pragma omp parallel for schedule(guided,512)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedom(it_node_begin + i, disppos, dim);
-        } // for Node parallel
+            // Getting dof position
+            const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+            const IndexType rotppos = has_dof_for_rot_z ? it_node_begin->GetDofPosition(ROTATION_X) : 0;
 
-        if (has_dof_for_rot_z){
             #pragma omp parallel for schedule(guided,512)
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                this->UpdateRotationalDegreesOfFreedom(it_node_begin + i, rotppos, dim);
+                // Current step information "N+1" (before step update).
+                this->UpdateTranslationalDegreesOfFreedom(it_node_begin + i, disppos, dim);
             } // for Node parallel
-        }
 
+            if (has_dof_for_rot_z){
+                #pragma omp parallel for schedule(guided,512)
+                for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                    this->UpdateRotationalDegreesOfFreedom(it_node_begin + i, rotppos, dim);
+                } // for Node parallel
+            }
+        } // if not nodes.empty()
 
         KRATOS_CATCH("")
     }
