@@ -3,16 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Alejandro Cornejo
 //
 
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED
+#if !defined(KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED )
+#define  KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -45,16 +44,16 @@ namespace Kratos
 ///@{
 
 /**
- * @class TotalLagrangian
+ * @class TotalLagrangianQ1P0MixedElement
  * @ingroup StructuralMechanicsApplication
  * @brief Total Lagrangian element for 2D and 3D geometries.
  * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
- * @author Riccardo Rossi
+ * @author Alejandro Cornejo
  * @author Vicente Mataix Ferrandiz
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
-    : public BaseSolidElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangianQ1P0MixedElement
+    : public TotalLagrangian
 {
 public:
     ///@name Type Definitions
@@ -78,24 +77,24 @@ public:
     /// The definition of the sizetype
     typedef std::size_t SizeType;
 
-    /// Counted pointer of TotalLagrangian
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangian);
+    /// Counted pointer of TotalLagrangianQ1P0MixedElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianQ1P0MixedElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
-    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    TotalLagrangianQ1P0MixedElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    TotalLagrangianQ1P0MixedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Copy constructor
-    TotalLagrangian(TotalLagrangian const& rOther)
+    TotalLagrangianQ1P0MixedElement(TotalLagrangianQ1P0MixedElement const& rOther)
         :BaseType(rOther)
     {};
 
     /// Destructor.
-    ~TotalLagrangian() override;
+    ~TotalLagrangianQ1P0MixedElement() override;
 
     ///@}
     ///@name Operators
@@ -163,14 +162,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        buffer << "TotalLagrangianQ1P0MixedElement #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        rOStream << "TotalLagrangianQ1P0MixedElement #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -195,7 +194,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    TotalLagrangian() : BaseSolidElement()
+    TotalLagrangianQ1P0MixedElement() : TotalLagrangian()
     {
     }
 
@@ -263,47 +262,47 @@ private:
      * @param rF The deformation gradient
      * @param rDN_DX The gradient derivative of the shape function
      */
-    void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
+    // void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
 
-    void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+    // void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
 
-    void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+    // void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
 
-    void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
+    // void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
 
-    void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
+    // void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
 
-    void CalculateStress(Vector& rStrain,
-                         std::size_t IntegrationPoint,
-                         Vector& rStress,
-                         ProcessInfo const& rCurrentProcessInfo);
+    // void CalculateStress(Vector& rStrain,
+    //                      std::size_t IntegrationPoint,
+    //                      Vector& rStress,
+    //                      ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateStress(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStress,
-                         ProcessInfo const& rCurrentProcessInfo);
+    // void CalculateStress(Matrix const& rF,
+    //                      std::size_t IntegrationPoint,
+    //                      Vector& rStress,
+    //                      ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateStrain(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStrain,
-                         ProcessInfo const& rCurrentProcessInfo);
+    // void CalculateStrain(Matrix const& rF,
+    //                      std::size_t IntegrationPoint,
+    //                      Vector& rStrain,
+    //                      ProcessInfo const& rCurrentProcessInfo);
 
-    void CalculateShapeSensitivity(ShapeParameter Deriv,
-                                   Matrix& rDN_DX0,
-                                   Matrix& rDN_DX0_Deriv,
-                                   Matrix& rF_Deriv,
-                                   double& rDetJ0_Deriv,
-                                   std::size_t IntegrationPointIndex);
+    // void CalculateShapeSensitivity(ShapeParameter Deriv,
+    //                                Matrix& rDN_DX0,
+    //                                Matrix& rDN_DX0_Deriv,
+    //                                Matrix& rF_Deriv,
+    //                                double& rDetJ0_Deriv,
+    //                                std::size_t IntegrationPointIndex);
 
-    void CalculateBSensitivity(Matrix const& rDN_DX,
-                               Matrix const& rF,
-                               Matrix const& rDN_DX_Deriv,
-                               Matrix const& rF_Deriv,
-                               Matrix& rB_Deriv);
+    // void CalculateBSensitivity(Matrix const& rDN_DX,
+    //                            Matrix const& rF,
+    //                            Matrix const& rDN_DX_Deriv,
+    //                            Matrix const& rF_Deriv,
+    //                            Matrix& rB_Deriv);
 
-    std::size_t GetStrainSize() const;
+    // std::size_t GetStrainSize() const;
 
-    bool IsAxissymmetric() const;
+    // bool IsAxissymmetric() const;
 
     ///@}
     ///@name Private  Access
@@ -343,4 +342,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined
+#endif // KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED  defined
