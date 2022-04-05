@@ -59,23 +59,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    ///Reference type definition for constitutive laws
-    // typedef ConstitutiveLaw ConstitutiveLawType;
-
-    ///Pointer type for constitutive laws
-    // typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-
-    ///Type definition for integration methods
-    // typedef GeometryData::IntegrationMethod IntegrationMethod;
-
     /// The base element type
     typedef TotalLagrangian BaseType;
-
-    /// The definition of the index type
-    // typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    // typedef std::size_t SizeType;
 
     /// Counted pointer of TotalLagrangianQ1P0MixedElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianQ1P0MixedElement);
@@ -140,12 +125,6 @@ public:
         IndexType NewId,
         NodesArrayType const& rThisNodes
         ) const override;
-
-    //std::string Info() const;
-
-    // void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
-    //                                 Matrix& rOutput,
-    //                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -215,18 +194,6 @@ protected:
         ) override;
 
     /**
-     * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param PointNumber The integration point considered
-     * @param rIntegrationMethod The integration method considered
-     */
-    // void CalculateKinematicVariables(
-    //     KinematicVariables& rThisKinematicVariables,
-    //     const IndexType PointNumber,
-    //     const GeometryType::IntegrationMethod& rIntegrationMethod
-    //     ) override;
-
-    /**
      * @brief It initializes the material
      */
     void InitializeMaterial() override;
@@ -266,54 +233,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method computes the deformation matrix B
-     * @param rB The deformation matrix
-     * @param rF The deformation gradient
-     * @param rDN_DX The gradient derivative of the shape function
-     */
-    // void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
-
-    // void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    // void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    // void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
-
-    // void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
-
-    // void CalculateStress(Vector& rStrain,
-    //                      std::size_t IntegrationPoint,
-    //                      Vector& rStress,
-    //                      ProcessInfo const& rCurrentProcessInfo);
-
-    // void CalculateStress(Matrix const& rF,
-    //                      std::size_t IntegrationPoint,
-    //                      Vector& rStress,
-    //                      ProcessInfo const& rCurrentProcessInfo);
-
-    // void CalculateStrain(Matrix const& rF,
-    //                      std::size_t IntegrationPoint,
-    //                      Vector& rStrain,
-    //                      ProcessInfo const& rCurrentProcessInfo);
-
-    // void CalculateShapeSensitivity(ShapeParameter Deriv,
-    //                                Matrix& rDN_DX0,
-    //                                Matrix& rDN_DX0_Deriv,
-    //                                Matrix& rF_Deriv,
-    //                                double& rDetJ0_Deriv,
-    //                                std::size_t IntegrationPointIndex);
-
-    // void CalculateBSensitivity(Matrix const& rDN_DX,
-    //                            Matrix const& rF,
-    //                            Matrix const& rDN_DX_Deriv,
-    //                            Matrix const& rF_Deriv,
-    //                            Matrix& rB_Deriv);
-
-    // std::size_t GetStrainSize() const;
-
-    // bool IsAxissymmetric() const;
 
     ///@}
     ///@name Private  Access
