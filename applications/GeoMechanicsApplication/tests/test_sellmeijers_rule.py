@@ -5,7 +5,8 @@ import json
 import time
 import math
 
-sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
+#sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
+sys.path.append(os.path.join(r'D:/kratos'))
 sys.path.append(os.path.join('..', '..', '..'))
 sys.path.append(os.path.join('..', 'python_scripts'))
 
@@ -25,18 +26,23 @@ class LatexWriterFile:
         self.value_dict_default = {"value_name": "", "test_result": 0, "kratos_results": 0}
 
     def write_latex_file_and_assert(self, result_list):
-        with open(self.filename, "w+") as output_latex_file:
-            for result_pair in result_list:
-                error = abs(result_pair['kratos_results'] - result_pair['test_result']) / \
-                        (abs(result_pair['test_result']) + 1e-60)
-                if result_pair["round"]:
-                    output_latex_file.write(
-                        f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
-                        f"{round(result_pair['kratos_results'], 2)} & {round(error, 2)}  \\\\ \hline \n")
-                else:
-                    output_latex_file.write(
-                        f"{result_pair['value_name']} & {result_pair['test_result']} & "
-                        f"{result_pair['kratos_results']} & {round(error, 2)}  \\\\ \hline \n")
+        try:
+            with open(self.filename, "w+") as output_latex_file:
+                for result_pair in result_list:
+                    error = abs(result_pair['kratos_results'] - result_pair['test_result']) / \
+                            (abs(result_pair['test_result']) + 1e-60)
+                    if result_pair["round"]:
+                        output_latex_file.write(
+                            f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
+                            f"{round(result_pair['kratos_results'], 2)} & {round(error, 2)}  \\\\ \hline \n")
+                    else:
+                        output_latex_file.write(
+                            f"{result_pair['value_name']} & {result_pair['test_result']} & "
+                            f"{result_pair['kratos_results']} & {round(error, 2)}  \\\\ \hline \n")
+        except TypeError:
+            print(1)
+
+
         # for result_pair in result_list:
         #     assert abs(result_pair['test_result'] - result_pair['kratos_results']) < 1e-5
 
@@ -132,7 +138,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
     def critical_head_loop(self, file_path, test_name, counter, search_type='linear'):
         self.change_material_parameters(file_path, self.test_lists["kappa"][counter], self.test_lists["d70"][counter])
-        heads = [x * 0.1 for x in range(int(self.test_lists["Hc"][counter] * 10 - 1), int(self.test_lists["Hc"][counter] * 10 + 2))]
+        heads = [x * 0.1 for x in range(int(self.test_lists["Hc"][counter] * 10 - 20), int(self.test_lists["Hc"][counter] * 10 + 20))]
         if search_type == 'linear':
             critical_head_found = self.linear_search(file_path, heads)
         elif search_type == 'bisection':
