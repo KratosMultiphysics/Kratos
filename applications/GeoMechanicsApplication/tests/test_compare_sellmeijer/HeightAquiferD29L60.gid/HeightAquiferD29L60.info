@@ -1,0 +1,183 @@
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.0."Dev"-6007437334-Release
+Compiled with threading support.
+Maximum number of threads: 8.
+Importing    KratosStructuralMechanicsApplication 
+    KRATOS   ___|  |                   |                   |
+           \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+                 | |   |    |   | (    |   |   | |   (   | |
+           _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+Initializing KratosStructuralMechanicsApplication...
+Importing    KratosGeoMechanicsApplication 
+ KRATOS___                             
+     //   ) )                          
+    //         ___      ___            
+   //  ____  //___) ) //   ) )         
+  //    / / //       //   / /          
+ ((____/ / ((____   ((___/ /  MECHANICS
+ Initializing KratosGeoMechanicsApplication...
+GeoMechanics Analysis: Thu Mar 31 15:58:57 2022 
+[WARNING] OpenMPUtils: "SetNumThreads" is deprecated, please use ParallelUtilities.SetNumThreads instead
+[WARNING] OpenMPUtils: "GetNumThreads" is deprecated, please use ParallelUtilities.GetNumThreads instead
+GeoMechanics Analysis: OpenMP parallel configuration. OMP_NUM_THREADS = 1 
+::[GeoMechanicalSolver]:: : Construction finished 
+geomechanics_solver: is not a restarted model 
+GeoMechanics_U_Pw_Solver: Construction of Solver finished. 
+GeoMechanics_Pw_Solver: Construction of Solver finished. 
+::[GeoMechanicalSolver]:: : Variables ADDED 
+::[PythonSolver]::: Reading model part. 
+SingleImportModelPart: Reading model part from file: D:\kratos_new\applications\GeoMechanicsApplication\tests\test_compare_sellmeijer\HeightAquiferD29L60.gid/HeightAquiferD29L60.mdpa
+ModelPartIO:   [Reading Nodes    : 230 nodes read]
+ModelPartIO:   [Reading Elements : 319 elements read] [Type: SteadyStatePwElement2D3N]
+ModelPartIO:   [Reading Elements : 51 elements read] [Type: SteadyStatePwElement2D3N]
+ModelPartIO:   [Reading Elements : 13 elements read] [Type: SteadyStatePwInterfaceElement2D4N]
+ModelPartIO:   [Total Lines Read : 1974]
+SingleImportModelPart: Finished reading model part from mdpa file.
+ModelPart: -PorousDomain- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 6
+    Current solution step index : 0
+    DOMAIN_SIZE : 2
+    IS_RESTARTED : 0
+    RESET_DISPLACEMENTS : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 230
+        Number of Properties  : 3
+        Number of Elements    : 383
+        Number of Conditions  : 0
+        Number of Constraints : 0
+
+    -Embankment- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 41
+            Number of Properties  : 0
+            Number of Elements    : 51
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Left_head- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 7
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Pipe- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 26
+            Number of Properties  : 0
+            Number of Elements    : 13
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Right_head- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 7
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Soil- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 191
+            Number of Properties  : 0
+            Number of Elements    : 319
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -gravity- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 230
+            Number of Properties  : 0
+            Number of Elements    : 383
+            Number of Conditions  : 0
+            Number of Constraints : 0
+ 
+::[PythonSolver]:: : Finished reading model part. 
+::[GeoMechanicalSolver]:: importing constitutive law: MaterialParameters.json 
+Read materials: Started
+[WARNING] ReadMaterialsUtility: WARNING:: The properties ID: 1 in mesh ID: 0 is already defined. This will overwrite the existing values
+[WARNING] ReadMaterialsUtility: WARNING:: The properties ID: 2 in mesh ID: 0 is already defined. This will overwrite the existing values
+[WARNING] ReadMaterialsUtility: WARNING:: The properties ID: 3 in mesh ID: 0 is already defined. This will overwrite the existing values
+Read materials: Finished
+::[GeoMechanicalSolver]:: : Constitutive law was successfully imported. 
+GeoMechanics_U_Pw_Solver: Model reading finished. 
+GeoMechanics_Pw_Solver: DOFs added correctly. 
+::[GeoMechanics_Pw_Solver]:: : Initialisation ... 
+::[GeoMechanics_U_Pw_Solver]:: : Initialisation ... 
+Importing    LinearSolversApplication 
+    Kratos  _     _                       ____        _
+           | |   (_)_ __   ___  __ _ _ __/ ___|  ___ | |_   _____ _ __ ___
+           | |   | | '_ \ / _ \/ _` | '__\___ \ / _ \| \ \ / / _ \ '__/ __|
+           | |___| | | | |  __/ (_| | |   ___) | (_) | |\ V /  __/ |  \__ \
+           |_____|_|_| |_|\___|\__,_|_|  |____/ \___/|_| \_/ \___|_|  |___/
+Initializing KratosLinearSolversApplication...
+Linear-Solver-Factory: Constructing a regular (non-complex) linear-solver 
+GeoMechanics_Pw_Solver, scheme: Backward Euler Steady-state groundwater flow. 
+GeoMechanics_U_Pw_Solver: solver.Initialize is set successfully 
+GeoMechanics_U_Pw_Solver: Solver initialization finished. 
+GeoMechanics_Pw_Solver: solver.Initialize is set successfully 
+GeoMechanics_Pw_Solver: Solver initialization finished. 
+GeoMechanics Analysis: Analysis -START-  
+GeoMechanics Analysis: --------------------------------------   
+GeoMechanics Analysis: cycle:  1 
+GeoMechanics Analysis: STEP      :  1 
+GeoMechanics Analysis: DELTA_TIME:  1.0 
+GeoMechanics Analysis: TIME      :  1.0 
+ResidualBasedNewtonRaphsonStrategy: Setup Dofs Time: 0.0004462
+ResidualBasedNewtonRaphsonStrategy: Setup System Time: 3.1e-06
+ResidualBasedNewtonRaphsonStrategy: System Matrix Resize Time: 0.0003426
+ResidualBasedNewtonRaphsonStrategy: System Construction Time: 0.0008374
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0009741
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0006275
+CONVERGENCE CHECK:
+ WATER_PRESSURE : ratio = 1; exp.ratio = 0.0001 abs = 12.5067 exp.abs = 1e-09
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0009999
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0005193
+CONVERGENCE CHECK:
+ WATER_PRESSURE : ratio = 0.00201875; exp.ratio = 0.0001 abs = 0.0252483 exp.abs = 1e-09
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0012069
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0005276
+CONVERGENCE CHECK:
+ WATER_PRESSURE : ratio = 0.000169372; exp.ratio = 0.0001 abs = 0.00211831 exp.abs = 1e-09
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0011108
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0006746
+CONVERGENCE CHECK:
+ WATER_PRESSURE : ratio = 6.60946e-07; exp.ratio = 0.0001 abs = 8.26635e-06 exp.abs = 1e-09
+*** CONVERGENCE IS ACHIEVED ***
+ResidualBasedNewtonRaphsonStrategy: Convergence achieved after 4 / 15 iterations
+GeoMechanics Analysis: Up-scaling with factor:  2.0 
+GeoMechanics Analysis: Analysis -END-  
+BuilderAndSolver: Clear Function called
+GeoMechanics Analysis: Analysis Completed. Elapsed Time = 0.078  seconds. 
+GeoMechanics Analysis: Thu Mar 31 15:58:57 2022 
+BuilderAndSolver: Clear Function called
+BuilderAndSolver: Clear Function called
+KRATOS TERMINATED CORRECTLY

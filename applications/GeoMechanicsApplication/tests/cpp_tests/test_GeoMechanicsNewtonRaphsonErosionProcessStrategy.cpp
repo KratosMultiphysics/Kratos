@@ -42,12 +42,14 @@
 #include <custom_processes/apply_component_table_process.hpp>
 #include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
 #include <factories/linear_solver_factory.h>
+#include <ghc/filesystem.hpp>
 #include <includes/gid_io.h>
 
 #include <processes/apply_constant_scalarvalue_process.h>
 #include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
 #include <solving_strategies/strategies/implicit_solving_strategy.h>
 #include <solving_strategies/strategies/residualbased_newton_raphson_strategy.h>
+
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
 #include "utilities/variable_utils.h"
@@ -549,8 +551,13 @@ namespace Kratos
             auto projectpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/ProjectParameters.json";
             auto materialpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/MaterialParameters.json";
 
+            TCHAR pwd[MAX_PATH];
+            GetCurrentDirectory(MAX_PATH, pwd);
+            cout << pwd << std::endl;
+
         	auto projectfile = openProjectParamsFile(projectpath);
             auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
+
 
         	// Initial Setup
         	Model current_model;

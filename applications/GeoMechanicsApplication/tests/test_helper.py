@@ -208,6 +208,26 @@ def get_hydraylic_head_with_intergration_points(simulation):
             head.append(head_value)
     return x, y , head
 
+def get_pipe_active_in_elements(simulation):
+    """
+    Gets the pipe active value on all nodal points from Kratos simulation
+    :param simulation:
+    :return: pipe_active : list of booleans determine whether pipe element is active or not
+    """
+    model_part = simulation._list_of_output_processes[0].model_part
+    elements = model_part.Elements
+    return [element.GetValue(KratosGeo.PIPE_ACTIVE) for element in elements]
+
+def get_pipe_length(simulation):
+    """
+    Gets the length of all active pipe elemnets
+    :param simulation:
+    :return: pipe_length :
+    """
+    model_part = simulation._list_of_output_processes[0].model_part
+    elements = model_part.Elements
+    return sum([element.GetValue(KratosGeo.PIPE_ELEMENT_LENGTH) for element in elements if element.GetValue(KratosGeo.PIPE_ACTIVE)])
+
 def get_force(simulation):
     """
     Gets force on all integration points from Kratos simulation
