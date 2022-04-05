@@ -19,6 +19,7 @@ def run_kratos(file_path):
     :param file_path:
     :return:
     """
+    currentWorking = os.getcwd()
 
     parameter_file_name = os.path.join(file_path, 'ProjectParameters.json')
     os.chdir(file_path)
@@ -29,6 +30,8 @@ def run_kratos(file_path):
     model = Kratos.Model()
     simulation = analysis.GeoMechanicsAnalysis(model, parameters)
     simulation.Run()
+
+    os.chdir(currentWorking) 
     return simulation
 
 def run_stages(project_path,n_stages):
@@ -59,6 +62,7 @@ def get_stages(project_path,n_stages):
 
     # set stage parameters
     parameters_stages = [None] * n_stages
+    currentWorking = os.getcwd()
     os.chdir(project_path)
     for idx, parameter_file_name in enumerate(parameter_file_names):
         with open(parameter_file_name, 'r') as parameter_file:
@@ -66,7 +70,7 @@ def get_stages(project_path,n_stages):
 
     model = Kratos.Model()
     stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-
+    os.chdir(currentWorking)
     return stages
 
 
