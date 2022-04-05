@@ -46,10 +46,9 @@ namespace Kratos
 /**
  * @class TotalLagrangianQ1P0MixedElement
  * @ingroup StructuralMechanicsApplication
- * @brief Total Lagrangian element for 2D and 3D geometries.
- * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @brief Total Lagrangian mixed u-p element (Q1P0) for 2D and 3D geometries.
+ * @details Implements a mixed u-p total Lagrangian element for structural analysis, especially when incompressibility is used at constitutive level. This works for arbitrary geometries in 2D and 3D
  * @author Alejandro Cornejo
- * @author Vicente Mataix Ferrandiz
  */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangianQ1P0MixedElement
@@ -60,22 +59,22 @@ public:
     ///@{
 
     ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
+    // typedef ConstitutiveLaw ConstitutiveLawType;
 
     ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    // typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
 
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    // typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// The base element type
-    typedef BaseSolidElement BaseType;
+    typedef TotalLagrangian BaseType;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    // typedef std::size_t IndexType;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    // typedef std::size_t SizeType;
 
     /// Counted pointer of TotalLagrangianQ1P0MixedElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianQ1P0MixedElement);
@@ -143,9 +142,9 @@ public:
 
     //std::string Info() const;
 
-    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
-                                    Matrix& rOutput,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
+    // void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
+    //                                 Matrix& rOutput,
+    //                                 const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -220,11 +219,11 @@ protected:
      * @param PointNumber The integration point considered
      * @param rIntegrationMethod The integration method considered
      */
-    void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
-        ) override;
+    // void CalculateKinematicVariables(
+    //     KinematicVariables& rThisKinematicVariables,
+    //     const IndexType PointNumber,
+    //     const GeometryType::IntegrationMethod& rIntegrationMethod
+    //     ) override;
 
     ///@}
     ///@name Protected Operations
