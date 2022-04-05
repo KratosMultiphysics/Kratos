@@ -236,30 +236,21 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
                 // Contributions to stiffness matrix calculated on the reference config
                 /* Material stiffness matrix */
                 this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D + pressure * this_kinematic_variables.detF * (outer_prod(I, I) - 2.0 * Emat), int_to_reference_weight);
-                // this->CalculateAndAddKm(rLeftHandSideMatrix, this_kinematic_variables.B, this_constitutive_variables.D, int_to_reference_weight);
+                // this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D, int_to_reference_weight);
 
                 /* Geometric stiffness matrix */
                 this->CalculateAndAddKg(rLeftHandSideMatrix, DN_Dx, this_constitutive_variables.StressVector + I * pressure * this_kinematic_variables.detF, int_to_reference_weight);
                 // this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
 
-                noalias(rLeftHandSideMatrix) += std::pow(int_to_reference_weight, 2) * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2) / mInitialVolume;
+                noalias(rLeftHandSideMatrix) += int_to_reference_weight * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2.0) / mInitialVolume;
             }
 
         if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
             noalias(this_kinematic_variables.B) = spatial_B;
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
 
+            // Pressure contribution
             noalias(rRightHandSideVector) -= int_to_reference_weight * this_kinematic_variables.detF * Bv * pressure;
-
-            // const Vector f = int_to_reference_weight * this_kinematic_variables.detF * Bv * pressure;
-            // const Vector f2 = int_to_reference_weight * prod(trans(this_kinematic_variables.B), this_constitutive_variables.StressVector);
-
-            if (this->Id() == 15) {
-                // KRATOS_WATCH(pressure)
-                // KRATOS_WATCH(f)
-                // KRATOS_WATCH(f2)
-            }
-                
         }
     }
 
