@@ -578,7 +578,7 @@ public:
             };
 
             if (has_dof_for_rot_z) {
-                initializer = [&zero_array, &rotppos, &initializer_base, DomainSize, this](Node<3>& rNode) {
+                initializer = [&rotppos, &initializer_base, DomainSize, this](Node<3>& rNode) {
                     initializer_base(rNode);
                     const array_1d<double, 3>& nodal_inertia = rNode.GetValue(NODAL_INERTIA);
                     const array_1d<double, 3>& r_current_residual_moment = rNode.FastGetSolutionStepValue(MOMENT_RESIDUAL);
