@@ -5,9 +5,16 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics import process_factory
 from KratosMultiphysics.testing.utilities import ReadModelPart
+from unittest import skipUnless
 
 import math
 import os
+
+try:
+    import pandas
+    pandas_available = True
+except:
+    pandas_available = False
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -2467,6 +2474,66 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[0].Id, 33)
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[1].Id, 2)
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[2].Id, 31)
+
+    @skipUnless(pandas_available, "pandas isn't available")
+    def test_apply_table_to_variable_process(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X)
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"), model_part)
+
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [{
+                "python_module"  : "apply_table_to_variable_process",
+                "kratos_module"  : "KratosMultiphysics",
+                "Parameters"            : {
+                    "model_part_name"        : "Main.Top_side",
+                    "container"              : "Nodes",
+                    "historical_variable"    : true,
+                    "variable_name"          : "VELOCITY_X",
+                    "interval"               : [0, "End"],
+                    "table_input_type"       : "csv",
+                    "table_input_parameters" : {
+                        "file_name" : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
+                        "delimiter" : ",",
+                        "decimal"   : ".",
+                        "skiprows"  : 1
+                    }
+                }
+            },{
+                "python_module"  : "from_json_check_result_process",
+                "kratos_module"  : "KratosMultiphysics",
+                "Parameters"            : {
+                    "check_variables"      : ["VELOCITY_X"],
+                    "input_file_name"      : "auxiliar_files_for_python_unittest/reference_files/apply_table_reference.json",
+                    "model_part_name"      : "Main.Top_side",
+                    "historical_value"     : true,
+                    "tolerance"            : 1e-9,
+                    "relative_tolerance"   : 1e-9,
+                    "time_frequency"       : 1.0
+                }
+            }]
+        }""")
+        list_of_processes = process_factory.KratosProcessFactory(model).ConstructListOfProcesses(settings["process_list"])
+
+        for process in list_of_processes:
+            process.ExecuteInitialize()
+
+        for process in list_of_processes:
+            process.Check()
+
+        for process in list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 1.5
+        model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 1.5
+        
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
