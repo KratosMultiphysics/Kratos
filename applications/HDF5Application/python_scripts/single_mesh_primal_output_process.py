@@ -75,7 +75,7 @@ def Factory(settings, Model):
 
 
 def SingleMeshPrimalOutputProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model)
+    return core.Factory(core_settings, Model, core.ProcessTag.OUTPUT)
 
 
 def CreateCoreSettings(user_settings, model):

@@ -14,6 +14,14 @@ from . import operations
 from . import file_io
 from .utils import ParametersWrapper
 
+from enum import Enum
+
+
+class ProcessTag(Enum):
+    UNDEFINED = 1
+    INPUT = 2
+    OUTPUT = 3
+
 
 def CreateControllerWithFileIO(settings, model):
     settings.SetDefault('model_part_name', 'PLEASE_SPECIFY_MODEL_PART_NAME')
@@ -37,37 +45,24 @@ def AssignOperationsToController(settings, controller):
         controller.Add(operations.Create(settings[i]))
 
 
-def AssignControllerToProcess(settings, controller, process):
-    process_step = settings['process_step']
-    if process_step == 'initialize':
-        process.AddInitialize(controller)
-    elif process_step == 'before_solution_loop':
-        process.AddBeforeSolutionLoop(controller)
-    elif process_step == 'initialize_solution_step':
-        process.AddInitializeSolutionStep(controller)
-    elif process_step == 'finalize_solution_step':
-        process.AddFinalizeSolutionStep(controller)
-    elif process_step == 'before_output_step':
-        process.AddBeforeOutputStep(controller)
-    elif process_step == 'after_output_step':
-        process.AddAfterOutputStep(controller)
-    elif process_step == 'finalize':
-        process.AddFinalize(controller)
-    else:
-        raise ValueError(
-            '"process_step" has invalid value "' + process_step + '"')
-
-
-def Factory(settings, model):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model, tag: ProcessTag):
     '''Return an HDF5 IO process specified by json settings.'''
     if not settings.IsArray():
         raise ValueError('Expected settings as an array')
     if len(settings) == 0:
         settings.Append(KratosMultiphysics.Parameters())
-    process = processes.ControllerProcess()
+
+    if tag == ProcessTag.INPUT:
+        process_base = KratosMultiphysics.Process
+    elif tag == ProcessTag.OUTPUT:
+        process_base = KratosMultiphysics.OutputProcess
+    elif tag == ProcessTag.UNDEFINED:
+        process_base = KratosMultiphysics.Process
+    process = processes.Factory(process_base)
+
     for i in settings:
         controller = CreateControllerWithFileIO(settings[i], model)
         AssignOperationsToController(
             settings[i]['list_of_operations'], controller)
-        AssignControllerToProcess(settings[i], controller, process)
+        controller.AssignToProcess(process, settings[i])
     return process

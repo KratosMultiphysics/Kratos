@@ -6,11 +6,10 @@ operations.
 license: HDF5Application/license.txt
 '''
 
-
 import KratosMultiphysics
 
 
-class DefaultController(object):
+class Controller(object):
     '''Simple pass through controller.'''
 
     def __init__(self, model_part, io, settings=None):
@@ -21,13 +20,33 @@ class DefaultController(object):
     def Add(self, operation):
         self.operations.append(operation)
 
+    def AssignToProcess(self, process: KratosMultiphysics.Process, settings: KratosMultiphysics.Parameters) -> None:
+        process_step = settings['process_step']
+        if process_step == 'initialize':
+            process.AddInitialize(self)
+        elif process_step == 'before_solution_loop':
+            process.AddBeforeSolutionLoop(self)
+        elif process_step == 'initialize_solution_step':
+            process.AddInitializeSolutionStep(self)
+        elif process_step == 'finalize_solution_step':
+            process.AddFinalizeSolutionStep(self)
+        elif process_step == 'before_output_step':
+            process.AddBeforeOutputStep(self)
+        elif process_step == 'after_output_step':
+            process.AddAfterOutputStep(self)
+        elif process_step == 'finalize':
+            process.AddFinalize(self)
+        else:
+            raise ValueError(
+                '"process_step" has invalid value "' + process_step + '"')
+
     def __call__(self):
         current_io = self.io.Get(self.model_part)
         for op in self.operations:
             op(self.model_part, current_io)
 
 
-class TemporalController(object):
+class TemporalController(Controller):
     '''Frequency-based controller.
 
     Controls execution according to the 'time_frequency' and 'step_frequency'
@@ -62,6 +81,10 @@ class TemporalController(object):
             return True
         return False
 
+    def AssignToProcess(self, process: KratosMultiphysics.OutputProcess, settings: KratosMultiphysics.Parameters) -> None:
+        super().AssignToProcess(process, settings)
+        process.IsOutputStep = type(process.IsOutputStep)(lambda process_self: self._IsOutputStep(), process)
+
     def __call__(self):
         delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         self.current_time += delta_time
@@ -83,7 +106,7 @@ def Create(model_part, io, settings):
     settings.SetDefault('controller_type', 'default_controller')
     controller_type = settings['controller_type']
     if controller_type == 'default_controller':
-        return DefaultController(model_part, io, settings)
+        return Controller(model_part, io, settings)
     elif controller_type == 'temporal_controller':
         return TemporalController(model_part, io, settings)
     else:
