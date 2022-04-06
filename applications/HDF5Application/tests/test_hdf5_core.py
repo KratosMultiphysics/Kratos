@@ -715,7 +715,7 @@ class TestFactory(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         settings = KratosMultiphysics.Parameters()
         with self.assertRaisesRegex(ValueError, r'Expected settings as an array'):
-            core.Factory(settings, model, core.ProcessTag.UNDEFINED)
+            core.Factory(settings, model)
 
     def test_EmptyArraySettings(self):
         model = KratosMultiphysics.Model()
@@ -726,7 +726,7 @@ class TestFactory(KratosUnittest.TestCase):
             ''')
         settings = ParametersWrapper(settings)
         with self.assertRaisesRegex(RuntimeError, '"PLEASE_SPECIFY_MODEL_PART_NAME" was not found'):
-            core.Factory(settings['list_of_controllers'], model, core.ProcessTag.UNDEFINED)
+            core.Factory(settings['list_of_controllers'], model)
 
     def test_DefaultSettings(self):
         model = KratosMultiphysics.Model()
@@ -741,7 +741,7 @@ class TestFactory(KratosUnittest.TestCase):
             }
             ''')
         parent_settings = ParametersWrapper(parent_settings)
-        core.Factory(parent_settings['list_of_controllers'], model, core.ProcessTag.UNDEFINED)
+        core.Factory(parent_settings['list_of_controllers'], model)
         settings = parent_settings['list_of_controllers'][0]
         self.assertTrue(settings.Has('model_part_name'))
         self.assertTrue(settings.Has('process_step'))
@@ -768,7 +768,7 @@ class TestFactory(KratosUnittest.TestCase):
             ''')
         parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(
-            parent_settings['list_of_controllers'], model, core.ProcessTag.UNDEFINED)
+            parent_settings['list_of_controllers'], model)
         patcher1 = patch(
             'KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True)
         patcher2 = patch(

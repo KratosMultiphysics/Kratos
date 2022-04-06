@@ -52,7 +52,7 @@ def Factory(settings, Model):
 
 
 def InitializationFromHDF5ProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model, core.ProcessTag.INPUT)
+    return core.Factory(core_settings, Model)
 
 
 def CreateCoreSettings(user_settings, model):

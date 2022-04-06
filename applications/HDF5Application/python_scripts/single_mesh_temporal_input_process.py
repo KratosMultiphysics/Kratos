@@ -55,7 +55,7 @@ def Factory(settings, Model):
 
 
 def SingleMeshTemporalInputProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model, core.ProcessTag.INPUT)
+    return core.Factory(core_settings, Model)
 
 
 def CreateCoreSettings(user_settings, model):

@@ -69,7 +69,7 @@ def Factory(settings, Model):
 
 
 def SingleMeshTemporalOutputProcessFactory(core_settings, Model):
-    return core.Factory(core_settings, Model, core.ProcessTag.OUTPUT)
+    return core.Factory(core_settings, Model)
 
 
 def CreateCoreSettings(user_settings, model):
