@@ -10,8 +10,8 @@
 //  Main authors:    Sebastian Ares de Parga
 //
 
-#if !defined(KRATOS_RADIAL_BASIS_FUNCTIONS_UTILITY_H_INCLUDED)
-#define  KRATOS_RADIAL_BASIS_FUNCTIONS_UTILITY_H_INCLUDED
+#if !defined(KRATOS_rbf_shape_functions_utility_H_INCLUDED)
+#define  KRATOS_rbf_shape_functions_utility_H_INCLUDED
 
 
 // System includes
@@ -32,7 +32,7 @@ namespace Kratos
  * This class uses Gaussian raidal basis functions to calculate
  * the shape function values for a given value (i.e. norm of a point) with partition of unity.
  */
-class KRATOS_API(KRATOS_CORE) RadialBasisFunctionsUtility
+class KRATOS_API(KRATOS_CORE) RBFShapeFunctionsUtility
 {
 
 public:
@@ -124,7 +124,7 @@ private:
     ///@name Unaccessible methods
     ///@{
 
-    RadialBasisFunctionsUtility(){};
+    RBFShapeFunctionsUtility(){};
 
     static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
 
@@ -133,4 +133,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RADIAL_BASIS_FUNCTIONS_UTILITY_H_INCLUDED  defined
+#endif // KRATOS_rbf_shape_functions_utility_H_INCLUDED  defined

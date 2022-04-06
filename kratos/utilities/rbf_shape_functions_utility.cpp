@@ -17,12 +17,12 @@
 // Project includes
 #include "includes/global_variables.h"
 #include "utilities/math_utils.h"
-#include "radial_basis_functions_utility.h"
+#include "rbf_shape_functions_utility.h"
 
 namespace Kratos
 {
 
-    double RadialBasisFunctionsUtility::EvaluateRBF(
+    double RBFShapeFunctionsUtility::EvaluateRBF(
         const double x,
         const double h)
     {
@@ -35,7 +35,7 @@ namespace Kratos
         // return std::exp(-0.5*std::pow(q,2));
     }
 
-    void RadialBasisFunctionsUtility::CalculateShapeFunctions(
+    void RBFShapeFunctionsUtility::CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
@@ -82,7 +82,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void RadialBasisFunctionsUtility::CalculateShapeFunctions(
+    void RBFShapeFunctionsUtility::CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         Vector& rN,
@@ -96,7 +96,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    double RadialBasisFunctionsUtility::CalculateShapeFunctionsAndInterpolation(
+    double RBFShapeFunctionsUtility::CalculateShapeFunctionsAndInterpolation(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
@@ -143,7 +143,7 @@ namespace Kratos
         return interpolation;
     }
 
-    double RadialBasisFunctionsUtility::CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints)
+    double RBFShapeFunctionsUtility::CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints)
     {
         // Find shape parameter http://www.math.iit.edu/~fass/Dolomites.pdf [Hardy]
         double d = 0; // Total distance of nearest x_i neighbors

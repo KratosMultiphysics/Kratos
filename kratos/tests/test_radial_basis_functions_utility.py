@@ -6,7 +6,7 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
     import KratosMultiphysics.LinearSolversApplication as KratosLinearSolvers
 
-class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
+class TestRBFShapeFunctionsUtility(KratosUnittest.TestCase):
 
     def setUp(self):
         # Create the test model part
@@ -28,7 +28,7 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, self.main_model_part, mesh_parameters).Execute()
 
-    def test_radial_basis_functions_utility_1x1_square(self):
+    def test_rbf_shape_functions_utility_1x1_square(self):
         # Create the sample points array
         n_nodes = self.main_model_part.NumberOfNodes()
         pts_coord = KratosMultiphysics.Matrix(n_nodes, 3, 0.0)
@@ -47,13 +47,13 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
         h = 1 #Shape parameter for the kernel function (radial basis function, inverse multiquadratic)
         input_shape_parameter = False
         if input_shape_parameter:
-            KratosMultiphysics.RadialBasisFunctionsUtility.CalculateShapeFunctions(
+            KratosMultiphysics.RBFShapeFunctionsUtility.CalculateShapeFunctions(
                 pts_coord,
                 midpoint,
                 h,
                 N_container)
         else:
-            KratosMultiphysics.RadialBasisFunctionsUtility.CalculateShapeFunctions(
+            KratosMultiphysics.RBFShapeFunctionsUtility.CalculateShapeFunctions(
                 pts_coord,
                 midpoint,
                 N_container)
@@ -67,7 +67,7 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
             for node in self.main_model_part.Nodes:
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, N_container[i])
                 i += 1
-            self.PostProcess("test_radial_basis_functions_utility_1x1_square")
+            self.PostProcess("test_rbf_shape_functions_utility_1x1_square")
         '''
 
         # Check results
@@ -84,7 +84,7 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
             self.assertAlmostEqual(N_container[15], 0.332227735376926, 8)
 
     @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
-    def test_radial_basis_functions_utility_ill_conditioned(self):
+    def test_rbf_shape_functions_utility_ill_conditioned(self):
         # Create the sample points array
         # Note that we deliberately duplicate one point to make the case ill-conditioned
         cloud_points_array = [
@@ -102,7 +102,7 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
         N_container = KratosMultiphysics.Vector()
         point_coords = KratosMultiphysics.Vector(3, 0.0)
         eigen_col_piv_qr = KratosLinearSolvers.EigenDenseColumnPivotingHouseholderQRDecomposition()
-        KratosMultiphysics.RadialBasisFunctionsUtility.CalculateShapeFunctions(
+        KratosMultiphysics.RBFShapeFunctionsUtility.CalculateShapeFunctions(
             cloud_coords,
             point_coords,
             N_container,

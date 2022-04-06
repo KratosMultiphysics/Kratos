@@ -39,7 +39,7 @@
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
-#include "utilities/radial_basis_functions_utility.h"
+#include "utilities/rbf_shape_functions_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -279,16 +279,16 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         ;
 
     // Radial Basis FUnctions utility
-    using DenseQRPointerType = typename RadialBasisFunctionsUtility::DenseQRPointerType;
-    py::class_<RadialBasisFunctionsUtility>(m,"RadialBasisFunctionsUtility")
+    using DenseQRPointerType = typename RBFShapeFunctionsUtility::DenseQRPointerType;
+    py::class_<RBFShapeFunctionsUtility>(m,"RBFShapeFunctionsUtility")
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
-            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);})
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);})
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN, DenseQRPointerType pDenseQR){
-            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN, pDenseQR);})
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN, pDenseQR);})
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
-            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
-            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
+            return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
 }
 
