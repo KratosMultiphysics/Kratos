@@ -165,85 +165,82 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     for (int i = 0; i < 6;i++)
         Emat(i, i) = 1.0;
 
-        // Computing in all integrations points
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
-        {
-            Vector Bv;
-            Bv.resize(dimension * number_of_nodes, false);
+    // Computing in all integrations points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+        Vector Bv;
+        Bv.resize(dimension * number_of_nodes, false);
 
-            Matrix spatial_B(strain_size, dimension * number_of_nodes);
-            noalias(spatial_B) = ZeroMatrix(strain_size, dimension * number_of_nodes);
+        Matrix spatial_B(strain_size, dimension * number_of_nodes);
+        noalias(spatial_B) = ZeroMatrix(strain_size, dimension * number_of_nodes);
 
-            // Contribution to external forces
-            noalias(body_force) = this->GetBodyForce(integration_points, point_number);
+        // Contribution to external forces
+        noalias(body_force) = this->GetBodyForce(integration_points, point_number);
 
-            // Compute element kinematics B, F, DN_DX ...
-            this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-            // Compute material reponse
-            this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Kirchhoff);
+        // Compute material reponse
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Kirchhoff);
 
-            // Calculating weights for integration on the reference configuration
-            int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
+        // Calculating weights for integration on the reference configuration
+        int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
 
-            if (dimension == 2 && r_props.Has(THICKNESS))
-                int_to_reference_weight *= r_props[THICKNESS];
+        if (dimension == 2 && r_props.Has(THICKNESS))
+            int_to_reference_weight *= r_props[THICKNESS];
 
-            // ----------------------------------------------------------------
-            // ----------------------------------------------------------------
-            Matrix J, inv_J, DN_Dx;
-            CalculateDerivativesOnCurrentConfiguration(J, inv_J, DN_Dx, point_number, this->GetIntegrationMethod());
-            // we build Bv
-            for (int i = 0; i < number_of_nodes; ++i)
+        // ----------------------------------------------------------------
+        // ----------------------------------------------------------------
+        Matrix J, inv_J, DN_Dx;
+        CalculateDerivativesOnCurrentConfiguration(J, inv_J, DN_Dx, point_number, this->GetIntegrationMethod());
+        // we build Bv
+        for (int i = 0; i < number_of_nodes; ++i) {
+            const SizeType index = dimension * i;
+            if (dimension == 2)
             {
-                const SizeType index = dimension * i;
-                if (dimension == 2)
-                {
-                }
-                else
-                { // 3D
-                    Bv[index + 0] = DN_Dx(i, 0);
-                    Bv[index + 1] = DN_Dx(i, 1);
-                    Bv[index + 2] = DN_Dx(i, 2);
-                }
-            } // build end
-
-            // we build spatial B
-            for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-                const SizeType index = dimension * i;
-                spatial_B( 0, index + 0 ) = DN_Dx( i, 0 );
-                spatial_B( 1, index + 1 ) = DN_Dx( i, 1 );
-                spatial_B( 2, index + 2 ) = DN_Dx( i, 2 );
-                spatial_B( 3, index + 0 ) = DN_Dx( i, 1 );
-                spatial_B( 3, index + 1 ) = DN_Dx( i, 0 );
-                spatial_B( 4, index + 1 ) = DN_Dx( i, 2 );
-                spatial_B( 4, index + 2 ) = DN_Dx( i, 1 );
-                spatial_B( 5, index + 0 ) = DN_Dx( i, 2 );
-                spatial_B( 5, index + 2 ) = DN_Dx( i, 0 );
             }
-
-            const double I1 = this_constitutive_variables.StressVector[0] + this_constitutive_variables.StressVector[1] + this_constitutive_variables.StressVector[2];
-            const double p = I1 / 3.0;
-            this_constitutive_variables.StressVector[0] -= p;
-            this_constitutive_variables.StressVector[1] -= p;
-            this_constitutive_variables.StressVector[2] -= p;
-            // ----------------------------------------------------------------
-            // ----------------------------------------------------------------
-            // noalias(this_kinematic_variables.B) = spatial_B;
-
-            if (CalculateStiffnessMatrixFlag)
-            { // Calculation of the matrix is required
-                // Contributions to stiffness matrix calculated on the reference config
-                /* Material stiffness matrix */
-                this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D + pressure * this_kinematic_variables.detF * (outer_prod(I, I) - 2.0 * Emat), int_to_reference_weight);
-                // this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D, int_to_reference_weight);
-
-                /* Geometric stiffness matrix */
-                this->CalculateAndAddKg(rLeftHandSideMatrix, DN_Dx, this_constitutive_variables.StressVector + I * pressure * this_kinematic_variables.detF, int_to_reference_weight);
-                // this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
-
-                noalias(rLeftHandSideMatrix) += int_to_reference_weight * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2.0) / mInitialVolume;
+            else
+            { // 3D
+                Bv[index + 0] = DN_Dx(i, 0);
+                Bv[index + 1] = DN_Dx(i, 1);
+                Bv[index + 2] = DN_Dx(i, 2);
             }
+        } // build end
+
+        // we build spatial B
+        for ( IndexType i = 0; i < number_of_nodes; i++ ) {
+            const SizeType index = dimension * i;
+            spatial_B( 0, index + 0 ) = DN_Dx( i, 0 );
+            spatial_B( 1, index + 1 ) = DN_Dx( i, 1 );
+            spatial_B( 2, index + 2 ) = DN_Dx( i, 2 );
+            spatial_B( 3, index + 0 ) = DN_Dx( i, 1 );
+            spatial_B( 3, index + 1 ) = DN_Dx( i, 0 );
+            spatial_B( 4, index + 1 ) = DN_Dx( i, 2 );
+            spatial_B( 4, index + 2 ) = DN_Dx( i, 1 );
+            spatial_B( 5, index + 0 ) = DN_Dx( i, 2 );
+            spatial_B( 5, index + 2 ) = DN_Dx( i, 0 );
+        }
+
+        const double I1 = this_constitutive_variables.StressVector[0] + this_constitutive_variables.StressVector[1] + this_constitutive_variables.StressVector[2];
+        const double p = I1 / 3.0;
+        this_constitutive_variables.StressVector[0] -= p;
+        this_constitutive_variables.StressVector[1] -= p;
+        this_constitutive_variables.StressVector[2] -= p;
+        // ----------------------------------------------------------------
+        // ----------------------------------------------------------------
+        // noalias(this_kinematic_variables.B) = spatial_B;
+
+        if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+            // Contributions to stiffness matrix calculated on the reference config
+            /* Material stiffness matrix */
+            this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D + pressure * this_kinematic_variables.detF * (outer_prod(I, I) - 2.0 * Emat), int_to_reference_weight);
+            // this->CalculateAndAddKm(rLeftHandSideMatrix, spatial_B, this_constitutive_variables.D, int_to_reference_weight);
+
+            /* Geometric stiffness matrix */
+            this->CalculateAndAddKg(rLeftHandSideMatrix, DN_Dx, this_constitutive_variables.StressVector + I * pressure * this_kinematic_variables.detF, int_to_reference_weight);
+            // this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
+
+            noalias(rLeftHandSideMatrix) += int_to_reference_weight * outer_prod(Bv, Bv) * bulk_modulus * std::pow(this_kinematic_variables.detF, 2.0) / mInitialVolume;
+        }
 
         if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
             noalias(this_kinematic_variables.B) = spatial_B;
