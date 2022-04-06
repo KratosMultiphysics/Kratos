@@ -190,7 +190,6 @@ class ExplicitStrategy():
 
         self.SetContinuumType()
 
-    @classmethod
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
         restart_settings.RemoveValue("input_type")
@@ -415,10 +414,7 @@ class ExplicitStrategy():
         '''
 
         AuxiliaryUtilities().UpdateTimeInOneModelPart(model_part, time, dt, is_time_to_print)
-        # model_part.ProcessInfo[TIME] = time
-        # model_part.ProcessInfo[DELTA_TIME] = dt
-        # model_part.ProcessInfo[TIME_STEPS] += 1
-        # model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
+
 
     def FinalizeSolutionStep(self):
         self.cplusplus_strategy.FinalizeSolutionStep()
@@ -547,7 +543,6 @@ class ExplicitStrategy():
 
         return math.sqrt(1.0/(1.0 - (1.0+e)*(1.0+e) * math.exp(alpha)) - 1.0)
 
-    @classmethod
     def SinAlphaConicalDamage(self, e):
 
         if e < 0.001:
