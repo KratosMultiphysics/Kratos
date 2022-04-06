@@ -37,6 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRDecomposition, KratosCoreFastSuite)
     A_matrix(0,1) = 0.28760;
     A_matrix(1,0) = 0.72886;
     A_matrix(1,1) = 0.40541;
+    Matrix A_copy = A_matrix; // Note that A will be modified. We keep a copy for the testing.
 
     // Calculate the QR decomposition
     using DenseSpace = UblasSpace<double, Matrix, Vector>;
@@ -46,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRDecomposition, KratosCoreFastSuite)
     // Check decomposition is correct
     constexpr double tolerance = 1e-10;
     const Matrix QR_matrix = prod(Q_matrix, R_matrix);
-    KRATOS_CHECK_MATRIX_NEAR(QR_matrix, A_matrix, tolerance);
+    KRATOS_CHECK_MATRIX_NEAR(QR_matrix, A_copy, tolerance);
 
     // Check values
     KRATOS_CHECK_NEAR(R_matrix(0,1), -0.49637670012, tolerance);
