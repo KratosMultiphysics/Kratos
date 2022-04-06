@@ -120,11 +120,11 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
         .def("Mult", [](DistributedSystemVector<double,IndexType>& self, const double value){ self*=value; } )
         .def("Div", [](DistributedSystemVector<double,IndexType>& self, const double value){ self/=value; } )
         //out of place
-        .def("__mul__", [](const DistributedSystemVector<double,IndexType>& self, const double factor){
+        .def("__mul__", [](const DistributedSystemVector<double,IndexType>& self, const double factor) -> DistributedSystemVector<double,IndexType>::Pointer{
             auto paux = std::make_shared<DistributedSystemVector<double,IndexType>>(self);
             (*paux) *= factor;
             return paux;}, py::is_operator())
-        .def("__rmul__", [](const DistributedSystemVector<double,IndexType>& self, const double factor){
+        .def("__rmul__", [](const DistributedSystemVector<double,IndexType>& self, const double factor) -> DistributedSystemVector<double,IndexType>::Pointer{
             auto paux = std::make_shared<DistributedSystemVector<double,IndexType>>(self);
             (*paux) *= factor;
             return paux;}, py::is_operator())
