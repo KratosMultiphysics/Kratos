@@ -184,9 +184,9 @@ class CompressibleNavierStokesElementSymbolicGenerator(CompressibleNavierStokesS
             mom_name = "mom_proj_gauss"
             ene_name = "tot_ener_proj_gauss"
 
-        self._CollectAndReplace("//substitute_rho_proj_{}D".format(dim), rho, rho_name)
-        self._CollectAndReplace("//substitute_mom_proj_{}D".format(dim), momentum, mom_name)
-        self._CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), energy, ene_name)
+        self.CollectAndReplace("//substitute_rho_proj_{}D".format(dim), rho, rho_name)
+        self.CollectAndReplace("//substitute_mom_proj_{}D".format(dim), momentum, mom_name)
+        self.CollectAndReplace("//substitute_tot_ener_proj_{}D".format(dim), energy, ene_name)
 
     def _SubstituteSubscales(self, res, res_proj, rv, subscales, subscales_type, Tau):
         rv_gauss = rv.copy()
