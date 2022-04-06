@@ -48,10 +48,11 @@ ModelPart& GenerateModel(Model& rModel, const std::string& rConditionName)
 
     // Set the element properties
     Properties::Pointer p_properties = model_part.CreateNewProperties(0);
-    p_properties->SetValue(CONDUCTIVITY,  0.024);
+    p_properties->SetValue(CONDUCTIVITY,  0.0);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 0.0);
+
     p_properties->SetValue(SPECIFIC_HEAT,  722.14);
     p_properties->SetValue(HEAT_CAPACITY_RATIO, 1.4);
-    p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0e-05);
 
     // Set process info values
     auto& r_process_info = model_part.GetProcessInfo();
@@ -274,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic,
     const auto etot = [](array_1d<double, 3> const& X) { return p / (gamma - 1); };
 
     SetDofValues(r_model_part, rho, mom, etot);
-    SetViscosities(r_model_part, 1e-3, 2e-3, 3e-3);
+    SetViscosities(r_model_part, 1e-3, 2e-3, 0.0);
     SetEulerFluxes(r_model_part, rho, mom, etot);
     const auto rhs = Assemble(r_model_part);
 
@@ -314,7 +315,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     const auto etot = [](array_1d<double, 3> const& X) { return 0.5*density*omega*omega*inner_prod(X,X) + p0/(gamma-1); };
 
     SetDofValues(r_model_part, rho, mom, etot);
-    SetViscosities(r_model_part, 1e-3, 2e-3, 3e-3);
+    SetViscosities(r_model_part, 1e-3, 2e-3, 0.0);
     SetEulerFluxes(r_model_part, rho, mom, etot);
     const auto rhs = Assemble(r_model_part);
 
