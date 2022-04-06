@@ -53,18 +53,25 @@ def AssignControllerToProcess(settings, controller, process):
         process.AddAfterOutputStep(controller)
     elif process_step == 'finalize':
         process.AddFinalize(controller)
+    elif process_step == "output":
+        # Processes assigned to the 'output' step must not have
+        # TemporalControllers because they must write the output
+        # on each request.
+        if not isinstance(controller, controllers.DefaultController):
+            raise TypeError("Processes assigned to 'output' must have a DefaultController that executes on each call. The specified controller instead is: {}".format(type(controller)))
+        process.AddOutput(controller)
     else:
         raise ValueError(
             '"process_step" has invalid value "' + process_step + '"')
 
 
-def Factory(settings, model):
+def Factory(settings, model: KratosMultiphysics.Model, process_base: type):
     '''Return an HDF5 IO process specified by json settings.'''
     if not settings.IsArray():
         raise ValueError('Expected settings as an array')
     if len(settings) == 0:
         settings.Append(KratosMultiphysics.Parameters())
-    process = processes.ControllerProcess()
+    process = processes.OrderedOutputOperationProcessFactory(process_base) if issubclass(process_base, KratosMultiphysics.OutputProcess) else processes.OrderedOperationProcessFactory(process_base)
     for i in settings:
         controller = CreateControllerWithFileIO(settings[i], model)
         AssignOperationsToController(

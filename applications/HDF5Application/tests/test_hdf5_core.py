@@ -715,7 +715,7 @@ class TestFactory(KratosUnittest.TestCase):
         model = KratosMultiphysics.Model()
         settings = KratosMultiphysics.Parameters()
         with self.assertRaisesRegex(ValueError, r'Expected settings as an array'):
-            core.Factory(settings, model)
+            core.Factory(settings, model, KratosMultiphysics.Process)
 
     def test_EmptyArraySettings(self):
         model = KratosMultiphysics.Model()
@@ -726,7 +726,7 @@ class TestFactory(KratosUnittest.TestCase):
             ''')
         settings = ParametersWrapper(settings)
         with self.assertRaisesRegex(RuntimeError, '"PLEASE_SPECIFY_MODEL_PART_NAME" was not found'):
-            core.Factory(settings['list_of_controllers'], model)
+            core.Factory(settings['list_of_controllers'], model, KratosMultiphysics.Process)
 
     def test_DefaultSettings(self):
         model = KratosMultiphysics.Model()
@@ -741,7 +741,7 @@ class TestFactory(KratosUnittest.TestCase):
             }
             ''')
         parent_settings = ParametersWrapper(parent_settings)
-        core.Factory(parent_settings['list_of_controllers'], model)
+        core.Factory(parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
         settings = parent_settings['list_of_controllers'][0]
         self.assertTrue(settings.Has('model_part_name'))
         self.assertTrue(settings.Has('process_step'))
@@ -768,7 +768,7 @@ class TestFactory(KratosUnittest.TestCase):
             ''')
         parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(
-            parent_settings['list_of_controllers'], model)
+            parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
         patcher1 = patch(
             'KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True)
         patcher2 = patch(
@@ -780,6 +780,22 @@ class TestFactory(KratosUnittest.TestCase):
         model_part_io.WriteModelPart.assert_called_once_with(model_part)
         patcher1.stop()
         patcher2.stop()
+
+
+    def test_TemporalController_OutputStep(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("test")
+        parameters = KratosMultiphysics.Parameters("""[{
+            "model_part_name" : "test",
+            "process_step" : "output",
+            "controller_settings" : {
+                "controller_type" : "temporal_controller"
+            },
+            "list_of_operations" : []
+        }]""")
+        with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True):
+            with self.assertRaises(TypeError):
+                process = core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
 
 
 class TestParametersWrapper(KratosUnittest.TestCase):
