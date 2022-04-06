@@ -37,9 +37,7 @@
             "gradient_mode"        : "semi_analytic",
             "step_size"            : 1e-4,
             "adapt_step_size"      : true,
-            "echo_level"           : 1,
-            "primal_data_transfer_with_python": true,
-            "primal_to_eigen_data_transfer_with_python": true
+            "echo_level"           : 1
         }
 
     },

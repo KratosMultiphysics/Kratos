@@ -23,7 +23,7 @@
         },
         "builder_and_solver_settings" : {
             "use_block_builder" : true
-    },
+        },
         "eigensolver_settings"     : {
             "solver_type"           : "eigen_eigensystem",
             "max_iteration"         : 1000,

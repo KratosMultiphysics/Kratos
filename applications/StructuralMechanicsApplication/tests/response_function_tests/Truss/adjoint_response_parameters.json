@@ -1,0 +1,19 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "adjoint_eigen_problem",
+        "model_part_name" : "truss_adjoint",
+        "domain_size"     : 3,
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0
+    },
+    "response_settings":{
+        "response_type"        : "adjoint_eigenfrequency",
+        "primal_settings"      : "primal_parameters.json",
+        "adjoint_settings"     : "adjoint_parameters.json",
+        "eigenvalue_settings"  : "eigenfrequency_parameters.json",
+        "primal_data_transfer_with_python": true,
+        "traced_eigenfrequencies"  : [1],
+        "weighting_method"       : "linear_scaling",
+        "weighting_factors"      : [1.0]
+    }
+}
