@@ -73,7 +73,7 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
 
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
         self.n_iteration_number = self.fluid_model_part.ProcessInfo[Kratos.NL_ITERATION_NUMBER]
-        self.relax_alpha = self.fluid_model_part.ProcessInfo[Kratos.RELAXATION_ALPHA]
+        self.relax_alpha = self.fluid_model_part.ProcessInfo[SDEM.RELAXATION_ALPHA]
         self.velocity_error_projected, self.pressure_error_projected, self.error_model_part, self.reynolds_number, self.porosity_mean = self._GetSolver().CalculateL2Error()
 
         self.projector_post_process.WriteData(self.error_model_part,
