@@ -12,12 +12,12 @@
 //
 //
 
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
 #define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
 
 /* System includes */
+
+/* External includes */
 
 /* Project includes */
 #include "solving_strategies/strategies/implicit_solving_strategy.h"
@@ -25,6 +25,8 @@
 #include "utilities/variable_utils.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "includes/ublas_interface.h"
+#include "includes/variables.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -551,8 +553,7 @@ private:
                         r_reaction = moment_residual[2];
                     }
                 };
-            }
-            else {
+            } else {
                 loop = loop_base;
             }
 

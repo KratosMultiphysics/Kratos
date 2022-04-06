@@ -327,8 +327,7 @@ public:
                         // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
                     }
                 };
-            }
-            else {
+            } else {
                 initializer = initializer_base;
             }
 
@@ -396,8 +395,7 @@ public:
                     updater_base(index);
                     this->UpdateRotationalDegreesOfFreedom(it_node_begin + index, rotppos, dim);
                 };
-            }
-            else {
+            } else {
                 updater = updater_base;
             }
 
@@ -616,8 +614,7 @@ public:
                         //current_rotation[j] = 0.0;
                     }
                 };
-            }
-            else {
+            } else {
                 initializer = initializer_base;
             }
 
