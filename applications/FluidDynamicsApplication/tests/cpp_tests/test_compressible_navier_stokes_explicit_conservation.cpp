@@ -311,7 +311,16 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic,
  *  - V = ω(-y, x)^T
  *  - λ = 0
  *  - p = ½ρω²r²+p0
- * the time derivatives should be zero.
+ * the time derivatives should be zero. Domain is equilateral triangle with area 1:
+ *              |
+ *              3
+ *             /|\
+ *            / | \
+ *     ------/--+--\-----------
+ *          /   |   \
+ *         1 ------- 2
+ *              |
+ * 
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRotation, FluidDynamicsApplicationFastSuite)
 {
@@ -320,7 +329,23 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     // Create the test geometry
     Model model;
     ModelPart& r_model_part = GenerateModel(model, "CompressibleNavierStokesExplicitNeumannCondition2D2N");
-    
+
+    // Moving nodes
+    constexpr double area = 1.0;
+    const double r = std::sqrt(1 / area); // Circumradius
+    constexpr double pi = 3.14159265359; // Is this defined anywhere in kratos?
+    const double apotheme = r*std::sin(pi / 6);
+    const double half_base = r*std::cos(pi / 6);
+
+    r_model_part.GetNode(1).X() = -half_base;
+    r_model_part.GetNode(1).Y() = -apotheme;
+
+    r_model_part.GetNode(2).X() = half_base;
+    r_model_part.GetNode(2).Y() = -apotheme;
+
+    r_model_part.GetNode(3).X() = 0.0;
+    r_model_part.GetNode(3).Y() = r;
+
     constexpr double density = 1.2;
     constexpr double gamma = 1.4;
     constexpr double omega = 3;   // Angular frequency, radians per second
@@ -331,28 +356,13 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     const auto etot = [](array_1d<double, 3> const& X) { return gamma/(gamma - 1) * density*omega*omega*inner_prod(X,X)/2 + p0/(gamma - 1); };
 
     SetDofValues(r_model_part, rho, mom, etot);
-    SetViscosities(r_model_part, 1e-3, 2e-3, 0.0);
+    SetViscosities(r_model_part, 0.0, 0.0, 0.0);
     SetEulerFluxes(r_model_part, rho, mom, etot);
     const auto rhs = Assemble(r_model_part, true);
 
-    /* Due to the fact that magnitudes are not uniform along the edges, the integration
-     * will work correctly but it will be wrongly distributed to the nodes.
-     *
-     * This is deemed acceptable, because it can be solved by having a fine mesh.
-     * To test that the integration is indeed correct, we add the fluxes together.
-     */
-
-    std::vector<double> rhs_totals(4, 0.0);
-    for(std::size_t i=0; i < rhs.size(); i += 4)
-    {
-        rhs_totals[0] += rhs[i];
-        rhs_totals[1] += rhs[i + 1];
-        rhs_totals[2] += rhs[i + 2];
-        rhs_totals[3] += rhs[i + 3];
-    }
-
-    const std::vector<double> reference(4, 0.0);
-    KRATOS_CHECK_VECTOR_NEAR(rhs_totals, reference, 1e-4);
+    // Check obtained RHS values
+    const std::vector<double> reference(12, 0.0);
+    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 
