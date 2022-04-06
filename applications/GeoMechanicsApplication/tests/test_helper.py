@@ -42,10 +42,10 @@ def run_stages(project_path,n_stages):
     :param n_stages:
     :return:
     """
-
+    currentWorking = os.getcwd()
     stages = get_stages(project_path,n_stages)
     [stage.Run() for stage in stages]
-
+    os.chdir(currentWorking)
     return stages
 
 def get_stages(project_path,n_stages):
@@ -62,7 +62,6 @@ def get_stages(project_path,n_stages):
 
     # set stage parameters
     parameters_stages = [None] * n_stages
-    currentWorking = os.getcwd()
     os.chdir(project_path)
     for idx, parameter_file_name in enumerate(parameter_file_names):
         with open(parameter_file_name, 'r') as parameter_file:
@@ -70,7 +69,6 @@ def get_stages(project_path,n_stages):
 
     model = Kratos.Model()
     stages = [analysis.GeoMechanicsAnalysis(model, stage_parameters) for stage_parameters in parameters_stages]
-    os.chdir(currentWorking)
     return stages
 
 
