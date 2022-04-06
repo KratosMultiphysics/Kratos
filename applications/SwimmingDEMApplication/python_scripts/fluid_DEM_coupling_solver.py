@@ -74,7 +74,7 @@ class FluidDEMSolver(FluidSolver):
         time_scheme = self._GetScheme()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
-        return KratosMultiphysics.RelaxedResidualBasedNewtonRaphsonStrategy(
+        return KratosSDEM.RelaxedResidualBasedNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
             convergence_criterion,
