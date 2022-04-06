@@ -201,7 +201,7 @@ protected:
     /**
      * @brief It computes the current volume of the element
      */
-    double GetCurrentVolume() const;
+    // double GetCurrentVolume() const;
 
     ///@}
     ///@name Protected Operations
@@ -224,7 +224,11 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mInitialVolume = 0.0;
+    // double mInitialVolume = 0.0;
+    double mPressure = 0.0;
+    Vector mKup;
+    double mKpp = 0.0;
+    double mFp = 0.0;
 
     ///@}
     ///@name Private Operators
