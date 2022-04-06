@@ -1,6 +1,10 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
+
+if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
+    import KratosMultiphysics.LinearSolversApplication as KratosLinearSolvers
 
 class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
 
@@ -34,7 +38,7 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
             pts_coord[i,1] = node.Y
             i += 1
 
-        # Calculate the MLS shape functions in the square midpoint
+        # Calculate the RBF shape functions in the square midpoint
         midpoint = KratosMultiphysics.Vector(3)
         midpoint[0] = 0.5
         midpoint[1] = 0.5
@@ -78,7 +82,39 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
             self.assertAlmostEqual(N_container[0], -0.000584922796671384, 8)
             self.assertAlmostEqual(N_container[9], -0.04990247800841474, 8)
             self.assertAlmostEqual(N_container[15], 0.332227735376926, 8)
-        
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+    def test_radial_basis_functions_utility_ill_conditioned(self):
+        # Create the sample points array
+        # Note that we deliberately duplicate one point to make the case ill-conditioned
+        cloud_points_array = [
+            [1.0,0.0,0.0],
+            [0.0,1.0,0.0],
+            [-1.0,0.0,0.0],
+            [-1.0,0.0,0.0]]
+        cloud_coords = KratosMultiphysics.Matrix(len(cloud_points_array), 3)
+        for i in range(len(cloud_points_array)):
+            for j in range(3):
+                cloud_coords[i, j] = cloud_points_array[i][j]
+
+        # Calculate the RBF shape functions in the coordinates origin
+        # Note that we use the QR with pivoting from Eigen in order to solve the ill-conditioned system
+        N_container = KratosMultiphysics.Vector()
+        point_coords = KratosMultiphysics.Vector(3, 0.0)
+        eigen_col_piv_qr = KratosLinearSolvers.EigenDenseColumnPivotingHouseholderQRDecomposition()
+        KratosMultiphysics.RadialBasisFunctionsUtility.CalculateShapeFunctions(
+            cloud_coords,
+            point_coords,
+            N_container,
+            eigen_col_piv_qr)
+
+        N_expected = KratosMultiphysics.Vector(4)
+        N_expected[0] = 0.35228579471383387
+        N_expected[1] = 0.29542841057233227
+        N_expected[2] = 0.3522857947138338
+        N_expected[3] = 0.0
+        self.assertVectorAlmostEqual(N_container, N_expected, 8)
+
     def PostProcess(self, output_name):
         gid_output = GiDOutputProcess(
             self.main_model_part,
@@ -103,4 +139,3 @@ class TestRadialBasisFunctionsUtility(KratosUnittest.TestCase):
 
 if __name__ == '__main__':
     KratosUnittest.main()
-

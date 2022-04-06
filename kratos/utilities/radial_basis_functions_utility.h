@@ -21,6 +21,8 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/define.h"
+#include "spaces/ublas_space.h"
+#include "utilities/dense_householder_qr_decomposition.h"
 
 namespace Kratos
 {
@@ -34,6 +36,30 @@ class KRATOS_API(KRATOS_CORE) RadialBasisFunctionsUtility
 {
 
 public:
+
+    ///@name Type Definitions
+    ///@{
+
+    /// Dense space definition for the QR decomposition using in the solve
+    using DenseSpace = UblasSpace<double, Matrix, Vector>;
+
+    /// QR decomposition pointer definition
+    using DenseQRPointerType = typename DenseQRDecomposition<DenseSpace>::Pointer;
+
+    /// Kratos core QR decomposition type
+    using KratosCoreQRType = DenseHouseholderQRDecomposition<DenseSpace>;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     /**
      * @brief Calculate the RBF value
@@ -54,25 +80,55 @@ public:
      * @param rX Coordinates where the shape functions are to be computed
      * @param h RBF shape parameter
      * @param rN Shape functions container
-     * @param Y Function to interpolate (if values of RHS are known apriori)
      */
     static void CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
-        Vector& rN);
+        Vector& rN,
+        DenseQRPointerType pDenseQR = nullptr);
 
+    /**
+     * @brief Calculates the RBF shape function values
+     * This method calculates the RBF shape function values in one point using as
+     * support the given cloud of points.
+     * @param rPoints Matrix containing the coordinates of the support cloud of points
+     * @param rX Coordinates where the shape functions are to be computed
+     * @param rN Shape functions container
+     */
     static void CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
-        Vector& rN);
-    
+        Vector& rN,
+        DenseQRPointerType pDenseQR = nullptr);
+
+    /**
+     * @brief Calculates the RBF shape function values
+     * This method calculates the RBF shape function values in one point using as
+     * support the given cloud of points.
+     * @param rPoints Matrix containing the coordinates of the support cloud of points
+     * @param rX Coordinates where the shape functions are to be computed
+     * @param h RBF shape parameter
+     * @param rN Shape functions container
+     * @param Y Function to interpolate (if values of RHS are known apriori)
+     */
     static double CalculateShapeFunctionsAndInterpolation(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN,
-        Vector& Y);
+        Vector& rY);
+
+    ///@}
+private:
+    ///@name Unaccessible methods
+    ///@{
+
+    RadialBasisFunctionsUtility(){};
+
+    static double CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints);
+
+    ///@}
 };
 
 }  // namespace Kratos.

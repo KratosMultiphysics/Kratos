@@ -277,11 +277,18 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
         .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
         ;
-    
+
     // Radial Basis FUnctions utility
+    using DenseQRPointerType = typename RadialBasisFunctionsUtility::DenseQRPointerType;
     py::class_<RadialBasisFunctionsUtility>(m,"RadialBasisFunctionsUtility")
-        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints,const array_1d<double,3>& rX,const double h,Vector& rN){ return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
-        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints,const array_1d<double,3>& rX,Vector& rN){ return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN){
+            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, Vector& rN, DenseQRPointerType pDenseQR){
+            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, rN, pDenseQR);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
+            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN);})
+        .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
+            return RadialBasisFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
 }
 

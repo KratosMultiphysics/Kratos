@@ -25,7 +25,7 @@ namespace Kratos
     double RadialBasisFunctionsUtility::EvaluateRBF(
         const double x,
         const double h)
-    {   
+    {
         // Evaluate Inverse multiquadric
         const double q = x*h;
         return 1/std::sqrt(1+std::pow(q,2));
@@ -39,7 +39,8 @@ namespace Kratos
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
         const double h,
-        Vector& rN)
+        Vector& rN,
+        DenseQRPointerType pDenseQR)
     {
         KRATOS_TRY;
 
@@ -66,10 +67,17 @@ namespace Kratos
         }
 
         // Obtain the RBF shape functions (N)
-        MathUtils<double>::Solve(A, rN, Phi); // This can be changed to the QR
+        // Note that we do a QR solve if a QR decomposition pointer is provided
+        // Otherwise we solve the system with standard LU factorization
+        if (pDenseQR) {
+            pDenseQR->Compute(A);
+            pDenseQR->Solve(Phi, rN);
+        } else {
+            MathUtils<double>::Solve(A, rN, Phi);
+        }
 
         // Partition of unity
-        noalias(rN) =  rN/sum(rN);
+        noalias(rN) = rN/sum(rN);
 
         KRATOS_CATCH("");
     }
@@ -77,57 +85,13 @@ namespace Kratos
     void RadialBasisFunctionsUtility::CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
-        Vector& rN)
+        Vector& rN,
+        DenseQRPointerType pDenseQR)
     {
         KRATOS_TRY;
 
-        // Set RBF shape functions containers
-        const std::size_t n_points = rPoints.size1();
-        if (rN.size() != n_points) {
-            rN.resize(n_points, false);
-        }
-
-        // Initialize the RBF interpolation matrix and RBF interpolated vector
-        Matrix A = ZeroMatrix(n_points,n_points);
-        Vector Phi = ZeroVector(n_points);
-
-        // Find shape parameter http://www.math.iit.edu/~fass/Dolomites.pdf [Hardy]
-        // TODO: Build a matrix with distance norm values to recycle for RBFs evaluation.
-        // Make a function for this 
-        double d = 0; // Total distance of nearest x_i neighbors 
-        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            double d_nearest_neighbor = std::numeric_limits<double>::max(); // Initialize distance to nearest x_i neighbor 
-            for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
-                if (i_pt!=j_pt){ // Avoid measuring distance between same points
-                    const double norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt)); 
-                    if (norm_xij < d_nearest_neighbor){
-                        d_nearest_neighbor = norm_xij;
-                    }
-                }
-                
-            }
-            d += d_nearest_neighbor;
-        }
-        d /= n_points;
-        const double h = 1/(0.815*d);// Shape parameter (Only for inverted multiquadratic)
-        
-
-        // Build the RBF interpolation matrix and RBF interpolated vector
-        // TODO: Make a function for this, get the norm values from the matrix created for finding the shape parameter
-        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
-            for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
-                const double norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
-                A(i_pt,j_pt) = EvaluateRBF(norm_xij,h);
-            }
-            const double norm_X =  norm_2(rX-row(rPoints,i_pt));
-            Phi[i_pt] = EvaluateRBF(norm_X,h);
-        }
-
-        // Obtain the RBF shape functions (N)
-        MathUtils<double>::Solve(A, rN, Phi); // This can be changed to the QR
-
-        // Partition of unity
-        noalias(rN) =  rN/sum(rN);
+        const double h = CalculateInverseMultiquadricShapeParameter(rPoints);
+        CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);
 
         KRATOS_CATCH("");
     }
@@ -137,7 +101,7 @@ namespace Kratos
         const array_1d<double,3>& rX,
         const double h,
         Vector& rN,
-        Vector& Y)
+        Vector& rY)
     {
         double interpolation = 0;
         KRATOS_TRY;
@@ -163,7 +127,9 @@ namespace Kratos
         }
 
         // Obtain the RBF shape functions (N)
-        MathUtils<double>::Solve(A, rN, Y); // This can be changed to the QR
+        DenseHouseholderQRDecomposition<DenseSpace> qr_decomposition;
+        qr_decomposition.Compute(A);
+        qr_decomposition.Solve(rY, rN);
 
         // Interpolate solution
         for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
@@ -175,6 +141,29 @@ namespace Kratos
         KRATOS_CATCH("");
 
         return interpolation;
+    }
+
+    double RadialBasisFunctionsUtility::CalculateInverseMultiquadricShapeParameter(const Matrix& rPoints)
+    {
+        // Find shape parameter http://www.math.iit.edu/~fass/Dolomites.pdf [Hardy]
+        double d = 0; // Total distance of nearest x_i neighbors
+        const std::size_t n_points = rPoints.size1();
+        for (std::size_t i_pt = 0; i_pt < n_points; ++i_pt) {
+            double d_nearest_neighbor = std::numeric_limits<double>::max(); // Initialize distance to nearest x_i neighbor
+            for (std::size_t j_pt = 0; j_pt < n_points; ++j_pt) {
+                if (i_pt!=j_pt){ // Avoid measuring distance between same points
+                    const double norm_xij = norm_2(row(rPoints,i_pt)-row(rPoints,j_pt));
+                    if (norm_xij < d_nearest_neighbor){
+                        d_nearest_neighbor = norm_xij;
+                    }
+                }
+
+            }
+            d += d_nearest_neighbor;
+        }
+        d /= n_points;
+        KRATOS_ERROR_IF(d < 1.0e-12) << "Nearest neighbours distance is close to zero. Check that the cloud points are not overlapping." << std::endl;
+        return 1/(0.815*d);// Shape parameter (Only for inverted multiquadratic)
     }
 
 }  // namespace Kratos.
