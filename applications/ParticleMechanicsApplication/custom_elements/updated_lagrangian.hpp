@@ -242,8 +242,8 @@ protected:
         Matrix TensorIdentityMatrix;
 
         //Variables for OSGS variable
-        Vector ResidualU;
-        double ResidualP;
+        Vector GPResidualU;
+        double GPResidualP;
         
         //Modulus
         double ShearModulus;

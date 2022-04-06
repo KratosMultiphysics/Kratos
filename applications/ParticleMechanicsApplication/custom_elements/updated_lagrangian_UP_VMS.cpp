@@ -578,7 +578,7 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
     if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION)==3)
     {
      Vector volume_force = mMP.volume_acceleration * mMP.mass;   
-     ComputeResidual(rVariables,volume_force,rVariables.ResidualU,rVariables.ResidualP);
+     ComputeResidual(rVariables,volume_force,rVariables.GPResidualU,rVariables.GPResidualP);
     }
 
     KRATOS_CATCH("")
