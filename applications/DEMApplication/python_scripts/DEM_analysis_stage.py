@@ -52,15 +52,12 @@ class DEMAnalysisStage(AnalysisStage):
         self.project_parameters["problem_data"]["end_time"].SetDouble(final_time)
         self.project_parameters["problem_data"]["problem_name"].SetString(problem_name)
 
-    @classmethod
     def GetDefaultInputParameters(self):
         return KratosMultiphysics.DEMApplication.dem_default_input_parameters.GetDefaultInputParameters()
 
-    @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid, IO.SKIP_TIMER)
 
-    @classmethod
     def GetMainPath(self):
         return os.getcwd()
 
@@ -160,11 +157,9 @@ class DEMAnalysisStage(AnalysisStage):
     def SetProcedures(self):
         return DEM_procedures.Procedures(self.DEM_parameters)
 
-    @classmethod
     def SetDemFemSearch(self):
         return DEM_FEM_Search()
 
-    @classmethod
     def GetParticleHistoryWatcher(self):
         return None
 
@@ -542,7 +537,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.UpdateIsTimeToPrintInOneModelPart(self.dem_inlet_model_part, is_time_to_print)
         self.UpdateIsTimeToPrintInOneModelPart(self.rigid_face_model_part, is_time_to_print)
 
-    @classmethod
     def UpdateIsTimeToPrintInOneModelPart(self, model_part, is_time_to_print):
         model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
