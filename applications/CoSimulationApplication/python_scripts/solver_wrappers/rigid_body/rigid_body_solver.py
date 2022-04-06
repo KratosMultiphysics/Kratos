@@ -43,8 +43,8 @@ class RigidBodySolver(object):
 
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
 
         self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
         self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
@@ -74,6 +74,7 @@ class RigidBodySolver(object):
         
         # Create all the processes stated in the project parameters
         self._list_of_processes = self._CreateListOfProcesses(parameters)
+        self._list_of_output_processes = self._CreateListOfOutputProcesses(parameters)
 
         # Safe all the filled data in their respective class variables
         self._InitializeDofsVariables(dof_params)
@@ -92,6 +93,7 @@ class RigidBodySolver(object):
         # TODO: No need to convert it to a json to manipulate it
         parameters_json = json.loads(parameters.WriteJsonString())
         list_of_processes = []
+        # TODO: Is this usually a mandatory input?
         if "processes" in parameters_json:
             for process_type in ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]:
                 if process_type in parameters_json["processes"]:
@@ -103,6 +105,24 @@ class RigidBodySolver(object):
                         list_of_processes.append(process_module.Factory(process_settings, self.model))
         
         return list_of_processes
+
+
+    def _CreateListOfOutputProcesses(self, parameters):
+
+        # Create all the processes stated in the project parameters
+        # TODO: No need to convert it to a json to manipulate it
+        parameters_json = json.loads(parameters.WriteJsonString())
+        list_of_output_processes = []
+        # TODO: Is this usually a mandatory input?
+        if "output_processes" in parameters_json:
+            for process in parameters_json["output_processes"]:
+                python_module = process["python_module"]
+                kratos_module = process["kratos_module"]
+                process_module = import_module(kratos_module + "." + python_module)
+                process_settings = KM.Parameters(json.dumps(process))
+                list_of_output_processes.append(process_module.Factory(process_settings, self.model))
+        
+        return list_of_output_processes
 
 
     def _InitializeSolutionVariables(self, sol_params):
@@ -223,8 +243,8 @@ class RigidBodySolver(object):
     def InitializeOutput(self):
 
         # Carry out this task only in the first rank (for parallel computing)
-        data_comm = KM.DataCommunicator.GetDefault()
         # TODO: This might not be necessary anymore, since it doesn't run in MPI
+        data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
 
             # Create the directory where the results will be stored
@@ -266,13 +286,25 @@ class RigidBodySolver(object):
 
 
     def OutputSolutionStep(self):
+        """This function writes output files after the solution of a step, exactly as in AnalysisStage()
+        """
+        execute_was_called = False
+        for output_process in self._list_of_output_processes:
+            if output_process.IsOutputStep():
+                if not execute_was_called:
+                    for process in self._list_of_processes:
+                        process.ExecuteBeforeOutputStep()
+                    execute_was_called = True
 
-        for process in self._list_of_processes:
-            process.ExecuteBeforeOutputStep()
+                output_process.PrintOutput()
+
+        if execute_was_called:
+            for process in self._list_of_processes:
+                process.ExecuteAfterOutputStep()
 
         # Carry out this task only in the first rank (for parallel computing)
-        data_comm = KM.DataCommunicator.GetDefault()
         # TODO: This might not be necessary anymore, since it doesn't run in MPI
+        data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
 
             # Only write if the output is enabled
@@ -300,9 +332,6 @@ class RigidBodySolver(object):
                                                     str(v[index] - v_root[index]) + " " +
                                                     str(a[index] - a_root[index]) + " " +
                                                     str(reaction[index]) + "\n")
-
-        for process in self._list_of_processes:
-            process.ExecuteAfterOutputStep()
 
 
     def AdvanceInTime(self, current_time):
