@@ -13,15 +13,17 @@
 
 // System includes
 #include <iomanip>
+#include <sstream>
 
 // External includes
 
 // Project includes
-#include "containers/array_1d.h"
-#include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
-#include "containers/model.h"
+#include "includes/variables.h"
+#include "testing/testing.h"
+#include "input_output/logger.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
@@ -86,8 +88,112 @@ ModelPart& GenerateModel(Model& rModel, const std::string& rConditionName)
     return model_part;
 }
 
-std::vector<double> AssembleReactionVector(ModelPart const& rModelPart)
+/**
+ * Debugging tool that prints a table with the value of all DOFs in each node
+ */
+void PrintReactions(ModelPart const& rModelPart)
 {
+    std::stringstream ss;
+    ss << "\nNode #    DENSITY           MOMENTUM_X       MOMENTUM_Y    TOTAL_ENERGY\n";
+
+    for(auto const& r_node: rModelPart.Nodes())
+    {
+        ss << r_node.Id() << "    "
+           << std::setfill(' ') << std::right << std::setw(14)
+           << r_node.FastGetSolutionStepValue(REACTION_DENSITY) << "   "
+           << std::setfill(' ') << std::right << std::setw(14)
+           << r_node.FastGetSolutionStepValue(REACTION_X) << "   "
+           << std::setfill(' ') << std::right << std::setw(14)
+           << r_node.FastGetSolutionStepValue(REACTION_Y) << "   "
+           << std::setfill(' ') << std::right << std::setw(14)
+           << r_node.FastGetSolutionStepValue(REACTION_ENERGY) << "   \n";
+    }
+    ss << std::endl;
+    Logger("") << ss.str();
+}
+
+void SetDofValues(
+    ModelPart& rModelPart,
+    double(*Rho)(array_1d<double, 3> const&),
+    array_1d<double, 3>(*Momentum)(array_1d<double, 3> const&),
+    double(*TotalEnergy)(array_1d<double, 3> const&))
+{
+    for (auto &r_node : rModelPart.Nodes())
+    {
+        const double rho = Rho(r_node);
+        const array_1d<double, 3> momentum = Momentum(r_node);
+        const double etot = TotalEnergy(r_node);
+
+        // Set DOF values
+        r_node.FastGetSolutionStepValue(DENSITY) = rho;
+        r_node.FastGetSolutionStepValue(MOMENTUM) = momentum;
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = etot;
+
+        r_node.FastGetSolutionStepValue(DENSITY, 1) = rho;
+        r_node.FastGetSolutionStepValue(MOMENTUM, 1) = momentum;
+        r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = etot;
+    }
+}
+
+void SetViscosities(
+    ModelPart& rModelPart,
+    const double DynamicViscosity, 
+    const double BulkViscosity, 
+    const double Conductivity)
+{
+    for (auto &r_node : rModelPart.Nodes())
+    {
+        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, DynamicViscosity);
+        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, BulkViscosity);
+        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, Conductivity);
+    }
+}
+
+void SetEulerFluxes(
+    ModelPart& rModelPart,
+    double(*Rho)(array_1d<double, 3> const&),
+    array_1d<double, 3>(*Momentum)(array_1d<double, 3> const&),
+    double(*TotalEnergy)(array_1d<double, 3> const&))
+{
+    for (auto& r_condition: rModelPart.Conditions())
+    {
+        const array_1d<double, 3> X = r_condition.GetGeometry().Center();
+        const array_1d<double, 3> n = r_condition.GetGeometry().UnitNormal(0);
+
+        const double rho = Rho(X);
+        const array_1d<double, 3> V = Momentum(X) / rho;
+        const double etot = TotalEnergy(X);
+
+        constexpr double gamma = 1.4;
+        const double p = (gamma - 1) * (etot - rho * inner_prod(V,V)/2);
+        const double Vn = inner_prod(V, n);
+
+        r_condition.SetValue(DENSITY_FLUX, rho * Vn);
+        r_condition.SetValue(MOMENTUM_FLUX, rho * V * Vn + p * n);
+        r_condition.SetValue(TOTAL_ENERGY_FLUX, (etot + p)*Vn);
+    }
+}
+
+std::vector<double> Assemble(ModelPart& rModelPart, const bool debug_prints = false)
+{
+    const auto &r_process_info = rModelPart.GetProcessInfo();
+
+    void(*print_reactions)(const ModelPart&) = [](const ModelPart&) { };
+    if(debug_prints) {
+        print_reactions = [](const ModelPart& r_model_part) { PrintReactions(r_model_part); };
+    }
+
+    // Computing reactions
+    for(auto& r_elem: rModelPart.Elements())   { r_elem.Check(r_process_info); }
+    for(auto& r_cond: rModelPart.Conditions()) { r_cond.Check(r_process_info); }
+
+    for(auto& r_elem: rModelPart.Elements())   { r_elem.Initialize(r_process_info); }
+    for(auto& r_cond: rModelPart.Conditions()) { r_cond.Initialize(r_process_info); }
+
+    for(auto& r_cond: rModelPart.Conditions()) { r_cond.AddExplicitContribution(r_process_info); print_reactions(rModelPart); }
+    for(auto& r_elem: rModelPart.Elements())   { r_elem.AddExplicitContribution(r_process_info); print_reactions(rModelPart); }
+    
+    // Assembling DOF vector
     std::vector<double> values;
     std::size_t ndofs = rModelPart.NumberOfNodes() == 0 ? 0 : rModelPart.NumberOfNodes() * rModelPart.NodesBegin()->GetDofs().size();
     values.reserve(ndofs);
@@ -103,28 +209,6 @@ std::vector<double> AssembleReactionVector(ModelPart const& rModelPart)
     return values;
 }
 
-/**
- * Debugging tool that prints a table with the value of all DOFs in each node
- */
-void PrintReactions(ModelPart const& rModelPart)
-{
-    std::cout << "\nNode #    DENSITY           MOMENTUM_X       MOMENTUM_Y    TOTAL_ENERGY\n";
-
-    for(auto const& r_node: rModelPart.Nodes())
-    {
-        std::cout << r_node.Id() << "    "
-                  << std::setfill(' ') << std::right << std::setw(14)
-                  << r_node.FastGetSolutionStepValue(REACTION_DENSITY) << "   "
-                  << std::setfill(' ') << std::right << std::setw(14)
-                  << r_node.FastGetSolutionStepValue(REACTION_X) << "   "
-                  << std::setfill(' ') << std::right << std::setw(14)
-                  << r_node.FastGetSolutionStepValue(REACTION_Y) << "   "
-                  << std::setfill(' ') << std::right << std::setw(14)
-                  << r_node.FastGetSolutionStepValue(REACTION_ENERGY) << "   \n";
-    }
-    std::cout << std::endl;
-}
-
 }
 
 /**
@@ -138,67 +222,30 @@ void PrintReactions(ModelPart const& rModelPart)
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTranslation, FluidDynamicsApplicationFastSuite)
 {
+    using namespace CompressibleNSConservation;
+
     // Create the test geometry
     Model model;
-    ModelPart& r_model_part = CompressibleNSConservation::GenerateModel(model, "CompressibleNavierStokesExplicitCondition2D2N");
+    ModelPart& r_model_part = GenerateModel(model, "CompressibleNavierStokesExplicitNeumannCondition2D2N");
 
     // Define and set the nodal values
     constexpr double gamma = 1.4;
     constexpr double p = 101325;
+    constexpr double u = 5;
+    constexpr double density = 1.2;
 
-    const array_1d<double, 3> V {5.0, 0.0, 0.0};
-    
-    constexpr double rho = 1.2;
-    const array_1d<double, 3> momentum = rho * V;
-    const double etot = 0.5*rho*inner_prod(V, V) + p / (gamma - 1);
+    const auto rho  = [](array_1d<double, 3> const&) { return density; };
+    const auto mom  = [](array_1d<double, 3> const&) { return array_1d<double,3>{density * u, 0, 0}; };
+    const auto etot = [](array_1d<double, 3> const&) { return 0.5*density*u*u + p / (gamma - 1); };
 
-    for (auto &r_node : r_model_part.Nodes())
-    {
-        // Set DOF values
-        r_node.FastGetSolutionStepValue(DENSITY) = rho;
-        r_node.FastGetSolutionStepValue(MOMENTUM) = momentum;
-        r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = etot;
-
-        r_node.FastGetSolutionStepValue(DENSITY, 1) = rho;
-        r_node.FastGetSolutionStepValue(MOMENTUM, 1) = momentum;
-        r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = etot;
-
-        // Set shock capturing values
-        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, r_node.Id() * 1e-3);
-        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, r_node.Id() * 2e-3);
-        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, r_node.Id() * 3e-3);
-    }
-
-    for (auto& r_condition: r_model_part.Conditions())
-    {
-        const array_1d<double, 3> C = r_condition.GetGeometry().Center();
-        const array_1d<double, 3> n = r_condition.GetGeometry().UnitNormal(0);
-
-        const double Vn = inner_prod(V, n);
-
-        r_condition.SetValue(DENSITY_FLUX, rho * Vn);
-        r_condition.SetValue(MOMENTUM_FLUX, rho * V * Vn + p * n);
-        r_condition.SetValue(TOTAL_ENERGY_FLUX, (etot + p)*Vn);
-    }
-
-    // Compute explicit RHS
-    const auto &r_process_info = r_model_part.GetProcessInfo();
-
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.Check(r_process_info); }
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Check(r_process_info); }
-
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.Initialize(r_process_info); }
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Initialize(r_process_info); }
-
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); }
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }
+    SetDofValues(r_model_part, rho, mom, etot);
+    SetViscosities(r_model_part, 1e-3, 2e-3, 3e-3);
+    SetEulerFluxes(r_model_part, rho, mom, etot);
+    const auto rhs = Assemble(r_model_part);
 
     // Check obtained RHS values
-    const std::vector<double> RHS_ref(12, 0.0);
-    std::vector<double> RHS_expl = CompressibleNSConservation::AssembleReactionVector(r_model_part);
-
-
-    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+    const std::vector<double> reference(12, 0.0);
+    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 /**
@@ -213,64 +260,27 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTr
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic, FluidDynamicsApplicationFastSuite)
 {
+    using namespace CompressibleNSConservation;
+
     // Create the test geometry
     Model model;
-    ModelPart& r_model_part = CompressibleNSConservation::GenerateModel(model, "CompressibleNavierStokesExplicitCondition2D2N");
+    ModelPart& r_model_part = GenerateModel(model, "CompressibleNavierStokesExplicitNeumannCondition2D2N");
 
     constexpr double p = 101325;
     constexpr double gamma = 1.4;
 
-    const auto density = [](array_1d<double, 3> const& X) { return 1.2 + 0.2*X[0] + 0.1*X[1]; };
-    constexpr double etot = p / (gamma - 1);    
+    const auto rho  = [](array_1d<double, 3> const& X) { return 1.2 + 0.2*X[0] + 0.1*X[1]; };
+    const auto mom  = [](array_1d<double, 3> const&)   { return array_1d<double,3>({0, 0, 0}); };
+    const auto etot = [](array_1d<double, 3> const& X) { return p / (gamma - 1); };
 
-    // Define and set the nodal values
-    for (auto &r_node : r_model_part.Nodes())
-    {
-        const double rho = density(r_node);
-
-        // Set DOF values
-        r_node.FastGetSolutionStepValue(DENSITY) = rho;
-        r_node.FastGetSolutionStepValue(MOMENTUM) = ZeroVector(3);
-        r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = etot;
-
-        r_node.FastGetSolutionStepValue(DENSITY, 1) = rho;
-        r_node.FastGetSolutionStepValue(MOMENTUM, 1) = ZeroVector(3);
-        r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = etot;
-
-        // Set shock capturing values
-        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
-        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 1.0);
-        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 1.0);
-    }
-
-    for (auto& r_condition: r_model_part.Conditions())
-    {
-        const array_1d<double, 3> n = r_condition.GetGeometry().UnitNormal(0);
-
-        r_condition.SetValue(DENSITY_FLUX, 0.0);
-        r_condition.SetValue(MOMENTUM_FLUX, p * n);
-        r_condition.SetValue(TOTAL_ENERGY_FLUX, 0.0);
-    }
-
-    // Compute explicit RHS
-    const auto &r_process_info = r_model_part.GetProcessInfo();
-
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.Check(r_process_info); }
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Check(r_process_info); }
-
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.Initialize(r_process_info); }
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Initialize(r_process_info); }
-
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); CompressibleNSConservation::PrintReactions(r_model_part); }
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); CompressibleNSConservation::PrintReactions(r_model_part); }
-
-    //CompressibleNSConservation::PrintReactions(r_model_part);
+    SetDofValues(r_model_part, rho, mom, etot);
+    SetViscosities(r_model_part, 1e-3, 2e-3, 3e-3);
+    SetEulerFluxes(r_model_part, rho, mom, etot);
+    const auto rhs = Assemble(r_model_part);
 
     // Check obtained RHS values
-    const std::vector<double> RHS_ref(12, 0.0);
-    std::vector<double> RHS_expl = CompressibleNSConservation::AssembleReactionVector(r_model_part);
-
-    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+    const std::vector<double> reference(12, 0.0);
+    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 
@@ -288,76 +298,29 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic,
  */
 KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRotation, FluidDynamicsApplicationFastSuite)
 {
+    using namespace CompressibleNSConservation;
+
     // Create the test geometry
     Model model;
-    ModelPart& r_model_part = CompressibleNSConservation::GenerateModel(model, "CompressibleNavierStokesExplicitCondition2D2N");
+    ModelPart& r_model_part = GenerateModel(model, "CompressibleNavierStokesExplicitNeumannCondition2D2N");
     
-    constexpr double rho = 1.2;
+    constexpr double density = 1.2;
     constexpr double gamma = 1.4;
     constexpr double omega = 3;   // Angular frequency, radians per second
     constexpr double p0 = 101325; // Pressure at center of rotation, Pa
 
-    const auto velocity = [](array_1d<double, 3> const& X) { return array_1d<double, 3>{-X[1], X[0], 0.0}; };
-    const auto pressure = [](array_1d<double, 3> const& X) { return 0.5*rho*omega*omega*inner_prod(X,X) + p0; };
-    const auto total_energy = [](array_1d<double, 3> const& V, const double p) { return 0.5*rho*inner_prod(V,V) + p/(gamma-1); };
+    const auto rho  = [](array_1d<double, 3> const& X) { return density; };
+    const auto mom  = [](array_1d<double, 3> const& X) { return array_1d<double, 3>{- density*omega*X[1], density*omega*X[0], 0.0}; };
+    const auto etot = [](array_1d<double, 3> const& X) { return 0.5*density*omega*omega*inner_prod(X,X) + p0/(gamma-1); };
 
-    // Define and set the nodal values
-    for (auto &r_node : r_model_part.Nodes())
-    {
-        const array_1d<double, 3> V = velocity(r_node);
-        const double p = pressure(r_node);
-        const double etot = total_energy(V, p);
-
-        // Set DOF values
-        r_node.FastGetSolutionStepValue(DENSITY) = rho;
-        r_node.FastGetSolutionStepValue(MOMENTUM) = rho * V;
-        r_node.FastGetSolutionStepValue(TOTAL_ENERGY) = etot;
-
-        r_node.FastGetSolutionStepValue(DENSITY, 1) = rho;
-        r_node.FastGetSolutionStepValue(MOMENTUM, 1) = rho * V;
-        r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1) = etot;
-
-        // Set shock capturing values
-        r_node.SetValue(ARTIFICIAL_CONDUCTIVITY, 0.0);
-        r_node.SetValue(ARTIFICIAL_BULK_VISCOSITY, 1.0);
-        r_node.SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY, 1.0);
-    }
-
-    for (auto& r_condition: r_model_part.Conditions())
-    {
-        const array_1d<double, 3> C = r_condition.GetGeometry().Center();
-        const array_1d<double, 3> n = r_condition.GetGeometry().UnitNormal(0);
-
-        const array_1d<double, 3> V = velocity(C);
-        const double p = pressure(C);
-        const double etot = total_energy(V, p);
-
-        const double Vn = inner_prod(V, n);
-
-        r_condition.SetValue(DENSITY_FLUX, rho * Vn);
-        r_condition.SetValue(MOMENTUM_FLUX, rho * V * Vn + p * n);
-        r_condition.SetValue(TOTAL_ENERGY_FLUX, (etot + p)*Vn);
-    }
-
-    // Compute explicit RHS
-    const auto &r_process_info = r_model_part.GetProcessInfo();
-
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.Check(r_process_info); }
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Check(r_process_info); }
-
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.Initialize(r_process_info); }
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.Initialize(r_process_info); }
-
-    for(auto& r_cond: r_model_part.Conditions()) { r_cond.AddExplicitContribution(r_process_info); }
-    for(auto& r_elem: r_model_part.Elements())   { r_elem.AddExplicitContribution(r_process_info); }
-
-    //CompressibleNSConservation::PrintReactions(r_model_part);
+    SetDofValues(r_model_part, rho, mom, etot);
+    SetViscosities(r_model_part, 1e-3, 2e-3, 3e-3);
+    SetEulerFluxes(r_model_part, rho, mom, etot);
+    const auto rhs = Assemble(r_model_part);
 
     // Check obtained RHS values
-    const std::vector<double> RHS_ref(12, 0.0);
-    const std::vector<double> RHS_expl = CompressibleNSConservation::AssembleReactionVector(r_model_part);
-
-    KRATOS_CHECK_VECTOR_NEAR(RHS_expl, RHS_ref, 1e-4);
+    const std::vector<double> reference(12, 0.0);
+    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
 }
 
 
