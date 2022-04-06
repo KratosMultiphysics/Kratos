@@ -30,22 +30,28 @@ namespace Kratos
             {
                 "model_part_name"      : "please_specify_model_part_name",
                 "granulometry_settings" : {
-                    "injected_particle_radius" : 1.0,
-                    "probability_distribution": normal,
-                    "standard_deviation": 0.0,
+                    "ParticleDiameter" : 1.0,
+                    "ProbabilityDistribution": 'normal',
+                    "StandardDeviation": 0.0,
                 },
                 "flow_settings" : {
-                    "imposed_mass_flow_option" : false,
-                    "mass_flow": 100.0,
-                    "dense_inlet_option" : false,
+                    "TypeOfFlowMeasurement" : false,
+                    "NumberOfParticles": 100,
+                    "InletLimitedVelocity": 2.0,
+                    "InletMassFlow": 100.0,
+                    "DenseInletOption" : false,
                 },
                 "injection_settings" : {
-                    "injected_particle_velocity": [10.0, "3*t", "x+y"],
-                    "max_rand_deviation_angle": 1.0e-5,
+                    "InVelocityModulus": 1.0,
+                    "InDirectionVector": [10.0, "3*t", "x+y"],
+                    "VelocityDeviation": 1.0e-5,
                     "injector_element_type" : 'SphericParticle',
                     "injected_element_type" : 'SphericParticle',
-                    "contains_clusters" : "false",
-                    "injected_number_of_particles": 1000,
+                    "Excentricity": 0.1,
+                    "ProbabilityDistributionOfExcentricity": 'normal',
+                    "StandardDeviationOfExcentricity": 0.1,
+                    "ClusterType": 'fromFile',
+                    "ClusterFilename": 'custom.clu',
                 },
                 "injection_interval"             : [0.0, "End"]
             }  )" );
