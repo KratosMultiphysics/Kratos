@@ -194,6 +194,105 @@ public:
         KRATOS_CATCH("");
     }
 
+    void FullProjection(ModelPart& rModelPart)
+    {
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        // Initialize containers
+        const int n_nodes = rModelPart.NumberOfNodes();
+        const int n_elems = rModelPart.NumberOfElements();
+        const array_1d<double,3> zero_vect = ZeroVector(3);
+#pragma omp parallel for firstprivate(zero_vect)
+        for (int i_node = 0; i_node < n_nodes; ++i_node) {
+            auto ind = rModelPart.NodesBegin() + i_node;
+            noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = zero_vect; // "x"
+            ind->FastGetSolutionStepValue(DIVPROJ) = 0.0; // "x"
+            ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // "Ml"
+        }
+
+        // Newton-Raphson parameters
+        const double RelTol = rModelPart.GetProcessInfo()[RELAXATION_ALPHA] * 1e-4 * rModelPart.NumberOfNodes();
+        const double AbsTol = rModelPart.GetProcessInfo()[RELAXATION_ALPHA] * 1e-6 * rModelPart.NumberOfNodes();
+        const unsigned int MaxIter = 100;
+
+        // iteration variables
+        unsigned int iter = 0;
+        array_1d<double,3> dMomProj = zero_vect;
+        double dMassProj = 0.0;
+
+        double RelMomErr = 1000.0 * RelTol;
+        double RelMassErr = 1000.0 * RelTol;
+        double AbsMomErr = 1000.0 * AbsTol;
+        double AbsMassErr = 1000.0 * AbsTol;
+
+        while( ( (AbsMomErr > AbsTol && RelMomErr > RelTol) || (AbsMassErr > AbsTol && RelMassErr > RelTol) ) && iter < MaxIter)
+        {
+            // Reinitialize RHS
+#pragma omp parallel for firstprivate(zero_vect)
+            for (int i_node = 0; i_node < n_nodes; ++i_node)
+            {
+                auto ind = rModelPart.NodesBegin() + i_node;
+                noalias(ind->GetValue(ADVPROJ)) = zero_vect; // "b"
+                ind->GetValue(DIVPROJ) = 0.0; // "b"
+                ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // Reset because Calculate will overwrite it
+            }
+
+            // Reinitialize errors
+            RelMomErr = 0.0;
+            RelMassErr = 0.0;
+            AbsMomErr = 0.0;
+            AbsMassErr = 0.0;
+
+            // Compute new values
+            array_1d<double, 3 > output;
+#pragma omp parallel for private(output)
+            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+                auto it_elem = rModelPart.ElementsBegin() + i_elem;
+                it_elem->Calculate(SUBSCALE_VELOCITY, output, rCurrentProcessInfo);
+            }
+
+            rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+            rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
+            rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(ADVPROJ);
+
+            // Update iteration variables
+#pragma omp parallel for
+            for (int i_node = 0; i_node < n_nodes; ++i_node) {
+                auto ind = rModelPart.NodesBegin() + i_node;
+                const double Area = ind->FastGetSolutionStepValue(NODAL_AREA); // Ml dx = b - Mc x
+                dMomProj = ind->GetValue(ADVPROJ) / Area;
+                dMassProj = ind->GetValue(DIVPROJ) / Area;
+
+                RelMomErr += sqrt( dMomProj[0]*dMomProj[0] + dMomProj[1]*dMomProj[1] + dMomProj[2]*dMomProj[2]);
+                RelMassErr += fabs(dMassProj);
+
+                auto& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
+                double& rMassRHS = ind->FastGetSolutionStepValue(DIVPROJ);
+                rMomRHS += dMomProj;
+                rMassRHS += dMassProj;
+
+                AbsMomErr += sqrt( rMomRHS[0]*rMomRHS[0] + rMomRHS[1]*rMomRHS[1] + rMomRHS[2]*rMomRHS[2]);
+                AbsMassErr += fabs(rMassRHS);
+            }
+
+            if(AbsMomErr > 1e-10)
+                RelMomErr /= AbsMomErr;
+            else // If residual is close to zero, force absolute convergence to avoid division by zero errors
+                RelMomErr = 1000.0;
+
+            if(AbsMassErr > 1e-10)
+                RelMassErr /= AbsMassErr;
+            else
+                RelMassErr = 1000.0;
+
+            iter++;
+        }
+
+        KRATOS_INFO("BDF2TurbulentSchemeDEMCoupled") << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+    }
+
     void InitializeNonLinIteration(
         ModelPart& rModelPart,
         TSystemMatrixType& A,
@@ -209,8 +308,8 @@ public:
         //if orthogonal subscales are computed
         if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
         {
-            this->LumpedProjection(rModelPart);
-            //this->FullProjection(rModelPart);
+            //this->LumpedProjection(rModelPart);
+            this->FullProjection(rModelPart);
         }
 
         KRATOS_CATCH("")
