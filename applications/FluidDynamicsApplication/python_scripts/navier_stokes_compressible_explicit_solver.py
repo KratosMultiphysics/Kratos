@@ -24,7 +24,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         # Define the formulation settings
         self.element_name = "CompressibleNavierStokesExplicit"
         if custom_settings["domain_size"].GetInt() == 2:
-            self.condition_name = "CompressibleNavierStokesExplicitCondition"
+            self.condition_name = "CompressibleNavierStokesExplicitNeumannCondition"
         elif custom_settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition" # TODO: We need to create a Compressible NS condition (now using the base ones)
         else:
