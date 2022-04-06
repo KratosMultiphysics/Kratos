@@ -2479,7 +2479,7 @@ class TestProcesses(KratosUnittest.TestCase):
     def test_apply_table_to_variable_process(self):
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_X)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
         ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"), model_part)
 
@@ -2528,7 +2528,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 1.5
         model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 1.5
-        
+
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
 

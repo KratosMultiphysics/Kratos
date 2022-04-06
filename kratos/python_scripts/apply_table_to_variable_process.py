@@ -9,8 +9,8 @@ def Factory(settings, model):
 
 class ApplyTableToVariableProcess(KM.Process):
     r"""This class is used to apply a table to a scalar variable from entities in a model part.
-    
-    Example of table input types:
+
+    Example of table input type:
     |----------------------------------------------|
     |   "table_input_type"       : "csv",          |
     |   "table_input_parameters" : {               |
@@ -30,7 +30,7 @@ class ApplyTableToVariableProcess(KM.Process):
     |--------|-------------------------------------|
     | "\t"   | tab                                 |
     | "\s+"  | multiple spaces                     |
-    | ","    | comma                               |
+    | ","    | comma (default)                     |
     |        | etc.                                |
     |--------|-------------------------------------|
     """
@@ -69,11 +69,13 @@ class ApplyTableToVariableProcess(KM.Process):
         self.interval = KM.IntervalUtility(self.settings)
         self.container = getattr(self.model_part, self.settings["container"].GetString())
 
-        table_retriever = self._table_input_types[self.settings["table_input_type"].GetString()]
-        self.table = table_retriever(self.settings["table_input_parameters"], self.model_part)
+        table_retriever_name = self._table_input_types[self.settings["table_input_type"].GetString()]
+        table_retriever = getattr(self, table_retriever_name)
+        self.table = table_retriever(self.settings["table_input_parameters"])
 
 
     def ExecuteInitializeSolutionStep(self):
+        """Apply the value and set fixity if defined."""
         time = self.model_part.ProcessInfo[KM.TIME]
         if self.interval.IsInInterval(time):
             value = self.table.GetValue(time)
@@ -86,6 +88,7 @@ class ApplyTableToVariableProcess(KM.Process):
 
 
     def ExecuteFinalizeSolutionStep(self):
+        """Unset fixity if defined."""
         time = self.model_part.ProcessInfo[KM.TIME]
         if self.interval.IsInInterval(time):
             if self.settings["historical_variable"].GetBool():
@@ -94,6 +97,7 @@ class ApplyTableToVariableProcess(KM.Process):
 
 
     def Check(self):
+        """Check the correctness of the input."""
         if not self.settings["model_part_name"].GetString():
             raise Exception(self.__class__.__name__, "The model part name must be a valid string.")
 
@@ -111,8 +115,8 @@ class ApplyTableToVariableProcess(KM.Process):
             raise Exception(self.__class__.__name__, "Only scalar variables are supported.")
 
 
-    def _RetrieveTableFromCsv(settings, _):
-
+    def _RetrieveTableFromCsv(self, settings):
+        """Helper function to retrieve a table from a csv file."""
         default_settings =  KM.Parameters("""{
             "file_name" : "",
             "delimiter" : ",",
@@ -133,19 +137,18 @@ class ApplyTableToVariableProcess(KM.Process):
         return table
 
 
-    def _RetrieveTableFromModelPart(settings, model_part):
-        """Helper class to retrieve a table from a model part."""
-
+    def _RetrieveTableFromModelPart(self, settings):
+        """Helper function to retrieve a table from a model part."""
         default_settings = KM.Parameters("""{
             "table_id" : 1
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
         table_id = settings["table_id"].GetInt()
-        return model_part.GetTable(table_id)
+        return self.model_part.GetTable(table_id)
 
 
     _table_input_types = {
-        "csv"        : _RetrieveTableFromCsv,
-        "model_part" : _RetrieveTableFromModelPart,
+        "csv"        : "_RetrieveTableFromCsv",
+        "model_part" : "_RetrieveTableFromModelPart",
     }
