@@ -239,7 +239,7 @@ private:
     ///@name Private member Variables
     ///@{
 
-    std::unique_ptr<Eigen::ColPivHouseholderQR<Eigen::Ref<EigenMatrix>>> mpColPivHouseholderQR = nullptr;
+    std::unique_ptr<Eigen::ColPivHouseholderQR<Eigen::Ref<EigenMatrix>>> mpColPivHouseholderQR = std::unique_ptr<Eigen::ColPivHouseholderQR<Eigen::Ref<EigenMatrix>>>(nullptr);
 
     ///@}
     ///@name Private Operators
