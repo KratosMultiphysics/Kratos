@@ -1,3 +1,5 @@
+import sympy
+
 import KratosMultiphysics
 import KratosMultiphysics.sympy_fe_utilities as KratosSympy
 
@@ -27,23 +29,67 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
     Formulations. Chapter 3.
     """
 
+    def __init__(self, settings):
+        super().__init__(settings)
+        self.is_neumann = settings["neumann"].GetBool()
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        default_parameters = KratosMultiphysics.Parameters("""
+        {
+            "neumann": true
+        }""")
+        default_parameters.RecursivelyAddMissingParameters(super().GetDefaultParameters())
+        return default_parameters
+
     def TouchFiles(self):
         super()._TouchFiles(__file__)
 
-    def _ComputeVariationalFormulation(self, E, G, V, n):
-        KratosMultiphysics.Logger.Print(" - Compute variational formulation")
-        flux = (E + G) * n
-        return - V.transpose()*flux
+    def _ComputeFluxes(self, n, Ug, H, params, sc_params):
+        KratosMultiphysics.Logger.Print(" - Compute Euler Jacobian matrix")
+        E = generate_convective_flux.ComputeConvectiveFlux(Ug, params)
 
-    def _ComputeResidualAtGaussPoint(self, grad_U, H, i_gauss, rv_gauss, sc_nodes, sc_params, U, Ug, V, w):
+        if self.shock_capturing:
+            sc_params = ShockCapturingParameters()
+            KratosMultiphysics.Logger.Print(" - Compute diffusive flux (shock capturing ON)")
+            G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(Ug, H, params, sc_params)
+        else:
+            sc_params = None
+            KratosMultiphysics.Logger.Print(" - Compute diffusive flux (shock capturing OFF)")
+            G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
+
+        return (E + G) * n
+
+    def _ComputeVariationalFormulation(self, flux, V):
+        KratosMultiphysics.Logger.Print(" - Compute variational formulation")
+        return -V.transpose()*flux
+
+    def _ComputeResidualAtGaussPointNeumann(self, F, F_gauss, i_gauss, rv_gauss, V, w):
         KratosMultiphysics.Logger.Print("    Gauss point: {}".format(i_gauss))
 
         # Get Gauss point geometry data
         Ng = self.geometry.N_gauss(i_gauss)
 
         # Data interpolation at the gauss point
-        U_gauss = U.transpose() * Ng
         w_gauss = w.transpose() * Ng
+
+        fluxes_gauss = F_gauss[i_gauss]
+        KratosMultiphysics.Logger.Print("    - Substitution in the variational formulation")
+        KratosSympy.SubstituteMatrixValue(rv_gauss, F, fluxes_gauss)
+        KratosSympy.SubstituteMatrixValue(rv_gauss, V, w_gauss)
+
+        return rv_gauss
+
+    def _ComputeResidualAtGaussPointFree(self, grad_U, H, i_gauss, rv_gauss, sc_nodes, sc_params, U, Ug, V, w):
+        KratosMultiphysics.Logger.Print("    Gauss point: {}".format(i_gauss))
+
+        # Get Gauss point geometry data
+        Ng = self.geometry.N_gauss(i_gauss)
+
+        # Data interpolation at the gauss point
+        w_gauss = w.transpose() * Ng
+
+        U_gauss = U.transpose() * Ng
         grad_U_gauss = grad_U[i_gauss]
 
         alpha_sc_gauss = (sc_nodes.alpha.transpose()*Ng)[0]
@@ -55,6 +101,7 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
         KratosSympy.SubstituteMatrixValue(rv_gauss, Ug, U_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, H, grad_U_gauss)
         KratosSympy.SubstituteMatrixValue(rv_gauss, V, w_gauss)
+
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.alpha, alpha_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.mu, mu_sc_gauss)
         KratosSympy.SubstituteScalarValue(rv_gauss, sc_params.beta, beta_sc_gauss)
@@ -76,26 +123,42 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
 
         return grad_U
 
+    def _DefineImposedFluxesGaussPointMatrix(self):
+        dim = self.geometry.ndims
+        n_gauss = self.geometry.ngauss
+        block_size = self.geometry.blocksize
+
+        F_gauss = [defs.ZeroVector(block_size) for _ in range(n_gauss)]
+
+        for g in range(n_gauss):
+            F_gauss[g][   0, 0] = sympy.Symbol('data.fluxes[{}].density'.format(g))
+            F_gauss[g][1:-1, 0] = defs.Vector('data.fluxes[{}].momentum'.format(g), dim)
+            F_gauss[g][  -1, 0] = sympy.Symbol('data.fluxes[{}].total_energy'.format(g))
+
+        return F_gauss
+
+
     def _ComputeLHSandRHS(self, rv_tot, U, w):
-        # Set the DOFs and test function matrices to do the differentiation
-        dofs = defs.ZeroVector(self.geometry.ndofs)
+        KratosMultiphysics.Logger.Print("    Compute RHS")
+
         testfunc = defs.ZeroVector(self.geometry.ndofs)
         for i in range(0, self.geometry.nnodes):
             for j in range(0, self.geometry.blocksize):
-                dofs[i*self.geometry.blocksize + j] = U[i, j]
                 testfunc[i*self.geometry.blocksize + j] = w[i, j]
-
-        # Compute LHS and RHS
-        KratosMultiphysics.Logger.Print("    Compute RHS")
         rhs = KratosSympy.Compute_RHS(rv_tot.copy(), testfunc, self.simplify)
 
-        if not self.is_explicit:
-            KratosMultiphysics.Logger.Print("    Compute LHS")
-            lhs = KratosSympy.Compute_LHS(rhs, testfunc, dofs, self.simplify)
-        else:
-            lhs = None
+        if self.is_explicit:
+            return(None, rhs)
 
-        return(lhs, rhs)
+        KratosMultiphysics.Logger.Print("    Compute LHS")
+        dofs = defs.ZeroVector(self.geometry.ndofs)
+        for i in range(0, self.geometry.nnodes):
+            for j in range(0, self.geometry.blocksize):
+                dofs[i*self.geometry.blocksize + j] = U[i, j]
+        lhs = KratosSympy.Compute_LHS(rhs, testfunc, dofs, self.simplify)
+
+        return (lhs, rhs)
+
 
     def _OutputLHSandRHS(self, lhs, rhs):
         # Reading and filling the template file
@@ -117,11 +180,36 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
         target = "//substitute_rhs_{}D_fluxes".format(self.geometry.ndims)
         self.CollectAndReplace(target, lhs, lhs_name)
 
-    def Generate(self):
-        self.WriteWarningMessage()
+    def _GenerateNeumann(self):
+        n_nodes = self.geometry.nnodes
+        block_size = self.geometry.blocksize
 
-        KratosMultiphysics.Logger.Print("Computing geometry: {}".format(self.geometry))
+        # Construction of the variational equation
+        flux = defs.Vector('F', block_size, real=True)
+        V   = defs.Vector('V', block_size, real=True)              # Test function
 
+        # Test functions defintion
+        w = defs.Matrix('w', n_nodes, block_size, real=True)
+
+        # Calculate the Gauss point residual
+        rv = self._ComputeVariationalFormulation(flux, V)
+
+        # Algebraic form calculation
+        flux_gauss = self._DefineImposedFluxesGaussPointMatrix()
+
+        # Substitution of the discretized values at the gauss points
+        # Loop and accumulate the residual in each Gauss point
+        rv_tot = defs.ZeroMatrix(1, 1)
+        KratosMultiphysics.Logger.Print(" - Substitution of the discretized values at the gauss points")
+        for i_gauss in self.geometry.SymbolicIntegrationPoints():
+            rv_gauss = rv.copy()
+            rv_tot += self._ComputeResidualAtGaussPointNeumann(flux, flux_gauss, i_gauss, rv_gauss, V, w)
+
+        # Compute functionals and substitute text in file
+        (lhs, rhs) = self._ComputeLHSandRHS(rv_tot, None, w)
+        self._OutputLHSandRHS(lhs, rhs)
+
+    def _GenerateFree(self):
         dim = self.geometry.ndims
         n_nodes = self.geometry.nnodes
         block_size = self.geometry.blocksize
@@ -134,6 +222,7 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
 
         # Nodal artificial magnitudes
         sc_nodes = ShockCapturingNodalParameters(self.geometry)
+        sc_params = ShockCapturingParameters() if self.shock_capturing else None
 
         # Construction of the variational equation
         Ug  = defs.Vector('Ug', block_size, real=True)             # Dofs vector
@@ -144,21 +233,11 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
         # Test functions defintion
         w = defs.Matrix('w', n_nodes, block_size, real=True)
 
+        # Imposed fluxes
+        flux = self._ComputeFluxes(n, Ug, H, params, sc_params)
+
         # Calculate the Gauss point residual
-        # Matrix Computation
-        KratosMultiphysics.Logger.Print(" - Compute Euler Jacobian matrix")
-        E = generate_convective_flux.ComputeConvectiveFlux(Ug, params)
-
-        if self.shock_capturing:
-            sc_params = ShockCapturingParameters()
-            KratosMultiphysics.Logger.Print(" - Compute diffusive flux (shock capturing ON)")
-            G = generate_diffusive_flux.ComputeDiffusiveFluxWithShockCapturing(Ug, H, params, sc_params)
-        else:
-            sc_params = None
-            KratosMultiphysics.Logger.Print(" - Compute diffusive flux (shock capturing OFF)")
-            G = generate_diffusive_flux.ComputeDiffusiveFlux(Ug, H, params)
-
-        rv = self._ComputeVariationalFormulation(E, G, V, n)
+        rv = self._ComputeVariationalFormulation(flux, V)
 
         # Algebraic form calculation
 
@@ -168,8 +247,18 @@ class CompressibleNavierStokesConditionSymbolicGenerator(CompressibleNavierStoke
         KratosMultiphysics.Logger.Print(" - Substitution of the discretized values at the gauss points")
         for i_gauss in self.geometry.SymbolicIntegrationPoints():
             rv_gauss = rv.copy()
-            rv_tot += self._ComputeResidualAtGaussPoint(grad_U, H, i_gauss, rv_gauss, sc_nodes, sc_params, U, Ug, V, w)
+            rv_tot += self._ComputeResidualAtGaussPointFree(grad_U, H, i_gauss, rv_gauss, sc_nodes, sc_params, U, Ug, V, w)
 
         # Compute functionals and substitute text in file
         (lhs, rhs) = self._ComputeLHSandRHS(rv_tot, U, w)
         self._OutputLHSandRHS(lhs, rhs)
+
+    def Generate(self):
+        self.WriteWarningMessage()
+
+        KratosMultiphysics.Logger.Print("Computing geometry: {}".format(self.geometry))
+
+        if self.is_neumann:
+            self._GenerateNeumann()
+        else:
+            self._GenerateFree()

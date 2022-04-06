@@ -22,7 +22,7 @@
 
 
 // Application includes
-#include "compressible_navier_stokes_explicit_condition.h"
+#include "compressible_navier_stokes_explicit_neumann_condition.h"
 
 
 namespace Kratos {
@@ -32,13 +32,13 @@ namespace Kratos {
  * Computation of RHS integration method is chosen in the symbolic generator.
  */
 template<>
-GeometryData::IntegrationMethod CompressibleNavierStokesExplicitCondition<2,2>::GetIntegrationMethod()
+GeometryData::IntegrationMethod CompressibleNavierStokesExplicitNeumannCondition<2,2>::GetIntegrationMethod()
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 template <>
-void CompressibleNavierStokesExplicitCondition<2, 2>::EquationIdVector(
+void CompressibleNavierStokesExplicitNeumannCondition<2, 2>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -64,7 +64,7 @@ void CompressibleNavierStokesExplicitCondition<2, 2>::EquationIdVector(
 }
 
 template <>
-void CompressibleNavierStokesExplicitCondition<2, 2>::GetDofList(
+void CompressibleNavierStokesExplicitNeumannCondition<2, 2>::GetDofList(
     DofsVectorType& ConditionDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -90,14 +90,14 @@ void CompressibleNavierStokesExplicitCondition<2, 2>::GetDofList(
 }
 
 template<>
-BoundedVector<double, 8> CompressibleNavierStokesExplicitCondition<2,2>::CalculateRightHandSideInternal(
+BoundedVector<double, 8> CompressibleNavierStokesExplicitNeumannCondition<2,2>::CalculateRightHandSideInternal(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     BoundedVector<double, BlockSize*NumNodes> rRightHandSideBoundedVector = ZeroVector(BlockSize*NumNodes);
 
-    const auto data = ConditionData(rCurrentProcessInfo);
+    const auto data = ConditionData();
 
     //substitute_rhs_2D_fluxes
 
@@ -108,7 +108,7 @@ BoundedVector<double, 8> CompressibleNavierStokesExplicitCondition<2,2>::Calcula
 }
 
 
-template class CompressibleNavierStokesExplicitCondition<2,2>;
-using CompressibleNavierStokesExplicitCondition2D2N = CompressibleNavierStokesExplicitCondition<2,2>;
+template class CompressibleNavierStokesExplicitNeumannCondition<2,2>;
+using CompressibleNavierStokesExplicitNeumannCondition2D2N = CompressibleNavierStokesExplicitNeumannCondition<2,2>;
 
 }

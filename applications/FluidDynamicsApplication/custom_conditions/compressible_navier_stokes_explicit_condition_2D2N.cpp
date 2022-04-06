@@ -231,7 +231,7 @@ BoundedVector<double, 8> CompressibleNavierStokesExplicitCondition<2,2>::Calcula
     rRightHandSideBoundedVector[7] = crRightHandSideBoundedVector10*crRightHandSideBoundedVector107 + crRightHandSideBoundedVector101*crRightHandSideBoundedVector3 + crRightHandSideBoundedVector104*crRightHandSideBoundedVector13 + crRightHandSideBoundedVector7*crRightHandSideBoundedVector89;
 
 
-    rRightHandSideBoundedVector *= data.volume; // TODO: This only works for 1 gauss point
+    rRightHandSideBoundedVector *= data.volume / ConditionDataStruct::NGauss;
 
     return rRightHandSideBoundedVector;
     KRATOS_CATCH("")

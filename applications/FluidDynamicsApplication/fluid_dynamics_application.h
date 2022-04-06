@@ -66,6 +66,7 @@
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
 #include "custom_conditions/compressible_navier_stokes_explicit_condition.h"
+#include "custom_conditions/compressible_navier_stokes_explicit_neumann_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -414,6 +415,7 @@ private:
     const CompressibleNavierStokesExplicit<2, 4> mCompressibleNavierStokesExplicit2D4N;
     const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D4N;
     const CompressibleNavierStokesExplicitCondition<2, 2> mCompressibleNavierStokesExplicitCondition2D2N;
+    const CompressibleNavierStokesExplicitNeumannCondition<2, 2> mCompressibleNavierStokesExplicitNeumannCondition2D2N;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;

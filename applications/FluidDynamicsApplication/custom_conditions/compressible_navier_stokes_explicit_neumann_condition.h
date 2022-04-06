@@ -10,8 +10,8 @@
 //  Main authors:    Eduard Gómez
 //
 
-#ifndef KRATOS_COMPRESSIBLE_NAVIER_STOKES_CONDITION_H
-#define KRATOS_COMPRESSIBLE_NAVIER_STOKES_CONDITION_H
+#ifndef KRATOS_COMPRESSIBLE_NAVIER_STOKES_NEUMANN_CONDITION_H
+#define KRATOS_COMPRESSIBLE_NAVIER_STOKES_NEUMANN_CONDITION_H
 
 // System includes
 #include <string>
@@ -28,6 +28,7 @@
 #include "includes/model_part.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
+#include "includes/variables.h"
 #include "utilities/element_size_calculator.h"
 #include "utilities/atomic_utilities.h"
 
@@ -62,14 +63,14 @@ namespace Kratos
 ///@{
 
 template<unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CompressibleNavierStokesExplicitCondition : public Condition
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) CompressibleNavierStokesExplicitNeumannCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of CompressibleNavierStokesExplicitCondition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNavierStokesExplicitCondition);
+    /// Pointer definition of CompressibleNavierStokesExplicitNeumannCondition
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressibleNavierStokesExplicitNeumannCondition);
 
     using NodeType = Condition::NodeType;
     using PropertiesType = Condition::PropertiesType;
@@ -86,37 +87,18 @@ public:
     constexpr static unsigned int BlockSize = Dim + 2;
     constexpr static unsigned int DofSize = NumNodes * BlockSize;
 
-    struct GradientData
+    struct FluxData
     {
-        array_1d<double, 3> density;
-        BoundedMatrix<double, 3, 3> momentum;
-        array_1d<double, 3> total_energy;
+        double density;
+        array_1d<double, 3> momentum;
+        double total_energy;
     };
 
     struct ConditionDataStruct
     {
         static constexpr SizeType NGauss = TNumNodes; // TODO: Not necessarily true
-
-        BoundedMatrix<double, TNumNodes, BlockSize> U;
-        BoundedMatrix<double, TNumNodes, BlockSize> dUdt;
-
-        std::array<GradientData, NGauss> gradients;
-
-        array_1d<double, TNumNodes> alpha_sc_nodes;
-        array_1d<double, TNumNodes> mu_sc_nodes;
-        array_1d<double, TNumNodes> beta_sc_nodes;
-        array_1d<double, TNumNodes> lamb_sc_nodes;
-
-        array_1d<double, TNumNodes> N;
-        array_1d<double, 3> unit_normal {3, 0.0};
-
-
-        double h;           // Element size
-        double volume;      // In 2D: element area. In 3D: element volume
-        double c_v;         // Heat capacity at constant volume
-        double gamma;       // Heat capacity ratio
-        double mu;          // Dynamic viscosity
-        double lambda;      // Heat conductivity
+        std::array<FluxData, NGauss> fluxes;
+        double volume;
     };
 
     ///@}
@@ -124,7 +106,7 @@ public:
     ///@{
 
     /// Default constructor.
-    CompressibleNavierStokesExplicitCondition(IndexType NewId = 0):
+    CompressibleNavierStokesExplicitNeumannCondition(IndexType NewId = 0):
         Condition(NewId)
     {
     }
@@ -134,7 +116,7 @@ public:
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    CompressibleNavierStokesExplicitCondition(IndexType NewId, const NodesArrayType& ThisNodes):
+    CompressibleNavierStokesExplicitNeumannCondition(IndexType NewId, const NodesArrayType& ThisNodes):
         Condition(NewId, ThisNodes)
     {
     }
@@ -144,7 +126,7 @@ public:
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    CompressibleNavierStokesExplicitCondition(IndexType NewId, GeometryType::Pointer pGeometry):
+    CompressibleNavierStokesExplicitNeumannCondition(IndexType NewId, GeometryType::Pointer pGeometry):
         Condition(NewId, pGeometry)
     {
     }
@@ -155,19 +137,19 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    CompressibleNavierStokesExplicitCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
+    CompressibleNavierStokesExplicitNeumannCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
         Condition(NewId, pGeometry, pProperties)
     {
     }
 
     /// Copy constructor.
-    CompressibleNavierStokesExplicitCondition(CompressibleNavierStokesExplicitCondition const& rOther):
+    CompressibleNavierStokesExplicitNeumannCondition(CompressibleNavierStokesExplicitNeumannCondition const& rOther):
         Condition(rOther)
     {
     }
 
     /// Destructor.
-    ~CompressibleNavierStokesExplicitCondition() override {}
+    ~CompressibleNavierStokesExplicitNeumannCondition() override {}
 
 
     ///@}
@@ -175,7 +157,7 @@ public:
     ///@{
 
     /// Assignment operator
-    CompressibleNavierStokesExplicitCondition & operator=(CompressibleNavierStokesExplicitCondition const& rOther)
+    CompressibleNavierStokesExplicitNeumannCondition & operator=(CompressibleNavierStokesExplicitNeumannCondition const& rOther)
     {
         Condition::operator=(rOther);
         return *this;
@@ -187,7 +169,23 @@ public:
 
     GeometryData::IntegrationMethod GetIntegrationMethod() override;
 
-    /// Create a new CompressibleNavierStokesExplicitCondition object.
+    /**
+     * is called to initialize the condition
+     * if the condition needs to perform any operation before any calculation is done
+     * the condition variables will be initialized and set using this method
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        // Fluxes are set to zero by default
+        for(auto& r_node: GetGeometry())
+        {
+            if(!r_node.Has(DENSITY_FLUX))         r_node.SetValue(DENSITY_FLUX, DENSITY_FLUX.Zero());
+            if(!r_node.Has(MOMENTUM_FLUX))        r_node.SetValue(MOMENTUM_FLUX, MOMENTUM_FLUX.Zero());
+            if(!r_node.Has(TOTAL_ENERGY_FLUX))    r_node.SetValue(TOTAL_ENERGY_FLUX, TOTAL_ENERGY_FLUX.Zero());
+        }
+    }
+
+    /// Create a new CompressibleNavierStokesExplicitNeumannCondition object.
     /**
       @param NewId Index of the new condition
       @param ThisNodes An array containing the nodes of the new condition
@@ -195,10 +193,10 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<CompressibleNavierStokesExplicitCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<CompressibleNavierStokesExplicitNeumannCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
-    /// Create a new CompressibleNavierStokesExplicitCondition object.
+    /// Create a new CompressibleNavierStokesExplicitNeumannCondition object.
     /**
       @param NewId Index of the new condition
       @param pGeom A pointer to the condition's geometry
@@ -206,7 +204,7 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive< CompressibleNavierStokesExplicitCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive< CompressibleNavierStokesExplicitNeumannCondition >(NewId, pGeom, pProperties);
     }
 
     /**
@@ -338,8 +336,6 @@ public:
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(DENSITY)) << "Missing DENSITY variable on solution step data for node " << this->GetGeometry()[i].Id();
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(MOMENTUM)) << "Missing MOMENTUM variable on solution step data for node " << this->GetGeometry()[i].Id();
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY variable on solution step data for node " << this->GetGeometry()[i].Id();
-            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(BODY_FORCE)) << "Missing BODY_FORCE variable on solution step data for node " << this->GetGeometry()[i].Id();
-            KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].SolutionStepsDataHas(HEAT_SOURCE)) << "Missing HEAT_SOURCE variable on solution step data for node " << this->GetGeometry()[i].Id();
 
             // Activate as soon as we start using the explicit DOF based strategy
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
@@ -349,10 +345,6 @@ public:
             }
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
         }
-
-        KRATOS_ERROR_IF_NOT(this->Has(NEIGHBOUR_ELEMENTS)) << "Missing NEIGHBOUR_ELEMENTS variable in condition #" << this->Id();
-        KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0) << "Empty NEIGHBOUR_ELEMENTS container in condition #" << this->Id();
-        KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 1) << "NEIGHBOUR_ELEMENTS has more than one entry in condition #" << this->Id();
 
         return 0;
 
@@ -373,13 +365,6 @@ public:
      */
     void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void Calculate(
-        const Variable< array_1d<double,3> >& rVariable,
-        array_1d<double,3>& Output,
-        const ProcessInfo& rCurrentProcessInfo) override
-    {
-        // TODO
-    }
 
     ///@}
     ///@name Access
@@ -403,12 +388,12 @@ public:
             "symmetric_lhs"              : false,
             "positive_definite_lhs"      : true,
             "output"                     : {
-                "gauss_point"            : ["SHOCK_SENSOR","SHEAR_SENSOR","THERMAL_SENSOR","ARTIFICIAL_CONDUCTIVITY","ARTIFICIAL_BULK_VISCOSITY","VELOCITY_DIVERGENCE"],
-                "nodal_historical"       : ["DENSITY","MOMENTUM","TOTAL_ENERGY"],
-                "nodal_non_historical"   : ["ARTIFICIAL_MASS_DIFFUSIVITY","ARTIFICIAL_DYNAMIC_VISCOSITY","ARTIFICIAL_BULK_VISCOSITY","ARTIFICIAL_CONDUCTIVITY","DENSITY_PROJECTION","MOMENTUM_PROJECTION","TOTAL_ENERGY_PROJECTION"],
+                "gauss_point"            : [],
+                "nodal_historical"       : [],
+                "nodal_non_historical"   : [],
                 "entity"                 : []
             },
-            "required_variables"         : ["DENSITY","MOMENTUM","TOTAL_ENERGY"],
+            "required_variables"         : ["DENSITY_FLUX","MOMENTUM_FLUX","TOTAL_ENERGY_FLUX"],
             "required_dofs"              : [],
             "flags_used"                 : [],
             "compatible_geometries"      : ["Line2D2"],
@@ -439,14 +424,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "CompressibleNavierStokesExplicitCondition" << TDim << "D" << TNumNodes << "N";
+        buffer << "CompressibleNavierStokesExplicitNeumannCondition" << TDim << "D" << TNumNodes << "N";
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "CompressibleNavierStokesExplicitCondition";
+        rOStream << "CompressibleNavierStokesExplicitNeumannCondition";
     }
 
     /// Print object's data.
@@ -480,24 +465,19 @@ protected:
 
 
     /// TODO: This only works for simplex elements
-    static void ComputeGaussPointData(
-        Element& rParentElement,
-        ConditionDataStruct& rData,
-        const ProcessInfo& rCurrentProcessInfo)
+    void ComputeGaussPointData(ConditionDataStruct& rData)
     {
-        std::vector<array_1d<double, 3>> grad_density;
-        std::vector<array_1d<double, 3>> grad_total_energy;
-        std::vector<Matrix> grad_momentum;
-
-        rParentElement.CalculateOnIntegrationPoints(DENSITY_GRADIENT, grad_density, rCurrentProcessInfo);
-        rParentElement.CalculateOnIntegrationPoints(MOMENTUM_GRADIENT, grad_momentum, rCurrentProcessInfo);
-        rParentElement.CalculateOnIntegrationPoints(TOTAL_ENERGY_GRADIENT, grad_total_energy, rCurrentProcessInfo);
+        const auto& flux_density = this->GetValue(DENSITY_FLUX);
+        const auto& flux_momentum = this->GetValue(MOMENTUM_FLUX);
+        const auto& flux_total_energy = this->GetValue(TOTAL_ENERGY_FLUX);
 
         for(IndexType g=0; g < ConditionDataStruct::NGauss; ++g)
         {
-            rData.gradients[g].density = grad_density[0];
-            rData.gradients[g].momentum = grad_momentum[0];
-            rData.gradients[g].total_energy = grad_total_energy[0];
+            // Fluxes
+            rData.fluxes[g].density = flux_density;
+            rData.fluxes[g].momentum = flux_momentum;
+            rData.fluxes[g].total_energy = flux_total_energy;
+
         }
     }
 
@@ -507,66 +487,14 @@ protected:
      * @param rData Reference to the element data structure to be filled
      * @param rCurrentProcessInfo Reference to the current process info
      */
-    ConditionDataStruct ConditionData(const ProcessInfo& rCurrentProcessInfo)
+    ConditionDataStruct ConditionData()
     {
         KRATOS_TRY
 
         ConditionDataStruct data;
 
-        // Element adjacent to this condition
-        auto& r_parent_element = *GetValue(NEIGHBOUR_ELEMENTS).begin();
-
-        // Getting data for the given geometry
-        const auto& r_geometry = GetGeometry();
-
-        // Loads shape function info only if jacobian is uniform
-        ComputeGeometryData(r_geometry, data);
-        ComputeGaussPointData(r_parent_element, data, rCurrentProcessInfo);
-
-        // Database access to all of the variables needed
-        const Properties &r_properties = r_parent_element.GetProperties();
-        data.mu = r_properties.GetValue(DYNAMIC_VISCOSITY);
-        data.lambda = r_properties.GetValue(CONDUCTIVITY);
-        data.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
-        data.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
-
-        // Magnitudes to calculate the time derivatives
-        const double time_step = rCurrentProcessInfo[DELTA_TIME];
-        const double theta = rCurrentProcessInfo[TIME_INTEGRATION_THETA];
-        const double aux_theta = theta > 0 ? 1.0 / (theta * time_step) : 0.0;
-
-        // Nodal data
-        for(SizeType i=0; i<NumNodes; ++i)
-        {
-            // Shock capturing data
-            const auto& r_node = r_geometry[i];
-            data.alpha_sc_nodes(i) = r_node.GetValue(ARTIFICIAL_MASS_DIFFUSIVITY);
-            data.mu_sc_nodes(i)    = r_node.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
-            data.beta_sc_nodes(i)  = r_node.GetValue(ARTIFICIAL_BULK_VISCOSITY);
-            data.lamb_sc_nodes(i)  = r_node.GetValue(ARTIFICIAL_CONDUCTIVITY);
-
-            // Momentum data
-            const array_1d<double, 3>& r_momentum = r_node.FastGetSolutionStepValue(MOMENTUM);
-            const array_1d<double, 3>& r_momentum_old = r_node.FastGetSolutionStepValue(MOMENTUM, 1);
-            const array_1d<double, 3> mom_inc = r_momentum - r_momentum_old;
-
-            for (unsigned int d = 0; d < Dim; ++d) {
-                data.U(i, 1+d)    = r_momentum[d];
-                data.dUdt(i, 1+d) = aux_theta * mom_inc[d];
-            }
-
-            // Density data
-            const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
-            const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
-            data.U(i, 0)    = r_rho;
-            data.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
-
-            // Total energy data
-            const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
-            const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
-            data.U(i, TDim+1)    = r_tot_ener;
-            data.dUdt(i, TDim+1) = aux_theta * (r_tot_ener - r_tot_ener_old);
-        }
+        data.volume = GetGeometry().DomainSize();
+        ComputeGaussPointData(data);
 
         return data;
 
@@ -659,72 +587,13 @@ private:
 
     ///@}
 
-}; // Class CompressibleNavierStokesExplicitCondition
+}; // Class CompressibleNavierStokesExplicitNeumannCondition
 
 
 ///@}
 
 ///@name Type Definitions
 ///@{
-
-
-/**
- *  This namespace is used to implement the compile-time choice of:
- *  1. Shape function calculator
- *  2. Element size calculator
- *
- *  [1] This is necessary because simplex geometries' shape functions are known
- *  at compile-time whereas non-simplex's ones are not (because they depend on
- *  the actual shape of the element).
- *
- *  [2] This is useful because GradientsElementSize is only implemented for
- *  simplex types.
- *
- *  This problem is solved using SFINAE
- */
-namespace CompressibleNavierStokesExplicitConditionInternal
-{
-    template<unsigned int TDim, unsigned int TNumNodes>
-    using ConditionDataStruct = typename CompressibleNavierStokesExplicitCondition<TDim, TNumNodes>::ConditionDataStruct;
-
-    constexpr bool IsSimplex(const unsigned int Dimensions, const unsigned int NNodes)
-    {
-        return Dimensions == NNodes;
-    }
-
-    // Specialization for simplex geometries
-    template<unsigned int TDim, unsigned int TNumNodes>
-    inline typename std::enable_if<IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryDataImpl(
-        const Geometry<Node<3>> & rGeometry,
-        ConditionDataStruct<TDim, TNumNodes>& rData)
-    {
-        BoundedMatrix<double, TNumNodes, 1> DN_DX; // unused
-        GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, rData.N, rData.volume);
-        rData.unit_normal = rGeometry.UnitNormal(0);
-    }
-
-    /**
-     * Specialization for geometries with non-uniform jacobian (non-simplex)
-     * Shape functions cannot be obtained here. They will need to be calculated
-     * during integration at each gauss point.
-     */
-    template<unsigned int TDim, unsigned int TNumNodes>
-    inline typename std::enable_if<!IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryDataImpl(
-        const Geometry<Node<3>> & rGeometry,
-        ConditionDataStruct<TDim, TNumNodes>& rData)
-    {
-        rData.volume = rGeometry.DomainSize();
-        // Normal must be computed at each Gauss point
-    }
-}
-
-template<unsigned int TDim, unsigned int TNumNodes>
-void CompressibleNavierStokesExplicitCondition<TDim, TNumNodes>::ComputeGeometryData(
-    const GeometryType& rGeometry,
-    ConditionDataStruct& rData)
-{
-    CompressibleNavierStokesExplicitConditionInternal::ComputeGeometryDataImpl<TDim, TNumNodes>(rGeometry, rData);
-}
 
 
 ///@}
@@ -734,14 +603,14 @@ void CompressibleNavierStokesExplicitCondition<TDim, TNumNodes>::ComputeGeometry
 
 /// input stream function
 template< unsigned int TDim, unsigned int TNumNodes >
-inline std::istream& operator >> (std::istream& rIStream, CompressibleNavierStokesExplicitCondition<TDim,TNumNodes>& rThis)
+inline std::istream& operator >> (std::istream& rIStream, CompressibleNavierStokesExplicitNeumannCondition<TDim,TNumNodes>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
 template< unsigned int TDim, unsigned int TNumNodes >
-inline std::ostream& operator << (std::ostream& rOStream, const CompressibleNavierStokesExplicitCondition<TDim,TNumNodes>& rThis)
+inline std::ostream& operator << (std::ostream& rOStream, const CompressibleNavierStokesExplicitNeumannCondition<TDim,TNumNodes>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << '\n';
@@ -757,4 +626,4 @@ inline std::ostream& operator << (std::ostream& rOStream, const CompressibleNavi
 
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPRESSIBLE_NAVIER_STOKES_CONDITION_H
+#endif // KRATOS_COMPRESSIBLE_NAVIER_STOKES_NEUMANN_CONDITION_H
