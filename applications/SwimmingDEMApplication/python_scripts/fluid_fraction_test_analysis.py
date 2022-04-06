@@ -73,8 +73,6 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
 
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
         self.n_iteration_number = self.fluid_model_part.ProcessInfo[Kratos.NL_ITERATION_NUMBER]
-        #self.linear_convergence = self.fluid_model_part.ProcessInfo[Kratos.LINEAR_CONVERGENCE]
-        self.linear_convergence = True
         self.relax_alpha = self.fluid_model_part.ProcessInfo[Kratos.RELAXATION_ALPHA]
         self.velocity_error_projected, self.pressure_error_projected, self.error_model_part, self.reynolds_number, self.porosity_mean = self._GetSolver().CalculateL2Error()
 
@@ -88,7 +86,6 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                                             self.porosity_mean,
                                             self.n_iteration_number,
                                             self.max_iteration,
-                                            self.linear_convergence,
                                             self.relax_alpha)
 
         return self.velocity_error_projected
