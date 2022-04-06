@@ -3,8 +3,7 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
 
 # RigidBody imports
-from . import rigid_body_process
-from . import input_check
+from . import rigid_body_input_check as input_check
 
 # Other imports
 import numpy as np
@@ -12,22 +11,68 @@ import json
 import os
 from importlib import import_module
 
+
 class RigidBodySolver(object):
     """
     This class implements a Rigid Body solver independent of Kratos.
     Several types of load applications are available, and they can be applyed to each degree of freedom.
     """
 
-    def __init__(self, model, parameters):
+    def __init__(self, model, project_parameters):
+
+        if not isinstance(model, KM.Model):
+            raise Exception("Input is expected to be provided as a Kratos Model object")
+        if not isinstance(project_parameters, KM.Parameters):
+            raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
         # TODO: Centralized input check
-        #self.parameters = input_check.FullInputCheck(parameters)
+        input_check._CheckMandatoryInputParameters(project_parameters)
+        self.problem_name = project_parameters["problem_data"]["problem_name"].GetString()
+        self.start_time = project_parameters["problem_data"]["start_time"].GetDouble()
+        self.end_time = project_parameters["problem_data"]["end_time"].GetDouble()
+
+        solver_settings = input_check._ValidateAndAssignRigidBodySolverDefaults(project_parameters["solver_settings"])
+        domain_size = solver_settings["domain_size"].GetInt()
+        buffer_size = solver_settings["buffer_size"].GetInt()
+        self.echo_level = solver_settings["echo_level"].GetInt()
 
         self.model = model
         self.main_model_part = self.model.CreateModelPart("Main")
-        self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = 3
+        self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = domain_size
         self.rigid_body_model_part = self.main_model_part.CreateSubModelPart("RigidBody")
         self.root_point_model_part = self.main_model_part.CreateSubModelPart("RootPoint")
+        self.AddVariables()
+        self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
+        self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
+        self.main_model_part.SetBufferSize(buffer_size)
+
+        # Degrees of freedom that can be activated from the parameters
+        if domain_size == 3:
+            self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z',
+                'rotation_x', 'rotation_y', 'rotation_z']
+        elif domain_size == 2:
+            self.available_dofs = ['displacement_x', 'displacement_y', 'rotation_z']
+
+        self.system_size = len(self.available_dofs)
+        self.linear_size = int(np.ceil(self.system_size/2))
+        self.angular_size = int(np.floor(self.system_size/2))
+
+        # Fill with defaults and check that mandatory fields are given
+        dof_settings, self.active_dofs = input_check._ValidateAndAssignDofDefaults(solver_settings["active_dofs"], self.available_dofs)
+        
+        # Create all the processes stated in the project parameters
+        self._list_of_processes = self._CreateListOfProcesses(project_parameters)
+        self._list_of_output_processes = self._CreateListOfOutputProcesses(project_parameters)
+
+        # Safe all the filled data in their respective class variables
+        self._InitializeSolutionVariables(solver_settings)
+        self._InitializeDofsVariables(dof_settings)
+
+        # Prepare the parameters for the generalized-alpha method
+        self._InitializeGeneralizedAlphaParameters()
+    
+
+    def AddVariables(self):
 
         self.main_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KM.ROTATION)
@@ -45,46 +90,6 @@ class RigidBodySolver(object):
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
         self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
         self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
-
-        self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
-        self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
-
-        # Degrees of freedom that can be activated from the parameters
-        self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z',
-            'rotation_x', 'rotation_y', 'rotation_z']
-        self.system_size = len(self.available_dofs)
-
-        # How many dofs are linear (displacement/force) and how many are angular (rotation/moment)?
-        # TODO: For future implementation of a 2D version. It will only be needed to change self.available_dofs
-        # CAN BE ERASED
-        self.linear_size = int(np.ceil(self.system_size/2))
-        self.angular_size = int(np.floor(self.system_size/2))
-
-        # Note which variable labels are linear/angular for later inpu/output use
-        # CAN BE ERASED
-        self.linear_variables = ["DISPLACEMENT", "ROOT_POINT_DISPLACEMENT", "FORCE", "REACTION"]
-        self.angular_variables = ["ROTATION", "ROOT_POINT_ROTATION", "MOMENT", "REACTION_MOMENT"]
-
-        # Check that the activated dofs are not repeated and are among the available ones
-        self.active_dofs = input_check._CheckActiveDofs(parameters, self.available_dofs)
-
-        # Fill with defaults and check that mandatory fields are given
-        input_check._CheckMandatoryInputParameters(parameters)
-        dof_params, sol_params = input_check._ValidateAndAssignRigidBodySolverDefaults(parameters, self.available_dofs)
-        
-        # Create all the processes stated in the project parameters
-        self._list_of_processes = self._CreateListOfProcesses(parameters)
-        self._list_of_output_processes = self._CreateListOfOutputProcesses(parameters)
-
-        # Safe all the filled data in their respective class variables
-        self._InitializeDofsVariables(dof_params)
-        self._InitializeSolutionVariables(sol_params)
-
-        # Prepare the parameters for the generalized-alpha method
-        self._InitializeGeneralizedAlphaParameters()
-
-        # Set buffer size
-        self.main_model_part.SetBufferSize(self.buffer_size)
 
 
     def _CreateListOfProcesses(self, parameters):
@@ -125,18 +130,17 @@ class RigidBodySolver(object):
         return list_of_output_processes
 
 
-    def _InitializeSolutionVariables(self, sol_params):
+    def _InitializeSolutionVariables(self, solver_settings):
         
         # Save all the data that does not depend on the degree of freedom
-        self.rho_inf = sol_params["time_integration_parameters"]["rho_inf"].GetDouble()
-        self.delta_t = sol_params["time_integration_parameters"]["time_step"].GetDouble()
-        self.start_time = sol_params["time_integration_parameters"]["start_time"].GetDouble()
-        self.buffer_size = sol_params["solver_parameters"]["buffer_size"].GetInt()
-        self.output_file_path = sol_params["output_parameters"]["file_path"].GetString()
-        self.write_output_file = sol_params["output_parameters"]["write_output_files"].GetBool()
+        self.rho_inf = solver_settings["time_integration_parameters"]["rho_inf"].GetDouble()
+        self.delta_t = solver_settings["time_integration_parameters"]["time_step"].GetDouble()
+        self.buffer_size = solver_settings["buffer_size"].GetInt()
+        self.output_file_path = solver_settings["output_parameters"]["file_path"].GetString()
+        self.write_output_file = solver_settings["output_parameters"]["write_output_files"].GetBool()
 
 
-    def _InitializeDofsVariables(self, dof_params):
+    def _InitializeDofsVariables(self, dof_settings):
 
         # Initialize variables that depend on the degree of freedom
         self.is_constrained = {}
@@ -144,25 +148,14 @@ class RigidBodySolver(object):
         self.C = np.zeros((self.system_size,self.system_size)) # Damping matrix
         self.K = np.zeros((self.system_size,self.system_size)) # Stiffness matrix
         self.modulus_self_weight = np.zeros(self.system_size) # Gravity acceleration
-        self.initial_displacement = np.zeros(self.system_size)
-        self.initial_velocity = np.zeros(self.system_size)
-        self.initial_acceleration = np.zeros(self.system_size)
-        self.load_impulse = np.zeros(self.system_size)
 
         # Fill the initialised values with the ones from the parameters
         for index, dof in enumerate(self.available_dofs):
-            self.is_constrained[dof] = dof_params[dof]["constrained"].GetBool()
-            self.M[index][index] = dof_params[dof]['system_parameters']['mass'].GetDouble()
-            self.C[index][index] = dof_params[dof]['system_parameters']['damping'].GetDouble()
-            self.K[index][index] = dof_params[dof]['system_parameters']['stiffness'].GetDouble()
-            self.modulus_self_weight[index] = dof_params[dof]['system_parameters']['modulus_self_weight'].GetDouble()
-            self.initial_displacement[index] = dof_params[dof]["initial_conditions"]["displacement"].GetDouble()
-            self.initial_velocity[index] = dof_params[dof]["initial_conditions"]["velocity"].GetDouble()
-            self.load_impulse[index] = dof_params[dof]["initial_conditions"]["load_impulse"].GetDouble()
-        
-        # Calculate the initial acceleration from the initial conditions
-        factor = self.load_impulse - self.K.dot(self.initial_displacement)
-        self.initial_acceleration = np.dot(np.linalg.inv(self.M), factor)
+            self.is_constrained[dof] = dof_settings[dof]["constrained"].GetBool()
+            self.M[index][index] = dof_settings[dof]['system_parameters']['mass'].GetDouble()
+            self.C[index][index] = dof_settings[dof]['system_parameters']['damping'].GetDouble()
+            self.K[index][index] = dof_settings[dof]['system_parameters']['stiffness'].GetDouble()
+            self.modulus_self_weight[index] = dof_settings[dof]['system_parameters']['modulus_self_weight'].GetDouble()
 
 
     def _InitializeGeneralizedAlphaParameters(self):
@@ -216,21 +209,6 @@ class RigidBodySolver(object):
         self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
         self.total_load = np.zeros(self.system_size)
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
-
-        # Apply initial conditions
-        initial_disp = list(self.initial_displacement[:self.linear_size])
-        initial_rot = list(self.initial_displacement[-self.angular_size:])
-        initial_vel = list(self.initial_velocity[:self.linear_size])
-        initial_ang_vel = list(self.initial_velocity[-self.angular_size:])
-        initial_acc = list(self.initial_acceleration[:self.linear_size])
-        initial_ang_acc = list(self.initial_acceleration[-self.angular_size:])
-        #self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, initial_disp+initial_rot)
-        #self._SetCompleteVector("rigid_body", KM.VELOCITY, KM.ANGULAR_VELOCITY, initial_disp+initial_rot)
-        #self._SetCompleteVector("rigid_body", KM.ACCELERATION, KM.ANGULAR_ACCELERATION, initial_disp+initial_rot)
-
-        # Apply external load as an initial impulse
-        self.total_load = self.load_impulse
-        self.effective_load[:,0] = self.total_load
 
         # Create output file and wrrite the time=start_time step
         if self.write_output_file:
