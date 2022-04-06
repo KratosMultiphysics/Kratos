@@ -192,7 +192,7 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         # Set up the auxiliary class with the formulation settings
         self._SetFormulation()
         self.alpha = custom_settings["relax_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.RELAXATION_ALPHA, self.alpha)
+        self.main_model_part.ProcessInfo.SetValue(SDEM.RELAXATION_ALPHA, self.alpha)
         self.is_manufactured = custom_settings["fluid_manufactured"].GetBool()
         self.main_model_part.ProcessInfo.SetValue(SDEM.MANUFACTURED, self.is_manufactured)
 
