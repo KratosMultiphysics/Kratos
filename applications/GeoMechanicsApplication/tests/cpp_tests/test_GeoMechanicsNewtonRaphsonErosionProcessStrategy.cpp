@@ -33,6 +33,10 @@ namespace Kratos
             auto projectpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/ProjectParameters.json";
             auto materialpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/MaterialParameters.json";
 
+            TCHAR pwd[MAX_PATH];
+            GetCurrentDirectory(MAX_PATH, pwd);
+            cout << pwd << std::endl;
+
             cpp_geomechanics(meshpath, projectpath, materialpath);
 
         }
