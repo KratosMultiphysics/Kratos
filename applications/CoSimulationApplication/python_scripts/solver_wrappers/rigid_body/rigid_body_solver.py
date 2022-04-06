@@ -71,18 +71,10 @@ class RigidBodySolver(object):
         # Fill with defaults and check that mandatory fields are given
         input_check._CheckMandatoryInputParameters(parameters)
         dof_params, sol_params = input_check._ValidateAndAssignRigidBodySolverDefaults(parameters, self.available_dofs)
-
-        # Create all the processes stated in the project parameters
-        parameters_json = json.loads(parameters.WriteJsonString())
-        if "processes" in parameters_json:
-            self._list_of_processes = []
-            for process in parameters_json["processes"]:
-                python_module = process["python_module"]
-                kratos_module = process["kratos_module"]
-                process_module = import_module(kratos_module + "." + python_module)
-                process_settings = KM.Parameters(json.dumps(process["Parameters"]))
-                self._list_of_processes.append(process_module.Factory(self, process_settings))
         
+        # Create all the processes stated in the project parameters
+        self._list_of_processes = self._CreateListOfProcesses(parameters)
+
         # Safe all the filled data in their respective class variables
         self._InitializeDofsVariables(dof_params)
         self._InitializeSolutionVariables(sol_params)
@@ -92,6 +84,25 @@ class RigidBodySolver(object):
 
         # Set buffer size
         self.main_model_part.SetBufferSize(self.buffer_size)
+
+
+    def _CreateListOfProcesses(self, parameters):
+
+        # Create all the processes stated in the project parameters
+        # TODO: No need to convert it to a json to manipulate it
+        parameters_json = json.loads(parameters.WriteJsonString())
+        list_of_processes = []
+        if "processes" in parameters_json:
+            for process_type in ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]:
+                if process_type in parameters_json["processes"]:
+                    for process in parameters_json["processes"][process_type]:
+                        python_module = process["python_module"]
+                        kratos_module = process["kratos_module"]
+                        process_module = import_module(kratos_module + "." + python_module)
+                        process_settings = KM.Parameters(json.dumps(process))
+                        list_of_processes.append(process_module.Factory(process_settings, self.model))
+        
+        return list_of_processes
 
 
     def _InitializeSolutionVariables(self, sol_params):
@@ -193,9 +204,9 @@ class RigidBodySolver(object):
         initial_ang_vel = list(self.initial_velocity[-self.angular_size:])
         initial_acc = list(self.initial_acceleration[:self.linear_size])
         initial_ang_acc = list(self.initial_acceleration[-self.angular_size:])
-        self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, initial_disp+initial_rot)
-        self._SetCompleteVector("rigid_body", KM.VELOCITY, KM.ANGULAR_VELOCITY, initial_disp+initial_rot)
-        self._SetCompleteVector("rigid_body", KM.ACCELERATION, KM.ANGULAR_ACCELERATION, initial_disp+initial_rot)
+        #self._SetCompleteVector("rigid_body", KM.DISPLACEMENT, KM.ROTATION, initial_disp+initial_rot)
+        #self._SetCompleteVector("rigid_body", KM.VELOCITY, KM.ANGULAR_VELOCITY, initial_disp+initial_rot)
+        #self._SetCompleteVector("rigid_body", KM.ACCELERATION, KM.ANGULAR_ACCELERATION, initial_disp+initial_rot)
 
         # Apply external load as an initial impulse
         self.total_load = self.load_impulse
