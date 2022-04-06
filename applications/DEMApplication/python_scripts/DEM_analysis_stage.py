@@ -297,12 +297,12 @@ class DEMAnalysisStage(AnalysisStage):
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self._GetSolver().dt)
 
-        super().Initialize()
+        super().Initialize() # Calls Initialize from core-stage - includes processes
 
         self.seed = self.DEM_parameters["seed"].GetInt()
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-        self.SetInlet()
+        self.SetInlet() # migrate this to process
 
         self.SetInitialNodalValues()
 

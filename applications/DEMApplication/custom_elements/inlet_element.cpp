@@ -33,7 +33,7 @@ namespace Kratos {
 
     void InletElement3D::Initialize(const ProcessInfo& r_process_info) {
         /*
-        This will be called once from the solver_Strategy -> rigid_body_element->Initialize
+        This will be called once from the solver_Strategy -> inlet_element->Initialize
         */
 
         auto& central_node = GetGeometry()[0];

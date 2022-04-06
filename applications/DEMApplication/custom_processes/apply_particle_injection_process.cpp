@@ -15,39 +15,53 @@
 namespace Kratos
 {
 
+    /// Constructor - we require access to the sphers model part too.
+    ApplyParticleInjectionProcess::ApplyParticleInjectionProcess( ModelPart& rInletPart,
+                                                                    ModelPart& rSpheresPart,
+                                                                    Parameters rParameters
+                                            ) : Process(Flags()) ,mrInletPart(rInletPart),
+                                                                    mrSpheresPart(rSpheresPart),
+                                                                    mParameters(rParameters),
+                                                                    mInterval(rParameters) {
 
-    /// Constructor
-    ApplyParticleInjectionProcess::ApplyParticleInjectionProcess(
-        ModelPart& rModelPart,
-        Parameters rParameters
-        ) : Process(Flags()) , mrModelPart(rModelPart), mParameters(rParameters), mInterval(rParameters)
-    {
         KRATOS_TRY
 
         Parameters default_parameters( R"(
             {
-                "model_part_name":"MODEL_PART_NAME",
-                "injected_particle_radius" : 1.0,
-                "injected_particle_velocity": [10.0, "3*t", "x+y"],
-                "max_rand_deviation_angle": 1.0e-5,
-                "injection_start" : 0,
-                "injection_stop" : 0.0,
-                "injector_element_type" : 'SphericParticle',
-                "injected_element_type" : 'SphericParticle',
-                "contains_clusters" : "false",
-                "injected_number_of_particles": 1000,
-                "imposed_mass_flow_option" : false,
-                "mass_flow": 100.0,
-                "probability_distribution": normal,
-                "standard_deviation": 0.0,
-                "dense_inlet_option" : false,
+                "model_part_name"      : "please_specify_model_part_name",
+                "granulometry_settings" : {
+                    "injected_particle_radius" : 1.0,
+                    "probability_distribution": normal,
+                    "standard_deviation": 0.0,
+                },
+                "flow_settings" : {
+                    "imposed_mass_flow_option" : false,
+                    "mass_flow": 100.0,
+                    "dense_inlet_option" : false,
+                },
+                "injection_settings" : {
+                    "injected_particle_velocity": [10.0, "3*t", "x+y"],
+                    "max_rand_deviation_angle": 1.0e-5,
+                    "injector_element_type" : 'SphericParticle',
+                    "injected_element_type" : 'SphericParticle',
+                    "contains_clusters" : "false",
+                    "injected_number_of_particles": 1000,
+                },
+                "injection_interval"             : [0.0, "End"]
             }  )" );
+
+
+            // use interval for this
+            // "injection_start" : 0,
+            // "injection_stop" : 0.0,
 
 
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
         mParameters = rParameters;
+
+        mStrategyForContinuum = false;
 
         // This list of member variables could be avoided by integrating them all into mParameters
         // mParameters["injected_particle_radius"].GetDouble()
@@ -73,6 +87,7 @@ namespace Kratos
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     //********************* moved out of inlet.cpp
+
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_inlet_settings, const int seed):
      mInletModelPart(inlet_modelpart), mInletsSettings(Parameters(r_inlet_settings))
         {
@@ -148,7 +163,8 @@ namespace Kratos
     }
 
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
-        // to process
+        // to process - este r_modelpart es le de spheres
+        // this function adds the injectors to the spheres mp
 
         mStrategyForContinuum = using_strategy_for_continuum;
         unsigned int& max_Id=creator.mMaxNodeId;
@@ -359,7 +375,135 @@ namespace Kratos
     /// Execute method is used to execute the Injector algorithms.
     void ApplyParticleInjectionProcess::Execute() {}
 
-    void ApplyParticleInjectionProcess::ExecuteInitialize() {}
+    void ApplyParticleInjectionProcess::ExecuteInitialize() {
+        /* call from analisys_stage - initialize
+        Volem migrar aqui tot el que feia el InitializeDEM_Inlet - loop pels smp i add injectors to spherespart
+
+        */
+
+
+        mStrategyForContinuum = using_strategy_for_continuum;  // esto q, com accedim. hauria destar tb al process
+        unsigned int& max_Id=creator.mMaxNodeId;
+        mFastProperties = PropertiesProxiesManager().GetPropertiesProxies(mrSpheresPart);
+        VariablesList r_modelpart_nodal_variables_list = mrSpheresPart.GetNodalSolutionStepVariablesList();
+
+        if (r_modelpart_nodal_variables_list.Has(PARTICLE_SPHERICITY)) mBallsModelPartHasSphericity = true;
+
+        if (mrSpheresPart.GetProcessInfo()[ROTATION_OPTION]) {
+            mBallsModelPartHasRotation = true;
+            mrInletPart.GetProcessInfo()[ROTATION_OPTION] = true;
+        }
+        else {
+            mrInletPart.GetProcessInfo()[ROTATION_OPTION] = false;
+        }
+
+        int smp_number = 0;
+
+        for (ModelPart::SubModelPartsContainerType::iterator smp_it = mrInletPart.SubModelPartsBegin(); smp_it != mrInletPart.SubModelPartsEnd(); ++smp_it) {
+            ModelPart* mp = &*smp_it;
+            mListOfSubModelParts.push_back(mp);
+        }
+        std::sort(mListOfSubModelParts.begin(), mListOfSubModelParts.end(), SortSubModelPartsByName);
+
+        for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+
+            ModelPart& mp = *mListOfSubModelParts[i];
+
+            CheckSubModelPart(mp);
+
+            int mesh_size = mp.NumberOfNodes();
+            if (!mesh_size) continue;
+            ModelPart::NodesContainerType::ContainerType& all_nodes = mp.NodesArray();
+            mp[INLET_INITIAL_VELOCITY] = mp[LINEAR_VELOCITY];    //This is the velocity of the moving injector of particles
+            mp[INLET_INITIAL_PARTICLES_VELOCITY] = mp[VELOCITY]; //This is the initial velocity vector of the injected particles
+
+            array_1d<double, 3>& inlet_velocity = mp[VELOCITY];
+
+            KRATOS_ERROR_IF((inlet_velocity[0] == 0.0) && (inlet_velocity[1] == 0.0) && (inlet_velocity[2] == 0.0)) << "The inlet velocity cannot be zero for inlet: " << mp.Name() << std::endl;
+
+            double max_rand_dev_angle = mp[MAX_RAND_DEVIATION_ANGLE];
+
+            KRATOS_ERROR_IF(max_rand_dev_angle < 0.0 || max_rand_dev_angle > 89.5) << "The velocity deviation angle must be between 0 and 89.5 degrees for inlet: "<< mp.Name() << std::endl;
+
+            Properties::Pointer p_properties = mrSpheresPart.pGetProperties(mp[PROPERTIES_ID]);
+            int general_properties_id = p_properties->Id();
+
+            PropertiesProxy* p_fast_properties = NULL;
+
+            for (unsigned int i = 0; i < mFastProperties.size(); i++) {
+                int fast_properties_id = mFastProperties[i].GetId();
+                if (fast_properties_id == general_properties_id) {
+                    p_fast_properties = &(mFastProperties[i]);
+                    break;
+                }
+                mLastInjectionTimes[smp_number] = mp[INLET_START_TIME];
+            }
+
+            if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear" || mp[PROBABILITY_DISTRIBUTION] == "discrete"){
+                if (!mInletsSettings.Has(mp.Name())){
+                    KRATOS_ERROR << "dem_inlet_settings does not contain settings for the inlet" << mp.Name() << ". Please, provide them.";
+                }
+                const Parameters& inlet_settings = mInletsSettings[mp.Name()];
+                mInletsRandomSettings.emplace(mp.Name(), inlet_settings["random_variable_settings"]);
+                const Parameters& rv_settings = mInletsRandomSettings[mp.Name()];
+                int seed = rv_settings["seed"].GetInt();
+                if (!rv_settings["do_use_seed"].GetBool()){
+                    seed = std::random_device{}();
+                }
+                if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear"){
+
+                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<PiecewiseLinearRandomVariable>(new PiecewiseLinearRandomVariable(rv_settings, seed));
+                }
+
+                else if (mp[PROBABILITY_DISTRIBUTION] == "discrete"){
+                    mInletsRandomVariables[mp.Name()] = std::unique_ptr<DiscreteRandomVariable>(new DiscreteRandomVariable(rv_settings, seed));
+                }
+
+                else {
+                    KRATOS_ERROR << "Unknown DEM inlet random variable: " << mp[PROBABILITY_DISTRIBUTION] << ".";
+                }
+            }
+
+            double max_radius = SetMaxDistributionRadius(mp);
+
+            if (!mp[MINIMUM_RADIUS]) {
+                mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
+            }
+            if (!mp[MAXIMUM_RADIUS]) {
+                mp[MAXIMUM_RADIUS] = max_radius;
+            }
+
+            Element::Pointer dummy_element_pointer;
+            std::string& ElementNameString = mp[INJECTOR_ELEMENT_TYPE];
+            const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+
+            for (int i = 0; i < mesh_size; i++) {
+                Element* p_element = creator.ElementCreatorWithPhysicalParameters(mrSpheresPart,
+                                                                                max_Id+1,
+                                                                                all_nodes[i],
+                                                                                dummy_element_pointer,
+                                                                                p_properties,
+                                                                                mp,
+                                                                                mInletsRandomVariables,
+                                                                                r_reference_element,
+                                                                                p_fast_properties,
+                                                                                mBallsModelPartHasSphericity,
+                                                                                mBallsModelPartHasRotation,
+                                                                                true,
+                                                                                mp.Elements());
+
+                FixInjectorConditions(p_element);
+                max_Id++;
+                /*if(mStrategyForContinuum){
+                    SphericContinuumParticle* p_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle*>(p_element);
+                    p_continuum_spheric_particle->mContinuumInitialNeighborsSize=0;
+                    p_continuum_spheric_particle->mInitialNeighborsSize=0;
+                }*/
+            }
+            smp_number++;
+        } //for smp_it
+    } //InitializeDEM_Inlet
+
 
     void ApplyParticleInjectionProcess::ExecuteInitializeSolutionStep()
     {

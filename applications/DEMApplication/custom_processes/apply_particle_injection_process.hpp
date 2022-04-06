@@ -63,8 +63,7 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      /// Constructor
-      ApplyParticleInjectionProcess(ModelPart& rModelPart, Parameters rParameters);
+      ApplyParticleInjectionProcess(ModelPart& rInletPart, ModelPart& rSpheresPart, Parameters rParameters);
 
       /// Destructor.
       ~ApplyParticleInjectionProcess() {};
@@ -163,9 +162,11 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      ModelPart& mrModelPart;
+      ModelPart& mrInletPart;
+      ModelPart& mrSpheresPart;
       Parameters mParameters;
       IntervalUtility mInterval;  // this could be used instead of inlet_start_time and stop_time
+      bool mStrategyForContinuum;
 
       // array_1d<bool, 3> mVelocityIsConstrained;
       // array_1d<bool, 3> mVelocityValueIsNumeric;
