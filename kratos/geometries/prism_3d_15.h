@@ -384,7 +384,7 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
+        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
@@ -403,7 +403,7 @@ public:
      */
     double Area() const override
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
 
