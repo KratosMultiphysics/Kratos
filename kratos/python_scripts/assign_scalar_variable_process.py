@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
 import sys
 from math import *
@@ -39,7 +40,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             "variable_name"   : "SPECIFY_VARIABLE_NAME",
             "interval"        : [0.0, 1e30],
             "constrained"     : true,
-            "value"           : 0.0,
+            "value"           : {},
             "local_axes"      : {}
         }
         """
@@ -48,10 +49,12 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
 
-        # Here i do a trick, since i want to allow "value" to be a string or a double value
+        # Here i do a trick, since i want to allow "value" to be a string or a double value or a sub parameter
         if settings.Has("value"):
             if settings["value"].IsString():
                 default_settings["value"].SetString("0.0")
+            if settings["value"].IsDouble():
+                default_settings["value"].SetDouble(0.0)
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -65,15 +68,19 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.is_fixed = settings["constrained"].GetBool()
 
         self.value_is_numeric = False
+        self.value_is_function = False
         if settings["value"].IsNumber():
             self.value_is_numeric = True
             self.value = settings["value"].GetDouble()
-        else:
+        elif settings["value"].IsString():
+            self.value_is_function = True
             self.function_string = settings["value"].GetString()
             self.aux_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
             if self.aux_function.DependsOnSpace():
                 self.cpp_apply_function_utility = KratosMultiphysics.ApplyFunctionToNodesUtility(self.mesh.Nodes, self.aux_function )
+        else:
+            self.table = ReadCsvTableUtility(settings["value"]).Read(self.model_part)
 
         # Construct a variable_utils object to speedup fixing
         self.variable_utils = KratosMultiphysics.VariableUtils()
@@ -104,12 +111,15 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
 
             if self.value_is_numeric:
                 self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
-            else:
+            elif self.value_is_function:
                 if self.aux_function.DependsOnSpace() == False: #depends on time only
                     self.value = self.aux_function.CallFunction(0.0,0.0,0.0,current_time,0.0,0.0,0.0)
                     self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
+            else:
+                value = self.table.GetValue(current_time)
+                self.variable_utils.SetVariable(self.variable, value, self.mesh.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
