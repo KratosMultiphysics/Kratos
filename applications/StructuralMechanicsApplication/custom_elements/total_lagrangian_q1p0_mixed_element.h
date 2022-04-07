@@ -47,8 +47,8 @@ namespace Kratos
  * @class TotalLagrangianQ1P0MixedElement
  * @ingroup StructuralMechanicsApplication
  * @brief Total Lagrangian mixed u-p element (Q1P0) for 2D and 3D geometries.
- * @details Implements a mixed u-p total Lagrangian element for structural analysis, especially when incompressibility is used at constitutive level. This works for arbitrary geometries in 2D and 3D
- * @details Reference: Nonlinear Finite Element Methods, prof. Peter Wriggers, Springer, section 10.2.1. "Mixed Q1-P0 Element"
+ * @details Implements a mixed u-p total Lagrangian element for structural analysis, especially when quasi-incompressibility is used at constitutive level. This works for arbitrary geometries in 2D and 3D
+ * @details Reference: Numerical modelling of the growth and remodelling phenomena in biological tissues, PhD thesis, Ester Comellas.
  * @author Alejandro Cornejo
  */
 
