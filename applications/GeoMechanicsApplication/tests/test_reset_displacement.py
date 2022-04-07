@@ -42,7 +42,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         n_stages = 4
 
         stages = test_helper.get_stages(project_path, n_stages)
-
+        currentWorking = os.getcwd()
         displacement_stages = [None]*n_stages
         nodal_coordinates_stages = [None]*n_stages
 
@@ -51,7 +51,9 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             stage.Run()
             displacement_stages[idx] = test_helper.get_displacement(stage)
             nodal_coordinates_stages[idx] = test_helper. get_nodal_coordinates(stage)
-
+        
+        os.chdir(currentWorking)
+       
         # Assert
         stage_nr = 0
         for idx,node in enumerate(nodal_coordinates_stages[stage_nr]):
