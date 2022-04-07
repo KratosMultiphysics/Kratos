@@ -12,6 +12,7 @@
 //                   Felix Nagel
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_PRISM_3D_15_H_INCLUDED )
@@ -52,7 +53,9 @@ namespace Kratos
  * @author Janosch Stascheit
  * @author Felix Nagel
  */
-template<class TPointType> class Prism3D15 : public Geometry<TPointType>
+template<class TPointType>
+class Prism3D15
+    : public Geometry<TPointType>
 {
 public:
     /**
@@ -182,33 +185,6 @@ public:
     /**
      * Life Cycle
      */
-
-//     Prism3D15( const PointType& Point1, const PointType& Point2,
-//                const PointType& Point3, const PointType& Point4, const PointType& Point5,
-//                const PointType& Point6, const PointType& Point7, const PointType& Point8,
-//                const PointType& Point9, const PointType& Point10, const PointType& Point11,
-//                const PointType& Point12, const PointType& Point13, const PointType& Point14,
-//                const PointType& Point15 )
-//         : BaseType( PointsArrayType(), &msGeometryData )
-//     {
-//         this->Points().reserve( 15 );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point1 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point2 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point3 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point4 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point5 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point6 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point7 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point8 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point9 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point10 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point11 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point12 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point13 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point14 ) ) );
-//         this->Points().push_back( typename PointType::Pointer( new PointType( Point15 ) ) );
-//     }
-
     Prism3D15( typename PointType::Pointer pPoint1,
                typename PointType::Pointer pPoint2,
                typename PointType::Pointer pPoint3,
@@ -247,8 +223,7 @@ public:
     Prism3D15( const PointsArrayType& rThisPoints )
         : BaseType( rThisPoints, &msGeometryData )
     {
-        if ( this->PointsNumber() != 15 )
-            KRATOS_ERROR << "Invalid points number. Expected 15, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 15 ) << "Invalid points number. Expected 15, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
