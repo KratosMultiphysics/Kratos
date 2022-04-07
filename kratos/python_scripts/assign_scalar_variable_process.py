@@ -18,6 +18,19 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     Public member variables:
     Model -- the container of the different model parts.
     settings -- Kratos parameters containing solver settings.
+
+    Possible specifications for the key 'value' from settings:
+    - double: the constant value is applied.
+    - string: the string is parsed as a function
+    - parameters: a csv table can be specified:
+        {
+            "name"       : "csv_table",
+            "file_name"  : "path/to/file.csv",
+            "delimiter"  : ",",
+            "skiprows"   : 0,
+            "table_id"   : -1,
+            "na_replace" : 0.0
+        }
     """
 
     def __init__(self, Model, settings ):
