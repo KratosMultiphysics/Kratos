@@ -89,6 +89,20 @@ ModelPart& GenerateModel(Model& rModel, const std::string& rConditionName)
     return model_part;
 }
 
+std::vector<double> SumNodalContributions(ModelPart const& rModelPart)
+{
+    std::vector<double> rhs_totals(4, 0.0);
+    for(auto const& r_node: rModelPart.Nodes())
+    {
+        rhs_totals[0] += r_node.FastGetSolutionStepValue(REACTION_DENSITY);
+        rhs_totals[1] += r_node.FastGetSolutionStepValue(REACTION_X);
+        rhs_totals[2] += r_node.FastGetSolutionStepValue(REACTION_Y);
+        rhs_totals[3] += r_node.FastGetSolutionStepValue(REACTION_ENERGY);
+    }
+    return rhs_totals;
+}
+
+
 /**
  * Debugging tool that prints a table with the value of all DOFs in each node
  */
@@ -97,7 +111,6 @@ void PrintReactions(ModelPart const& rModelPart)
     std::stringstream ss;
     ss << "\nNode #    DENSITY           MOMENTUM_X       MOMENTUM_Y    TOTAL_ENERGY\n";
 
-    std::vector<double> rhs_totals(4, 0.0);
     for(auto const& r_node: rModelPart.Nodes())
     {
         ss << r_node.Id() << "    "
@@ -109,21 +122,18 @@ void PrintReactions(ModelPart const& rModelPart)
            << r_node.FastGetSolutionStepValue(REACTION_Y) << "   "
            << std::setfill(' ') << std::right << std::setw(14)
            << r_node.FastGetSolutionStepValue(REACTION_ENERGY) << "   \n";
-
-        rhs_totals[0] += r_node.FastGetSolutionStepValue(REACTION_DENSITY);
-        rhs_totals[1] += r_node.FastGetSolutionStepValue(REACTION_X);
-        rhs_totals[2] += r_node.FastGetSolutionStepValue(REACTION_Y);
-        rhs_totals[3] += r_node.FastGetSolutionStepValue(REACTION_ENERGY);
     }
+
+    const auto rhs_totals = SumNodalContributions(rModelPart);
     ss << "SUM "
-           << std::setfill(' ') << std::right << std::setw(14)
-           << rhs_totals[0] << "   "
-           << std::setfill(' ') << std::right << std::setw(14)
-           << rhs_totals[1] << "   "
-           << std::setfill(' ') << std::right << std::setw(14)
-           << rhs_totals[2] << "   "
-           << std::setfill(' ') << std::right << std::setw(14)
-           << rhs_totals[3] << "   \n";
+       << std::setfill(' ') << std::right << std::setw(14)
+       << rhs_totals[0] << "   "
+       << std::setfill(' ') << std::right << std::setw(14)
+       << rhs_totals[1] << "   "
+       << std::setfill(' ') << std::right << std::setw(14)
+       << rhs_totals[2] << "   "
+       << std::setfill(' ') << std::right << std::setw(14)
+       << rhs_totals[3] << "   \n";
 
     ss << std::endl;
     Logger("") << ss.str();
@@ -166,7 +176,7 @@ void SetViscosities(
     }
 }
 
-void SetEulerFluxes(
+void SetEulerFluxesAtMidPoint(
     ModelPart& rModelPart,
     double(*Rho)(array_1d<double, 3> const&),
     array_1d<double, 3>(*Momentum)(array_1d<double, 3> const&),
@@ -257,7 +267,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTr
 
     SetDofValues(r_model_part, rho, mom, etot);
     SetViscosities(r_model_part, 1e-3, 2e-3, 3e-3);
-    SetEulerFluxes(r_model_part, rho, mom, etot);
+    SetEulerFluxesAtMidPoint(r_model_part, rho, mom, etot);
     const auto rhs = Assemble(r_model_part);
 
     // Check obtained RHS values
@@ -292,7 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic,
 
     SetDofValues(r_model_part, rho, mom, etot);
     SetViscosities(r_model_part, 1e-3, 2e-3, 0.0);
-    SetEulerFluxes(r_model_part, rho, mom, etot);
+    SetEulerFluxesAtMidPoint(r_model_part, rho, mom, etot);
     const auto rhs = Assemble(r_model_part);
 
     // Check obtained RHS values
@@ -332,10 +342,14 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
 
     // Moving nodes
     constexpr double area = 1.0;
-    const double r = std::sqrt(1 / area); // Circumradius
+    
     constexpr double pi = 3.14159265359; // Is this defined anywhere in kratos?
-    const double apotheme = r*std::sin(pi / 6);
-    const double half_base = r*std::cos(pi / 6);
+    const double cos30 = std::cos(pi / 6);
+    const double sin30 = std::sin(pi / 6);
+
+    const double r = std::sqrt(area / (cos30*(1+sin30))); // Circumradius
+    const double apotheme = r*sin30;
+    const double half_base = r*cos30;
 
     r_model_part.GetNode(1).X() = -half_base;
     r_model_part.GetNode(1).Y() = -apotheme;
@@ -355,14 +369,28 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     const auto mom  = [](array_1d<double, 3> const& X) { return array_1d<double, 3>{- density*omega*X[1], density*omega*X[0], 0.0}; };
     const auto etot = [](array_1d<double, 3> const& X) { return gamma/(gamma - 1) * density*omega*omega*inner_prod(X,X)/2 + p0/(gamma - 1); };
 
+    const double p = density*omega*omega*half_base*half_base / 6 + p0; //Mean pressure along an edge
+    for(auto& r_condition: r_model_part.Conditions())
+    {
+        const auto n = r_condition.GetGeometry().UnitNormal(0);
+        r_condition.SetValue(DENSITY_FLUX, 0.0);
+        r_condition.SetValue(MOMENTUM_FLUX, p * n);
+        r_condition.SetValue(TOTAL_ENERGY_FLUX, 0.0);
+    }
+
     SetDofValues(r_model_part, rho, mom, etot);
     SetViscosities(r_model_part, 0.0, 0.0, 0.0);
-    SetEulerFluxes(r_model_part, rho, mom, etot);
     const auto rhs = Assemble(r_model_part, true);
 
-    // Check obtained RHS values
-    const std::vector<double> reference(12, 0.0);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, reference, 1e-4);
+    // Linear interpolation cannot properly capture the quadratic profile of energy,
+    // hence conservation is not fulfilled at the nodes but must be at the element level.
+    const auto rhs_totals = SumNodalContributions(r_model_part);
+    const std::vector<double> reference(4, 0.0);
+    KRATOS_CHECK_VECTOR_NEAR(rhs_totals, reference, 1e-4);
+
+
+    const std::vector<double> reference2(12, 0.0);
+    KRATOS_CHECK_VECTOR_NEAR(rhs, reference2, 1e-4);    
 }
 
 
