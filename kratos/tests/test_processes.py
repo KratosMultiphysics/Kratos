@@ -1,20 +1,13 @@
-﻿# Importing the Kratos Library
+# Importing the Kratos Library
 import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics import process_factory
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from unittest import skipUnless
 
 import math
 import os
-
-try:
-    import pandas
-    pandas_available = True
-except:
-    pandas_available = False
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -2475,7 +2468,6 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[1].Id, 2)
         self.assertEqual(model_part.GetCondition(10).GetGeometry()[2].Id, 31)
 
-    @skipUnless(pandas_available, "pandas isn't available")
     def test_apply_table_to_variable_process(self):
         model = KratosMultiphysics.Model()
         model_part = model.CreateModelPart("Main")
@@ -2497,7 +2489,6 @@ class TestProcesses(KratosUnittest.TestCase):
                     "table_input_parameters" : {
                         "file_name" : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
                         "delimiter" : ",",
-                        "decimal"   : ".",
                         "skiprows"  : 1
                     }
                 }

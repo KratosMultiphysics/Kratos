@@ -1,5 +1,5 @@
 import KratosMultiphysics as KM
-import pandas as pd
+import csv
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -16,7 +16,6 @@ class ApplyTableToVariableProcess(KM.Process):
     |   "table_input_parameters" : {               |
     |       "file_name"      : "path/to/file.csv"  |
     |       "delimiter"      : ",",                |
-    |       "decimal"        : ".",                |
     |       "skiprows"       : 0                   |
     |   }                                          |
     |----------------------------------------------|
@@ -29,7 +28,7 @@ class ApplyTableToVariableProcess(KM.Process):
     Some possible delimiters for csv:
     |--------|-------------------------------------|
     | "\t"   | tab                                 |
-    | "\s+"  | multiple spaces                     |
+    | " "    | spaces                              |
     | ","    | comma (default)                     |
     |        | etc.                                |
     |--------|-------------------------------------|
@@ -120,20 +119,22 @@ class ApplyTableToVariableProcess(KM.Process):
         default_settings =  KM.Parameters("""{
             "file_name" : "",
             "delimiter" : ",",
-            "decimal"   : ".",
             "skiprows"  : 0
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
         file_name = settings["file_name"].GetString()
         delimiter = settings["delimiter"].GetString()
-        decimal = settings["decimal"].GetString()
         skiprows = settings["skiprows"].GetInt()
-        data = pd.read_csv(file_name, delimiter=delimiter, decimal=decimal, skiprows=skiprows, header=None)
 
         table = KM.PiecewiseLinearTable()
-        for row in data.values:
-            table.AddRow(row[0], row[1])
+        with open(file_name, 'r') as table_file:
+            data = csv.reader(table_file, delimiter=delimiter, skipinitialspace=True)
+            for _ in range(skiprows):
+                next(data,None)
+            for row in data:
+                if row:  # skip empty rows
+                    table.AddRow(float(row[0]), float(row[1]))
         return table
 
 
