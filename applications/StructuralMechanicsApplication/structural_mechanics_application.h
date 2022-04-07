@@ -330,6 +330,7 @@ private:
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D3N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement2D4N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D4N;
+    const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D10N;
     const TotalLagrangianQ1P0MixedElement mTotalLagrangianQ1P0MixedElement3D8N;
 
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
