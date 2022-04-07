@@ -224,18 +224,6 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void TotalLagrangianQ1P0MixedElement::InitializeMaterial()
-{
-    KRATOS_TRY
-
-    BaseType::InitializeMaterial();
-
-    KRATOS_CATCH( "" );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void TotalLagrangianQ1P0MixedElement::CalculateNeoHookeanStressAndTangent(
     const Matrix &rC,
     const double Pressure,

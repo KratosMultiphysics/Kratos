@@ -194,10 +194,9 @@ protected:
         ) override;
 
     /**
-     * @brief It initializes the material
+     * @brief It computes the stress vector and tangent constitutive tensor by
+     * automatic differentiation
      */
-    void InitializeMaterial() override;
-
     void CalculateNeoHookeanStressAndTangent(const Matrix &rC, const double Pressure, const double LameMu, Vector &rStress, Matrix &rTangentTensor);
 
     /**
@@ -226,7 +225,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    // double mInitialVolume = 0.0;
     double mPressure = 0.0;
 
     ///@}
