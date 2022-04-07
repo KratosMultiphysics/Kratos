@@ -387,10 +387,6 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     const auto rhs_totals = SumNodalContributions(r_model_part);
     const std::vector<double> reference(4, 0.0);
     KRATOS_CHECK_VECTOR_NEAR(rhs_totals, reference, 1e-4);
-
-
-    const std::vector<double> reference2(12, 0.0);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, reference2, 1e-4);    
 }
 
 
