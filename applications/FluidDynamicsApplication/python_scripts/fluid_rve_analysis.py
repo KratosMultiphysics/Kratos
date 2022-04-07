@@ -15,11 +15,7 @@ class FluidRVEAnalysis(FluidDynamicsAnalysis):
 
         self.averaging_volume = -1.0  # it will be computed in initialize
         self.domain_size = project_parameters["solver_settings"]["domain_size"].GetInt()
-        if(self.domain_size == 2):
-            self.strain_size = 3
-        elif self.domain_size == 3:
-            self.strain_size = 6
-        else:
+        if self.domain_size != 2 and self.domain_size != 3:
             err_msg = "Wrong 'domain_size' value {}. Expected 2 or 3.".format(self.domain_size)
             raise ValueError(err_msg)
 
@@ -29,11 +25,21 @@ class FluidRVEAnalysis(FluidDynamicsAnalysis):
         self.strains["00"] = project_parameters["rve_settings"]["jump_XX"].GetDouble()
         self.strains["11"] = project_parameters["rve_settings"]["jump_YY"].GetDouble()
         self.strains["01"] = project_parameters["rve_settings"]["jump_XY"].GetDouble()
-        self.strains["12"] = project_parameters["rve_settings"]["jump_YZ"].GetDouble() # needs to be included in the 3D case?
         if(self.domain_size == 3):
             self.strains["22"] = project_parameters["rve_settings"]["jump_ZZ"].GetDouble()
             self.strains["02"] = project_parameters["rve_settings"]["jump_XZ"].GetDouble()
-
+            self.strains["12"] = project_parameters["rve_settings"]["jump_YZ"].GetDouble()
+            
+        self.strain = KratosMultiphysics.Matrix(self.domain_size, self.domain_size)
+        self.strain.fill(0.0)
+        
+        # Create and fill "strain" matrix
+        for i in range(self.domain_size):
+            for j in range(i ,self.domain_size):
+                strainIndex = str(i) + str(j)
+                
+                self.strain[i, j] = self.strains[strainIndex]
+                self.strain[j, i] = self.strains[strainIndex]
 
         self.populate_search_eps = 1e-4 ##tolerance in finding which conditions belong to the surface (will be multiplied by the lenght of the diagonal)
         self.geometrical_search_tolerance = 1e-4 #tolerance to be used in the search of the condition it falls into
@@ -44,10 +50,10 @@ class FluidRVEAnalysis(FluidDynamicsAnalysis):
     def ModifyInitialGeometry(self):
         super().ModifyInitialGeometry()
         boundary_mp = self.model[self.boundary_mp_name]
-        averaging_mp = self.model[self.averaging_mp_name]
+        self.averaging_mp = self.model[self.averaging_mp_name]
 
         # Construct auxiliary modelparts
-        self.min_corner, self.max_corner = self._DetectBoundingBox(averaging_mp)
+        self.min_corner, self.max_corner = self._DetectBoundingBox(self.averaging_mp)
         self._ConstructFaceModelParts(self.min_corner, self.max_corner, boundary_mp)
 
         self.averaging_volume = 1.0
@@ -55,22 +61,15 @@ class FluidRVEAnalysis(FluidDynamicsAnalysis):
             self.averaging_volume *= self.max_corner[i]-self.min_corner[i]
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "RVE undeformed averaging volume = ", self.averaging_volume)
 
-    def ModifyAfterSolverInitialize(self):
-        boundary_mp = self.model[self.boundary_mp_name]
-        averaging_mp = self.model[self.averaging_mp_name]
+    def ModifyAfterSolverInitialize(self):                
+        self._ApplyPeriodicity(self.strain, self.averaging_mp)
         
-        # Create and fill "strain matrix"
-        strain = KratosMultiphysics.Matrix(self.domain_size, self.domain_size)
-        strain.fill(0.0)
+        self._ComputeNodalArea()
+            
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
         
-        for i in range(self.domain_size):
-            for j in range(i ,self.domain_size):
-                strainIndex = str(i) + str(j)
-                
-                strain[i, j] = self.strains[strainIndex]
-                strain[j, i] = self.strains[strainIndex]
-                
-        self._ApplyPeriodicity(strain, averaging_mp, boundary_mp)
+        self._AvgVelocityCorrection()   
 
     def _DetectBoundingBox(self, mp):
         min_corner = KratosMultiphysics.Array3()
@@ -134,7 +133,7 @@ class FluidRVEAnalysis(FluidDynamicsAnalysis):
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, False, mp.Nodes)
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, False, mp.Nodes)
-
+        
         # Populate the slave faces
         self.max_x_face = self.__PopulateMp("max_x_face", max_corner[0], 0, eps, mp)
         self.max_y_face = self.__PopulateMp("max_y_face", max_corner[1], 1, eps, mp)
@@ -154,7 +153,7 @@ class FluidRVEAnalysis(FluidDynamicsAnalysis):
         if self.domain_size == 3 and self.min_z_face.NumberOfConditions() == 0:
             raise Exception("min_z_face has 0 conditions")
       
-    def _ApplyPeriodicity(self, strain, volume_mp, boundary_mp):
+    def _ApplyPeriodicity(self, strain, volume_mp):
         # clear
         for constraint in volume_mp.GetRootModelPart().MasterSlaveConstraints:
             constraint.Set(KratosMultiphysics.TO_ERASE)
@@ -163,19 +162,42 @@ class FluidRVEAnalysis(FluidDynamicsAnalysis):
 
         dx = self.max_corner[0] - self.min_corner[0]
         dy = self.max_corner[1] - self.min_corner[1]
-        if self.strain_size == 6:
+        if self.domain_size == 3:
             dz = self.max_corner[2] - self.min_corner[2]
         
         periodicity_utility = KratosMultiphysics.RVEPeriodicityUtility(self._GetSolver().GetComputingModelPart())
        
         # assign periodicity to faces
-        direction_x = KratosMultiphysics.Vector([dx, 0.0, 0.0]) if self.strain_size == 6 else KratosMultiphysics.Vector([dx, 0.0])
+        direction_x = KratosMultiphysics.Vector([dx, 0.0, 0.0]) if self.domain_size == 3 else KratosMultiphysics.Vector([dx, 0.0])
         periodicity_utility.AssignPeriodicity(self.min_x_face, self.max_x_face, strain, direction_x, self.geometrical_search_tolerance)
-        direction_y = KratosMultiphysics.Vector([0.0, dy, 0.0]) if self.strain_size == 6 else KratosMultiphysics.Vector([0.0, dy])      
+        direction_y = KratosMultiphysics.Vector([0.0, dy, 0.0]) if self.domain_size == 3 else KratosMultiphysics.Vector([0.0, dy])      
         periodicity_utility.AssignPeriodicity(self.min_y_face, self.max_y_face, strain, direction_y, self.geometrical_search_tolerance)
-        if self.strain_size == 6:
+        if self.domain_size == 3:
             direction_z = KratosMultiphysics.Vector([0.0, 0.0, dz])
             periodicity_utility.AssignPeriodicity(self.min_z_face, self.max_z_face, strain, direction_z, self.geometrical_search_tolerance)    
         
         periodicity_utility.Finalize(KratosMultiphysics.VELOCITY)
+    
+    def _ComputeNodalArea(self):            
+        nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(
+            self.averaging_mp,
+            self.domain_size)
+        nodal_area_process.Execute()
         
+    def _AvgVelocityCorrection(self):
+        v_avg = KratosMultiphysics.Array3()
+        v_avg[0] = 0.0
+        v_avg[1] = 0.0
+        v_avg[2] = 0.0
+        w_tot = 0.0
+
+        for node in self.averaging_mp.Nodes:
+            w = node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
+            v_avg += w * node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            w_tot += w
+        v_avg /= w_tot
+        
+        for node in self.averaging_mp.Nodes:
+            v_new = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY) - v_avg
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, v_new)
+ 
