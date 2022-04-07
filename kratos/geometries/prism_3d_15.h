@@ -383,8 +383,11 @@ public:
      * :TODO: might be necessary to reimplement
      */
     double Length() const override
-    {
-        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
+    {        
+        const double volume = Volume();
+
+        return std::pow(volume, 1.0/3.0)/3.0;
+//        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
     /**
@@ -1058,7 +1061,7 @@ private:
     }
 
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
-    {
+    
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
