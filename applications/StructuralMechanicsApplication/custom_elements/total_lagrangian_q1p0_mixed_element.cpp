@@ -155,12 +155,6 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     const double C1 = 0.5 * mu;
     const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
 
-    // Here we compute the elemental pressure
-    Vector displ, displ_old;
-    GetValuesVector(displ, 0);
-    GetValuesVector(displ_old, 1);
-    // if (mKpp != 0.0)
-    //     mPressure -= (mFp + inner_prod(mKup, displ - displ_old)) / mKpp;
     double Kpp = 0.0;
     double Fp = 0.0;
     Vector Kup(mat_size);
@@ -219,11 +213,10 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     if (CalculateResidualVectorFlag)
         noalias(rRightHandSideVector) += Kup * Fp / Kpp;
 
+    Vector displ, displ_old;
+    GetValuesVector(displ, 0);
+    GetValuesVector(displ_old, 1);
     mPressure -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
-    // if (Id() == 15) {
-    //     KRATOS_WATCH(mPressure)
-    // }
-    // KRATOS_WATCH(mPressure)
 
     KRATOS_CATCH( "" )
 }
