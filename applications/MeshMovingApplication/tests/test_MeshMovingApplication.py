@@ -49,14 +49,14 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ALEFluidSolverTest]))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ALEFluidSolverTest]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests([nightSuite]) # already contains the smallSuite
     allSuite.addTests([validationSuite])
 
     return suites
