@@ -131,8 +131,8 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 else: #most general case - space varying function (possibly also time varying)
                     self.cpp_apply_function_utility.ApplyFunction(self.variable, current_time)
             else:
-                value = self.table.GetValue(current_time)
-                self.variable_utils.SetVariable(self.variable, value, self.mesh.Nodes)
+                self.value = self.table.GetValue(current_time)
+                self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
