@@ -159,11 +159,12 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     Vector displ, displ_old;
     GetValuesVector(displ, 0);
     GetValuesVector(displ_old, 1);
-    if (mKpp != 0.0)
-        mPressure -= (mFp + inner_prod(mKup, displ - displ_old)) / mKpp;
-    mKpp = 0.0;
-    mFp = 0.0;
-    noalias(mKup) = ZeroVector(mat_size);
+    // if (mKpp != 0.0)
+    //     mPressure -= (mFp + inner_prod(mKup, displ - displ_old)) / mKpp;
+    double Kpp = 0.0;
+    double Fp = 0.0;
+    Vector Kup(mat_size);
+    noalias(Kup) = ZeroVector(mat_size);
 
     // Computing in all integrations points
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
@@ -196,9 +197,9 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         inv_c_voigt[3] /= 2.0;
         inv_c_voigt[4] /= 2.0;
         inv_c_voigt[5] /= 2.0;
-        noalias(mKup) -= int_to_reference_weight * this_kinematic_variables.detF * prod(trans(this_kinematic_variables.B), inv_c_voigt);
-        mKpp          -= int_to_reference_weight / bulk_modulus;
-        mFp           -= int_to_reference_weight * ((this_kinematic_variables.detF - 1.0) + (mPressure / bulk_modulus));
+        noalias(Kup) -= int_to_reference_weight * this_kinematic_variables.detF * prod(trans(this_kinematic_variables.B), inv_c_voigt);
+        Kpp          -= int_to_reference_weight / bulk_modulus;
+        Fp           -= int_to_reference_weight * ((this_kinematic_variables.detF - 1.0) + (mPressure / bulk_modulus));
 
         if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
@@ -214,11 +215,11 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         }
     } // IP loop
     if (CalculateStiffnessMatrixFlag)
-        noalias(rLeftHandSideMatrix) -= outer_prod(mKup, mKup) / mKpp;
+        noalias(rLeftHandSideMatrix) -= outer_prod(Kup, Kup) / Kpp;
     if (CalculateResidualVectorFlag)
-        noalias(rRightHandSideVector) += mKup * mFp / mKpp;
+        noalias(rRightHandSideVector) += Kup * Fp / Kpp;
 
-    // mPressure -= (mFp + inner_prod(mKup, displ - displ_old)) / mKpp;
+    mPressure -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
     // if (Id() == 15) {
     //     KRATOS_WATCH(mPressure)
     // }
@@ -235,14 +236,6 @@ void TotalLagrangianQ1P0MixedElement::InitializeMaterial()
     KRATOS_TRY
 
     BaseType::InitializeMaterial();
-
-    // now we initialize the Kup vector
-    const auto &r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
-    const SizeType dimension = r_geometry.WorkingSpaceDimension();
-    const SizeType mat_size = number_of_nodes * dimension;
-    mKup.resize(mat_size, false);
-    noalias(mKup) = ZeroVector(mat_size);
 
     KRATOS_CATCH( "" );
 }

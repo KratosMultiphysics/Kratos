@@ -228,9 +228,6 @@ private:
     ///@{
     // double mInitialVolume = 0.0;
     double mPressure = 0.0;
-    Vector mKup;
-    double mKpp = 0.0;
-    double mFp = 0.0;
 
     ///@}
     ///@name Private Operators
