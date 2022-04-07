@@ -180,6 +180,9 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         double det;
         MathUtils<double>::InvertMatrix3(C, inv_C, det);
         Vector inv_c_voigt = MathUtils<double>::StrainTensorToVector(inv_C, GetStrainSize());
+        inv_c_voigt[3] /= 2.0;
+        inv_c_voigt[4] /= 2.0;
+        inv_c_voigt[5] /= 2.0;
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
@@ -188,9 +191,6 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
             int_to_reference_weight *= r_props[THICKNESS];
 
         // we compute u-p entities
-        inv_c_voigt[3] /= 2.0;
-        inv_c_voigt[4] /= 2.0;
-        inv_c_voigt[5] /= 2.0;
         noalias(Kup) -= int_to_reference_weight * this_kinematic_variables.detF * prod(trans(this_kinematic_variables.B), inv_c_voigt);
         Kpp          -= int_to_reference_weight / bulk_modulus;
         Fp           -= int_to_reference_weight * ((this_kinematic_variables.detF - 1.0) + (mPressure / bulk_modulus));
@@ -213,6 +213,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     if (CalculateResidualVectorFlag)
         noalias(rRightHandSideVector) += Kup * Fp / Kpp;
 
+    // Now we statically condensate the elemental pressure
     Vector displ, displ_old;
     GetValuesVector(displ, 0);
     GetValuesVector(displ_old, 1);
