@@ -233,6 +233,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateNeoHookeanStressAndTangent(
     )
 {
     double v[308];
+    const double one_third = 1.0 / 3.0;
     v[1]=rC(0,0);
     v[2]=rC(0,1);
     v[3]=rC(0,2);
@@ -287,18 +288,18 @@ void TotalLagrangianQ1P0MixedElement::CalculateNeoHookeanStressAndTangent(
     v[212]=v[11]*v[50];
     v[12]=std::pow(v[14],0.5e0);
     v[202]=-(v[11]*v[12]);
-    v[203]=((-4e0/3e0)*v[10])/std::pow(v[12],0.16666666666666669e1);
+    v[203]=((-4e0/3e0)*v[10])/std::pow(v[12],5.0*one_third);
     v[86]=v[203]*v[84];
     v[78]=v[203]*v[76];
     v[70]=v[203]*v[68];
     v[62]=v[203]*v[60];
     v[53]=v[203]*v[50];
     v[42]=v[203]*v[40];
-    v[31]=(2e0*v[10])/std::pow(v[12],0.6666666666666666e0);
-    v[138]=-0.3333333333333333e0*v[31];
+    v[31]=(2e0*v[10])/std::pow(v[12],2.0*one_third);
+    v[138]=-one_third*v[31];
     v[13]=v[1]+v[5]+v[9];
     v[207]=1e0*v[13];
-    v[204]=-0.3333333333333333e0*v[13];
+    v[204]=-one_third*v[13];
     v[205]=1e0*v[204];
     v[225]=v[217]+v[204]*v[86];
     v[148]=v[204]*v[78];
@@ -326,17 +327,17 @@ void TotalLagrangianQ1P0MixedElement::CalculateNeoHookeanStressAndTangent(
     v[206]=-(v[11]*v[15]);
     v[210]=v[206]*v[60]+v[202]*v[63];
     v[209]=v[206]*v[50]+v[202]*v[54];
-    v[55]=-0.3333333333333333e0*v[15];
+    v[55]=-one_third*v[15];
     v[44]=1e0+v[207]*v[55];
     v[17]=v[135]/v[14];
     v[18]=v[167]/v[14];
     v[20]=v[46]/v[14];
     v[213]=-(v[20]*v[218])+v[202]*v[99];
-    v[96]=-0.3333333333333333e0*v[20];
+    v[96]=-one_third*v[20];
     v[91]=1e0+v[207]*v[96];
     v[21]=v[154]/v[14];
     v[24]=v[58]/v[14];
-    v[116]=-0.3333333333333333e0*v[24];
+    v[116]=-one_third*v[24];
     v[112]=1e0+1e0*v[116]*v[207];
     rStress[0]=v[12]*v[206]+v[31]*v[44];
     rStress[1]=v[20]*v[202]+v[31]*v[91];
