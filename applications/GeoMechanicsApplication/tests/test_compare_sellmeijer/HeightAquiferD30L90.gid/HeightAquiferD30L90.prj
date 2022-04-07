@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="13.5">
+  <pre>
+    <layer_to_use name="Soil"/>
+    <groups>
+      <group id="1" name="Soil" color="#999999ff"/>
+      <group id="6" name="Right_head" color="#00ff00ff"/>
+      <group id="7" name="Embankment" color="#996600ff"/>
+      <group id="8" name="Pipe" color="#b33366ff"/>
+      <group id="9" name="gravity" color="#804d4dff"/>
+      <group id="10" name="Left_head" color="#338080ff"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="lines">
+        <vector name="entity_ids" length="2" type="integer">17 18</vector>
+        <vector name="entity_num_groups" length="2" type="ushort">1 1</vector>
+        <vector name="entity_groups" length="2" type="ushort">10 6</vector>
+      </entities_group>
+      <entities_group name="surfaces">
+        <vector name="entity_ids" length="3" type="integer">2:4</vector>
+        <vector name="entity_num_groups" length="3" type="ushort">2x3</vector>
+        <vector name="entity_groups" length="6" type="ushort">7 9 9 8 1 9</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="296" type="integer">1:296</vector>
+        <vector name="entity_num_groups" length="296" type="ushort">2x36 3 2 2 3 2 3 2x4 3 2x3 3 2x5 3 2x6 5 2x3 3 3 2x6 3 3 2x8 3 3 2x8 3 3 2x6 3 3 2x9 3 3 2x7 3 3 2x8 3 3 2x10 3 3 2x8 3 3 2x8 3 3 2x9 3 3 2x8 3 3 2x8 3 3 2x9 3 3 2x7 3 3 2x9 3 3 2x9 3 3 2x7 5 2x9 3 2x7 3 2x7 3 2x6 3 2x7 3 2x6 3</vector>
+        <vector name="entity_groups" length="646" type="ushort">1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 10 1 9 1 9 1 9 10 1 9 1 9 10 1 9 1 9 1 9 1 9 1 9 10 1 9 1 9 1 9 1 9 10 1 9 1 9 1 9 1 9 1 9 1 9 10 1 9 1 9 1 9 1 9 1 9 1 9 1 9 10 7 9 8 1 1 9 1 9 1 9 7 9 8 9 8 1 7 9 1 9 1 9 1 9 1 9 1 9 7 9 8 9 8 1 1 9 7 9 1 9 1 9 1 9 1 9 7 9 1 9 9 8 1 7 9 8 1 9 1 9 1 9 1 9 1 9 7 9 1 9 1 9 7 9 8 9 8 1 1 9 1 9 1 9 1 9 7 9 1 9 7 9 8 9 8 1 7 9 1 9 1 9 1 9 1 9 7 9 1 9 1 9 1 9 7 9 8 9 8 1 1 9 7 9 1 9 1 9 7 9 1 9 1 9 9 8 1 7 9 8 1 9 7 9 1 9 1 9 1 9 7 9 1 9 1 9 9 8 1 7 9 8 7 9 1 9 1 9 1 9 1 9 7 9 1 9 1 9 1 9 7 9 9 8 1 7 9 8 1 9 1 9 1 9 1 9 7 9 1 9 1 9 7 9 7 9 8 9 8 1 1 9 1 9 1 9 7 9 1 9 1 9 1 9 7 9 7 9 8 9 8 1 1 9 1 9 1 9 1 9 7 9 1 9 1 9 7 9 1 9 9 8 1 7 9 8 1 9 1 9 7 9 1 9 1 9 1 9 1 9 7 9 7 9 8 9 8 1 1 9 1 9 1 9 7 9 1 9 1 9 7 9 1 9 7 9 8 9 8 1 1 9 1 9 1 9 1 9 7 9 1 9 7 9 1 9 1 9 9 8 1 7 9 8 1 9 1 9 1 9 7 9 1 9 1 9 7 9 7 9 8 9 8 1 1 9 1 9 1 9 1 9 1 9 7 9 1 9 7 9 1 9 9 8 1 7 9 8 1 9 1 9 7 9 1 9 1 9 7 9 1 9 1 9 1 9 7 9 8 9 8 1 1 9 1 9 1 9 1 9 7 9 1 9 1 9 6 7 9 8 1 1 9 7 9 1 9 1 9 1 9 1 9 7 9 1 9 1 9 6 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 6 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 6 1 9 1 9 1 9 1 9 1 9 1 9 1 9 6 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 6 1 9 1 9 1 9 1 9 1 9 1 9 1 9 6 1 9</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="497" type="integer">1:67 87:497 68:86</vector>
+        <vector name="entity_num_groups" length="497" type="ushort">2x497</vector>
+        <vector name="entity_groups" length="994" type="ushort">7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 7 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 1 9 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8 9 8</vector>
+      </entities_group>
+      <entities_group name="faces">
+        <vector name="entity_ids" length="12" type="integer">286 288 290 293 296 298 301 304 429 438 466 480</vector>
+        <vector name="entity_num_faces" length="12" type="uchar">1x12</vector>
+        <vector name="entity_faces" length="12" type="uchar">2x4 3x5 2 1 3</vector>
+        <vector name="face_num_groups" length="12" type="ushort">1x12</vector>
+        <vector name="face_groups" length="12" type="ushort">10x4 6x5 10 6 10</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>
