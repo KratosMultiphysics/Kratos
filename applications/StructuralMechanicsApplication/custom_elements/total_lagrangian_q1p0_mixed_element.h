@@ -198,6 +198,8 @@ protected:
      */
     void InitializeMaterial() override;
 
+    void CalculateNeoHookeanStressAndTangent(const Matrix &rC, const double Pressure, const double LameMu, Vector &rStress, Matrix &rTangentTensor);
+
     /**
      * @brief It computes the current volume of the element
      */
