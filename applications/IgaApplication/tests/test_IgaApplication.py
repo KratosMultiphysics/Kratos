@@ -124,7 +124,7 @@ def AssembleTestSuites():
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         TShell5pHierarchicLinearScordelisTest,
         TShell5pHierarchicNonLinearThickBeamTest
-    )
+    ]))
 
     allSuite = suites['all']
     allSuite.addTests(validationSuite)
