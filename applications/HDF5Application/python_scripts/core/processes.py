@@ -6,10 +6,6 @@ change frequently.
 license: HDF5Application/license.txt
 '''
 
-
-__all__ = ["OrderedOperationProcessFactory, OrderedOutputOperationProcessFactory"]
-
-
 import KratosMultiphysics
 
 
@@ -96,7 +92,7 @@ def OrderedOperationProcessFactory(process_base: type):
 
 def OrderedOutputOperationProcessFactory(process_base: KratosMultiphysics.OutputProcess) -> KratosMultiphysics.OutputProcess:
     if not issubclass(process_base, KratosMultiphysics.OutputProcess):
-        raise TypeError("Expecting a KratosMultiphysics.OutputProcess, but got {}".format())
+        raise TypeError("Expecting a KratosMultiphysics.OutputProcess, but got {}".format(process_base))
 
     class OrderedOutputOperationProcess(process_base):
         def __init__(self):

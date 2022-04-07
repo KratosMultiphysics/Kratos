@@ -784,7 +784,7 @@ class TestFactory(KratosUnittest.TestCase):
 
     def test_TemporalController_OutputStep(self):
         model = KratosMultiphysics.Model()
-        model_part = model.CreateModelPart("test")
+        model.CreateModelPart("test")
         parameters = KratosMultiphysics.Parameters("""[{
             "model_part_name" : "test",
             "process_step" : "output",
@@ -795,7 +795,7 @@ class TestFactory(KratosUnittest.TestCase):
         }]""")
         with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True):
             with self.assertRaises(TypeError):
-                process = core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
+                core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
 
 
 class TestParametersWrapper(KratosUnittest.TestCase):
