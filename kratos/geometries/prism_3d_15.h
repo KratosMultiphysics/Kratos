@@ -917,11 +917,9 @@ private:
      * @return the matrix of values of every shape function in each integration point
      *
      */
-    static Matrix CalculateShapeFunctionsIntegrationPointsValues(
-        typename BaseType::IntegrationMethod ThisMethod )
+    static Matrix CalculateShapeFunctionsIntegrationPointsValues(typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
-            AllIntegrationPoints();
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -931,8 +929,7 @@ private:
         Matrix shape_function_values( integration_points_number, points_number );
         //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
             shape_function_values( pnt, 0 ) = ( 0.5 * (( 1.0 - integration_points[pnt].X() - integration_points[pnt].Y() ) * ( 2.0 * ( 1.0 - integration_points[pnt].X() - integration_points[pnt].Y() ) - 1.0 ) * ( 1.0 - integration_points[pnt].Z() ) - ( 1.0 - integration_points[pnt].X() - integration_points[pnt].Y() ) * ( 1.0 - ( integration_points[pnt].Z() * integration_points[pnt].Z() ) ) ) );
             shape_function_values( pnt, 1 ) = ( 0.5 * ( integration_points[pnt].X() * ( 2.0 * integration_points[pnt].X() - 1.0 ) * ( 1.0 - integration_points[pnt].Z() ) - integration_points[pnt].X() * ( 1.0 - ( integration_points[pnt].Z() * integration_points[pnt].Z() ) ) ) );
             shape_function_values( pnt, 2 ) = ( 0.5 * ( integration_points[pnt].Y() * ( 2.0 * integration_points[pnt].Y() - 1.0 ) * ( 1.0 - integration_points[pnt].Z() ) - integration_points[pnt].Y() * ( 1.0 - ( integration_points[pnt].Z() * integration_points[pnt].Z() ) ) ) );
