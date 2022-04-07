@@ -88,7 +88,7 @@ class DEM3D_SearchTolerance2(DEM3D_SearchToleranceMain):
         KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage.FinalizeSolutionStep(self)
         for node in self.spheres_model_part.Nodes:
             if node.Id == 2:
-                tol = 1.0e-15
+                tol = 1.0e-14
                 if np.isclose(self.time, 0.02, rtol=0.0, atol=1e-06):
                     y_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
                     print(self.time, y_vel)
