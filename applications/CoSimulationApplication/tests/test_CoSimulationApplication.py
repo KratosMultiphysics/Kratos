@@ -80,8 +80,8 @@ def AssembleTestSuites():
     
     # This one has errors in GCC
     # nightSuite.addTest(TestMokFSI('test_mok_fsi_mvqn'))
+    # nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
     
-    nightSuite.addTest(TestMokFSI('test_mok_fsi_aitken'))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimIOPyExposure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestKratosCoSimIO]))
 
