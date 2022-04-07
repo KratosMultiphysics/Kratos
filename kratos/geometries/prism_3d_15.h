@@ -406,27 +406,32 @@ public:
         return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
-
-
-
+    /** This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     * :TODO: might be necessary to reimplement
+     */
     double Volume() const override
     {
-
         Vector temp;
-        DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
+        double Volume = 0.0;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
+        for ( std::size_t i = 0; i < integration_points.size(); ++i) {
             Volume += temp[i] * integration_points[i].Weight();
         }
 
-        //KRATOS_WATCH(temp)
         return Volume;
     }
-
-
 
     /**
      * This method calculate and return length, area or volume of
@@ -445,7 +450,6 @@ public:
     {
         return Volume();
     }
-
 
     /**
     * Returns a matrix of the local coordinates of all points
@@ -1207,15 +1211,12 @@ public:
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const override
     {
-        const unsigned int integration_points_number =
-            msGeometryData.IntegrationPointsNumber( ThisMethod );
+        const std::size_t integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
 
-        if ( integration_points_number == 0 )
-            KRATOS_ERROR << "This integration method is not supported" << *this << std::endl;
+        KRATOS_ERROR_IF( integration_points_number == 0 ) << "This integration method is not supported" << *this << std::endl;
 
         //workaround by riccardo
-        if ( rResult.size() != integration_points_number )
-        {
+        if ( rResult.size() != integration_points_number ) {
             // KLUDGE: While there is a bug in ublas
             // vector resize, I have to put this beside resizing!!
             ShapeFunctionsGradientsType temp( integration_points_number );
@@ -1223,25 +1224,21 @@ public:
         }
 
         //calculating the local gradients
-        ShapeFunctionsGradientsType locG =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        ShapeFunctionsGradientsType locG = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
 
         //getting the inverse jacobian matrices
         JacobiansType temp( integration_points_number );
 
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+        JacobiansType invJ = this->InverseOfJacobian( temp, ThisMethod );
 
         //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( std::size_t pnt = 0; pnt < integration_points_number; pnt++ ) {
             rResult[pnt].resize( 15, 3, false );
 
-            for ( int i = 0; i < 15; i++ )
-            {
-                for ( int j = 0; j < 3; j++ )
-                {
+            for ( int i = 0; i < 15; i++ ) {
+                for ( int j = 0; j < 3; j++ ) {
                     rResult[pnt]( i, j ) =
-                        ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
+                          ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
                         + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) )
                         + ( locG[pnt]( i, 2 ) * invJ[pnt]( j, 2 ) );
                 }
@@ -1263,8 +1260,6 @@ public:
     {
         return CalculateShapeFunctionsLocalGradients( rResult, rPoint );
     }
-
-
 
     /**
      * Input and output
@@ -1308,7 +1303,7 @@ public:
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
         Matrix jacobian;
-        Jacobian( jacobian, PointType() );
+        this->Jacobian( jacobian, PointType() );
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
