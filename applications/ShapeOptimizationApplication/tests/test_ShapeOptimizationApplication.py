@@ -96,9 +96,6 @@ def AssembleTestSuites():
     nightSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
     nightSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
     nightSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
-    nightSuite.addTest(algorithm_steepest_descent_test('test_execution'))
-    nightSuite.addTest(algorithm_penalized_projection_test('test_execution'))
-    nightSuite.addTest(algorithm_trust_region_test('test_execution'))
     nightSuite.addTest(trust_region_projector_test('test_execution'))
     nightSuite.addTest(opt_process_multiobjective_test('test_execution'))
     # nightSuite.addTest(opt_process_stress_test('test_execution'))
@@ -111,11 +108,13 @@ def AssembleTestSuites():
 
     # Adding validation tests
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTest(algorithm_trust_region_test('test_execution'))
+    validationSuite.addTest(algorithm_steepest_descent_test('test_execution'))
+    validationSuite.addTest(algorithm_penalized_projection_test('test_execution'))
 
     # Creating a test suit that contains all tests:
     allSuite = suites['all']
-    # allSuite.addTests(smallSuite) #Already added to small tests
-    allSuite.addTests(nightSuite)
     allSuite.addTests(validationSuite)
 
     return suites
