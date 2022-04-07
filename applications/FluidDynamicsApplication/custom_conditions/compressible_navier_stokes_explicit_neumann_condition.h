@@ -177,12 +177,9 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         // Fluxes are set to zero by default
-        for(auto& r_node: GetGeometry())
-        {
-            if(!r_node.Has(DENSITY_FLUX))         r_node.SetValue(DENSITY_FLUX, DENSITY_FLUX.Zero());
-            if(!r_node.Has(MOMENTUM_FLUX))        r_node.SetValue(MOMENTUM_FLUX, MOMENTUM_FLUX.Zero());
-            if(!r_node.Has(TOTAL_ENERGY_FLUX))    r_node.SetValue(TOTAL_ENERGY_FLUX, TOTAL_ENERGY_FLUX.Zero());
-        }
+        if(!this->Has(DENSITY_FLUX))         this->SetValue(DENSITY_FLUX, DENSITY_FLUX.Zero());
+        if(!this->Has(MOMENTUM_FLUX))        this->SetValue(MOMENTUM_FLUX, MOMENTUM_FLUX.Zero());
+        if(!this->Has(TOTAL_ENERGY_FLUX))    this->SetValue(TOTAL_ENERGY_FLUX, TOTAL_ENERGY_FLUX.Zero());
     }
 
     /// Create a new CompressibleNavierStokesExplicitNeumannCondition object.
@@ -467,6 +464,8 @@ protected:
     /// TODO: This only works for simplex elements
     void ComputeGaussPointData(ConditionDataStruct& rData)
     {
+        KRATOS_TRY
+
         const auto& flux_density = this->GetValue(DENSITY_FLUX);
         const auto& flux_momentum = this->GetValue(MOMENTUM_FLUX);
         const auto& flux_total_energy = this->GetValue(TOTAL_ENERGY_FLUX);
@@ -477,8 +476,9 @@ protected:
             rData.fluxes[g].density = flux_density;
             rData.fluxes[g].momentum = flux_momentum;
             rData.fluxes[g].total_energy = flux_total_energy;
-
         }
+
+        KRATOS_CATCH("")
     }
 
     /**
