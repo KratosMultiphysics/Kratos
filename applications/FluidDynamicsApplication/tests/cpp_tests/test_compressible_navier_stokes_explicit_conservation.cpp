@@ -380,7 +380,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
 
     SetDofValues(r_model_part, rho, mom, etot);
     SetViscosities(r_model_part, 0.0, 0.0, 0.0);
-    const auto rhs = Assemble(r_model_part, true);
+    const auto rhs = Assemble(r_model_part);
 
     // Linear interpolation cannot properly capture the quadratic profile of energy,
     // hence conservation is not fulfilled at the nodes but must be at the element level.
