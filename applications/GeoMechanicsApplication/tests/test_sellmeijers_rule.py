@@ -22,22 +22,31 @@ class LatexWriterFile:
     def write_latex_file_and_assert(self, result_list):
         with open(self.filename, "w+") as output_latex_file:
             for result_pair in result_list:
-                error = abs(result_pair['kratos_results'] - result_pair['test_result']) / \
-                        (abs(result_pair['test_result']) + 1e-60)
-                error_equivalent_software = abs(result_pair['kratos_results'] - result_pair['equivalent_software']) / \
-                                            (abs(result_pair['equivalent_software']) + 1e-60)
-                if result_pair["round"]:
-                    output_latex_file.write(
-                        f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
-                        f"{round(result_pair['equivalent_software'], 2)} & "
-                        f" {round(result_pair['kratos_results'], 2)} & {round(error, 2)} &"
-                        f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
-                else:
+                if result_pair['kratos_results'] is None:
+                    error = 1
+                    error_equivalent_software = 1
                     output_latex_file.write(
                         f"{result_pair['value_name']} & {result_pair['test_result']} & "
                         f"{result_pair['equivalent_software']} & "
-                        f" {result_pair['kratos_results']} & {round(error, 2)} &"
+                        f" NaN & {round(error, 2)} &"
                         f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
+                else:
+                    error = abs(result_pair['kratos_results'] - result_pair['test_result']) / \
+                        (abs(result_pair['test_result']) + 1e-60)
+                    error_equivalent_software = abs(result_pair['kratos_results'] - result_pair['equivalent_software']) / \
+                                            (abs(result_pair['equivalent_software']) + 1e-60)
+                    if result_pair["round"]:
+                        output_latex_file.write(
+                            f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
+                            f"{round(result_pair['equivalent_software'], 2)} & "
+                            f" {round(result_pair['kratos_results'], 2)} & {round(error, 2)} &"
+                            f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
+                    else:
+                        output_latex_file.write(
+                            f"{result_pair['value_name']} & {result_pair['test_result']} & "
+                            f"{result_pair['equivalent_software']} & "
+                            f" {result_pair['kratos_results']} & {round(error, 2)} &"
+                            f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
 
 
 class TestSellmeijersRule(KratosUnittest.TestCase):
