@@ -381,7 +381,6 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NTrussLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NTrussNonLinearSnapthroughPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
@@ -450,7 +449,7 @@ def AssembleTestSuites():
     validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
-    validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    validationSuite.addTest(T2D2NBeamCrTest('test_execution'))
     validationSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution')) # TODO should be in nightSuite but is too slow
     # Pendulus tests with Solid Elements
     validationSuite.addTest(TPendulusTLTest('test_execution'))
