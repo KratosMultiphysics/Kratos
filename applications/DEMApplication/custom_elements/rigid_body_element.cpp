@@ -106,12 +106,8 @@ namespace Kratos {
                 mInertias[0] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][0];
                 mInertias[1] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][1];
                 mInertias[2] = rigid_body_element_sub_model_part[RIGID_BODY_INERTIAS][2];
-            }
-
-            else {
-                mInertias[0] = 1.0;
-                mInertias[1] = 1.0;
-                mInertias[2] = 1.0;
+            } else {
+                KRATOS_THROW_ERROR(std::runtime_error, "Error in the definition of the rigid body inertias. Please check the data in the mdpa", 0);
             }
 
             const array_1d<double,3>& reference_inertias = mInertias;
