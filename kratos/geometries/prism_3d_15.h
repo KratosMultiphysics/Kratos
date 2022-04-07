@@ -706,8 +706,10 @@ public:
      * @return the value of the shape function at the given point
      * TODO: TO BE VERIFIED
      */
-    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
-                                       const CoordinatesArrayType& rPoint ) const override
+    double ShapeFunctionValue( 
+        IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        ) const override
     {
         switch ( ShapeFunctionIndex )
         {
@@ -746,60 +748,6 @@ public:
         }
 
         return 0;
-    }
-
-    /**
-     * Calculates the Gradients of the shape functions.
-     * Calculates the gradients of the shape functions with regard to the global
-     * coordinates in all
-     * integration points (\f$ \frac{\partial N^i}{\partial X_j} \f$)
-     *
-     * @param rResult a container which takes the calculated gradients
-     * @param ThisMethod the given IntegrationMethod
-     * @return the gradients of all shape functions with regard to the global coordinates
-     *
-     * KLUDGE: method call only works with explicit JacobiansType rather than creating
-     * JacobiansType within argument list
-     *
-     * :TODO: TESTING!!!
-     */
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod ) const override
-    {
-        const std::size_t integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
-
-        KRATOS_ERROR_IF( integration_points_number == 0 ) << "This integration method is not supported" << *this << std::endl;
-
-        //workaround by riccardo
-        if ( rResult.size() != integration_points_number ) {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp( integration_points_number );
-            rResult.swap( temp );
-        }
-
-        //calculating the local gradients
-        ShapeFunctionsGradientsType locG = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-
-        //getting the inverse jacobian matrices
-        JacobiansType temp( integration_points_number );
-
-        JacobiansType invJ = this->InverseOfJacobian( temp, ThisMethod );
-
-        //loop over all integration points
-        for ( std::size_t pnt = 0; pnt < integration_points_number; pnt++ ) {
-            rResult[pnt].resize( 15, 3, false );
-
-            for ( int i = 0; i < 15; i++ ) {
-                for ( int j = 0; j < 3; j++ ) {
-                    rResult[pnt]( i, j ) =
-                          ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
-                        + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) )
-                        + ( locG[pnt]( i, 2 ) * invJ[pnt]( j, 2 ) );
-                }
-            }
-        }//end of loop over integration points
     }
 
     /** This method gives gradient of all shape functions evaluated
@@ -1018,8 +966,7 @@ private:
     CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
-            AllIntegrationPoints();
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1027,8 +974,7 @@ private:
         //initialising container
         //loop over all integration points
 
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
             Matrix result = ZeroMatrix( 15, 3 );
             result( 0, 0 ) = 0.5 * ( 1.0 - ( -1.0 + 2.0 * ( 1.0 - integration_points[pnt].X() - integration_points[pnt].Y() ) ) * ( 1.0 - integration_points[pnt].Z() ) - 2.0 * ( 1.0 - integration_points[pnt].X() - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].Z() ) - ( integration_points[pnt].Z() * integration_points[pnt].Z() ) );
             result( 0, 1 ) = 0.5 * ( 1.0 - ( -1.0 + 2.0 * ( 1.0 - integration_points[pnt].X() - integration_points[pnt].Y() ) ) * ( 1.0 - integration_points[pnt].Z() ) - 2.0 * ( 1.0 - integration_points[pnt].X() - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].Z() ) - ( integration_points[pnt].Z() * integration_points[pnt].Z() ) );
@@ -1091,7 +1037,21 @@ private:
                 Quadrature < PrismGaussLegendreIntegrationPoints2,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < PrismGaussLegendreIntegrationPoints3,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPoints4,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPoints5,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPointsExt1,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPointsExt2,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPointsExt3,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPointsExt4,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < PrismGaussLegendreIntegrationPointsExt5,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
             }
         };
         return integration_points;
@@ -1107,8 +1067,21 @@ private:
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_3 )
-
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_values;
@@ -1128,12 +1101,25 @@ private:
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_GAUSS_3 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_3 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_GAUSS_4 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_1 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_2 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_3 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_4 ),
+                Prism3D15<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_EXTENDED_GAUSS_5 )
             }
         };
         return shape_functions_local_gradients;
     }
-
 
     /**
      * Private Friends
