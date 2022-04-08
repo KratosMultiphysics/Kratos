@@ -35,7 +35,7 @@ namespace Kratos
             << "AdjointKSMaxStressResponseFunction::AdjointKSMaxStressResponseFunction: Specified stress treatment not supported: " << ResponseSettings["stress_type"].GetString() << std::endl;
     }
 
-    // primary analysis for max stress approximated via modified Kreisselmeier-Steinhauser aggregation
+    // primal analysis for max stress approximated via modified Kreisselmeier-Steinhauser aggregation
     AdjointKSMaxStressResponseFunction::~AdjointKSMaxStressResponseFunction(){}
 
     double AdjointKSMaxStressResponseFunction::CalculateValue(ModelPart& rPrimalModelPart)
@@ -44,39 +44,41 @@ namespace Kratos
 
         ModelPart& primal_agglomeration_part = rPrimalModelPart.GetSubModelPart(mCriticalPartName);
 
-        // Find max mean value and corresponding element in primal model part
-        double pKS = 100.0;  //this should possibly be a variable to set
-
         IndexType elem_id_at_max = 0;
 
         for(auto& elem : primal_agglomeration_part.Elements())
         {
             Vector element_stress;
             const ProcessInfo &r_process_info = rPrimalModelPart.GetProcessInfo();
-            StressCalculation::CalculateStressOnGP(elem, mTracedStressType, element_stress, r_process_info);
+            StressCalculation::CalculateStressOnGP(elem,
+                                                   mTracedStressType,
+                                                   element_stress,
+                                                   r_process_info);
 
             const SizeType stress_vec_size = element_stress.size();
             double mean_stress = 0.0;
+
             for(IndexType i = 0; i < stress_vec_size; ++i)
                 mean_stress += element_stress[i];
             mean_stress /= stress_vec_size;
+
             if(mean_stress > max_mean_stress)
             {
                 max_mean_stress = mean_stress;
                 elem_id_at_max = elem.Id();
             }
-
             mean_stress_vector[elem.Id()] = mean_stress;
         }
 
         // reloop over elements, faster as vector operation?
         for(auto& elem : primal_agglomeration_part.Elements())
         {
-            KS_sum += std::exp(pKS*(mean_stress_vector[elem.Id()]-max_mean_stress));
+            KS_exp_sum += std::exp(pKS*(mean_stress_vector[elem.Id()]-max_mean_stress));
         }
-        double KS_max_mean_stress = max_mean_stress+1/pKS*std::log(KS_sum);
+        double KS_max_mean_stress = max_mean_stress+1/pKS*std::log(KS_exp_sum);
+
         KRATOS_INFO_IF("AdjointKSMaxStressResponseFunction::CalculateValue", mEchoLevel > 0) << "Id of element with max stress value = " << elem_id_at_max << std::endl;
-        KRATOS_INFO_IF("AdjointKSMaxStressResponseFunction::CalculateValue", mEchoLevel > 0) << "KS approx max mean stress value = " << KS_max_mean_stress << std::endl;
+        KRATOS_INFO_IF("AdjointKSMaxStressResponseFunction::CalculateValue", mEchoLevel > 0) << "max mean stress approximated with KS aggregation = " << KS_max_mean_stress << std::endl;
 
         // Set traced element in adjoint model part corresponding to the found element in the primal part
         mpTracedElementInAdjointPart = mrAdjointModelPart.pGetElement(elem_id_at_max);
@@ -100,14 +102,17 @@ namespace Kratos
 
         Matrix stress_displacement_derivative;
 
-        mpTracedElementInAdjointPart->Calculate(STRESS_DISP_DERIV_ON_GP, stress_displacement_derivative, rProcessInfo);
-        this->ExtractMeanStressDerivative(stress_displacement_derivative, rResponseGradient);
-
+        mpTracedElementInAdjointPart->Calculate(STRESS_DISP_DERIV_ON_GP,
+                                                stress_displacement_derivative,
+                                                rProcessInfo);
+        this->ExtractMeanStressDerivative(stress_displacement_derivative,
+                                          rResponseGradient);
 
         KRATOS_ERROR_IF(rResponseGradient.size() != rResidualGradient.size1())
             << "AdjointKSMaxStressResponseFunction::CalculateGradient: Size of stress displacement derivative does not fit!" << std::endl;
+
         double mean_stress = mean_stress_vector[rAdjointElement.Id()];
-        rResponseGradient *= (-1) *std::exp(mean_stress-max_mean_stress)/KS_sum;
+        rResponseGradient *= (-1) *std::exp(pKS*(mean_stress-max_mean_stress))/KS_exp_sum;
 
         KRATOS_CATCH("");
     }
@@ -125,8 +130,11 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElementInAdjointPart->Id())
         {
-            this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, rProcessInfo);
+            this->CalculateElementContributionToPartialSensitivity(rAdjointElement,
+                                                                   rVariable.Name(),
+                                                                   rSensitivityMatrix,
+                                                                   rSensitivityGradient,
+                                                                   rProcessInfo);
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -161,8 +169,11 @@ namespace Kratos
 
         if(rAdjointElement.Id() == mpTracedElementInAdjointPart->Id())
         {
-            this->CalculateElementContributionToPartialSensitivity(rAdjointElement, rVariable.Name(), rSensitivityMatrix,
-                                                                    rSensitivityGradient, rProcessInfo);
+            this->CalculateElementContributionToPartialSensitivity(rAdjointElement,
+                                                                   rVariable.Name(),
+                                                                   rSensitivityMatrix,
+                                                                   rSensitivityGradient,
+                                                                   rProcessInfo);
         }
         else
             rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
@@ -196,8 +207,12 @@ namespace Kratos
 
         Matrix stress_design_variable_derivative;
 
-        rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-        this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+        rAdjointElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP,
+                                  stress_design_variable_derivative,
+                                  rProcessInfo);
+
+        this->ExtractMeanStressDerivative(stress_design_variable_derivative,
+                                          rSensitivityGradient);
 
         KRATOS_ERROR_IF(rSensitivityGradient.size() != rSensitivityMatrix.size1()) << "Size of partial stress design variable derivative does not fit!" << std::endl;
 
