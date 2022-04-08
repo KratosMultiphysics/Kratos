@@ -39,7 +39,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
-
         KratosMultiphysics.Process.__init__(self)
 
         #The value can be a double or a string (function)
@@ -98,7 +97,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.step_is_active = False
 
     def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed in before initialize the solution step
+        """This method is executed in before initialize the solution step
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -106,7 +105,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         self.ExecuteInitializeSolutionStep()
 
     def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
+        """This method is executed in order to initialize the current step
 
         Keyword arguments:
         self -- It signifies an instance of a class.
@@ -133,7 +132,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
                 self.variable_utils.SetVariable(self.variable, self.value, self.mesh.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
-        """ This method is executed in order to finalize the current step
+        """This method is executed in order to finalize the current step
 
         Keyword arguments:
         self -- It signifies an instance of a class.
