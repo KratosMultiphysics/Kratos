@@ -173,7 +173,9 @@ private:
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
     SizeType mEchoLevel = 0;
-
+    double max_mean_stress = 0.0;
+    double KS_sum = 0.0;
+    std::map<int,double> mean_stress_vector;
 
     ///@}
     ///@name Private Operators
