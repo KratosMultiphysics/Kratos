@@ -98,22 +98,23 @@ class TestAdjointStressResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[4][1], -0.6917210464170941)
         self.assertAlmostEqual(self.gradient[4][2], 0.00011013551613132068)
 
-class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory):
-    file_name = "adjoint_max_stress_response"
+class TestAdjointKSMaxStressResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "adjoint_KS_max_stress_response"
 
     def test_execution(self):
         self._calculate_response_and_gradient()
 
+        # the displacements are slightly different for KS, I dont get this as the handling of the stress should have no influence...
         model_part = self.response_function.adjoint_analysis.model.GetModelPart("cantilever_beam")
-        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X), 7.657448651571309, 10)
-        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), -19.9044491754745, 10)
-        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), -8.37326311561973, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X), 7.660359778753952, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), -19.867982671639766, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), -7.269671985606765, 10)
 
         self.assertIsClose(self.value, 1610060.3912093714)
 
         self.assertIsClose(self.gradient[5][0], 1.78562389e+06)
         self.assertIsClose(self.gradient[5][1], -2.55507064e+02)
-        self.assertIsClose(self.gradient[5][2], -4.69627972e+05)
+        self.assertIsClose(self.gradient[5][2], -469627.9724703346)
 
 
 class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory):
@@ -180,6 +181,7 @@ if __name__ == "__main__":
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointDisplacementResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointStressResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointMaxStressResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointKSMaxStressResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMassResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenfrequencyResponseFunction]))
