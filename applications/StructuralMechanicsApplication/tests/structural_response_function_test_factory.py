@@ -109,11 +109,30 @@ class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory
         self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), -19.9044491754745, 10)
         self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), -8.37326311561973, 10)
 
+        self.assertIsClose(self.value, 1610060.3912093714)
+
+        self.assertIsClose(self.gradient[5][0], 1.78562389e+06)
+        self.assertIsClose(self.gradient[5][1], -2.55507064e+02)
+        self.assertIsClose(self.gradient[5][2], -4.69627972e+05)
+
+
+class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory):
+    file_name = "adjoint_max_stress_response"
+
+    def test_execution(self):
+        self._calculate_response_and_gradient()
+
+        model_part = self.response_function.adjoint_analysis.model.GetModelPart("cantilever_beam")
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X), 7.657448651571309, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), -19.9044491754745, 10)
+        self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), -8.37326311561973, 10)
+
         self.assertIsClose(self.value, 1610060.3904999627)
 
         self.assertIsClose(self.gradient[5][0], 1787255.3702425747)
-        self.assertIsClose(self.gradient[5][1], -247.0446103799622, rel_tol=1e-5)
+        self.assertIsClose(self.gradient[5][1], -247.0446103799622, rel_tol=1e-3)
         self.assertIsClose(self.gradient[5][2], -562640.0306970887)
+
 
 class TestMassResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "mass_response"
