@@ -4,15 +4,18 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utilities # Might be needed for testing
 
-from KratosMultiphysics.FluidDynamicsApplication.fluid_rve_analysis import FluidRVEAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis_rve import FluidDynamicsAnalysisRVE
 
 # Previous line will import the Fluid RVE analysis class
 
 class TestFluidRVETest(KratosUnittest.TestCase):
     
+    def setUp(self):
+        self.print_output = False
+    
     def test_fluid_rve_computation_2d(self):
         #Within location context:
-        with KratosUnittest.WorkFolderScope(".",__file__):
+        with KratosUnittest.WorkFolderScope(".",__file__):            
             with open("FluidRVETest/fluid_rve_test_parameters.json", 'r') as parameter_file:
                 parameters =  KratosMultiphysics.Parameters(parameter_file.read())
                 
@@ -23,7 +26,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
             parameters["solver_settings"]["skin_parts"][0].SetString("Slip2D")
             parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][0].SetInt(0)
             parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][1].SetInt(0)
-            
+                        
             self._aux_fluid_rve_computation(parameters)
         
     def test_fluid_rve_computation_3d(self):
@@ -40,13 +43,13 @@ class TestFluidRVETest(KratosUnittest.TestCase):
             parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][0].SetInt(0)
             parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][1].SetInt(0)
             parameters["processes"]["initial_conditions_process_list"][0]["Parameters"]["value"][2].SetInt(0)
-            
+                       
             self._aux_fluid_rve_computation(parameters)
         
     def _aux_fluid_rve_computation(self, parameters):
         
         domain_size = parameters["solver_settings"]["domain_size"].GetInt()
-        if parameters["rve_settings"]["print_rve_post"].GetBool() :
+        if self.print_output :
             output_settings = KratosMultiphysics.Parameters(R'''[{
                 "python_module" : "gid_output_process",
                 "kratos_module" : "KratosMultiphysics",
@@ -83,7 +86,7 @@ class TestFluidRVETest(KratosUnittest.TestCase):
             parameters["output_processes"].AddValue("gid_output", output_settings)
         
         model = KratosMultiphysics.Model()
-        simulation = FluidRVEAnalysis(model, parameters)
+        simulation = FluidDynamicsAnalysisRVE(model, parameters)
         simulation.Run()
         
         # Space for testing
