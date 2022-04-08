@@ -66,7 +66,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
         if settings.Has("value"):
             if settings["value"].IsString():
                 default_settings["value"].SetString("0.0")
-            if settings["value"].IsDouble():
+            if settings["value"].IsNumber():
                 default_settings["value"].SetDouble(0.0)
 
         settings.ValidateAndAssignDefaults(default_settings)
