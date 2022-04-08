@@ -3,7 +3,7 @@ import os
 import csv
 import json
 import math
-
+sys.path.append(os.path.join('D:/kratos'))
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 sys.path.append(os.path.join('..', 'python_scripts'))
@@ -26,7 +26,7 @@ class LatexWriterFile:
                     error = 1
                     error_equivalent_software = 1
                     output_latex_file.write(
-                        f"{result_pair['value_name']} & {result_pair['test_result']} & "
+                        f"{str(result_pair['value_name'])} & {result_pair['test_result']} & "
                         f"{result_pair['equivalent_software']} & "
                         f" NaN & {round(error, 2)} &"
                         f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
