@@ -131,7 +131,7 @@ class TestAdjointMaxStressResponseFunction(StructuralResponseFunctionTestFactory
         self.assertIsClose(self.value, 1610060.3904999627)
 
         self.assertIsClose(self.gradient[5][0], 1787255.3702425747)
-        self.assertIsClose(self.gradient[5][1], -247.0446103799622, rel_tol=1e-3)
+        self.assertIsClose(self.gradient[5][1], -247.0446103799622, rel_tol=1e-5)
         self.assertIsClose(self.gradient[5][2], -562640.0306970887)
 
 
