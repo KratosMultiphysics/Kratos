@@ -37,8 +37,8 @@ class LatexWriterFile:
                                             (abs(result_pair['equivalent_software']) + 1e-60)
                     if result_pair["round"]:
                         output_latex_file.write(
-                            f"{result_pair['value_name']} & {round(result_pair['test_result'], 2)} & "
-                            f"{round(result_pair['equivalent_software'], 2)} & "
+                            f"{result_pair['value_name']} & {result_pair['test_result']} & "
+                            f"{result_pair['equivalent_software']} & "
                             f" {round(result_pair['kratos_results'], 2)} & {round(error, 2)} &"
                             f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
                     else:
@@ -141,7 +141,8 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
     def critical_head_loop(self, file_path, test_name, counter, search_type='linear'):
         self.change_material_parameters(file_path, self.test_lists["kappa"][counter], self.test_lists["d70"][counter])
-        heads = [x * 0.01 for x in range(int(self.test_lists["Hc"][counter] * 100 - 200), int(self.test_lists["Hc"][counter] * 100 + 200), 1)]
+        heads = [x * 0.01 for x in range(int(self.test_lists["Hc"][counter] * 100 - 200), int(self.test_lists["Hc"][counter] * 100 + 200), 5)]
+        critical_head_found = math.nan
         if search_type == 'linear':
             critical_head_found = self.linear_search(file_path, heads)
         elif search_type == 'bisection':
