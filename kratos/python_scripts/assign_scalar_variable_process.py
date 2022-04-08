@@ -2,8 +2,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.read_csv_table_utility import ReadCsvTableUtility
 
-import sys
-from math import *
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
