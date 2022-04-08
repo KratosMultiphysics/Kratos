@@ -22,7 +22,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     Possible specifications for the key 'value' from settings:
     - double: the constant value is applied.
     - string: the string is parsed as a function
-    - parameters: a csv table can be specified:
+    - parameters: a csv table can be specified. Example:
         {
             "name"       : "csv_table",
             "file_name"  : "path/to/file.csv",
