@@ -653,6 +653,9 @@ private:
     double mSERR = 0;                                        // Strain Energy Release Rate
     double mdelamination_damage = 0;                         // Scalar delamination damage variable  
     double mDelta_eq_max = 0;                                // Equivalent Strain History Variable
+    double minitial_threshold = 0;
+    double mthreshold = std::numeric_limits<double>::infinity();
+    double mAParameter = 0;
     ///@}
     ///@name Private Operators
     ///@{
