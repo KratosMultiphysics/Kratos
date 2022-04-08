@@ -85,12 +85,12 @@ void NormalCalculationUtils::InitializeNormals(
             VariableUtils().SetNonHistoricalVariable(rNormalVariable, zero, rModelPart.Nodes(), VISITED);
         }
     } else {
-        // In serial iteratre normally over the condition nodes
+        // In serial iterate normally over the condition nodes
         BlockPartition<TContainerType>(r_entity_array)
             .for_each([zero, &rNormalVariable, this](typename TContainerType::value_type& rEntity) {
                 for (auto& r_node : rEntity.GetGeometry()) {
                     r_node.SetLock();
-                    noalias(GetNormalValue<TIsHistorical>(r_node, rNormalVariable)) = zero;
+                    SetNormalValue<TIsHistorical>(r_node, rNormalVariable, zero);
                     r_node.UnSetLock();
                 }
             });
@@ -101,7 +101,7 @@ void NormalCalculationUtils::InitializeNormals(
 /***********************************************************************************/
 
 template <>
-KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition, true>(
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<ModelPart::ConditionsContainerType, true>(
     ModelPart& rModelPart,
     const bool EnforceGenericGeometryAlgorithm,
     const bool ConsiderUnitNormal,
@@ -121,7 +121,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition,
 /***********************************************************************************/
 
 template <>
-KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition, false>(
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<ModelPart::ConditionsContainerType, false>(
     ModelPart& rModelPart,
     const bool EnforceGenericGeometryAlgorithm,
     const bool ConsiderUnitNormal,
@@ -131,7 +131,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition,
     if (CheckUseSimplex(rModelPart, EnforceGenericGeometryAlgorithm)) {
         const auto& r_process_info = rModelPart.GetProcessInfo();
         const SizeType dimension = r_process_info.GetValue(DOMAIN_SIZE);
-        CalculateOnSimplex(rModelPart, dimension, rNormalVariable);
+        CalculateOnSimplexNonHistorical(rModelPart, dimension, rNormalVariable);
     } else {
         CalculateNormalsUsingGenericAlgorithm<ModelPart::ConditionsContainerType, false>(rModelPart, ConsiderUnitNormal, rNormalVariable);
     }
@@ -141,7 +141,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Condition,
 /***********************************************************************************/
 
 template<>
-KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element, true>(
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<ModelPart::ElementsContainerType, true>(
     ModelPart& rModelPart,
     const bool EnforceGenericGeometryAlgorithm,
     const bool ConsiderUnitNormal,
@@ -155,7 +155,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element, t
 /***********************************************************************************/
 
 template<>
-KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element, false>(
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<ModelPart::ElementsContainerType, false>(
     ModelPart& rModelPart,
     const bool EnforceGenericGeometryAlgorithm,
     const bool ConsiderUnitNormal,
@@ -167,7 +167,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormals<Element, f
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TEntityType, bool TIsHistorical>
+template<class TContainerType, bool TIsHistorical>
 void NormalCalculationUtils::CalculateUnitNormals(
     ModelPart& rModelPart,
     const bool EnforceGenericGeometryAlgorithm,
@@ -175,10 +175,10 @@ void NormalCalculationUtils::CalculateUnitNormals(
     )
 {
     // Compute area normals
-    CalculateNormals<TEntityType, TIsHistorical>(rModelPart, EnforceGenericGeometryAlgorithm, true, rNormalVariable);
+    CalculateNormals<TContainerType, TIsHistorical>(rModelPart, EnforceGenericGeometryAlgorithm, true, rNormalVariable);
 
     // Compute unit normals
-    ComputeUnitNormalsFromAreaNormals<TIsHistorical>(rModelPart, rNormalVariable);
+    ComputeUnitNormalsFromAreaNormals<TContainerType, TIsHistorical>(rModelPart, rNormalVariable);
 }
 
 /***********************************************************************************/
@@ -320,7 +320,7 @@ void NormalCalculationUtils::CalculateOnSimplexNonHistorical(
     InitializeNormals<ModelPart::ConditionsContainerType,false>(rModelPart, rNormalVariable);
 
     // Calling CalculateOnSimplex for conditions
-    this->CalculateOnSimplexNonHistorical(rModelPart.Conditions(), Dimension, rNormalVariable);
+    AuxiliaryCalculateOnSimplex<false>(rModelPart.Conditions(), Dimension, rNormalVariable);
 
     // Synchronize the normal
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rNormalVariable);
@@ -346,23 +346,27 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<bool TIsHistorical>
+template<class TContainerType, bool TIsHistorical>
 void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(
     ModelPart& rModelPart,
     const Variable<array_1d<double,3>>& rNormalVariable)
 {
     KRATOS_TRY
 
-    // We iterate over nodes
-    auto& r_nodes_array = rModelPart.GetCommunicator().LocalMesh().Nodes();
-
-    block_for_each(r_nodes_array, [&rNormalVariable, this](NodeType& rNode) {
-        auto& r_normal = GetNormalValue<TIsHistorical>(rNode, rNormalVariable);
-        const double norm_normal = norm_2(r_normal);
-
-        KRATOS_ERROR_IF(rNode.Is(INTERFACE) && norm_normal <= std::numeric_limits<double>::epsilon())
-            << "ERROR:: ZERO NORM NORMAL IN NODE: " << rNode.Id() << std::endl;
-        r_normal /= norm_normal;
+    // We iterate over the nodes of the corresponding container
+    // Note that we need to iterate the corresponding entities in case there are
+    // nodes in the model part that do not belong to any entity.
+    auto& r_entity_container = GetContainer<TContainerType>(rModelPart);
+    block_for_each(r_entity_container, [&rNormalVariable, this](typename TContainerType::value_type& rEntity) {
+        for (auto& r_node : rEntity.GetGeometry()) {
+            r_node.SetLock();
+            auto& r_normal = GetNormalValue<TIsHistorical>(r_node, rNormalVariable);
+            const double norm_normal = norm_2(r_normal);
+            KRATOS_ERROR_IF(r_node.Is(INTERFACE) && norm_normal <= std::numeric_limits<double>::epsilon())
+                << "ERROR:: ZERO NORM NORMAL IN NODE: " << r_node.Id() << std::endl;
+            r_normal /= norm_normal;
+            r_node.UnSetLock();
+        }
     });
 
     // For MPI: correct values on partition boundaries
@@ -615,6 +619,32 @@ KRATOS_API(KRATOS_CORE) array_1d<double,3>& NormalCalculationUtils::GetNormalVal
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<>
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::SetNormalValue<true>(
+    NodeType& rNode,
+    const NormalVariableType& rNormalVariable,
+    const array_1d<double,3>& rNormalValue
+    )
+{
+    rNode.FastGetSolutionStepValue(rNormalVariable) = rNormalValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::SetNormalValue<false>(
+    NodeType& rNode,
+    const NormalVariableType& rNormalVariable,
+    const array_1d<double,3>& rNormalValue
+    )
+{
+    rNode.SetValue(rNormalVariable, rNormalValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 KRATOS_API(KRATOS_CORE) bool NormalCalculationUtils::CheckUseSimplex(
     const ModelPart& rModelPart,
     const bool EnforceGenericGeometryAlgorithm
@@ -705,10 +735,10 @@ template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::InitializeNormals<ModelPart::ElementsContainerType, false>(ModelPart&, const NormalVariableType&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ConditionsContainerType>(ModelPart&, const Variable<array_1d<double,3>>&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ElementsContainerType>(ModelPart&, const Variable<array_1d<double,3>>&);
-template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Condition, true>(ModelPart&, const bool, const NormalVariableType&);
-template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Condition, false>(ModelPart&, const bool, const NormalVariableType&);
-template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Element, true>(ModelPart&, const bool, const NormalVariableType&);
-template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<Element, false>(ModelPart&, const bool, const NormalVariableType&);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<ModelPart::ConditionsContainerType, true>(ModelPart&, const bool, const NormalVariableType&);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<ModelPart::ConditionsContainerType, false>(ModelPart&, const bool, const NormalVariableType&);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<ModelPart::ElementsContainerType, true>(ModelPart&, const bool, const NormalVariableType&);
+template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::CalculateUnitNormals<ModelPart::ElementsContainerType, false>(ModelPart&, const bool, const NormalVariableType&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::AuxiliaryCalculateOnSimplex<true>(ConditionsArrayType&, const std::size_t, const NormalVariableType&);
 template KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::AuxiliaryCalculateOnSimplex<false>(ConditionsArrayType&, const std::size_t, const NormalVariableType&);
 
