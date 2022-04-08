@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "containers/distributed_system_vector.h"
@@ -23,7 +24,6 @@
 #include "containers/distributed_csr_matrix.h"
 #include "add_distributed_sparse_matrices_to_python.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
-#include <pybind11/numpy.h>
 
 namespace Kratos {
 namespace Python {
