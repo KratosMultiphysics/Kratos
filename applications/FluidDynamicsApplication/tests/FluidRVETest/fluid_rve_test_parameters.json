@@ -4,12 +4,12 @@
         "parallel_type": "OpenMP",
         "echo_level": 0,
         "start_time": 0.0,
-        "end_time": 1.0
+        "end_time": 0.1
     },
     "rve_settings": {
         "boundary_mp_name": "TO_BE_SET_IN_TEST",
         "averaging_mp_name": "FluidModelPart",
-        "print_rve_post": true,
+        "fix_pressure": true,
         "jump_XX": 0,
         "jump_XY": 1e-6,
         "jump_YY": 0,
@@ -48,8 +48,7 @@
             "use_orthogonal_subscales": false,
             "dynamic_tau": 1.0
         },
-        "reform_dofs_at_each_step": false,
-        "analysis_type": "linear"
+        "reform_dofs_at_each_step": false
     },
     "processes": {
         "initial_conditions_process_list": [{
