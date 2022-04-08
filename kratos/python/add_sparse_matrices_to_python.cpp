@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -24,7 +25,6 @@
 #include "containers/csr_matrix.h"
 #include "containers/system_vector.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"
-#include <pybind11/numpy.h>
 
 namespace Kratos
 {
