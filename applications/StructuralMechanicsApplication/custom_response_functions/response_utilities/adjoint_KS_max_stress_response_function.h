@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
+//  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner, modified by E. Wehrle for KS
 //
 
 #ifndef ADJOINT_KS_MAX_STRESS_RESPONSE_FUNCTION_H
@@ -65,7 +65,8 @@ public:
     ///@{
 
     /// Default constructor.
-    AdjointKSMaxStressResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointKSMaxStressResponseFunction(ModelPart& rModelPart,
+                                       Parameters ResponseSettings);
 
     /// Destructor.
     ~AdjointKSMaxStressResponseFunction() override;
@@ -81,33 +82,35 @@ public:
     using AdjointStructuralResponseFunction::CalculateGradient;
 
     void CalculateGradient(const Element& rAdjointElement,
-                                   const Matrix& rResidualGradient,
-                                   Vector& rResponseGradient,
-                                   const ProcessInfo& rProcessInfo) override;
+                           const Matrix& rResidualGradient,
+                           Vector& rResponseGradient,
+                           const ProcessInfo& rProcessInfo) override;
 
     void CalculatePartialSensitivity(Element& rAdjointElement,
-                                             const Variable<double>& rVariable,
-                                             const Matrix& rSensitivityMatrix,
-                                             Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo) override;
+                                     const Variable<double>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     const ProcessInfo& rProcessInfo) override;
 
     void CalculatePartialSensitivity(Condition& rAdjointCondition,
-                                             const Variable<double>& rVariable,
-                                             const Matrix& rSensitivityMatrix,
-                                             Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo) override;
+                                     const Variable<double>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     const ProcessInfo& rProcessInfo) override;
 
     void CalculatePartialSensitivity(Element& rAdjointElement,
-                                             const Variable<array_1d<double, 3>>& rVariable,
-                                             const Matrix& rSensitivityMatrix,
-                                             Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo) override;
+                                     const Variable<array_1d<double,
+                                     3>>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     const ProcessInfo& rProcessInfo) override;
 
     void CalculatePartialSensitivity(Condition& rAdjointCondition,
-                                             const Variable<array_1d<double, 3>>& rVariable,
-                                             const Matrix& rSensitivityMatrix,
-                                             Vector& rSensitivityGradient,
-                                             const ProcessInfo& rProcessInfo) override;
+                                     const Variable<array_1d<double,
+                                     3>>& rVariable,
+                                     const Matrix& rSensitivityMatrix,
+                                     Vector& rSensitivityGradient,
+                                     const ProcessInfo& rProcessInfo) override;
 
     double CalculateValue(ModelPart& rModelPart) override;
 
@@ -174,8 +177,9 @@ private:
     TracedStressType mTracedStressType;
     SizeType mEchoLevel = 0;
     double max_mean_stress = 0.0;
-    double KS_sum = 0.0;
+    double KS_exp_sum = 0.0;
     std::map<int,double> mean_stress_vector;
+    double pKS = 100.0;  //this should be a variable to set
 
     ///@}
     ///@name Private Operators
@@ -186,12 +190,13 @@ private:
     ///@{
 
     void CalculateElementContributionToPartialSensitivity(Element& rAdjointElement,
-                                      const std::string& rVariableName,
-                                      const Matrix& rSensitivityMatrix,
-                                      Vector& rSensitivityGradient,
-                                      const ProcessInfo& rProcessInfo);
+                                                          const std::string& rVariableName,
+                                                          const Matrix& rSensitivityMatrix,
+                                                          Vector& rSensitivityGradient,
+                                                          const ProcessInfo& rProcessInfo);
 
-    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
+    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix,
+                                     Vector& rResponseGradient);
 
     ///@}
     ///@name Private  Access
