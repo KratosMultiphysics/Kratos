@@ -1,6 +1,7 @@
 # Kratos imports
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
+from KratosMultiphysics.restart_utility import RestartUtility
 
 # RigidBody imports
 from . import rigid_body_input_check as input_check
@@ -25,7 +26,6 @@ class RigidBodySolver(object):
         if not isinstance(project_parameters, KM.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
-        # TODO: Centralized input check
         input_check._CheckMandatoryInputParameters(project_parameters)
         self.problem_name = project_parameters["problem_data"]["problem_name"].GetString()
         self.start_time = project_parameters["problem_data"]["start_time"].GetDouble()
@@ -38,13 +38,21 @@ class RigidBodySolver(object):
 
         self.model = model
         self.main_model_part = self.model.CreateModelPart("Main")
-        self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = domain_size
-        self.rigid_body_model_part = self.main_model_part.CreateSubModelPart("RigidBody")
-        self.root_point_model_part = self.main_model_part.CreateSubModelPart("RootPoint")
-        self.AddVariables()
-        self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
-        self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
-        self.main_model_part.SetBufferSize(buffer_size)
+        if solver_settings["model_import_settings"]["input_type"].GetString() == "none":
+            self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = domain_size
+            self.rigid_body_model_part = self.main_model_part.CreateSubModelPart("RigidBody")
+            self.root_point_model_part = self.main_model_part.CreateSubModelPart("RootPoint")
+            self.AddVariables()
+            self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
+            self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
+            self.main_model_part.SetBufferSize(buffer_size)
+        elif solver_settings["model_import_settings"]["input_type"].GetString() == "rest":
+            model_import_settings = solver_settings["model_import_settings"]
+            model_import_settings.RemoveValue("input_type")
+            RestartUtility(self.main_model_part, model_import_settings).LoadRestart()
+            self.rigid_body_model_part = self.main_model_part.GetSubModelPart("RigidBody")
+            self.root_point_model_part = self.main_model_part.GetSubModelPart("RootPoint")
+            self.start_time = self.main_model_part.ProcessInfo[KM.TIME]
 
         # Degrees of freedom that can be activated from the parameters
         if domain_size == 3:
@@ -70,7 +78,7 @@ class RigidBodySolver(object):
 
         # Prepare the parameters for the generalized-alpha method
         self._InitializeGeneralizedAlphaParameters()
-    
+        
 
     def AddVariables(self):
 
@@ -96,11 +104,15 @@ class RigidBodySolver(object):
 
         # Create all the processes stated in the project parameters
         # TODO: No need to convert it to a json to manipulate it
+        if self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
+            process_types = ["gravity", "boundary_conditions_process_list", "auxiliar_process_list"]
+        else:
+            process_types = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
         parameters_json = json.loads(parameters.WriteJsonString())
         list_of_processes = []
         # TODO: Is this usually a mandatory input?
         if "processes" in parameters_json:
-            for process_type in ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]:
+            for process_type in process_types:
                 if process_type in parameters_json["processes"]:
                     for process in parameters_json["processes"][process_type]:
                         python_module = process["python_module"]
@@ -200,15 +212,16 @@ class RigidBodySolver(object):
     def Initialize(self):
 
         # Initialize the time
-        self.time = self.start_time
-
-        for process in self._list_of_processes:
-            process.ExecuteInitialize()
+        if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
+            self.main_model_part.ProcessInfo[KM.TIME] = self.start_time
 
         # Other variables that are used in SolveSolutionStep()
         self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
         self.total_load = np.zeros(self.system_size)
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
+
+        for process in self._list_of_processes:
+            process.ExecuteInitialize()
 
         # Create output file and wrrite the time=start_time step
         if self.write_output_file:
@@ -295,11 +308,13 @@ class RigidBodySolver(object):
                 x, v, a = self._GetKinematics("rigid_body")
                 x_root, v_root, a_root = self._GetKinematics("root_point")
 
+                time = self.main_model_part.ProcessInfo[KM.TIME]
+
                 # Write the output only for the active DOFs
                 for index, dof in enumerate(self.available_dofs):
                     if dof in self.active_dofs:
                         with open(self.output_file_name[dof], "a") as results_rigid_body:
-                            results_rigid_body.write(str(self.time) + " " +
+                            results_rigid_body.write(str(time) + " " +
                                                     str(x[index]) + " " +
                                                     str(v[index]) + " " +
                                                     str(a[index]) + " " +
@@ -312,7 +327,7 @@ class RigidBodySolver(object):
                                                     str(reaction[index]) + "\n")
 
 
-    def AdvanceInTime(self, current_time):
+    def AdvanceInTime(self, current_time):    
         # Similar to the Kratos CloneTimeStep function
         # Advances values along the buffer axis (so rolling columns) using numpy's roll
         # Column 0 is the current time step, column 1 the previous one...
@@ -326,12 +341,12 @@ class RigidBodySolver(object):
         self.total_load = np.zeros(self.system_size)
 
         # Update the time of the simulation
-        self.time = current_time + self.delta_t
-        self.main_model_part.CloneTimeStep(self.time)
+        time = current_time + self.delta_t
+        self.main_model_part.CloneTimeStep(time)
         self.main_model_part.ProcessInfo[KM.STEP] += 1
         self._ResetExternalVariables()
 
-        return self.time
+        return time
 
     
     def Predict(self):

@@ -25,6 +25,15 @@ def _CheckMandatoryInputParameters(project_parameters):
         if not project_parameters["solver_settings"]["time_integration_parameters"].Has("time_step"):
             raise Exception(msg)
 
+    if project_parameters["solver_settings"].Has("model_import_settings"):
+        if project_parameters["solver_settings"]["model_import_settings"].Has("input_type"):
+            input_type = project_parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()
+            if input_type not in ["none","rest"]:
+                raise Exception('"input_type" must be either "none" or "rest".')
+            if input_type == "rest":
+                if not project_parameters["solver_settings"]["model_import_settings"].Has("restart_load_file_label"):
+                    raise Exception('"restart_load_file_label" must be specified when starting from a restart-file!')
+
 
 def _ValidateAndAssignRigidBodySolverDefaults(solver_settings):
     
@@ -32,6 +41,13 @@ def _ValidateAndAssignRigidBodySolverDefaults(solver_settings):
         "domain_size":3,
         "echo_level":0,
         "buffer_size":3,
+        "model_import_settings":{
+            "input_type":"none",
+            "input_filename":"Main",
+            "restart_load_file_label":"0.0",
+            "load_restart_files_from_folder":true,
+            "input_output_path":"restart"
+        },
         "time_integration_parameters":{
             "rho_inf": 0.16,
             "time_step": 0.1
