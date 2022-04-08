@@ -45,8 +45,8 @@ namespace Kratos
 
 /** \brief AdjointKSMaxStressResponseFunction
  *
- * This is a response function which approximates the max stress via Kreisselmeier-Steinhauser
- * of a single element as response.
+ * This is a response function which approximates the max stress via
+ * modified Kreisselmeier-Steinhauser function aggregation
  * It is designed to be used in adjoint sensitivity analysis.
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointKSMaxStressResponseFunction : public AdjointStructuralResponseFunction
