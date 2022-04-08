@@ -86,6 +86,12 @@ public:
     void CyclePeriodPerIntegrationPoint(bool& rCycleFound);
 
     /**
+     * @brief This method computes the cycle time period per integration point
+     * @param rMaximumDamageIncrement Double variable indicating the maximum damage accumulation along the model for each cycle
+     */
+    void DamageInitiationAndAccumulation(double& rMaximumDamageIncrement);
+
+    /**
      * @brief This method stablishes if stable conditions have been reached for initiating the advance strategy
      * @param rAdvancingStrategy Bool variable indicating weather advancing strategy will start or not
      * @param DamageIndicator Bool variable indicating that damage has iniciated at some point

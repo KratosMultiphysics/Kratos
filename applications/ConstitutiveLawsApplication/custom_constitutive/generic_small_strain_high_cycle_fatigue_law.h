@@ -432,6 +432,8 @@ private:
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mReferenceDamage = 0.0; // Damage level to be considered at each load block. This is used to work with stable loads during the fatigue process.
+    double mPreviousCycleDamage = 0.0; // Damage level at the previous cycle.
 
     ///@}
     ///@name Private Operators

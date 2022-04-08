@@ -163,6 +163,7 @@ public:
      * @param rB0 Internal variable of the fatigue model.
      * @param rSth Endurance limit of the fatigue model.
      * @param rAlphat Internal variable of the fatigue model.
+     * @param rN_f Number of cycles that satisfy the condition Smax = Su * fred used for the calculation of B0 and, therefore, fred.
      */
     static void CalculateFatigueParameters(const double MaxStress,
                                             double ReversionFactor,
@@ -174,7 +175,6 @@ public:
 	{
         const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
-        const double yield_stress = ultimate_stress;
 
         // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
         // The jump in the advance in time process is done in these cases to the Syield rather to Sult.
@@ -211,11 +211,49 @@ public:
         if (MaxStress > rSth && MaxStress <= ultimate_stress) {
             rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (ultimate_stress - rSth))/rAlphat,(1.0/BETAF)));
             rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
+        } else {
+            rN_f = 1.0e20; // No fatigue at this IP, i.e., proposing infinite jump.
+        }
+    }
 
-            if (softening_type == curve_by_points) {
-                rN_f = std::pow(rN_f, std::pow(std::log(MaxStress / yield_stress) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
+    /**
+     * @brief This method computes the number of cycles to failure. This will match with the original definition of N_f if
+     * the threshold (K) is equal to the ultimate stress (Sult).
+     * @param rN_f Number of cycles to reactivate the non-linear process.
+     * @param MaxStress Signed maximum stress in the current cycle.
+     * @param MaterialParameters Material properties.
+     * @param Threshold Updated stress threshold at the integration point.
+     * @param rSth Endurance limit of the fatigue model.
+     */
+    static double NumberOfCyclesToFailure(double N_f,
+                                        const double MaxStress,
+                                        const Properties& rMaterialParameters,
+                                        double Threshold,
+                                        double Sth)
+	{
+        const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
+        double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+
+        const int softening_type = rMaterialParameters[SOFTENING_TYPE];
+        const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
+        if (softening_type == curve_by_points) {
+            const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
+            const SizeType curve_points = stress_damage_curve.size() - 1;
+
+            ultimate_stress = 0.0;
+            for (IndexType i = 1; i <= curve_points; ++i) {
+                ultimate_stress = std::max(ultimate_stress, stress_damage_curve[i-1]);
             }
         }
+        double number_of_cycles_to_failure = N_f;
+        const double BETAF = r_fatigue_coefficients[4];
+        if (ultimate_stress - MaxStress > 1.0e-4) {
+            if (MaxStress > Sth) {
+                const double square_betaf = std::pow(BETAF, 2.0);
+                number_of_cycles_to_failure = std::pow(N_f, std::pow(std::log(MaxStress / Threshold) / std::log(MaxStress / ultimate_stress), 1.0 / square_betaf));
+            }
+        }
+        return number_of_cycles_to_failure;
     }
 
     /**
@@ -259,7 +297,7 @@ public:
             }
             rWohlerStress = (Sth + (ultimate_stress - Sth) * std::exp(-Alphat * (std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), BETAF)))) / ultimate_stress;
         }
-        if (MaxStress > Sth) {
+        if (MaxStress > Sth) { //In those cases with no fatigue in course (MaxStress < Sth), tbe fatigue reduction factor does not evolve.
             rFatigueReductionFactor = std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), (BETAF * BETAF)));
             rFatigueReductionFactor = (rFatigueReductionFactor < 0.01) ? 0.01 : rFatigueReductionFactor;
         }

@@ -913,7 +913,6 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
             const bool has_total_or_plastic_strain_space = r_material_properties.Has(TOTAL_OR_PLASTIC_STRAIN_SPACE);
             const bool total_or_plastic_strain_space = has_total_or_plastic_strain_space ? r_material_properties[TOTAL_OR_PLASTIC_STRAIN_SPACE] : false; //Default value = plastic strain space
             if (total_or_plastic_strain_space) { // Curve built in the total strain space
-                KRATOS_WATCH("HERE")
                 const double yield_strain = equivalent_stress_vector(0) / young_modulus;
                 const double a = (0.5 * equivalent_stress_vector(points_hardening_curve - 1) * yield_strain + equivalent_stress_vector(0) / equivalent_stress_vector(points_hardening_curve - 1)
                                     * volumetric_fracture_energy * (segment_threshold - 1.0)) / yield_strain;
@@ -922,7 +921,6 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
                 rSlope = - equivalent_stress_vector(0) * volumetric_fracture_energy / (yield_strain * std::sqrt(std::pow(a, 2.0) + 2.0 * equivalent_stress_vector(0) * volumetric_fracture_energy * (1.0 - PlasticDissipation) / yield_strain));
 
             } else { // Curve built in the plastic strain space
-                KRATOS_WATCH("HERE111")
                 const double a = equivalent_stress_vector(points_hardening_curve - 1) / (1.0 - segment_threshold);
                 rEquivalentStressThreshold =  a * (1.0 - PlasticDissipation);
                 rSlope = - a;
