@@ -104,8 +104,8 @@ class TestAdjointKSMaxStressResponseFunction(StructuralResponseFunctionTestFacto
     def test_execution(self):
         self._calculate_response_and_gradient()
 
-        # the displacements are slightly different for KS, I dont get this as the handling of the stress should have no influence...
         model_part = self.response_function.adjoint_analysis.model.GetModelPart("cantilever_beam")
+
         self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X), 7.660359778753952, 10)
         self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y), -19.867982671639766, 10)
         self.assertAlmostEqual(model_part.Nodes[53].GetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z), -7.269671985606765, 10)
