@@ -369,7 +369,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     const auto mom  = [](array_1d<double, 3> const& X) { return array_1d<double, 3>{- density*omega*X[1], density*omega*X[0], 0.0}; };
     const auto etot = [](array_1d<double, 3> const& X) { return gamma/(gamma - 1) * density*omega*omega*inner_prod(X,X)/2 + p0/(gamma - 1); };
 
-    const double p = density*omega*omega*half_base*half_base / 6 + p0; //Mean pressure along an edge
+    const double p = density*omega*omega*(half_base*half_base + 3*apotheme*apotheme) / 6 + p0; //Mean pressure along an edge
     for(auto& r_condition: r_model_part.Conditions())
     {
         const auto n = r_condition.GetGeometry().UnitNormal(0);
