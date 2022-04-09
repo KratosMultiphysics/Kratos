@@ -565,10 +565,10 @@ private:
      * @brief It initializes the normal in the entites and in all the nodes
      * @param rModelPart The model part to compute
      * @param rNormalVariable Component variable storing the normal value
-     * @tparam TEntity The entity type considered
+     * @tparam TContainerType Type of the container that will store the entities for the normal calculation
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TEntity, bool TIsHistorical>
+    template<class TContainerType, bool TIsHistorical>
     void InitializeNormals(
         ModelPart& rModelPart,
         const NormalVariableType& rNormalVariable
@@ -578,9 +578,10 @@ private:
      * @brief It computes the unit normals from the area normals
      * @param rModelPart The model part to compute
      * @param rNormalVariable Component variable storing the normal value
+     * @tparam TContainerType Type of the container that will store the entities for the normal calculation
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TEntity, bool TIsHistorical>
+    template<class TContainerType, bool TIsHistorical>
     void ComputeUnitNormalsFromAreaNormals(
         ModelPart& rModelPart,
         const NormalVariableType& rNormalVariable

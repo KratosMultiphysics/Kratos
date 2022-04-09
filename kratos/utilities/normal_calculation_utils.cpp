@@ -302,7 +302,7 @@ void NormalCalculationUtils::CalculateOnSimplex(
     InitializeNormals<ModelPart::ConditionsContainerType,true>(rModelPart, rNormalVariable);
 
     // Calling CalculateOnSimplex for conditions
-    this->CalculateOnSimplex(rModelPart.Conditions(), Dimension, rNormalVariable);
+    AuxiliaryCalculateOnSimplex<true>(rModelPart.Conditions(), Dimension, rNormalVariable);
 
     // Synchronize the normal
     rModelPart.GetCommunicator().AssembleCurrentData(rNormalVariable);
@@ -353,27 +353,55 @@ void NormalCalculationUtils::ComputeUnitNormalsFromAreaNormals(
 {
     KRATOS_TRY
 
+    // Auxiliary lambda to calculate the unit normal from the area one
+    auto unit_normal_func = [&rNormalVariable, this](NodeType& rNode){
+        auto& r_normal = GetNormalValue<TIsHistorical>(rNode, rNormalVariable);
+        const double norm_normal = norm_2(r_normal);
+        KRATOS_ERROR_IF(rNode.Is(INTERFACE) && norm_normal <= std::numeric_limits<double>::epsilon())
+            << "Zero norm normal in INTERFACE flagged node: " << rNode.Id() << std::endl;
+        r_normal /= norm_normal;
+    };
+
     // We iterate over the nodes of the corresponding container
     // Note that we need to iterate the corresponding entities in case there are
     // nodes in the model part that do not belong to any entity.
     auto& r_entity_container = GetContainer<TContainerType>(rModelPart);
-    block_for_each(r_entity_container, [&rNormalVariable, this](typename TContainerType::value_type& rEntity) {
-        for (auto& r_node : rEntity.GetGeometry()) {
-            r_node.SetLock();
-            auto& r_normal = GetNormalValue<TIsHistorical>(r_node, rNormalVariable);
-            const double norm_normal = norm_2(r_normal);
-            KRATOS_ERROR_IF(r_node.Is(INTERFACE) && norm_normal <= std::numeric_limits<double>::epsilon())
-                << "ERROR:: ZERO NORM NORMAL IN NODE: " << r_node.Id() << std::endl;
-            r_normal /= norm_normal;
-            r_node.UnSetLock();
-        }
-    });
+    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDistributed()) {
+        // Flag the nodes to which we will compute the unit normal in all the partitions
+        VariableUtils().SetFlag(VISITED, false, rModelPart.Nodes());
+        block_for_each(r_entity_container, [](typename TContainerType::value_type& rEntity) {
+            for (auto& r_node : rEntity.GetGeometry()) {
+                r_node.SetLock();
+                r_node.Set(VISITED, true);
+                r_node.UnSetLock();
+            }
+        });
+        rModelPart.GetCommunicator().SynchronizeOrNodalFlags(VISITED);
 
-    // For MPI: correct values on partition boundaries
-    if (TIsHistorical) {
-        rModelPart.GetCommunicator().SynchronizeVariable(rNormalVariable);
+        // For the flagged nodes in the local mesh calculate the unit normal
+        auto& r_local_nodes = rModelPart.GetCommunicator().LocalMesh().Nodes();
+        block_for_each(r_local_nodes, [&unit_normal_func](NodeType& rNode) {
+            if (rNode.Is(VISITED)) {
+                unit_normal_func(rNode);
+            }
+        });
+
+        // Synchronize unit normals to ghost nodes
+        if (TIsHistorical) {
+            rModelPart.GetCommunicator().SynchronizeVariable(rNormalVariable);
+        } else {
+            rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rNormalVariable);
+        }
     } else {
-        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rNormalVariable);
+        // In serial iterate normally over the container nodes
+        // Note that we only calculate the unit normal in the nodes belonging to the entities of interest
+        block_for_each(r_entity_container, [&unit_normal_func](typename TContainerType::value_type& rEntity) {
+            for (auto& r_node : rEntity.GetGeometry()) {
+                r_node.SetLock();
+                unit_normal_func(r_node);
+                r_node.UnSetLock();
+            }
+        });
     }
 
     KRATOS_CATCH("");
@@ -626,7 +654,7 @@ KRATOS_API(KRATOS_CORE) void NormalCalculationUtils::SetNormalValue<true>(
     const array_1d<double,3>& rNormalValue
     )
 {
-    rNode.FastGetSolutionStepValue(rNormalVariable) = rNormalValue;
+    noalias(rNode.FastGetSolutionStepValue(rNormalVariable)) = rNormalValue;
 }
 
 /***********************************************************************************/
