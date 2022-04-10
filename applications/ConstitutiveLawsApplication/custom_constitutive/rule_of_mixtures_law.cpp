@@ -1006,66 +1006,6 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
         // Delamination Damage Criterion V1
 
-        // const double T0n = 16000000; // Interfacial Normal Strength
-        // const double T0s = 27000000; // Interfacial Shear Strength
-        // const double T0t = 27000000; // Interfacial Shear Strength
-        // const double GIc = 102; // Mode I Energy Release Rate
-        // const double GIIc = 194; // Mode II Energy Release Rate
-        // const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
-        // double Gc = mGc; // Mix Mode Energy Release Rate
-        // double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
-        // double Delta_G = mDelta_G;
-        // double Delta_epsilon_one = mDelta_epsilon_one;
-        // double SERR = mSERR; // Strain Energy Release Rate 
-        // double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
-        // double Delta_eq = 0; // Equivalent Strain
-        // double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
-        // double T_eq = mT_eq; // Equivalent Stress
-        // double DamageIndicator = mDamageIndicator; // Onset of Damage
-        // // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
-        // const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-        // double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
-        // if (Fd >= 1.0 || DamageIndicator >= 2.0) {
-        //     Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
-        //     if (DamageIndicator == 1.0) { // We calculate Elastic energy and mode mix only at damage initiation
-        //         T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
-        //         double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
-        //         double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
-        //         double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
-        //         double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-        //         // Elastic_energy = (T_eq * Delta_eq /2.0);
-        //         Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-        //         Delta_G = (Gc / characteristic_length) / (((2.0 * Gc / characteristic_length) / T_eq) - Delta_eq);
-        //         Delta_eq_max = Delta_eq;
-        //         Delta_epsilon_one = Delta_eq;
-        //     }
-        //     if (Delta_eq >= Delta_eq_max) { // Loading
-        //         // SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
-        //         // delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
-        //         // Delta_eq_max = Delta_eq;
-
-        //         SERR = (Delta_eq - Delta_epsilon_one) * Delta_G; // Strain Energy Release Rate
-        //         delamination_damage = std::min(SERR / (Gc / characteristic_length),1.0);
-        //         Delta_eq_max = Delta_eq;
-        //     }
-        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-        //     // T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2.0)+std::pow(auxiliar_stress_vector[4],2.0)+std::pow(auxiliar_stress_vector[5],2.0));
-        //     DamageIndicator += 1.0;
-        // } else { // Undamaged Case
-        //     auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
-        // }
-
-        // End Delamination Damage Criterion V1
-
-        //
-
-        // Delamination Damage Criterion V2
-
         const double T0n = 16000000; // Interfacial Normal Strength
         const double T0s = 27000000; // Interfacial Shear Strength
         const double T0t = 27000000; // Interfacial Shear Strength
@@ -1073,43 +1013,106 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         const double GIIc = 194; // Mode II Energy Release Rate
         const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
         double Gc = mGc; // Mix Mode Energy Release Rate
-        double initial_threshold = minitial_threshold;
-        double threshold = mthreshold;
-        double delamination_damage = mdelamination_damage;
-        double AParameter = mAParameter;
-        double DamageIndicator = mDamageIndicator;
+        double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
+        double Delta_G = mDelta_G;
+        double Delta_epsilon_one = mDelta_epsilon_one;
+        double SERR = mSERR; // Strain Energy Release Rate 
+        double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
+        double Delta_eq = 0; // Equivalent Strain
+        double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
+        double T_eq = mT_eq; // Equivalent Stress
+        double DamageIndicator = mDamageIndicator; // Onset of Damage
+        // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
         const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-        const double tolerance = std::numeric_limits<double>::epsilon();
-        const double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
-        double T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
-        if (Fd >= 1.0 && DamageIndicator == 1) {
-            initial_threshold = T_eq;
-            threshold = T_eq;
-            double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
-            double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
-            double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
-            double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-            Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-            AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length);
-        }
-        const double Fp = T_eq - threshold;
-        if (Fp <= tolerance) { // Elastic case
+        double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        if (Fd >= 1.0 || DamageIndicator >= 2.0) {
+            Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
+            if (DamageIndicator == 1.0) { // We calculate Elastic energy and mode mix only at damage initiation
+                T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+                double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+                double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
+                double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
+                double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
+                // Elastic_energy = (T_eq * Delta_eq /2.0);
+                Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+                Delta_G = (Gc / characteristic_length) / (((2.0 * Gc / characteristic_length) / T_eq) - Delta_eq);
+                // Delta_eq_max = Delta_eq;
+                Delta_epsilon_one = Delta_eq;
+            }
+            if (Delta_eq >= Delta_eq_max) { // Loading
+                // SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
+                // delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
+                // Delta_eq_max = Delta_eq;
+
+                SERR = (Delta_eq - Delta_epsilon_one) * Delta_G; // Strain Energy Release Rate
+                delamination_damage = std::min(SERR / (Gc / characteristic_length),1.0);
+                // Delta_eq_max = Delta_eq;
+            }
             auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
             auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
             auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
             auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
             auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
             auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-        } else { // Damage case
-            delamination_damage = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter);
-
-            auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-            auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-            auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-            auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-            auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-            auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5];
+            // T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2.0)+std::pow(auxiliar_stress_vector[4],2.0)+std::pow(auxiliar_stress_vector[5],2.0));
+            // DamageIndicator += 1.0;
+        } else { // Undamaged Case
+            auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
         }
+
+        // End Delamination Damage Criterion V1
+
+        //
+
+        // Delamination Damage Criterion V2
+
+        // const double T0n = 16000000; // Interfacial Normal Strength
+        // const double T0s = 27000000; // Interfacial Shear Strength
+        // const double T0t = 27000000; // Interfacial Shear Strength
+        // const double GIc = 102; // Mode I Energy Release Rate
+        // const double GIIc = 194; // Mode II Energy Release Rate
+        // const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
+        // double Gc = mGc; // Mix Mode Energy Release Rate
+        // double initial_threshold = minitial_threshold;
+        // double threshold = mthreshold;
+        // double delamination_damage = mdelamination_damage;
+        // double AParameter = mAParameter;
+        // double DamageIndicator = mDamageIndicator;
+        // const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
+        // const double tolerance = std::numeric_limits<double>::epsilon();
+        // const double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        // double T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+        // if (Fd >= 1.0 && DamageIndicator == 1) {
+        //     initial_threshold = T_eq;
+        //     threshold = T_eq;
+        //     double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+        //     double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
+        //     double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
+        //     double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
+        //     Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+        //     // AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length); // Linear
+        //     AParameter = 1.00 / (Gc * 800000000 / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
+        // }
+        // const double Fp = T_eq - threshold;
+        // if (Fp <= tolerance) { // Elastic case
+        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
+        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
+        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
+        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
+        // } else { // Damage case
+        //     // delamination_damage = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
+        //     delamination_damage = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
+        //         (1.0 - T_eq / initial_threshold)); // Exponential
+
+        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
+        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
+        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
+        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5];
+        // }
 
         // End Delamination Damage Criterion V2
 
@@ -1549,66 +1552,6 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
 
         // Delamination Damage Criterion V1
 
-        // const double T0n = 16000000; // Interfacial Normal Strength
-        // const double T0s = 27000000; // Interfacial Shear Strength
-        // const double T0t = 27000000; // Interfacial Shear Strength
-        // const double GIc = 102; // Mode I Energy Release Rate
-        // const double GIIc = 194; // Mode II Energy Release Rate
-        // const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
-        // double Gc = mGc; // Mix Mode Energy Release Rate
-        // double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
-        // double Delta_G = mDelta_G;
-        // double Delta_epsilon_one = mDelta_epsilon_one;
-        // double SERR = mSERR; // Strain Energy Release Rate 
-        // double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
-        // double Delta_eq = 0; // Equivalent Strain
-        // double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
-        // double T_eq = mT_eq; // Equivalent Stress
-        // double DamageIndicator = mDamageIndicator; // Onset of Damage
-        // // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
-        // const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-        // double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
-        // if (Fd >= 1.0 || DamageIndicator >= 2.0) {
-        //     Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
-        //     if (DamageIndicator == 1.0) { // We calculate Elastic energy and mode mix only at damage initiation
-        //         T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
-        //         double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
-        //         double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
-        //         double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
-        //         double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-        //         // Elastic_energy = (T_eq * Delta_eq /2.0);
-        //         Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-        //         Delta_G = (Gc / characteristic_length) / (((2.0 * Gc / characteristic_length) / T_eq) - Delta_eq);
-        //         Delta_eq_max = Delta_eq;
-        //         Delta_epsilon_one = Delta_eq;
-        //     }
-        //     if (Delta_eq >= Delta_eq_max) { // Loading
-        //         // SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
-        //         // delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
-        //         // Delta_eq_max = Delta_eq;
-
-        //         SERR = (Delta_eq - Delta_epsilon_one) * Delta_G; // Strain Energy Release Rate
-        //         delamination_damage = std::min(SERR / (Gc / characteristic_length),1.0);
-        //         Delta_eq_max = Delta_eq;
-        //     }
-        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-        //     // T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2.0)+std::pow(auxiliar_stress_vector[4],2.0)+std::pow(auxiliar_stress_vector[5],2.0));
-        //     DamageIndicator += 1.0;
-        // } else { // Undamaged Case
-        //     auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
-        // }
-
-        // End Delamination Damage Criterion V1
-
-        //
-
-        // Delamination Damage Criterion V2
-
         const double T0n = 16000000; // Interfacial Normal Strength
         const double T0s = 27000000; // Interfacial Shear Strength
         const double T0t = 27000000; // Interfacial Shear Strength
@@ -1616,49 +1559,117 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         const double GIIc = 194; // Mode II Energy Release Rate
         const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
         double Gc = mGc; // Mix Mode Energy Release Rate
-        double initial_threshold = minitial_threshold;
-        double threshold = mthreshold;
-        double delamination_damage = mdelamination_damage;
-        double AParameter = mAParameter;
-        double DamageIndicator = mDamageIndicator;
+        double Elastic_energy = mElastic_energy; // Elastic energy stored before damage initiation 
+        double Delta_G = mDelta_G;
+        double Delta_epsilon_one = mDelta_epsilon_one;
+        double SERR = mSERR; // Strain Energy Release Rate 
+        double delamination_damage = mdelamination_damage; // Scalar delamination damage variable  
+        double Delta_eq = 0; // Equivalent Strain
+        double Delta_eq_max = mDelta_eq_max; // Equivalent Strain History Variable
+        double T_eq = mT_eq; // Equivalent Stress
+        double DamageIndicator = mDamageIndicator; // Onset of Damage
+        // const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry()); // Characteristic Length of the Element
         const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
-        const double tolerance = std::numeric_limits<double>::epsilon();
-        const double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
-        double T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
-        if (Fd >= 1.0 && DamageIndicator == 1) {
-            initial_threshold = T_eq;
-            mthreshold = T_eq;
-            double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
-            double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
-            double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
-            double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
-            Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
-            AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length);
-            mGc = Gc;
-            mAParameter = AParameter;
-            minitial_threshold = initial_threshold;
-            mDamageIndicator = 2;
-        }
-        const double Fp = T_eq - threshold;
-        if (Fp <= tolerance) { // Elastic case
+        double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        if (Fd >= 1.0 || DamageIndicator >= 2.0) {
+            Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
+            if (DamageIndicator == 1.0) { // We calculate Elastic energy and mode mix only at damage initiation
+                T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+                double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+                double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
+                double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
+                double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
+                // Elastic_energy = (T_eq * Delta_eq /2.0);
+                Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+                Delta_G = (Gc / characteristic_length) / (((2.0 * Gc / characteristic_length) / T_eq) - Delta_eq);
+                Delta_eq_max = Delta_eq;
+                Delta_epsilon_one = Delta_eq;
+                mGc = Gc;
+                mDelta_G = Delta_G;
+                mDelta_epsilon_one = Delta_epsilon_one;
+
+            }
+            if (Delta_eq >= Delta_eq_max) { // Loading
+                // SERR += (Delta_eq - Delta_eq_max) * T_eq; // Strain Energy Release Rate
+                // delamination_damage = std::min(SERR / ((Gc / characteristic_length) - Elastic_energy), 1.0);
+                // Delta_eq_max = Delta_eq;
+
+                SERR = (Delta_eq - Delta_epsilon_one) * Delta_G; // Strain Energy Release Rate
+                delamination_damage = std::min(SERR / (Gc / characteristic_length),1.0);
+                mdelamination_damage = delamination_damage;
+                mDelta_eq_max = Delta_eq;
+            }
             auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
             auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
             auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
             auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
             auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
             auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-        } else { // Damage case
-            delamination_damage = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter);
-
-            auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-            auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-            auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-            auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-            auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-            auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5];
-            mthreshold = T_eq;
-            mdelamination_damage = delamination_damage;
+            // T_eq = std::sqrt(std::pow(auxiliar_stress_vector[2],2.0)+std::pow(auxiliar_stress_vector[4],2.0)+std::pow(auxiliar_stress_vector[5],2.0));
+            mDamageIndicator = 3.0;
+        } else { // Undamaged Case
+            auxiliar_stress_vector = undamaged_auxiliar_stress_vector;
         }
+
+        // End Delamination Damage Criterion V1
+
+        //
+
+        // Delamination Damage Criterion V2
+
+        // const double T0n = 16000000; // Interfacial Normal Strength
+        // const double T0s = 27000000; // Interfacial Shear Strength
+        // const double T0t = 27000000; // Interfacial Shear Strength
+        // const double GIc = 102; // Mode I Energy Release Rate
+        // const double GIIc = 194; // Mode II Energy Release Rate
+        // const double Eta = 2; // Benzeggagh-Kenane (B-K) Law Coefficient
+        // double Gc = mGc; // Mix Mode Energy Release Rate
+        // double initial_threshold = minitial_threshold;
+        // double threshold = mthreshold;
+        // double delamination_damage = mdelamination_damage;
+        // double AParameter = mAParameter;
+        // double DamageIndicator = mDamageIndicator;
+        // const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
+        // const double tolerance = std::numeric_limits<double>::epsilon();
+        // const double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        // double T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+        // if (Fd >= 1.0 && DamageIndicator == 1) {
+        //     initial_threshold = T_eq;
+        //     mthreshold = T_eq;
+        //     double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+        //     double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
+        //     double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
+        //     double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
+        //     Gc = GIc + (GIIc - GIc) * std::pow(mode_mix_factor, Eta); // Benzeggagh-Kenane (B-K) Law
+        //     // AParameter = -std::pow(initial_threshold, 2) / (2.0 * 800000000 * Gc / characteristic_length); // Linear
+        //     AParameter = 1.00 / (Gc * 800000000 / (characteristic_length * std::pow(initial_threshold, 2)) - 0.5); // Exponential
+        //     mGc = Gc;
+        //     mAParameter = AParameter;
+        //     minitial_threshold = initial_threshold;
+        //     mDamageIndicator = 2;
+        // }
+        // const double Fp = T_eq - threshold;
+        // if (Fp <= tolerance) { // Elastic case
+        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
+        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
+        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
+        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
+        // } else { // Damage case
+        //     // delamination_damage = (1.0 - initial_threshold / T_eq) / (1.0 + AParameter); // Linear
+        //     delamination_damage = 1.0 - (initial_threshold / T_eq) * std::exp(AParameter *
+        //         (1.0 - T_eq / initial_threshold)); // Exponential
+
+        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
+        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
+        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
+        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
+        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
+        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5];
+        //     mthreshold = T_eq;
+        //     mdelamination_damage = delamination_damage;
+        // }
 
         // End Delamination Damage Criterion V2
 
