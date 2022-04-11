@@ -809,6 +809,175 @@ private:
      * Private Operations
      */
 
+    static double ShapeFunctionLine2D3(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        ) 
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return 1.0 - 3.0*rPoint[2] + 2.0*rPoint[2]*rPoint[2];
+        case 1:
+            return 2.0*rPoint[2]*rPoint[2] - rPoint[2];
+        case 2:
+            return 4.0*(rPoint[2] - rPoint[2]*rPoint[2]);
+        default:
+            KRATOS_ERROR << "Wrong index of shape function Line2D3: " << ShapeFunctionIndex << std::endl;
+        }
+
+        return 0;
+    }
+
+    static double ShapeFunctionLine2D3DerivativesZ(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        ) 
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return -3.0 + 4.0*rPoint[2];
+        case 1:
+            return 4.0*rPoint[2]* - 1.0;
+        case 2:
+            return 4.0*(1.0 - 2.0*rPoint[2]);
+        default:
+            KRATOS_ERROR << "Wrong index of shape function Line2D3: " << ShapeFunctionIndex << std::endl;
+        }
+
+        return 0;
+    }
+
+    static double ShapeFunctionTriangle2D6(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        ) 
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return ( 1. -rPoint[0] - rPoint[1] ) * ( 1. - rPoint[0] - rPoint[0] - rPoint[1] - rPoint[1] );
+        case 1:
+            return -rPoint[0] * ( 1. - rPoint[0] - rPoint[0] );
+        case 2:
+            return ( -rPoint[1] * ( 1. - rPoint[1] - rPoint[1] ) );
+        case 3:
+            return ( 4. * rPoint[0] * ( 1. - rPoint[0] - rPoint[1] ) );
+        case 4:
+            return ( 4. * rPoint[0] * rPoint[1] );
+        case 5:
+            return ( 4. * rPoint[1] * ( 1. - rPoint[0] - rPoint[1] ) );
+        default:
+            KRATOS_ERROR << "Wrong index of shape function Triangle2D6: " << ShapeFunctionIndex << std::endl;
+        }
+
+        return 0;
+    }
+
+    static double ShapeFunctionTriangle2D6DerivativesX(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        ) 
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return 4. * ( rPoint[0] + rPoint[1] ) - 3.;
+        case 1:
+            return 4. * rPoint[0] - 1.;
+        case 2:
+            return 0.;
+        case 3:
+            return 4. * ( 1. - rPoint[0] - rPoint[0] - rPoint[1] );
+        case 4:
+            return 4. * rPoint[1];
+        case 5:
+            return -4. * rPoint[1];
+        default:
+            KRATOS_ERROR << "Wrong index of shape function Triangle2D6: " << ShapeFunctionIndex << std::endl;
+        }
+
+        return 0;
+    }
+
+    static double ShapeFunctionTriangle2D6DerivativesY(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        ) 
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return 4. * ( rPoint[0] + rPoint[1] ) - 3.;
+        case 1:
+            return 0.;
+        case 2:
+            return 4. * rPoint[1] - 1.;
+        case 3:
+            return -4. * rPoint[0];
+        case 4:
+            return 4. * rPoint[0];
+        case 5:
+            return 4. * ( 1. - rPoint[0] - rPoint[1] - rPoint[1] );
+        default:
+            KRATOS_ERROR << "Wrong index of shape function Triangle2D6: " << ShapeFunctionIndex << std::endl;
+        }
+
+        return 0;
+    }
+
+    static double ShapeFunctionPrism3D15DerivativesX(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        )
+    {
+        if (ShapeFunctionIndex < 3)
+            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+        else if (ShapeFunctionIndex < 6 )
+            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
+        else if (ShapeFunctionIndex < 9 )
+            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+        else if (ShapeFunctionIndex < 12 )
+            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(2, rPoint);
+        else
+            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
+    }
+
+    static double ShapeFunctionPrism3D15DerivativesY(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        )
+    {
+        if (ShapeFunctionIndex < 3)
+            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+        else if (ShapeFunctionIndex < 6 )
+            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
+        else if (ShapeFunctionIndex < 9 )
+            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+        else if (ShapeFunctionIndex < 12 )
+            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(2, rPoint);
+        else
+            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
+    }
+
+    static double ShapeFunctionPrism3D15DerivativesZ(
+        const IndexType ShapeFunctionIndex,
+        const CoordinatesArrayType& rPoint 
+        )
+    {
+        if (ShapeFunctionIndex < 3)
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6DerivativesX(0, rPoint);
+        else if (ShapeFunctionIndex < 6 )
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6DerivativesX(1, rPoint);
+        else if (ShapeFunctionIndex < 9 )
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6DerivativesX(0, rPoint);
+        else if (ShapeFunctionIndex < 12 )
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6DerivativesX(2, rPoint);
+        else
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6DerivativesX(1, rPoint);
+    }
+
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -824,43 +993,16 @@ private:
         const CoordinatesArrayType& rPoint 
         )
     {
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return( 0.5*(( 1.0 - rPoint[0] - rPoint[1] )*( 2.0*( 1.0 - rPoint[0] - rPoint[1] ) - 1.0 )*( 1.0 - rPoint[2] ) - ( 1.0 - rPoint[0] - rPoint[1] )*( 1.0 - ( rPoint[2]*rPoint[2] ) ) ) );
-        case 1:
-            return( 0.5*( rPoint[0]*( 2.0*rPoint[0] - 1.0 )*( 1.0 - rPoint[2] ) - rPoint[0]*( 1.0 - ( rPoint[2]*rPoint[2] ) ) ) );
-        case 2:
-            return( 0.5*( rPoint[1]*( 2.0*rPoint[1] - 1.0 )*( 1.0 - rPoint[2] ) - rPoint[1]*( 1.0 - ( rPoint[2]*rPoint[2] ) ) ) );
-        case 3:
-            return( 0.5*(( 1.0 - rPoint[0] - rPoint[1] )*( 2.0*( 1.0 - rPoint[0] - rPoint[1] ) - 1.0 )*( 1.0 + rPoint[2] ) - ( 1.0 - rPoint[0] - rPoint[1] )*( 1.0 - ( rPoint[2]*rPoint[2] ) ) ) );
-        case 4:
-            return( 0.5*( rPoint[0]*( 2.0*rPoint[0] - 1.0 )*( 1.0 + rPoint[2] ) - rPoint[0]*( 1.0 - ( rPoint[2]*rPoint[2] ) ) ) );
-        case 5:
-            return( 0.5*( rPoint[1]*( 2.0*rPoint[1] - 1.0 )*( 1.0 + rPoint[2] ) - rPoint[1]*( 1.0 - ( rPoint[2]*rPoint[2] ) ) ) );
-        case 6:
-            return( 2.0*( 1.0 - rPoint[0] - rPoint[1] )*rPoint[0]*( 1.0 - rPoint[2] ) );
-        case 7:
-            return( 2.0*rPoint[0]*rPoint[1]*( 1.0 - rPoint[2] ) );
-        case 8:
-            return( 2.0*rPoint[1]*( 1.0 - rPoint[0] - rPoint[1] )*( 1.0 - rPoint[2] ) );
-        case 9:
-            return(( 1.0 -rPoint[0] - rPoint[1] )*( 1.0 - ( rPoint[2]*rPoint[2] ) ) );
-        case 10:
-            return( rPoint[0]*( 1.0 - ( rPoint[2]*rPoint[2] ) ) );
-        case 11:
-            return( rPoint[1]*( 1.0 - ( rPoint[2]*rPoint[2] ) ) );
-        case 12:
-            return( 2.0*( 1.0 - rPoint[0] - rPoint[1] )*rPoint[0]*( 1.0 + rPoint[2] ) );
-        case 13:
-            return( 2.0*rPoint[0]*rPoint[1]*( 1.0 + rPoint[2] ) );
-        case 14:
-            return( 2.0*rPoint[1]*( 1.0 - rPoint[0] - rPoint[1] )*( 1.0 + rPoint[2] ) );
-        default:
-            KRATOS_ERROR << "Wrong index of shape function Prism3D15: " << ShapeFunctionIndex << std::endl;
-        }
-
-        return 0;
+        if (ShapeFunctionIndex < 3)
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+        else if (ShapeFunctionIndex < 6)
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
+        else if (ShapeFunctionIndex < 9)
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+        else if (ShapeFunctionIndex < 12)
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(2, rPoint);
+        else
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
     }
 
     /**
@@ -876,51 +1018,12 @@ private:
      */
     static Matrix& CalculateShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint )
     {
-        rResult( 0, 0 ) = 0.5 * ( 1.0 - ( -1.0 + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) ) * ( 1.0 - rPoint[2] ) - 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1 - rPoint[2] ) - ( rPoint[2] * rPoint[2] ) );
-        rResult( 0, 1 ) = 0.5 * ( 1.0 - ( -1.0 + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) ) * ( 1.0 - rPoint[2] ) - 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1 - rPoint[2] ) - ( rPoint[2] * rPoint[2] ) );
-        rResult( 0, 2 ) = 0.5 * ( -( -1.0 + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) ) * ( 1.0 - rPoint[0] - rPoint[1] ) + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * rPoint[2] );
-        rResult( 1, 0 ) = 0.5 * ( -1.0 + 2.0 * rPoint[0] * ( 1.0 - rPoint[2] ) + ( -1.0 + 2.0 * rPoint[0] ) * ( 1.0 - rPoint[2] ) + ( rPoint[2] * rPoint[2] ) );
-        rResult( 1, 1 ) = 0.0;
-        rResult( 1, 2 ) = 0.5 * ( -rPoint[0] * ( -1.0 + 2.0 * rPoint[0] ) + 2.0 * rPoint[0] * rPoint[2] );
-        rResult( 2, 0 ) = 0.0;
-        rResult( 2, 1 ) = 0.5 * ( -1.0 + 2.0 * rPoint[1] * ( 1.0 - rPoint[2] ) + ( -1.0 + 2.0 * rPoint[1] ) * ( 1.0 - rPoint[2] ) + ( rPoint[2] * rPoint[2] ) );
-        rResult( 2, 2 ) = 0.5 * ( -rPoint[1] * ( -1.0 + 2.0 * rPoint[1] ) + 2.0 * rPoint[1] * rPoint[2] );
-        rResult( 3, 0 ) = 0.5 * ( 1.0 - ( rPoint[2] * rPoint[2] ) - ( -1.0 + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) ) * ( 1.0 + rPoint[2] ) - 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1.0 + rPoint[2] ) );
-        rResult( 3, 1 ) = 0.5 * ( 1.0 - ( rPoint[2] * rPoint[2] ) - ( -1.0 + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) ) * ( 1.0 + rPoint[2] ) - 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1.0 + rPoint[2] ) );
-        rResult( 3, 2 ) = 0.5 * (( -1.0 + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) ) * ( 1.0 - rPoint[0] - rPoint[1] ) + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * rPoint[2] );
-        rResult( 4, 0 ) = 0.5 * ( -1.0 + ( rPoint[2] * rPoint[2] ) + 2.0 * rPoint[0] * ( 1.0 + rPoint[2] ) + ( -1.0 + 2.0 * rPoint[0] ) * ( 1.0 + rPoint[2] ) );
-        rResult( 4, 1 ) = 0.0;
-        rResult( 4, 2 ) = 0.5 * ( rPoint[0] * ( -1.0 + 2.0 * rPoint[0] ) + 2.0 * rPoint[0] * rPoint[2] );
-        rResult( 5, 0 ) = 0.0;
-        rResult( 5, 1 ) = 0.5 * ( -1.0 + ( rPoint[2] * rPoint[2] ) + 2.0 * rPoint[1] * ( 1.0 + rPoint[2] ) + ( -1.0 + 2.0 * rPoint[1] ) * ( 1.0 + rPoint[2] ) );
-        rResult( 5, 2 ) = 0.5 * ( rPoint[1] * ( -1.0 + 2.0 * rPoint[1] ) + 2.0 * rPoint[1] * rPoint[2] );
-        rResult( 6, 0 ) = -2.0 * rPoint[0] * ( 1.0 - rPoint[2] ) + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1.0 - rPoint[2] );
-        rResult( 6, 1 ) = -2.0 * rPoint[0] * ( 1.0 - rPoint[2] );
-        rResult( 6, 2 ) = -2.0 * rPoint[0] * ( 1.0 - rPoint[0] - rPoint[1] );
-        rResult( 7, 0 ) = 2.0 * rPoint[1] * ( 1.0 - rPoint[2] );
-        rResult( 7, 1 ) = 2.0 * rPoint[0] * ( 1.0 - rPoint[2] );
-        rResult( 7, 2 ) = -2.0 * rPoint[0] * rPoint[1];
-        rResult( 8, 0 ) = -2.0 * rPoint[1] * ( 1.0 - rPoint[2] );
-        rResult( 8, 1 ) = 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1.0 - rPoint[2] ) - 2.0 * rPoint[1] * ( 1.0 - rPoint[2] );
-        rResult( 8, 2 ) = -2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * rPoint[1];
-        rResult( 9, 0 ) = -1.0 + ( rPoint[2] * rPoint[2] );
-        rResult( 9, 1 ) = -1.0 + ( rPoint[2] * rPoint[2] );
-        rResult( 9, 2 ) = -2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * rPoint[2];
-        rResult( 10, 0 ) = 1.0 - ( rPoint[2] * rPoint[2] );
-        rResult( 10, 1 ) = 0.0;
-        rResult( 10, 2 ) = -2.0 * rPoint[0] * rPoint[2];
-        rResult( 11, 0 ) = 0.0;
-        rResult( 11, 1 ) = 1.0 - ( rPoint[2] * rPoint[2] );
-        rResult( 11, 2 ) = -2.0 * rPoint[1] * rPoint[2];
-        rResult( 12, 0 ) = -2.0 * rPoint[0] * ( 1.0 + rPoint[2] ) + 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1.0 + rPoint[2] );
-        rResult( 12, 1 ) = -2.0 * rPoint[0] * ( 1.0 + rPoint[2] );
-        rResult( 12, 2 ) = 2.0 * rPoint[0] * ( 1.0 - rPoint[0] - rPoint[1] );
-        rResult( 13, 0 ) = 2.0 * rPoint[1] * ( 1.0 + rPoint[2] );
-        rResult( 13, 1 ) = 2.0 * rPoint[0] * ( 1.0 + rPoint[2] );
-        rResult( 13, 2 ) = 2.0 * rPoint[0] * rPoint[1];
-        rResult( 14, 0 ) = -2.0 * rPoint[1] * ( 1.0 + rPoint[2] );
-        rResult( 14, 1 ) = 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * ( 1.0 + rPoint[2] ) - 2.0 * rPoint[1] * ( 1.0 + rPoint[2] );
-        rResult( 14, 2 ) = 2.0 * ( 1.0 - rPoint[0] - rPoint[1] ) * rPoint[1];
+        rResult.resize(15,3,false);
+        for (int i = 0; i < 15; ++i) {
+            rResult(i, 0) = ShapeFunctionPrism3D15DerivativesX(i, rPoint);
+            rResult(i, 1) = ShapeFunctionPrism3D15DerivativesY(i, rPoint);
+            rResult(i, 2) = ShapeFunctionPrism3D15DerivativesZ(i, rPoint);
+        }
         return rResult;
     }
 
