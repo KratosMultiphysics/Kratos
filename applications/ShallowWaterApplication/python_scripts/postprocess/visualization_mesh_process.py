@@ -131,14 +131,11 @@ class VisualizationMeshProcess(KM.Process):
                 self.topographic_model_part,
                 0)
         for variable in self.nonhistorical_variables:
-            for node_src, node_dest in zip(self.computing_model_part.Nodes, self.topographic_model_part.Nodes):
-                node_dest.SetValue(variable, node_src.GetValue(variable))
-            #TODO: implement this function in VariableUtils
-            # KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
-            #     variable,
-            #     self.computing_model_part,
-            #     self.topographic_model_part,
-            #     KM.Flags(), False)
+            KM.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(
+                variable, variable,
+                self.computing_model_part,
+                self.topographic_model_part,
+                KM.Flags(), False)
 
 
     def _FlattenMeshCoordinates(self):
