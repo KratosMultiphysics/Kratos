@@ -18,8 +18,8 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     settings -- Kratos parameters containing solver settings.
 
     Possible specifications for the key 'value' from settings:
-    - double: the constant value is applied.
-    - string: the string is parsed as a function
+    - double: the constant value is applied. Example: 1.0
+    - string: the string is parsed as a function. Example: "(x*sin(y))*exp(-t^2)"
     - parameters: a csv table can be specified. Example:
         {
             "name"       : "csv_table",
