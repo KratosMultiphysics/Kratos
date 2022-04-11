@@ -63,9 +63,9 @@ class ReadCsvTableUtility:
             for row in data:
                 if row:  # skip empty rows
                     if len(row) < 2:
-                        raise Exception(f"Only 2-column tables are supported. However, a {len(row)}-column row is found.")
+                        raise Exception("Only 2-column tables are supported. However, a {}-column row is found.".format(len(row)))
                     elif len(row) > 2:
-                        KM.Logger.PrintWarning(f"Only 2-column tables are supported. However, a {len(row)}-column row is found. Extra columns will be ignored.")
+                        KM.Logger.PrintWarning("Only 2-column tables are supported. However, a {}-column row is found. Extra columns will be ignored.".format(len(row)))
                     table.AddRow(self._Float(row[0]), self._Float(row[1]))
         if self.table_id > -1:
             model_part.AddTable(self.table_id, table)
