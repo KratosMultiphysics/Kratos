@@ -1164,27 +1164,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
             auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5];
         } 
-        // if (Delta_eq >= Delta_eq_max && DamageIndicator == 2) {
-        //     threshold = initial_threshold * std::exp((initial_threshold*(Delta_eq-initial_Delta_eq))/(0.5*initial_threshold*initial_Delta_eq-(Gc / characteristic_length)));
-        // }
-        // const double Fp = (1.0-delamination_damage) * (T_eq) - threshold;
-        // if (Fp <= tolerance) { // Elastic case
-        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5]; 
-        // } else { // Damage case
-        //     delamination_damage = 1 - (T_eq / threshold);
-
-        //     auxiliar_stress_vector[0] = undamaged_auxiliar_stress_vector[0];
-        //     auxiliar_stress_vector[1] = undamaged_auxiliar_stress_vector[1];
-        //     auxiliar_stress_vector[2] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[2];
-        //     auxiliar_stress_vector[3] = undamaged_auxiliar_stress_vector[3];
-        //     auxiliar_stress_vector[4] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[4];
-        //     auxiliar_stress_vector[5] = (1.0-delamination_damage) * undamaged_auxiliar_stress_vector[5];
-        // }
+        
 
         // End Delamination Damage Criterion V3
 
