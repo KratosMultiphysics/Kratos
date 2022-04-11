@@ -216,7 +216,7 @@ class RigidBodySolver(object):
             self.main_model_part.ProcessInfo[KM.TIME] = self.start_time
 
         # Other variables that are used in SolveSolutionStep()
-        self.total_root_point_displ = np.zeros((self.system_size, self.buffer_size))
+        self.total_root_point_displ = np.zeros(self.system_size)
         self.total_load = np.zeros(self.system_size)
         self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
@@ -333,7 +333,7 @@ class RigidBodySolver(object):
         # Column 0 is the current time step, column 1 the previous one...
 
         # Variables whith buffer. Column 0 will be overwriten later
-        self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
+        #self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
         self.effective_load = np.roll(self.effective_load,1,axis=1)
 
         # Variables that need to be reseted. They might not be overwriten later so they
@@ -386,7 +386,7 @@ class RigidBodySolver(object):
         # constrained dofs will have the root_point_displacement as a total displacement
         for index, dof in enumerate(self.available_dofs):
             if self.is_constrained[dof]:
-                x[index] = self.total_root_point_displ[index,0]
+                x[index] = self.total_root_point_displ[index]
 
         # Update velocity and acceleration according to the gen-alpha method
         self._UpdateDisplacement("rigid_body", x)
@@ -441,8 +441,8 @@ class RigidBodySolver(object):
         # Calculate the total root point displacement and the equivalent force it generates
         external_root_point_displ = self._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION)
         prescribed_root_point_displ = self._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION)
-        self.total_root_point_displ[:,0] = external_root_point_displ + prescribed_root_point_displ
-        self._UpdateDisplacement("root_point", self.total_root_point_displ[:,0])
+        self.total_root_point_displ = external_root_point_displ + prescribed_root_point_displ
+        self._UpdateDisplacement("root_point", self.total_root_point_displ)
         root_point_force = self._CalculateEquivalentForceFromRootPointDisplacement()
         
         # Sum up both loads
