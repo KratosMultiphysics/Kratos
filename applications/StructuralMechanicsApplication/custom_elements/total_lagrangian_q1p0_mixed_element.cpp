@@ -401,6 +401,35 @@ void TotalLagrangianQ1P0MixedElement::load( Serializer& rSerializer )
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, TotalLagrangian );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TotalLagrangianQ1P0MixedElement::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    const std::size_t number_of_integration_points = integration_points.size();
+    const auto &r_geometry = GetGeometry();
+
+    if (rOutput.size() != number_of_integration_points)
+        rOutput.resize(number_of_integration_points, false);
+
+    if (rVariable == PRESSURE) {
+        for (int i = 0; i < number_of_integration_points; i++) {
+            rOutput[i] = this->mPressure;
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // Namespace Kratos
 
 

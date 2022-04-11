@@ -200,9 +200,17 @@ protected:
     void CalculateNeoHookeanStressAndTangent(const Matrix &rC, const double Pressure, const double LameMu, Vector &rStress, Matrix &rTangentTensor);
 
     /**
-     * @brief It computes the current volume of the element
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
      */
-    // double GetCurrentVolume() const;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
 
     ///@}
     ///@name Protected Operations
