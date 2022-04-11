@@ -854,20 +854,22 @@ private:
         const CoordinatesArrayType& rPoint 
         ) 
     {
+        const double thirdCoord = 1 - rPoint[0] - rPoint[1];
+
         switch ( ShapeFunctionIndex )
         {
         case 0:
-            return ( 1. -rPoint[0] - rPoint[1] ) * ( 1. - rPoint[0] - rPoint[0] - rPoint[1] - rPoint[1] );
+            return( thirdCoord*( 2*thirdCoord - 1 ) );
         case 1:
-            return -rPoint[0] * ( 1. - rPoint[0] - rPoint[0] );
+            return( rPoint[0]*( 2*rPoint[0] - 1 ) );
         case 2:
-            return ( -rPoint[1] * ( 1. - rPoint[1] - rPoint[1] ) );
+            return( rPoint[1]*( 2*rPoint[1] - 1 ) );
         case 3:
-            return ( 4. * rPoint[0] * ( 1. - rPoint[0] - rPoint[1] ) );
+            return( 4*thirdCoord*rPoint[0] );
         case 4:
-            return ( 4. * rPoint[0] * rPoint[1] );
+            return( 4*rPoint[0]*rPoint[1] );
         case 5:
-            return ( 4. * rPoint[1] * ( 1. - rPoint[0] - rPoint[1] ) );
+            return( 4*rPoint[1]*thirdCoord );
         default:
             KRATOS_ERROR << "Wrong index of shape function Triangle2D6: " << ShapeFunctionIndex << std::endl;
         }
