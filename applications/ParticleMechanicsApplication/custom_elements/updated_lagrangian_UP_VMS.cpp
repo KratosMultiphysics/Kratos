@@ -547,8 +547,12 @@ void UpdatedLagrangianUPVMS::SetSpecificVariables(GeneralVariables& rVariables,c
 
     CalculateTensorIdentityMatrix(rVariables,rVariables.TensorIdentityMatrix);
 
-    // Set dynamic terms for stabilization
-    ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+    const bool is_dynamic = rCurrentProcessInfo.Has(IS_DYNAMIC)
+        ? rCurrentProcessInfo.GetValue(IS_DYNAMIC)
+        : false;
+
+    if (is_dynamic) ComputeDynamicTerms(rVariables,rCurrentProcessInfo);
+
 
     // Compute Shear modulus and Bulk Modulus
     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))

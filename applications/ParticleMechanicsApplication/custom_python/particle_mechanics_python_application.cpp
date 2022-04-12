@@ -126,6 +126,7 @@ namespace Python{
 
         // Stabilization variables
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STABILIZATION_OPTION);
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, IS_DYNAMIC);
     }
 
 }  // namespace Python.

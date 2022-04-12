@@ -49,6 +49,7 @@ class MPMImplicitDynamicSolver(MPMSolver):
         if(scheme_type == "newmark"):
             damp_factor_m = 0.0
             newmark_beta = self.settings["newmark_beta"].GetDouble()
+            grid_model_part.ProcessInfo.SetValue(KratosParticle.IS_DYNAMIC, True)
         elif(scheme_type == "bossak"):
             damp_factor_m = self.settings["damp_factor_m"].GetDouble()
             newmark_beta = self.settings["newmark_beta"].GetDouble()

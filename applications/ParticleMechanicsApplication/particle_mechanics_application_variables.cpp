@@ -121,4 +121,5 @@ namespace Kratos
 
     // Stabilization variables
     KRATOS_CREATE_VARIABLE(int, STABILIZATION_OPTION)
+    KRATOS_CREATE_VARIABLE(bool, IS_DYNAMIC)
 }

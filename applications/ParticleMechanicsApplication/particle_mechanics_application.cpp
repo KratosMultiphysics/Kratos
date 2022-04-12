@@ -313,6 +313,7 @@ namespace Kratos
 
         // Stabilization variables
         KRATOS_REGISTER_VARIABLE(STABILIZATION_OPTION)
+        KRATOS_REGISTER_VARIABLE(IS_DYNAMIC)
     }
 
 }  // namespace Kratos.
