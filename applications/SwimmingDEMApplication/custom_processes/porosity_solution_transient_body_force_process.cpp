@@ -76,8 +76,6 @@ void PorositySolutionTransientBodyForceProcess::CheckDefaultsAndProcessSettings(
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
     mAlternativeFormulation = rParameters["benchmark_parameters"]["use_alternative_formulation"].GetBool();
 
-    double dynamic_viscosity = mViscosity * mDensity;
-
 }
 
 
