@@ -394,10 +394,10 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw2D", mParallelRuleOfMixturesLaw2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ParallelRuleOfMixturesLaw3D", mParallelRuleOfMixturesLaw3D);
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMisesVonMises", mAssociativePlasticDamageModel3DVonMisesVonMises);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPragerDruckerPrager", mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb);
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankineRankine", mAssociativePlasticDamageModel3DRankineRankine);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMises", mAssociativePlasticDamageModel3DVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPrager", mAssociativePlasticDamageModel3DDruckerPrager);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankine", mAssociativePlasticDamageModel3DRankine);
 
     // Constitutive laws variables
 
@@ -422,6 +422,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(ADVANCE_STRATEGY_APPLIED);
 
     // Constitutive laws variables
+    KRATOS_REGISTER_VARIABLE(CRACK_RECLOSING)
     KRATOS_REGISTER_VARIABLE(LAYER_EULER_ANGLES)
     KRATOS_REGISTER_VARIABLE(INELASTIC_FLAG)
     KRATOS_REGISTER_VARIABLE(INFINITY_YIELD_STRESS)
