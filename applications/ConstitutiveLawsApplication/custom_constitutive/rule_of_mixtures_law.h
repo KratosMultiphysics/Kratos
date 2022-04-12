@@ -689,6 +689,11 @@ private:
         rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
         rSerializer.load("CombinationFactors", mCombinationFactors);
     }
+    
+    double MacaullyBrackets(const double Number)
+    {
+        return (Number > machine_tolerance) ? Number : 0.0;
+    }
 
 
 }; // Class ParallelRuleOfMixturesLaw

@@ -1135,13 +1135,15 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         double Delta_eq_max = mDelta_eq_max;
         const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
         const double tolerance = std::numeric_limits<double>::epsilon();
-        const double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
-        double T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
-        double Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
+        double normal_stress = MacaullyBrackets(undamaged_auxiliar_stress_vector[2]);
+        double normal_strain = MacaullyBrackets(strain_vector[2]);
+        const double Fd = std::pow(normal_stress/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        double T_eq = std::sqrt(std::pow(normal_stress,2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+        double Delta_eq = std::sqrt(std::pow(normal_strain,2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
         if (Fd >= 1.0 && DamageIndicator == 1) {
             initial_threshold = T_eq;
             initial_Delta_eq = Delta_eq;
-            double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+            double Gn = normal_stress * normal_strain / 2.0;
             double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
             double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
             double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
@@ -1744,13 +1746,15 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         double Delta_eq_max = mDelta_eq_max;
         const double characteristic_length = 0.0001; // Characteristic Length of the Cohesive Part
         const double tolerance = std::numeric_limits<double>::epsilon();
-        const double Fd = std::pow(undamaged_auxiliar_stress_vector[2]/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
-        double T_eq = std::sqrt(std::pow(undamaged_auxiliar_stress_vector[2],2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
-        double Delta_eq = std::sqrt(std::pow(strain_vector[2],2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
+        double normal_stress = MacaullyBrackets(undamaged_auxiliar_stress_vector[2]);
+        double normal_strain = MacaullyBrackets(strain_vector[2]);
+        const double Fd = std::pow(normal_stress/T0n,2.0)+std::pow(undamaged_auxiliar_stress_vector[4]/T0s,2.0)+std::pow(undamaged_auxiliar_stress_vector[5]/T0t,2.0); // Damage Initiation Criterion
+        double T_eq = std::sqrt(std::pow(normal_stress,2.0)+std::pow(undamaged_auxiliar_stress_vector[4],2.0)+std::pow(undamaged_auxiliar_stress_vector[5],2.0));
+        double Delta_eq = std::sqrt(std::pow(normal_strain,2.0)+std::pow(strain_vector[4],2.0)+std::pow(strain_vector[5],2.0));
         if (Fd >= 1.0 && DamageIndicator == 1) {
             initial_threshold = T_eq;
             initial_Delta_eq = Delta_eq;
-            double Gn = undamaged_auxiliar_stress_vector[2] * strain_vector[2] / 2.0;
+            double Gn = normal_stress * normal_strain / 2.0;
             double Gs = undamaged_auxiliar_stress_vector[4] * strain_vector[4] / 2.0;
             double Gt = undamaged_auxiliar_stress_vector[5] * strain_vector[5] / 2.0;
             double mode_mix_factor = (Gs+Gt) / (Gn+Gs+Gt);
