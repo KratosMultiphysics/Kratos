@@ -1537,7 +1537,7 @@ protected:
 
         IndicesType indices(equation_size);
 
-        block_for_each(indices, [](IndicesType& rIndices){
+        block_for_each(indices, [](std::vector<std::unordered_set<std::size_t, std::hash<std::size_t>, std::equal_to<std::size_t>, tbb::scalable_allocator<std::size_t>>>& rIndices){
             rIndices.reserve(40);
         });
 
