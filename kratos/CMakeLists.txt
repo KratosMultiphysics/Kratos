@@ -90,7 +90,7 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Set Intel TBB on if selected
 if(${USE_INTEL_TBB} MATCHES ON)
   find_package(TBB REQUIRED)
-  set(KRATOS_INTEL_TBB "TBB::tbb TBB::tbbmalloc")
+  set(KRATOS_INTEL_TBB TBB::tbb TBB::tbbmalloc)
   add_definitions(-DKRATOS_INTEL_TBB)
 endif(${USE_INTEL_TBB} MATCHES ON)
 
