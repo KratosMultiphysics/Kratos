@@ -24,6 +24,8 @@ from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
+import math
+
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
@@ -221,7 +223,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
-        self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+        self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
@@ -270,9 +272,13 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __isConstraintActive(self, constraint):
         identifier = constraint["identifier"].GetString()
         constraint_value = self.communicator.getStandardizedValue(identifier)
-        if constraint["type"].GetString() == "=":
-            return True
-        elif constraint_value >= 0:
+        if constraint["type"].GetString() == "=" or constraint_value >= 0:
+            gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
+                self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
+            )
+            if math.isclose(gradient_norm, 0.0, abs_tol=1e-16):
+                KM.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
+                return False
             return True
         else:
             return False
