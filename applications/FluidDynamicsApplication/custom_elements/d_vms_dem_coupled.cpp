@@ -527,6 +527,65 @@ void DVMSDEMCoupled<TElementData>::AddMassStabilization(
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
+void DVMSDEMCoupled<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int NumGauss = gauss_weights.size();
+
+    VectorType MomentumRHS = ZeroVector(NumNodes * Dim);
+    VectorType MassRHS = ZeroVector(NumNodes);
+    VectorType NodalArea = ZeroVector(NumNodes);
+
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < NumGauss; g++)
+    {
+        this->UpdateIntegrationPointData(
+            data, g, gauss_weights[g],
+            row(shape_functions,g),shape_function_derivatives[g]);
+
+        array_1d<double, 3> MomentumRes = ZeroVector(3);
+        double MassRes = 0.0;
+
+        array_1d<double, 3> convection_velocity = this->FullConvectiveVelocity(data);
+
+        this->MomentumProjTerm(data, convection_velocity, MomentumRes);
+        this->MassProjTerm(data, MassRes);
+
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            double W = data.Weight*data.N[i];
+            unsigned int Row = i*Dim;
+            for (unsigned int d = 0; d < Dim; d++)
+                MomentumRHS[Row+d] += W*MomentumRes[d];
+            NodalArea[i] += W;
+            MassRHS[i] += W*MassRes;
+        }
+    }
+
+    // Add carefully to nodal variables to avoid OpenMP race condition
+    GeometryType& r_geometry = this->GetGeometry();
+    unsigned int Row = 0;
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
+        array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(ADVPROJ);
+        for (unsigned int d = 0; d < Dim; ++d)
+            rMomValue[d] += MomentumRHS[Row++];
+        r_geometry[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
+        r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+        r_geometry[i].UnSetLock(); // Free the node for other threads
+    }
+}
+
 template< class TElementData >
 void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     const TElementData& rData,
@@ -650,7 +709,7 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
     for (size_t i = 0; i < NumNodes; i++) {
         array_1d<double, 3> subscale_velocity_on_previous_iteration = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
         for (size_t d = 0; d < Dim; d++) {
-            previous_subscale_velocity[d] += rData.N[i] * subscale_velocity_on_previous_iteration[d];
+            previous_subscale_velocity[d] += subscale_velocity_on_previous_iteration[d];
         }
     }
     array_1d<double,3> v_d = ZeroVector(Dim);
