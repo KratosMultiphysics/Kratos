@@ -45,7 +45,7 @@ class TestInitialTime(KratosUnittest.TestCase):
         parameters["solver_settings"]["model_part_name"].SetString(model_part_name)
 
         materials_pattern = "auxiliar_files_for_python_unittest/materials_files/initial_time_{}.json"
-        materials_filename = GetFilePath(materials_pattern.format(model_part_name))
+        materials_filename = GetFilePath(materials_pattern.format(model_part_name.lower()))
         parameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString(materials_filename)
 
         for processes_list in parameters["processes"]:
