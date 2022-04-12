@@ -10,7 +10,6 @@ from . import rigid_body_input_check as input_check
 import numpy as np
 import json
 import os
-from importlib import import_module
 
 
 class RigidBodySolver(object):
@@ -69,8 +68,8 @@ class RigidBodySolver(object):
         dof_settings, self.active_dofs = input_check._ValidateAndAssignDofDefaults(solver_settings["active_dofs"], self.available_dofs)
         
         # Create all the processes stated in the project parameters
-        self._list_of_processes = self._CreateListOfProcesses(project_parameters)
-        self._list_of_output_processes = self._CreateListOfOutputProcesses(project_parameters)
+        self._list_of_processes = input_check._CreateListOfProcesses(self.model, project_parameters, self.main_model_part)
+        self._list_of_output_processes = input_check._CreateListOfOutputProcesses(self.model, project_parameters)
 
         # Safe all the filled data in their respective class variables
         self._InitializeSolutionVariables(solver_settings)
@@ -100,56 +99,12 @@ class RigidBodySolver(object):
         self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
 
 
-    def _CreateListOfProcesses(self, parameters):
-
-        # Create all the processes stated in the project parameters
-        # TODO: No need to convert it to a json to manipulate it
-        if self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
-            process_types = ["gravity", "boundary_conditions_process_list", "auxiliar_process_list"]
-        else:
-            process_types = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
-        parameters_json = json.loads(parameters.WriteJsonString())
-        list_of_processes = []
-        # TODO: Is this usually a mandatory input?
-        if "processes" in parameters_json:
-            for process_type in process_types:
-                if process_type in parameters_json["processes"]:
-                    for process in parameters_json["processes"][process_type]:
-                        python_module = process["python_module"]
-                        kratos_module = process["kratos_module"]
-                        process_module = import_module(kratos_module + "." + python_module)
-                        process_settings = KM.Parameters(json.dumps(process))
-                        list_of_processes.append(process_module.Factory(process_settings, self.model))
-        
-        return list_of_processes
-
-
-    def _CreateListOfOutputProcesses(self, parameters):
-
-        # Create all the processes stated in the project parameters
-        # TODO: No need to convert it to a json to manipulate it
-        parameters_json = json.loads(parameters.WriteJsonString())
-        list_of_output_processes = []
-        # TODO: Is this usually a mandatory input?
-        if "output_processes" in parameters_json:
-            for process in parameters_json["output_processes"]:
-                python_module = process["python_module"]
-                kratos_module = process["kratos_module"]
-                process_module = import_module(kratos_module + "." + python_module)
-                process_settings = KM.Parameters(json.dumps(process))
-                list_of_output_processes.append(process_module.Factory(process_settings, self.model))
-        
-        return list_of_output_processes
-
-
     def _InitializeSolutionVariables(self, solver_settings):
         
         # Save all the data that does not depend on the degree of freedom
         self.rho_inf = solver_settings["time_integration_parameters"]["rho_inf"].GetDouble()
         self.delta_t = solver_settings["time_integration_parameters"]["time_step"].GetDouble()
         self.buffer_size = solver_settings["buffer_size"].GetInt()
-        self.output_file_path = solver_settings["output_parameters"]["file_path"].GetString()
-        self.write_output_file = solver_settings["output_parameters"]["write_output_files"].GetBool()
 
 
     def _InitializeDofsVariables(self, dof_settings):
@@ -224,8 +179,7 @@ class RigidBodySolver(object):
             process.ExecuteInitialize()
 
         # Create output file and wrrite the time=start_time step
-        if self.write_output_file:
-            self.InitializeOutput()
+        self.InitializeOutput()
 
         for process in self._list_of_processes:
             process.ExecuteBeforeSolutionLoop()
@@ -237,40 +191,6 @@ class RigidBodySolver(object):
         # TODO: This might not be necessary anymore, since it doesn't run in MPI
         data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
-
-            # Create the directory where the results will be stored
-            if not os.path.exists(self.output_file_path):
-                os.makedirs(self.output_file_path)
-            
-            # File paths for each DOF will be stored here
-            self.output_file_name = {}
-
-            # Loop through all the possible DOFs
-            for dof in self.available_dofs:
-
-                # Save output file path for this dof
-                dof_file_name = os.path.join(self.output_file_path, dof + '.dat')
-
-                # If the DOF is active, create the results file and write the headers
-                if dof in self.active_dofs:
-                    self.output_file_name[dof] = dof_file_name
-                    with open(self.output_file_name[dof], "w") as results_rigid_body:
-                        results_rigid_body.write("time"+ " " +
-                                                "displacement" + " " +
-                                                "velocity" + " " +
-                                                "acceleration" + " " +
-                                                "root_point_displacement" + " " +
-                                                "root_point_velocity" + " " +
-                                                "root_point_acceleration" + " " +
-                                                "relative_displacement" + " " +
-                                                "relative_velocity" + " " +
-                                                "relative_accleration" + " " +
-                                                "reaction" + "\n")
-                
-                # If the DOF is not active, erase results files from other runs
-                else:
-                    if os.path.isfile(dof_file_name):
-                        os.remove(dof_file_name)
             
             # Write initial time step output
             self.OutputSolutionStep()
@@ -279,52 +199,24 @@ class RigidBodySolver(object):
     def OutputSolutionStep(self):
         """This function writes output files after the solution of a step, exactly as in AnalysisStage()
         """
-        execute_was_called = False
-        for output_process in self._list_of_output_processes:
-            if output_process.IsOutputStep():
-                if not execute_was_called:
-                    for process in self._list_of_processes:
-                        process.ExecuteBeforeOutputStep()
-                    execute_was_called = True
-
-                output_process.PrintOutput()
-
-        if execute_was_called:
-            for process in self._list_of_processes:
-                process.ExecuteAfterOutputStep()
-
         # Carry out this task only in the first rank (for parallel computing)
         # TODO: This might not be necessary anymore, since it doesn't run in MPI
         data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
 
-            # Only write if the output is enabled
-            if self.write_output_file:
+            execute_was_called = False
+            for output_process in self._list_of_output_processes:
+                if output_process.IsOutputStep():
+                    if not execute_was_called:
+                        for process in self._list_of_processes:
+                            process.ExecuteBeforeOutputStep()
+                        execute_was_called = True
 
-                # Calculate the reaction for the output
-                # TODO: this sould be calculated elsewhere or not outputed
-                reaction = self._GetCompleteVector("root_point", KM.REACTION, KM.REACTION_MOMENT)
+                    output_process.PrintOutput()
 
-                x, v, a = self._GetKinematics("rigid_body")
-                x_root, v_root, a_root = self._GetKinematics("root_point")
-
-                time = self.main_model_part.ProcessInfo[KM.TIME]
-
-                # Write the output only for the active DOFs
-                for index, dof in enumerate(self.available_dofs):
-                    if dof in self.active_dofs:
-                        with open(self.output_file_name[dof], "a") as results_rigid_body:
-                            results_rigid_body.write(str(time) + " " +
-                                                    str(x[index]) + " " +
-                                                    str(v[index]) + " " +
-                                                    str(a[index]) + " " +
-                                                    str(x_root[index]) + " " +
-                                                    str(v_root[index]) + " " +
-                                                    str(a_root[index]) + " " +
-                                                    str(x[index] - x_root[index]) + " " +
-                                                    str(v[index] - v_root[index]) + " " +
-                                                    str(a[index] - a_root[index]) + " " +
-                                                    str(reaction[index]) + "\n")
+            if execute_was_called:
+                for process in self._list_of_processes:
+                    process.ExecuteAfterOutputStep()
 
 
     def AdvanceInTime(self, current_time):    

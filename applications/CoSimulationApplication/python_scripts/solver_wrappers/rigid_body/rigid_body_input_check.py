@@ -2,6 +2,7 @@
 import KratosMultiphysics as KM
 
 import json
+from importlib import import_module
 
 
 def _CheckMandatoryInputParameters(project_parameters):
@@ -51,10 +52,6 @@ def _ValidateAndAssignRigidBodySolverDefaults(solver_settings):
         "time_integration_parameters":{
             "rho_inf": 0.16,
             "time_step": 0.1
-        },
-        "output_parameters":{
-            "write_output_files": false,
-            "file_path" : "results"
         },
         "active_dofs":[]
     }''')
@@ -114,3 +111,45 @@ def _ValidateAndAssignDofDefaults(dof_settings, available_dofs):
             active_dofs.append(dof)
 
     return dof_settings_processed, active_dofs
+
+
+def _CreateListOfProcesses(model, parameters, main_model_part):
+
+    # Create all the processes stated in the project parameters
+    # TODO: No need to convert it to a json to manipulate it
+    if main_model_part.ProcessInfo[KM.IS_RESTARTED]:
+        process_types = ["gravity", "boundary_conditions_process_list", "auxiliar_process_list"]
+    else:
+        process_types = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+    parameters_json = json.loads(parameters.WriteJsonString())
+    list_of_processes = []
+    # TODO: Is this usually a mandatory input?
+    if "processes" in parameters_json:
+        for process_type in process_types:
+            if process_type in parameters_json["processes"]:
+                for process in parameters_json["processes"][process_type]:
+                    python_module = process["python_module"]
+                    kratos_module = process["kratos_module"]
+                    process_module = import_module(kratos_module + "." + python_module)
+                    process_settings = KM.Parameters(json.dumps(process))
+                    list_of_processes.append(process_module.Factory(process_settings, model))
+    
+    return list_of_processes
+
+
+def _CreateListOfOutputProcesses(model, parameters):
+
+    # Create all the processes stated in the project parameters
+    # TODO: No need to convert it to a json to manipulate it
+    parameters_json = json.loads(parameters.WriteJsonString())
+    list_of_output_processes = []
+    # TODO: Is this usually a mandatory input?
+    if "output_processes" in parameters_json:
+        for process in parameters_json["output_processes"]:
+            python_module = process["python_module"]
+            kratos_module = process["kratos_module"]
+            process_module = import_module(kratos_module + "." + python_module)
+            process_settings = KM.Parameters(json.dumps(process))
+            list_of_output_processes.append(process_module.Factory(process_settings, model))
+    
+    return list_of_output_processes
