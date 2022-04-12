@@ -257,6 +257,8 @@ protected:
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS) override;
 
+    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
