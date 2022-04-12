@@ -135,13 +135,14 @@ public:
 
     /// Large Structure definitions
 #ifdef KRATOS_INTEL_TBB
-    typedef std::vector<std::unordered_set<
-        std::size_t, std::hash<std::size_t>, 
+    typedef std::unordered_set<
+        std::size_t,
+        std::hash<std::size_t>, 
         std::equal_to<std::size_t>, 
         tbb::scalable_allocator<std::size_t>
-    >> IndicesType;
+    > IndicesType;
 #else 
-    typedef std::vector<std::unordered_set<std::size_t>> IndicesType;
+    std::unordered_set<std::size_t> IndicesType;
 #endif
     
 
@@ -1533,11 +1534,10 @@ protected:
 
         const std::size_t equation_size = BaseType::mEquationSystemSize;
 
-        std::vector< LockObject > lock_array(equation_size);
+        std::vector<LockObject> lock_array(equation_size);
+        std::vector<IndicesType> indices(equation_size);
 
-        IndicesType indices(equation_size);
-
-        block_for_each(indices, [](std::vector<std::unordered_set<std::size_t, std::hash<std::size_t>, std::equal_to<std::size_t>, tbb::scalable_allocator<std::size_t>>>& rIndices){
+        block_for_each(indices, [](IndicesType& rIndices){
             rIndices.reserve(40);
         });
 
