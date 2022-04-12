@@ -373,7 +373,6 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 double RSigmaG = 0.0;
                 double GAlphaA = tau_one(d,d) * AGradN[j] * fluid_fraction * rData.DN_DX(i,d);
                 double AG = tau_one(d,d) * AGradN[i] * rData.DN_DX(j,d);
-                double BG = 0*divergence_convective * rData.N[i] * rData.DN_DX(j,d);
                 G += tau_one(d,d) * fluid_fraction * rData.DN_DX(i,d) * rData.DN_DX(j,d);
                 double AA = rData.Weight * tau_one(d,d) * AGradN[j] * AGradN[i]; // Stabilization: u*grad(v) * tau_one * u*grad(u);
 
@@ -391,7 +390,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
                 LHS(row+d,col+d) += V + AA;
                 LHS(row+Dim,col+d) += rData.Weight * (GAlphaA + U + QD + GAlphaR);
-                LHS(row+d,col+Dim) += rData.Weight * (AG - P + RSigmaG + BG);
+                LHS(row+d,col+Dim) += rData.Weight * (AG - P + RSigmaG);
 
             }
             // Write q-p term

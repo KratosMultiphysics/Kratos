@@ -595,6 +595,8 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
 {
     double tau_one;
     double inv_tau;
+    double tau_one_NS;
+    double inv_tau_NS;
     const double h = rData.ElementSize;
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
@@ -620,10 +622,11 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     velocity_norm = std::sqrt(velocity_norm);
 
     inv_tau = c1 * viscosity / (h * h) + density * ( 1.0 / rData.DeltaTime + c2 * velocity_norm / h ) + viscosity * std::sqrt(sigma_term);
-
+    inv_tau_NS = c1 * viscosity / (h * h) + density * ( c2 * velocity_norm / h ) + viscosity * std::sqrt(sigma_term);
     tau_one = 1 / inv_tau;
+    tau_one_NS = 1 / inv_tau_NS;
     TauOne = tau_one * I;
-    TauTwo = h * h / (c1 * fluid_fraction * tau_one);
+    TauTwo = h * h / (c1 * fluid_fraction * tau_one_NS);
 }
 
 template< class TElementData >
