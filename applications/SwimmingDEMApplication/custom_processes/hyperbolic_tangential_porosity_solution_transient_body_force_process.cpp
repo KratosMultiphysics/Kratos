@@ -81,8 +81,6 @@ void HyperbolicTangentialPorositySolutionTransientBodyForceProcess::CheckDefault
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
     mAlternativeFormulation = rParameters["benchmark_parameters"]["use_alternative_formulation"].GetBool();
 
-    double dynamic_viscosity = mViscosity * mDensity;
-
     //this->CalculatePermeability(dynamic_viscosity);
 
     this->CalculateFunctionParameters();
