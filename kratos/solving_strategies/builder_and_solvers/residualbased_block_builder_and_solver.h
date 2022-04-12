@@ -14,8 +14,8 @@
 #if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
 
+/* OneTbb */
 #ifdef KRATOS_INTEL_TBB
-    /* OneTbb */
     #define NOMINMAX // Fix for windows.h
     #include "tbb/scalable_allocator.h"
 #endif
@@ -40,8 +40,6 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
-
-using namespace memory::literals;
 
 namespace Kratos
 {
