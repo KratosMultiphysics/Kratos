@@ -3,7 +3,8 @@ import os
 import csv
 import json
 import math
-sys.path.append(os.path.join('D:/kratos'))
+
+
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 sys.path.append(os.path.join('..', 'python_scripts'))
@@ -55,15 +56,18 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         # Code here will be placed BEFORE every test in this TestCase.
         self.latex_writer = LatexWriterFile()
         self.test_lists = self.csv_file_reader()
-        self.gid_files = {10: {30: "test_compare_sellmeijer/HeightAquiferD10L30.gid",
-                               60: "test_compare_sellmeijer/HeightAquiferD10L60.gid",
-                               90: "test_compare_sellmeijer/HeightAquiferD10L90.gid"},
-                          20: {30: "test_compare_sellmeijer/HeightAquiferD20L30.gid",
-                               60: "test_compare_sellmeijer/HeightAquiferD20L60.gid",
-                               90: "test_compare_sellmeijer/HeightAquiferD20L90.gid"},
-                          30: {30: "test_compare_sellmeijer/HeightAquiferD30L30.gid",
-                               60: "test_compare_sellmeijer/HeightAquiferD30L60.gid",
-                               90: "test_compare_sellmeijer/HeightAquiferD30L90.gid"}}
+        mesh_dirs = ["Mesh_1rst_step", "Mesh_2nd_step", "Mesh_3rd_step"]
+        self.gid_files = []
+        for mesh_dir in mesh_dirs:
+            self.gid_files.append({10: {30: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD10L30.gid",
+                                        60: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD10L60.gid",
+                                        90: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD10L90.gid"},
+                                   20: {30: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD20L30.gid",
+                                        60: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD20L60.gid",
+                                        90: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD20L90.gid"},
+                                   30: {30: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD30L30.gid",
+                                        60: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD30L60.gid",
+                                        90: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD30L90.gid"}})
 
     def tearDown(self):
         pass
@@ -107,7 +111,10 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         self.change_head_level_polder_side(file_path, head)
         simulation = test_helper.run_kratos(file_path)
         pipe_active = test_helper.get_pipe_active_in_elements(simulation)
-        return any(pipe_active)
+        if any(pipe_active):
+            pipe_length = test_helper.get_pipe_length(simulation)
+            return True
+        return False
 
     def linear_search(self, file_path, search_array):
         pipe_active = [False]
@@ -115,6 +122,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         while not (any(pipe_active)) and counter_head < len(search_array):
             # check if pipe elements become active
             if self.model_kratos_run(file_path, search_array[counter_head]):
+
                 return search_array[counter_head]
             counter_head = counter_head + 1
 
@@ -141,7 +149,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
     def critical_head_loop(self, file_path, test_name, counter, search_type='linear'):
         self.change_material_parameters(file_path, self.test_lists["kappa"][counter], self.test_lists["d70"][counter])
-        heads = [x * 0.001 for x in range(int(self.test_lists["Hc"][counter] * 1000 - 2000), int(self.test_lists["Hc"][counter] * 1000 + 2000), 1)]
+        heads = [x * 0.01 for x in range(int(self.test_lists["Hc"][counter] * 100 - 200), int(self.test_lists["Hc"][counter] * 100 + 200), 1)]
         critical_head_found = math.nan
         if search_type == 'linear':
             critical_head_found = self.linear_search(file_path, heads)
@@ -151,19 +159,21 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         self.test_lists["Hc_kratos"].append(critical_head_found)
 
     def test_sellmeijers_rule_height(self):
-        for counter, test_name in enumerate(self.test_lists["name"]):
-            test_name_gid = self.gid_files[self.test_lists["D"][counter]][self.test_lists["L"][counter]]
-            file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
-            os.chdir(file_path)
-            self.critical_head_loop(file_path, test_name, counter, 'linear')
-        all_results = []
-        for counter, test_n in enumerate(self.test_lists['name']):
-            index_test = self.test_lists['name'].index(test_n)
-            temp_results = {"value_name": test_n,
-                            "test_result": self.test_lists['Hc'][index_test],
-                            "equivalent_software": self.test_lists['Hn'][index_test],
-                            "kratos_results": self.test_lists['Hc_kratos'][counter],
-                            "round": True}
-            all_results.append(temp_results)
-        self.latex_writer.filename = test_helper.get_file_path('test_compare_sellmeijer/test_compare_sellmeijer.tex')
-        self.latex_writer.write_latex_file_and_assert(all_results)
+        for mesh_counter, gid_files_mesh in enumerate(self.gid_files):
+            for counter, test_name in enumerate(self.test_lists["name"]):
+                test_name_gid = gid_files_mesh[self.test_lists["D"][counter]][self.test_lists["L"][counter]]
+                file_path = test_helper.get_file_path(os.path.join('./', test_name_gid))
+                os.chdir(file_path)
+                self.critical_head_loop(file_path, test_name, counter, 'linear')
+            all_results = []
+            for counter, test_n in enumerate(self.test_lists['name']):
+                index_test = self.test_lists['name'].index(test_n)
+                temp_results = {"value_name": test_n,
+                                "test_result": self.test_lists['Hc'][index_test],
+                                "equivalent_software": self.test_lists['Hn'][index_test],
+                                "kratos_results": self.test_lists['Hc_kratos'][counter],
+                                "round": True}
+                all_results.append(temp_results)
+            self.latex_writer.filename = test_helper.get_file_path(f"test_compare_sellmeijer/test_compare_sellmeijer_mesh_{mesh_counter}.tex")
+            self.latex_writer.write_latex_file_and_assert(all_results)
+            self.test_lists['Hc_kratos'] = []
