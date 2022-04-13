@@ -229,6 +229,10 @@ class RigidBodySolver(object):
 
     
     def InitializeSolutionStep(self):
+
+        if self.echo_level > 0:
+            KM.Logger.PrintInfo(self.problem_name, "STEP: ", self.main_model_part.ProcessInfo[KM.STEP])
+            KM.Logger.PrintInfo(self.problem_name, "TIME: ", self.main_model_part.ProcessInfo[KM.TIME])
         
         for process in self._list_of_processes:
             process.ExecuteInitializeSolutionStep()
@@ -368,7 +372,7 @@ class RigidBodySolver(object):
     def _CalculateSelfWeight(self):
 
         self_weight = self.M.dot(self.modulus_self_weight)
-        
+
         return self_weight
 
 
