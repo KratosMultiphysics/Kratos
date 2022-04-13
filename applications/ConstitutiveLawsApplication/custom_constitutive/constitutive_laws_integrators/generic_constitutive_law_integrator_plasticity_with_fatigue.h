@@ -11,8 +11,8 @@
 //  Main authors:    Sergio Jimenez & Alejandro Cornejo & Lucia Barbu
 //
 
-#if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_ULTRA_LOW_CYCLE_FATIGUE_H_INCLUDED)
-#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_ULTRA_LOW_CYCLE_FATIGUE_H_INCLUDED
+#if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_PLASTICITY_WITH_FATIGUE_H_INCLUDED)
+#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_PLASTICITY_WITH_FATIGUE_H_INCLUDED
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
+ * @class GenericConstitutiveLawIntegratorPlasticityWithFatigue
  * @ingroup StructuralMechanicsApplication
  * @brief This object integrates the predictive stress using the plasticity theory by means of
  * linear/exponential softening or hardening + softening evolution laws
@@ -66,7 +66,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template<class TYieldSurfaceType>
-class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
+class GenericConstitutiveLawIntegratorPlasticityWithFatigue
 {
   public:
     ///@name Type Definitions
@@ -90,8 +90,8 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
     /// The type of plastic potential
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
-    /// Counted pointer of GenericConstitutiveLawIntegratorUltraLowCycleFatigue
-    KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorUltraLowCycleFatigue);
+    /// Counted pointer of GenericConstitutiveLawIntegratorPlasticityWithFatigue
+    KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorPlasticityWithFatigue);
 
     ///@}
     ///@name  Enum's
@@ -113,23 +113,23 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
     ///@{
 
     /// Initialization constructor
-    GenericConstitutiveLawIntegratorUltraLowCycleFatigue()
+    GenericConstitutiveLawIntegratorPlasticityWithFatigue()
     {
     }
 
     /// Copy constructor
-    GenericConstitutiveLawIntegratorUltraLowCycleFatigue(GenericConstitutiveLawIntegratorUltraLowCycleFatigue const &rOther)
+    GenericConstitutiveLawIntegratorPlasticityWithFatigue(GenericConstitutiveLawIntegratorPlasticityWithFatigue const &rOther)
     {
     }
 
     /// Assignment operator
-    GenericConstitutiveLawIntegratorUltraLowCycleFatigue &operator=(GenericConstitutiveLawIntegratorUltraLowCycleFatigue const &rOther)
+    GenericConstitutiveLawIntegratorPlasticityWithFatigue &operator=(GenericConstitutiveLawIntegratorPlasticityWithFatigue const &rOther)
     {
         return *this;
     }
 
     /// Destructor
-    virtual ~GenericConstitutiveLawIntegratorUltraLowCycleFatigue()
+    virtual ~GenericConstitutiveLawIntegratorPlasticityWithFatigue()
     {
     }
 
@@ -208,7 +208,7 @@ class GenericConstitutiveLawIntegratorUltraLowCycleFatigue
         }
         CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
         noalias(rConstitutiveMatrix) = tangent_tensor;
-        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorUltraLowCycleFatigue", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticityWithFatigue", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
     /**

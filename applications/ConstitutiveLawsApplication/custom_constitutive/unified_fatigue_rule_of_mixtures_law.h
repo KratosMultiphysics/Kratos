@@ -98,7 +98,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     * Constructor.
     */
     UnifiedFatigueRuleOfMixturesLaw(double HCFVolParticipation)
-        : mHCFVolumetricParticipation(HCFVolParticipation)
+        : mIsotrpicDamageVolumetricParticipation(HCFVolParticipation)
     {
     }
 
@@ -113,9 +113,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     // Copy constructor
     UnifiedFatigueRuleOfMixturesLaw(UnifiedFatigueRuleOfMixturesLaw const& rOther)
         :  BaseType(rOther),
-            mpHCFConstitutiveLaw(rOther.mpHCFConstitutiveLaw),
-            mpULCFConstitutiveLaw(rOther.mpULCFConstitutiveLaw),
-            mHCFVolumetricParticipation(rOther.mHCFVolumetricParticipation)
+            mpIsotropicDamageConstitutiveLaw(rOther.mpIsotropicDamageConstitutiveLaw),
+            mpPlasticityConstitutiveLaw(rOther.mpPlasticityConstitutiveLaw),
+            mIsotrpicDamageVolumetricParticipation(rOther.mIsotrpicDamageVolumetricParticipation)
     {
     }
 
@@ -415,49 +415,49 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
      * @param rValues the needed parameters for the CL calculation
-     * @param rHCFStrainVector the strain vector of the HCF model
-     * @param rULCFStrainVector the strain vector of the ULCF model
-     * @param rHCFStressVector  the stress vector of the matrix
-     * @param rULCFStressVector  the stress vector of the fiber
+     * @param rIsotropicDamgeStrainVector the strain vector of the HCF model
+     * @param rPlasticityStrainVector the strain vector of the ULCF model
+     * @param rIsotropicDamageStressVector  the stress vector of the matrix
+     * @param rPlasticityStressVector  the stress vector of the fiber
      */
-    void IntegrateStressesOfHCFAndULCFModels(
+    void IntegrateStressesOfIsotropicDamageAndPlasticityModels(
         ConstitutiveLaw::Parameters& rValues,
-        Vector rHCFStrainVector,
-        Vector rULCFStrainVector,
-        Vector& rHCFStressVector,
-        Vector& rULCFStressVector);
+        Vector rIsotropicDamgeStrainVector,
+        Vector rPlasticityStrainVector,
+        Vector& rIsotropicDamageStressVector,
+        Vector& rPlasticityStressVector);
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
-     * @param values_HCF the needed parameters for the CL calculation
+     * @param values_damage_component the needed parameters for the CL calculation
      */
-    void CalculateMaterialResponseHCFModel(
-        ConstitutiveLaw::Parameters& values_HCF);
+    void CalculateMaterialResponseIsotropicDamageModelModel(
+        ConstitutiveLaw::Parameters& values_damage_component);
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
-     * @param values_ULCF the needed parameters for the CL calculation
+     * @param values_plasticity_component the needed parameters for the CL calculation
      */
-    void CalculateMaterialResponseULCFModel(
-        ConstitutiveLaw::Parameters& values_ULCF);
+    void CalculateMaterialResponsePlasticityModel(
+        ConstitutiveLaw::Parameters& values_plasticity_component);
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
-     * @param values_HCF the needed parameters for the CL calculation
+     * @param values_damage_component the needed parameters for the CL calculation
      */
-    void FinalizeMaterialResponseHCFModel(
-        double& rHighCycleFatiguePredictiveUniaxialStress,
-        Vector& rHighCycleFatigueStressVector,
-        ConstitutiveLaw::Parameters& values_HCF);
+    void FinalizeMaterialResponseIsotropicDamageModel(
+        double& rIsotropicDamagePredictiveUniaxialStress,
+        Vector& rIsotropicDamageStressVector,
+        ConstitutiveLaw::Parameters& values_damage_component);
 
     /**
      * This method computes the stresses of the matrix/fiber according to its own CL
-     * @param values_ULCF the needed parameters for the CL calculation
+     * @param values_plasticity_component the needed parameters for the CL calculation
      */
-    void FinalizeMaterialResponseULCFModel(
-        double& rUltraLowCycleFatiguePredictiveUniaxialStress,
-        Vector& rUltraLowCycleFatigueStressVector,
-        ConstitutiveLaw::Parameters& values_ULCF);
+    void FinalizeMaterialResponsePlastitictyModel(
+        double& rPlasticityPredictiveUniaxialStress,
+        Vector& rPlasticityStressVector,
+        ConstitutiveLaw::Parameters& values_plasticity_component);
 
     /**
      * @brief This method computes the tangent tensor
@@ -515,14 +515,14 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     ///@name Protected Operations
     ///@{
 
-    double& GetHCFThreshold() { return mHCFThreshold; }
-    double& GetULCFThreshold() { return mULCFThreshold; }
+    double& GetIsotropicDamageThreshold() { return mIsotropicDamageThreshold; }
+    double& GetPlasticityThreshold() { return mPlasticityThreshold; }
     double& GetDamage() { return mDamage; }
     double& GetPlasticDissipation() { return mPlasticDissipation; }
     Vector& GetPlasticStrain() { return mPlasticStrain; }
 
-    void SetHCFThreshold(const double toHCFThreshold) { mHCFThreshold = toHCFThreshold; }
-    void SetULCFThreshold(const double toULCFThreshold) { mULCFThreshold = toULCFThreshold; }
+    void SetHCFThreshold(const double toHCFThreshold) { mIsotropicDamageThreshold = toHCFThreshold; }
+    void SetULCFThreshold(const double toULCFThreshold) { mPlasticityThreshold = toULCFThreshold; }
     void SetDamage(const double toDamage) { mDamage = toDamage; }
     void SetPlasticDissipation(const double toPlasticDissipation) { mPlasticDissipation = toPlasticDissipation; }
     void SetPlasticStrain(const array_1d<double, VoigtSize>& rPlasticStrain) { mPlasticStrain = rPlasticStrain; }
@@ -548,9 +548,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     ///@name Member Variables
     ///@{
 
-    ConstitutiveLaw::Pointer mpHCFConstitutiveLaw;
-    ConstitutiveLaw::Pointer mpULCFConstitutiveLaw;
-    double mHCFVolumetricParticipation;
+    ConstitutiveLaw::Pointer mpIsotropicDamageConstitutiveLaw;
+    ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw;
+    double mIsotrpicDamageVolumetricParticipation;
     double mFatigueReductionFactor = 1.0;
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
@@ -568,8 +568,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
     double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
-    double mHCFThreshold = 0.0;
-    double mULCFThreshold = 0.0;
+    double mIsotropicDamageThreshold = 0.0;
+    double mPlasticityThreshold = 0.0;
     double mPlasticDissipation = 0.0;
     double mDamage = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
@@ -613,15 +613,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("HCFConstitutiveLaw", mpHCFConstitutiveLaw);
-        rSerializer.save("ULCFConstitutiveLaw", mpULCFConstitutiveLaw);
+        rSerializer.save("IsotropicDamageConstitutiveLaw", mpIsotropicDamageConstitutiveLaw);
+        rSerializer.save("ULCFConstitutiveLaw", mpPlasticityConstitutiveLaw);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("HCFConstitutiveLaw", mpHCFConstitutiveLaw);
-        rSerializer.load("ULCFConstitutiveLaw", mpULCFConstitutiveLaw);
+        rSerializer.load("IsotropicDamageConstitutiveLaw", mpIsotropicDamageConstitutiveLaw);
+        rSerializer.load("ULCFConstitutiveLaw", mpPlasticityConstitutiveLaw);
     }
 
     ///@}
