@@ -87,7 +87,7 @@
                     "PIPE_D_70": 0.0003,
                     "PIPE_ETA": 0.25,
                     "PIPE_THETA": 37,
-                    "PIPE_START_ELEMENT": 7872,
+                    "PIPE_START_ELEMENT": 8528,
                     "RETENTION_LAW": "SaturatedLaw",
                     "SATURATED_SATURATION": 1.0,
                     "RESIDUAL_SATURATION": 0.06203,
