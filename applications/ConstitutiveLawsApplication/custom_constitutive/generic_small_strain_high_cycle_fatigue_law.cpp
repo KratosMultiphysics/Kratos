@@ -99,7 +99,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
     if (new_model_part) {
-        mReferenceDamage = this->GetDamage();
         max_indicator = false;
         min_indicator = false;
     }
@@ -124,7 +123,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             rValues.GetMaterialProperties(),
             (1.0 - reference_damage) * threshold,
             s_th);
-
 
         double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (std::abs(min_stress) < 0.001) {
@@ -191,6 +189,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
     mThresholdStress = s_th;
+    if (new_model_part) {
+        mReferenceDamage = this->GetDamage();   //Updating the damage reference values. This needs to be changed by the end of the method because the calculations
+                                                //done here are built using the values of the previous step. This should not have a big effect in this CL but is consistent.
+    }
 }
 
 
