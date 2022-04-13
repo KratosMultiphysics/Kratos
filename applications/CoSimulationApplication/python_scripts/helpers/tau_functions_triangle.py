@@ -58,13 +58,52 @@ def RemoveFilesFromPreviousSimulations():
         except:
             raise Exception('Error while deleting file : "{}" '.format(file_path))
 
+def RemoveMeshFiles(working_path, step_mesh):
+    print('Removing mesh file from previous iteration')
+    primary_grid_filename = FindPrimaryGridFilename(working_path, step_mesh)
+    file_list = glob.glob(primary_grid_filename + '*')
+    for file_path in file_list:
+        RemoveFileIfExists(file_path)
+
+def RemoveOutputDatFiles(working_path, step, ouput_file_pattern, substep):
+    outputs_pattern = working_path + "Outputs/" + ouput_file_pattern + str(step)
+    print("outputs_pattern = ", outputs_pattern)
+    file_list = glob.glob(outputs_pattern + '*')
+    for file_path in file_list:
+        if 'subiter=' + str(substep) in file_path and '.dat' in file_path:
+            RemoveFileIfExists(file_path)
+
+    ouput_file_pattern_surface = "sol.FW_al05_NoRef_003.surface.pval.unsteady_i="
+    outputs_pattern_surface = working_path + "Outputs/" + ouput_file_pattern_surface + str(step)
+    print("outputs_pattern_surface = ", outputs_pattern_surface)
+    file_list = glob.glob(outputs_pattern_surface + '*')
+    for file_path in file_list:
+        if 'subiter=' + str(substep) in file_path and '.dat' in file_path:
+            RemoveFileIfExists(file_path)
+
+def RemoveOutputFiles(working_path, step, ouput_file_pattern, substep):
+    outputs_pattern = working_path + "Outputs/" + ouput_file_pattern + str(step)
+    print("outputs_pattern = ", outputs_pattern)
+    file_list = glob.glob(outputs_pattern + '*')
+    for file_path in file_list:
+        if 'subiter=' + str(substep) in file_path:
+            RemoveFileIfExists(file_path)
+
+    ouput_file_pattern_surface = "sol.FW_al05_NoRef_003.surface.pval.unsteady_i="
+    outputs_pattern_surface = working_path + "Outputs/" + ouput_file_pattern_surface + str(step)
+    print("outputs_pattern_surface = ", outputs_pattern_surface)
+    file_list = glob.glob(outputs_pattern_surface + '*')
+    for file_path in file_list:
+        if 'subiter=' + str(substep) in file_path:
+            RemoveFileIfExists(file_path)
+
 
 # Convert tau output to dat file using tau2plt
 def ConvertOutputToDat(working_path, tau_path, step, para_path_mod, ouput_file_pattern, step_mesh, substep):
     PrintBlockHeader("Start Garthering Solution Data at time %s" % (str(time)))
     # Execute gather
     command = tau_path + 'gather ' +  para_path_mod
-    # print(command)
+    print(command)
     subprocess.call(command, shell=True)
 
     PrintBlockHeader("Start Writting Solution Data at time %s" % (str(time)))

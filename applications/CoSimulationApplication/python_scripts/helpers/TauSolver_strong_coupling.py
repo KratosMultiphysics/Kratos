@@ -238,14 +238,14 @@ def ExportData(conn_name, identifier):
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
             # forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
-            forces = 1e4*TauFunctions.ComputeFluidForces(working_path, step, "MEM_TOP", output_file_pattern, sub_step, velocity)
+            forces = 2e4*TauFunctions.ComputeFluidForces(working_path, step, "MEM_TOP", output_file_pattern, sub_step, velocity)
             # with open('forces_up' + str(step) + '.dat','w') as fname:
             #    for i in range(len(forces)/3):
             #        fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
             # forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
-            forces = 1e4*TauFunctions.ComputeFluidForces(working_path, step, "MEM_BOT", output_file_pattern, sub_step, velocity)
+            forces = 2e4*TauFunctions.ComputeFluidForces(working_path, step, "MEM_BOT", output_file_pattern, sub_step, velocity)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
@@ -381,6 +381,19 @@ for i in range(n_steps):
                 factor += 0.0
 
             first_iteration = False
+
+            if tau_mpi_rank() == 0:
+                TauFunctions.RemoveOutputDatFiles(working_path, step, output_file_pattern, j)
+
+                if j > 0:
+                    TauFunctions.RemoveMeshFiles(working_path, step_mesh-1)
+                    print('Removing output files substep 0')
+                    TauFunctions.RemoveOutputFiles(working_path, step, output_file_pattern, 0)
+                if i > 0 and j < 1 and i % 5 != 0:
+                    print('Outputing every third step')
+                    TauFunctions.RemoveMeshFiles(working_path, step_mesh-1)
+                    #TauFunctions.RemoveOutputFiles(working_path, step-1, output_file_pattern, 0)
+                    TauFunctions.RemoveOutputFiles(working_path, step-1, output_file_pattern, 1)
 
 if rank == 0:
     CoSimIO.Disconnect(connection_name)
