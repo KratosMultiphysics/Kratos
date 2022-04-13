@@ -25,13 +25,13 @@
 #include "utilities/math_utils.h"
 #include "custom_processes/mesher_process.hpp"
 
-///VARIABLES used:
-//Data:
-//StepData:
-//Flags:    (checked)
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// StepData:
+// Flags:    (checked)
+//           (set)
+//           (modified)
+//           (reset)
 
 namespace Kratos
 {
@@ -128,24 +128,26 @@ namespace Kratos
         for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
         {
           ModelPart::PropertiesType &elemProperties = itElem->GetProperties();
+          unsigned int node_property_id = elemProperties.Id();
+          std::cout << "rigid comingPropertyId " << node_property_id << std::endl;
 
           density = elemProperties[DENSITY];
           bulk_modulus = elemProperties[BULK_MODULUS];
           viscosity = elemProperties[DYNAMIC_VISCOSITY];
 
-          if (elemProperties.Has(YIELD_SHEAR)) //Bingham model
+          if (elemProperties.Has(YIELD_SHEAR)) // Bingham model
           {
             flow_index = elemProperties[FLOW_INDEX];
             yield_shear = elemProperties[YIELD_SHEAR];
             adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
           }
-          else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) //Frictional Viscoplastic model
+          else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) // Frictional Viscoplastic model
           {
             friction_angle = elemProperties[INTERNAL_FRICTION_ANGLE];
             cohesion = elemProperties[COHESION];
             adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
           }
-          else if (elemProperties.Has(STATIC_FRICTION)) //Mu(I)-rheology
+          else if (elemProperties.Has(STATIC_FRICTION)) // Mu(I)-rheology
           {
 
             static_friction = elemProperties[STATIC_FRICTION];
@@ -321,7 +323,7 @@ namespace Kratos
     SetMaterialPropertiesFromFluidToRigidNodesProcess &operator=(SetMaterialPropertiesFromFluidToRigidNodesProcess const &rOther);
 
     /// Copy constructor.
-    //SetMaterialPropertiesFromFluidToRigidNodesProcess(SetMaterialPropertiesFromFluidToRigidNodesProcess const& rOther);
+    // SetMaterialPropertiesFromFluidToRigidNodesProcess(SetMaterialPropertiesFromFluidToRigidNodesProcess const& rOther);
 
     ///@}
 

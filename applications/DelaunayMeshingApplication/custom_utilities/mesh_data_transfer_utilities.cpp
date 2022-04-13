@@ -1261,9 +1261,9 @@ namespace Kratos
       // In case of interaction of two or more fluids with different properties, the property
       // of the new element is retrivied from the nodes using the PROPERTY_ID variable.
       unsigned int numberOfProperties = rModelPart.NumberOfProperties();
-
       if (numberOfProperties > 1)
       {
+        unsigned int interfaceProperty = numberOfProperties + 1;
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
         GeometryType &r_geometry = new_element->GetGeometry();
@@ -1277,32 +1277,43 @@ namespace Kratos
             array_of_properties.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
           }
         }
-        KRATOS_WATCH(array_of_properties);
+
         std::sort(array_of_properties.begin(), array_of_properties.end());
-        unsigned int property_id = array_of_properties[0];
+        unsigned int property_id = 2;
         for (unsigned int i = 0; i < array_of_properties.size(); i++)
         {
-        }
-        for (unsigned int i = 0; i < array_of_properties.size(); i++)
-        {
-          if (array_of_properties[i + 1] == array_of_properties[i])
+          if (array_of_properties[i] == interfaceProperty)
           {
-            curr_count++;
+            KRATOS_WATCH("interface node, I ll skip it");
           }
           else
           {
-            if (curr_count > max_count)
-            {
-              max_count = curr_count;
-              property_id = array_of_properties[i];
-            }
-            curr_count = 1;
+            property_id = array_of_properties[i];
+            KRATOS_WATCH("assigned property is ");
+            KRATOS_WATCH(property_id);
+            break;
           }
         }
-        if (curr_count > max_count)
-        {
-          property_id = array_of_properties.back();
-        }
+        // for (unsigned int i = 0; i < array_of_properties.size(); i++)
+        // {
+        //   if (array_of_properties[i + 1] == array_of_properties[i])
+        //   {
+        //     curr_count++;
+        //   }
+        //   else
+        //   {
+        //     if (curr_count > max_count)
+        //     {
+        //       max_count = curr_count;
+        //       property_id = array_of_properties[i];
+        //     }
+        //     curr_count = 1;
+        //   }
+        // }
+        // if (curr_count > max_count)
+        // {
+        //   property_id = array_of_properties.back();
+        // }
         Properties::Pointer p_new_property = rModelPart.pGetProperties(property_id);
         new_element->SetProperties(p_new_property);
       }
