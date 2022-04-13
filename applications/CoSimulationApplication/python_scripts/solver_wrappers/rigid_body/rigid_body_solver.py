@@ -31,14 +31,14 @@ class RigidBodySolver(object):
         self.end_time = project_parameters["problem_data"]["end_time"].GetDouble()
 
         solver_settings = input_check._ValidateAndAssignRigidBodySolverDefaults(project_parameters["solver_settings"])
-        domain_size = solver_settings["domain_size"].GetInt()
+        self.domain_size = solver_settings["domain_size"].GetInt()
         buffer_size = solver_settings["buffer_size"].GetInt()
         self.echo_level = solver_settings["echo_level"].GetInt()
 
         self.model = model
         self.main_model_part = self.model.CreateModelPart("Main")
         if solver_settings["model_import_settings"]["input_type"].GetString() == "none":
-            self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = domain_size
+            self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.domain_size
             self.rigid_body_model_part = self.main_model_part.CreateSubModelPart("RigidBody")
             self.root_point_model_part = self.main_model_part.CreateSubModelPart("RootPoint")
             self.AddVariables()
@@ -54,10 +54,10 @@ class RigidBodySolver(object):
             self.start_time = self.main_model_part.ProcessInfo[KM.TIME]
 
         # Degrees of freedom that can be activated from the parameters
-        if domain_size == 3:
+        if self.domain_size == 3:
             self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z',
                 'rotation_x', 'rotation_y', 'rotation_z']
-        elif domain_size == 2:
+        elif self.domain_size == 2:
             self.available_dofs = ['displacement_x', 'displacement_y', 'rotation_z']
 
         self.system_size = len(self.available_dofs)
@@ -164,6 +164,13 @@ class RigidBodySolver(object):
         self.a3a = 1.0 - 1.0 / (2.0 * self.beta)
 
 
+    def Run(self):
+
+        self.Initialize()
+        self.RunSolutionLoop()
+        self.Finalize()
+
+
     def Initialize(self):
 
         # Initialize the time
@@ -178,45 +185,25 @@ class RigidBodySolver(object):
         for process in self._list_of_processes:
             process.ExecuteInitialize()
 
-        # Create output file and wrrite the time=start_time step
-        self.InitializeOutput()
-
         for process in self._list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
 
-    def InitializeOutput(self):
+    def RunSolutionLoop(self):
 
-        # Carry out this task only in the first rank (for parallel computing)
-        # TODO: This might not be necessary anymore, since it doesn't run in MPI
-        data_comm = KM.DataCommunicator.GetDefault()
-        if data_comm.Rank()==0:
-            
-            # Write initial time step output
+        while self.main_model_part.ProcessInfo[KM.TIME] < self.end_time:
+            self.AdvanceInTime(self.main_model_part.ProcessInfo[KM.TIME])
+            self.InitializeSolutionStep()
+            self.Predict()
+            self.SolveSolutionStep()
+            self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
+    
+    def Finalize(self):
 
-    def OutputSolutionStep(self):
-        """This function writes output files after the solution of a step, exactly as in AnalysisStage()
-        """
-        # Carry out this task only in the first rank (for parallel computing)
-        # TODO: This might not be necessary anymore, since it doesn't run in MPI
-        data_comm = KM.DataCommunicator.GetDefault()
-        if data_comm.Rank()==0:
-
-            execute_was_called = False
-            for output_process in self._list_of_output_processes:
-                if output_process.IsOutputStep():
-                    if not execute_was_called:
-                        for process in self._list_of_processes:
-                            process.ExecuteBeforeOutputStep()
-                        execute_was_called = True
-
-                    output_process.PrintOutput()
-
-            if execute_was_called:
-                for process in self._list_of_processes:
-                    process.ExecuteAfterOutputStep()
+        for process in self._list_of_processes:
+            process.ExecuteFinalize()
 
 
     def AdvanceInTime(self, current_time):    
@@ -241,14 +228,14 @@ class RigidBodySolver(object):
         return time
 
     
-    def Predict(self):
-        pass
-
-    
     def InitializeSolutionStep(self):
         
         for process in self._list_of_processes:
             process.ExecuteInitializeSolutionStep()
+
+    
+    def Predict(self):
+        pass
 
 
     def SolveSolutionStep(self):
@@ -283,7 +270,7 @@ class RigidBodySolver(object):
         # Update velocity and acceleration according to the gen-alpha method
         self._UpdateDisplacement("rigid_body", x)
 
-        reaction = self.CalculateReaction()
+        reaction = self._CalculateReaction()
         self._SetCompleteVector("root_point", KM.REACTION, KM.REACTION_MOMENT, reaction)
 
     
@@ -293,39 +280,41 @@ class RigidBodySolver(object):
             process.ExecuteFinalizeSolutionStep()
 
 
-    def _UpdateDisplacement(self, model_part_name, x):
+    def OutputSolutionStep(self):
+        """This function writes output files after the solution of a step, exactly as in AnalysisStage()
+        """
+        # Carry out this task only in the first rank (for parallel computing)
+        # TODO: This might not be necessary anymore, since it doesn't run in MPI
+        data_comm = KM.DataCommunicator.GetDefault()
+        if data_comm.Rank()==0:
 
-        x_prev, v_prev, a_prev = self._GetKinematics(model_part_name, buffer=1)
+            execute_was_called = False
+            for output_process in self._list_of_output_processes:
+                if output_process.IsOutputStep():
+                    if not execute_was_called:
+                        for process in self._list_of_processes:
+                            process.ExecuteBeforeOutputStep()
+                        execute_was_called = True
 
-        # Calculate the velocity and acceleration according to the gen-alpha method
-        v = self.a1v * (x - x_prev) + self.a2v * v_prev + self.a3v * a_prev
-        a = self.a1a * (x - x_prev) + self.a2a * v_prev + self.a3a * a_prev
+                    output_process.PrintOutput()
 
-        self._SetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, x)
-        self._SetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, v)
-        self._SetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, a)
-
+            if execute_was_called:
+                for process in self._list_of_processes:
+                    process.ExecuteAfterOutputStep()
+            
     
-    def _GetKinematics(self, model_part_name, buffer=0):
-
-        x = self._GetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, buffer=buffer)
-        v = self._GetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, buffer=buffer)
-        a = self._GetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, buffer=buffer)
-
-        return x, v, a
-
-
-    def _CalculateEquivalentForceFromRootPointDisplacement(self):
-        # Transform the movement of the root point into an equivalent force
-        x_root, v_root, a_root = self._GetKinematics("root_point")
-        equivalent_force = self.K.dot(x_root) + self.C.dot(v_root)
-        return equivalent_force
+    def _ResetExternalVariables(self):
+        zero_vector = np.zeros(self.system_size)
+        self._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, zero_vector)
+        self._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, zero_vector)
+        self._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, zero_vector)
+        self._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, zero_vector)
 
 
     def _CalculateEffectiveLoad(self):
 
         # Calculate the total load
-        self_weight = self.CalculateSelfWeight()
+        self_weight = self._CalculateSelfWeight()
         external_load = self._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT)
         prescribed_load = self._GetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT)
         self.total_load = external_load + prescribed_load + self_weight
@@ -342,33 +331,56 @@ class RigidBodySolver(object):
 
         return effective_load
 
+    
+    def _GetKinematics(self, model_part_name, buffer=0):
 
-    def CalculateReaction(self, buffer=0):
+        x = self._GetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, buffer=buffer)
+        v = self._GetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, buffer=buffer)
+        a = self._GetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, buffer=buffer)
+
+        return x, v, a
+
+
+    def _UpdateDisplacement(self, model_part_name, x):
+
+        x_prev, v_prev, a_prev = self._GetKinematics(model_part_name, buffer=1)
+
+        # Calculate the velocity and acceleration according to the gen-alpha method
+        v = self.a1v * (x - x_prev) + self.a2v * v_prev + self.a3v * a_prev
+        a = self.a1a * (x - x_prev) + self.a2a * v_prev + self.a3a * a_prev
+
+        self._SetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, x)
+        self._SetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, v)
+        self._SetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, a)
+
+
+    def _CalculateReaction(self, buffer=0):
+
         x, v, a = self._GetKinematics("rigid_body", buffer=buffer)
         x_root, v_root, a_root = self._GetKinematics("root_point", buffer=buffer)
         # TODO: Check how does it work with constrained DOFs
+        # This is a very big TODO!
         reaction = self.C.dot(v - v_root) + self.K.dot(x - x_root)
+
         return reaction
 
 
-    def CalculateSelfWeight(self):
+    def _CalculateSelfWeight(self):
+
         self_weight = self.M.dot(self.modulus_self_weight)
+        
         return self_weight
 
-    
-    def Finalize(self):
 
-        for process in self._list_of_processes:
-            process.ExecuteFinalize()
-            
+    def _CalculateEquivalentForceFromRootPointDisplacement(self):
+
+        # Transform the movement of the root point into an equivalent force
+        x_root, v_root, a_root = self._GetKinematics("root_point")
+        equivalent_force = self.K.dot(x_root) + self.C.dot(v_root)
+
+        return equivalent_force
     
-    def _ResetExternalVariables(self):
-        zero_vector = np.zeros(self.system_size)
-        self._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, zero_vector)
-        self._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, zero_vector)
-        self._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, zero_vector)
-        self._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, zero_vector)
-    
+
     def _GetCompleteVector(self, model_part_name, linear_variable, angular_variable, buffer=0):
 
         if model_part_name == "rigid_body":
