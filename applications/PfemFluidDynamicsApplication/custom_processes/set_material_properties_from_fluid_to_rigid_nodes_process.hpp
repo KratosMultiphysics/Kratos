@@ -119,122 +119,122 @@ namespace Kratos
       double friction_angle = 0;
       double cohesion = 0;
 
-#pragma omp parallel
-      {
+// #pragma omp parallel
+//       {
 
-        ModelPart::ElementIterator ElemBegin;
-        ModelPart::ElementIterator ElemEnd;
-        OpenMPUtils::PartitionedIterators(mrFluidModelPart.Elements(), ElemBegin, ElemEnd);
-        for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-        {
-          ModelPart::PropertiesType &elemProperties = itElem->GetProperties();
-          unsigned int node_property_id = elemProperties.Id();
-          std::cout << "rigid comingPropertyId " << node_property_id << std::endl;
+//         ModelPart::ElementIterator ElemBegin;
+//         ModelPart::ElementIterator ElemEnd;
+//         OpenMPUtils::PartitionedIterators(mrFluidModelPart.Elements(), ElemBegin, ElemEnd);
+//         for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+//         {
+//           ModelPart::PropertiesType &elemProperties = itElem->GetProperties();
+//           unsigned int node_property_id = elemProperties.Id();
+//           std::cout << "rigid comingPropertyId " << node_property_id << std::endl;
 
-          density = elemProperties[DENSITY];
-          bulk_modulus = elemProperties[BULK_MODULUS];
-          viscosity = elemProperties[DYNAMIC_VISCOSITY];
+//           density = elemProperties[DENSITY];
+//           bulk_modulus = elemProperties[BULK_MODULUS];
+//           viscosity = elemProperties[DYNAMIC_VISCOSITY];
 
-          if (elemProperties.Has(YIELD_SHEAR)) // Bingham model
-          {
-            flow_index = elemProperties[FLOW_INDEX];
-            yield_shear = elemProperties[YIELD_SHEAR];
-            adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
-          }
-          else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) // Frictional Viscoplastic model
-          {
-            friction_angle = elemProperties[INTERNAL_FRICTION_ANGLE];
-            cohesion = elemProperties[COHESION];
-            adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
-          }
-          else if (elemProperties.Has(STATIC_FRICTION)) // Mu(I)-rheology
-          {
+//           if (elemProperties.Has(YIELD_SHEAR)) // Bingham model
+//           {
+//             flow_index = elemProperties[FLOW_INDEX];
+//             yield_shear = elemProperties[YIELD_SHEAR];
+//             adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
+//           }
+//           else if (elemProperties.Has(INTERNAL_FRICTION_ANGLE)) // Frictional Viscoplastic model
+//           {
+//             friction_angle = elemProperties[INTERNAL_FRICTION_ANGLE];
+//             cohesion = elemProperties[COHESION];
+//             adaptive_exponent = elemProperties[ADAPTIVE_EXPONENT];
+//           }
+//           else if (elemProperties.Has(STATIC_FRICTION)) // Mu(I)-rheology
+//           {
 
-            static_friction = elemProperties[STATIC_FRICTION];
-            dynamic_friction = elemProperties[DYNAMIC_FRICTION];
-            inertial_number_zero = elemProperties[INERTIAL_NUMBER_ZERO];
-            grain_diameter = elemProperties[GRAIN_DIAMETER];
-            grain_density = elemProperties[GRAIN_DENSITY];
+//             static_friction = elemProperties[STATIC_FRICTION];
+//             dynamic_friction = elemProperties[DYNAMIC_FRICTION];
+//             inertial_number_zero = elemProperties[INERTIAL_NUMBER_ZERO];
+//             grain_diameter = elemProperties[GRAIN_DIAMETER];
+//             grain_density = elemProperties[GRAIN_DENSITY];
 
-            if (elemProperties.Has(INERTIAL_NUMBER_ONE))
-            {
-              inertial_number_one = elemProperties[INERTIAL_NUMBER_ONE];
-              infinite_friction = elemProperties[INFINITE_FRICTION];
-              alpha_parameter = elemProperties[ALPHA_PARAMETER];
-            }
+//             if (elemProperties.Has(INERTIAL_NUMBER_ONE))
+//             {
+//               inertial_number_one = elemProperties[INERTIAL_NUMBER_ONE];
+//               infinite_friction = elemProperties[INFINITE_FRICTION];
+//               alpha_parameter = elemProperties[ALPHA_PARAMETER];
+//             }
 
-            if (elemProperties.Has(REGULARIZATION_COEFFICIENT))
-            {
-              regularization_coefficient = elemProperties[REGULARIZATION_COEFFICIENT];
-            }
-          }
-          break;
-        }
-      }
-#pragma omp parallel
-      {
+//             if (elemProperties.Has(REGULARIZATION_COEFFICIENT))
+//             {
+//               regularization_coefficient = elemProperties[REGULARIZATION_COEFFICIENT];
+//             }
+//           }
+//           break;
+//         }
+//       }
+// #pragma omp parallel
+//       {
 
-        ModelPart::NodeIterator NodeBegin;
-        ModelPart::NodeIterator NodeEnd;
-        OpenMPUtils::PartitionedIterators(mrRigidModelPart.Nodes(), NodeBegin, NodeEnd);
-        for (ModelPart::NodeIterator iNode = NodeBegin; iNode != NodeEnd; ++iNode)
-        {
+//         ModelPart::NodeIterator NodeBegin;
+//         ModelPart::NodeIterator NodeEnd;
+//         OpenMPUtils::PartitionedIterators(mrRigidModelPart.Nodes(), NodeBegin, NodeEnd);
+//         for (ModelPart::NodeIterator iNode = NodeBegin; iNode != NodeEnd; ++iNode)
+//         {
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(BULK_MODULUS))
-            iNode->FastGetSolutionStepValue(BULK_MODULUS) = bulk_modulus;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(BULK_MODULUS))
+//             iNode->FastGetSolutionStepValue(BULK_MODULUS) = bulk_modulus;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(DENSITY))
-            iNode->FastGetSolutionStepValue(DENSITY) = density;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(DENSITY))
+//             iNode->FastGetSolutionStepValue(DENSITY) = density;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
-            iNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = viscosity;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_VISCOSITY))
+//             iNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = viscosity;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR))
-            iNode->FastGetSolutionStepValue(YIELD_SHEAR) = yield_shear;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(YIELD_SHEAR))
+//             iNode->FastGetSolutionStepValue(YIELD_SHEAR) = yield_shear;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(FLOW_INDEX))
-            iNode->FastGetSolutionStepValue(FLOW_INDEX) = flow_index;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(FLOW_INDEX))
+//             iNode->FastGetSolutionStepValue(FLOW_INDEX) = flow_index;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(ADAPTIVE_EXPONENT))
-            iNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(ADAPTIVE_EXPONENT))
+//             iNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INTERNAL_FRICTION_ANGLE))
-            iNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE) = friction_angle;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INTERNAL_FRICTION_ANGLE))
+//             iNode->FastGetSolutionStepValue(INTERNAL_FRICTION_ANGLE) = friction_angle;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(COHESION))
-            iNode->FastGetSolutionStepValue(COHESION) = cohesion;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(COHESION))
+//             iNode->FastGetSolutionStepValue(COHESION) = cohesion;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(ADAPTIVE_EXPONENT))
-            iNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(ADAPTIVE_EXPONENT))
+//             iNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT) = adaptive_exponent;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION))
-            iNode->FastGetSolutionStepValue(STATIC_FRICTION) = static_friction;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(STATIC_FRICTION))
+//             iNode->FastGetSolutionStepValue(STATIC_FRICTION) = static_friction;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_FRICTION))
-            iNode->FastGetSolutionStepValue(DYNAMIC_FRICTION) = dynamic_friction;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(DYNAMIC_FRICTION))
+//             iNode->FastGetSolutionStepValue(DYNAMIC_FRICTION) = dynamic_friction;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INERTIAL_NUMBER_ZERO))
-            iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) = inertial_number_zero;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INERTIAL_NUMBER_ZERO))
+//             iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ZERO) = inertial_number_zero;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DIAMETER))
-            iNode->FastGetSolutionStepValue(GRAIN_DIAMETER) = grain_diameter;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DIAMETER))
+//             iNode->FastGetSolutionStepValue(GRAIN_DIAMETER) = grain_diameter;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DENSITY))
-            iNode->FastGetSolutionStepValue(GRAIN_DENSITY) = grain_density;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(GRAIN_DENSITY))
+//             iNode->FastGetSolutionStepValue(GRAIN_DENSITY) = grain_density;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INERTIAL_NUMBER_ONE))
-            iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INERTIAL_NUMBER_ONE))
+//             iNode->FastGetSolutionStepValue(INERTIAL_NUMBER_ONE) = inertial_number_one;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INFINITE_FRICTION))
-            iNode->FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(INFINITE_FRICTION))
+//             iNode->FastGetSolutionStepValue(INFINITE_FRICTION) = infinite_friction;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(ALPHA_PARAMETER))
-            iNode->FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(ALPHA_PARAMETER))
+//             iNode->FastGetSolutionStepValue(ALPHA_PARAMETER) = alpha_parameter;
 
-          if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(REGULARIZATION_COEFFICIENT))
-            iNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = regularization_coefficient;
-        }
-      }
+//           if (mrFluidModelPart.GetNodalSolutionStepVariablesList().Has(REGULARIZATION_COEFFICIENT))
+//             iNode->FastGetSolutionStepValue(REGULARIZATION_COEFFICIENT) = regularization_coefficient;
+//         }
+//       }
 
       KRATOS_CATCH(" ")
     };

@@ -713,7 +713,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    // std::cout<<" [ Data Transfer ELEMENT to NODE ] :"<<std::endl;
+    std::cout << " [ Data Transfer ELEMENT to NODE ] :" << std::endl;
 
     ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
     NodesContainerType &rNodes = rModelPart.Nodes();
@@ -1272,50 +1272,109 @@ namespace Kratos
 
         for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++)
         {
-          if (r_geometry[i].IsNot(RIGID))
-          {
-            array_of_properties.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
-          }
+          //   if (r_geometry[i].IsNot(RIGID))
+          //   {
+          array_of_properties.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
+          // }
         }
+        KRATOS_WATCH(array_of_properties);
 
         std::sort(array_of_properties.begin(), array_of_properties.end());
-        unsigned int property_id = 2;
+        unsigned int property_id = 0;
+        bool interfaceElement = false;
+        unsigned int rigidNodes = 0;
+        unsigned int interfaceNodes = 0;
         for (unsigned int i = 0; i < array_of_properties.size(); i++)
         {
-          if (array_of_properties[i] == interfaceProperty)
+          if (r_geometry[i].Is(RIGID) || array_of_properties[i] == 0 || array_of_properties[i] == interfaceProperty)
           {
+            interfaceNodes++;
+          }
+          if (r_geometry[i].Is(RIGID))
+          {
+            rigidNodes++;
+          }
+          if (array_of_properties[i] == interfaceProperty || array_of_properties[i] == 0)
+          {
+            interfaceElement = true;
             KRATOS_WATCH("interface node, I ll skip it");
           }
           else
           {
             property_id = array_of_properties[i];
-            KRATOS_WATCH("assigned property is ");
             KRATOS_WATCH(property_id);
-            break;
+            // break;
           }
         }
-        // for (unsigned int i = 0; i < array_of_properties.size(); i++)
-        // {
-        //   if (array_of_properties[i + 1] == array_of_properties[i])
-        //   {
-        //     curr_count++;
-        //   }
-        //   else
-        //   {
-        //     if (curr_count > max_count)
-        //     {
-        //       max_count = curr_count;
-        //       property_id = array_of_properties[i];
-        //     }
-        //     curr_count = 1;
-        //   }
-        // }
-        // if (curr_count > max_count)
-        // {
-        //   property_id = array_of_properties.back();
-        // }
+
+        std::vector<int> array_of_properties_no_rigid;
+        for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++)
+        {
+          if (r_geometry[i].IsNot(RIGID))
+          {
+            array_of_properties_no_rigid.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
+          }
+        }
+        KRATOS_WATCH(array_of_properties_no_rigid);
+
+        std::sort(array_of_properties_no_rigid.begin(), array_of_properties_no_rigid.end());
+        if (interfaceElement == false || property_id == interfaceProperty || property_id == 0)
+        {
+
+          // for (unsigned int i = 0; i < array_of_properties.size(); i++)
+          // {
+          //   if (r_geometry[i].IsNot(RIGID))
+          //   {
+          //     property_id = array_of_properties[i];
+
+          //     if (r_geometry[i+1].IsNot(RIGID))
+          //     {
+          //       if (array_of_properties[i+1] == array_of_properties[i])
+          //       {
+          //         property_id = array_of_properties[j];
+          //         break;
+          //       }
+          //     }
+          //   }
+          // }
+          // if (property_id == interfaceProperty || property_id == 0)
+          // {
+          //   std::cout << "                      DANGEROUS PROPERTY IS " << property_id << std::endl;
+          //   property_id = 1;
+          // }
+          property_id = array_of_properties_no_rigid[0];
+          for (unsigned int i = 0; i < array_of_properties_no_rigid.size(); i++)
+          {
+            if (array_of_properties_no_rigid[i + 1] == array_of_properties_no_rigid[i])
+            {
+              curr_count++;
+            }
+            else
+            {
+              if (curr_count > max_count)
+              {
+                max_count = curr_count;
+                property_id = array_of_properties_no_rigid[i];
+              }
+              curr_count = 1;
+            }
+          }
+          if (curr_count > max_count)
+          {
+            property_id = array_of_properties_no_rigid.back();
+          }
+        }
+
         Properties::Pointer p_new_property = rModelPart.pGetProperties(property_id);
         new_element->SetProperties(p_new_property);
+
+        // for (unsigned int i = 0; i < r_geometry.size(); i++)
+        // {
+        //   if (r_geometry[i].Is(RIGID))
+        //   {
+        //     r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0) = property_id;
+        //   }
+        // }
       }
 
       // Clone the constitutive law
