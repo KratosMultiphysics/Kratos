@@ -125,7 +125,7 @@ double CalculateTurbulentKinematicViscosity(
     KRATOS_TRY
 
     return A1 * TurbulentKineticEnergy /
-           std::max(A1 * TurbulentSpecificEnergyDissipationRate, VorticityNorm * F2);
+           std::max(std::max(A1 * TurbulentSpecificEnergyDissipationRate, VorticityNorm * F2), 1e-12);
 
     KRATOS_CATCH("");
 }
