@@ -125,4 +125,53 @@ def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
 
     return None
 
+def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name):
+    auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
+    for process_settings in auxiliar_process_list:
+        if (
+            process_settings.Has("python_module") and process_settings["python_module"].GetString() == "response_function_output_process" and
+            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication" and
+            process_settings["Parameters"].Has("model_part_name") and process_settings["Parameters"]["model_part_name"].GetString() == model_part_name
+            ):
+            return process_settings
+
+    return None
+
+def ReadResponseValuesFile(file_name):
+    with open(file_name, "r") as file_input:
+        lines = file_input.readlines()
+    time_steps = []
+    values = []
+    for line in lines:
+        line = line.strip()
+        if len(line) == 0 or line[0] == '#':
+            continue
+        time_step_data = [float(v) for v in line.split(sep=",")]
+        time, value = time_step_data
+        time_steps.append(time)
+        values.append(value)
+    return time_steps, values
+
+def GetResponseValues(kratos_parameters, model_part_name):
+    output_process = _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name)
+    if (output_process is not None):
+        output_file_name = output_process["Parameters"]["output_file_settings"]["file_name"].GetString()
+        time_steps, values = ReadResponseValuesFile(output_file_name)
+        return time_steps, values
+    else:
+        raise RuntimeError("No \"compute_body_fitted_drag_process\" found in auxiliar_process_list.")
+
+def CalculateTimeAveragedResponseValue(kratos_parameters, model_part_name, start_time = 0.0):
+    time_steps, values = GetResponseValues(kratos_parameters, model_part_name)
+    total_value = 0.0
+    for index, value in enumerate(reversed(values)):
+        if (time_steps[len(time_steps) - index - 1] >= start_time):
+            total_value += value
+            if (kratos_parameters["solver_settings"]["time_scheme_settings"]["scheme_type"].GetString() == "steady"):
+                break
+    if len(time_steps) > 1:
+        delta_time = time_steps[1] - time_steps[0]
+        total_value *= delta_time
+    return total_value
+
 

@@ -1,4 +1,5 @@
 # Importing the Kratos Library
+from urllib import response
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 # other imports
@@ -33,6 +34,9 @@ class ResponseFunctionOutputProcess(Kratos.OutputProcess):
                 self.params["response_settings"], self.model)
         elif (response_type == "domain_integrated"):
             self.response = KratosCFD.DomainIntegratedResponseFunction(
+                self.params["response_settings"], self.main_model_part)
+        elif (response_type == "domain_integrated_3d_vector_magnitude_square_power_mean"):
+            self.response = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction(
                 self.params["response_settings"], self.main_model_part)
         else:
             raise Exception(
