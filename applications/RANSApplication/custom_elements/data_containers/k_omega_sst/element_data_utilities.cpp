@@ -50,7 +50,7 @@ double CalculateCrossDiffusionTerm(
     double value = inner_prod(rTurbulentKineticEnergyGradient,
                               rTurbulentSpecificEnergyDissipationRateGradient);
     value *= (2.0 * SigmaTurbulentSpecificEnergyDissipationRate2 /
-              TurbulentSpecificEnergyDissipationRate);
+              std::max(TurbulentSpecificEnergyDissipationRate, 1e-12));
     return value;
 
     KRATOS_CATCH("");
@@ -110,7 +110,7 @@ double CalculateF2(
 
     const double arg5 = std::min(arg4, 100.0);
 
-    return std::tanh(std::pow(arg5, 2));
+    return CalculateTanh(std::pow(arg5, 2));
 
     KRATOS_CATCH("");
 }
