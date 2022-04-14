@@ -101,7 +101,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
     Matrix C_tensor(dimension, dimension), inverse_C_tensor(dimension, dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        this->CalculateGreenLagrangianStrain(rValues, r_strain_vector);
+        BaseType::CalculateGreenLagrangianStrain(rValues, r_strain_vector);
         noalias(C_tensor) = prod(trans(r_deformation_gradient_f), r_deformation_gradient_f);
     } else {
         Matrix strain_tensor(dimension, dimension);
