@@ -112,18 +112,16 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
 
-    if ( CalculateStiffnessMatrixFlag == true ) { // Calculation of the matrix is required
-        if ( rLeftHandSideMatrix.size1() != mat_size )
-            rLeftHandSideMatrix.resize( mat_size, mat_size, false );
-
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
+    if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+        if (rLeftHandSideMatrix.size1() != mat_size)
+            rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); // resetting LHS
     }
 
     // Resizing as needed the RHS
-    if ( CalculateResidualVectorFlag == true ) { // Calculation of the matrix is required
-        if ( rRightHandSideVector.size() != mat_size )
-            rRightHandSideVector.resize( mat_size, false );
-
+    if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
+        if (rRightHandSideVector.size() != mat_size)
+            rRightHandSideVector.resize(mat_size, false);
         noalias(rRightHandSideVector) = ZeroVector( mat_size ); //resetting RHS
     }
 
@@ -173,16 +171,20 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         // this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
 
         // let's try to calculate split NeoHookean
-        const Matrix C = prod(trans(this_kinematic_variables.F), this_kinematic_variables.F);
-        CalculateNeoHookeanStressAndTangent(C, mPressure, C1, this_constitutive_variables.StressVector, this_constitutive_variables.D);
+        const Matrix& r_C = prod(trans(this_kinematic_variables.F), this_kinematic_variables.F);
+        CalculateNeoHookeanStressAndTangent(r_C, mPressure, C1, this_constitutive_variables.StressVector, this_constitutive_variables.D);
 
-        Matrix inv_C;
+        Matrix inv_C(dimension, dimension);
         double det;
-        MathUtils<double>::InvertMatrix3(C, inv_C, det);
+        MathUtils<double>::InvertMatrix3(r_C, inv_C, det);
         Vector inv_c_voigt = MathUtils<double>::StrainTensorToVector(inv_C, GetStrainSize());
-        inv_c_voigt[3] /= 2.0;
-        inv_c_voigt[4] /= 2.0;
-        inv_c_voigt[5] /= 2.0;
+        if (dimension == 2) {
+            inv_c_voigt[2] /= 2.0;
+        } else {
+            inv_c_voigt[3] /= 2.0;
+            inv_c_voigt[4] /= 2.0;
+            inv_c_voigt[5] /= 2.0;
+        }
 
         // Calculating weights for integration on the reference configuration
         int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
