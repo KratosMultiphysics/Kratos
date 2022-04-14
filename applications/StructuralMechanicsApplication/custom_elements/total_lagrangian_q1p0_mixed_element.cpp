@@ -40,7 +40,7 @@ TotalLagrangianQ1P0MixedElement::TotalLagrangianQ1P0MixedElement(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
-    ) : TotalLagrangian( NewId, pGeometry, pProperties )
+    ) : TotalLagrangian(NewId, pGeometry, pProperties)
 {
     //DO NOT ADD DOFS HERE!!!
     this->SetValue(PRESSURE, 0.0);
@@ -453,6 +453,20 @@ void TotalLagrangianQ1P0MixedElement::CalculateOnIntegrationPoints(
             rOutput[i] = this->GetValue(PRESSURE);
         }
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+int TotalLagrangianQ1P0MixedElement::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY;
+    auto &r_props = GetProperties();
+    KRATOS_ERROR_IF_NOT(r_props.Has(YOUNG_MODULUS)) << "The YOUNG_MODULUS is not defined in the properties..." << std::endl;
+    KRATOS_ERROR_IF_NOT(r_props.Has(POISSON_RATIO)) << "The POISSON_RATIO is not defined in the properties..." << std::endl;
+    BaseType::Check(rCurrentProcessInfo);
+    return 0;
+    KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
