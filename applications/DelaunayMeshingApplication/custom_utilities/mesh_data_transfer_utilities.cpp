@@ -1263,7 +1263,7 @@ namespace Kratos
       unsigned int numberOfProperties = rModelPart.NumberOfProperties();
       if (numberOfProperties > 1)
       {
-        unsigned int interfaceProperty = numberOfProperties + 1;
+        unsigned int interfaceProperty = 100;
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
         GeometryType &r_geometry = new_element->GetGeometry();

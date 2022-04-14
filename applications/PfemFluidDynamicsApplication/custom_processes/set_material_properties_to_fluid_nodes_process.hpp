@@ -176,7 +176,7 @@ namespace Kratos
             std::cout << "numberOfProperties " << numberOfProperties << std::endl;
             std::cout << "originalPropertyId " << originalPropertyId << std::endl;
             std::cout << "comingPropertyId " << node_property_id << std::endl;
-            rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = numberOfProperties+1;
+            rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = 100;
           }
           else
           {
