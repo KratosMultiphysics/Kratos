@@ -15,8 +15,8 @@
                     "POROSITY": 0.3,
                     "BULK_MODULUS_SOLID": 0,
                     "BULK_MODULUS_FLUID": 0,
-                    "PERMEABILITY_XX": 1.57e-12,
-                    "PERMEABILITY_YY": 1.57e-12,
+                    "PERMEABILITY_XX": 1.57e-10,
+                    "PERMEABILITY_YY": 1.57e-10,
                     "PERMEABILITY_XY": 0.0,
                     "DYNAMIC_VISCOSITY": 0.001,
                     "THICKNESS": 1.0,
@@ -84,7 +84,7 @@
                     "THICKNESS": 1.0,
                     "MINIMUM_JOINT_WIDTH": 0.001,
                     "BIOT_COEFFICIENT": 1.0,
-                    "PIPE_D_70": 0.0003,
+                    "PIPE_D_70": 0.0001,
                     "PIPE_ETA": 0.25,
                     "PIPE_THETA": 37,
                     "PIPE_START_ELEMENT": 2420,
@@ -94,7 +94,8 @@
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
                     "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001
+                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
+                    "PIPE_MODIFIED_D": true
                 },
                 "Tables": {}
             }

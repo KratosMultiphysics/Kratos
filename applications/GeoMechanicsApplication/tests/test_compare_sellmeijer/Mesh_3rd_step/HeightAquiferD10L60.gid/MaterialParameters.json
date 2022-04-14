@@ -94,7 +94,8 @@
                     "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE": 2.561,
                     "VAN_GENUCHTEN_GN": 1.377,
                     "VAN_GENUCHTEN_GL": 1.25,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001
+                    "MINIMUM_RELATIVE_PERMEABILITY": 0.0001,
+                    "PIPE_MODIFIED_D": true
                 },
                 "Tables": {}
             }
