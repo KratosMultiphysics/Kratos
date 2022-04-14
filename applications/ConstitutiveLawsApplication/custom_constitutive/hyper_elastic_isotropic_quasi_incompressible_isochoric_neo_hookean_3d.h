@@ -353,6 +353,14 @@ private:
         const double LameLambda,
         const double LameMu
         );
+    
+    void CalculateStressAndConstitutiveMatrixPK2(
+        const Matrix& rC,
+        const double Pressure,
+        const double C1,
+        Vector& rStress,
+        Matrix &rTangentTensor,
+        const Flags& rFlags);
 
     ///@}
     ///@name Private Operations

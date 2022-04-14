@@ -94,14 +94,13 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
     double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
-    // The LAME parameters
-    const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
-    const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
+    const double mu = young_modulus / (2.0 * (1.0 + poisson_coefficient));
+    const double C1 = 0.5 * mu;
 
     Matrix C_tensor(dimension, dimension), inverse_C_tensor(dimension, dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        BaseType::CalculateGreenLagrangianStrain(rValues, r_strain_vector);
+        CalculateGreenLagrangianStrain(rValues, r_strain_vector);
         noalias(C_tensor) = prod(trans(r_deformation_gradient_f), r_deformation_gradient_f);
     } else {
         Matrix strain_tensor(dimension, dimension);
@@ -110,16 +109,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
         determinant_f = std::sqrt(MathUtils<double>::Det(C_tensor));
     }
 
-    double aux_det;
-    MathUtils<double>::InvertMatrix(C_tensor, inverse_C_tensor, aux_det);
-
-    if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-
-    }
-
-    if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-
-    }
+    CalculateStressAndConstitutiveMatrixPK2(C_tensor, rValues.GetElementGeometry().GetValue(PRESSURE), C1, rValues.GetStressVector(), rValues.GetConstitutiveMatrix(), r_flags);
 
     KRATOS_CATCH("");
 }
@@ -127,7 +117,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
 
 
@@ -251,7 +241,172 @@ int HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::Check(
 
 /***********************************************************************************/
 /***********************************************************************************/
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateStressAndConstitutiveMatrixPK2(
+    const Matrix& rC,
+    const double Pressure,
+    const double C1,
+    Vector& rStress,
+    Matrix &rTangentTensor,
+    const Flags& rFlags
+)
+{
+    double v[308];
+    const double one_third = 1.0 / 3.0;
+    v[1]=rC(0,0);
+    v[2]=rC(0,1);
+    v[3]=rC(0,2);
+    v[4]=rC(1,0);
+    v[5]=rC(1,1);
+    v[58]=-(v[2]*v[4])+v[1]*v[5];
+    v[6]=rC(1,2);
+    v[167]=-(v[3]*v[5])+v[2]*v[6];
+    v[154]=v[3]*v[4]-v[1]*v[6];
+    v[7]=rC(2,0);
+    v[8]=rC(2,1);
+    v[82]=-(v[5]*v[7])+v[4]*v[8];
+    v[74]=v[2]*v[7]-v[1]*v[8];
+    v[9]=rC(2,2);
+    v[135]=v[3]*v[8]-v[2]*v[9];
+    v[66]=v[6]*v[7]-v[4]*v[9];
+    v[46]=-(v[3]*v[7])+v[1]*v[9];
+    v[38]=-(v[6]*v[8])+v[5]*v[9];
+    v[14]=v[1]*v[38]+v[2]*v[66]+v[3]*v[82];
+    v[200]=0.5e0/std::pow(v[14],0.5e0);
+    v[201]=1e0*v[200];
+    v[84]=v[200]*v[82];
+    v[76]=v[200]*v[74];
+    v[68]=v[201]*v[66];
+    v[60]=v[201]*v[58];
+    v[50]=1e0*v[201]*v[46];
+    v[47]=1e0/(v[14]*v[14]);
+    v[83]=-(v[47]*v[82]);
+    v[75]=-(v[47]*v[74]);
+    v[152]=v[38]*v[75];
+    v[67]=-(v[47]*v[66]);
+    v[165]=v[58]*v[67];
+    v[59]=-(v[47]*v[58]);
+    v[178]=v[38]*v[59];
+    v[176]=v[135]*v[59];
+    v[163]=v[46]*v[59];
+    v[48]=-(v[46]*v[47]);
+    v[146]=v[38]*v[48];
+    v[40]=1e0*v[201]*v[38];
+    v[39]=-(v[38]*v[47]);
+    v[174]=v[154]*v[39];
+    v[99]=v[1]/v[14]+v[163];
+    v[63]=v[178]+v[5]/v[14];
+    v[54]=v[146]+v[9]/v[14];
+    v[10]=C1;
+    v[11]=Pressure;
+    v[226]=v[11]*v[40];
+    v[218]=v[11]*v[60];
+    v[217]=-(v[11]*v[84]);
+    v[216]=v[11]*v[76];
+    v[214]=v[11]*v[68];
+    v[212]=v[11]*v[50];
+    v[12]=std::pow(v[14],0.5e0);
+    v[202]=-(v[11]*v[12]);
+    v[203]=((-4e0/3e0)*v[10])/std::pow(v[12],5.0*one_third);
+    v[86]=v[203]*v[84];
+    v[78]=v[203]*v[76];
+    v[70]=v[203]*v[68];
+    v[62]=v[203]*v[60];
+    v[53]=v[203]*v[50];
+    v[42]=v[203]*v[40];
+    v[31]=(2e0*v[10])/std::pow(v[12],2.0*one_third);
+    v[138]=-one_third*v[31];
+    v[13]=v[1]+v[5]+v[9];
+    v[207]=1e0*v[13];
+    v[204]=-one_third*v[13];
+    v[205]=1e0*v[204];
+    v[225]=v[217]+v[204]*v[86];
+    v[148]=v[204]*v[78];
+    v[229]=v[148]-v[216];
+    v[145]=v[205]*v[70];
+    v[224]=v[145]-v[214];
+    v[142]=v[138]+v[205]*v[62];
+    v[227]=v[142]+v[218];
+    v[139]=v[138]+1e0*v[205]*v[53];
+    v[223]=v[139]+v[212];
+    v[134]=v[138]+1e0*v[205]*v[42];
+    v[220]=v[134]+v[226];
+    v[117]=1e0*v[205]*v[99];
+    v[114]=1e0*v[205]*v[63];
+    v[93]=1e0*v[205]*v[54];
+    v[34]=1e0*v[205]*v[31];
+    v[222]=v[34]*v[48];
+    v[219]=v[34]*v[58];
+    v[215]=v[34]*v[46];
+    v[211]=v[34]*v[38];
+    v[228]=v[34]*v[59];
+    v[221]=v[34]*v[39];
+    v[208]=v[202]+v[34];
+    v[15]=v[38]/v[14];
+    v[206]=-(v[11]*v[15]);
+    v[210]=v[206]*v[60]+v[202]*v[63];
+    v[209]=v[206]*v[50]+v[202]*v[54];
+    v[55]=-one_third*v[15];
+    v[44]=1e0+v[207]*v[55];
+    v[17]=v[135]/v[14];
+    v[18]=v[167]/v[14];
+    v[20]=v[46]/v[14];
+    v[213]=-(v[20]*v[218])+v[202]*v[99];
+    v[96]=-one_third*v[20];
+    v[91]=1e0+v[207]*v[96];
+    v[21]=v[154]/v[14];
+    v[24]=v[58]/v[14];
+    v[116]=-one_third*v[24];
+    v[112]=1e0+1e0*v[116]*v[207];
+    if (rFlags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        rStress[0]=v[12]*v[206]+v[31]*v[44];
+        rStress[1]=v[20]*v[202]+v[31]*v[91];
+        rStress[2]=v[202]*v[24]+v[112]*v[31];
+        rStress[3]=v[17]*v[208];
+        rStress[4]=v[208]*v[21];
+        rStress[5]=v[18]*v[208];
+    }
+    if (rFlags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        rTangentTensor(0,0)=2e0*(-(v[206]*v[40])+v[42]*v[44]+v[31]*(v[205]*v[38]*v[39]+v[55]));
+        rTangentTensor(0,1)=2e0*(v[209]+v[44]*v[53]+v[31]*(v[55]+v[93]));
+        rTangentTensor(0,2)=2e0*(v[210]+v[31]*(v[114]+v[55])+v[44]*v[62]);
+        rTangentTensor(0,3)=v[211]*v[67]-v[206]*v[68]+v[44]*v[70];
+        rTangentTensor(0,4)=v[206]*v[76]+v[44]*v[78]+v[208]*(v[152]-v[8]/v[14]);
+        rTangentTensor(0,5)=v[211]*v[83]-v[206]*v[84]+v[44]*v[86];
+        rTangentTensor(1,0)=2e0*(v[209]+v[42]*v[91]+v[31]*(v[93]+v[96]));
+        rTangentTensor(1,1)=2e0*(v[20]*v[212]+v[53]*v[91]+v[31]*(v[205]*v[46]*v[48]+v[96]));
+        rTangentTensor(1,2)=2e0*(v[213]+v[62]*v[91]+v[31]*(v[117]+v[96]));
+        rTangentTensor(1,3)=v[20]*v[214]+v[215]*v[67]+v[70]*v[91];
+        rTangentTensor(1,4)=v[20]*v[216]+1e0*v[215]*v[75]+v[78]*v[91];
+        rTangentTensor(1,5)=v[20]*v[217]+v[208]*(-(v[7]/v[14])+v[46]*v[83])+v[86]*v[91];
+        rTangentTensor(2,0)=2e0*(v[210]+(v[114]+v[116])*v[31]+v[112]*v[42]);
+        rTangentTensor(2,1)=2e0*(v[213]+(v[116]+v[117])*v[31]+v[112]*v[53]);
+        rTangentTensor(2,2)=2e0*(v[218]*v[24]+v[31]*(v[116]+v[205]*v[58]*v[59])+v[112]*v[62]);
+        rTangentTensor(2,3)=-(v[214]*v[24])+v[208]*(v[165]-v[4]/v[14])+v[112]*v[70];
+        rTangentTensor(2,4)=v[216]*v[24]+v[219]*v[75]+v[112]*v[78];
+        rTangentTensor(2,5)=-(v[217]*v[24])+v[219]*v[83]+v[112]*v[86];
+        rTangentTensor(3,0)=2e0*(v[17]*v[220]+v[135]*v[221]);
+        rTangentTensor(3,1)=2e0*(v[135]*v[222]+v[17]*v[223]);
+        rTangentTensor(3,2)=2e0*((v[176]-v[2]/v[14])*v[208]+v[17]*(v[142]-v[218]));
+        rTangentTensor(3,3)=v[146]*v[208]+v[17]*v[224];
+        rTangentTensor(3,4)=v[17]*(4e0*v[148]+v[216]);
+        rTangentTensor(3,5)=v[152]*v[208]+v[17]*v[225];
+        rTangentTensor(4,0)=2e0*(v[21]*(v[134]-v[226])+v[208]*(v[174]-v[6]/v[14]));
+        rTangentTensor(4,1)=2e0*(v[154]*v[222]+v[21]*v[223]);
+        rTangentTensor(4,2)=2e0*(v[21]*v[227]+v[154]*v[228]);
+        rTangentTensor(4,3)=v[21]*(4e0*v[145]+v[214]);
+        rTangentTensor(4,4)=v[163]*v[208]+v[21]*v[229];
+        rTangentTensor(4,5)=v[165]*v[208]+v[21]*v[225];
+        rTangentTensor(5,0)=2e0*(v[18]*v[220]+v[167]*v[221]);
+        rTangentTensor(5,1)=2e0*(v[18]*(v[139]-v[212])+v[208]*(-(v[3]/v[14])+v[167]*v[48]));
+        rTangentTensor(5,2)=2e0*(v[18]*v[227]+v[167]*v[228]);
+        rTangentTensor(5,3)=v[174]*v[208]+v[18]*v[224];
+        rTangentTensor(5,4)=v[176]*v[208]+v[18]*v[229];
+        rTangentTensor(5,5)=v[178]*v[208]+v[18]*v[225];
+    }
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
 void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateConstitutiveMatrixPK2(
     Matrix& rConstitutiveMatrix,
     const Matrix& rInverseCTensor,
@@ -260,21 +415,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateCo
     const double LameMu
     )
 {
-    rConstitutiveMatrix.clear();
 
-    const double log_j = std::log(DeterminantF);
-
-    for(IndexType i = 0; i < 6; ++i) {
-        const IndexType i0 = this->msIndexVoigt3D6C[i][0];
-        const IndexType i1 = this->msIndexVoigt3D6C[i][1];
-
-        for(IndexType j = 0; j < 6; ++j) {
-            const IndexType j0 = this->msIndexVoigt3D6C[j][0];
-            const IndexType j1 = this->msIndexVoigt3D6C[j][1];
-
-            rConstitutiveMatrix(i,j) = (LameLambda*rInverseCTensor(i0,i1)*rInverseCTensor(j0,j1)) + ((LameMu-LameLambda * log_j) * (rInverseCTensor(i0,j0) * rInverseCTensor(i1,j1) + rInverseCTensor(i0,j1) * rInverseCTensor(i1,j0)));
-        }
-    }
 }
 
 /***********************************************************************************/
@@ -287,21 +428,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateCo
     const double LameMu
     )
 {
-    rConstitutiveMatrix.clear();
 
-    const double log_j = std::log(DeterminantF);
-
-    for(IndexType i = 0; i < 6; ++i) {
-        const IndexType i0 = this->msIndexVoigt3D6C[i][0];
-        const IndexType i1 = this->msIndexVoigt3D6C[i][1];
-
-        for(IndexType j = 0; j < 6; ++j) {
-            const IndexType j0 = this->msIndexVoigt3D6C[j][0];
-            const IndexType j1 = this->msIndexVoigt3D6C[j][1];
-
-            rConstitutiveMatrix(i,j) = (LameLambda*((i0 == i1) ? 1.0 : 0.0)*((j0 == j1) ? 1.0 : 0.0)) + ((LameMu-LameLambda * log_j) * (((i0 == j0) ? 1.0 : 0.0) * ((i1 == j1) ? 1.0 : 0.0) + ((i0 == j1) ? 1.0 : 0.0) * ((i1 == j0) ? 1.0 : 0.0)));
-        }
-    }
 }
 
 /***********************************************************************************/
