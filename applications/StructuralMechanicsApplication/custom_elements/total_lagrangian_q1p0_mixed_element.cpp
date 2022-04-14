@@ -24,35 +24,50 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 
-TotalLagrangianQ1P0MixedElement::TotalLagrangianQ1P0MixedElement(IndexType NewId, GeometryType::Pointer pGeometry)
-    : TotalLagrangian(NewId, pGeometry)
+TotalLagrangianQ1P0MixedElement::TotalLagrangianQ1P0MixedElement(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry
+    ) : TotalLagrangian(NewId, pGeometry)
 {
     // DO NOT ADD DOFS HERE!!!
+    this->SetValue(PRESSURE, 0.0);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-TotalLagrangianQ1P0MixedElement::TotalLagrangianQ1P0MixedElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-        : TotalLagrangian( NewId, pGeometry, pProperties )
+TotalLagrangianQ1P0MixedElement::TotalLagrangianQ1P0MixedElement(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties
+    ) : TotalLagrangian( NewId, pGeometry, pProperties )
 {
     //DO NOT ADD DOFS HERE!!!
+    this->SetValue(PRESSURE, 0.0);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer TotalLagrangianQ1P0MixedElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer TotalLagrangianQ1P0MixedElement::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties
+    ) const
 {
-    return Kratos::make_intrusive<TotalLagrangianQ1P0MixedElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_intrusive<TotalLagrangianQ1P0MixedElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-Element::Pointer TotalLagrangianQ1P0MixedElement::Create( IndexType NewId,  GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const
+Element::Pointer TotalLagrangianQ1P0MixedElement::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties
+    ) const
 {
-    return Kratos::make_intrusive<TotalLagrangianQ1P0MixedElement>( NewId, pGeom, pProperties );
+    return Kratos::make_intrusive<TotalLagrangianQ1P0MixedElement>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
@@ -65,7 +80,7 @@ TotalLagrangianQ1P0MixedElement::~TotalLagrangianQ1P0MixedElement()
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer TotalLagrangianQ1P0MixedElement::Clone (
+Element::Pointer TotalLagrangianQ1P0MixedElement::Clone(
     IndexType NewId,
     NodesArrayType const& rThisNodes
     ) const
@@ -147,11 +162,12 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     array_1d<double, 3> body_force;
     double int_to_reference_weight;
 
-    const double E = r_props[YOUNG_MODULUS];
+    const double E  = r_props[YOUNG_MODULUS];
     const double nu = r_props[POISSON_RATIO];
+
     const double mu = E / (2.0 * (1.0 + nu));
     const double C1 = 0.5 * mu;
-    const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
+    const double bulk_modulus = CalculateBulkModulus(r_props);
 
     double Kpp = 0.0;
     double Fp = 0.0;
@@ -170,9 +186,9 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         // Compute material reponse
         // this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
 
-        // let's try to calculate split NeoHookean
+        // Let's calculate the stress and tangent tensor of the isochoric part of the stress according to Neo-Hookean cl
         const Matrix& r_C = prod(trans(this_kinematic_variables.F), this_kinematic_variables.F);
-        CalculateNeoHookeanStressAndTangent(r_C, mPressure, C1, this_constitutive_variables.StressVector, this_constitutive_variables.D);
+        CalculateNeoHookeanStressAndTangent(r_C, this->GetValue(PRESSURE), C1, this_constitutive_variables.StressVector, this_constitutive_variables.D);
 
         Matrix inv_C(dimension, dimension);
         double det;
@@ -195,7 +211,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         // we compute u-p entities
         noalias(Kup) -= int_to_reference_weight * this_kinematic_variables.detF * prod(trans(this_kinematic_variables.B), inv_c_voigt);
         Kpp          -= int_to_reference_weight / bulk_modulus;
-        Fp           -= int_to_reference_weight * ((this_kinematic_variables.detF - 1.0) + (mPressure / bulk_modulus));
+        Fp           -= int_to_reference_weight * ((this_kinematic_variables.detF - 1.0) + (this->GetValue(PRESSURE) / bulk_modulus));
 
         if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
             // Contributions to stiffness matrix calculated on the reference config
@@ -219,7 +235,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     Vector displ, displ_old;
     GetValuesVector(displ, 0);
     GetValuesVector(displ_old, 1);
-    mPressure -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
+    this->GetValue(PRESSURE) -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
 
     KRATOS_CATCH( "" )
 }
@@ -390,6 +406,16 @@ void TotalLagrangianQ1P0MixedElement::CalculateNeoHookeanStressAndTangent(
 /***********************************************************************************/
 /***********************************************************************************/
 
+double TotalLagrangianQ1P0MixedElement::CalculateBulkModulus(const Properties& rProperties)
+{
+    const double E = rProperties[YOUNG_MODULUS];
+    const double nu = rProperties[POISSON_RATIO];
+    return E / (3.0 * (1.0 - 2.0 * nu));
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TotalLagrangianQ1P0MixedElement::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, TotalLagrangian );
@@ -424,7 +450,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateOnIntegrationPoints(
 
     if (rVariable == PRESSURE) {
         for (int i = 0; i < number_of_integration_points; i++) {
-            rOutput[i] = this->mPressure;
+            rOutput[i] = this->GetValue(PRESSURE);
         }
     }
 }

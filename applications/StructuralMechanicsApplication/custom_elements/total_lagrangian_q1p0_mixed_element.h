@@ -211,6 +211,11 @@ protected:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+    /**
+     * @brief It computes the bulk modulus
+     */
+    double CalculateBulkModulus(
+        const Properties &rProperties);
 
     ///@}
     ///@name Protected Operations
@@ -233,7 +238,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    double mPressure = 0.0;
 
     ///@}
     ///@name Private Operators
