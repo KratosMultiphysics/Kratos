@@ -1282,18 +1282,8 @@ namespace Kratos
         std::sort(array_of_properties.begin(), array_of_properties.end());
         unsigned int property_id = 0;
         bool interfaceElement = false;
-        unsigned int rigidNodes = 0;
-        unsigned int interfaceNodes = 0;
         for (unsigned int i = 0; i < array_of_properties.size(); i++)
         {
-          if (r_geometry[i].Is(RIGID) || array_of_properties[i] == 0 || array_of_properties[i] == interfaceProperty)
-          {
-            interfaceNodes++;
-          }
-          if (r_geometry[i].Is(RIGID))
-          {
-            rigidNodes++;
-          }
           if (array_of_properties[i] == interfaceProperty || array_of_properties[i] == 0)
           {
             interfaceElement = true;
@@ -1308,19 +1298,16 @@ namespace Kratos
         }
 
         // KRATOS_WATCH(array_of_properties_no_rigid);
-
         // std::sort(array_of_properties_no_rigid.begin(), array_of_properties_no_rigid.end());
         if (interfaceElement == false || property_id == interfaceProperty || property_id == 0)
         {
 
           std::vector<int> array_of_properties_no_rigid;
-          unsigned int nonRigidNodes = 0;
           for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++)
           {
             if (r_geometry[i].IsNot(RIGID))
             {
               array_of_properties_no_rigid.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
-              nonRigidNodes++;
             }
           }
           //KRATOS_WATCH(array_of_properties_no_rigid);
@@ -1342,72 +1329,7 @@ namespace Kratos
               property_id = array_of_properties_no_rigid[1];
             }
           }
-          //KRATOS_WATCH(property_id);
 
-          // for (unsigned int i = 0; i < array_of_properties.size(); i++)
-          // {
-          //   if (r_geometry[i].IsNot(RIGID))
-          //   {
-          //     property_id = array_of_properties[i];
-
-          //     if (r_geometry[i+1].IsNot(RIGID))
-          //     {
-          //       if (array_of_properties[i+1] == array_of_properties[i])
-          //       {
-          //         property_id = array_of_properties[j];
-          //         break;
-          //       }
-          //     }
-          //   }
-          // }
-          // if (nonRigidNodes >= 2)
-          // {
-          //   if ((array_of_properties_no_rigid[0] == array_of_properties_no_rigid[1] && r_geometry[0].IsNot(RIGID) && r_geometry[1].IsNot(RIGID) && array_of_properties_no_rigid[0] <interfaceProperty) ||
-          //       (array_of_properties_no_rigid[0] == array_of_properties_no_rigid[2] && r_geometry[0].IsNot(RIGID) && r_geometry[2].IsNot(RIGID) && array_of_properties_no_rigid[0] <interfaceProperty))
-          //   {
-          //     property_id = array_of_properties_no_rigid[0];
-          //   }
-          //   else if (array_of_properties_no_rigid[1] == array_of_properties_no_rigid[2] && r_geometry[1].IsNot(RIGID) && r_geometry[2].IsNot(RIGID) && array_of_properties_no_rigid[1] <interfaceProperty)
-          //   {
-          //     property_id = array_of_properties_no_rigid[1];
-          //   }
-          //   else if(array_of_properties_no_rigid[2] >0  && array_of_properties_no_rigid[2] <interfaceProperty)
-          //   {
-          //     property_id = array_of_properties_no_rigid[2];
-          //   }
-          // }
-          // else
-          // {
-          //   if (r_geometry[0].IsNot(RIGID)  && array_of_properties_no_rigid[0] <interfaceProperty)
-          //   {
-          //     property_id = array_of_properties_no_rigid[0];
-          //   }
-          //   else if (r_geometry[1].IsNot(RIGID)  && array_of_properties_no_rigid[1] <interfaceProperty)
-          //   {
-          //     property_id = array_of_properties_no_rigid[1];
-          //   }
-          // }
-
-          // for (unsigned int i = 0; i < array_of_properties_no_rigid.size(); i++)
-          // {
-          //   if (array_of_properties_no_rigid[i + 1] == array_of_properties_no_rigid[i])
-          //   {
-          //     curr_count++;
-          //   }
-          //   else
-          //   {
-          //     if (curr_count > max_count)
-          //     {
-          //       max_count = curr_count;
-          //       property_id = array_of_properties_no_rigid[i];
-          //     }
-          //     curr_count = 1;
-          //   }
-          // }
-          // if (curr_count > max_count)
-          // {
-          //   property_id = array_of_properties_no_rigid.back();
-          // }
           if (property_id == interfaceProperty || property_id == 0)
           {
             std::cout << "                      DANGEROUS PROPERTY IS " << property_id << std::endl;
@@ -1417,13 +1339,7 @@ namespace Kratos
         Properties::Pointer p_new_property = rModelPart.pGetProperties(property_id);
         new_element->SetProperties(p_new_property);
 
-        // for (unsigned int i = 0; i < r_geometry.size(); i++)
-        // {
-        //   if (r_geometry[i].Is(RIGID))
-        //   {
-        //     r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0) = property_id;
-        //   }
-        // }
+
       }
 
       // Clone the constitutive law
