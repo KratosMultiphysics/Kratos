@@ -244,8 +244,8 @@ int HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::Check(
     const double nu = rMaterialProperties[POISSON_RATIO];
     KRATOS_ERROR_IF((nu_upper_bound - nu) < tolerance) << "POISSON_RATIO is above the upper bound 0.5." << std::endl;
     KRATOS_ERROR_IF((nu - nu_lower_bound) < tolerance) << "POISSON_RATIO is below the lower bound -1.0." << std::endl;
-
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is negative." << std::endl;
+    KRATOS_ERROR_IF_NOT(rElementGeometry.Has(PRESSURE)) << "Elemental PRESSURE is not set by the element..." << std::endl;
 
     return 0;
 }
