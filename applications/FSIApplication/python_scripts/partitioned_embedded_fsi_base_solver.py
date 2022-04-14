@@ -210,18 +210,20 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             else:
                 raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         elif (self.level_set_type == "discontinuous"):
+            discontinuous_distance_settings = KratosMultiphysics.Parameters("""{
+                "calculate_elemental_edge_distances" : true,
+                "calculate_elemental_edge_distances_extrapolated" : true
+            }""")
             if self._GetDomainSize() == 2:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
                     self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES,
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
+                    discontinuous_distance_settings)
             elif self._GetDomainSize() == 3:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D(
                     self.GetFluidComputingModelPart(),
                     self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D.CALCULATE_ELEMENTAL_EDGE_DISTANCES,
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
+                    discontinuous_distance_settings)
             else:
                 raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         else:
@@ -369,7 +371,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 "mapper_type": "nearest_element",
                 "echo_level" : 0
             }""")
-            mapper = KratosMapping.MapperFactory.CreateMapper(
+            mapper = KratosMultiphysics.MapperFactory.CreateMapper(
                 self.__GetEmbedddedSkinUtilityModelPart(),
                 self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                 mapper_params)
