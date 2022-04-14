@@ -1323,9 +1323,9 @@ namespace Kratos
               nonRigidNodes++;
             }
           }
-          KRATOS_WATCH(array_of_properties_no_rigid);
+          //KRATOS_WATCH(array_of_properties_no_rigid);
           unsigned int vectorSize = array_of_properties_no_rigid.size();
-          KRATOS_WATCH(vectorSize);
+          //KRATOS_WATCH(vectorSize);
 
           if (vectorSize == 1 || vectorSize == 2)
           {
@@ -1342,7 +1342,7 @@ namespace Kratos
               property_id = array_of_properties_no_rigid[1];
             }
           }
-          KRATOS_WATCH(property_id);
+          //KRATOS_WATCH(property_id);
 
           // for (unsigned int i = 0; i < array_of_properties.size(); i++)
           // {
@@ -1411,7 +1411,6 @@ namespace Kratos
           if (property_id == interfaceProperty || property_id == 0)
           {
             std::cout << "                      DANGEROUS PROPERTY IS " << property_id << std::endl;
-            property_id = 1;
           }
         }
 
