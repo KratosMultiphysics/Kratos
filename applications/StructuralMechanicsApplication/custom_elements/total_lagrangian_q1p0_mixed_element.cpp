@@ -184,11 +184,11 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
         // Compute material reponse
-        // this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
+        this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
 
         // Let's calculate the stress and tangent tensor of the isochoric part of the stress according to Neo-Hookean cl
         const Matrix& r_C = prod(trans(this_kinematic_variables.F), this_kinematic_variables.F);
-        CalculateNeoHookeanStressAndTangent(r_C, this->GetValue(PRESSURE), C1, this_constitutive_variables.StressVector, this_constitutive_variables.D);
+        // CalculateNeoHookeanStressAndTangent(r_C, this->GetValue(PRESSURE), C1, this_constitutive_variables.StressVector, this_constitutive_variables.D);
 
         Matrix inv_C(dimension, dimension);
         double det;

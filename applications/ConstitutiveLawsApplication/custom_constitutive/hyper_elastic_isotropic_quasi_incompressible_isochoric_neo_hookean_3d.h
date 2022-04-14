@@ -293,67 +293,16 @@ private:
     ///@{
 
     /**
-     * @brief It calculates the constitutive matrix C (PK2)
-     * @param rConstitutiveMatrix The constitutive matrix
-     * @param rInverseCTensor The inverse right Cauchy-Green tensor
-     * @param DeterminantF The determinant of the deformation gradient
-     * @param LameLambda First Lame parameter
-     * @param LameMu Second Lame parameter
+     * @brief This function calculates the pk2 stress vector and tangent tensor
+     * @details The implementation has been performed using AceGen automatic
+     * differentitation
+     * @param rC The right cauchy tensor FtF
+     * @param Pressure The elemental pressure set by the mixed element
+     * @param C1 lame mu*0.5
+     * @param rStress The stress vector
+     * @param rTangentTensor The tangent constitutive tensor
+     * @param rFlags The flags to compute the stress/Constitutive tensor
      */
-    virtual void CalculateConstitutiveMatrixPK2(
-        Matrix& rConstitutiveMatrix,
-        const Matrix& rInverseCTensor,
-        const double DeterminantF,
-        const double LameLambda,
-        const double LameMu
-        );
-
-    /**
-     * @brief It calculates the constitutive matrix C (Kirchoff)
-     * @param rConstitutiveMatrix The constitutive matrix
-     * @param DeterminantF The determinant of the deformation gradient
-     * @param LameLambda First Lame parameter
-     * @param LameMu Second Lame parameter
-     */
-    virtual void CalculateConstitutiveMatrixKirchhoff(
-        Matrix& rConstitutiveMatrix,
-        const double DeterminantF,
-        const double LameLambda,
-        const double LameMu
-        );
-
-    /**
-     * @brief It calculates the PK2 stress vector
-     * @param rInvCTensor The inverse of the right Cauchy-Green tensor
-     * @param rStressVector The stress vector in Voigt notation
-     * @param DeterminantF The determinant of the deformation gradient
-     * @param LameLambda First Lame parameter
-     * @param LameMu Second Lame parameter
-     */
-    virtual void CalculatePK2Stress(
-        const Matrix& rInvCTensor,
-        Vector& rStressVector,
-        const double DeterminantF,
-        const double LameLambda,
-        const double LameMu
-        );
-
-    /**
-     * @brief It calculates the Kirchoff stress vector
-     * @param rBTensor The left Cauchy-Green tensor
-     * @param rStressVector The stress vector in Voigt notation
-     * @param DeterminantF The determinant of the deformation gradient
-     * @param LameLambda First Lame parameter
-     * @param LameMu Second Lame parameter
-     */
-    virtual void CalculateKirchhoffStress(
-        const Matrix& rBTensor,
-        Vector& rStressVector,
-        const double DeterminantF,
-        const double LameLambda,
-        const double LameMu
-        );
-    
     void CalculateStressAndConstitutiveMatrixPK2(
         const Matrix& rC,
         const double Pressure,

@@ -78,12 +78,12 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
     KRATOS_TRY;
 
     // Get Values to compute the constitutive law:
-    Flags& r_flags=rValues.GetOptions();
+    Flags &r_flags = rValues.GetOptions();
 
     const SizeType dimension = WorkingSpaceDimension();
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
-    Vector& r_strain_vector                  = rValues.GetStrainVector();
+    Vector& r_strain_vector                = rValues.GetStrainVector();
 
     // The material properties
     const double young_modulus = material_properties[YOUNG_MODULUS];
@@ -119,8 +119,19 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
 
 void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
+    CalculateMaterialResponsePK2(rValues);
 
-
+    const auto &r_flags = rValues.GetOptions();
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        Vector &r_integrated_stress_vector = rValues.GetStressVector();
+        Matrix stress_matrix(3, 3);
+        noalias(stress_matrix) = MathUtils<double>::StressVectorToTensor(r_integrated_stress_vector);
+        ContraVariantPushForward(stress_matrix, rValues.GetDeformationGradientF()); // Kirchhoff
+        noalias(r_integrated_stress_vector) = MathUtils<double>::StressTensorToVector(stress_matrix, r_integrated_stress_vector.size());
+    }
+    if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
+    }
 }
 
 /***********************************************************************************/
@@ -403,68 +414,6 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateSt
         rTangentTensor(5,4)=v[176]*v[208]+v[18]*v[229];
         rTangentTensor(5,5)=v[178]*v[208]+v[18]*v[225];
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateConstitutiveMatrixPK2(
-    Matrix& rConstitutiveMatrix,
-    const Matrix& rInverseCTensor,
-    const double DeterminantF,
-    const double LameLambda,
-    const double LameMu
-    )
-{
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateConstitutiveMatrixKirchhoff(
-    Matrix& rConstitutiveMatrix,
-    const double DeterminantF,
-    const double LameLambda,
-    const double LameMu
-    )
-{
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculatePK2Stress(
-    const Matrix& rInvCTensor,
-    Vector& rStressVector,
-    const double DeterminantF,
-    const double LameLambda,
-    const double LameMu
-    )
-{
-    const SizeType dimension = WorkingSpaceDimension();
-    Matrix stress_matrix(dimension, dimension);
-    const Matrix Id = IdentityMatrix(dimension);
-    noalias(stress_matrix) = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( Id - rInvCTensor );
-    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateKirchhoffStress(
-    const Matrix& rBTensor,
-    Vector& rStressVector,
-    const double DeterminantF,
-    const double LameLambda,
-    const double LameMu
-    )
-{
-    const SizeType dimension = WorkingSpaceDimension();
-    Matrix stress_matrix(dimension, dimension);
-    const Matrix Id = IdentityMatrix(dimension);
-    noalias(stress_matrix) = LameLambda * std::log(DeterminantF) * Id + LameMu * (rBTensor - Id);
-    noalias(rStressVector) = MathUtils<double>::StressTensorToVector(stress_matrix, GetStrainSize());
 }
 
 } // Namespace Kratos
