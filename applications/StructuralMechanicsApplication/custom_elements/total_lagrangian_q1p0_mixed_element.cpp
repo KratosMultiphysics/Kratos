@@ -193,7 +193,8 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         Matrix inv_C(dimension, dimension);
         double det;
         MathUtils<double>::InvertMatrix3(r_C, inv_C, det);
-        Vector inv_c_voigt = MathUtils<double>::StrainTensorToVector(inv_C, GetStrainSize());
+        Vector inv_c_voigt(strain_size);
+        noalias(inv_c_voigt) = MathUtils<double>::StrainTensorToVector(inv_C, strain_size);
         if (dimension == 2) {
             inv_c_voigt[2] /= 2.0;
         } else {
@@ -449,8 +450,9 @@ void TotalLagrangianQ1P0MixedElement::CalculateOnIntegrationPoints(
         rOutput.resize(number_of_integration_points, false);
 
     if (rVariable == PRESSURE) {
+        const double pressure  = this->GetValue(PRESSURE);
         for (int i = 0; i < number_of_integration_points; i++) {
-            rOutput[i] = this->GetValue(PRESSURE);
+            rOutput[i] = pressure;
         }
     }
 }
