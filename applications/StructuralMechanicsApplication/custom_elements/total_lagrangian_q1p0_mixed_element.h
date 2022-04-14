@@ -194,12 +194,6 @@ protected:
         ) override;
 
     /**
-     * @brief It computes the stress vector and tangent constitutive tensor by
-     * automatic differentiation
-     */
-    void CalculateNeoHookeanStressAndTangent(const Matrix &rC, const double Pressure, const double LameMu, Vector &rStress, Matrix &rTangentTensor);
-
-    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained in the integration points
