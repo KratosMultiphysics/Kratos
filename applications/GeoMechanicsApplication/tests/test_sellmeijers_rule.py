@@ -4,7 +4,6 @@ import csv
 import json
 import math
 
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 sys.path.append(os.path.join('..', 'python_scripts'))
@@ -56,7 +55,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         # Code here will be placed BEFORE every test in this TestCase.
         self.latex_writer = LatexWriterFile()
         self.test_lists = self.csv_file_reader()
-        mesh_dirs = ["Mesh_1rst_step", "Mesh_2nd_step", "Mesh_3rd_step"]
+        mesh_dirs = ["Mesh_1rst_step"] #, "Mesh_2nd_step", "Mesh_3rd_step"]
         self.gid_files = []
         for mesh_dir in mesh_dirs:
             self.gid_files.append({10: {30: f"test_compare_sellmeijer/{mesh_dir}/HeightAquiferD10L30.gid",
