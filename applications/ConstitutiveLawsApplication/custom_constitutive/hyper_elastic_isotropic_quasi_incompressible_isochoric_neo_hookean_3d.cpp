@@ -29,7 +29,7 @@ namespace Kratos
 /***********************************************************************************/
 
 HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D()
-    : ConstitutiveLaw()
+    : HyperElasticIsotropicNeoHookean3D()
 {
 }
 
@@ -37,7 +37,7 @@ HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::HyperElasticIsot
 /***********************************************************************************/
 
 HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D(const HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D& rOther)
-    : ConstitutiveLaw(rOther)
+    : HyperElasticIsotropicNeoHookean3D(rOther)
 {
 }
 
@@ -59,21 +59,21 @@ HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::~HyperElasticIso
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK1 (ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponsePK2(rValues);
 
-    Vector& stress_vector                = rValues.GetStressVector();
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f           = rValues.GetDeterminantF();
+    Vector& r_stress_vector                = rValues.GetStressVector();
+    const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
+    const double determinant_f             = rValues.GetDeterminantF();
 
-    TransformStresses(stress_vector, deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
+    TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f, StressMeasure_PK2, StressMeasure_PK1);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void  HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
 
@@ -83,14 +83,14 @@ void  HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateM
     const SizeType dimension = WorkingSpaceDimension();
 
     const Properties& material_properties  = rValues.GetMaterialProperties();
-    Vector& strain_vector                  = rValues.GetStrainVector();
+    Vector& r_strain_vector                  = rValues.GetStrainVector();
 
     // The material properties
     const double young_modulus = material_properties[YOUNG_MODULUS];
     const double poisson_coefficient = material_properties[POISSON_RATIO];
 
     // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
+    const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
     double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
@@ -101,11 +101,11 @@ void  HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateM
     Matrix C_tensor(dimension, dimension), inverse_C_tensor(dimension, dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        this->CalculateGreenLagrangianStrain(rValues, strain_vector);
-        noalias(C_tensor) = prod(trans(deformation_gradient_f), deformation_gradient_f);
+        this->CalculateGreenLagrangianStrain(rValues, r_strain_vector);
+        noalias(C_tensor) = prod(trans(r_deformation_gradient_f), r_deformation_gradient_f);
     } else {
         Matrix strain_tensor(dimension, dimension);
-        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(r_strain_vector);
         noalias(C_tensor) = 2.0 * strain_tensor + IdentityMatrix(dimension);
         determinant_f = std::sqrt(MathUtils<double>::Det(C_tensor));
     }
@@ -114,13 +114,11 @@ void  HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateM
     MathUtils<double>::InvertMatrix(C_tensor, inverse_C_tensor, aux_det);
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrixPK2( constitutive_matrix, inverse_C_tensor, determinant_f, lame_lambda, lame_mu );
+
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        Vector& stress_vector = rValues.GetStressVector();
-        CalculatePK2Stress( inverse_C_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
+
     }
 
     KRATOS_CATCH("");
@@ -131,68 +129,24 @@ void  HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateM
 
 void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff (ConstitutiveLaw::Parameters& rValues)
 {
-    // Get Values to compute the constitutive law:
-    Flags& r_flags=rValues.GetOptions();
 
-    const SizeType dimension = WorkingSpaceDimension();
 
-    const Properties& material_properties  = rValues.GetMaterialProperties();
-    Vector& strain_vector                  = rValues.GetStrainVector();
-
-    // The material properties
-    const double young_modulus = material_properties[YOUNG_MODULUS];
-    const double poisson_coefficient = material_properties[POISSON_RATIO];
-
-    // The deformation gradient
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    double determinant_f = rValues.GetDeterminantF();
-    KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
-
-    // The LAME parameters
-    const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
-    const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
-
-    Matrix B_tensor(dimension, dimension);
-
-    if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
-        CalculateAlmansiStrain(rValues, strain_vector);
-        noalias(B_tensor) = prod(deformation_gradient_f, trans( deformation_gradient_f));
-    } else {
-        Matrix strain_tensor(dimension, dimension);
-        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
-        Matrix inverse_B_tensor(dimension, dimension);
-        noalias(inverse_B_tensor) = IdentityMatrix(dimension) - 2.0 * strain_tensor;
-        double aux_det;
-        MathUtils<double>::InvertMatrix(inverse_B_tensor, B_tensor, aux_det);
-        determinant_f = std::sqrt(MathUtils<double>::Det(B_tensor));
-    }
-
-    if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrixKirchhoff( constitutive_matrix, determinant_f, lame_lambda, lame_mu );
-    }
-
-    if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        // We compute the left Cauchy-Green tensor (B):
-        Vector& stress_vector = rValues.GetStressVector();
-        CalculateKirchhoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
-    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     CalculateMaterialResponseKirchhoff(rValues);
 
-    Vector& stress_vector       = rValues.GetStressVector();
-    Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-    const double determinant_f  = rValues.GetDeterminantF();
+    Vector& r_stress_vector       = rValues.GetStressVector();
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    const double determinant_f    = rValues.GetDeterminantF();
 
     // Set to Cauchy Stress:
-    stress_vector       /= determinant_f;
-    constitutive_matrix /= determinant_f;
+    r_stress_vector       /= determinant_f;
+    r_constitutive_matrix /= determinant_f;
 }
 
 /***********************************************************************************/
@@ -249,183 +203,6 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMat
 
 void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-double& HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
-{
-    const Properties& material_properties  = rParameterValues.GetMaterialProperties();
-
-    // The material properties
-    const double young_modulus = material_properties[YOUNG_MODULUS];
-    const double poisson_coefficient = material_properties[POISSON_RATIO];
-
-    // The deformation gradient
-    const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
-    const double determinant_f = rParameterValues.GetDeterminantF();
-
-    // The LAME parameters
-    const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
-    const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
-
-    // We compute the right Cauchy-Green tensor (C):
-    const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
-
-    if (rThisVariable == STRAIN_ENERGY) {
-        const double log_j = std::log(determinant_f);
-
-        double first_invariant = 0.0;
-
-        for (IndexType i = 0; i < C_tensor.size1();++i) {
-            first_invariant += C_tensor(i,i);
-        }
-
-        rValue = 0.5 * lame_lambda * log_j * log_j - lame_mu * log_j + 0.5 * lame_mu * (first_invariant - 3.0);
-    }
-
-    return( rValue );
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Vector& HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    )
-{
-    if (rThisVariable == STRAIN ||
-        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == HENCKY_STRAIN_VECTOR ||
-        rThisVariable == BIOT_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
-
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
-
-        // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
-
-        // We compute the strain
-        if (rThisVariable == STRAIN) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
-        } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
-        } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff(rParameterValues);
-        } else if (rThisVariable == HENCKY_STRAIN_VECTOR) {
-            const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
-            const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
-            Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_tensor, r_strain_vector);
-        } else if (rThisVariable == BIOT_STRAIN_VECTOR) {
-            const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
-            const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
-            Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
-        }
-
-        rValue = rParameterValues.GetStrainVector();
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    } else if (rThisVariable == STRESSES ||
-        rThisVariable == CAUCHY_STRESS_VECTOR ||
-        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
-        rThisVariable == PK2_STRESS_VECTOR) {
-
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
-
-        // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
-
-        // We compute the stress
-        if (rThisVariable == STRESSES) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
-        } if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff(rParameterValues);
-        } if (rThisVariable == CAUCHY_STRESS_VECTOR) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseCauchy(rParameterValues);
-        } if (rThisVariable == PK2_STRESS_VECTOR) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
-        }
-
-        rValue = rParameterValues.GetStressVector();
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    }
-
-    return( rValue );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Matrix& HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    if (rThisVariable == CONSTITUTIVE_MATRIX ||
-        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-        rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-        // Get Values to compute the constitutive law:
-        Flags& r_flags = rParameterValues.GetOptions();
-
-        // Previous flags saved
-        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
-
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
-
-        // We compute the constitutive matrix
-        if (rThisVariable == CONSTITUTIVE_MATRIX) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
-        } else if (rThisVariable == CONSTITUTIVE_MATRIX_PK2) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
-        } else if (rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
-            HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(rParameterValues);
-        }
-
-        rValue = rParameterValues.GetConstitutiveMatrix();
-
-        // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    }
-
-    return( rValue );
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
@@ -561,44 +338,6 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateKi
     const Matrix Id = IdentityMatrix(dimension);
     noalias(stress_matrix) = LameLambda * std::log(DeterminantF) * Id + LameMu * (rBTensor - Id);
     noalias(rStressVector) = MathUtils<double>::StressTensorToVector(stress_matrix, GetStrainSize());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateGreenLagrangianStrain(
-    ConstitutiveLaw::Parameters& rValues,
-    Vector& rStrainVector
-    )
-{
-    const SizeType dimension = WorkingSpaceDimension();
-
-    // 1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-
-    // 2.-Compute e = 0.5*(inv(C) - I)
-    Matrix C_tensor(dimension, dimension);
-    noalias(C_tensor) = prod(trans(F),F);
-    ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateAlmansiStrain(
-    ConstitutiveLaw::Parameters& rValues,
-    Vector& rStrainVector
-    )
-{
-    const SizeType dimension = WorkingSpaceDimension();
-
-    // 1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-
-    // 2.-COmpute e = 0.5*(1-inv(B))
-    Matrix B_tensor(dimension, dimension);
-    noalias(B_tensor) = prod(F,trans(F));
-    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 
 } // Namespace Kratos

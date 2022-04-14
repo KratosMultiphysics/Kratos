@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 
 namespace Kratos
 {
@@ -50,7 +50,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D
-    : public ConstitutiveLaw
+    : public HyperElasticIsotropicNeoHookean3D
 {
 public:
 
@@ -61,7 +61,7 @@ public:
     typedef ProcessInfo ProcessInfoType;
 
     /// The definition of the CL base  class
-    typedef ConstitutiveLaw    BaseType;
+    typedef HyperElasticIsotropicNeoHookean3D BaseType;
 
     /// The definition of the size type
     typedef std::size_t        SizeType;
@@ -246,45 +246,6 @@ public:
     }
 
     /**
-     * @brief It calculates the value of a specified variable (double)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    double& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<double>& rThisVariable,
-        double& rValue
-        ) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (Vector)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
-     * @brief It calculates the value of a specified variable (Matrix)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
-     */
-    Matrix& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    /**
      * @brief This function provides the place to perform checks on the completeness of the input.
      * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
@@ -391,26 +352,6 @@ private:
         const double DeterminantF,
         const double LameLambda,
         const double LameMu
-        );
-
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The Internalvalues of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateGreenLagrangianStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        );
-
-    /**
-     * @brief Calculates the Almansi strains
-     * @param rValues The Internalvalues of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    virtual void CalculateAlmansiStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
         );
 
     ///@}
