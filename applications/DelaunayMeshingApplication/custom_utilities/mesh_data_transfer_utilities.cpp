@@ -1263,83 +1263,76 @@ namespace Kratos
       unsigned int numberOfProperties = rModelPart.NumberOfProperties();
       if (numberOfProperties > 1)
       {
-        unsigned int interfaceProperty = 100;
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
         GeometryType &r_geometry = new_element->GetGeometry();
-        std::vector<int> array_of_properties;
-        unsigned int max_count = 1, curr_count = 1;
+        unsigned int property_id = 0;
+        
+        // unsigned int interfaceProperty = 100;
+        //bool interfaceElement = false;
+        // std::vector<int> array_of_properties;
+        // for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++)
+        // {
+        //   array_of_properties.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
+        // }
+        // std::sort(array_of_properties.begin(), array_of_properties.end());
+        // for (unsigned int i = 0; i < array_of_properties.size(); i++)
+        // {
+        //   if (array_of_properties[i] == interfaceProperty || array_of_properties[i] == 0)
+        //   {
+        //     interfaceElement = true;
+        //   }
+        //   else
+        //   {
+        //     property_id = array_of_properties[i];
+        //   }
+        // }
 
+        // if (interfaceElement == false || property_id == interfaceProperty || property_id == 0)
+        //{
+
+        std::vector<int> array_of_properties_no_rigid;
         for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++)
         {
-          //   if (r_geometry[i].IsNot(RIGID))
-          //   {
-          array_of_properties.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
-          // }
-        }
-        // KRATOS_WATCH(array_of_properties);
-
-        std::sort(array_of_properties.begin(), array_of_properties.end());
-        unsigned int property_id = 0;
-        bool interfaceElement = false;
-        for (unsigned int i = 0; i < array_of_properties.size(); i++)
-        {
-          if (array_of_properties[i] == interfaceProperty || array_of_properties[i] == 0)
+          if (r_geometry[i].IsNot(RIGID))
           {
-            interfaceElement = true;
-            // KRATOS_WATCH("interface node, I ll skip it");
-          }
-          else
-          {
-            property_id = array_of_properties[i];
-            // KRATOS_WATCH(property_id);
-            // break;
+            array_of_properties_no_rigid.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
           }
         }
-
         // KRATOS_WATCH(array_of_properties_no_rigid);
-        // std::sort(array_of_properties_no_rigid.begin(), array_of_properties_no_rigid.end());
-        if (interfaceElement == false || property_id == interfaceProperty || property_id == 0)
+        unsigned int vectorSize = array_of_properties_no_rigid.size();
+        // KRATOS_WATCH(vectorSize);
+
+        if (vectorSize == 1 || vectorSize == 2)
         {
-
-          std::vector<int> array_of_properties_no_rigid;
-          for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++)
-          {
-            if (r_geometry[i].IsNot(RIGID))
-            {
-              array_of_properties_no_rigid.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
-            }
-          }
-          //KRATOS_WATCH(array_of_properties_no_rigid);
-          unsigned int vectorSize = array_of_properties_no_rigid.size();
-          //KRATOS_WATCH(vectorSize);
-
-          if (vectorSize == 1 || vectorSize == 2)
+          property_id = array_of_properties_no_rigid[0];
+        }
+        else
+        {
+          if (array_of_properties_no_rigid[0] == array_of_properties_no_rigid[1] || array_of_properties_no_rigid[0] == array_of_properties_no_rigid[2])
           {
             property_id = array_of_properties_no_rigid[0];
           }
           else
           {
-            if (array_of_properties_no_rigid[0] == array_of_properties_no_rigid[1] || array_of_properties_no_rigid[0] == array_of_properties_no_rigid[2])
-            {
-              property_id = array_of_properties_no_rigid[0];
-            }
-            else
-            {
-              property_id = array_of_properties_no_rigid[1];
-            }
-          }
-
-          if (property_id == interfaceProperty || property_id == 0)
-          {
-            std::cout << "                      DANGEROUS PROPERTY IS " << property_id << std::endl;
+            property_id = array_of_properties_no_rigid[1];
           }
         }
 
+        // if (property_id == interfaceProperty || property_id == 0)
+        // {
+        //   for (unsigned int i = 0; i < array_of_properties.size(); i++)
+        //   {
+        //     if (array_of_properties[i] != interfaceProperty && array_of_properties[i] != 0)
+        //     {
+        //       property_id = array_of_properties[i];;
+        //     }
+        //   }
+        // }
+        //}
+
         Properties::Pointer p_new_property = rModelPart.pGetProperties(property_id);
         new_element->SetProperties(p_new_property);
-
-
       }
 
       // Clone the constitutive law

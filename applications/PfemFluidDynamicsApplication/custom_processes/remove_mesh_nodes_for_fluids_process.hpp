@@ -472,6 +472,7 @@ namespace Kratos
 					work_point[2] = in->Z();
 					unsigned int freeSurfaceNeighNodes = 0;
 					// unsigned int rigidNeighNodes=0;
+					bool interfaceElement = false;
 
 					if (in->Is(FREE_SURFACE))
 					{
@@ -501,8 +502,10 @@ namespace Kratos
 					else
 					{
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
+						unsigned int propertyIdFirstNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 						for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 						{
+							unsigned int propertyIdSecondNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 							if ((nn)->Is(FREE_SURFACE))
 							{
 								freeSurfaceNeighNodes++;
@@ -511,13 +514,17 @@ namespace Kratos
 							{
 								neighErasedNodes++;
 							}
+							if (propertyIdFirstNode != propertyIdSecondNode && (nn)->IsNot(RIGID))
+							{
+								interfaceElement = true;
+							}
 							// if((nn)->Is(RIGID)){
 							//   rigidNeighNodes++;
 							// }
 						}
 					}
 
-					if (freeSurfaceNeighNodes > 1)
+					if (freeSurfaceNeighNodes > 1 || interfaceElement == true)
 					{
 						radius = 0.5 * initialMeanRadius;
 					}

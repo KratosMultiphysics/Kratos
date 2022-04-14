@@ -101,23 +101,23 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      double density = 0;
-      double bulk_modulus = 0;
-      double viscosity = 0;
-      double flow_index = 1;
-      double yield_shear = 0;
-      double adaptive_exponent = 0;
-      double static_friction = 0;
-      double dynamic_friction = 0;
-      double inertial_number_zero = 0;
-      double grain_diameter = 0;
-      double grain_density = 0;
-      double regularization_coefficient = 0;
-      double infinite_friction = 0;
-      double inertial_number_one = 0;
-      double alpha_parameter = 0;
-      double friction_angle = 0;
-      double cohesion = 0;
+      // double density = 0;
+      // double bulk_modulus = 0;
+      // double viscosity = 0;
+      // double flow_index = 1;
+      // double yield_shear = 0;
+      // double adaptive_exponent = 0;
+      // double static_friction = 0;
+      // double dynamic_friction = 0;
+      // double inertial_number_zero = 0;
+      // double grain_diameter = 0;
+      // double grain_density = 0;
+      // double regularization_coefficient = 0;
+      // double infinite_friction = 0;
+      // double inertial_number_one = 0;
+      // double alpha_parameter = 0;
+      // double friction_angle = 0;
+      // double cohesion = 0;
 
 // #pragma omp parallel
 //       {

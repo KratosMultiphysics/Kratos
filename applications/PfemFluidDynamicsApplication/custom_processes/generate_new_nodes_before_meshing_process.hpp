@@ -822,16 +822,6 @@ namespace Kratos
 
 			bool dangerousElement = false;
 
-			// unsigned int propertyIdFirstNode = Element[0].FastGetSolutionStepValue(PROPERTY_ID);
-			// unsigned int propertyIdSecondNode = Element[1].FastGetSolutionStepValue(PROPERTY_ID);
-			// unsigned int propertyIdThirdNode = Element[2].FastGetSolutionStepValue(PROPERTY_ID);
-			// if ((propertyIdFirstNode != propertyIdSecondNode && Element[0].IsNot(RIGID) && Element[1].IsNot(RIGID)) ||
-			// 	(propertyIdFirstNode != propertyIdThirdNode && Element[0].IsNot(RIGID) && Element[2].IsNot(RIGID)) ||
-			// 	(propertyIdSecondNode != propertyIdThirdNode && Element[1].IsNot(RIGID) && Element[2].IsNot(RIGID)))
-			// {
-			// 	dangerousElement = true;
-			// }
-
 			for (unsigned int i = 0; i < 3; i++)
 			{
 				if (rigidNodes > 1)
@@ -853,7 +843,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						Edges[i] = 0;
+						penalization = 0.8;
 					}
 				}
 			}
@@ -1065,9 +1055,10 @@ namespace Kratos
 			}
 			// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 			bool dangerousElement = false;
-			if (rigidNodes > 1)
+
+			for (unsigned int i = 0; i < 6; i++)
 			{
-				for (unsigned int i = 0; i < 6; i++)
+				if (rigidNodes > 1)
 				{
 					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
 						(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
@@ -1083,8 +1074,17 @@ namespace Kratos
 						Edges[i] = 0;
 					}
 				}
+				else if (rigidNodes == 0)
+				{
+					unsigned int propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					if (propertyIdFirstNode != propertyIdSecondNode)
+					{
+						penalization = 0.8;
+					}
+				}
 			}
-			else if (rigidNodes == 1)
+			if (rigidNodes == 1)
 			{
 				if (Element[0].Is(RIGID))
 				{
@@ -1437,23 +1437,29 @@ namespace Kratos
 			}
 
 			bool dangerousElement = false;
-			if (rigidNodes > 1)
+
+			for (unsigned int i = 0; i < 3; i++)
 			{
-				for (unsigned int i = 0; i < 3; i++)
+				if (rigidNodes > 1)
 				{
 					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient2D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
 						(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
 					{
 						Edges[i] = 0;
 					}
-					// if(Element[FirstEdgeNode[i]].Is(FREE_SURFACE) && Element[SecondEdgeNode[i]].Is(FREE_SURFACE)){
-					//   Edges[i]=0;
-					//   // Edges[i]*=penalizationFreeSurface;
-					// }
 					if ((Element[FirstEdgeNode[i]].Is(FREE_SURFACE) || Element[FirstEdgeNode[i]].Is(RIGID)) &&
 						(Element[SecondEdgeNode[i]].Is(FREE_SURFACE) || Element[SecondEdgeNode[i]].Is(RIGID)))
 					{
 						Edges[i] = 0;
+					}
+				}
+				else if (rigidNodes == 0)
+				{
+					unsigned int propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					if (propertyIdFirstNode != propertyIdSecondNode)
+					{
+						penalization = 0.8;
 					}
 				}
 			}
@@ -1763,9 +1769,9 @@ namespace Kratos
 			}
 			// Edges connectivity: Edges[0]=d01, Edges[1]=d20, Edges[2]=d21, Edges[3]=d30, Edges[4]=d31, Edges[5]=d32
 			bool dangerousElement = false;
-			if (rigidNodes > 1)
+			for (unsigned int i = 0; i < 6; i++)
 			{
-				for (unsigned int i = 0; i < 6; i++)
+				if (rigidNodes > 1)
 				{
 					if ((Edges[i] < WallCharacteristicDistance * safetyCoefficient3D && (Element[FirstEdgeNode[i]].Is(RIGID) || Element[SecondEdgeNode[i]].Is(RIGID))) ||
 						(Element[FirstEdgeNode[i]].Is(RIGID) && Element[SecondEdgeNode[i]].Is(RIGID)))
@@ -1781,8 +1787,17 @@ namespace Kratos
 						Edges[i] = 0;
 					}
 				}
+				else if (rigidNodes == 0)
+				{
+					unsigned int propertyIdFirstNode = Element[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+					if (propertyIdFirstNode != propertyIdSecondNode)
+					{
+						penalization = 0.8;
+					}
+				}
 			}
-			else if (rigidNodes == 1)
+			if (rigidNodes == 1)
 			{
 				if (Element[0].Is(RIGID))
 				{
@@ -2031,14 +2046,13 @@ namespace Kratos
 				else
 				{
 
-					unsigned int propertyIdFirstNode = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
-					unsigned int propertyIdSecondNode = SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID);
-					if (propertyIdFirstNode != propertyIdSecondNode && SlaveNode1->IsNot(RIGID) && SlaveNode2->IsNot(RIGID))
-					{
-						std::cout << "I SHOULD NOT ENTER HEEEEEEEEEEEEERE " << propertyIdFirstNode << " VS " << propertyIdSecondNode << std::endl;
-					}
 					TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
-
+					// unsigned int propertyIdFirstNode = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
+					// unsigned int propertyIdSecondNode = SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID);
+					// if (propertyIdFirstNode != propertyIdSecondNode && SlaveNode1->IsNot(RIGID) && SlaveNode2->IsNot(RIGID))
+					// {
+					// 	std::cout << "I SHOULD NOT ENTER HEEEEEEEEEEEEERE " << propertyIdFirstNode << " VS " << propertyIdSecondNode << std::endl;
+					// }
 					// // Master node's properties are set using the maximum PROPERTY_ID value between SlaveNode1 and SlaveNode2
 					// if (SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID) >= SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID))
 					// {
