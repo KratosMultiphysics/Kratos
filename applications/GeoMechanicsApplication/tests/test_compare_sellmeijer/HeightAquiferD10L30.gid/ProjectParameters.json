@@ -40,7 +40,6 @@
         "rayleigh_m": 0.0,
         "rayleigh_k": 0.0,
         "strategy_type": "newton_raphson_with_piping",
-        "max_piping_iterations": 500,
         "convergence_criterion": "water_pressure_criterion",
         "displacement_relative_tolerance": 0.0001,
         "displacement_absolute_tolerance": 1e-09,
@@ -82,7 +81,8 @@
         "body_domain_sub_model_part_list": [
             "Soil",
             "Embankment"
-        ]
+        ],
+        "max_piping_iterations": 500
     },
     "output_processes": {
         "gid_output": [
@@ -134,7 +134,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Right_head",
+                    "model_part_name": "PorousDomain.Left_head",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
@@ -150,12 +150,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Left_head",
+                    "model_part_name": "PorousDomain.Right_head",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 3.25,
+                    "reference_coordinate": 3.33,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000
