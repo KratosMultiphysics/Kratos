@@ -13,10 +13,8 @@
 
 // External includes
 
-
 // Project includes
 #include "custom_elements/total_lagrangian_q1p0_mixed_element.h"
-#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
