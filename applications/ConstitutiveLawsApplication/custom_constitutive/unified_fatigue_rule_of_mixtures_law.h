@@ -413,6 +413,31 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief Computes the ultimate uniaxial stress of the composite material
+     * based on the component materials and the volumetric participation
+     * @param rValuesDamageComponent the needed parameters for the damage CL calculation
+     * @param rValuesPlasticityComponent the needed parameters for the plasticity CL calculation
+     */
+    double CalculateUltimateStress (const Properties& rValuesDamageComponentProperties, const Properties& rValuesPlasticityComponentProperties);
+
+    /**
+     * @brief Compute the current volumetric participation of the model depending on
+     * the number of cycles to failure, damage internal variable and plastic dissipation.
+     * @param rValuesDamageComponent the needed parameters for the damage CL calculation
+     * @param rValuesPlasticityComponent the needed parameters for the plasticity CL calculation
+     */
+    double VolumetricParticipationUpdate(
+    const bool CurrentLoadType,
+    const double GlobalCyclesToFailure,
+    const double CurrentDamage,
+    const double CurrentPlasticDissipation,
+    const double CurrentFatigueReductionFactor,
+    const double ReferenceDamage,
+    const double ReferencePlasticDissipation,
+    const double ReferenceFatigueReductionFactor,
+    ConstitutiveLaw::Parameters& rValuesPlasticityComponent);
+
+    /**
      * This method computes the stresses of the matrix/fiber according to its own CL
      * @param rValues the needed parameters for the CL calculation
      * @param rIsotropicDamgeStrainVector the strain vector of the HCF model
