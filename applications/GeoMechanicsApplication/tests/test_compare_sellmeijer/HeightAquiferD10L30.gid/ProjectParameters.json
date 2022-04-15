@@ -118,6 +118,18 @@
                                 "LOCAL_FLUID_FLUX_VECTOR",
                                 "LOCAL_PERMEABILITY_MATRIX",
                                 "HYDRAULIC_HEAD",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
                                 "PIPE_ACTIVE"
                             ]
                         },
