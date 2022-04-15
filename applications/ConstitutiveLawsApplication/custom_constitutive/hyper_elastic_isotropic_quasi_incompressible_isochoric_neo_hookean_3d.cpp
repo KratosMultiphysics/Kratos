@@ -36,8 +36,9 @@ HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::HyperElasticIsot
 //******************************COPY CONSTRUCTOR**************************************
 /***********************************************************************************/
 
-HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D(const HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D& rOther)
-    : HyperElasticIsotropicNeoHookean3D(rOther)
+HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D(
+    const HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D& rOther
+    ) : HyperElasticIsotropicNeoHookean3D(rOther)
 {
 }
 
@@ -52,14 +53,17 @@ ConstitutiveLaw::Pointer HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHo
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
 
-HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::~HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D()
+HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::
+~HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D()
 {
 };
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     CalculateMaterialResponsePK2(rValues);
 
@@ -73,7 +77,9 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     KRATOS_TRY;
 
@@ -109,7 +115,8 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
         determinant_f = std::sqrt(MathUtils<double>::Det(C_tensor));
     }
 
-    CalculateStressAndConstitutiveMatrixPK2(C_tensor, rValues.GetElementGeometry().GetValue(PRESSURE), C1, rValues.GetStressVector(), rValues.GetConstitutiveMatrix(), r_flags);
+    if (r_flags.Is(COMPUTE_CONSTITUTIVE_TENSOR) || r_flags.Is(COMPUTE_STRESS))
+        CalculateStressAndConstitutiveMatrixPK2(C_tensor, rValues.GetElementGeometry().GetValue(PRESSURE), C1, rValues.GetStressVector(), rValues.GetConstitutiveMatrix(), r_flags);
 
     KRATOS_CATCH("");
 }
@@ -117,7 +124,9 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     CalculateMaterialResponsePK2(rValues);
 
@@ -137,7 +146,9 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
     CalculateMaterialResponseKirchhoff(rValues);
 
@@ -153,63 +164,81 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::InitializeMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponsePK1(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponsePK2(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponseCauchy(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::FinalizeMaterialResponseKirchhoff(
+    ConstitutiveLaw::Parameters& rValues
+    )
 {
 }
 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 /***********************************************************************************/
 
-void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::GetLawFeatures(Features& rFeatures)
+void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::GetLawFeatures(
+    Features& rFeatures
+    )
 {
     //Set the type of law
     rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
