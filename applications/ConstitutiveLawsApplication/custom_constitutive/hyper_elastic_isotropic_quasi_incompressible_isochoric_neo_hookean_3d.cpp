@@ -98,7 +98,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateMa
     const double mu = young_modulus / (2.0 * (1.0 + poisson_coefficient));
     const double C1 = 0.5 * mu;
 
-    Matrix C_tensor(dimension, dimension), inverse_C_tensor(dimension, dimension);
+    Matrix C_tensor(dimension, dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateGreenLagrangianStrain(rValues, r_strain_vector);
