@@ -1026,6 +1026,28 @@ class GenericConstitutiveLawIntegratorPlasticityWithFatigue
     }
 
     /**
+     * @brief This method computes the ultimate stress of the damage model.
+     * @param MaterialParameters Material properties.
+     */
+    static double UltimateStressPlasticity(const Properties& rMaterialParameters)
+    {
+        double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+
+        const int softening_type = rMaterialParameters[HARDENING_CURVE];
+        const int curve_by_points = static_cast<int>(HardeningCurveType::CurveDefinedByPoints);
+        if (softening_type == curve_by_points) {
+            const Vector& stress_plasticity_curve = rMaterialParameters[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; //Integrated_stress points of the fitting curve
+            const SizeType curve_points = stress_plasticity_curve.size() - 1;
+
+            ultimate_stress = 0.0;
+            for (IndexType i = 1; i <= curve_points; ++i) {
+                ultimate_stress = std::max(ultimate_stress, stress_plasticity_curve[i-1]);
+            }
+        }
+        return ultimate_stress;
+    }
+
+    /**
      * @brief This method computes the escalar equivalent plastic strain, f(Ep), used to guarantee the irreversibility
      * and no-accumulation of the plastic process at the COMPOSITE LEVEL once volumetric participations are updated.
      * @param rEquivalentPlasticStrain The maximum uniaxial stress of the linear behaviour
