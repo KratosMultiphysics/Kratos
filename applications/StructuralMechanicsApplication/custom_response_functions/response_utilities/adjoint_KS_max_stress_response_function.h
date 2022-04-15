@@ -173,13 +173,16 @@ private:
     ModelPart& mrAdjointModelPart;
     std::string mCriticalPartName;
     Element::Pointer mpTracedElementInAdjointPart = nullptr;
+    std::vector<int> mAggregatedElementIds;
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
+    //pKS mpKS;
     SizeType mEchoLevel = 0;
     double max_mean_stress = 0.0;
     double KS_exp_sum = 0.0;
     std::map<int,double> mean_stress_vector;
     double pKS = 100.0;  //this should be a variable to set
+
 
     ///@}
     ///@name Private Operators
