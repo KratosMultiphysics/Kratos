@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    E. Wehrle
-//                   based on max stress nad previous PR to aggregation from Baumgaertner Daniel, https://github.com/dbaumgaertner
+//                   based on max stress nad previous MR to aggregation from Daniel Baumgaertner, https://github.com/dbaumgaertner
 //
 
 // System includes
@@ -28,7 +28,7 @@ namespace Kratos
         mTracedStressType = StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["stress_type"].GetString());
         mStressTreatment = StressResponseDefinitions::ConvertStringToStressTreatment(ResponseSettings["stress_treatment"].GetString());
 
-        //pKS = ResponseSettings["aggregation_penalty"].GetDouble();
+        pKS = ResponseSettings["aggregation_penalty"].GetDouble();
 
         if(ResponseSettings.Has("echo_level"))
             mEchoLevel = ResponseSettings["echo_level"].GetInt();

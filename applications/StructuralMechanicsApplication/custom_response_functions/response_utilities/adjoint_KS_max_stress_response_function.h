@@ -176,13 +176,13 @@ private:
     std::vector<int> mAggregatedElementIds;
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
-    //pKS mpKS;
     SizeType mEchoLevel = 0;
     double max_mean_stress = 0.0;
     double KS_exp_sum = 0.0;
     std::map<int,double> mean_stress_vector;
-    double pKS = 100.0;  //this should be a variable to set
-
+    //double pKS = 100.0;  //this should be a variable to set
+    //pKS mpKS;
+    double pKS;
 
     ///@}
     ///@name Private Operators
