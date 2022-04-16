@@ -556,7 +556,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
             "mapper_type": "nearest_element",
             "echo_level" : 0
         }""")
-        structure_to_fluid_interface_mapper = KratosMapping.MapperFactory.CreateMapper(
+        structure_to_fluid_interface_mapper = KratosMultiphysics.MapperFactory.CreateMapper(
             structure_interface,
             fluid_interface,
             mapper_params)
