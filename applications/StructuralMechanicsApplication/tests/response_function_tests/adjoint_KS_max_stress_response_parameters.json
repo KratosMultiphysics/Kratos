@@ -14,13 +14,14 @@
         "stress_type"          : "VON_MISES_STRESS",
         "stress_treatment"     : "mean",
         "echo_level"           : 1,
-        "primal_settings"      : "adjoint_KS_max_stress_primal_parameters.json",
+        "primal_settings"      : "adjoint_max_stress_primal_parameters.json",
         "adjoint_settings"     : "auto",
+        "aggregation_penalty"  : 100,
         "primal_data_transfer_with_python": true,
         "sensitivity_settings" : {
             "sensitivity_model_part_name"                : "Parts_structure",
             "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
-            "element_data_value_sensitivity_variables"   : [],
+            "element_data_value_sensitivity_variables"   : ["YOUNG_MODULUS"],
             "condition_data_value_sensitivity_variables" : [],
             "build_mode": "static"
         }
