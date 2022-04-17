@@ -164,7 +164,6 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     const double nu = r_props[POISSON_RATIO];
 
     const double mu = E / (2.0 * (1.0 + nu));
-    const double C1 = 0.5 * mu;
     const double bulk_modulus = CalculateBulkModulus(r_props);
 
     double Kpp = 0.0;
