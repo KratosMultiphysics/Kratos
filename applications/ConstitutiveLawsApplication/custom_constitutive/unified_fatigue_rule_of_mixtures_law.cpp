@@ -116,6 +116,9 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
     const double damage = mDamage;
     const double plastic_dissipation = mPlasticDissipation;
+    const double new_load_bock_damage = mNewLoadBlockDamage;
+    const double new_load_bock_plastic_dissipation = mNewLoadBlockPlasticDissipation;
+    const double new_load_block_fatigue_reduction_factor = mNewLoadBlockFatigueReductionFactor;
 
     if (new_model_part) {
         max_indicator = false; //New model part indicates restarting the cycle counter.
@@ -123,9 +126,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         cycles_to_failure = 0.0; //Each time that a new load block is detected the most restrictive case (ULCF) is considered.
                                                     //The behaviour will be updated depending on the Nf value after a cycle.
     }
-    const double reference_damage = mReferenceDamage;
-    const double reference_plastic_dissipation = mReferencePlasticDissipation;
-    const double reference_fatigue_reduction_factor = mReferenceFatigueReductionFactor;
 
     auto& r_material_properties = rValues.GetMaterialProperties();
     const auto it_cl_begin = r_material_properties.GetSubProperties().begin();
@@ -152,6 +152,9 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         double alphat;
 
         double ultimate_stress = CalculateUltimateStress(values_damage_component.GetMaterialProperties(), values_plasticity_component.GetMaterialProperties());
+        //Check to ensure that we are working in a feasible stress regime
+        KRATOS_ERROR_IF(mMaxStressDamageBranch > ultimate_stress || mMaxStressPlasticityBranch > ultimate_stress) << "Component cycle stresses outside the composite stress regime" << std::endl;
+
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             reversion_factor,
@@ -161,16 +164,25 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
             alphat,
             cycles_to_failure,
             ultimate_stress);
-        cycles_to_failure = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
+
+        //Idfentifying the number of cycles that iniciate the no-linearities (either damage or plasticity)
+        const double cycles_to_failure_damage = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
             cycles_to_failure,
-            max_stress,
+            mMaxStressDamageBranch,
             values_fatigue.GetMaterialProperties(),
-            values_fatigue.GetMaterialProperties()[YIELD_STRESS],
+            (1.0 - damage) * mIsotropicDamageThreshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
             s_th,
-            ultimate_stress);
-
-        //Idfentifying the number of cycles that iniciate the no-linearities (either damage, plasticity or both)
-
+            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+            );
+        const double cycles_to_failure_plasticity = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
+            cycles_to_failure,
+            mMaxStressPlasticityBranch,
+            values_fatigue.GetMaterialProperties(),
+            mPlasticityThreshold / fatigue_reduction_factor, //Plasticity threshold with no influence of fatigue, only damage no-linearity
+            s_th,
+            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+            );
+        cycles_to_failure = std::min(cycles_to_failure_damage, cycles_to_failure_plasticity);
 
         double betaf = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (std::abs(min_stress) < 0.001) {
@@ -183,7 +195,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         } else {
             max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
         }
-        if (global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && ((1.0 - reference_damage) * max_stress >= s_th)) {
+        if (global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && (max_stress >= s_th)) {
             local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
         }
         global_number_of_cycles++;
@@ -249,16 +261,19 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     mIsotrpicDamageVolumetricParticipation = VolumetricParticipationUpdate(
         current_load_type, cycles_to_failure,
         damage, plastic_dissipation, fatigue_reduction_factor,
-        reference_damage, reference_plastic_dissipation, reference_fatigue_reduction_factor,
+        new_load_bock_damage, new_load_bock_plastic_dissipation, new_load_block_fatigue_reduction_factor,
         values_plasticity_component);
 
 
     if (new_model_part) {   //Updating the reference values. This needs to be changed by the end of the method because the calculation of the volumetric participation here is done
                             //with results of the non-linear indicators from previous step and so the volumetric participation computed here corresponds to the one for previous step
         mReferenceDamage = damage;
-        mReferencePlasticDissipation = plastic_dissipation;
-        mReferenceFatigueReductionFactor = fatigue_reduction_factor;
-        mReferenceVolumetricParticipation = mIsotrpicDamageVolumetricParticipation; // is not necessary to prevent here the d=0 && kp=0 case.
+        mReferencePlasticStrain = mPlasticStrain;
+
+        mNewLoadBlockDamage = damage;
+        mNewLoadBlockPlasticDissipation = plastic_dissipation;
+        mNewLoadBlockFatigueReductionFactor = fatigue_reduction_factor;
+        mNewLoadBlockVolumetricParticipation = mIsotrpicDamageVolumetricParticipation; // is not necessary to prevent here the d=0 && kp=0 case.
     }
 }
 
@@ -286,32 +301,32 @@ double UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::VolumetricParti
     const double CurrentDamage,
     const double CurrentPlasticDissipation,
     const double CurrentFatigueReductionFactor,
-    const double ReferenceDamage,
-    const double ReferencePlasticDissipation,
-    const double ReferenceFatigueReductionFactor,
+    const double NewLoadBlockDamage,
+    const double NewLoadBlockPlasticDissipation,
+    const double NewLoadBlockFatigueReductionFactor,
     ConstitutiveLaw::Parameters& rValuesPlasticityComponent
     )
 {
     if (!CurrentLoadType) {       //Monotonic load being applied, i.e., no more damage is accumulated and plasticity is isotropic.
-        const double reference_volumetric_participation = (CurrentDamage == 0.0 && CurrentPlasticDissipation == 0.0) ? 0.0 : mReferenceVolumetricParticipation; //Fully plasticity behaviour while non-linear process has not started.
-        return (CurrentDamage > 0.0) ? reference_volumetric_participation * ReferenceDamage / CurrentDamage : 0.0;
+        const double new_load_block_volumetric_participation = (CurrentDamage == 0.0 && CurrentPlasticDissipation == 0.0) ? 0.0 : mNewLoadBlockVolumetricParticipation; //Fully plasticity behaviour while non-linear process has not started.
+        return (CurrentDamage > 0.0) ? new_load_block_volumetric_participation * NewLoadBlockDamage / CurrentDamage : 0.0;
 
     } else if (CurrentLoadType) { //Cyclic load being applied. three cases depending on Nf.
         // if (GlobalCyclesToFailure < 1.0e3) {               // 1 - ULCF case = no more damage is accumulated and plasticity is kinematic.
         //     //Isotropic plasticity is used meanwhile; using kinematic plasticity is only interesting when
-        //     const double reference_volumetric_participation = (CurrentDamage == 0.0 && CurrentPlasticDissipation == 0.0) ? 0.0 : mReferenceVolumetricParticipation; //Fully plasticity behaviour while non-linear process has not started.
-        //     return (CurrentDamage > 0.0) ? reference_volumetric_participation * ReferenceDamage / CurrentDamage : 0.0;
+        //     const double new_load_block_volumetric_participation = (CurrentDamage == 0.0 && CurrentPlasticDissipation == 0.0) ? 0.0 : mNewLoadBlockVolumetricParticipation; //Fully plasticity behaviour while non-linear process has not started.
+        //     return (CurrentDamage > 0.0) ? new_load_block_volumetric_participation * NewLoadBlockDamage / CurrentDamage : 0.0;
 
         // // } else if (Nf < 1.0e5) {        // 2 - LCF case = intermidiate case. Volumetric participation computed through linear transition.
 
         // } else {                        // 3 - HCF case = no more plasticity is accumulated.
-            double reference_equivalent_plastic_strain, equivalent_plastic_strain;
-            const double reference_volumetric_participation = (CurrentDamage == 0.0 && CurrentPlasticDissipation == 0.0) ? 1.0 : mReferenceVolumetricParticipation; //Fully damage behaviour while non-linear process has not started.
+            double new_load_block_equivalent_plastic_strain, equivalent_plastic_strain;
+            const double new_load_block_volumetric_participation = (CurrentDamage == 0.0 && CurrentPlasticDissipation == 0.0) ? 1.0 : mNewLoadBlockVolumetricParticipation; //Fully damage behaviour while non-linear process has not started.
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValuesPlasticityComponent.GetElementGeometry());
 
-            GenericConstitutiveLawIntegratorPlasticityWithFatigue<TConstLawIntegratorType::YieldSurfaceType>::EquivalencyPlasticDissipationUniaxialPlasticStrain(reference_equivalent_plastic_strain,
-                                                                                                                                                                rValuesPlasticityComponent, ReferencePlasticDissipation,
-                                                                                                                                                                ReferenceFatigueReductionFactor,
+            GenericConstitutiveLawIntegratorPlasticityWithFatigue<TConstLawIntegratorType::YieldSurfaceType>::EquivalencyPlasticDissipationUniaxialPlasticStrain(new_load_block_equivalent_plastic_strain,
+                                                                                                                                                                rValuesPlasticityComponent, NewLoadBlockPlasticDissipation,
+                                                                                                                                                                NewLoadBlockFatigueReductionFactor,
                                                                                                                                                                 characteristic_length);
             GenericConstitutiveLawIntegratorPlasticityWithFatigue<TConstLawIntegratorType::YieldSurfaceType>::EquivalencyPlasticDissipationUniaxialPlasticStrain(equivalent_plastic_strain,
                                                                                                                                                                 rValuesPlasticityComponent, CurrentPlasticDissipation,
@@ -319,10 +334,10 @@ double UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::VolumetricParti
                                                                                                                                                                 characteristic_length);
 
             // This function has an indeterminancy when
-            //      (div by 0.0 indeterminancy) ReferenceDamage == 1.0 && reference_volumetric_participation == 1.0. When this happens, CurrentDamage == 1.0. This situation is not possible because mDamage < 0.99999 as set in the damage integrator
-            //      (0.0 / 0.0) equivalent_plastic_strain == 0.0 && reference_equivalent_plastic_strain == 0.0. This occurs while plasticity is not activated and so the plastic dissipation is 0.
-            return  (CurrentPlasticDissipation > 0.0) ? ((1.0 - reference_volumetric_participation) * reference_equivalent_plastic_strain - (1.0 - reference_volumetric_participation * ReferenceDamage) * equivalent_plastic_strain)
-                    / (CurrentDamage * (1.0 - reference_volumetric_participation) * reference_equivalent_plastic_strain - (1.0 - reference_volumetric_participation * ReferenceDamage) * equivalent_plastic_strain) : 1.0;
+            //      (div by 0.0 indeterminancy) NewLoadBlockDamage == 1.0 && new_load_block_volumetric_participation == 1.0. When this happens, CurrentDamage == 1.0. This situation is not possible because mDamage < 0.99999 as set in the damage integrator
+            //      (0.0 / 0.0) equivalent_plastic_strain == 0.0 && new_load_block_equivalent_plastic_strain == 0.0. This occurs while plasticity is not activated and so the plastic dissipation is 0.
+            return  (CurrentPlasticDissipation > 0.0) ? ((1.0 - new_load_block_volumetric_participation) * new_load_block_equivalent_plastic_strain - (1.0 - new_load_block_volumetric_participation * NewLoadBlockDamage) * equivalent_plastic_strain)
+                    / (CurrentDamage * (1.0 - new_load_block_volumetric_participation) * new_load_block_equivalent_plastic_strain - (1.0 - new_load_block_volumetric_participation * NewLoadBlockDamage) * equivalent_plastic_strain) : 1.0;
         // }
     }
 }
@@ -768,6 +783,14 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
 
         mMaxStress = max_stress;
         mMinStress = min_stress;
+        if (!mMaxDetected && max_indicator) {
+            mMaxStressDamageBranch = isotropic_damage_predictive_uniaxial_stress;
+            mMaxStressPlasticityBranch = plasticity_predictive_uniaxial_stress;
+        }
+        // if (!mMinDetected && min_indicator) {
+        //     mMinStressDamageBranch = isotropic_damage_predictive_uniaxial_stress;
+        //     mMinStressPlasticityBranch = plasticity_predictive_uniaxial_stress;
+        // }
         mMaxDetected = max_indicator;
         mMinDetected = min_indicator;
         Vector previous_stresses = ZeroVector(2);
@@ -836,7 +859,9 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
     } else {
         predictive_stress_vector *= (1.0 - mDamage);
     }
-    rIsotropicDamagePredictiveUniaxialStress = (1.0 - mReferenceDamage) * uniaxial_stress; //Predictive HCF computed for each new load block.
+
+    mReferenceDamage = (mCyclesToFailure < 1.0e5) ? mDamage : mReferenceDamage; //Updating the reference value for ULCF or LCF case
+    rIsotropicDamagePredictiveUniaxialStress = (1.0 - mReferenceDamage) * uniaxial_stress;
     rIsotropicDamageStressVector = predictive_stress_vector;
 }
 
@@ -913,7 +938,10 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::FinalizeMaterialR
             characteristic_length, fatigue_reduction_factor);
         BaseType::CalculateElasticMatrix( r_constitutive_matrix, values_plasticity_component);
     }
-    rPlasticityPredictiveUniaxialStress = uniaxial_stress;
+    mReferencePlasticStrain = (mCyclesToFailure < 1.0e5) ? plastic_strain : mReferencePlasticStrain;    //ReferencePlasticStrain will be updated always except of those cases where HCF is expected,
+                                                                                                        //where cycles should be counted consistently to guarantee fred soft evolution
+    TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(prod(r_constitutive_matrix, r_strain_vector - mReferencePlasticStrain), r_strain_vector, rPlasticityPredictiveUniaxialStress, values_plasticity_component);
+
     mPlasticDissipation = plastic_dissipation;
     mPlasticStrain = plastic_strain;
     mPlasticityThreshold = plasticity_threshold;

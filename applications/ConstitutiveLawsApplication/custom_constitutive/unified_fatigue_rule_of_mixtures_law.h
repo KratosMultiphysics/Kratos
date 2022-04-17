@@ -579,7 +579,11 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     double mFatigueReductionFactor = 1.0;
     Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
     double mMaxStress = 0.0;
+    double mMaxStressDamageBranch = 0.0;
+    double mMaxStressPlasticityBranch = 0.0;
     double mMinStress = 0.0;
+    double mMinStressDamageBranch = 0.0;
+    double mMinStressPlasticityBranch = 0.0;
     bool mMaxDetected = false; // Maximum's indicator in the current cycle
     bool mMinDetected = false; // Minimum's indicator in the current cycle
     unsigned int mNumberOfCyclesGlobal = 1; // Total number of cycles in the whole analysis
@@ -602,13 +606,15 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPreviousCycleDamage = 0.0; // Damage level at the previous cycle.
 
-    //Variable used while updating the volumetric participation.
-    double mReferenceVolumetricParticipation = 0.0; //Reference volumetric participation when a new load block is detected
-    double mReferenceDamage = 0.0; //Reference level when a new load block is detected
-    double mReferencePlasticDissipation = 0.0; //Reference equivalent plastic dissipation when a new load block is detected
-    double mReferenceFatigueReductionFactor = 1.0; //Reference equivalent plastic dissipation when a new load block is detected
-    double mReferenceThreshold = 0.0; //Reference threshold for the calculation when cyclic load is applied, i.e. (k_HCF*(1-d)*K0) + ((1-k_HCF)*(1-d)*C0*(E-Ep)). It is computed in this way because the cycle is also computed in this way.
+    //Variable used while updating the volumetric participation, i.e. defining the type of no-linear model
+    double mNewLoadBlockVolumetricParticipation = 0.0; //Volumetric participation when a new load block is detected
+    double mNewLoadBlockDamage = 0.0; //Damage level when a new load block is detected
+    double mNewLoadBlockPlasticDissipation = 0.0; //Plastic dissipation when a new load block is detected
+    double mNewLoadBlockFatigueReductionFactor = 1.0; //Fatigue reduction factor when a new load block is detected
 
+    //Variables used while defining the cycle
+    double mReferenceDamage = 0.0; //Reference level when a new load block is detected
+    Vector mReferencePlasticStrain = ZeroVector(VoigtSize);
 
 
     ///@}
