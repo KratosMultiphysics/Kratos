@@ -102,6 +102,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         max_indicator = false;
         min_indicator = false;
     }
+    const double damage = this->GetDamage();
     const double reference_damage = mReferenceDamage;    //Threshold is used here to define Nf. This is required for those cases that damage has started
     double threshold = this->GetThreshold();
 
@@ -121,9 +122,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             ultimate_stress);
         cycles_to_failure = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
             cycles_to_failure,
-            (1.0 - reference_damage) * max_stress,
+            (1.0 - reference_damage) * max_stress, //Damaged maximum stress considering the reference state
             rValues.GetMaterialProperties(),
-            (1.0 - reference_damage) * threshold,
+            (1.0 - damage) * threshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
             s_th,
             ultimate_stress);
 
