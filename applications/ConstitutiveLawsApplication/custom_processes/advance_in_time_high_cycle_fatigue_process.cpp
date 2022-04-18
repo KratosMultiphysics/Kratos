@@ -54,6 +54,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
         this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]); //Checks if the conditions are optimal to apply the advancing strategy in
                                                                                                         //terms of max stress and reversion factor variation.
         if (advancing_strategy) {
+            KRATOS_WATCH("HERE")
             double increment = 0.0;
             if (!process_info[DAMAGE_ACTIVATION]) { //Stable conditions + No damage -> Big jump prior no-linearities initiation
                 this->TimeIncrement(increment);
@@ -63,14 +64,12 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
                 }
             } else {
                 if (std::abs(maximum_damage_increment) < tolerance) { //Stable conditions + Damage but not accumulated in the last cycle -> Big jump after no-linearities initiation
-                    KRATOS_WATCH("DAMAGE IS NOT ACCUMULATED")
                     this->TimeIncrement(increment);
                     if (increment > 0.0) {
                         this->TimeAndCyclesUpdate(increment);
                         process_info[ADVANCE_STRATEGY_APPLIED] = true;
                     }
                 } else {
-                    KRATOS_WATCH("DAMAGE HAS ACCUMULATED")
                     increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
                     this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
@@ -218,6 +217,8 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
         r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
 
         const bool is_damage = constitutive_law_vector[0]->Has(DAMAGE);
+        KRATOS_WATCH(constitutive_law_vector[0]->Has(DAMAGE))
+        KRATOS_WATCH(constitutive_law_vector[0]->Has(PLASTIC_DISSIPATION))
         if (is_damage) {
             r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
             r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
@@ -225,9 +226,6 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
                 if (damage[i] > 0.0) {
                     rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(damage[i] - previous_cycle_damage[i]));
                     process_info[DAMAGE_ACTIVATION] = true;
-                    KRATOS_WATCH(rMaximumDamageIncrement)
-                    KRATOS_WATCH(damage[i])
-                    KRATOS_WATCH(previous_cycle_damage[i])
                 }
             }
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
@@ -325,7 +323,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
         for (unsigned int i = 0; i < number_of_ip; i++) {
             if (max_stress[i] > s_th[i]) {  //This is used to guarantee that only IP in fatigue conditions are taken into account
-                double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
+                double Nf_conversion_to_time = (cycles_to_failure_element[i] + 1.0 - local_number_of_cycles[i]) * period[i]; //One cycle is added to guarantee that no-linearity starts in the current cycle
                 double user_avancing_cycles_conversion_to_time = user_avancing_cycles * period[i];
                 if (Nf_conversion_to_time < min_time_increment && Nf_conversion_to_time > tolerance) {  //The positive condition for Nf-Nlocal is added for those cases where some points have already been
                                                                                                         //completely degradated through fatigue but there are other regions with scope for fatigue degradation
@@ -377,8 +375,8 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
                 if (period[i] == 0.0) {
                     local_cycles_increment = 0;
                 } else {
-                    local_cycles_increment = std::trunc(Increment / period[i]) + 1.0;
-                    time_increment = (std::trunc(Increment / period[i]) + 1.0) * period[i];
+                    local_cycles_increment = std::trunc(Increment / period[i]);
+                    time_increment = (std::trunc(Increment / period[i])) * period[i];
                     previous_cycle_time[i] += time_increment;
                 }
                 local_number_of_cycles[i] += local_cycles_increment;
@@ -388,7 +386,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
             r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
             // #pragma omp critical
-            r_process_info[TIME_INCREMENT] = time_increment - 1.0;
+            r_process_info[TIME_INCREMENT] = time_increment;
         }
     }
 }
