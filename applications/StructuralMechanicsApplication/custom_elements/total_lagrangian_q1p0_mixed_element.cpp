@@ -170,6 +170,9 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     double Fp = 0.0;
     Vector Kup(mat_size);
     noalias(Kup) = ZeroVector(mat_size);
+    Matrix inv_C(dimension, dimension);
+    Vector inv_c_voigt(strain_size);
+    double det;
 
     // Computing in all integrations points
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
@@ -184,10 +187,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this->GetStressMeasure());
 
         const Matrix& r_C = prod(trans(this_kinematic_variables.F), this_kinematic_variables.F);
-        Matrix inv_C(dimension, dimension);
-        double det;
         MathUtils<double>::InvertMatrix3(r_C, inv_C, det);
-        Vector inv_c_voigt(strain_size);
         noalias(inv_c_voigt) = MathUtils<double>::StrainTensorToVector(inv_C, strain_size);
         if (dimension == 2) {
             inv_c_voigt[2] /= 2.0;
@@ -221,16 +221,19 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
         }
     } // IP loop
-    if (CalculateStiffnessMatrixFlag)
-        noalias(rLeftHandSideMatrix) -= outer_prod(Kup, Kup) / Kpp;
-    if (CalculateResidualVectorFlag)
-        noalias(rRightHandSideVector) += Kup * Fp / Kpp;
 
-    // Now we statically condensate the elemental pressure
-    Vector displ, displ_old;
-    GetValuesVector(displ, 0);
-    GetValuesVector(displ_old, 1);
-    this->GetValue(PRESSURE) -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
+    if (std::abs(Kpp) > 0.0) {
+        if (CalculateStiffnessMatrixFlag)
+            noalias(rLeftHandSideMatrix) -= outer_prod(Kup, Kup) / Kpp;
+        if (CalculateResidualVectorFlag)
+            noalias(rRightHandSideVector) += Kup * Fp / Kpp;
+
+        // Now we statically condensate the elemental pressure
+        Vector displ, displ_old;
+        GetValuesVector(displ, 0);
+        GetValuesVector(displ_old, 1);
+        this->GetValue(PRESSURE) -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
+    }
 
     KRATOS_CATCH( "" )
 }
