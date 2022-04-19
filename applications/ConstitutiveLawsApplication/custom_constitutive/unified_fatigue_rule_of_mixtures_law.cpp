@@ -147,13 +147,17 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     }
 
     if (max_indicator && min_indicator && current_load_type) {
+        //Checking if there is any no-linearity accumulation
+        mAcumulatedDamageCurrentCycle = (damage - mPreviousCycleDamage > machine_tolerance) ? true : false;
+        mAcumulatedPlasticityCurrentCycle = (plastic_dissipation - mPreviousCyclePlasticDissipation > machine_tolerance) ? true : false;
+
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
 
         double ultimate_stress = CalculateUltimateStress(values_damage_component.GetMaterialProperties(), values_plasticity_component.GetMaterialProperties());
         //Check to ensure that we are working in a feasible stress regime
-        KRATOS_ERROR_IF(mMaxStressDamageBranch > ultimate_stress || mMaxStressPlasticityBranch > ultimate_stress) << "Component cycle stresses outside the composite stress regime" << std::endl;
+        // KRATOS_ERROR_IF(mMaxStressDamageBranch > ultimate_stress || mMaxStressPlasticityBranch > ultimate_stress) << "Component cycle stresses outside the composite stress regime" << std::endl;
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
@@ -198,8 +202,12 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
         if (global_number_of_cycles > 2 && !advance_in_time_process_applied && (reversion_factor_relative_error > 0.001 || max_stress_relative_error > 0.1) && (max_stress >= s_th)) {
             local_number_of_cycles = std::trunc(std::pow(10, std::pow(-(std::log(fatigue_reduction_factor) / B0), 1.0 / (betaf * betaf)))) + 1;
         }
+
         global_number_of_cycles++;
-        local_number_of_cycles++;
+
+        //The local_number_of_cycles are only updated when fred degradation is expected, i.e. HCF and LCF. ULCF showing no plasticity neither damage accumulation are also counting Nlocal cycles
+        local_number_of_cycles = ((!mAcumulatedDamageCurrentCycle && !mAcumulatedPlasticityCurrentCycle) || cycles_to_failure > 1.0e3) ? local_number_of_cycles + 1.0 : local_number_of_cycles;
+
         new_cycle = true;
         max_indicator = false;
         min_indicator = false;
@@ -999,6 +1007,8 @@ bool UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::Has(const Variabl
         return true;
     } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
         return true;
+    } else if (rThisVariable == PREVIOUS_CYCLE_PLASTIC_DISSIPATION) {
+        return true;
     } else if (rThisVariable == DAMAGE) {
         return true;
     } else if (rThisVariable == PLASTIC_DISSIPATION) {
@@ -1095,6 +1105,8 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::SetValue(
         mPeriod = rValue;
     } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
         mPreviousCycleDamage = rValue;
+    } else if (rThisVariable == PREVIOUS_CYCLE_PLASTIC_DISSIPATION) {
+        mPreviousCyclePlasticDissipation = rValue;
     } else if (rThisVariable == PLASTIC_DISSIPATION) {
         mPlasticDissipation = rValue;
     } else if (rThisVariable == DAMAGE) {
@@ -1182,6 +1194,8 @@ double& UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::GetValue(
         rValue = mPeriod;
     } else if (rThisVariable == PREVIOUS_CYCLE_DAMAGE) {
         rValue = mPreviousCycleDamage;
+    } else if (rThisVariable == PREVIOUS_CYCLE_PLASTIC_DISSIPATION) {
+        rValue = mPreviousCyclePlasticDissipation;
     } else if (rThisVariable == DAMAGE) {
         rValue = mDamage;
     } else if (rThisVariable == PLASTIC_DISSIPATION) {

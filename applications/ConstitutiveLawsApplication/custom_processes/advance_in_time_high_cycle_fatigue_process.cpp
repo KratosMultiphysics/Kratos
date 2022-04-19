@@ -207,6 +207,8 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
     auto& process_info = mrModelPart.GetProcessInfo();
     std::vector<double> damage;
     std::vector<double> previous_cycle_damage;
+    std::vector<double> plastic_dissipation;
+    std::vector<double> previous_cycle_plastic_dissipation;
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
@@ -217,8 +219,7 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
         r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
 
         const bool is_damage = constitutive_law_vector[0]->Has(DAMAGE);
-        KRATOS_WATCH(constitutive_law_vector[0]->Has(DAMAGE))
-        KRATOS_WATCH(constitutive_law_vector[0]->Has(PLASTIC_DISSIPATION))
+        const bool is_plasticity = constitutive_law_vector[0]->Has(PLASTIC_DISSIPATION);
         if (is_damage) {
             r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
             r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
@@ -229,6 +230,16 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
                 }
             }
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
+        }
+        if (is_plasticity) {
+            r_elem.CalculateOnIntegrationPoints(PLASTIC_DISSIPATION, plastic_dissipation, process_info);
+            r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, previous_cycle_plastic_dissipation, process_info);
+            for (unsigned int i = 0; i < number_of_ip; i++) {
+                if (damage[i] > 0.0) {
+                    rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(plastic_dissipation[i] - previous_cycle_plastic_dissipation[i]));
+                }
+            }
+            r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, plastic_dissipation, process_info);
         }
     }
 }

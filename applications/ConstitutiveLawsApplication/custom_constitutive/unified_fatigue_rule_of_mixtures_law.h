@@ -605,6 +605,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPreviousCycleDamage = 0.0; // Damage level at the previous cycle.
+    double mPreviousCyclePlasticDissipation = 0.0; // Plastic dissipation level at the previous cycle.
 
     //Variable used while updating the volumetric participation, i.e. defining the type of no-linear model
     double mNewLoadBlockVolumetricParticipation = 0.0; //Volumetric participation when a new load block is detected
@@ -615,6 +616,9 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UnifiedFatigueRuleOfMixturesLaw
     //Variables used while defining the cycle
     double mReferenceDamage = 0.0; //Reference level when a new load block is detected
     Vector mReferencePlasticStrain = ZeroVector(VoigtSize);
+
+    bool mAcumulatedDamageCurrentCycle = true;
+    bool mAcumulatedPlasticityCurrentCycle = true;
 
 
     ///@}
