@@ -62,9 +62,9 @@ ModelPart& GenerateModel(Model& rModel, const std::string& rConditionName)
     r_process_info[SHOCK_CAPTURING_SWITCH] = true;
 
     // Geometry creation
-    model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    model_part.CreateNewNode(1, -.5, -.6, 0.0);
+    model_part.CreateNewNode(2, 7.0, 0.0, 0.0);
+    model_part.CreateNewNode(3, 0.0, 0.4, 0.0);
     std::vector<ModelPart::IndexType> elem_nodes {1, 2, 3};
     auto p_elem = model_part.CreateNewElement("CompressibleNavierStokesExplicit2D3N", 1, elem_nodes, p_properties);
 
@@ -341,7 +341,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     ModelPart& r_model_part = GenerateModel(model, "CompressibleNavierStokesExplicitNeumannCondition2D2N");
 
     // Moving nodes
-    constexpr double area = 1.0;
+    constexpr double area = 27.051997;
     
     constexpr double angle = Globals::Pi / 6.0;
     const double cos30 = std::cos(angle);
