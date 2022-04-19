@@ -963,8 +963,6 @@ namespace Kratos
 
     KRATOS_TRY
 
-    std::cout << " [ Data Transfer ELEMENT to ELEMENT ]" << std::endl;
-
     // definitions for spatial search
     typedef Node<3> PointType;
     typedef Node<3>::Pointer PointPointerType;
