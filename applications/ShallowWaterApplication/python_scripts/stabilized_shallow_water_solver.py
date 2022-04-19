@@ -56,7 +56,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "time_integration_order"     : 2,
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.01,
-        "shock_capturing_factor" : 1.0,
+        "shock_capturing_factor"     : 1.0,
         "shock_capturing_type"       : "residual_viscosity"
         }
         """)
@@ -65,7 +65,11 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
 
     def _CreateScheme(self):
         if self.add_flux_correction:
-            time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
+            scheme_settings = KM.Parameters("""{
+                "limiting_variables"  : ["FREE_SURFACE_ELEVATION","MOMENTUM"]
+            }""")
+            scheme_settings.AddValue("order", self.settings["time_integration_order"])
+            time_scheme = SW.FluxCorrectedShallowWaterScheme(scheme_settings)
             if self.settings["shock_capturing_factor"].GetDouble() > 0.0:
                 self.settings["shock_capturing_factor"].SetDouble(0.0)
                 KM.Logger.PrintWarning(self.__class__.__name__, "Detected shock stabilization with flux correction. The shock stabilization factor will be set to 0.")
