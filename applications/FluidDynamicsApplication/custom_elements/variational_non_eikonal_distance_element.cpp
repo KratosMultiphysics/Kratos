@@ -461,6 +461,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     lhs_Newton_Raphson(i_node, j_node) -= diffusion_prime_to_s * weights(gp) * grad_Ni_dot_grad_phi * grad_Nj_dot_grad_phi;
                 } */
             }
+            if (step <= 1){ // For cases that source_coeff is the same for both the positive and negative domains. Otherwise, uncomment the following code
+                rhs[i_node] += source_coeff * weights(gp) * N(gp, i_node);
+            }
         }
     }
 
@@ -483,7 +486,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         GeometryType::ShapeFunctionsGradientsType int_DN_DX;
         Vector int_weights;
 
-        if (step <= 1){
+        /* if (step <= 1){              UNCOMMENT IF NEGATIVE AND POSITIVE SIDES HAVE DIFFERENT SOURCES
             //KRATOS_WATCH(nneg)
             Matrix neg_N, pos_N;
             GeometryType::ShapeFunctionsGradientsType neg_DN_DX, pos_DN_DX;
@@ -520,7 +523,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     rhs(i_node) -= 1.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
                 }
             }
-        } //else{
+        } //else{ */
 
             //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 4" << std::endl;
 
@@ -576,10 +579,14 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
             auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
+            std::vector<Kratos::Vector> ContactTangentialsNeg; //Dummy, not needed here
+            p_modified_sh_func->ComputeNegativeSideContactLineVector(contact_line_faces, ContactTangentialsNeg);
+
             for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
                 if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
                     contact_line_indices.push_back(i_cl);
                 }
+                KRATOS_WATCH(i_cl)
             }
 
             // Call the Contact Line negative side shape functions calculator
@@ -605,7 +612,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                                 normal_dot_grad_contact_Nj += ( (contact_DN_DX[i_cl] )[contact_gp])(j_node, k_dim) * normal0[k_dim];
                             }
 
-                            lhs(i_node, j_node) += 1.0e2 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
+                            lhs(i_node, j_node) += penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
                                 - (contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*normal_dot_grad_contact_Nj
                                 - (contact_weights[i_cl])(contact_gp)*normal_dot_grad_contact_Ni*(contact_N[i_cl])(contact_gp, j_node);
                         }
@@ -614,7 +621,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             }
         //}
 
-    } else if (step <= 1){
+    } /* else if (step <= 1){           UNCOMMENT IF NEGATIVE AND POSITIVE SIDES HAVE DIFFERENT SOURCES
         //KRATOS_WATCH(nneg)
         double source;
         if (npos != 0)
@@ -628,7 +635,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 rhs(i_node) += source_coeff * source * weights(gp) * N(gp, i_node);
             }
         }
-    }
+    } */
 
     if (step <= 1){
         GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();

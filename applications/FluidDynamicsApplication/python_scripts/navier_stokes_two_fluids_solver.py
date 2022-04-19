@@ -160,8 +160,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #             print(node.X)
 
         # Geting the injection condition model part
-        #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
-        #    self.injection_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Injection")
+        if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
+            self.injection_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Injection")
         #    for injection_condition in self.injection_model_part.Conditions:
         #        injection_condition.Set(KratosMultiphysics.BOUNDARY, True)
         #        for node in injection_condition.GetNodes():
@@ -170,11 +170,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
         # Geting the inlet condition model part
-        #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Inlet"):
-            #self.inlet_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Inlet")
-            #for inlet_condition in self.inlet_model_part.Conditions:
+        if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Inlet"):
+            self.inlet_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Inlet")
+            # for inlet_condition in self.inlet_model_part.Conditions:
             #        for node in inlet_condition.GetNodes():
             #            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
+
+        # Geting the outlet condition model part
+        if self.model.HasModelPart("FluidModelPart.Outlet3D_Outlet"):
+            self.outlet_model_part = self.model.GetModelPart("FluidModelPart.Outlet3D_Outlet")
+            for node in self.outlet_model_part.Nodes:
+                node.Set(KratosMultiphysics.BOUNDARY, True)
+            for condition in self.outlet_model_part.Conditions:
+                condition.Set(KratosMultiphysics.BOUNDARY, True)
 
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -237,7 +245,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #self.hyperbolic_distance_reinitialization = self._set_hyperbolic_distance_reinitialization()
         #(self.hyperbolic_distance_reinitialization).Execute()
 
-        # self.parallel_distance_process = self._set_parallel_distance_process()
+        self.parallel_distance_process = self._set_parallel_distance_process()
         # layers = 500#int(4000/100000*self.main_model_part.NumberOfElements())
         # (self.parallel_distance_process).CalculateDistances(
         #           self.main_model_part,
@@ -346,18 +354,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = 0.0#TimeStep*DT/0.01*9.81#9.81#
+            gravity = 9.81#0.0#TimeStep*DT/0.01*9.81#
             if gravity > 9.81:
                 gravity = 9.81
 
             tilting_angle = 0.0
 
-            if gravity == 9.81:
-                tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
-                if tilting_angle < 0.0:
-                    tilting_angle = 0.0
-                elif tilting_angle > (50.0/180.0)*math.pi:
-                    tilting_angle = (50.0/180.0)*math.pi
+            #if gravity == 9.81:
+            #    tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
+            #    if tilting_angle < 0.0:
+            #        tilting_angle = 0.0
+            #    elif tilting_angle > (50.0/180.0)*math.pi:
+            #        tilting_angle = (50.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
@@ -382,6 +390,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Evaluating the average nodal contact angle: First location: works fine with dewetting
             print("Contact Angle Evaluator: Start")
+            (self.distance_gradient_process).Execute()
             (self.contact_angle_evaluator).Execute()
 
             # Store current level-set to check for wetting/dewetting used in contact_angle_evaluator
@@ -394,7 +403,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print(time.time())
 
             if (TimeStep % 1 == 0):
-                (self.distance_gradient_process).Execute() # Always check if calculated above
+                #(self.distance_gradient_process).Execute() # Always check if calculated above
                 (self.surface_smoothing_process).Execute()
                 for node in self.main_model_part.Nodes:
                     smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
@@ -404,29 +413,30 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print("Smoothing Finished")
 
             # Recompute the distance field according to the new level-set position
-            # if (TimeStep % 1 == 0):
-            #     print("Redistancing")
-            #     print(time.time())
+            if (TimeStep % 1000 == 0):
+                print("Parallel Redistancing Started")
+                print(time.time())
 
-            #     #(self.variational_distance_process).Execute()
+                #(self.variational_distance_process).Execute()
 
-            #     #(self.hyperbolic_distance_reinitialization).Execute()
+                #(self.hyperbolic_distance_reinitialization).Execute()
 
-            #     layers = 300#int(4000/100000*self.main_model_part.NumberOfElements())
-            #     (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
-            #         self.main_model_part,
-            #         KratosMultiphysics.DISTANCE,
-            #         KratosCFD.AREA_VARIABLE_AUX,
-            #         layers,
-            #         1.0e0)#,
-            #         #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                layers = 300#int(4000/100000*self.main_model_part.NumberOfElements())
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
+                    self.main_model_part,
+                    KratosMultiphysics.DISTANCE,
+                    KratosCFD.AREA_VARIABLE_AUX,
+                    layers,
+                    1.0e0)#,
+                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-            #     print(time.time())
+                print(time.time())
+                print("Parallel Redistancing Finished")
 
-            print("Elliptic Redistancing Started")
-            print(time.time())
+            if (TimeStep % 10 == 0):
+                print("Elliptic Redistancing Started")
+                print(time.time())
 
-            if (TimeStep % 10000 == 0):
                 (self.distance_gradient_process).Execute() # Always check if calculated above
                 (self.curvature_calculation_process).Execute()
                 (self.variational_non_eikonal_distance).Execute()
@@ -434,7 +444,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                     smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
                     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-            print("Elliptic Redistancing Finished")
+                print("Elliptic Redistancing Finished")
+                print(time.time())
 
             #########################################
             ##
@@ -445,11 +456,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print("Level-set")
             print(time.time())
 
-            #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
-            #    for injection_condition in self.injection_model_part.Conditions:
-            #        for node in injection_condition.GetNodes():
+            if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
+                for injection_condition in self.injection_model_part.Conditions:
+                    for node in injection_condition.GetNodes():
+                        node.Fix(KratosMultiphysics.DISTANCE) # Will be free in contact_angle_evaluator
             #            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
             #                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
+
+            if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Inlet"):
+                for inlet_condition in self.inlet_model_part.Conditions:
+                    for node in inlet_condition.GetNodes():
+                        node.Fix(KratosMultiphysics.DISTANCE) # Will be free in contact_angle_evaluator
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:

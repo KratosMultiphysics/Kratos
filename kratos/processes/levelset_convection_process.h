@@ -278,8 +278,9 @@ public:
                 it_node->SetValue(mrLevelSetVar, dist);
 
                 if (true){ // regularize the level-set function
-                    it_node->SetValue( NORMAL_VELOCITY, inner_prod(
-                        it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT),
+                    Vector normal_vector = it_node->FastGetSolutionStepValue(DISTANCE_GRADIENT);
+                    const double normal_norm = norm_2(normal_vector);
+                    it_node->SetValue( NORMAL_VELOCITY, inner_prod( (1.0/normal_norm)*normal_vector,
                         0.5*( (Nold + Nold_before)*v_old + (Nnew + Nnew_before)*v ) ) );
                 }
             }

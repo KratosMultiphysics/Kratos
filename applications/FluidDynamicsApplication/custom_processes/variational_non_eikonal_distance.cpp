@@ -89,6 +89,17 @@ void VariationalNonEikonalDistance::CreateAuxModelPart()
 
     const double delta_time = mrModelPart.pGetProcessInfo()->GetValue(DELTA_TIME);
     r_distance_model_part.pGetProcessInfo()->SetValue(DELTA_TIME, delta_time);
+
+    auto& r_data_comm = r_distance_model_part.GetCommunicator().GetDataCommunicator();
+
+    FindGlobalNodalNeighboursProcess nodal_neighbour_process_new(r_data_comm, r_distance_model_part);
+    nodal_neighbour_process_new.Execute();
+
+    const unsigned int num_nodes = 4;
+    const unsigned int num_neighbouring_elements = num_nodes;
+
+    FindElementalNeighboursProcess neighbour_elements_finder_new(r_distance_model_part, num_nodes-1, num_neighbouring_elements);
+    neighbour_elements_finder_new.Execute();
 }
 
 void VariationalNonEikonalDistance::Execute()
@@ -227,7 +238,7 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
     //for (unsigned iter = 0; iter < 50; ++iter){
-    while (max_grad_norm_deviation > 2.0e-1 && iteration < 10){
+    while (max_grad_norm_deviation > 2.0e-1 && iteration < 40){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, LSE is solved" << std::endl;

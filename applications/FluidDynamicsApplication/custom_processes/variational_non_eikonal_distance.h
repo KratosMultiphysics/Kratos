@@ -23,6 +23,9 @@
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "processes/find_elements_neighbours_process.h"
+#include "processes/find_global_nodal_neighbours_process.h"
+#include "processes/find_global_nodal_elemental_neighbours_process.h"
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
 #include "includes/checks.h"

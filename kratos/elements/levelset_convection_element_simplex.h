@@ -135,10 +135,12 @@ public:
         double h = ComputeH(DN_DX, Volume);
 
         //here we get all the variables we will need
-        array_1d<double,TNumNodes> phi, phi_old;
+        array_1d<double,TNumNodes> phi, phi_old, normal_velocity;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
         Vector normal_vector = ZeroVector(TDim);
+
+        double avg_phi = 0.0;
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -146,21 +148,23 @@ public:
             phi_old[i] = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1);
 //             dphi_dt[i] = dt_inv*(phi[i] - phi_old [i];
 
+            avg_phi += phi[i];
+
             v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
-
-            normal_vector += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
         }
+
+        avg_phi /= static_cast<double>(TNumNodes);
 
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
 
-        normal_vector = (1.0/norm_2(normal_vector))*normal_vector;
+        normal_vector = (1.0/norm_grad)*grad_phi_halfstep;
 
-        //for (unsigned int i = 0; i < TNumNodes; i++)
-        //{
-        //    normal_velocity[i] = 1.0/norm_grad * inner_prod(grad_phi_halfstep, 0.5*(v[i]+vold[i]));
-        //}
+        // for (unsigned int i = 0; i < TNumNodes; i++)
+        // {
+        //     normal_velocity[i] = GetGeometry()[i].GetValue(NORMAL_VELOCITY);//  /* 1.0/norm_grad * */ inner_prod(normal_vector, 0.5*(v[i]+vold[i]));
+        // }
 
         //array_1d<double,TDim> grad_normal_velocity = prod(trans(DN_DX), normal_velocity);
         //const double correction_velocity_coefficient = 1.0/norm_grad/norm_grad * inner_prod(grad_phi_halfstep, grad_normal_velocity);
@@ -183,34 +187,45 @@ public:
         BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
         BoundedMatrix<double,TNumNodes, TDim> tmp;
 
-
         BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {
             noalias(N) = row(Ncontainer,igauss);
 
-            double normal_velocity_normal_gradient = 0.0;
+            normal_vector = ZeroVector(TDim);
+            for (unsigned int i = 0; i < TNumNodes; i++)
+            {
+                normal_vector += N[i] * GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+            }
+
+            if (norm_2(normal_vector) > 1.0e-12)
+                normal_vector = (1.0/norm_2(normal_vector))*normal_vector;
+
+            /* double normal_velocity_normal_gradient = 0.0;
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
                 normal_velocity_normal_gradient += N[i] * inner_prod( normal_vector,
                     GetGeometry()[i].GetValue(NORMAL_VELOCITY_GRADIENT) );
-            }
+            } */
 
             //obtain the velocity in the middle of the tiem step
             array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
             for (unsigned int i = 0; i < TNumNodes; i++)
             {
-                const double coefficient = (N[i]*std::abs(phi[i]))*normal_velocity_normal_gradient;
+                const double coefficient = N[i]*std::abs(phi[i])*inner_prod( normal_vector,
+                    GetGeometry()[i].GetValue(NORMAL_VELOCITY_GRADIENT) ); //*normal_velocity_normal_gradient;//inner_prod(grad_normal_velocity, normal_vector);//
 
                 for(unsigned int k=0; k<TDim; k++){
                     vel_gauss[k] += 0.5*N[i]*(v[i][k]+vold[i][k]);
 
-                    if (std::abs(phi[i]) < 0.2){
-                        vel_gauss[k] -= coefficient*normal_vector[k];
+                    if (avg_phi > -3.0*h && avg_phi < 3*h){ //(normal_velocity_normal_gradient > 1.0e-6){//(std::abs(phi[i]) < 0.2){ //
+                        vel_gauss[k] -= 0.0*coefficient*normal_vector[k];
                     }
                 }
             }
+            //vel_gauss = inner_prod( normal_vector, vel_gauss)*normal_vector;
+
             const double norm_vel = norm_2(vel_gauss);
             array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
 
