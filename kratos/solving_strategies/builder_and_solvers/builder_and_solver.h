@@ -515,6 +515,14 @@ public:
     }
 
     /**
+     * @brief It allows to get the list of Dofs from the element
+     */
+    virtual const DofsArrayType& GetDofSet() const
+    {
+        return mDofSet;
+    }
+
+    /**
      * @brief It organises the dofset in order to speed up the building phase
      * @param rModelPart The model part to compute
      */

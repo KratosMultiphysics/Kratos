@@ -91,24 +91,27 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
 
     // The deformation gradient
     const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f = rValues.GetDeterminantF();
+    double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
     // The LAME parameters
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
-    // We compute the right Cauchy-Green tensor (C):
-    const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
-
-    // Inverse of the right Cauchy-Green tensor (C):
-    double aux_det;
-    Matrix inverse_C_tensor(dimension, dimension);
-    MathUtils<double>::InvertMatrix( C_tensor, inverse_C_tensor, aux_det);
+    Matrix C_tensor(dimension, dimension), inverse_C_tensor(dimension, dimension);
 
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateGreenLagrangianStrain(rValues, strain_vector);
+        noalias(C_tensor) = prod(trans(deformation_gradient_f), deformation_gradient_f);
+    } else {
+        Matrix strain_tensor(dimension, dimension);
+        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        noalias(C_tensor) = 2.0 * strain_tensor + IdentityMatrix(dimension);
+        determinant_f = std::sqrt(MathUtils<double>::Det(C_tensor));
     }
+
+    double aux_det;
+    MathUtils<double>::InvertMatrix(C_tensor, inverse_C_tensor, aux_det);
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
         Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
@@ -131,9 +134,10 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
     // Get Values to compute the constitutive law:
     Flags& r_flags=rValues.GetOptions();
 
+    const SizeType dimension = WorkingSpaceDimension();
+
     const Properties& material_properties  = rValues.GetMaterialProperties();
     Vector& strain_vector                  = rValues.GetStrainVector();
-    Vector& stress_vector                  = rValues.GetStressVector();
 
     // The material properties
     const double young_modulus = material_properties[YOUNG_MODULUS];
@@ -141,15 +145,26 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
 
     // The deformation gradient
     const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
-    const double determinant_f = rValues.GetDeterminantF();
+    double determinant_f = rValues.GetDeterminantF();
     KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
 
     // The LAME parameters
     const double lame_lambda = (young_modulus * poisson_coefficient)/((1.0 + poisson_coefficient)*(1.0 - 2.0 * poisson_coefficient));
     const double lame_mu = young_modulus/(2.0 * (1.0 + poisson_coefficient));
 
+    Matrix B_tensor(dimension, dimension);
+
     if(r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateAlmansiStrain(rValues, strain_vector);
+        noalias(B_tensor) = prod(deformation_gradient_f, trans( deformation_gradient_f));
+    } else {
+        Matrix strain_tensor(dimension, dimension);
+        noalias(strain_tensor) = MathUtils<double>::StrainVectorToTensor(strain_vector);
+        Matrix inverse_B_tensor(dimension, dimension);
+        noalias(inverse_B_tensor) = IdentityMatrix(dimension) - 2.0 * strain_tensor;
+        double aux_det;
+        MathUtils<double>::InvertMatrix(inverse_B_tensor, B_tensor, aux_det);
+        determinant_f = std::sqrt(MathUtils<double>::Det(B_tensor));
     }
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
@@ -159,7 +174,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponseKirchhoff (Cons
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         // We compute the left Cauchy-Green tensor (B):
-        const Matrix B_tensor = prod(deformation_gradient_f, trans( deformation_gradient_f));
+        Vector& stress_vector = rValues.GetStressVector();
         CalculateKirchhoffStress( B_tensor, stress_vector, determinant_f, lame_lambda, lame_mu );
     }
 }
@@ -428,7 +443,7 @@ void HyperElasticIsotropicNeoHookean3D::GetLawFeatures(Features& rFeatures)
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
     //Set the strain size
-    rFeatures.mStrainSize = GetStrainSize();
+    rFeatures.mStrainSize = VoigtSize;
 
     //Set the spacedimension
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
@@ -523,13 +538,11 @@ void HyperElasticIsotropicNeoHookean3D::CalculatePK2Stress(
     const double LameMu
     )
 {
-    Matrix stress_matrix;
-
     const SizeType dimension = WorkingSpaceDimension();
-
-    stress_matrix = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( IdentityMatrix(dimension) - rInvCTensor );
-
-    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize() );
+    Matrix stress_matrix(dimension, dimension);
+    const Matrix Id = IdentityMatrix(dimension);
+    noalias(stress_matrix) = LameLambda * std::log(DeterminantF) * rInvCTensor + LameMu * ( Id - rInvCTensor );
+    noalias(rStressVector) = MathUtils<double>::StressTensorToVector( stress_matrix, GetStrainSize());
 }
 
 /***********************************************************************************/
@@ -543,13 +556,11 @@ void HyperElasticIsotropicNeoHookean3D::CalculateKirchhoffStress(
     const double LameMu
     )
 {
-    Matrix stress_matrix;
-
     const SizeType dimension = WorkingSpaceDimension();
-
-    stress_matrix  = LameLambda * std::log(DeterminantF) * IdentityMatrix(dimension) + LameMu * ( rBTensor - IdentityMatrix(dimension) );
-
-    rStressVector = MathUtils<double>::StressTensorToVector( stress_matrix, rStressVector.size() );
+    Matrix stress_matrix(dimension, dimension);
+    const Matrix Id = IdentityMatrix(dimension);
+    noalias(stress_matrix) = LameLambda * std::log(DeterminantF) * Id + LameMu * (rBTensor - Id);
+    noalias(rStressVector) = MathUtils<double>::StressTensorToVector(stress_matrix, GetStrainSize());
 }
 
 /***********************************************************************************/
@@ -560,11 +571,14 @@ void HyperElasticIsotropicNeoHookean3D::CalculateGreenLagrangianStrain(
     Vector& rStrainVector
     )
 {
+    const SizeType dimension = WorkingSpaceDimension();
+
     // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
     // 2.-Compute e = 0.5*(inv(C) - I)
-    const Matrix C_tensor = prod(trans(F),F);
+    Matrix C_tensor(dimension, dimension);
+    noalias(C_tensor) = prod(trans(F),F);
     ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
 }
 
@@ -576,11 +590,14 @@ void HyperElasticIsotropicNeoHookean3D::CalculateAlmansiStrain(
     Vector& rStrainVector
     )
 {
+    const SizeType dimension = WorkingSpaceDimension();
+
     // 1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
     // 2.-COmpute e = 0.5*(1-inv(B))
-    const Matrix B_tensor = prod(F,trans(F));
+    Matrix B_tensor(dimension, dimension);
+    noalias(B_tensor) = prod(F,trans(F));
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 

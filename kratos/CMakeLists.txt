@@ -160,11 +160,11 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS Kratos DESTINATION libs )
 install(TARGETS KratosCore DESTINATION libs)
 
-# Define custom targets
-set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCore" PARENT_SCOPE)
-set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};Kratos" PARENT_SCOPE)
-
 # Mpi
 if(${USE_MPI} MATCHES ON )
   add_subdirectory(mpi)
 endif(${USE_MPI} MATCHES ON )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};Kratos" PARENT_SCOPE)

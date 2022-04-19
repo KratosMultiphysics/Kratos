@@ -135,16 +135,13 @@ public:
 
         double I1, J2;
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
+        array_1d<double, VoigtSize> deviator;
         AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 
-        if (std::abs(I1) < tolerance) {
-            rEquivalentStress = 0.0;
-        } else {
-            const double CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
-            const double TEN0 = 2.0 * I1 * sin_phi / (root_3 * (3.0 - sin_phi)) + std::sqrt(J2);
-            rEquivalentStress = std::abs(CFL * TEN0);
-        }
+
+        const double CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
+        const double TEN0 = 2.0 * I1 * sin_phi / (root_3 * (3.0 - sin_phi)) + std::sqrt(J2);
+        rEquivalentStress = (CFL * TEN0);
     }
 
     /**
