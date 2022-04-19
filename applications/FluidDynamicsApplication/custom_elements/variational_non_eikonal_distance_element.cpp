@@ -586,7 +586,6 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
                     contact_line_indices.push_back(i_cl);
                 }
-                KRATOS_WATCH(i_cl)
             }
 
             // Call the Contact Line negative side shape functions calculator
@@ -612,7 +611,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                                 normal_dot_grad_contact_Nj += ( (contact_DN_DX[i_cl] )[contact_gp])(j_node, k_dim) * normal0[k_dim];
                             }
 
-                            lhs(i_node, j_node) += penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
+                            lhs(i_node, j_node) += element_size*penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
                                 - (contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*normal_dot_grad_contact_Nj
                                 - (contact_weights[i_cl])(contact_gp)*normal_dot_grad_contact_Ni*(contact_N[i_cl])(contact_gp, j_node);
                         }
