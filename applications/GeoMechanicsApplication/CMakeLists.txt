@@ -14,6 +14,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/applications/GeoMechanicsApplication )
 ## GeoMechanics Core sources
 file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/geo_mechanics_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cpp_geomechanics_application.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/geo_mechanics_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
