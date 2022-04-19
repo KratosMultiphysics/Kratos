@@ -343,9 +343,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     // Moving nodes
     constexpr double area = 1.0;
     
-    constexpr double pi = 3.14159265359; // Is this defined anywhere in kratos?
-    const double cos30 = std::cos(pi / 6);
-    const double sin30 = std::sin(pi / 6);
+    constexpr double angle = Globals::Pi / 6.0;
+    const double cos30 = std::cos(angle);
+    const double sin30 = std::sin(angle);
 
     const double r = std::sqrt(area / (cos30*(1+sin30))); // Circumradius
     const double apotheme = r*sin30;
