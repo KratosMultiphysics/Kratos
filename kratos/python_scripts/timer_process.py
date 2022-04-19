@@ -4,6 +4,8 @@ import KratosMultiphysics
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not settings.Has("Parameters"):
+        settings.AddValue("Parameters", KratosMultiphysics.Parameters())
     return TimerProcess(Model, settings["Parameters"])
 
 # All the processes python processes should be derived from "Process"
