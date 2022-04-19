@@ -80,8 +80,7 @@ def _ValidateAndAssignDofDefaults(dof_settings, available_dofs):
         "system_parameters":{
             "mass"      : 1.0,
             "stiffness" : 1.0,
-            "damping"   : 0.0,
-            "modulus_self_weight": 0.0
+            "damping"   : 0.0
         }
     }''')
 

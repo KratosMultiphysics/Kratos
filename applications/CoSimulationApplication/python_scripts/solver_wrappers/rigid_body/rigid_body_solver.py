@@ -92,6 +92,8 @@ class RigidBodySolver(object):
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_MOMENT)
 
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
         self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
@@ -114,7 +116,6 @@ class RigidBodySolver(object):
         self.M = np.zeros((self.system_size,self.system_size)) # Mass matrix
         self.C = np.zeros((self.system_size,self.system_size)) # Damping matrix
         self.K = np.zeros((self.system_size,self.system_size)) # Stiffness matrix
-        self.modulus_self_weight = np.zeros(self.system_size) # Gravity acceleration
 
         # Fill the initialised values with the ones from the parameters
         for index, dof in enumerate(self.available_dofs):
@@ -122,7 +123,6 @@ class RigidBodySolver(object):
             self.M[index][index] = dof_settings[dof]['system_parameters']['mass'].GetDouble()
             self.C[index][index] = dof_settings[dof]['system_parameters']['damping'].GetDouble()
             self.K[index][index] = dof_settings[dof]['system_parameters']['stiffness'].GetDouble()
-            self.modulus_self_weight[index] = dof_settings[dof]['system_parameters']['modulus_self_weight'].GetDouble()
 
 
     def _InitializeGeneralizedAlphaParameters(self):
@@ -318,7 +318,7 @@ class RigidBodySolver(object):
     def _CalculateEffectiveLoad(self):
 
         # Calculate the total load
-        self_weight = self._CalculateSelfWeight()
+        self_weight = self._GetCompleteVector("rigid_body", KM.BODY_FORCE, KM.BODY_MOMENT)
         external_load = self._GetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT)
         prescribed_load = self._GetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT)
         self.total_load = external_load + prescribed_load + self_weight
@@ -367,13 +367,6 @@ class RigidBodySolver(object):
         reaction = self.C.dot(v - v_root) + self.K.dot(x - x_root)
 
         return reaction
-
-
-    def _CalculateSelfWeight(self):
-
-        self_weight = self.M.dot(self.modulus_self_weight)
-
-        return self_weight
 
 
     def _CalculateEquivalentForceFromRootPointDisplacement(self):
