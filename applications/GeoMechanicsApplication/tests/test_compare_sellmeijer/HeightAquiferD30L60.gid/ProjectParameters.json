@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "HeightAquiferD29L90",
+        "problem_name": "HeightAquiferD30L60",
         "start_time": 0.0,
         "end_time": 1.0,
         "echo_level": 1,
@@ -14,7 +14,7 @@
         "start_time": 0.0,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "HeightAquiferD29L90"
+            "input_filename": "HeightAquiferD30L60"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
@@ -92,7 +92,7 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "HeightAquiferD29L90",
+                    "output_name": "HeightAquiferD30L60",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {
@@ -118,6 +118,9 @@
                                 "LOCAL_FLUID_FLUX_VECTOR",
                                 "LOCAL_PERMEABILITY_MATRIX",
                                 "HYDRAULIC_HEAD",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
                                 "PIPE_ACTIVE"
                             ]
                         },
@@ -155,7 +158,7 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 3.864149893513602,
+                    "reference_coordinate": 2.88,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000

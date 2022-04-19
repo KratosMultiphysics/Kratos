@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "HeightAquiferD29L30",
+        "problem_name": "HeightAquiferD30L90",
         "start_time": 0.0,
         "end_time": 1.0,
         "echo_level": 1,
@@ -14,7 +14,7 @@
         "start_time": 0.0,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "HeightAquiferD29L30"
+            "input_filename": "HeightAquiferD30L90"
         },
         "material_import_settings": {
             "materials_filename": "MaterialParameters.json"
@@ -40,7 +40,6 @@
         "rayleigh_m": 0.0,
         "rayleigh_k": 0.0,
         "strategy_type": "newton_raphson_with_piping",
-        "max_piping_iterations": 500,
         "convergence_criterion": "water_pressure_criterion",
         "displacement_relative_tolerance": 0.0001,
         "displacement_absolute_tolerance": 1e-09,
@@ -82,7 +81,8 @@
         "body_domain_sub_model_part_list": [
             "Soil",
             "Embankment"
-        ]
+        ],
+        "max_piping_iterations": 500
     },
     "output_processes": {
         "gid_output": [
@@ -92,7 +92,7 @@
                 "process_name": "GiDOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "output_name": "HeightAquiferD29L30",
+                    "output_name": "HeightAquiferD30L90",
                     "postprocess_parameters": {
                         "result_file_configuration": {
                             "gidpost_flags": {
@@ -155,7 +155,7 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 1.2364783100778038,
+                    "reference_coordinate": 10,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000

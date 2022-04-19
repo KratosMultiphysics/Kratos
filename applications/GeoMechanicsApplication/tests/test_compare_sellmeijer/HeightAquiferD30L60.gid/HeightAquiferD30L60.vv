@@ -1,12 +1,12 @@
-BeginZE D:/kratos_new/applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD29L90.gid/HeightAquiferD29L90.vv
-   x -124.678001403808594 122.978363037109375
-   y 74.1277313232421875 -74.6685256958007813
-   z -248.746856689453125 248.746856689453125
-   e 82.915618896484375
+BeginZE D:/kratos_new/applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD30L60.gid/HeightAquiferD30L60.vv
+   x -76.77593994140625 84.265655517578125
+   y 51.4027214050292969 -45.3100547790527344
+   z -198.99749755859375 198.99749755859375
+   e 66.3324966430664063
    v 0 0 0
    r 1
    m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
-   c 0 -2.72727274894714355 0
+   c 4.29551506042480469 -2.01908969879150391 0
    pd 0
    pno 0
    pfo 0
@@ -29,7 +29,7 @@ BeginZE D:/kratos_new/applications/GeoMechanicsApplication/tests/test_compare_se
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE D:/kratos_new/applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD29L90.gid/HeightAquiferD29L90.vv
+EndZE D:/kratos_new/applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD30L60.gid/HeightAquiferD30L60.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
