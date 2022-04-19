@@ -222,17 +222,19 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
         }
     } // IP loop
 
-    if (std::abs(Kpp) > 0.0) {
+    if (std::abs(Kpp) > (std::numeric_limits<double>::epsilon())) {
         if (CalculateStiffnessMatrixFlag)
             noalias(rLeftHandSideMatrix) -= outer_prod(Kup, Kup) / Kpp;
         if (CalculateResidualVectorFlag)
             noalias(rRightHandSideVector) += Kup * Fp / Kpp;
 
         // Now we statically condensate the elemental pressure
-        Vector displ, displ_old;
-        GetValuesVector(displ, 0);
-        GetValuesVector(displ_old, 1);
-        this->GetValue(PRESSURE) -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
+        if (CalculateStiffnessMatrixFlag || CalculateResidualVectorFlag) {
+            Vector displ, displ_old;
+            GetValuesVector(displ, 0);
+            GetValuesVector(displ_old, 1);
+            this->GetValue(PRESSURE) -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
+        }
     }
 
     KRATOS_CATCH( "" )
