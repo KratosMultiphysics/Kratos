@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "containers/distributed_system_vector.h"
@@ -23,6 +24,7 @@
 #include "containers/distributed_csr_matrix.h"
 #include "add_distributed_sparse_matrices_to_python.h"
 #include "mpi/utilities/amgcl_distributed_csr_spmm_utilities.h"
+
 namespace Kratos {
 namespace Python {
 
@@ -175,8 +177,18 @@ void AddDistributedSparseMatricesToPython(pybind11::module& m)
             const IndexType i,
             const IndexType j){
             return self.GetLocalDataByGlobalId(i,j);} )
-        .def("GetDiagonalIndex2DataInGlobalNumbering", &DistributedCsrMatrix<double,IndexType>::GetDiagonalIndex2DataInGlobalNumbering)
-        .def("GetOffDiagonalIndex2DataInGlobalNumbering", &DistributedCsrMatrix<double,IndexType>::GetOffDiagonalIndex2DataInGlobalNumbering)
+        .def("GetDiagonalIndex2DataInGlobalNumbering", [](DistributedCsrMatrix<double,IndexType>& self) {
+            return py::array_t<IndexType>(
+                self.GetDiagonalIndex2DataInGlobalNumbering().size(),
+                self.GetDiagonalIndex2DataInGlobalNumbering().data().begin()
+            );
+        } )
+        .def("GetOffDiagonalIndex2DataInGlobalNumbering", [](DistributedCsrMatrix<double,IndexType>& self) {
+            return py::array_t<IndexType>(
+                self.GetOffDiagonalIndex2DataInGlobalNumbering().size(),
+                self.GetOffDiagonalIndex2DataInGlobalNumbering().data().begin()
+            );
+        } )
         .def("SpMV", [](DistributedCsrMatrix<double,IndexType>& rA,
                         DistributedSystemVector<double,IndexType>& x,
                         DistributedSystemVector<double,IndexType>& y){
