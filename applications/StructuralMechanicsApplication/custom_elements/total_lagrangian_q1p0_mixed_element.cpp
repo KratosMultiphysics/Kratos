@@ -229,7 +229,7 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
             noalias(rRightHandSideVector) += Kup * Fp / Kpp;
 
         // Now we statically condensate the elemental pressure
-        if (CalculateStiffnessMatrixFlag || CalculateResidualVectorFlag) {
+        if (CalculateStiffnessMatrixFlag && CalculateResidualVectorFlag) {
             Vector displ, displ_old;
             GetValuesVector(displ, 0);
             GetValuesVector(displ_old, 1);
