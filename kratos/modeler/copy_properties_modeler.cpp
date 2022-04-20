@@ -55,13 +55,7 @@ void CopyPropertiesModeler::SetupModelPart()
     auto& r_destination_model_part = mpModel->GetModelPart(destination_model_part_name);
 
     // clear the properties of the destination model part
-    std::vector<std::size_t> properties_ids;
-    for (const auto& r_prop : r_origin_model_part.rProperties()) {
-        properties_ids.push_back(r_prop.Id());
-    }
-    for (auto prop_id : properties_ids) {
-        r_destination_model_part.RemovePropertiesFromAllLevels(prop_id);
-    }
+    r_destination_model_part.SetProperties(Kratos::make_shared<ModelPart::PropertiesContainerType>());
 
     // make copies of the properties
     RecursivelyCopyProperties(r_origin_model_part, r_destination_model_part);
