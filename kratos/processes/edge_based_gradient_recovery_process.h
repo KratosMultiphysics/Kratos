@@ -24,16 +24,12 @@
 #include "includes/define.h"
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_flags.h"
-#include "elements/levelset_convection_element_simplex.h"
-#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
-#include "geometries/geometry_data.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "processes/find_global_nodal_neighbours_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/pointer_communicator.h"
-#include "utilities/pointer_map_communicator.h"
 
 namespace Kratos
 {
@@ -60,12 +56,12 @@ namespace Kratos
  * @brief Edge-based gradient recovery process
  * This process implements the edge-based gradient recovery process technique
  * described in https://onlinelibrary.wiley.com/doi/epdf/10.1002/nme.4374.
- * @tparam TDim
+ * @tparam TDataType
  * @tparam TSparseSpace
  * @tparam TDenseSpace
  * @tparam TLinearSolver
  */
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver >
+template<class TDataType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class EdgeBasedGradientRecoveryProcess : public Process
 {
 public:
@@ -73,7 +69,14 @@ public:
     ///@name Type Definitions
     ///@{
 
+    static constexpr bool IsDataTypeScalar = std::is_same<TDataType, double>();
+
+    using GradientDataType = typename std::conditional<IsDataTypeScalar, array_1d<double,3>, Matrix>::type;
+
+    using NodeType = typename ModelPart::NodeType;
+
     using SolvingStrategyType = ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver >;
+
     using BuilderAndSolverPointerType = typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer;
 
     ///@}
@@ -98,34 +101,10 @@ public:
         Model& rModel,
         typename TLinearSolver::Pointer pLinearSolver,
         Parameters ThisParameters)
-        : EdgeBasedGradientRecoveryProcess(
-            rModel.GetModelPart(ThisParameters["model_part_name"].GetString()),
-            pLinearSolver,
-            ThisParameters)
+        : EdgeBasedGradientRecoveryProcess(rModel, ThisParameters)
     {
-    }
-
-    /**
-     * @brief Construct a new Edge Based Gradient Recovery Process object
-     * Level set convection proces model part constructor
-     * @param rBaseModelPart Origin model part
-     * @param pLinearSolver Linear solver to be used in the level set convection problem
-     * @param ThisParameters Json settings encapsulating the process configuration (see also GetDefaultParameters)
-     */
-    EdgeBasedGradientRecoveryProcess(
-        ModelPart& rBaseModelPart,
-        typename TLinearSolver::Pointer pLinearSolver,
-        Parameters ThisParameters)
-        : EdgeBasedGradientRecoveryProcess(
-            rBaseModelPart,
-            ThisParameters)
-    {
-        KRATOS_TRY
-
         auto p_builder_solver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);
         InitializeGradientRecoveryStrategy(p_builder_solver);
-
-        KRATOS_CATCH("")
     }
 
     /// Copy constructor.
@@ -148,116 +127,35 @@ public:
 
     int Check() override
     {
-        //FIXME: We should check according to the origin variable type
-        // Check that the level set and convection variables are in the nodal database
-        VariableUtils().CheckVariableExists<Variable<double>>(*mpOriginVar, mrBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mrBaseModelPart.Nodes());
+        //FIXME: We should check according to the origin variable type and database
+        // VariableUtils().CheckVariableExists<Variable<TDataType>>(*mpOriginVar, mpOriginModelPart->Nodes());
+        // VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mpOriginModelPart->Nodes());
 
         return 0;
     }
 
-    /**
-     * @brief Perform the level-set convection
-     * This solver provides a stabilized convection solver based on [Codina, R., 1993. Comput. Methods Appl. Mech. Engrg., 110(3-4), pp.325-342.]
-     * It uses the sub-stepping approach to comply with the user defined maximum CFL number.
-     * The error compensation is done according to the BFECC algorithm, which requires forward, backward, and the final forward solution steps (that triplicates the computational cost).
-     * The error compensation severely disturbs the monotonicity of the results that is compensated for by implementing a limited BFECC algorithm.
-     * The limiter relies on the nodal gradient of LevelSetVar (non-historical variable LevelSetGradientVar). For more info see [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41].
-     */
     void Execute() override
     {
         KRATOS_TRY;
 
         // Fill the auxiliary convection model part if not done yet
-        if(!mModelPartIsInitialized){
-            InitializeGradientRecoveryModelPart(mrBaseModelPart);
+        if (!mModelPartIsInitialized) {
+            InitializeGradientRecoveryModelPart(*mpOriginModelPart);
         }
 
-        // Evaluate steps needed to achieve target max_cfl
-        const auto n_substep = EvaluateNumberOfSubsteps();
+        // Set the gradient penalty coefficient in the gradient model part ProcessInfo container
+        auto& r_process_info = mpGradientRecoveryModelPart->GetProcessInfo();
+        r_process_info.SetValue(GRADIENT_PENALTY_COEFFICIENT, mSettings["gradient_penalty_coefficient"].GetDouble());
 
-        auto& rCurrentProcessInfo = mpGradientRecoveryModelPart->GetProcessInfo();
+        // Set the getter functions according to the origin and gradient variables databases
+        // std::function<TDataType&<NodeType&, const Variable<TDataType>&>> origin_value_getter;
+        // std::function<GradientDataType&<NodeType&, const Variable<GradientDataType>&>> gradient_value_getter;
 
-        // Save the variables to be employed so that they can be restored after the solution
-        const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
-        const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-
-        // Save current level set value and current and previous step velocity values
-        IndexPartition<int>(mpGradientRecoveryModelPart->NumberOfNodes()).for_each(
-        [&](int i_node){
-            const auto it_node = mpGradientRecoveryModelPart->NodesBegin() + i_node;
-            mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
-            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
-            mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpOriginVar,1);
-            }
-        );
-
-        const double dt =  previous_delta_time / static_cast<double>(n_substep);
-        rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
-        rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpOriginVar);
-
-        // We set these values at every time step as other processes/solvers also use them
-        auto fill_process_info_function = GetFillProcessInfoFunction();
-        fill_process_info_function(mrBaseModelPart);
-
-        for(unsigned int step = 1; step <= n_substep; ++step){
-            KRATOS_INFO_IF("EdgeBasedGradientRecoveryProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
-                "Doing step "<< step << " of " << n_substep << std::endl;
-
-            if (mIsBfecc || mElementRequiresLevelSetGradient){
-                mpGradientCalculator->Execute();
-            }
-
-            // Compute shape functions of old and new step
-            const double Nold = 1.0 - static_cast<double>(step) / static_cast<double>(n_substep);
-            const double Nnew = 1.0 - Nold;
-
-            const double Nold_before = 1.0 - static_cast<double>(step-1) / static_cast<double>(n_substep);
-            const double Nnew_before = 1.0 - Nold_before;
-
-            // Emulate clone time step by copying the new distance onto the old one
-            IndexPartition<int>(mpGradientRecoveryModelPart->NumberOfNodes()).for_each(
-            [&](int i_node){
-                auto it_node = mpGradientRecoveryModelPart->NodesBegin() + i_node;
-
-                const array_1d<double,3>& r_v = mVelocity[i_node];
-                const array_1d<double,3>& r_v_old = mVelocityOld[i_node];
-
-                noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = Nold * r_v_old + Nnew * r_v;
-                noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = Nold_before * r_v_old + Nnew_before * r_v;
-                it_node->FastGetSolutionStepValue(*mpOriginVar, 1) = it_node->FastGetSolutionStepValue(*mpOriginVar);
-            }
-            );
-
-            // Storing the levelset variable for error calculation and Evaluating the limiter
-            if (mEvaluateLimiter) {
-                EvaluateLimiter();
-            }
-
-            mpSolvingStrategy->InitializeSolutionStep();
-            mpSolvingStrategy->Predict();
-            mpSolvingStrategy->SolveSolutionStep(); // forward convection to reach phi_n+1
-            mpSolvingStrategy->FinalizeSolutionStep();
-
-            // Error Compensation and Correction
-            if (mIsBfecc) {
-                ErrorCalculationAndCorrection();
-            }
-        }
-
-        // Reset the processinfo to the original settings
-        rCurrentProcessInfo.SetValue(DELTA_TIME, previous_delta_time);
-        rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(r_previous_var);
-
-        // Reset the velocities and levelset values to the one saved before the solution process
-        IndexPartition<int>(mpGradientRecoveryModelPart->NumberOfNodes()).for_each(
-        [&](int i_node){
-            auto it_node = mpGradientRecoveryModelPart->NodesBegin() + i_node;
-            it_node->FastGetSolutionStepValue(*mpConvectVar) = mVelocity[i_node];
-            it_node->FastGetSolutionStepValue(*mpConvectVar,1) = mVelocityOld[i_node];
-            it_node->FastGetSolutionStepValue(*mpOriginVar,1) = mOldDistance[i_node];
-        }
-        );
+        // Solve the gradient recovery global problem
+        mpSolvingStrategy->InitializeSolutionStep();
+        mpSolvingStrategy->Predict();
+        mpSolvingStrategy->SolveSolutionStep();
+        mpSolvingStrategy->FinalizeSolutionStep();
 
         KRATOS_CATCH("")
     }
@@ -271,33 +169,20 @@ public:
         mModelPartIsInitialized = false;
 
         mpSolvingStrategy->Clear();
-
-        mVelocity.clear();
-        mVelocityOld.clear();
-        mOldDistance.clear();
-
-        mSigmaPlus.clear();
-        mSigmaMinus.clear();
-        mLimiter.clear();
-
-        mError.clear();
     }
 
     const Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"({
-            "model_part_name" : "",
             "echo_level" : 0,
-            "convection_model_part_name" : "",
-            "levelset_variable_name" : "DISTANCE",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "eulerian_error_compensation" : false,
-            "BFECC_limiter_acuteness" : 2.0,
-            "element_type" : "levelset_convection_supg",
-            "element_settings" : {}
+            "model_part_name" : "",
+            "gradient_recovery_model_part_name" : "",
+            "origin_variable" : "",
+            "gradient_variable" : "",
+            "gradient_penalty_coefficient" : 1.0e-6,
+            "calculate_nodal_neighbours" : true,
+            "is_historical_origin_variable" : true,
+            "is_historical_gradient_variable": true
         })");
 
         return default_parameters;
@@ -342,47 +227,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrBaseModelPart;
-
     Model& mrModel;
+
+    ModelPart* mpOriginModelPart;
 
     ModelPart* mpGradientRecoveryModelPart = nullptr;
 
-    const Variable<double>* mpOriginVar = nullptr;
+    const Variable<TDataType>* mpOriginVar = nullptr;
 
-    const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
-
-    const Variable<array_1d<double,3>>* mpLevelSetGradientVar = nullptr;
-
-    double mMaxAllowedCFL = 1.0;
-
-	unsigned int mMaxSubsteps = 0;
-
-    bool mIsBfecc;
-
-    bool mElementRequiresLimiter;
-
-    bool mElementRequiresLevelSetGradient;
-
-    bool mEvaluateLimiter;
-
-    double mPowerBfeccLimiter = 2.0;
-
-    double mPowerElementalLimiter = 4.0;
-
-    Vector mError;
-
-    Vector mOldDistance;
-
-    Vector mSigmaPlus;
-
-    Vector mSigmaMinus;
-
-    Vector mLimiter;
-
-    std::vector<array_1d<double,3>> mVelocity;
-
-    std::vector<array_1d<double,3>> mVelocityOld;
+    const Variable<GradientDataType>* mpGradientVar = nullptr;
 
     bool mModelPartIsInitialized = false;
 
@@ -390,11 +243,9 @@ protected:
 
     std::string mGradientModelPartName;
 
-    std::string mConvectionElementType;
+    std::string mElementRegisterName;
 
-    const Element* mpConvectionFactoryElement = nullptr;
-
-    Parameters mLevelSetConvectionSettings;
+    Parameters mSettings;
 
     ///@}
     ///@name Protected Operators
@@ -405,20 +256,22 @@ protected:
     ///@{
 
     EdgeBasedGradientRecoveryProcess(
-        ModelPart& rModelPart,
+        Model& rModel,
         Parameters ThisParameters)
-        : mrBaseModelPart(rModelPart)
-        , mrModel(rModelPart.GetModel())
+        : Process()
+        , mrModel(rModel)
     {
         // Validate the common settings as well as the element formulation specific ones
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        ThisParameters["element_settings"].ValidateAndAssignDefaults(GetConvectionElementDefaultParameters(ThisParameters["element_type"].GetString()));
 
         // Checks and assign all the required member variables
         CheckAndAssignSettings(ThisParameters);
+
+        // Save validated parameters
+        mSettings = ThisParameters;
     }
 
-    virtual void InitializeGradientRecoveryModelPart(ModelPart& rBaseModelPart)
+    virtual void InitializeGradientRecoveryModelPart(ModelPart& rOriginModelPart)
     {
         KRATOS_TRY
 
@@ -429,33 +282,48 @@ protected:
         mpGradientRecoveryModelPart = &(mrModel.CreateModelPart(mGradientModelPartName));
 
         // Add NODAL_VAUX variable to calculate the gradient with it
-        mpGradientRecoveryModelPart->AddNodalSolutionStepVariable(NODAL_VAUX)
+        // Note that NODAL_MAUX is not used as the element retreives it from the non-historical database
+        mpGradientRecoveryModelPart->AddNodalSolutionStepVariable(NODAL_VAUX);
 
         // Emulate the origin model part nodes in the gradient model part
         auto& r_gradient_mp = *mpGradientRecoveryModelPart;
-        for (const auto& r_orig_node : rBaseModelPart.Nodes()) {
-            r_gradient_mp.CreateNewNode(r_orig_node.Id());
+        for (const auto& r_orig_node : rOriginModelPart.Nodes()) {
+            auto p_new_node = r_gradient_mp.CreateNewNode(r_orig_node.Id(), r_orig_node);
         }
 
         // Ensure that the nodes have the auxiliary gradient variable as a DOF
-        VariableUtils().AddDof<Variable<array_1d<double,3>>>(NODAL_VAUX, rBaseModelPart);
+        VariableUtils().AddDof<Variable<array_1d<double,3>>>(NODAL_VAUX, rOriginModelPart);
 
-        // Generating the edge elements
-        //TODO: Think about some sort of reserve()/shrink_to_fit() for the Elements() container of the model part
-
-
-
-
-        for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            // Create the new element from the factory registered one
-            auto p_element = mpConvectionFactoryElement->Create(
-                it_elem->Id(),
-                it_elem->pGetGeometry(),
-                it_elem->pGetProperties());
-
-            mpGradientRecoveryModelPart->Elements().push_back(p_element);
+        // Calculate the nodal neighbours in the origin model part
+        if (mSettings["calculate_nodal_neighbours"].GetBool()) {
+            FindGlobalNodalNeighboursProcess neigh_proc(rOriginModelPart);
+            neigh_proc.Execute();
         }
 
+        // Initialize flags in origin model part
+        VariableUtils().SetFlag(VISITED, false, rOriginModelPart.Nodes());
+
+        // Generating the edge elements
+        // Note that we take advantage of the fact that the neighbour connectivities are the same
+        std::size_t id = 0;
+        const auto p_prop_0 = r_gradient_mp.CreateNewProperties(0);
+        const std::size_t n_nodes = rOriginModelPart.NumberOfNodes();
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            // Get origin node neighbours to create the edge elements
+            const auto it_node_orig_mp = rOriginModelPart.NodesBegin() + i_node;
+            auto& r_orig_neigh = it_node_orig_mp->GetValue(NEIGHBOUR_NODES);
+            for (auto& r_neigh : r_orig_neigh) {
+                if (!r_neigh.Is(VISITED)) {
+                    std::vector<std::size_t> aux_ids = {it_node_orig_mp->Id(), r_neigh.Id()};
+                    r_gradient_mp.CreateNewElement(mElementRegisterName, id++, aux_ids, p_prop_0);
+                }
+            }
+
+            // Flag the current node as visited to avoid creating the same edge twice
+            it_node_orig_mp->Set(VISITED, true);
+        }
+
+        // Set the edges model part initialization flag to avoid creating it twice
         mModelPartIsInitialized = true;
 
         KRATOS_CATCH("")
@@ -497,56 +365,57 @@ private:
      */
     void CheckAndAssignSettings(const Parameters ThisParameters)
     {
-        mLevelSetConvectionSettings = ThisParameters;
+        mSettings = ThisParameters;
 
-        // Convection element formulation settings
-        std::string element_type = ThisParameters["element_type"].GetString();
-        const auto element_list = GetConvectionElementsList();
-        KRATOS_ERROR_IF(std::find(element_list.begin(), element_list.end(), element_type) == element_list.end()) << "Specified \'" << element_type << "\' is not in the available elements list." << std::endl;
-        mConvectionElementType = GetConvectionElementName(element_type);
-        std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
-        mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
+        // Set the origin and gradient variables pointers
+        mpOriginVar = &KratosComponents<Variable<double>>::Get(ThisParameters["origin_variable"].GetString());
+        mpGradientVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["gradient_variable"].GetString());
 
-        mpOriginVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
-        mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        if (ThisParameters["convection_model_part_name"].GetString() == "") {
-            mGradientModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
+        // Check user-defined origin model part
+        KRATOS_ERROR_IF(ThisParameters["model_part_name"].GetString() == "") << "Empty 'model_part_name'. This needs to be provided." << std::endl;
+        mpOriginModelPart = &(mrModel.GetModelPart(ThisParameters["model_part_name"].GetString()));
+
+        // Set the gradient recovery element name
+        KRATOS_ERROR_IF_NOT(mpOriginModelPart->GetProcessInfo().Has(DOMAIN_SIZE)) << "No 'DOMAIN_SIZE' in origin model part ProcessInfo container." << std::endl;
+        const std::size_t domain_size = mpOriginModelPart->GetProcessInfo().GetValue(DOMAIN_SIZE);
+        mElementRegisterName = "EdgeBasedGradientRecoveryElement" + std::to_string(domain_size) + "D2N";
+
+        // Check origin model part content
+        KRATOS_ERROR_IF(mpOriginModelPart->GetCommunicator().GlobalNumberOfNodes() == 0) << "The origin model part has no nodes." << std::endl;
+        if(domain_size == 2){
+            KRATOS_ERROR_IF(mpOriginModelPart->ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
+                "In 2D the element type is expected to be a triangle. Quadrilateral elements require extra artificial edges (not implemented yet)." << std::endl;
+        } else if(domain_size == 3) {
+            KRATOS_ERROR_IF(mpOriginModelPart->ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
+                "In 3D the element type is expected to be a tetrahedra. Hexahedral elements require extra artificial edges (not implemented yet)." << std::endl;
+        }
+
+        // Check and set the gradient model part name
+        if (ThisParameters["gradient_recovery_model_part_name"].GetString() == "") {
+            mGradientModelPartName = mpOriginModelPart->Name() + "GradientRecoveryPart";
         } else {
-            mGradientModelPartName = ThisParameters["convection_model_part_name"].GetString();
+            mGradientModelPartName = ThisParameters["gradient_recovery_model_part_name"].GetString();
         }
     }
 
     void InitializeGradientRecoveryStrategy(BuilderAndSolverPointerType pBuilderAndSolver)
     {
-        // Check that there is at least one element and node in the model
-        KRATOS_ERROR_IF(mrBaseModelPart.NumberOfNodes() == 0) << "The model has no nodes." << std::endl;
-
-        // Check the base model part element family (only simplex elements are supported)
-        if(TDim == 2){
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
-                "In 2D the element type is expected to be a triangle. Quadrilateral elements require extra artificial edges (not implemented yet)." << std::endl;
-        } else if(TDim == 3) {
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
-                "In 3D the element type is expected to be a tetrahedra. Hexahedral elements require extra artificial edges (not implemented yet)." << std::endl;
-        }
-
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
-        InitializeGradientRecoveryModelPart(mrBaseModelPart);
+        InitializeGradientRecoveryModelPart(*mpOriginModelPart);
 
         // Create and initialize the linear strategy
         bool calculate_norm_dx = false;
         bool calculate_reactions = false;
         bool reform_dof_at_each_iteration = false;
         auto p_scheme = Kratos::make_shared<ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>>();
-        mpSolvingStrategy = Kratos::make_unique< ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver > >(
+        mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver>>(
             *mpGradientRecoveryModelPart,
             p_scheme,
             pBuilderAndSolver,
             calculate_reactions,
             reform_dof_at_each_iteration,
             calculate_norm_dx);
-
-        mpSolvingStrategy->SetEchoLevel(mLevelSetConvectionSettings["echo_level"].GetInt());
+        mpSolvingStrategy->SetEchoLevel(mSettings["echo_level"].GetInt());
         mpSolvingStrategy->Check();
         mpSolvingStrategy->Initialize();
     }
@@ -578,16 +447,16 @@ private:
 ///@{
 
 /// Input stream function
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+template<class TDataType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    EdgeBasedGradientRecoveryProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
+    EdgeBasedGradientRecoveryProcess<TDataType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
 
 /// Output stream function
-template< unsigned int TDim, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+template<class TDataType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const EdgeBasedGradientRecoveryProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>& rThis){
+    const EdgeBasedGradientRecoveryProcess<TDataType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis){
 
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
