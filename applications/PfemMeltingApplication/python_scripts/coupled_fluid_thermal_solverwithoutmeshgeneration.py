@@ -10,7 +10,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
 import KratosMultiphysics.MeshingApplication as MeshApp
 import KratosMultiphysics.PfemMeltingApplication as PfemM
 
-
+import time as timer
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -106,6 +106,21 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         self.faceheatflux = PfemM.FaceHeatFlux()
 
         self.HeatSource = PfemM.HeatSource()
+        
+        self.outstring3 = "Volumen_withoutmesh"
+        self.outputfile4 = open(self.outstring3, 'w')
+        
+        self.outstring5 = "computational_times"
+        self.outputfile6 = open(self.outstring5, 'w')
+
+        
+        self.streamlineintegration=0.0
+        self.fillingsubmodelparts=0.0
+        self.initializeSolutionStep=0.0
+        self.problemsolution=0.0
+        self.meshingprocedure=0.0
+
+
 
     def readmeshSettings(self):
 
@@ -530,24 +545,47 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                     node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0, 1.0) #NODES NOT 
                     node.Fix(KratosMultiphysics.TEMPERATURE)   
         
+        
+        t1 = timer.time()
+        
         self.Streamline.RungeKutta4ElementbasedSI(self.fluid_solver.main_model_part,100)
 
+        t2= timer.time()
+        self.streamlineintegration=self.streamlineintegration + t2 - t1
+        
         self.inverted=False
         
         self.inverted=self.Streamline.CheckInvertElement(self.fluid_solver.main_model_part,self.domain_size )
 
         self.AuxReMesh()
 
+        t3=timer.time()
+        self.meshingprocedure=self.meshingprocedure + t3 - t2
+        
+        #Volume evaluation
+        volume=self.Streamline.CalculateVolume(self.fluid_solver.main_model_part,3)
+        step=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+        self.outputfile4.write(str(step)+" "+ str(volume) +"\n")
+        
+        t4=timer.time()
         if(self.step==self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]):
             
             self.filling_submodelparts()
         else:
             self.filling_submodelparts_aux()
             
+        t5=timer.time()    
+        self.fillingsubmodelparts=self.fillingsubmodelparts + t5 - t4    
+        
+        
         self.fluid_solver.InitializeSolutionStep()
 
         self.thermal_solver.InitializeSolutionStep()
 
+        t6=timer.time()
+        self.initializeSolutionStep=self.initializeSolutionStep + t6 - t5
+        
 
     def Predict(self):
 
@@ -570,7 +608,7 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,0, 0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0, 0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,0, 0.0)
-                	   
+        t7=timer.time()          	   
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
 
         for node in self.fluid_solver.main_model_part.Nodes:
@@ -583,7 +621,13 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
 
         self.CalculateViscosityaux()
+        t8=timer.time()
+        self.problemsolution=self.problemsolution + t8 - t7
 
+        step=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        self.outputfile6.write(str(step)+" "+ str(self.streamlineintegration) +" "+ str(self.meshingprocedure) +" "+ str(self.fillingsubmodelparts) +" "+ str(self.initializeSolutionStep)+" "+ str(self.problemsolution) +"\n")
+        
+        
         return (fluid_is_converged and thermal_is_converged)
 
     def FinalizeSolutionStep(self):

@@ -181,7 +181,9 @@ public:
             //KRATOS_WATCH(mRadius)
             if(distance_to_laser_axis < mRadius) {
                 double& aux= list_of_nodes[k]->FastGetSolutionStepValue(FACE_HEAT_FLUX);
-                aux =  cos_angle * mPower / (Globals::Pi * mRadius * mRadius);
+                double aux_1 =  cos_angle * mPower / (Globals::Pi * mRadius * mRadius);
+                if (aux_1>0.000000001) aux=aux_1;
+                else aux=0.0;
                 //aux=2000000.0;
 
 		//KRATOS_WATCH(aux)

@@ -645,7 +645,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 		        //counting number of structural nodes
 		        vol = GeometryUtils::CalculateVolume3D(geom);
 
-	     	        if(vol <= 0)  
+	     	        if(vol <= 0 or vol<= 0.00000000000001)  
 // 	     	        if(vol > 0)  
 	     	        {
 	     	        	inverted=true;
@@ -710,10 +710,10 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
             				if(is_inside_2 == true) parent.Set(TO_ERASE, true);
             				if(is_inside_3 == true) parent.Set(TO_ERASE, true);*/
             				
-            				if(is_inside_0 == true) all_neigh_0=true;
-            				if(is_inside_1 == true) all_neigh_1=true;
-            				if(is_inside_2 == true) all_neigh_2=true;
-            				if(is_inside_3 == true) all_neigh_3=true;
+            				if(is_inside_0 == true) {all_neigh_0=true; pNode0.Set(TO_ERASE, true);}
+            				if(is_inside_1 == true) {all_neigh_1=true;pNode1.Set(TO_ERASE, true);}
+            				if(is_inside_2 == true) {all_neigh_2=true;pNode2.Set(TO_ERASE, true);}
+            				if(is_inside_3 == true) {all_neigh_3=true;pNode3.Set(TO_ERASE, true);}
             				
             				//KRATOS_WATCH("--------------------------->")
             				//KRATOS_WATCH("--------------------------->")
@@ -771,7 +771,7 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
 	}
 	
 	  ThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-		    
+          ThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 	
 	
 	return inverted;
@@ -779,6 +779,44 @@ void RungeKutta4KernelbasedSI(ModelPart& rModelPart, unsigned int substeps)
         KRATOS_CATCH("")
     }
 
+
+    double CalculateVolume(ModelPart& ThisModelPart, int domain_size)
+    {
+        KRATOS_TRY
+
+        //set to zero the nodal area
+        bool inverted=false;
+	double vol=0.0;
+	double totvol=0.0;
+	array_1d<double,TDim+1> N;
+
+        
+        if(domain_size == 2)
+        {
+	    KRATOS_ERROR<<"error: this part is emptyyyy";
+        }
+        else
+        {
+
+            for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+                    i!=ThisModelPart.ElementsEnd(); i++)
+		    {
+		        //calculating shape functions values
+		        Geometry< Node<3> >& geom = i->GetGeometry();
+
+		        //counting number of structural nodes
+		        vol = GeometryUtils::CalculateVolume3D(geom);
+                       totvol += vol;  
+		    }
+	}
+	
+	
+	
+	return totvol;
+
+        KRATOS_CATCH("")
+    }
+    
 
     private:
       inline double SPHCubicKernel(const double sigma, const double r, const double hmax)

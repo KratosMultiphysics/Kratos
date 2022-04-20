@@ -51,6 +51,7 @@ namespace py = pybind11;
    .def("RungeKutta4ElementbasedSI", &Streamline < 3 > ::RungeKutta4ElementbasedSI)
    .def("RungeKutta4KernelbasedSI", &Streamline < 3 > ::RungeKutta4KernelbasedSI)
    .def("CheckInvertElement", &Streamline < 3 > ::CheckInvertElement)
+   .def("CalculateVolume", &Streamline < 3 > ::CalculateVolume)
    ;
 
 
