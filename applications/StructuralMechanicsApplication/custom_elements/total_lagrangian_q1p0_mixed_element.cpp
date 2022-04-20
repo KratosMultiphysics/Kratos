@@ -217,26 +217,93 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
             this->CalculateAndAddKg(rLeftHandSideMatrix, this_kinematic_variables.DN_DX, this_constitutive_variables.StressVector, int_to_reference_weight);
         }
 
-        if ( CalculateResidualVectorFlag ) { // Calculation of the matrix is required
+        if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
             this->CalculateAndAddResidualVector(rRightHandSideVector, this_kinematic_variables, rCurrentProcessInfo, body_force, this_constitutive_variables.StressVector, int_to_reference_weight);
         }
     } // IP loop
 
-    if (std::abs(Kpp) > (std::numeric_limits<double>::epsilon())) {
-        if (CalculateStiffnessMatrixFlag)
-            noalias(rLeftHandSideMatrix) -= outer_prod(Kup, Kup) / Kpp;
-        if (CalculateResidualVectorFlag)
-            noalias(rRightHandSideVector) += Kup * Fp / Kpp;
+    if (CalculateStiffnessMatrixFlag)
+        noalias(rLeftHandSideMatrix) -= outer_prod(Kup, Kup) / Kpp;
+    if (CalculateResidualVectorFlag)
+        noalias(rRightHandSideVector) += Kup * Fp / Kpp;
 
-        // Now we statically condensate the elemental pressure
-        if (CalculateStiffnessMatrixFlag && CalculateResidualVectorFlag) {
-            Vector displ, displ_old;
-            GetValuesVector(displ, 0);
-            GetValuesVector(displ_old, 1);
-            this->GetValue(PRESSURE) -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
+    KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void TotalLagrangianQ1P0MixedElement::FinalizeNonLinearIteration(
+    const ProcessInfo &rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY
+
+    const auto &r_geometry = GetGeometry();
+    const SizeType number_of_nodes = r_geometry.size();
+    const SizeType dimension = r_geometry.WorkingSpaceDimension();
+    const auto strain_size = GetStrainSize();
+    const auto &r_props = GetProperties();
+
+    KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
+    ConstitutiveVariables this_constitutive_variables(strain_size);
+
+    // Resizing as needed the LHS
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+
+    // Some declarations
+    double int_to_reference_weight;
+
+    const double E  = r_props[YOUNG_MODULUS];
+    const double nu = r_props[POISSON_RATIO];
+
+    const double mu = E / (2.0 * (1.0 + nu));
+    const double bulk_modulus = CalculateBulkModulus(r_props);
+
+    double Kpp = 0.0;
+    double Fp = 0.0;
+    Vector Kup(mat_size);
+    noalias(Kup) = ZeroVector(mat_size);
+    Matrix inv_C(dimension, dimension);
+    Vector inv_c_voigt(strain_size);
+    double det;
+
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+
+        // Compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
+
+        const Matrix& r_C = prod(trans(this_kinematic_variables.F), this_kinematic_variables.F);
+        MathUtils<double>::InvertMatrix3(r_C, inv_C, det);
+        noalias(inv_c_voigt) = MathUtils<double>::StrainTensorToVector(inv_C, strain_size);
+        if (dimension == 2) {
+            inv_c_voigt[2] /= 2.0;
+        } else {
+            inv_c_voigt[3] /= 2.0;
+            inv_c_voigt[4] /= 2.0;
+            inv_c_voigt[5] /= 2.0;
         }
-    }
 
+        // Calculating weights for integration on the reference configuration
+        int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
+
+        if (dimension == 2 && r_props.Has(THICKNESS))
+            int_to_reference_weight *= r_props[THICKNESS];
+
+        // we compute u-p entities
+        noalias(Kup) -= int_to_reference_weight * this_kinematic_variables.detF * prod(trans(this_kinematic_variables.B), inv_c_voigt);
+        Kpp          -= int_to_reference_weight / bulk_modulus;
+        Fp           -= int_to_reference_weight * ((this_kinematic_variables.detF - 1.0) + (this->GetValue(PRESSURE) / bulk_modulus));
+
+    } // IP loop
+
+    Vector displ, displ_old;
+    GetValuesVector(displ, 0);
+    GetValuesVector(displ_old, 1);
+    this->GetValue(PRESSURE) -= (Fp + inner_prod(Kup, displ - displ_old)) / Kpp;
     KRATOS_CATCH( "" )
 }
 

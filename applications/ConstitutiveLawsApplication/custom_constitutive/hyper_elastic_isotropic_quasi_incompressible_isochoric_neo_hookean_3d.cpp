@@ -285,6 +285,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateSt
     const Flags& rFlags
 )
 {
+    KRATOS_TRY
     double v[308];
     const double one_third = 1.0 / 3.0;
     v[1]=rC(0,0);
@@ -348,7 +349,7 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateSt
     v[62]=v[203]*v[60];
     v[53]=v[203]*v[50];
     v[42]=v[203]*v[40];
-    v[31]=(2e0*v[10])/std::pow(v[12],2.0*one_third);
+    v[31]=(2.0*v[10])/std::pow(v[12],2.0*one_third);
     v[138]=-one_third*v[31];
     v[13]=v[1]+v[5]+v[9];
     v[207]=1e0*v[13];
@@ -401,43 +402,44 @@ void HyperElasticIsotropicQuasiIncompressibleIshochoricNeoHookean3D::CalculateSt
         rStress[5]=v[18]*v[208];
     }
     if (rFlags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        rTangentTensor(0,0)=2e0*(-(v[206]*v[40])+v[42]*v[44]+v[31]*(v[205]*v[38]*v[39]+v[55]));
-        rTangentTensor(0,1)=2e0*(v[209]+v[44]*v[53]+v[31]*(v[55]+v[93]));
-        rTangentTensor(0,2)=2e0*(v[210]+v[31]*(v[114]+v[55])+v[44]*v[62]);
+        rTangentTensor(0,0)=2.0*(-(v[206]*v[40])+v[42]*v[44]+v[31]*(v[205]*v[38]*v[39]+v[55]));
+        rTangentTensor(0,1)=2.0*(v[209]+v[44]*v[53]+v[31]*(v[55]+v[93]));
+        rTangentTensor(0,2)=2.0*(v[210]+v[31]*(v[114]+v[55])+v[44]*v[62]);
         rTangentTensor(0,3)=v[211]*v[67]-v[206]*v[68]+v[44]*v[70];
         rTangentTensor(0,4)=v[206]*v[76]+v[44]*v[78]+v[208]*(v[152]-v[8]/v[14]);
         rTangentTensor(0,5)=v[211]*v[83]-v[206]*v[84]+v[44]*v[86];
-        rTangentTensor(1,0)=2e0*(v[209]+v[42]*v[91]+v[31]*(v[93]+v[96]));
-        rTangentTensor(1,1)=2e0*(v[20]*v[212]+v[53]*v[91]+v[31]*(v[205]*v[46]*v[48]+v[96]));
-        rTangentTensor(1,2)=2e0*(v[213]+v[62]*v[91]+v[31]*(v[117]+v[96]));
+        rTangentTensor(1,0)=2.0*(v[209]+v[42]*v[91]+v[31]*(v[93]+v[96]));
+        rTangentTensor(1,1)=2.0*(v[20]*v[212]+v[53]*v[91]+v[31]*(v[205]*v[46]*v[48]+v[96]));
+        rTangentTensor(1,2)=2.0*(v[213]+v[62]*v[91]+v[31]*(v[117]+v[96]));
         rTangentTensor(1,3)=v[20]*v[214]+v[215]*v[67]+v[70]*v[91];
         rTangentTensor(1,4)=v[20]*v[216]+1e0*v[215]*v[75]+v[78]*v[91];
         rTangentTensor(1,5)=v[20]*v[217]+v[208]*(-(v[7]/v[14])+v[46]*v[83])+v[86]*v[91];
-        rTangentTensor(2,0)=2e0*(v[210]+(v[114]+v[116])*v[31]+v[112]*v[42]);
-        rTangentTensor(2,1)=2e0*(v[213]+(v[116]+v[117])*v[31]+v[112]*v[53]);
-        rTangentTensor(2,2)=2e0*(v[218]*v[24]+v[31]*(v[116]+v[205]*v[58]*v[59])+v[112]*v[62]);
+        rTangentTensor(2,0)=2.0*(v[210]+(v[114]+v[116])*v[31]+v[112]*v[42]);
+        rTangentTensor(2,1)=2.0*(v[213]+(v[116]+v[117])*v[31]+v[112]*v[53]);
+        rTangentTensor(2,2)=2.0*(v[218]*v[24]+v[31]*(v[116]+v[205]*v[58]*v[59])+v[112]*v[62]);
         rTangentTensor(2,3)=-(v[214]*v[24])+v[208]*(v[165]-v[4]/v[14])+v[112]*v[70];
         rTangentTensor(2,4)=v[216]*v[24]+v[219]*v[75]+v[112]*v[78];
         rTangentTensor(2,5)=-(v[217]*v[24])+v[219]*v[83]+v[112]*v[86];
-        rTangentTensor(3,0)=2e0*(v[17]*v[220]+v[135]*v[221]);
-        rTangentTensor(3,1)=2e0*(v[135]*v[222]+v[17]*v[223]);
-        rTangentTensor(3,2)=2e0*((v[176]-v[2]/v[14])*v[208]+v[17]*(v[142]-v[218]));
+        rTangentTensor(3,0)=2.0*(v[17]*v[220]+v[135]*v[221]);
+        rTangentTensor(3,1)=2.0*(v[135]*v[222]+v[17]*v[223]);
+        rTangentTensor(3,2)=2.0*((v[176]-v[2]/v[14])*v[208]+v[17]*(v[142]-v[218]));
         rTangentTensor(3,3)=v[146]*v[208]+v[17]*v[224];
         rTangentTensor(3,4)=v[17]*(4e0*v[148]+v[216]);
         rTangentTensor(3,5)=v[152]*v[208]+v[17]*v[225];
-        rTangentTensor(4,0)=2e0*(v[21]*(v[134]-v[226])+v[208]*(v[174]-v[6]/v[14]));
-        rTangentTensor(4,1)=2e0*(v[154]*v[222]+v[21]*v[223]);
-        rTangentTensor(4,2)=2e0*(v[21]*v[227]+v[154]*v[228]);
+        rTangentTensor(4,0)=2.0*(v[21]*(v[134]-v[226])+v[208]*(v[174]-v[6]/v[14]));
+        rTangentTensor(4,1)=2.0*(v[154]*v[222]+v[21]*v[223]);
+        rTangentTensor(4,2)=2.0*(v[21]*v[227]+v[154]*v[228]);
         rTangentTensor(4,3)=v[21]*(4e0*v[145]+v[214]);
         rTangentTensor(4,4)=v[163]*v[208]+v[21]*v[229];
         rTangentTensor(4,5)=v[165]*v[208]+v[21]*v[225];
-        rTangentTensor(5,0)=2e0*(v[18]*v[220]+v[167]*v[221]);
-        rTangentTensor(5,1)=2e0*(v[18]*(v[139]-v[212])+v[208]*(-(v[3]/v[14])+v[167]*v[48]));
-        rTangentTensor(5,2)=2e0*(v[18]*v[227]+v[167]*v[228]);
+        rTangentTensor(5,0)=2.0*(v[18]*v[220]+v[167]*v[221]);
+        rTangentTensor(5,1)=2.0*(v[18]*(v[139]-v[212])+v[208]*(-(v[3]/v[14])+v[167]*v[48]));
+        rTangentTensor(5,2)=2.0*(v[18]*v[227]+v[167]*v[228]);
         rTangentTensor(5,3)=v[174]*v[208]+v[18]*v[224];
         rTangentTensor(5,4)=v[176]*v[208]+v[18]*v[229];
         rTangentTensor(5,5)=v[178]*v[208]+v[18]*v[225];
     }
+    KRATOS_CATCH("");
 }
 
 } // Namespace Kratos

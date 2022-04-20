@@ -220,6 +220,11 @@ protected:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
+    /**
+     * this is called for non-linear analysis at the end of the iteration
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
+
     ///@}
     ///@name Protected Operations
     ///@{
