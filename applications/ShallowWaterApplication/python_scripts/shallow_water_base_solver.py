@@ -74,8 +74,8 @@ class ShallowWaterBaseSolver(PythonSolver):
         raise Exception("Calling the base class instead of the derived one")
 
     def ImportModelPart(self):
-            # we can use the default implementation in the base class
-            self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
+        # we can use the default implementation in the base class
+        self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
