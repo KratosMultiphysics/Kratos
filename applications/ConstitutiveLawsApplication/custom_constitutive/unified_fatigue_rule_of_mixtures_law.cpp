@@ -111,7 +111,7 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
     double cycles_to_failure = mCyclesToFailure;
     bool advance_in_time_process_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
 
-    // bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+    // bool no_linearity_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
     const bool current_load_type = rValues.GetProcessInfo()[CURRENT_LOAD_TYPE];
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
     const double damage = mDamage;
@@ -169,25 +169,6 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
             cycles_to_failure,
             ultimate_stress);
 
-        //Idfentifying the number of cycles that iniciate the no-linearities (either damage or plasticity)
-        const double cycles_to_failure_damage = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
-            cycles_to_failure,
-            mMaxStressDamageBranch,
-            values_fatigue.GetMaterialProperties(),
-            (1.0 - damage) * mIsotropicDamageThreshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
-            s_th,
-            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
-            );
-        const double cycles_to_failure_plasticity = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
-            cycles_to_failure,
-            mMaxStressPlasticityBranch,
-            values_fatigue.GetMaterialProperties(),
-            mPlasticityThreshold / fatigue_reduction_factor, //Plasticity threshold with no influence of fatigue, only damage no-linearity
-            s_th,
-            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
-            );
-        cycles_to_failure = std::min(cycles_to_failure_damage, cycles_to_failure_plasticity);
-
         double betaf = values_fatigue.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (std::abs(min_stress) < 0.001) {
             reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
@@ -207,6 +188,25 @@ void UnifiedFatigueRuleOfMixturesLaw<TConstLawIntegratorType>::InitializeMateria
 
         //The local_number_of_cycles are only updated when fred degradation is expected, i.e. HCF and LCF. ULCF showing no plasticity neither damage accumulation are also counting Nlocal cycles
         local_number_of_cycles = ((!mAcumulatedDamageCurrentCycle && !mAcumulatedPlasticityCurrentCycle) || cycles_to_failure > 1.0e3) ? local_number_of_cycles + 1.0 : local_number_of_cycles;
+
+        //Idfentifying the number of cycles that iniciate the no-linearities (either damage or plasticity)
+        const double cycles_to_failure_damage = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
+            cycles_to_failure,
+            mMaxStressDamageBranch,
+            values_fatigue.GetMaterialProperties(),
+            (1.0 - damage) * mIsotropicDamageThreshold, //Current damage threshold with no influence of fatigue, only damage no-linearity
+            s_th,
+            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+            );
+        const double cycles_to_failure_plasticity = HighCycleFatigueLawIntegrator<6>::NumberOfCyclesToFailure(
+            cycles_to_failure,
+            mMaxStressPlasticityBranch,
+            values_fatigue.GetMaterialProperties(),
+            mPlasticityThreshold / fatigue_reduction_factor, //Plasticity threshold with no influence of fatigue, only damage no-linearity
+            s_th,
+            ultimate_stress //Composite ultimate stress which is the one used to compute the original number of cycles to failure
+            );
+        cycles_to_failure = std::min(cycles_to_failure_damage, cycles_to_failure_plasticity);
 
         new_cycle = true;
         max_indicator = false;

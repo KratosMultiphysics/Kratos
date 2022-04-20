@@ -95,7 +95,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double s_th = mThresholdStress;
     double cycles_to_failure = mCyclesToFailure;
     bool advance_in_time_process_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
-    // bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+    // bool no_linearity_activation = rValues.GetProcessInfo()[NO_LINEARITY_ACTIVATION];
 
     const bool new_model_part = rValues.GetProcessInfo()[NEW_MODEL_PART];
     if (new_model_part) {
