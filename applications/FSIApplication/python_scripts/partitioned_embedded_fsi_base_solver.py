@@ -113,10 +113,6 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         # Initialize the embedded skin utility
         self.__GetEmbeddedSkinUtility()
 
-        with open("FSI_iterations.txt",'w') as f:
-            f.write("{}\t{}\t{}\n".format("Step","It.", "err_u"))
-            f.close()
-
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', "Finished initialization.")
 
     #TODO: Use the base one once the body fitted uses the fluid ALE solver
