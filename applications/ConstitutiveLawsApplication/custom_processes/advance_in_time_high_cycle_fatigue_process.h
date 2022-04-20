@@ -86,17 +86,18 @@ public:
     void CyclePeriodPerIntegrationPoint(bool& rCycleFound);
 
     /**
-     * @brief This method computes the cycle time period per integration point
+     * @brief This method computes the damage and plastic dissipation acumulated per cycle per integration point
      * @param rMaximumDamageIncrement Double variable indicating the maximum damage accumulation along the model for each cycle
+     * @param rMaximumPlasticDissipationIncrement Double variable indicating the maximum plastic dissipation accumulation along the model for each cycle
      */
-    void DamageInitiationAndAccumulation(double& rMaximumDamageIncrement);
+    void NoLinearitiesInitiationAndAccumulation(double& rMaximumDamageIncrement, double& rMaximumPlasticDissipationIncrement);
 
     /**
      * @brief This method stablishes if stable conditions have been reached for initiating the advance strategy
      * @param rAdvancingStrategy Bool variable indicating weather advancing strategy will start or not
-     * @param DamageIndicator Bool variable indicating that damage has iniciated at some point
+     * @param NoLinearityIndicator Bool variable indicating that plasticity and/or damage has iniciated at some point
      */
-    void StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator);
+    void StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool NoLinearityIndicator);
 
     /**
      * @brief This method computes the time increment to be applied as an output of the advancing strategy

@@ -45,31 +45,31 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     this->CyclePeriodPerIntegrationPoint(cycle_found);  //This method detects if a cycle has finished somewhere in the model and
                                                         //computes the time period of the cycle that has just finished.
     double maximum_damage_increment = 0.0;
+    double maximum_plastic_dissipation_increment = 0.0;
     if (cycle_found || process_info[NEW_MODEL_PART]) {
-        this->DamageInitiationAndAccumulation(maximum_damage_increment);//This method computes the damage accumulation cycle by cycle.
-                                                                        //It also updates the reference damage if a new load block is applied.
+        this->NoLinearitiesInitiationAndAccumulation(maximum_damage_increment, maximum_plastic_dissipation_increment);  //This method computes the no-linearities accumulation cycle by cycle.
+                                                                                                                        //It also updates the reference no-linearities if a new load block is applied.
     }
     if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
         bool advancing_strategy = false;
-        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]); //Checks if the conditions are optimal to apply the advancing strategy in
+        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]); //Checks if the conditions are optimal to apply the advancing strategy in
                                                                                                         //terms of max stress and reversion factor variation.
         if (advancing_strategy) {
             KRATOS_WATCH("HERE")
             double increment = 0.0;
-            if (!process_info[DAMAGE_ACTIVATION]) { //Stable conditions + No damage -> Big jump prior no-linearities initiation
+            if (!process_info[NO_LINEARITY_ACTIVATION]) { //Stable conditions + No damage/plasticity -> Big jump prior no-linearities initiation
                 this->TimeIncrement(increment);
                 if (increment > 0.0) {
                     this->TimeAndCyclesUpdate(increment);
-                    process_info[ADVANCE_STRATEGY_APPLIED] = true;
                 }
             } else {
-                if (std::abs(maximum_damage_increment) < tolerance) { //Stable conditions + Damage but not accumulated in the last cycle -> Big jump after no-linearities initiation
+                if (std::abs(maximum_damage_increment) + std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Damage/Plastic dissipation but not accumulated in the last cycle -> Big jump after no-linearities initiation
                     this->TimeIncrement(increment);
                     if (increment > 0.0) {
                         this->TimeAndCyclesUpdate(increment);
                         process_info[ADVANCE_STRATEGY_APPLIED] = true;
                     }
-                } else {
+                } else if (std::abs(maximum_plastic_dissipation_increment) < tolerance) { //Stable conditions + Plastic dissipation but not accumulated in the last cycle -> Small jump after no-linearities initiation
                     increment = mThisParameters["fatigue"]["advancing_strategy_damage"].GetDouble();
                     this->TimeAndCyclesUpdate(increment);
                     process_info[ADVANCE_STRATEGY_APPLIED] = true;
@@ -202,7 +202,7 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(double& rMaximumDamageIncrement)
+void AdvanceInTimeHighCycleFatigueProcess::NoLinearitiesInitiationAndAccumulation(double& rMaximumDamageIncrement, double& rMaximumPlasticDissipationIncrement)
 {
     auto& process_info = mrModelPart.GetProcessInfo();
     std::vector<double> damage;
@@ -226,7 +226,7 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
             for (unsigned int i = 0; i < number_of_ip; i++) {
                 if (damage[i] > 0.0) {
                     rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(damage[i] - previous_cycle_damage[i]));
-                    process_info[DAMAGE_ACTIVATION] = true;
+                    process_info[NO_LINEARITY_ACTIVATION] = true;
                 }
             }
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, damage, process_info);
@@ -236,7 +236,8 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
             r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, previous_cycle_plastic_dissipation, process_info);
             for (unsigned int i = 0; i < number_of_ip; i++) {
                 if (damage[i] > 0.0) {
-                    rMaximumDamageIncrement = std::max(rMaximumDamageIncrement, std::abs(plastic_dissipation[i] - previous_cycle_plastic_dissipation[i]));
+                    rMaximumPlasticDissipationIncrement = std::max(rMaximumPlasticDissipationIncrement, std::abs(plastic_dissipation[i] - previous_cycle_plastic_dissipation[i]));
+                    process_info[NO_LINEARITY_ACTIVATION] = true;
                 }
             }
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE_PLASTIC_DISSIPATION, plastic_dissipation, process_info);
@@ -247,7 +248,7 @@ void AdvanceInTimeHighCycleFatigueProcess::DamageInitiationAndAccumulation(doubl
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool DamageIndicator)
+void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(bool& rAdvancingStrategy, bool NoLinearityIndicator)
 {
     auto& process_info = mrModelPart.GetProcessInfo();
     std::vector<double> max_stress_rel_error;
@@ -278,7 +279,7 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
             }
         }
     }
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
+    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (NoLinearityIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
         rAdvancingStrategy = true;
     }
 }
