@@ -140,7 +140,9 @@ public:
 
     };
     // --------------------------------------------------------------------------
-    void Update() override {};  
+    void Update() override {
+        AdjustFilterSizes();
+    };  
     // --------------------------------------------------------------------------
     void MapControlUpdate(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) override{
 
@@ -189,6 +191,8 @@ public:
     // --------------------------------------------------------------------------
     void MapFirstDerivative(const Variable<array_3d> &rDerivativeVariable, const Variable<array_3d> &rMappedDerivativeVariable) override{
 
+
+        AdjustFilterSizes();
 
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
@@ -528,6 +532,7 @@ private:
                 double max_detJ = 0.0;
                 double min_detJ = 1e9;
                 double total_vol = 0.0;
+                double vol_int_radius = 0.0;
                 for(auto& elem_i : mpVMModePart->Elements()){
                     const auto& r_geom = elem_i.GetGeometry(); 
                     total_vol += r_geom.Volume();
@@ -542,7 +547,23 @@ private:
                         if(GaussPtsJDet[i_point]<min_detJ)
                             min_detJ = GaussPtsJDet[i_point];                  
                     }   
+                    
                 }
+                for(auto& elem_i : mpVMModePart->Elements()){
+                    const auto& r_geom = elem_i.GetGeometry(); 
+                    total_vol += r_geom.Volume();
+                    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
+                    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
+                    const unsigned int NumGauss = integration_points.size();
+                    Vector GaussPtsJDet = ZeroVector(NumGauss);
+                    r_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
+
+                    for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
+                        vol_int_radius += GaussPtsJDet[i_point] * integration_points[i_point].Weight() * std::pow(1.0/GaussPtsJDet[i_point],1.5);
+                    }
+                }
+
+                // std::cout<<"max_detJ: "<<max_detJ<<", min_detJ: "<<min_detJ<<std::endl; 
 
                 double max_cond_par_elem_detJ = 0.0;
                 double min_cond_par_elem_detJ = 1e9;
@@ -550,12 +571,19 @@ private:
                 double min_cond_detJ = 1e9;            
                 double total_cond_par_elem_vol = 0.0;
                 double total_cond_area = 0.0;
+                double min_cond_length = 1e9;
+                double max_cond_length = 0.0;
                 for(auto& cond_i : mpVMModePart->Conditions()){
                     const auto& r_geom = cond_i.GetGeometry(); 
-                    total_cond_area += r_geom.Area();
+                    double cond_area = r_geom.Area();
+                    double cond_length = r_geom.Length();
+                    total_cond_area += cond_area;
 
-
-                                
+                    if(cond_length>max_cond_length)
+                        max_cond_length = cond_length;
+                    if(cond_length<min_cond_length)
+                        min_cond_length = cond_length; 
+         
                     const IntegrationMethod& cond_integration_method = r_geom.GetDefaultIntegrationMethod();
                     const GeometryType::IntegrationPointsArrayType& cond_integration_points = r_geom.IntegrationPoints(cond_integration_method);
                     const unsigned int cond_NumGauss = cond_integration_points.size();
@@ -568,7 +596,7 @@ private:
                             min_cond_detJ = cond_GaussPtsJDet[cond_i_point];                  
                     } 
 
-
+                    
                     auto& parentElement = cond_i.GetValue(NEIGHBOUR_ELEMENTS);
                     const auto& r_elem_geom = parentElement[0].GetGeometry();                                
                     const IntegrationMethod& integration_method = r_elem_geom.GetDefaultIntegrationMethod();
@@ -582,14 +610,19 @@ private:
                         if(GaussPtsJDet[i_point]<min_cond_par_elem_detJ)
                             min_cond_par_elem_detJ = GaussPtsJDet[i_point];                  
                     }   
-                }            
-            
-                double bulk_filter_size = max_detJ;
-                double surface_filter_size = sqrt(std::pow(max_cond_detJ/min_cond_detJ, 2.0));
+                }
+
+
+                double surface_filter_size = p_vm_model_part_property->GetValue(HELMHOLTZ_SURF_RADIUS_SHAPE);
+                double bulk_filter_size = (total_cond_area * surface_filter_size * surface_filter_size)/(36.0 * vol_int_radius);
+                bulk_filter_size = std::pow(bulk_filter_size,2.0/3.0);
+                
+
                 p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,bulk_filter_size);
                 p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,surface_filter_size);
                 KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " Surface and bulk filter sizes of "<<control_obj.GetString() <<" is adjusted to " << surface_filter_size <<
                 " and "<< bulk_filter_size<<" respectively !"<<std::endl;
+                // std::exit(0);
             }
 
         }      
