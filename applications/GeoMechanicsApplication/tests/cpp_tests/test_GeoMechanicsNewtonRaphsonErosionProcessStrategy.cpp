@@ -37,7 +37,8 @@ namespace Kratos
             GetCurrentDirectory(MAX_PATH, pwd);
             cout << pwd << std::endl;
 
-            cpp_geomechanics(meshpath, projectpath, materialpath);
+            auto execute = CppExecution();
+            execute.cpp_geomechanics(meshpath, projectpath, materialpath);
 
         }
     }
