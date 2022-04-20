@@ -8,14 +8,15 @@
         "density_filter"	            : "densit",
         "filter_type"                   : "sensitivity",
         "filter_kernel"                 : "linear",
-        "filter_radius"     		    :1.5,
+        "filter_radius"     		    : 1.5,
         "max_elements_in_filter_radius" : 500,
-        "grey_scale_filter"             : 0, 
+        "grey_scale_filter"             : 0,
         "q_max"                         : 2.0,
         "optimization_algorithm"        : "oc_algorithm",
-        "max_opt_iterations"            : 100,
-        "relative_tolerance"            : 0.001,      
-        "increasing_obj"                :0,
+        "max_opt_iterations"            : 1000,
+        "relative_tolerance"            : 1e-3,
+        "increasing_obj"                : 0,
+        "something_else"                : false,
         "objectives"    :{
             "strain_energy":    {
                 "grad"      :"provided"
