@@ -96,6 +96,9 @@ public:
     typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> ComputeGradientProcessType;
     typedef ComputeGradientProcessType::Pointer ComputeGradientProcessPointerType;
 
+    //typedef ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BlockBuilderAndSolverType;
+    //typedef BlockBuilderAndSolverType::Pointer BlockBuilderAndSolverPointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -186,10 +189,13 @@ private:
     ModelPart& mrModelPart;
 
     std::string mAuxModelPartName = "Aux_Variational_Non_Eikonal_Distance_Model_Part";
+    bool mAuxModelPartIsCreated = false;
 
     SolvingStrategyType::UniquePointer mp_solving_strategy;
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
+    BuilderSolverPointerType mpBlockBuilderSolver = nullptr;
+    //TLinearSolver::Pointer mpLinearSolver = nullptr;
 
     ///@}
     ///@name Protected Operators
@@ -202,7 +208,7 @@ private:
     //void CheckDefaultsAndProcessSettings(Parameters &rParameters);
 
     void InitializeSolutionStrategy(
-        TLinearSolver::Pointer pLinearSolver,
+        /* TLinearSolver::Pointer pLinearSolver, */
         BuilderSolverPointerType pBuilderAndSolver)
     {
         // Generate a linear solver strategy
@@ -219,7 +225,7 @@ private:
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_non_eikonal_distance_model_part,
             p_scheme,
-            pLinearSolver,
+            pBuilderAndSolver->GetLinearSystemSolver(),
             pBuilderAndSolver,
             CalculateReactions,
             ReformDofAtEachIteration,

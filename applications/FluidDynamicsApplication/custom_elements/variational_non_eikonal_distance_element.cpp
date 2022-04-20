@@ -251,6 +251,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const int num_nodes  = num_dim + 1;
     const int num_dof = num_nodes; //(num_dim + 1)*num_nodes;
 
+    const unsigned int num_faces = num_nodes; //for simplex elements
+    const unsigned int num_face_nodes = num_nodes - 1;
+
     GeometryData::ShapeFunctionsGradientsType DN_DX;
     Matrix N;
     Vector DetJ;
@@ -276,6 +279,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
     //const GeometryType& r_geometry = this->GetGeometry();
     GeometryType::Pointer p_geometry = this->pGetGeometry();
+    GeometryType::GeometriesArrayType faces = p_geometry->Faces();
     const unsigned int number_of_gauss_points = p_geometry->IntegrationPointsNumber(integration_method);
 
     // Getting data for the given geometry
@@ -461,9 +465,9 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     lhs_Newton_Raphson(i_node, j_node) -= diffusion_prime_to_s * weights(gp) * grad_Ni_dot_grad_phi * grad_Nj_dot_grad_phi;
                 } */
             }
-            if (step <= 1){ // For cases that source_coeff is the same for both the positive and negative domains. Otherwise, uncomment the following code
+            /* if (step <= 1){ // For cases that source_coeff is the same for both the positive and negative domains. Otherwise, uncomment the following code
                 rhs[i_node] += source_coeff * weights(gp) * N(gp, i_node);
-            }
+            } */
         }
     }
 
@@ -486,7 +490,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         GeometryType::ShapeFunctionsGradientsType int_DN_DX;
         Vector int_weights;
 
-        /* if (step <= 1){              UNCOMMENT IF NEGATIVE AND POSITIVE SIDES HAVE DIFFERENT SOURCES
+        if (step <= 1){            // UNCOMMENT IF NEGATIVE AND POSITIVE SIDES HAVE DIFFERENT SOURCES
             //KRATOS_WATCH(nneg)
             Matrix neg_N, pos_N;
             GeometryType::ShapeFunctionsGradientsType neg_DN_DX, pos_DN_DX;
@@ -523,7 +527,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                     rhs(i_node) -= 1.0e0 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
                 }
             }
-        } //else{ */
+        } //else{
 
             //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 4" << std::endl;
 
@@ -583,9 +587,20 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             p_modified_sh_func->ComputeNegativeSideContactLineVector(contact_line_faces, ContactTangentialsNeg);
 
             for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
-                if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
-                    contact_line_indices.push_back(i_cl);
+
+                /* if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){ */
+
+                //GeometryType& r_face = faces[ contact_line_faces[i_cl] ];
+
+                unsigned int num_structure_nodes_on_contact_face = 0;
+                for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                    if ( (*p_geometry)[i_node].Is(BOUNDARY) && i_node != contact_line_faces[i_cl] ){//r_face[i_face_node].GetValue(IS_STRUCTURE) == 1.0 ){
+                        num_structure_nodes_on_contact_face++;
+                    }
                 }
+
+                if (num_structure_nodes_on_contact_face == num_face_nodes){
+                    contact_line_indices.push_back(i_cl);}
             }
 
             // Call the Contact Line negative side shape functions calculator
@@ -611,7 +626,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                                 normal_dot_grad_contact_Nj += ( (contact_DN_DX[i_cl] )[contact_gp])(j_node, k_dim) * normal0[k_dim];
                             }
 
-                            lhs(i_node, j_node) += element_size*penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
+                            lhs(i_node, j_node) += 1.0e5/* *element_size */*penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node)
                                 - (contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*normal_dot_grad_contact_Nj
                                 - (contact_weights[i_cl])(contact_gp)*normal_dot_grad_contact_Ni*(contact_N[i_cl])(contact_gp, j_node);
                         }
@@ -620,7 +635,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
             }
         //}
 
-    } /* else if (step <= 1){           UNCOMMENT IF NEGATIVE AND POSITIVE SIDES HAVE DIFFERENT SOURCES
+    } else if (step <= 1){           //UNCOMMENT IF NEGATIVE AND POSITIVE SIDES HAVE DIFFERENT SOURCES
         //KRATOS_WATCH(nneg)
         double source;
         if (npos != 0)
@@ -634,14 +649,10 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 rhs(i_node) += source_coeff * source * weights(gp) * N(gp, i_node);
             }
         }
-    } */
+    }
 
     if (step <= 1){
-        GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
-
         unsigned int i_face = 0;
-        const unsigned int num_faces = num_nodes; //for simplex elements
-        const unsigned int num_face_nodes = num_nodes - 1;
 
         while (i_face < num_faces) {
 
@@ -665,6 +676,7 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
                 }
             }
 
+            //KRATOS_WATCH(boundary_face_node)
             if (boundary_face_node == num_face_nodes){
                 double minus_cos_contact_angle = 0.0;
                 const double norm_solid_normal = Kratos::norm_2(solid_normal);

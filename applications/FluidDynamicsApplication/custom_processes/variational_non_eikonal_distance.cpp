@@ -38,12 +38,13 @@ VariationalNonEikonalDistance::VariationalNonEikonalDistance(
     // Nothing!
 
     // Generate an auxilary model part and populate it by elements of type MySimpleElement
-    CreateAuxModelPart();
+    //CreateAuxModelPart();
+    mAuxModelPartIsCreated = false;
 
-    auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
+    /* auto p_builder_solver */ mpBlockBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
     //auto p_builder_solver = Kratos::make_unique<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-    InitializeSolutionStrategy(plinear_solver, p_builder_solver);
+    //InitializeSolutionStrategy(plinear_solver, p_builder_solver);
 
     mpGradientCalculator = Kratos::make_unique<ComputeGradientProcessType>(
         mrModelPart,
@@ -62,6 +63,21 @@ void VariationalNonEikonalDistance::CreateAuxModelPart()
     if(current_model.HasModelPart( mAuxModelPartName ))
         current_model.DeleteModelPart( mAuxModelPartName );
 
+    ModelPart* p_aux_model_part = &(current_model.CreateModelPart(mAuxModelPartName));
+
+    // Generate
+    p_aux_model_part->Nodes().clear();
+    p_aux_model_part->Conditions().clear();
+    p_aux_model_part->Elements().clear();
+
+    p_aux_model_part->SetProcessInfo(mrModelPart.pGetProcessInfo());
+    p_aux_model_part->SetBufferSize(mrModelPart.GetBufferSize());
+    p_aux_model_part->SetProperties(mrModelPart.pProperties());
+    p_aux_model_part->Tables() = mrModelPart.Tables();
+
+    // Assigning the nodes to the new model part
+    p_aux_model_part->Nodes() = mrModelPart.Nodes();
+
     // Adding DISTANCE_AUX2 and DISTANCE_GRADIENT_X,Y,Z to the solution variables is not needed if it is already a solution variable of the problem
     mrModelPart.AddNodalSolutionStepVariable(DISTANCE_AUX2);
     mrModelPart.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
@@ -71,40 +87,65 @@ void VariationalNonEikonalDistance::CreateAuxModelPart()
 
     // Ensure that the nodes have DISTANCE_AUX2 and DISTANCE_GRADIENT_X,Y,Z as a DOF !!!! NOT NEEDED HERE IF IT IS DONE IN THE PYTHON SCRIPT !!!!
     //#pragma omp parallel for
-       for (int k = 0; k < static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
-            auto it_node = mrModelPart.NodesBegin() + k;
-            it_node->AddDof(DISTANCE_AUX2);
-            /* it_node->AddDof(DISTANCE_GRADIENT_X);
-            it_node->AddDof(DISTANCE_GRADIENT_Y);
-            it_node->AddDof(DISTANCE_GRADIENT_Z); */
-        }
+    for (int k = 0; k < static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+        it_node->AddDof(DISTANCE_AUX2);
+        /* it_node->AddDof(DISTANCE_GRADIENT_X);
+        it_node->AddDof(DISTANCE_GRADIENT_Y);
+        it_node->AddDof(DISTANCE_GRADIENT_Z); */
+    }
+
+    p_aux_model_part->Elements().reserve(mrModelPart.NumberOfElements());
+    for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem){
+        Element::Pointer p_element = Kratos::make_intrusive< VariationalNonEikonalDistanceElement >(
+            it_elem->Id(),
+            it_elem->pGetGeometry(),
+            it_elem->pGetProperties());
+
+        // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
+        p_element->pGetGeometry() = it_elem->pGetGeometry();
+
+        p_aux_model_part->Elements().push_back(p_element);
+    }
+
+    Communicator::Pointer pComm = mrModelPart.GetCommunicator().Create();
+    p_aux_model_part->SetCommunicator(pComm);
 
     // Generate AuxModelPart
-    ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
+    /* ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPartName );
 
     Element::Pointer p_distance_element = Kratos::make_intrusive<VariationalNonEikonalDistanceElement>();
 
     ConnectivityPreserveModeler modeler;
-    modeler.GenerateModelPart(mrModelPart, r_distance_model_part, *p_distance_element);
+    modeler.GenerateModelPart(mrModelPart, r_distance_model_part, *p_distance_element); */
 
     const double delta_time = mrModelPart.pGetProcessInfo()->GetValue(DELTA_TIME);
-    r_distance_model_part.pGetProcessInfo()->SetValue(DELTA_TIME, delta_time);
+    /* r_distance_model_part */ p_aux_model_part->pGetProcessInfo()->SetValue(DELTA_TIME, delta_time);
 
-    auto& r_data_comm = r_distance_model_part.GetCommunicator().GetDataCommunicator();
+    /* auto& r_data_comm = r_distance_model_part.GetCommunicator().GetDataCommunicator();
 
     FindGlobalNodalNeighboursProcess nodal_neighbour_process_new(r_data_comm, r_distance_model_part);
     nodal_neighbour_process_new.Execute();
 
     const unsigned int num_nodes = 4;
-    const unsigned int num_neighbouring_elements = num_nodes;
+    const unsigned int num_dim = num_nodes - 1;
+    const unsigned int avg_num_elements = 10;
 
-    FindElementalNeighboursProcess neighbour_elements_finder_new(r_distance_model_part, num_nodes-1, num_neighbouring_elements);
-    neighbour_elements_finder_new.Execute();
+    FindElementalNeighboursProcess neighbour_elements_finder_new(r_distance_model_part, num_dim, avg_num_elements);
+    neighbour_elements_finder_new.Execute(); */ //Re-assignment of the NEIGHBORs create problem in the main NS solver where NEIGHBORs are alled
+
+    mAuxModelPartIsCreated = true;
+
 }
 
 void VariationalNonEikonalDistance::Execute()
 {
     KRATOS_TRY;
+
+    if(mAuxModelPartIsCreated == false){
+        CreateAuxModelPart();
+        InitializeSolutionStrategy(/* plinear_solver, */ mpBlockBuilderSolver);
+    }
 
     const unsigned int NumNodes = mrModelPart.NumberOfNodes();
     const unsigned int NumElements = mrModelPart.NumberOfElements();

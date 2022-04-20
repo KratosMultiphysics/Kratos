@@ -29,6 +29,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
+#include "includes/deprecated_variables.h" //For IS_STRUCTURED
 
 namespace Kratos
 {
