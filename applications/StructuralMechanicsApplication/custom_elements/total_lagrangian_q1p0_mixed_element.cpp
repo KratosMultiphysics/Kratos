@@ -160,10 +160,6 @@ void TotalLagrangianQ1P0MixedElement::CalculateAll(
     array_1d<double, 3> body_force;
     double int_to_reference_weight;
 
-    const double E  = r_props[YOUNG_MODULUS];
-    const double nu = r_props[POISSON_RATIO];
-
-    const double mu = E / (2.0 * (1.0 + nu));
     const double bulk_modulus = CalculateBulkModulus(r_props);
 
     double Kpp = 0.0;
@@ -256,11 +252,6 @@ void TotalLagrangianQ1P0MixedElement::FinalizeNonLinearIteration(
 
     // Some declarations
     double int_to_reference_weight;
-
-    const double E  = r_props[YOUNG_MODULUS];
-    const double nu = r_props[POISSON_RATIO];
-
-    const double mu = E / (2.0 * (1.0 + nu));
     const double bulk_modulus = CalculateBulkModulus(r_props);
 
     double Kpp = 0.0;
