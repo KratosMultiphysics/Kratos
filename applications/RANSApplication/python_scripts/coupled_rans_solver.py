@@ -19,6 +19,7 @@ from KratosMultiphysics.RANSApplication.formulations import Factory as Formulati
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
 from KratosMultiphysics.RANSApplication.formulations.utilities import ExecutionScope
 from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -337,6 +338,22 @@ class CoupledRANSSolver(PythonSolver):
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if (scheme_type == "steady"):
             self.is_steady = True
+            default_variable_tolerance_data = Kratos.Parameters("""{
+                "name": "PLEASE_SPECIFY_SCALAR_VARIABLE_NAME",
+                "relative_tolerance": 1e-5,
+                "absolute_tolerance": 1e-7
+            }""")
+            self.steady_variable_tolerance_data = []
+            for variable_tolerance_data in self.settings["steady_coupling_tolerances"]:
+                variable_tolerance_data.ValidateAndAssignDefaults(default_variable_tolerance_data)
+                variable = Kratos.KratosGlobals.GetVariable(variable_tolerance_data["name"].GetString())
+                if variable not in self.formulation.GetSolvingVariables():
+                    Kratos.Logger.PrintWarning(self.__class__.__name__, "Variable {:s} not found in solving variables list hence ignoring specified steady state tolerances.".format(variable.Name()))
+                else:
+                    self.steady_variable_tolerance_data.append([
+                        variable,
+                        variable_tolerance_data["relative_tolerance"].GetDouble(),
+                        variable_tolerance_data["absolute_tolerance"].GetDouble()])
         else:
             self.is_steady = False
 
@@ -344,6 +361,7 @@ class CoupledRANSSolver(PythonSolver):
 
         self.is_converged = False
         self.min_buffer_size = self.formulation.GetMinimumBufferSize()
+        self.main_model_part.SetBufferSize(self.min_buffer_size)
         self.move_mesh = self.settings["move_mesh"].GetBool()
         self.echo_level = self.settings["echo_level"].GetInt()
 
@@ -439,6 +457,18 @@ class CoupledRANSSolver(PythonSolver):
                 "time_step"           : 0.0
             },
             "constants": {},
+            "steady_coupling_tolerances": [
+                {
+                    "name": "VELOCITY_X",
+                    "relative_tolerance":1e-5,
+                    "absolute_tolerance":1e-7
+                },
+                {
+                    "name": "VELOCITY_Y",
+                    "relative_tolerance":1e-5,
+                    "absolute_tolerance":1e-7
+                }
+            ],
             "adaptive_mesh_refinement_based_on_response_function": false,
             "adaptive_mesh_refinement_based_on_response_function_settings": {
                 "interval"                               : [0.0, 1e+30],
@@ -545,7 +575,6 @@ class CoupledRANSSolver(PythonSolver):
             ## Executes the check and prepare model process
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
-            self.main_model_part.SetBufferSize(self.min_buffer_size)
 
         if (IsDistributedRun()):
             self.distributed_model_part_importer.CreateCommunicators()
@@ -629,6 +658,30 @@ class CoupledRANSSolver(PythonSolver):
             msg = "Fluid solver did not converge for step " + str(self.main_model_part.ProcessInfo[Kratos.STEP]) + "\n"
             msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[Kratos.TIME]) + "\n"
             Kratos.Logger.PrintWarning(self.__class__.__name__, msg)
+
+        if self.is_converged and self.IsSteadySimulation():
+            non_converged_variables = []
+            for variable, relative_tolerance, absolute_tolerance in self.steady_variable_tolerance_data:
+                relative_error, absolute_error = RansVariableUtilities.CalculateTransientVariableConvergence(
+                    self.main_model_part,
+                    variable)
+                info = GetConvergenceInfo(
+                    variable,
+                    relative_error,
+                    relative_tolerance,
+                    absolute_error,
+                    absolute_tolerance)
+                Kratos.Logger.PrintInfo(self.__class__.__name__, info)
+
+                current_variable_convergence = (relative_error <= relative_tolerance or absolute_error <= absolute_tolerance)
+                if not current_variable_convergence:
+                    non_converged_variables.append(variable.Name())
+
+                self.is_converged = self.is_converged and current_variable_convergence
+
+            if len(non_converged_variables) > 0:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Following variables are not converged to steady state tolerances hence continuing psedo time stepping: \n\t{:s}".format("\n\t".join(non_converged_variables)))
+
         return self.is_converged
 
     def FinalizeSolutionStep(self):
