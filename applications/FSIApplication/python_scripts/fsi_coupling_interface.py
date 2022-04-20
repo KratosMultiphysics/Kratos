@@ -106,7 +106,7 @@ class FSICouplingInterface:
             raise Exception(err_msg)
 
         # Get the output variable from the father model part
-        # Note that this are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
+        # Note that these are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
         # These values will be used below to calculate the interface residual vector
         self.GetValuesFromFatherModelPart(output_variable)
 
@@ -167,7 +167,7 @@ class FSICouplingInterface:
             raise Exception(err_msg)
 
         # Get the output variable from the father model part
-        # Note that this are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
+        # Note that these are the current non-linear iteration unrelaxed values (\tilde{u}^{k+1})
         self.GetValuesFromFatherModelPart(output_variable)
 
         # Set and fill the displacement value vector with the current non-linear iteration values (\tilde{u}^{k+1})
