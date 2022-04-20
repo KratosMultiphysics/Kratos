@@ -31,6 +31,7 @@ namespace Testing
 
         model_part_1.CreateNewProperties(0);
         model_part_1.CreateNewProperties(1);
+        model_part_1.GetProperties(1).SetValue(DISTANCE, 1.1);
 
         model_part_2.CreateNewProperties(0);
         model_part_2.CreateNewProperties(5);
@@ -53,6 +54,10 @@ namespace Testing
         KRATOS_CHECK_EQUAL(model_part_1.NumberOfProperties(), 2);
         KRATOS_CHECK_EQUAL(model_part_2.NumberOfProperties(), 2);
         KRATOS_CHECK_EQUAL(model_part_2.GetElement(1).GetProperties().Id(), 1);
+
+        model_part_2.GetProperties(1).SetValue(DISTANCE, 2.2);
+        KRATOS_CHECK_EQUAL(model_part_1.GetProperties(1).GetValue(DISTANCE), 1.1);
+        KRATOS_CHECK_EQUAL(model_part_2.GetProperties(1).GetValue(DISTANCE), 2.2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(CopyPropertiesModelerDuplicateMesh, KratosCoreFastSuite)
@@ -63,6 +68,7 @@ namespace Testing
 
         model_part_1.CreateNewProperties(0);
         model_part_1.CreateNewProperties(1);
+        model_part_1.GetProperties(1).SetValue(DISTANCE, 1.1);
 
         model_part_2.CreateNewProperties(0);
         model_part_2.CreateNewProperties(5);
@@ -85,6 +91,10 @@ namespace Testing
         KRATOS_CHECK_EQUAL(model_part_1.NumberOfProperties(), 2);
         KRATOS_CHECK_EQUAL(model_part_2.NumberOfProperties(), 2);
         KRATOS_CHECK_EQUAL(model_part_2.GetElement(1).GetProperties().Id(), 1);
+
+        model_part_2.GetProperties(1).SetValue(DISTANCE, 2.2);
+        KRATOS_CHECK_EQUAL(model_part_1.GetProperties(1).GetValue(DISTANCE), 1.1);
+        KRATOS_CHECK_EQUAL(model_part_2.GetProperties(1).GetValue(DISTANCE), 2.2);
     }
 
 }
