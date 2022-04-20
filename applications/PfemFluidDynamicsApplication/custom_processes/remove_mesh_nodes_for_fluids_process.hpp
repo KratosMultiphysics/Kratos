@@ -630,7 +630,6 @@ namespace Kratos
 
 								if ((*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0)
 								{
-									// KRATOS_WATCH( neighbours_distances[k] )
 									if ((*nn)->IsNot(TO_ERASE))
 									{
 										counter += 1;
