@@ -383,7 +383,7 @@ for i in range(n_steps):
             first_iteration = False
 
             if tau_mpi_rank() == 0:
-                TauFunctions.RemoveOutputDatFiles(working_path, step, output_file_pattern, j)
+                #TauFunctions.RemoveOutputDatFiles(working_path, step, output_file_pattern, j)
 
                 if j > 0:
                     TauFunctions.RemoveMeshFiles(working_path, step_mesh-1)
