@@ -170,20 +170,6 @@ namespace Kratos
         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(PROPERTY_ID))
         {
           rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = node_property_id;
-
-          // unsigned int originalPropertyId = rGeom[i].FastGetSolutionStepValue(PROPERTY_ID);
-          // unsigned int numberOfProperties = mrModelPart.NumberOfProperties();
-          // if (originalPropertyId > 0 && originalPropertyId != node_property_id)
-          // {
-          //   std::cout << "numberOfProperties " << numberOfProperties << std::endl;
-          //   std::cout << "originalPropertyId " << originalPropertyId << std::endl;
-          //   std::cout << "comingPropertyId " << node_property_id << std::endl;
-          //   rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = 100;
-          // }
-          // else
-          // {
-          //   rGeom[i].FastGetSolutionStepValue(PROPERTY_ID) = node_property_id;
-          // }
         }
 
         if (mrModelPart.GetNodalSolutionStepVariablesList().Has(BULK_MODULUS))

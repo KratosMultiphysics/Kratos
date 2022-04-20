@@ -2047,12 +2047,7 @@ namespace Kratos
 				{
 
 					TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
-					// unsigned int propertyIdFirstNode = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
-					// unsigned int propertyIdSecondNode = SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID);
-					// if (propertyIdFirstNode != propertyIdSecondNode && SlaveNode1->IsNot(RIGID) && SlaveNode2->IsNot(RIGID))
-					// {
-					// 	std::cout << "I SHOULD NOT ENTER HEEEEEEEEEEEEERE " << propertyIdFirstNode << " VS " << propertyIdSecondNode << std::endl;
-					// }
+
 					// // Master node's properties are set using the maximum PROPERTY_ID value between SlaveNode1 and SlaveNode2
 					// if (SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID) >= SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID))
 					// {
@@ -2063,9 +2058,7 @@ namespace Kratos
 					// 	TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
 					// }
 				}
-				// if(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)){
-				//   TakeMaterialPropertiesFromNotRigidNode(pnode,SlaveNode1);
-				// }
+
 			}
 
 			// set the coordinates to the original value
