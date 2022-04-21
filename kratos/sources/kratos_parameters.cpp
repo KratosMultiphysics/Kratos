@@ -749,6 +749,19 @@ void Parameters::AddString(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void Parameters::AddStringArray(
+    const std::string& rEntry,
+    const std::vector<std::string>& rValue
+    )
+{
+    Parameters aux_parameters(R"({"value": []})");
+    aux_parameters["value"].SetStringArray(rValue);
+    this->AddValue(rEntry, aux_parameters["value"]);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Parameters::AddVector(
     const std::string& rEntry,
     const Vector& rValue

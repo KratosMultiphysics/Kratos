@@ -642,6 +642,16 @@ public:
         );
 
     /**
+     * @brief This method sets the string array contained in the current Parameter
+     * @param rEntry The key identifier of the parameter
+     * @param Value The string array
+     */
+    void AddStringArray(
+        const std::string& rEntry,
+        const std::vector<std::string>& rValue
+        );
+
+    /**
      * @brief This method adds a new vector Parameter
      * @param rEntry The key identifier of the parameter
      * @param rValue The vector value
