@@ -101,6 +101,7 @@ void  AddModelerToPython(pybind11::module& m)
 
     py::class_< CopyPropertiesModeler, CopyPropertiesModeler::Pointer, Modeler >(m,"CopyPropertiesModeler")
         .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, ModelPart&>())
     ;
 
 }

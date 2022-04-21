@@ -65,6 +65,15 @@ public:
         Model& rModel,
         Parameters ModelerParameters);
 
+    /**
+     * @brief Constructor with origin and destination model parts
+     * @param rOriginModelPart Reference of the origin ModelPart
+     * @param rDestinationModelPart Reference of the destination ModelPart
+     */
+    CopyPropertiesModeler(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart);
+
     ///@brief Copy constructor.
     CopyPropertiesModeler(CopyPropertiesModeler const& rOther) = delete;
 

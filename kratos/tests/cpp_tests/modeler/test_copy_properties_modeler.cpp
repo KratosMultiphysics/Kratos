@@ -82,11 +82,7 @@ namespace Testing
         DuplicateMeshModeler(model_part_1).GenerateMesh(model_part_2,
             KratosComponents<Element>::Get("Element2D3N"), KratosComponents<Condition>::Get("LineCondition2D2N"));
 
-        Parameters parameters(R"({
-            "origin_model_part_name"      : "origin",
-            "destination_model_part_name" : "destination"
-        })");
-        CopyPropertiesModeler(model, parameters).SetupModelPart();
+        CopyPropertiesModeler(model_part_1, model_part_2).SetupModelPart();
 
         KRATOS_CHECK_EQUAL(model_part_1.NumberOfProperties(), 2);
         KRATOS_CHECK_EQUAL(model_part_2.NumberOfProperties(), 2);
