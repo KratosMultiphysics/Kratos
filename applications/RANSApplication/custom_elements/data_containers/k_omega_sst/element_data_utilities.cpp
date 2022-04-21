@@ -26,8 +26,9 @@ namespace KOmegaSSTElementData
 {
 double CalculateTanh(const double value)
 {
-    const double inv_exp2x = std::exp(-2.0 * value);
-    return (1.0 - inv_exp2x) / (1 + inv_exp2x);
+    // const double inv_exp2x = std::exp(-2.0 * value);
+    // return (1.0 - inv_exp2x) / (1 + inv_exp2x);
+    return std::tanh(value);
 }
 
 double CalculateBlendedPhi(
@@ -50,7 +51,7 @@ double CalculateCrossDiffusionTerm(
     double value = inner_prod(rTurbulentKineticEnergyGradient,
                               rTurbulentSpecificEnergyDissipationRateGradient);
     value *= (2.0 * SigmaTurbulentSpecificEnergyDissipationRate2 /
-              std::max(TurbulentSpecificEnergyDissipationRate, 1e-12));
+              std::max(TurbulentSpecificEnergyDissipationRate, 1e-10));
     return value;
 
     KRATOS_CATCH("");
@@ -67,11 +68,11 @@ double CalculateF1(
 {
     KRATOS_TRY
 
-    const double y = std::max(WallDistance, 1e-12);
+    const double y = std::max(WallDistance, 1e-10);
     const double y_2 = std::pow(y, 2);
 
     const double tke = std::max(TurbulentKineticEnergy, 0.0);
-    const double omega = std::max(TurbulentSpecificEnergyDissipationRate, 1e-12);
+    const double omega = std::max(TurbulentSpecificEnergyDissipationRate, 1e-10);
 
     const double arg1 = CalculateArg1(BetaStar, tke, omega, y);
     const double arg2 = CalculateArg2(KinematicViscosity, omega, y_2);
@@ -97,11 +98,11 @@ double CalculateF2(
 {
     KRATOS_TRY
 
-    const double y = std::max(WallDistance, 1e-12);
+    const double y = std::max(WallDistance, 1e-10);
     const double y_2 = std::pow(y, 2);
 
     const double tke = std::max(TurbulentKineticEnergy, 0.0);
-    const double omega = std::max(TurbulentSpecificEnergyDissipationRate, 1e-12);
+    const double omega = std::max(TurbulentSpecificEnergyDissipationRate, 1e-10);
 
     const double arg1 = CalculateArg1(BetaStar, tke, omega, y);
     const double arg2 = CalculateArg2(KinematicViscosity, omega, y_2);
@@ -125,7 +126,7 @@ double CalculateTurbulentKinematicViscosity(
     KRATOS_TRY
 
     return A1 * TurbulentKineticEnergy /
-           std::max(A1 * TurbulentSpecificEnergyDissipationRate, VorticityNorm * F2);
+           std::max(std::max(A1 * TurbulentSpecificEnergyDissipationRate, VorticityNorm * F2), 1e-10);
 
     KRATOS_CATCH("");
 }
@@ -154,7 +155,7 @@ double CalculateArg1(
     const double WallDistance)
 {
     return std::sqrt(TurbulentKineticEnergy) /
-           (BetaStar * TurbulentSpecificEnergyDissipationRate * WallDistance);
+           std::max(BetaStar * TurbulentSpecificEnergyDissipationRate * WallDistance, 1e-10);
 }
 
 double CalculateArg2(
@@ -162,7 +163,7 @@ double CalculateArg2(
     const double TurbulentSpecificEnergyDissipationRate,
     const double WallDistanceSquare)
 {
-    return 500.0 * KinematicViscosity / (WallDistanceSquare * TurbulentSpecificEnergyDissipationRate);
+    return 500.0 * KinematicViscosity / std::max(WallDistanceSquare * TurbulentSpecificEnergyDissipationRate, 1e-10);
 }
 
 double CalculateArg3(
@@ -172,7 +173,7 @@ double CalculateArg3(
     const double WallDistanceSquare)
 {
     return 4.0 * SigmaTurbulentSpecificEnergyDissipationRate2 * TurbulentKineticEnergy /
-           (std::max(CrossDiffusion, 1e-12) * WallDistanceSquare);
+           std::max(std::max(CrossDiffusion, 1e-10) * WallDistanceSquare, 1e-10);
 }
 
 // template instantiations
