@@ -14,16 +14,11 @@
 #define  KRATOS_EDGE_BASED_GRADIENT_RECOVERY_PROCESS_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/global_pointer_variables.h"
-#include "includes/kratos_flags.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
