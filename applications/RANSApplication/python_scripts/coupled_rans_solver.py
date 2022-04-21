@@ -459,12 +459,7 @@ class CoupledRANSSolver(PythonSolver):
             "constants": {},
             "steady_coupling_tolerances": [
                 {
-                    "name": "VELOCITY_X",
-                    "relative_tolerance":1e-5,
-                    "absolute_tolerance":1e-7
-                },
-                {
-                    "name": "VELOCITY_Y",
+                    "name": "REACTION_X",
                     "relative_tolerance":1e-5,
                     "absolute_tolerance":1e-7
                 }
