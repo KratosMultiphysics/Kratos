@@ -316,11 +316,11 @@ class SIMPMethod:
 
             km.Logger.Print(
                 '  Objective value               =',
-                '{:.3f}'.format(Obj_Function),
+                '{:.6f}'.format(Obj_Function),
             )
             km.Logger.Print(
                 '  Constraint value              =',
-                '{:.5f}'.format(C_Function),
+                '{:.6f}'.format(C_Function),
             )
 
             if opt_itr == 1:
@@ -332,7 +332,7 @@ class SIMPMethod:
                 ) / Obj_Function_initial
                 km.Logger.Print(
                     '  Relative change in objective =',
-                    '{:.4f}'.format(Obj_Function_relative_change),
+                    '{:.9f}'.format(Obj_Function_relative_change),
                 )
 
                 Obj_Function_absolute_change = (
@@ -340,7 +340,7 @@ class SIMPMethod:
                 ) / Obj_Function_initial
                 km.Logger.Print(
                     '  Absolute change in objective =',
-                    '{:.4f}'.format(Obj_Function_absolute_change),
+                    '{:.9f}'.format(Obj_Function_absolute_change),
                 )
 
             Obj_Function_old = Obj_Function
