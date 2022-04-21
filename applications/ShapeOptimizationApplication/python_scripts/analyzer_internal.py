@@ -12,7 +12,7 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-import os, pathlib
+import os, pathlib, sys
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -47,11 +47,13 @@ class IterationScope:
     def __enter__(self):
         if (self.is_evaluated_in_folder):
             self.scope.mkdir(parents=True, exist_ok=True)
+            sys.path.insert(0, str(self.scope.absolute()))
             os.chdir(str(self.scope))
 
     def __exit__(self, exc_type, exc_value, traceback):
         if (self.is_evaluated_in_folder):
             os.chdir(self.currentPath)
+            sys.path.remove(str(self.scope.absolute()))
 
 
 # ==============================================================================
@@ -120,7 +122,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
         sho_response_functions = ["plane_based_packaging", "mesh_based_packaging", "surface_normal_shape_change", "geometric_centroid_deviation", "total_volume"]
         csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
         convdiff_response_functions = ["point_temperature"]
-        rans_respone_functions = ["lift_to_drag", "drag", "drag_frequency_max_amplitude", "transient_drag_steady_adjoint"]
+        rans_respone_functions = ["lift_to_drag", "drag", "drag_frequency_max_amplitude", "transient_drag_steady_adjoint", "domain_integrated_3d_vector_magnitude_square_power_mean"]
 
         for (response_id, response_settings) in specified_responses:
             if response_id in response_functions.keys():
