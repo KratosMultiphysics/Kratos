@@ -18,7 +18,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -40,6 +40,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, YOUNGS_MODULUS_MIN)
     KRATOS_CREATE_VARIABLE( double, YOUNGS_MODULUS_0 )
     KRATOS_CREATE_VARIABLE( double, PENAL )
+    KRATOS_CREATE_VARIABLE( std::string, MAT_INTERP )
     KRATOS_CREATE_VARIABLE( double, X_PHYS )
     KRATOS_CREATE_VARIABLE( double, X_PHYS_OLD )
     KRATOS_CREATE_VARIABLE( double, DCDX )
@@ -52,7 +53,7 @@ namespace Kratos
 
         typedef Node<3> NodeType;
 
-    KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication() 
+    KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication()
         : KratosApplication("TopologyOptimizationApplication"),
 
             mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -80,6 +81,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_MIN)
         KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_0 )
         KRATOS_REGISTER_VARIABLE( PENAL )
+        KRATOS_REGISTER_VARIABLE( MAT_INTERP )
         KRATOS_REGISTER_VARIABLE( X_PHYS )
         KRATOS_REGISTER_VARIABLE( X_PHYS_OLD )
         KRATOS_REGISTER_VARIABLE( DCDX )
@@ -92,4 +94,3 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-
