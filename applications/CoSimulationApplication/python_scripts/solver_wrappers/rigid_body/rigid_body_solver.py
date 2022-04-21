@@ -108,7 +108,6 @@ class RigidBodySolver(object):
         # Save all the data that does not depend on the degree of freedom
         self.rho_inf = solver_settings["time_integration_parameters"]["rho_inf"].GetDouble()
         self.delta_t = solver_settings["time_integration_parameters"]["time_step"].GetDouble()
-        self.buffer_size = solver_settings["buffer_size"].GetInt()
 
 
     def _InitializeDofsVariables(self, dof_settings):
