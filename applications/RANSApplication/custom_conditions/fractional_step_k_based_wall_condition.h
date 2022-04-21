@@ -329,7 +329,7 @@ public:
     {
         KRATOS_TRY;
 
-        if (this->GetValue(RANS_IS_STRUCTURE) == 1) {
+        if (RansCalculationUtilities::IsWallFunctionActive(this->GetGeometry())) {
             this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
         }
 
