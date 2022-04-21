@@ -5,19 +5,27 @@ import json
 from importlib import import_module
 
 
-def _CheckMandatoryInputParameters(project_parameters):
+#TODO
+"""INSERT FILE DESCRIPTION HERE"""
 
+
+def _CheckMandatoryInputParameters(project_parameters):
+    # Function to raise exceptions if some mandatory parameters were not given
+
+    # The project parameters need to have at least these base fields
     for key in ["problem_data", "solver_settings", "output_processes", "processes"]:
         if not project_parameters.Has(key):
             msg = 'The key "' + key + '" was not found in the project parameters '
             msg += 'and it is necessary to configure the RigidBodySolver.'
             raise Exception(msg)
     
+    # Some subfields of "problem_data" must be included
     for key in ["problem_name", "start_time", "end_time"]:
         if not project_parameters["problem_data"].Has(key):
             msg = '"'+key+'" should be given as par of "problem_data" in the project parameters.'
             raise Exception(msg)
 
+    # Check that the time step is given
     msg = '"time_step" should be given as par of "time_integration_parameters" '
     msg += 'in "solver_settings" of the project parameters.'
     if not project_parameters["solver_settings"].Has("time_integration_parameters"):
@@ -26,6 +34,7 @@ def _CheckMandatoryInputParameters(project_parameters):
         if not project_parameters["solver_settings"]["time_integration_parameters"].Has("time_step"):
             raise Exception(msg)
 
+    # Check that "input_type", if needed, is among the available ones
     if project_parameters["solver_settings"].Has("model_import_settings"):
         if project_parameters["solver_settings"]["model_import_settings"].Has("input_type"):
             input_type = project_parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()
@@ -37,7 +46,9 @@ def _CheckMandatoryInputParameters(project_parameters):
 
 
 def _ValidateAndAssignRigidBodySolverDefaults(solver_settings):
+    # Function to check and fill the solver settings
     
+    # Omitted fields will be filled with these default parameters
     default_solver_settings = KM.Parameters('''{
         "domain_size":3,
         "echo_level":0,
@@ -55,16 +66,17 @@ def _ValidateAndAssignRigidBodySolverDefaults(solver_settings):
         },
         "active_dofs":[]
     }''')
-
     solver_settings.RecursivelyValidateAndAssignDefaults(default_solver_settings)
 
+    # The domain size needs to be either 2 or 3
     if solver_settings["domain_size"].GetInt() not in [2, 3]:
         raise Exception("The domain size can only be 2 or 3.")
-    if solver_settings["domain_size"].GetInt() == 1:
+    if solver_settings["domain_size"].GetInt() == 2:
         msg = 'The 2D version of the solver is yet to be implemented. Use 3 as '
         msg += '"domain_size" and activate only the necessary degrees of freedom instead.'
         raise Exception(msg)
     
+    # The generalized alpha time integration scheme needs at least a buffer size of one
     if solver_settings["buffer_size"].GetInt() < 1:
         raise Exception("The buffer size needs to be equal or bigger than 1.")
 
@@ -72,12 +84,15 @@ def _ValidateAndAssignRigidBodySolverDefaults(solver_settings):
 
 
 def _ValidateAndAssignDofDefaults(dof_settings, available_dofs):
+    # Function to check and fill the structural parameters of each degree of freedom (DOF)
 
+    # Check that at least one DOF was mentioned. If not, tthere is nothing to be simulated
     if dof_settings.size() == 0:
         msg = 'At least an active degree of freedom is needed to use the solver '
         msg += ' and none where provided in "active_dofs".'
         raise Exception(msg)
 
+    # Omitted structural parameters will be filled with these for each DOF
     default_dof_settings = KM.Parameters('''{
         "dof":"needs_to_be_given",
         "constrained": false,
@@ -88,21 +103,26 @@ def _ValidateAndAssignDofDefaults(dof_settings, available_dofs):
         }
     }''')
 
+    # Initialize variables to be filled and returned
     dof_settings_processed = {}
     active_dofs = []
 
-    # Read entries from the project parameters and check are not repeated
+    # Read entries from the project parameters and check they are not repeated
     for entry in dof_settings:
+        # Clone the data so the modifications don't affect previously processed entries
         dof_data = entry.Clone()
+        # Check that the selected DOF is among the available ones
         dof = dof_data["dof"].GetString()
         if dof not in available_dofs:
             msg = 'The degree of freedom "'+dof+'" is not among the available ones. '
             msg += 'Select one of the following: '+str(available_dofs)[1,-1]
             raise Exception(msg)
+        # Repeated DOFs are not allowed since they can create contradictions
         if dof in dof_settings_processed:
             msg = 'The degree of freedom "'+dof+'" was repeated in the list "active dofs".'
             raise Exception(msg)
         else:
+            # Fill with defaults and save in the variable to be outputted
             dof_data.RecursivelyValidateAndAssignDefaults(default_dof_settings)
             dof_settings_processed[dof] = dof_data
 
@@ -113,18 +133,23 @@ def _ValidateAndAssignDofDefaults(dof_settings, available_dofs):
         else:
             active_dofs.append(dof)
 
+    # Return the data needed by the solver
     return dof_settings_processed, active_dofs
 
 
 def _CreateListOfProcesses(model, parameters, main_model_part):
+    # This function creates all the processes stated in the project parameters
 
-    # Create all the processes stated in the project parameters
-    # TODO: No need to convert it to a json to manipulate it
+    # If it is a restart, ignore the "initial_conditions_process_list", since they are given by the restart file
     if main_model_part.ProcessInfo[KM.IS_RESTARTED]:
         process_types = ["gravity", "boundary_conditions_process_list", "auxiliar_process_list"]
     else:
         process_types = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+    
+    # TODO: No need to convert it to a json to manipulate it
     parameters_json = json.loads(parameters.WriteJsonString())
+
+    # Import the processes and save them in a list
     list_of_processes = []
     # TODO: Is this usually a mandatory input?
     if "processes" in parameters_json:
@@ -141,10 +166,12 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
 
 
 def _CreateListOfOutputProcesses(model, parameters):
+    # This function creates all the output processes stated in the project parameters
 
-    # Create all the processes stated in the project parameters
     # TODO: No need to convert it to a json to manipulate it
     parameters_json = json.loads(parameters.WriteJsonString())
+
+    # Import the processes and save them in a list
     list_of_output_processes = []
     # TODO: Is this usually a mandatory input?
     if "output_processes" in parameters_json:

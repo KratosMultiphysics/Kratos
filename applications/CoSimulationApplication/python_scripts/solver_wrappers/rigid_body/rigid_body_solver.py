@@ -20,23 +20,48 @@ class RigidBodySolver(object):
 
     def __init__(self, model, project_parameters):
 
+        # Check that the input parameters are in the right format
         if not isinstance(model, KM.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
         if not isinstance(project_parameters, KM.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
 
+        # Basic check to see if project_parameters has all the necessary data to set up the problem
         input_check._CheckMandatoryInputParameters(project_parameters)
+
+        # Read the basic problem data and store it in class variables
         self.problem_name = project_parameters["problem_data"]["problem_name"].GetString()
         self.start_time = project_parameters["problem_data"]["start_time"].GetDouble()
         self.end_time = project_parameters["problem_data"]["end_time"].GetDouble()
         
+        # Check the solver settings, fill empty fields with the default values and save them in class variables
         solver_settings = input_check._ValidateAndAssignRigidBodySolverDefaults(project_parameters["solver_settings"])
-        self.domain_size = solver_settings["domain_size"].GetInt()
-        buffer_size = solver_settings["buffer_size"].GetInt()
-        self.echo_level = solver_settings["echo_level"].GetInt()
+        self._InitializeSolutionVariables(solver_settings)
+        buffer_size = solver_settings["buffer_size"].GetInt() # we only need it in the constructor
 
+        # The degrees of freedom (DOFs) that can be activated from the parameters depend on the domain size
+        # The system size, quantity of linear variables (displacement, force...)
+        # and angular variables (rotation, moment...) needs to be adjusted
+        if self.domain_size == 3:
+            self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z',
+                'rotation_x', 'rotation_y', 'rotation_z']
+        elif self.domain_size == 2:
+            self.available_dofs = ['displacement_x', 'displacement_y', 'rotation_z']
+        self.system_size = len(self.available_dofs)
+        self.linear_size = int(np.ceil(self.system_size/2)) # 3 or 2 with a 3D or 2D problem respectively
+        self.angular_size = int(np.floor(self.system_size/2)) # 3 or 1 with a 3D or 2D problem respectively
+
+        # Check the settings related to each DOF, fill empty fields and save them in class variables
+        dof_settings, self.active_dofs = input_check._ValidateAndAssignDofDefaults(solver_settings["active_dofs"], self.available_dofs)
+        self._InitializeDofsVariables(dof_settings)
+
+        # Prepare the coefficients to apply the generalized-alpha method
+        self._InitializeGeneralizedAlphaParameters()
+
+        # Create the Kratos model and generate/import the sub model parts with all the necessary variables
         self.model = model
         self.main_model_part = self.model.CreateModelPart("Main")
+        # If it is not a restart, the sub model parts must be created from scratch
         if solver_settings["model_import_settings"]["input_type"].GetString() == "none":
             self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE] = self.domain_size
             self.rigid_body_model_part = self.main_model_part.CreateSubModelPart("RigidBody")
@@ -45,6 +70,7 @@ class RigidBodySolver(object):
             self.rigid_body_model_part.CreateNewNode(1,0.0,0.0,0.0)
             self.root_point_model_part.CreateNewNode(2,0.0,0.0,0.0)
             self.main_model_part.SetBufferSize(buffer_size)
+        # If it is a restart, the sub model parts can be imported from the restart file
         elif solver_settings["model_import_settings"]["input_type"].GetString() == "rest":
             model_import_settings = solver_settings["model_import_settings"]
             model_import_settings.RemoveValue("input_type")
@@ -52,60 +78,17 @@ class RigidBodySolver(object):
             self.rigid_body_model_part = self.main_model_part.GetSubModelPart("RigidBody")
             self.root_point_model_part = self.main_model_part.GetSubModelPart("RootPoint")
             self.start_time = self.main_model_part.ProcessInfo[KM.TIME]
-
-        # Degrees of freedom that can be activated from the parameters
-        if self.domain_size == 3:
-            self.available_dofs = ['displacement_x', 'displacement_y', 'displacement_z',
-                'rotation_x', 'rotation_y', 'rotation_z']
-        elif self.domain_size == 2:
-            self.available_dofs = ['displacement_x', 'displacement_y', 'rotation_z']
-
-        self.system_size = len(self.available_dofs)
-        self.linear_size = int(np.ceil(self.system_size/2))
-        self.angular_size = int(np.floor(self.system_size/2))
-
-        # Fill with defaults and check that mandatory fields are given
-        dof_settings, self.active_dofs = input_check._ValidateAndAssignDofDefaults(solver_settings["active_dofs"], self.available_dofs)
         
         # Create all the processes stated in the project parameters
         self._list_of_processes = input_check._CreateListOfProcesses(self.model, project_parameters, self.main_model_part)
         self._list_of_output_processes = input_check._CreateListOfOutputProcesses(self.model, project_parameters)
 
-        # Safe all the filled data in their respective class variables
-        self._InitializeSolutionVariables(solver_settings)
-        self._InitializeDofsVariables(dof_settings)
-
-        # Prepare the parameters for the generalized-alpha method
-        self._InitializeGeneralizedAlphaParameters()
-        
-
-    def AddVariables(self):
-
-        self.main_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.ROTATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_VELOCITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_ACCELERATION)
-
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.FORCE)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_FORCE)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_MOMENT)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
-        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_MOMENT)
-
-        self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
-        self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
-        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
-        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
-
 
     def _InitializeSolutionVariables(self, solver_settings):
         
         # Save all the data that does not depend on the degree of freedom
+        self.domain_size = solver_settings["domain_size"].GetInt()
+        self.echo_level = solver_settings["echo_level"].GetInt()
         self.rho_inf = solver_settings["time_integration_parameters"]["rho_inf"].GetDouble()
         self.delta_t = solver_settings["time_integration_parameters"]["time_step"].GetDouble()
 
@@ -163,10 +146,39 @@ class RigidBodySolver(object):
         self.a1a = self.a1v / (self.delta_t * self.gamma)
         self.a2a = -1.0 / (self.beta * self.delta_t)
         self.a3a = 1.0 - 1.0 / (2.0 * self.beta)
+        
+
+    def AddVariables(self):
+
+        # Kinematic variables (work with both RigidBody and RootPoint model parts)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ROTATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.ANGULAR_ACCELERATION)
+
+        # Specific variables for the model part RigidBody
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_MOMENT)
+
+        # Specific variables for the model part RootPoint
+        self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KM.REACTION_MOMENT)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_DISPLACEMENT)
+        self.root_point_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_ROTATION)
 
 
     def Run(self):
 
+        # This carries out the whole simulation
+        # (standard method, see Kratos analysis stage)
         self.Initialize()
         self.RunSolutionLoop()
         self.Finalize()
@@ -174,23 +186,33 @@ class RigidBodySolver(object):
 
     def Initialize(self):
 
-        # Initialize the time
+        # Initialize the time only if it is not a restart.
+        # If it is, the simulation will beginn at the time saved in the restart file
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             self.main_model_part.ProcessInfo[KM.TIME] = self.start_time
 
-        # Other variables that are used in SolveSolutionStep()
+        # Initialize other variables that are used in SolveSolutionStep()
         self.total_root_point_displ = np.zeros(self.system_size)
         self.total_load = np.zeros(self.system_size)
 
+        # Let the processes do their initialization tasks
         for process in self._list_of_processes:
             process.ExecuteInitialize()
 
+        # The solution loop starts after this method ends, 
+        # so let the processes do their necessary tasks
         for process in self._list_of_processes:
             process.ExecuteBeforeSolutionLoop()
+
+        # Standard Kratos output
+        if self.echo_level > 0:
+            KM.Logger.PrintInfo(self.problem_name(), "Analysis -START- ")
 
 
     def RunSolutionLoop(self):
 
+        # Solve each time step until the end time is reached
+        # (standard method, see Kratos analysis stage)
         while self.main_model_part.ProcessInfo[KM.TIME] < self.end_time:
             self.AdvanceInTime(self.main_model_part.ProcessInfo[KM.TIME])
             self.InitializeSolutionStep()
@@ -201,51 +223,53 @@ class RigidBodySolver(object):
 
     
     def Finalize(self):
-
+        
+        # Let the process do their finalization tasks
         for process in self._list_of_processes:
             process.ExecuteFinalize()
 
+        # Standard Kratos output
+        if self.echo_level > 0:
+            KM.Logger.PrintInfo(self.problem_name(), "Analysis -END- ")
 
-    def AdvanceInTime(self, current_time):    
-        # Similar to the Kratos CloneTimeStep function
-        # Advances values along the buffer axis (so rolling columns) using numpy's roll
-        # Column 0 is the current time step, column 1 the previous one...
 
-        # Variables whith buffer. Column 0 will be overwriten later
-        #self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
-        #self.effective_load = np.roll(self.effective_load,1,axis=1)
+    def AdvanceInTime(self, current_time):
 
-        # Variables that need to be reseted. They might not be overwriten later so they
-        # need to be zero to avoid values from previous time steps ar not continously used.
-        self.total_load = np.zeros(self.system_size)
-
-        # Update the time of the simulation
+        # Update the step and time of the simulation
         time = current_time + self.delta_t
+        # This updates KM.TIME and rotates slides the buffer values
         self.main_model_part.CloneTimeStep(time)
         self.main_model_part.ProcessInfo[KM.STEP] += 1
+
+        # Since the time step is cloned, the variables still have the previous values
+        # It is necessary to set to zero the variables that might not be overwritten
         self._ResetExternalVariables()
 
+        # It is necessary to return the time to use the solver with CoSim
         return time
 
     
     def InitializeSolutionStep(self):
 
+        # Standard Kratos output
         if self.echo_level > 0:
             KM.Logger.PrintInfo(self.problem_name, "STEP: ", self.main_model_part.ProcessInfo[KM.STEP])
             KM.Logger.PrintInfo(self.problem_name, "TIME: ", self.main_model_part.ProcessInfo[KM.TIME])
         
+        # Let the processes do their tasks before solving the step
         for process in self._list_of_processes:
             process.ExecuteInitializeSolutionStep()
 
     
     def Predict(self):
+        # In case it is implemented in the future
         pass
 
 
     def SolveSolutionStep(self):
         
-        # Calculate the effective load which considers both actual loads
-        # and the equivalent load from the root point displacement
+        # Calculate the effective load which considers both external/prescribed
+        # loads and the equivalent load from the root point displacement
         self._CalculateEffectiveLoad()
         eff_load = self._GetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT)
         eff_load_prev = self._GetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT, buffer=1)
@@ -253,14 +277,13 @@ class RigidBodySolver(object):
         # Calculate the gen-alpha load for the construction of the RHS
         F = (1.0 - self.alpha_f) * eff_load + self.alpha_f * eff_load_prev
 
+        # Construct the right-hand-side (RHS) of the system according to the gen-alpha method
         x_prev, v_prev, a_prev = self._GetKinematics("rigid_body", buffer=1)
-
-        # Creation of the RHS according to the gen-alpha method
         RHS = np.dot(self.M, (self.a1m * x_prev + self.a2m * v_prev + self.a3m * a_prev))
         RHS += np.dot(self.C, (self.a1b * x_prev + self.a2b * v_prev + self.a3b * a_prev))
         RHS += np.dot(self.a1k * self.K, x_prev) + F
 
-        # Make zero the corrresponding values of RHS so the inactive dofs are not excited
+        # Force to zero the corrresponding values of RHS so the inactive dofs are not excited
         for index, dof in enumerate(self.available_dofs):
             if dof not in self.active_dofs:
                 RHS[index] = 0
@@ -268,48 +291,56 @@ class RigidBodySolver(object):
         # Solve the solution step and find the new displacements
         x = np.linalg.solve(self.LHS, RHS)
 
-        # constrained dofs will have the root_point_displacement as a total displacement
+        # Force the constrained dofs to have the same rigid body displacement as in the root point
         for index, dof in enumerate(self.available_dofs):
             if self.is_constrained[dof]:
                 x[index] = self.total_root_point_displ[index]
 
         # Update velocity and acceleration according to the gen-alpha method
-        self._UpdateDisplacement("rigid_body", x)
+        self._UpdateKinematics("rigid_body", x)
 
+        # Update the reaction now that the new displacements have been found
         reaction = self._CalculateReaction()
         self._SetCompleteVector("root_point", KM.REACTION, KM.REACTION_MOMENT, reaction)
 
     
     def FinalizeSolutionStep(self):
         
+        # Let the processes do their tasks after solving the step
         for process in self._list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
 
     def OutputSolutionStep(self):
-        """This function writes output files after the solution of a step, exactly as in AnalysisStage()
-        """
+
         # Carry out this task only in the first rank (for parallel computing)
         # TODO: This might not be necessary anymore, since it doesn't run in MPI
         data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
-
+            
+            # Ensure that execute is called only once or never (see Kratos analysis stage)
             execute_was_called = False
             for output_process in self._list_of_output_processes:
                 if output_process.IsOutputStep():
+
+                    # Let regular processes do their tasks before outputting the step
                     if not execute_was_called:
                         for process in self._list_of_processes:
                             process.ExecuteBeforeOutputStep()
                         execute_was_called = True
-
+                    
+                    # Output the step
                     output_process.PrintOutput()
 
+            # Let regular processes do their tasks after outputting the step
             if execute_was_called:
                 for process in self._list_of_processes:
                     process.ExecuteAfterOutputStep()
             
     
     def _ResetExternalVariables(self):
+
+        # Set to zero variables that might not be overwritten each time step
         zero_vector = np.zeros(self.system_size)
         self._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, zero_vector)
         self._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, zero_vector)
@@ -329,16 +360,17 @@ class RigidBodySolver(object):
         external_root_point_displ = self._GetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION)
         prescribed_root_point_displ = self._GetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION)
         self.total_root_point_displ = external_root_point_displ + prescribed_root_point_displ
-        self._UpdateDisplacement("root_point", self.total_root_point_displ)
+        self._UpdateKinematics("root_point", self.total_root_point_displ)
         root_point_force = self._CalculateEquivalentForceFromRootPointDisplacement()
         
-        # Sum up both loads
+        # Sum up both loads and save the resulting effective load
         effective_load = self.total_load + root_point_force
         self._SetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT, effective_load)
 
     
     def _GetKinematics(self, model_part_name, buffer=0):
 
+        # Obtain displacements, velocities and accelerations of all the DOFs
         x = self._GetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, buffer=buffer)
         v = self._GetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, buffer=buffer)
         a = self._GetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, buffer=buffer)
@@ -346,14 +378,16 @@ class RigidBodySolver(object):
         return x, v, a
 
 
-    def _UpdateDisplacement(self, model_part_name, x):
+    def _UpdateKinematics(self, model_part_name, x):
 
+        # The previous' step kinematics are necessary to calculate the new velocity and acceleration
         x_prev, v_prev, a_prev = self._GetKinematics(model_part_name, buffer=1)
 
         # Calculate the velocity and acceleration according to the gen-alpha method
         v = self.a1v * (x - x_prev) + self.a2v * v_prev + self.a3v * a_prev
         a = self.a1a * (x - x_prev) + self.a2a * v_prev + self.a3a * a_prev
 
+        # Update the newly calculated kinematics
         self._SetCompleteVector(model_part_name, KM.DISPLACEMENT, KM.ROTATION, x)
         self._SetCompleteVector(model_part_name, KM.VELOCITY, KM.ANGULAR_VELOCITY, v)
         self._SetCompleteVector(model_part_name, KM.ACCELERATION, KM.ANGULAR_ACCELERATION, a)
@@ -361,8 +395,11 @@ class RigidBodySolver(object):
 
     def _CalculateReaction(self, buffer=0):
 
+        # Get displacement, velocity and acceleration of both the rigid body and the root point
         x, v, a = self._GetKinematics("rigid_body", buffer=buffer)
         x_root, v_root, a_root = self._GetKinematics("root_point", buffer=buffer)
+
+        # Calculate the reaction
         # TODO: Check how does it work with constrained DOFs
         # This is a very big TODO!
         reaction = self.C.dot(v - v_root) + self.K.dot(x - x_root)
@@ -380,7 +417,10 @@ class RigidBodySolver(object):
     
 
     def _GetCompleteVector(self, model_part_name, linear_variable, angular_variable, buffer=0):
-
+        # Method to transform the linear and angular variables stored in the model part to a single vector.
+        # For example, the displacement vector will be the combination of KM.DISPLACEMENT and KM.ROTATION.
+        
+        # Obtain the linear and angular data that are going to form the output
         if model_part_name == "rigid_body":
             linear_values = self.rigid_body_model_part.Nodes[1].GetSolutionStepValue(linear_variable, buffer)
             angular_values = self.rigid_body_model_part.Nodes[1].GetSolutionStepValue(angular_variable, buffer)
@@ -390,14 +430,19 @@ class RigidBodySolver(object):
         else:
             raise Exception('model_part_name should be "rigid_body" or "root_point".')
 
+        # Join all the data in a single vector so the solver can handle it more easily
         return np.array(list(linear_values) + list(angular_values))
 
     
     def _SetCompleteVector(self, model_part_name, linear_variable, angular_variable, values, buffer=0):
+        # Method to transform a single vector into the linear and angular variables stored in the model part.
+        # For example, the displacement vector will splitted and saved in KM.DISPLACEMENT and KM.ROTATION.
 
+        # Decompose the original vector into its linear and angular components
         linear_values = list(values[:self.linear_size])
         angular_values = list(values[-self.angular_size:])
 
+        # Save both of them separately
         if model_part_name == "rigid_body":
             self.rigid_body_model_part.Nodes[1].SetSolutionStepValue(linear_variable, buffer, linear_values)
             self.rigid_body_model_part.Nodes[1].SetSolutionStepValue(angular_variable, buffer, angular_values)
