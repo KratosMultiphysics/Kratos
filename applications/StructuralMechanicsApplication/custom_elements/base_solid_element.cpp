@@ -1935,7 +1935,7 @@ const Parameters BaseSolidElement::GetSpecifications() const
         "compatible_constitutive_laws": {
             "type"        : ["PlaneStrain","ThreeDimensional"],
             "dimension"   : ["2D","3D"],
-            "strain_size" : [3,6]
+            "strain_size" : [3,4,6]
         },
         "required_polynomial_degree_of_geometry" : -1,
         "documentation"   : "This is a pure displacement element"
