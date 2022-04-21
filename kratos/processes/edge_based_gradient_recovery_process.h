@@ -52,6 +52,123 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+namespace
+{
+
+template<class TDataType, bool TIsHistorical>
+struct GradientDataHandler final
+{
+    ///@name Type Definitions
+    ///@{
+
+    using NodeType = typename ModelPart::NodeType;
+
+    static constexpr bool IsDataTypeScalar = std::is_same<TDataType, double>();
+
+    using GradientDataType = typename std::conditional<IsDataTypeScalar, array_1d<double,3>, Matrix>::type;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    static double GetOrigin(
+        const NodeType& rNode,
+        const Variable<TDataType>& rOriginVar,
+        const std::size_t Component = 0);
+
+    static void SetGradient(
+        NodeType& rNode,
+        const Variable<GradientDataType>& rGradientVar,
+        const array_1d<double,3>& rGradientValue,
+        const std::size_t Component = 0);
+
+    ///@}
+};
+
+template<>
+double GradientDataHandler<double, true>::GetOrigin(
+    const NodeType& rNode,
+    const Variable<double>& rOriginVar,
+    const std::size_t Component)
+{
+    return rNode.FastGetSolutionStepValue(rOriginVar);
+}
+
+template<>
+double GradientDataHandler<double, false>::GetOrigin(
+    const NodeType& rNode,
+    const Variable<double>& rOriginVar,
+    const std::size_t Component)
+{
+    return rNode.GetValue(rOriginVar);
+}
+
+template<>
+double GradientDataHandler<array_1d<double,3>, true>::GetOrigin(
+    const NodeType& rNode,
+    const Variable<array_1d<double,3>>& rOriginVar,
+    const std::size_t Component)
+{
+    return rNode.FastGetSolutionStepValue(rOriginVar)[Component];
+}
+
+template<>
+double GradientDataHandler<array_1d<double,3>, false>::GetOrigin(
+    const NodeType& rNode,
+    const Variable<array_1d<double,3>>& rOriginVar,
+    const std::size_t Component)
+{
+    return rNode.GetValue(rOriginVar)[Component];
+}
+
+template<>
+void GradientDataHandler<double, true>::SetGradient(
+    NodeType& rNode,
+    const Variable<array_1d<double,3>>& rGradientVar,
+    const array_1d<double,3>& rGradientValue,
+    const std::size_t Component)
+{
+    noalias(rNode.FastGetSolutionStepValue(rGradientVar)) = rGradientValue;
+}
+
+template<>
+void GradientDataHandler<double, false>::SetGradient(
+    NodeType& rNode,
+    const Variable<array_1d<double,3>>& rGradientVar,
+    const array_1d<double,3>& rGradientValue,
+    const std::size_t Component)
+{
+    noalias(rNode.GetValue(rGradientVar)) = rGradientValue;
+}
+
+template<>
+void GradientDataHandler<array_1d<double,3>, true>::SetGradient(
+    NodeType& rNode,
+    const Variable<Matrix>& rGradientVar,
+    const array_1d<double,3>& rGradientComponentValue,
+    const std::size_t Component)
+{
+    auto &r_grad = rNode.FastGetSolutionStepValue(rGradientVar);
+    for (std::size_t i = 0; i < 3; ++i) {
+        r_grad(Component, i) = rGradientComponentValue[i];
+    }
+}
+
+template<>
+void GradientDataHandler<array_1d<double,3>, false>::SetGradient(
+    NodeType& rNode,
+    const Variable<Matrix>& rGradientVar,
+    const array_1d<double,3>& rGradientComponentValue,
+    const std::size_t Component)
+{
+    auto &r_grad = rNode.GetValue(rGradientVar);
+    for (std::size_t i = 0; i < 3; ++i) {
+        r_grad(Component, i) = rGradientComponentValue[i];
+    }
+}
+
+}
+
 /**
  * @brief Edge-based gradient recovery process
  * This process implements the edge-based gradient recovery process technique
@@ -74,6 +191,17 @@ public:
     using GradientDataType = typename std::conditional<IsDataTypeScalar, array_1d<double,3>, Matrix>::type;
 
     using NodeType = typename ModelPart::NodeType;
+
+    using OriginGetFunctionType = std::function<double(
+        const NodeType&,
+        const Variable<TDataType>&,
+        const std::size_t)>;
+
+    using GradientSetFunctionType = std::function<void(
+        NodeType &rNode,
+        const Variable<GradientDataType>&,
+        const array_1d<double, 3>&,
+        const std::size_t)>;
 
     using SolvingStrategyType = ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver >;
 
@@ -127,9 +255,12 @@ public:
 
     int Check() override
     {
-        //FIXME: We should check according to the origin variable type and database
-        // VariableUtils().CheckVariableExists<Variable<TDataType>>(*mpOriginVar, mpOriginModelPart->Nodes());
-        // VariableUtils().CheckVariableExists<Variable<array_1d<double,3>>>(*mpConvectVar, mpOriginModelPart->Nodes());
+        if (mSettings["is_historical_origin_variable"].GetBool()) {
+            VariableUtils().CheckVariableExists<Variable<TDataType>>(*mpOriginVar, mpOriginModelPart->Nodes());
+        }
+        if (mSettings["is_historical_gradient_variable"].GetBool()) {
+            VariableUtils().CheckVariableExists<Variable<GradientDataType>>(*mpGradientVar, mpOriginModelPart->Nodes());
+        }
 
         return 0;
     }
@@ -138,6 +269,18 @@ public:
     {
         KRATOS_TRY;
 
+        // Do the gradient recovery procedure
+        // Note that we intentionally avoid calling the Check() and Finalize() methods in case
+        // the Execute() is called many times as these two perform expensive operations.
+        ExecuteInitialize();
+        ExecuteInitializeSolutionStep();
+        ExecuteFinalizeSolutionStep();
+
+        KRATOS_CATCH("")
+    }
+
+    void ExecuteInitialize() override
+    {
         // Fill the auxiliary convection model part if not done yet
         if (!mModelPartIsInitialized) {
             InitializeGradientRecoveryModelPart(*mpOriginModelPart);
@@ -147,27 +290,56 @@ public:
         auto& r_process_info = mpGradientRecoveryModelPart->GetProcessInfo();
         r_process_info.SetValue(GRADIENT_PENALTY_COEFFICIENT, mSettings["gradient_penalty_coefficient"].GetDouble());
 
+        // Initialize gradient variables in the non-historical case
+        // Note that does the threadsafe memory allocation
+        if (!mSettings["is_historical_gradient_variable"].GetBool()) {
+            VariableUtils().SetNonHistoricalVariableToZero(*mpGradientVar, mpOriginModelPart->Nodes());
+        }
+    }
+
+    void ExecuteInitializeSolutionStep() override
+    {
         // Set the getter functions according to the origin and gradient variables databases
-        // std::function<TDataType&<NodeType&, const Variable<TDataType>&>> origin_value_getter;
-        // std::function<GradientDataType&<NodeType&, const Variable<GradientDataType>&>> gradient_value_getter;
+        OriginGetFunctionType origin_value_getter;
+        if (mSettings["is_historical_origin_variable"].GetBool()) {
+            origin_value_getter = GradientDataHandler<TDataType, true>::GetOrigin;
+        } else {
+            origin_value_getter = GradientDataHandler<TDataType, false>::GetOrigin;
+        }
 
-        // Solve the gradient recovery global problem
-        mpSolvingStrategy->InitializeSolutionStep();
-        mpSolvingStrategy->Predict();
-        mpSolvingStrategy->SolveSolutionStep();
-        mpSolvingStrategy->FinalizeSolutionStep();
+        GradientSetFunctionType gradient_value_setter;
+        if (mSettings["is_historical_gradient_variable"].GetBool()) {
+            gradient_value_setter = GradientDataHandler<TDataType, true>::SetGradient;
+        } else {
+            gradient_value_setter = GradientDataHandler<TDataType, false>::SetGradient;
+        }
 
-        KRATOS_CATCH("")
+        const std::size_t n_components = IsDataTypeScalar ? 1 : mpOriginModelPart->GetProcessInfo().GetValue(DOMAIN_SIZE);
+        for (std::size_t d = 0; d < n_components; ++d) {
+            CalculateGradientComponent(origin_value_getter, gradient_value_setter, d);
+        }
+    }
+
+    void ExecuteFinalizeSolutionStep() override
+    {
+        if (mSettings["reform_gradient_model_part_at_each_step"].GetBool()) {
+            Clear();
+        }
+    }
+
+    void ExecuteFinalize() override
+    {
+        Clear();
     }
 
     void Clear() override
     {
-        mpGradientRecoveryModelPart->Nodes().clear();
-        mpGradientRecoveryModelPart->Conditions().clear();
-        mpGradientRecoveryModelPart->Elements().clear();
-        // mpGradientRecoveryModelPart->GetProcessInfo().clear();
+        // Empty the model part
+        // Note that we call the Clear to avoid emptying the ProcessInfo
+        mpGradientRecoveryModelPart->Clear();
         mModelPartIsInitialized = false;
 
+        // Clear the linear strategy
         mpSolvingStrategy->Clear();
     }
 
@@ -182,7 +354,8 @@ public:
             "gradient_penalty_coefficient" : 1.0e-6,
             "calculate_nodal_neighbours" : true,
             "is_historical_origin_variable" : true,
-            "is_historical_gradient_variable": true
+            "is_historical_gradient_variable": true,
+            "reform_gradient_model_part_at_each_step" : false
         })");
 
         return default_parameters;
@@ -368,8 +541,8 @@ private:
         mSettings = ThisParameters;
 
         // Set the origin and gradient variables pointers
-        mpOriginVar = &KratosComponents<Variable<double>>::Get(ThisParameters["origin_variable"].GetString());
-        mpGradientVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["gradient_variable"].GetString());
+        mpOriginVar = &KratosComponents<Variable<TDataType>>::Get(ThisParameters["origin_variable"].GetString());
+        mpGradientVar = &KratosComponents<Variable<GradientDataType>>::Get(ThisParameters["gradient_variable"].GetString());
 
         // Check user-defined origin model part
         KRATOS_ERROR_IF(ThisParameters["model_part_name"].GetString() == "") << "Empty 'model_part_name'. This needs to be provided." << std::endl;
@@ -420,6 +593,35 @@ private:
         mpSolvingStrategy->Initialize();
     }
 
+    void CalculateGradientComponent(
+        const OriginGetFunctionType& rOriginValueGetter,
+        const GradientSetFunctionType& rGradientValueSetter,
+        const std::size_t Component)
+    {
+        // Set the origin variable in the edge-based nodes
+        const std::size_t n_nodes = mpOriginModelPart->NumberOfNodes();
+        IndexPartition<std::size_t>(n_nodes).for_each([&](std::size_t i_node){
+            const auto it_orig_node = mpOriginModelPart->NodesBegin() + i_node;
+            auto it_grad_node = mpGradientRecoveryModelPart->NodesBegin() + i_node;
+            const double orig_val = rOriginValueGetter(*it_orig_node, *mpOriginVar, Component);
+            it_grad_node->SetValue(NODAL_MAUX, orig_val);
+        });
+
+        // Solve the gradient recovery global problem
+        mpSolvingStrategy->InitializeSolutionStep();
+        mpSolvingStrategy->Predict();
+        mpSolvingStrategy->SolveSolutionStep();
+        mpSolvingStrategy->FinalizeSolutionStep();
+
+        // Transfer the gradient solution to the origin mesh
+        IndexPartition<std::size_t>(n_nodes).for_each([&](std::size_t i_node){
+            auto it_orig_node = mpOriginModelPart->NodesBegin() + i_node;
+            const auto it_grad_node = mpGradientRecoveryModelPart->NodesBegin() + i_node;
+            const array_1d<double,3>& grad_val = it_grad_node->FastGetSolutionStepValue(NODAL_VAUX);
+            rGradientValueSetter(*it_orig_node, *mpGradientVar, grad_val, Component);
+        });
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -447,17 +649,17 @@ private:
 ///@{
 
 /// Input stream function
-template<class TDataType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-inline std::istream& operator >> (
+template <class TDataType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+inline std::istream& operator>>(
     std::istream& rIStream,
     EdgeBasedGradientRecoveryProcess<TDataType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis);
 
 /// Output stream function
-template<class TDataType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
-inline std::ostream& operator << (
+template <class TDataType, class TSparseSpace, class TDenseSpace, class TLinearSolver>
+inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const EdgeBasedGradientRecoveryProcess<TDataType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis){
-
+    const EdgeBasedGradientRecoveryProcess<TDataType, TSparseSpace, TDenseSpace, TLinearSolver>& rThis)
+{
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
