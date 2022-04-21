@@ -29,7 +29,7 @@ class RigidBodySolver(object):
         self.problem_name = project_parameters["problem_data"]["problem_name"].GetString()
         self.start_time = project_parameters["problem_data"]["start_time"].GetDouble()
         self.end_time = project_parameters["problem_data"]["end_time"].GetDouble()
-
+        
         solver_settings = input_check._ValidateAndAssignRigidBodySolverDefaults(project_parameters["solver_settings"])
         self.domain_size = solver_settings["domain_size"].GetInt()
         buffer_size = solver_settings["buffer_size"].GetInt()
@@ -92,6 +92,8 @@ class RigidBodySolver(object):
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.MOMENT)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_FORCE)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.PRESCRIBED_MOMENT)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_FORCE)
+        self.rigid_body_model_part.AddNodalSolutionStepVariable(KMC.EFFECTIVE_MOMENT)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
         self.rigid_body_model_part.AddNodalSolutionStepVariable(KM.BODY_MOMENT)
 
@@ -180,7 +182,6 @@ class RigidBodySolver(object):
         # Other variables that are used in SolveSolutionStep()
         self.total_root_point_displ = np.zeros(self.system_size)
         self.total_load = np.zeros(self.system_size)
-        self.effective_load = np.zeros((self.system_size, self.buffer_size))
 
         for process in self._list_of_processes:
             process.ExecuteInitialize()
@@ -213,7 +214,7 @@ class RigidBodySolver(object):
 
         # Variables whith buffer. Column 0 will be overwriten later
         #self.total_root_point_displ = np.roll(self.total_root_point_displ,1,axis=1)
-        self.effective_load = np.roll(self.effective_load,1,axis=1)
+        #self.effective_load = np.roll(self.effective_load,1,axis=1)
 
         # Variables that need to be reseted. They might not be overwriten later so they
         # need to be zero to avoid values from previous time steps ar not continously used.
@@ -246,10 +247,12 @@ class RigidBodySolver(object):
         
         # Calculate the effective load which considers both actual loads
         # and the equivalent load from the root point displacement
-        self.effective_load[:,0] = self._CalculateEffectiveLoad()
+        self._CalculateEffectiveLoad()
+        eff_load = self._GetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT)
+        eff_load_prev = self._GetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT, buffer=1)
 
         # Calculate the gen-alpha load for the construction of the RHS
-        F = (1.0 - self.alpha_f) * self.effective_load[:,0] + self.alpha_f * self.effective_load[:,1]
+        F = (1.0 - self.alpha_f) * eff_load + self.alpha_f * eff_load_prev
 
         x_prev, v_prev, a_prev = self._GetKinematics("rigid_body", buffer=1)
 
@@ -332,8 +335,7 @@ class RigidBodySolver(object):
         
         # Sum up both loads
         effective_load = self.total_load + root_point_force
-
-        return effective_load
+        self._SetCompleteVector("rigid_body", KMC.EFFECTIVE_FORCE, KMC.EFFECTIVE_MOMENT, effective_load)
 
     
     def _GetKinematics(self, model_part_name, buffer=0):
