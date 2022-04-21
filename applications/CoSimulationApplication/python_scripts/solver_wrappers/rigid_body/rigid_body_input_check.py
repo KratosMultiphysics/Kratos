@@ -60,6 +60,10 @@ def _ValidateAndAssignRigidBodySolverDefaults(solver_settings):
 
     if solver_settings["domain_size"].GetInt() not in [2, 3]:
         raise Exception("The domain size can only be 2 or 3.")
+    if solver_settings["domain_size"].GetInt() == 1:
+        msg = 'The 2D version of the solver is yet to be implemented. Use 3 as '
+        msg += '"domain_size" and activate only the necessary degrees of freedom instead.'
+        raise Exception(msg)
     
     if solver_settings["buffer_size"].GetInt() < 1:
         raise Exception("The buffer size needs to be equal or bigger than 1.")
