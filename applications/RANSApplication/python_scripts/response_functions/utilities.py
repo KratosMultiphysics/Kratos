@@ -130,10 +130,17 @@ def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name):
     for process_settings in auxiliar_process_list:
         if (
             process_settings.Has("python_module") and process_settings["python_module"].GetString() == "response_function_output_process" and
-            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication" and
-            process_settings["Parameters"].Has("model_part_name") and process_settings["Parameters"]["model_part_name"].GetString() == model_part_name
-            ):
-            return process_settings
+            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication"):
+
+            process_model_part_name  = ""
+            if process_settings["Parameters"].Has("model_part_name"):
+                 process_model_part_name = process_settings["Parameters"]["model_part_name"].GetString()
+
+            if process_settings["Parameters"]["response_settings"].Has("model_part_name"):
+                process_model_part_name += "." + process_settings["Parameters"]["response_settings"]["model_part_name"].GetString()
+
+            if process_model_part_name == model_part_name:
+                return process_settings
 
     return None
 
@@ -155,11 +162,14 @@ def ReadResponseValuesFile(file_name):
 def GetResponseValues(kratos_parameters, model_part_name):
     output_process = _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name)
     if (output_process is not None):
-        output_file_name = output_process["Parameters"]["output_file_settings"]["file_name"].GetString()
+        file_path = Path(".")
+        if output_process["Parameters"]["output_file_settings"].Has("output_path"):
+            file_path = file_path / output_process["Parameters"]["output_file_settings"]["output_path"].GetString()
+        output_file_name = str(file_path / str(output_process["Parameters"]["output_file_settings"]["file_name"].GetString() + ".dat"))
         time_steps, values = ReadResponseValuesFile(output_file_name)
         return time_steps, values
     else:
-        raise RuntimeError("No \"compute_body_fitted_drag_process\" found in auxiliar_process_list.")
+        raise RuntimeError("No \"response_function_output_process\" found in auxiliar_process_list matching {:s} model part".format(model_part_name))
 
 def CalculateTimeAveragedResponseValue(kratos_parameters, model_part_name, start_time = 0.0):
     time_steps, values = GetResponseValues(kratos_parameters, model_part_name)
