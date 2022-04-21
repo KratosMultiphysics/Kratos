@@ -27,6 +27,7 @@ class ResponseFunctionOutputProcess(Kratos.OutputProcess):
             self.params["model_part_name"].GetString())
         self.params.ValidateAndAssignDefaults(default_settings)
         self.output_file = None
+        domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
 
         response_type = self.params["response_type"].GetString()
         if (response_type == "norm_square"):
@@ -36,8 +37,14 @@ class ResponseFunctionOutputProcess(Kratos.OutputProcess):
             self.response = KratosCFD.DomainIntegratedResponseFunction(
                 self.params["response_settings"], self.main_model_part)
         elif (response_type == "domain_integrated_3d_vector_magnitude_square_power_mean"):
-            self.response = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction(
-                self.params["response_settings"], self.main_model_part)
+            if domain_size == 2:
+                self.response = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction2D(
+                    self.params["response_settings"], self.main_model_part)
+            elif domain_size == 3:
+                self.response = KratosCFD.DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D(
+                    self.params["response_settings"], self.main_model_part)
+            else:
+                raise Exception("Unsupported domain size requested.")
         else:
             raise Exception(
                 "Unknown response_type = \"" + response_type +
