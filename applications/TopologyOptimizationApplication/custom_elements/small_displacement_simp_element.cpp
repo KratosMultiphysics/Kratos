@@ -12,11 +12,6 @@
 //                   Eric Gonzales
 //                   Philipp Hofer
 //                   Erich Wehrle
-//
-// ==============================================================================
-
-// Application includes
-
 #include "small_displacement_simp_element.h"
 #include "topology_optimization_application.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
@@ -93,9 +88,9 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 /***********************************************************************************/
 
 
-// =============================================================================================================================================
+// ===================================================================================
 // STARTING / ENDING METHODS
-// =============================================================================================================================================
+// ===================================================================================
 
 //************************************************************************************
 //************************************************************************************
@@ -127,46 +122,45 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 {
     KRATOS_TRY
 
-
     // Get values
     const double E_min     = this->GetProperties()[YOUNGS_MODULUS_MIN];
     const double E_initial = this->GetProperties()[YOUNGS_MODULUS_0];
+    //const std::string mat_interp = this->GetProperties()[MAT_INTERP];
+    const std::string mat_interp = this->GetValue(MAT_INTERP);
     const double E_current = this->GetValue(YOUNG_MODULUS);
     const double penalty   = this->GetValue(PENAL);
     const double x_phys    = this->GetValue(X_PHYS);
-    const std::string mat_interp = this->GetValue(MAT_INTERP);
 
     // sensitivities of interpolation method
     double interp_sens = 0;
+    double E_new = 0;
     if (mat_interp == "simp")
     {
+        E_new += E_initial*pow(x_phys, penalty);
         interp_sens += penalty * E_initial * pow(x_phys, penalty - 1);
     }
     else if (mat_interp == "simp_modified")
     {
+        E_new += (E_min + pow(x_phys, penalty) * (E_initial - E_min));
         interp_sens += penalty * (E_initial - E_min) * pow(x_phys, penalty - 1);
     }
     else if (mat_interp == "ramp")
     {
+        E_new += E_min + x_phys/(1+penalty*(1-x_phys)) * (E_initial - E_min);
         interp_sens += (E_initial - E_min)*(penalty+1) / pow(1-penalty*(x_phys-1), 2);
     }
     else
     {
-        // not defined...through error
+        KRATOS_ERROR << "Material interpolation option incorrectly chosen \nAvailable methods are: 'simp', 'simp_modified', 'ramp'." << std::endl;
     }
 
 
     if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
     {
-
-        //const std::string mat_interp = "simp";
-        //std::cout << mat_interp;
-
         // Get element stiffness matrix and modify it with the factor that considers the adjusted Youngs Modulus according to the SIMP method
         // Note that Ke0 is computed based on the originally provided Youngs Modulus in the .mdpa-file
         MatrixType Ke0 = Matrix();
         this->CalculateLeftHandSide(Ke0, const_cast <ProcessInfo&>(rCurrentProcessInfo));
-        double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
         ///Normalize the youngs modulus
         double factor    = E_new/E_current;

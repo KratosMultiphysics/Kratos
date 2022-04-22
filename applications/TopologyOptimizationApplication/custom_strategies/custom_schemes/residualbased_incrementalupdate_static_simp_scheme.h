@@ -12,9 +12,6 @@
 //                   Eric Gonzales
 //					 Philipp Hofer
 //					 Erich Wehrle
-//
-// ==============================================================================
-
 #if !defined(KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SIMP_SCHEME_H)
 #define  KRATOS_RESIDUALBASED_INCREMENTALUPDATE_STATIC_SIMP_SCHEME_H
 
@@ -107,14 +104,9 @@ public:
     */
     /*@{ */
 
-    // ---------------------------------------------------------------------------------------------------------------------------------------------
-    // --------------------------------- UPDATE LHS AND RHS ----------------------------------------------------------------------------------------
-    // ---------------------------------------------------------------------------------------------------------------------------------------------
-
+    // UPDATE LHS AND RHS
     /// This function calculates a new Youngs Modulus based on the densities and multiplies it into the
     /// LHS and RHS contributions of the complete system
-
-
 
     void CalculateSystemContributions(
         Element& rCurrentElement,
@@ -134,10 +126,11 @@ public:
         //Determine the new Youngs Modulus based on the assigned new density (X_PHYS)
         const double E_min     = rCurrentElement.GetProperties()[YOUNGS_MODULUS_MIN];
         const double E_initial = rCurrentElement.GetProperties()[YOUNGS_MODULUS_0];
+        //const std::string mat_interp = rCurrentElement.GetProperties()[MAT_INTERP];
+        const std::string mat_interp = rCurrentElement.GetValue(MAT_INTERP);
         const double E_current = rCurrentElement.GetValue(YOUNG_MODULUS);
         const double penalty   = rCurrentElement.GetValue(PENAL);
         const double x_phys    = rCurrentElement.GetValue(X_PHYS);
-        const std::string mat_interp = rCurrentElement.GetValue(MAT_INTERP);
 
         double E_new = 0;
         if (mat_interp == "simp")
@@ -154,7 +147,7 @@ public:
         }
         else
         {
-            // not defined...through error
+            KRATOS_ERROR << "Material interpolation option incorrectly chosen \nAvailable methods are: 'simp', 'simp_modified', 'ramp'." << std::endl;
         }
 
         //Calculate the factor that needs to be multiplied on the RHS and LHS
