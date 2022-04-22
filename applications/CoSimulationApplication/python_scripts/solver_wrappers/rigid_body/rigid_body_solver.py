@@ -206,7 +206,7 @@ class RigidBodySolver(object):
 
         # Standard Kratos output
         if self.echo_level > 0:
-            KM.Logger.PrintInfo(self.problem_name(), "Analysis -START- ")
+            KM.Logger.PrintInfo(self.problem_name, "Analysis -START- ")
 
 
     def RunSolutionLoop(self):
@@ -230,7 +230,7 @@ class RigidBodySolver(object):
 
         # Standard Kratos output
         if self.echo_level > 0:
-            KM.Logger.PrintInfo(self.problem_name(), "Analysis -END- ")
+            KM.Logger.PrintInfo(self.problem_name, "Analysis -END- ")
 
 
     def AdvanceInTime(self, current_time):
