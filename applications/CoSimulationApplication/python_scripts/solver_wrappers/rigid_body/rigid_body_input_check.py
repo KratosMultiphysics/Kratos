@@ -146,22 +146,17 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
         process_types = ["gravity", "boundary_conditions_process_list", "auxiliar_process_list"]
     else:
         process_types = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
-    
-    # TODO: No need to convert it to a json to manipulate it
-    parameters_json = json.loads(parameters.WriteJsonString())
 
     # Import the processes and save them in a list
     list_of_processes = []
-    # TODO: Is this usually a mandatory input?
-    if "processes" in parameters_json:
+    if parameters.Has("parameters"):
         for process_type in process_types:
-            if process_type in parameters_json["processes"]:
-                for process in parameters_json["processes"][process_type]:
-                    python_module = process["python_module"]
-                    kratos_module = process["kratos_module"]
+            if parameters["processes"].Has(process_type):
+                for process in parameters["processes"][process_type]:
+                    python_module = process["python_module"].GetString()
+                    kratos_module = process["kratos_module"].GetString()
                     process_module = import_module(kratos_module + "." + python_module)
-                    process_settings = KM.Parameters(json.dumps(process))
-                    list_of_processes.append(process_module.Factory(process_settings, model))
+                    list_of_processes.append(process_module.Factory(process, model))
     
     return list_of_processes
 
@@ -169,18 +164,13 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
 def _CreateListOfOutputProcesses(model, parameters):
     # This function creates all the output processes stated in the project parameters
 
-    # TODO: No need to convert it to a json to manipulate it
-    parameters_json = json.loads(parameters.WriteJsonString())
-
     # Import the processes and save them in a list
     list_of_output_processes = []
-    # TODO: Is this usually a mandatory input?
-    if "output_processes" in parameters_json:
-        for process in parameters_json["output_processes"]:
-            python_module = process["python_module"]
-            kratos_module = process["kratos_module"]
+    if parameters.Has("output_processes"):
+        for process in parameters["output_processes"]:
+            python_module = process["python_module"].GetString()
+            kratos_module = process["kratos_module"].GetString()
             process_module = import_module(kratos_module + "." + python_module)
-            process_settings = KM.Parameters(json.dumps(process))
-            list_of_output_processes.append(process_module.Factory(process_settings, model))
+            list_of_output_processes.append(process_module.Factory(process, model))
     
     return list_of_output_processes
