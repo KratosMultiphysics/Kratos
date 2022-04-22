@@ -24,6 +24,7 @@
 #include "custom_processes/bump_transient_porosity_solution_body_force_process.h"
 #include "custom_processes/porosity_solution_and_sinusoidal_body_force_process.h"
 #include "custom_processes/porosity_solution_and_body_force_process.h"
+#include "custom_processes/skrzypacz_porosity_solution_and_body_force_process.h"
 #include "custom_processes/sinusoidal_porosity_solution_transient_body_force_process.h"
 #include "custom_processes/sinusoidal_porosity_solution_and_body_force_process.h"
 #include "custom_processes/hyperbolic_tangential_porosity_solution_and_body_force_process.h"
@@ -56,8 +57,14 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
-        py::class_<PorositySolutionAndSinusoidalBodyForceProcess, PorositySolutionAndSinusoidalBodyForceProcess::Pointer, Process>
+    py::class_<PorositySolutionAndSinusoidalBodyForceProcess, PorositySolutionAndSinusoidalBodyForceProcess::Pointer, Process>
     (m, "PorositySolutionAndSinusoidalBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<SkrzypaczPorositySolutionAndBodyForceProcess, SkrzypaczPorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "SkrzypaczPorositySolutionAndBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;

@@ -75,6 +75,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     #Process
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/bump_transient_porosity_solution_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_and_sinusoidal_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/skrzypacz_porosity_solution_and_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/porosity_solution_transient_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/sinusoidal_porosity_solution_transient_body_force_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/sinusoidal_porosity_solution_and_body_force_process.cpp
