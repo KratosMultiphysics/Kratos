@@ -24,14 +24,12 @@ class ImplicitVertexMorphing(ShapeControl):
                     "fixed_model_parts_X"  : [],
                     "fixed_model_parts_Y"  : [],
                     "fixed_model_parts_Z"  : [],
-                    "element_type" : "helmholtz_vec_element",
-                    "surface_element_type" : "helmholtz_surf_element",
                     "only_design_surface_parameterization" : true,
                     "formulate_on_the_undeformed_configuration" : true,
                     "automatic_filter_size" : true,
                     "adaptive_filter_size" : false,
-                    "surface_filter_radius" : 0.000000000001,            
-                    "bulk_filter_radius" : 0.000000000001,
+                    "surface_filter_radius" : 0.000000000001,
+                    "surface_bulk_ratio" : 2,
                     "poisson_ratio" : 0.3,            
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
@@ -104,19 +102,8 @@ class ImplicitVertexMorphing(ShapeControl):
     def Compute(self):
         self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X) 
 
-    def Update(self):
-        for model_part_name in self.controlling_objects:
-            if not self.technique_settings["only_design_surface_parameterization"].GetBool():
-                model_part_name = model_part_name.split(".")[0]
-            model_part = self.model.GetModelPart(model_part_name)
-            for node in model_part.Nodes:
-                shape_update = node.GetSolutionStepValue(KOA.D_X)
-                node.X0 += shape_update[0]
-                node.X = node.X0
-                node.Y0 += shape_update[1]
-                node.Y = node.Y0
-                node.Z0 += shape_update[2]
-                node.Z = node.Z0  
+    def Update(self):        
+        self.implicit_vertex_morphing.Update()
 
     def GetControllingObjects(self):
         if self.technique_settings["only_design_surface_parameterization"].GetBool():

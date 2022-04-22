@@ -102,8 +102,6 @@ void HelmholtzBulkShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     {
         const VectorType &source = r_geometry[node_element].FastGetSolutionStepValue(HELMHOLTZ_SOURCE_SHAPE);
         auto node_weight = r_geometry[node_element].GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS);
-        if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE])
-            node_weight = 1.0;
         nodal_vals[3 * node_element + 0] = source[0]/node_weight;
         nodal_vals[3 * node_element + 1] = source[1]/node_weight;
         nodal_vals[3 * node_element + 2] = source[2]/node_weight;
@@ -384,7 +382,7 @@ HelmholtzBulkShapeElement::SetAndModifyConstitutiveLaw(
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
   const double r_helmholtz = this->pGetProperties()->GetValue(HELMHOLTZ_BULK_RADIUS_SHAPE);
-  const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
+  const double xi = 2.0; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
   const double quotient = r_helmholtz / detJ0;
   const double weighting_factor = std::pow(quotient, xi);

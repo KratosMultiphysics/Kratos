@@ -35,6 +35,8 @@
 #include "custom_elements/helmholtz_bulk_shape_element.h"
 #include "custom_conditions/helmholtz_surf_shape_condition.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
+#include "geometries/geometry_data.h"
+#include "spatial_containers/spatial_containers.h"
 
 
 // ==============================================================================
@@ -141,7 +143,34 @@ public:
     };
     // --------------------------------------------------------------------------
     void Update() override {
+        BuiltinTimer timer;
+
+        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        {
+            ModelPart* mpVMModePart = mpVMModelParts[model_i];
+            for(auto& node_i : mpVMModePart->Nodes()){
+                array_3d& r_nodal_D_X = node_i.FastGetSolutionStepValue(D_X);
+                array_3d& r_nodal_D_CX = node_i.FastGetSolutionStepValue(D_CX);
+                array_3d& r_nodal_CX = node_i.FastGetSolutionStepValue(CX);
+
+                r_nodal_CX += r_nodal_D_CX;
+
+                node_i.X0() += r_nodal_D_X(0);
+                node_i.X() = node_i.X0();
+
+                node_i.Y0() += r_nodal_D_X(1);
+                node_i.Y() = node_i.Y0();
+
+                node_i.Z0() += r_nodal_D_X(2);
+                node_i.Z() = node_i.Z0();                                
+
+            }
+            TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(*mpVMModePart,true);
+            tetrahedralMeshOrientationCheck.Execute();            
+
+        }        
         AdjustFilterSizes();
+        KRATOS_INFO("ImplicitVertexMorphing:MapControlUpdate:") << "Finished updating in " << timer.ElapsedSeconds() << " s." << std::endl;
     };  
     // --------------------------------------------------------------------------
     void MapControlUpdate(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) override{
@@ -168,16 +197,6 @@ public:
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_SHAPE,int_vals);
             }
 
-            for(auto& cond_i : mpVMModePart->Conditions())
-            {
-                VectorType origin_values;
-                GetConditionVariableValuesVector(cond_i,rOriginVariable,origin_values);
-                MatrixType mass_matrix;
-                cond_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());            
-                VectorType int_vals = prod(mass_matrix,origin_values);
-                AddConditionVariableValuesVector(cond_i,HELMHOLTZ_SOURCE_SHAPE,int_vals);
-            }
-
             mpStrategies[model_i]->Solve();
 
             //filling the solution
@@ -190,9 +209,6 @@ public:
     };
     // --------------------------------------------------------------------------
     void MapFirstDerivative(const Variable<array_3d> &rDerivativeVariable, const Variable<array_3d> &rMappedDerivativeVariable) override{
-
-
-        AdjustFilterSizes();
 
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
@@ -269,6 +285,7 @@ protected:
     std::vector<LinearSolverType::Pointer> rLinearSystemSolvers;
     std::vector<StrategyType*>mpStrategies;
     std::vector<ModelPart*> mpVMModelParts;
+    std::vector<std::string> mpVMModelPartsTypes;
     std::vector<Properties::Pointer> mpVMModelPartsProperties;
     Parameters mTechniqueSettings;
     
@@ -371,7 +388,7 @@ private:
 
     void CreateModelParts()
     {
-        bool only_suf_param =  mTechniqueSettings["only_design_surface_parameterization"].GetBool();
+        
         // creating vm model nodes and variables
         for(auto& control_obj : mControlSettings["controlling_objects"]){
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
@@ -385,6 +402,23 @@ private:
             <<"ImplicitVertexMorphing::CreateModelParts: root model of controlling object "<<control_obj.GetString()<<" must have 3D elements !"<<std::endl;
             KRATOS_ERROR_IF_NOT(domain_size == 3)
             << "ImplicitVertexMorphing::CreateModelParts: controlling_object should be a 3D model part " << std::endl;
+
+            bool only_suf_param =  mTechniqueSettings["only_design_surface_parameterization"].GetBool();
+
+            //check if the control object is shell or solid
+            bool is_shell = true;
+            if(root_model_part.ElementsBegin()->GetGeometry().LocalSpaceDimension()>2)
+                is_shell = false;
+
+            if(is_shell){
+                only_suf_param = true;
+                mpVMModelPartsTypes.push_back("shell");                
+            }
+            else if(only_suf_param)
+                mpVMModelPartsTypes.push_back("shell");
+            else
+                mpVMModelPartsTypes.push_back("solid");
+                
 
             std::string vm_model_part_name =  root_model_part.Name()+"_Implicit_VM_Part";
             ModelPart* p_vm_model_part;
@@ -403,9 +437,19 @@ private:
                 mpVMModelParts.push_back(p_vm_model_part);
             }
 
+            if(mTechniqueSettings["automatic_filter_size"].GetBool()){
+                double max_length = 0.0;
+                for(auto& cond_i : r_controlling_object.Conditions())
+                        max_length = cond_i.GetGeometry().Length();
 
-            p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,mTechniqueSettings["surface_filter_radius"].GetDouble());
-            p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,mTechniqueSettings["bulk_filter_radius"].GetDouble()); 
+                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,5 * max_length); 
+                KRATOS_INFO("ImplicitVertexMorphing:CreateModelParts:") << " surface filter of "<<control_obj.GetString() <<" is adjusted to " << 3 * max_length << std::endl;               
+
+            }
+            else
+                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,mTechniqueSettings["surface_filter_radius"].GetDouble());
+
+
             p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_POISSON_RATIO_SHAPE,mTechniqueSettings["poisson_ratio"].GetDouble()); 
             p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_POISSON_RATIO_SHAPE,mTechniqueSettings["poisson_ratio"].GetDouble());
             
@@ -482,8 +526,7 @@ private:
     void AdjustFilterSizes()
     {
         // now adjust the filter size if its adaptive
-        if(mTechniqueSettings["only_design_surface_parameterization"].GetBool() && (mTechniqueSettings["automatic_filter_size"].GetBool() || 
-        mTechniqueSettings["adaptive_filter_size"].GetBool()) ){
+        if( mTechniqueSettings["adaptive_filter_size"].GetBool() ){
             for(auto& control_obj : mControlSettings["controlling_objects"]){
                 ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
                 ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
@@ -494,43 +537,20 @@ private:
                     if(mpVMModelParts[i]->Name()==mpVMModePart->Name())
                         p_vm_model_part_property = mpVMModelPartsProperties[i];
 
-                double max_detJ = 0.0;
-                double min_detJ = 1e9;
-                for(auto& elem_i : mpVMModePart->Elements()){
-                    const auto& r_geom = elem_i.GetGeometry();
-                    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
-                    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
-                    const unsigned int NumGauss = integration_points.size();
-                    Vector GaussPtsJDet = ZeroVector(NumGauss);
-                    r_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
-                    for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
-                        if(GaussPtsJDet[i_point]>max_detJ)
-                            max_detJ = GaussPtsJDet[i_point];
-                        if(GaussPtsJDet[i_point]<min_detJ)
-                            min_detJ = GaussPtsJDet[i_point];                  
-                    }   
-                }     
+                double max_length = 0.0;
+                for(auto& cond_i : r_controlling_object.Conditions())
+                        max_length = cond_i.GetGeometry().Length();
 
-                double surface_filter_size = sqrt(std::pow(max_detJ/min_detJ, 0.5));
-                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,surface_filter_size);
-
-                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " Surface filter of "<<control_obj.GetString() <<" is adjusted to " << surface_filter_size << std::endl;
+                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,5 * max_length); 
+                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes:") << " surface filter of "<<control_obj.GetString() <<" is adjusted to " << 3 * max_length << std::endl; 
             }
         }
-        else if(!mTechniqueSettings["only_design_surface_parameterization"].GetBool()){
 
-            for(auto& control_obj : mControlSettings["controlling_objects"]){
-                ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
-                ModelPart& root_model_part = r_controlling_object.GetRootModelPart();
-                std::string vm_model_part_name =  root_model_part.Name()+"_Implicit_VM_Part";
-                ModelPart* mpVMModePart = &(root_model_part.GetSubModelPart(vm_model_part_name)); 
-                Properties::Pointer p_vm_model_part_property;
-                for(int i =0; i<mpVMModelParts.size(); i++)
-                    if(mpVMModelParts[i]->Name()==mpVMModePart->Name())
-                        p_vm_model_part_property = mpVMModelPartsProperties[i];           
+        for(int obj_i=0;obj_i<mpVMModelPartsTypes.size();obj_i++)
+            if(mpVMModelPartsTypes[obj_i]=="solid"){
+                ModelPart* mpVMModePart = mpVMModelParts[obj_i];
+                Properties::Pointer p_vm_model_part_property = mpVMModelPartsProperties[obj_i];
 
-                double max_detJ = 0.0;
-                double min_detJ = 1e9;
                 double total_vol = 0.0;
                 double vol_int_radius = 0.0;
                 for(auto& elem_i : mpVMModePart->Elements()){
@@ -541,91 +561,26 @@ private:
                     const unsigned int NumGauss = integration_points.size();
                     Vector GaussPtsJDet = ZeroVector(NumGauss);
                     r_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
-                    for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
-                        if(GaussPtsJDet[i_point]>max_detJ)
-                            max_detJ = GaussPtsJDet[i_point];
-                        if(GaussPtsJDet[i_point]<min_detJ)
-                            min_detJ = GaussPtsJDet[i_point];                  
-                    }   
-                    
-                }
-                for(auto& elem_i : mpVMModePart->Elements()){
-                    const auto& r_geom = elem_i.GetGeometry(); 
-                    total_vol += r_geom.Volume();
-                    const IntegrationMethod& integration_method = r_geom.GetDefaultIntegrationMethod();
-                    const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
-                    const unsigned int NumGauss = integration_points.size();
-                    Vector GaussPtsJDet = ZeroVector(NumGauss);
-                    r_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
 
                     for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
-                        vol_int_radius += GaussPtsJDet[i_point] * integration_points[i_point].Weight() * std::pow(1.0/GaussPtsJDet[i_point],1.5);
+                        vol_int_radius += GaussPtsJDet[i_point] * integration_points[i_point].Weight() * std::pow(1.0/GaussPtsJDet[i_point],2.0);
                     }
                 }
 
-                // std::cout<<"max_detJ: "<<max_detJ<<", min_detJ: "<<min_detJ<<std::endl; 
-
-                double max_cond_par_elem_detJ = 0.0;
-                double min_cond_par_elem_detJ = 1e9;
-                double max_cond_detJ = 0.0;
-                double min_cond_detJ = 1e9;            
-                double total_cond_par_elem_vol = 0.0;
                 double total_cond_area = 0.0;
-                double min_cond_length = 1e9;
-                double max_cond_length = 0.0;
-                for(auto& cond_i : mpVMModePart->Conditions()){
-                    const auto& r_geom = cond_i.GetGeometry(); 
-                    double cond_area = r_geom.Area();
-                    double cond_length = r_geom.Length();
-                    total_cond_area += cond_area;
-
-                    if(cond_length>max_cond_length)
-                        max_cond_length = cond_length;
-                    if(cond_length<min_cond_length)
-                        min_cond_length = cond_length; 
-         
-                    const IntegrationMethod& cond_integration_method = r_geom.GetDefaultIntegrationMethod();
-                    const GeometryType::IntegrationPointsArrayType& cond_integration_points = r_geom.IntegrationPoints(cond_integration_method);
-                    const unsigned int cond_NumGauss = cond_integration_points.size();
-                    Vector cond_GaussPtsJDet = ZeroVector(cond_NumGauss);
-                    r_geom.DeterminantOfJacobian(cond_GaussPtsJDet,cond_integration_method);  
-                    for(std::size_t cond_i_point = 0; cond_i_point<cond_NumGauss; ++cond_i_point){
-                        if(cond_GaussPtsJDet[cond_i_point]>max_cond_detJ)
-                            max_cond_detJ = cond_GaussPtsJDet[cond_i_point];
-                        if(cond_GaussPtsJDet[cond_i_point]<min_cond_detJ)
-                            min_cond_detJ = cond_GaussPtsJDet[cond_i_point];                  
-                    } 
-
-                    
-                    auto& parentElement = cond_i.GetValue(NEIGHBOUR_ELEMENTS);
-                    const auto& r_elem_geom = parentElement[0].GetGeometry();                                
-                    const IntegrationMethod& integration_method = r_elem_geom.GetDefaultIntegrationMethod();
-                    const GeometryType::IntegrationPointsArrayType& integration_points = r_elem_geom.IntegrationPoints(integration_method);
-                    const unsigned int NumGauss = integration_points.size();
-                    Vector GaussPtsJDet = ZeroVector(NumGauss);
-                    r_elem_geom.DeterminantOfJacobian(GaussPtsJDet,integration_method);  
-                    for(std::size_t i_point = 0; i_point<NumGauss; ++i_point){
-                        if(GaussPtsJDet[i_point]>max_cond_par_elem_detJ)
-                            max_cond_par_elem_detJ = GaussPtsJDet[i_point];
-                        if(GaussPtsJDet[i_point]<min_cond_par_elem_detJ)
-                            min_cond_par_elem_detJ = GaussPtsJDet[i_point];                  
-                    }   
-                }
-
+                for(auto& cond_i : mpVMModePart->Conditions())
+                    total_cond_area += cond_i.GetGeometry().Area(); 
 
                 double surface_filter_size = p_vm_model_part_property->GetValue(HELMHOLTZ_SURF_RADIUS_SHAPE);
-                double bulk_filter_size = (total_cond_area * surface_filter_size * surface_filter_size)/(36.0 * vol_int_radius);
-                bulk_filter_size = std::pow(bulk_filter_size,2.0/3.0);
-                
+                double bulk_surface_ratio = mTechniqueSettings["surface_bulk_ratio"].GetDouble();
+                double bulk_filter_size = (total_cond_area * surface_filter_size * surface_filter_size)/(bulk_surface_ratio * vol_int_radius);
+                bulk_filter_size = std::pow(bulk_filter_size,0.1/0.2);                                                    
 
                 p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,bulk_filter_size);
-                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,surface_filter_size);
-                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " Surface and bulk filter sizes of "<<control_obj.GetString() <<" is adjusted to " << surface_filter_size <<
-                " and "<< bulk_filter_size<<" respectively !"<<std::endl;
-                // std::exit(0);
-            }
+                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " numerator of bulk filter of "<<mpVMModePart->Name() <<" is adjusted to " << bulk_filter_size<<" !"<<std::endl;
+                KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " surface filter size is "<<surface_filter_size<<" so !"<<std::endl;
 
-        }      
+            }  
     }  
 
     void ComputeInitialControlPoints()

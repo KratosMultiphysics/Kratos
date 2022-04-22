@@ -250,12 +250,8 @@ void HelmholtzSurfShapeCondition::CalculateLocalSystem(
     CalculateSurfaceStiffnessMatrix(A,rCurrentProcessInfo); 
 
     MatrixType K;
-    if(rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE])
-        K = M;
-    else
-        K = M + A;    
-
-    noalias(rLeftHandSideMatrix) += K;
+    if(!rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE])
+        noalias(rLeftHandSideMatrix) += A;
 
     //apply drichlet BC
     Vector temp;
