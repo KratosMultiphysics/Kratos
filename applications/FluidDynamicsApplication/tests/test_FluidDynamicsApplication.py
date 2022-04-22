@@ -49,6 +49,7 @@ from apply_compressible_navier_stokes_boundary_conditions_process_test import Ap
 from initialize_with_compressible_potential_flow_process_test import InitializeWithCompressiblePotentialSolutionProcessTest
 if sympy_available:
     from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
+from compressible_slip_wall_process_test import TestCompressibleSlipWallProcess
 
 
 def AssembleTestSuites():
@@ -85,6 +86,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyMachDependentBoundaryConditionsTest]))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([InitializeWithCompressiblePotentialSolutionProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressibleSlipWallProcess]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -109,8 +111,6 @@ def AssembleTestSuites():
     nightSuite.addTest(FluidElementTest('testTimeIntegratedQSVMS'))
     nightSuite.addTest(FluidElementTest('testSymbolic'))
     nightSuite.addTest(FluidAnalysisTest('testFluidDynamicsAnalysis'))
-    nightSuite.addTest(AdjointFluidTest('testCylinder'))
-    nightSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSecondDerivativesLHS'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS1'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
@@ -129,10 +129,6 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
 
-    if sympy_available:
-        nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicQuadrilateral'))
-        nightSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTriangle'))
-
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(BuoyancyTest('validationEulerian'))
@@ -142,16 +138,20 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
+    validationSuite.addTest(AdjointFluidTest('testCylinder'))
+    validationSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitOSSShockCapturing'))
     if sympy_available:
+        validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTriangle'))
         validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicTetrahedron'))
+        validationSuite.addTest(CompressibleNavierStokesSymbolicGeneratorFormulationTest('testSymbolicQuadrilateral'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

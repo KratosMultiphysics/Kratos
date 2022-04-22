@@ -425,7 +425,7 @@ namespace Kratos
             //********************************************************************
             //Builder and Solver
             typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-
+            typedef typename ModelPart::DofsArrayType DofsArrayType;
 
             py::class_< BuilderAndSolverType, typename BuilderAndSolverType::Pointer>(m,"BuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer > ())
@@ -449,7 +449,7 @@ namespace Kratos
                 .def("ApplyDirichletConditions", &BuilderAndSolverType::ApplyDirichletConditions)
                 .def("ApplyConstraints", &BuilderAndSolverType::ApplyConstraints)
                 .def("SetUpDofSet", &BuilderAndSolverType::SetUpDofSet)
-                .def("GetDofSet", &BuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
+                .def("GetDofSet",  [](BuilderAndSolverType& self) -> DofsArrayType& {return self.GetDofSet();}, py::return_value_policy::reference_internal)
                 .def("SetUpSystem", &BuilderAndSolverType::SetUpSystem)
                 .def("ResizeAndInitializeVectors", &BuilderAndSolverType::ResizeAndInitializeVectors)
                 .def("InitializeSolutionStep", &BuilderAndSolverType::InitializeSolutionStep)
@@ -464,7 +464,6 @@ namespace Kratos
                 ;
 
             // Explicit builder
-            typedef typename ModelPart::DofsArrayType DofsArrayType;
             typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
             py::class_<ExplicitBuilderType, typename ExplicitBuilderType::Pointer>(m, "ExplicitBuilder")

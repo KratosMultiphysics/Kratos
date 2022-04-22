@@ -173,9 +173,8 @@ void ConservativeElement<TNumNodes>::CalculateGradient(
     double area;
     GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
     array_1d<double,3> nodal_h;
-    std::size_t i = 0;
-    for (auto& r_node : rGeometry) {
-        nodal_h[i++] = r_node.FastGetSolutionStepValue(HEIGHT);
+    for (IndexType i = 0; i < TNumNodes; i++) {
+        nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
     }
     rGradient = prod(nodal_h, DN_DX);
 }

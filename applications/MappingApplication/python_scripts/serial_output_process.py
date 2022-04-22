@@ -21,9 +21,9 @@ class SerialOutputProcess(KM.OutputProcess):
         self.settings = settings
 
         default_settings = KM.Parameters('''{
-            "model_part_name_origin"      : "UNSPECIFIED",
-            "model_part_name_destination" : "UNSPECIFIED",
-            "mdpa_file_name_destination"  : "UNSPECIFIED",
+            "main_model_part_name_origin"      : "UNSPECIFIED",
+            "main_model_part_name_destination" : "UNSPECIFIED",
+            "mdpa_file_name_destination"  : "",
             "historical_variables_destination" : [],
             "destination_rank" : 0,
             "mapper_settings" :  {},
@@ -39,13 +39,15 @@ class SerialOutputProcess(KM.OutputProcess):
         if settings["mapping_settings"].size() == 0:
             raise Exception('no "mapping_settings" were specified!')
 
-        if len(settings["output_process_settings"].keys()) == 0:
-            raise Exception('no "output_process_settings" were specified!')
-
         mdpa_file_name_destination = settings["mdpa_file_name_destination"].GetString()
 
-        model_part_origin = model.GetModelPart(settings["model_part_name_origin"].GetString())
-        self.model_part_destination = model.CreateModelPart(settings["model_part_name_destination"].GetString())
+        model_part_origin = model.GetModelPart(settings["main_model_part_name_origin"].GetString())
+        if model_part_origin.IsSubModelPart():
+            raise Exception('Origin ModelPart cannot be a SubModelPart!')
+
+        self.model_part_destination = model.CreateModelPart(settings["main_model_part_name_destination"].GetString())
+        if self.model_part_destination.IsSubModelPart():
+            raise Exception('Destination ModelPart cannot be a SubModelPart!')
 
         self.model_part_destination.ProcessInfo = model_part_origin.ProcessInfo # for detecting output writing
 
@@ -56,15 +58,18 @@ class SerialOutputProcess(KM.OutputProcess):
 
         self.destination_rank = settings["destination_rank"].GetInt()
         if self.destination_rank >= self.data_comm.Size():
-            raise Exception(f'Destination rank {self.destination_rank} larger than avilable size {self.data_comm.Size()}')
+            raise Exception("Destination rank %i larger than available size %i" %(self.destination_rank, self.data_comm.Size()))
 
         if self.data_comm.Rank() == self.destination_rank:
-            import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
-            KM.ModelPartIO(mdpa_file_name_destination, import_flags).ReadModelPart(self.model_part_destination)
+            if mdpa_file_name_destination != "":
+                import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
+                KM.ModelPartIO(mdpa_file_name_destination, import_flags).ReadModelPart(self.model_part_destination)
 
-            output_proc_params = KM.Parameters('''{ "dummy" : [] }''')
-            output_proc_params["dummy"].Append(settings["output_process_settings"])
-            self.output_process = KratosProcessFactory(model).ConstructListOfProcesses(output_proc_params["dummy"])[0]
+            self.output_process = None
+            if len(settings["output_process_settings"].keys()) > 0:
+                output_proc_params = KM.Parameters('''{ "dummy" : [] }''')
+                output_proc_params["dummy"].Append(settings["output_process_settings"])
+                self.output_process = KratosProcessFactory(model).ConstructListOfProcesses(output_proc_params["dummy"])[0]
 
         if model_part_origin.IsDistributed():
             import KratosMultiphysics.mpi as KratosMPI
@@ -87,13 +92,7 @@ class SerialOutputProcess(KM.OutputProcess):
                 self.model_part_destination,
                 settings["mapper_settings"])
 
-    def IsOutputStep(self):
-        is_output_step = False
-        if self.data_comm.Rank() == self.destination_rank:
-            is_output_step = self.output_process.IsOutputStep()
-        return bool(self.data_comm.Broadcast(int(is_output_step), self.destination_rank))
-
-    def PrintOutput(self):
+    def ExecuteFinalizeSolutionStep(self):
         defaults = KM.Parameters('''{
             "variable_origin"      : "UNSPECIFIED",
             "variable_destination" : "UNSPECIFIED",
@@ -109,7 +108,15 @@ class SerialOutputProcess(KM.OutputProcess):
 
             self.mapper.Map(variable_origin, variable_destination, mapper_flags)
 
+    def IsOutputStep(self):
+        is_output_step = False
         if self.data_comm.Rank() == self.destination_rank:
+            if self.output_process:
+                is_output_step = self.output_process.IsOutputStep()
+        return bool(self.data_comm.Broadcast(int(is_output_step), self.destination_rank))
+
+    def PrintOutput(self):
+        if self.data_comm.Rank() == self.destination_rank and self.output_process:
             self.output_process.PrintOutput()
 
 

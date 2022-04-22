@@ -245,6 +245,7 @@ std::vector<SphericParticle*>     mNeighbourElements;
 std::vector<int>                  mContactingNeighbourIds;
 std::vector<int>                  mContactingFaceNeighbourIds;
 std::vector<DEMWall*>             mNeighbourRigidFaces;
+std::vector<DEMWall*>             mNeighbourNonContactRigidFaces;
 std::vector<DEMWall*>             mNeighbourPotentialRigidFaces;
 
 std::vector<array_1d<double, 4> > mContactConditionWeights;
@@ -358,6 +359,10 @@ virtual double GetInitialDeltaWithFEM(int index);
 
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
+virtual void StoreBallToBallContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, SphericParticle* other_element, double GlobalContactForce[3], bool sliding);
+
+virtual void StoreBallToRigidFaceContactInfo(const ProcessInfo& r_process_info, SphericParticle::ParticleDataBuffer& data_buffer, DEMWall* other_element, double GlobalContactForce[3], bool sliding);
+
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
                                                             double LocalElasticContactForce[3],
@@ -462,6 +467,7 @@ virtual void save(Serializer& rSerializer) const override
     rSerializer.save("mContactingNeighbourIds", mContactingNeighbourIds);
     rSerializer.save("mContactingFaceNeighbourIds", mContactingFaceNeighbourIds);
     rSerializer.save("mNeighbourRigidFaces", mNeighbourRigidFaces);
+    rSerializer.save("mNeighbourNonContactRigidFaces", mNeighbourNonContactRigidFaces);
     rSerializer.save("mNeighbourPotentialRigidFaces", mNeighbourPotentialRigidFaces);
     rSerializer.save("mContactConditionWeights", mContactConditionWeights);
     rSerializer.save("mContactConditionContactTypes", mContactConditionContactTypes);
@@ -503,6 +509,7 @@ virtual void load(Serializer& rSerializer) override
     rSerializer.load("mContactingNeighbourIds", mContactingNeighbourIds);
     rSerializer.load("mContactingFaceNeighbourIds", mContactingFaceNeighbourIds);
     rSerializer.load("mNeighbourRigidFaces", mNeighbourRigidFaces);
+    rSerializer.load("mNeighbourNonContactRigidFaces", mNeighbourNonContactRigidFaces);
     rSerializer.load("mNeighbourPotentialRigidFaces", mNeighbourPotentialRigidFaces);
     rSerializer.load("mContactConditionWeights", mContactConditionWeights);
     rSerializer.load("mContactConditionContactTypes", mContactConditionContactTypes);

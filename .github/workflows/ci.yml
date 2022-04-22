@@ -59,13 +59,13 @@ jobs:
         cp .github/workflows/configure.sh configure.sh
         bash configure.sh
 
-    - name: Running small tests
+    - name: Running python tests
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
+        python3 kratos/python_scripts/run_tests.py -v 2 -l nightly -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
       shell: bash
@@ -100,7 +100,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
@@ -108,7 +108,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -116,7 +116,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${{ matrix.build-type }}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
 
   windows:
     runs-on: windows-2022
@@ -149,12 +149,12 @@ jobs:
         copy .\.github\workflows\configure.cmd
         configure.cmd
 
-    - name: Running small tests
+    - name: Running python tests
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/run_tests.py -l small -c python
+        python kratos/python_scripts/run_tests.py -l nightly -c python
 
   centos:
     runs-on: ubuntu-latest
@@ -173,11 +173,11 @@ jobs:
         cp .github/workflows/centos_configure.sh centos_configure.sh
         bash centos_configure.sh
 
-    - name: Running small tests
+    - name: Running python tests
       run: |
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3.5 kratos/python_scripts/run_tests.py -l small -c python3.5
+        python3.5 kratos/python_scripts/run_tests.py -l nightly -c python3.5
 
 
   ubuntu-core-without-unity:
@@ -243,13 +243,13 @@ jobs:
 
         ccache -s
 
-    - name: Running small tests
+    - name: Running python tests
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
       shell: bash
@@ -284,7 +284,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
@@ -292,7 +292,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -300,7 +300,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
 
 
   windows-core-without-unity:
@@ -363,12 +363,12 @@ jobs:
         echo Failed with error #%errorlevel%.
         exit /b %errorlevel%
 
-    - name: Running small tests
+    - name: Running python tests
       shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
-        python kratos/python_scripts/run_tests.py -l small -c python
+        python kratos/python_scripts/run_tests.py -l nightly -c python
 
 
   ubuntu-intel:
@@ -394,13 +394,13 @@ jobs:
         cp .github/workflows/intel_configure.sh configure.sh
         bash configure.sh
 
-    - name: Running small tests
+    - name: Running python tests
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/run_tests.py -l small -c python3
+        python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
     - name: Running MPICore C++ tests (2 Cores)
       shell: bash
@@ -435,7 +435,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
@@ -443,7 +443,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
@@ -451,4 +451,4 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l small -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
