@@ -65,9 +65,8 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
 
     def _CreateScheme(self):
         if self.add_flux_correction:
-            scheme_settings = KM.Parameters("""{
-                "limiting_variables"  : ["FREE_SURFACE_ELEVATION","MOMENTUM"]
-            }""")
+            scheme_settings = KM.Parameters()
+            scheme_settings.AddStringArray("limiting_variables", ["FREE_SURFACE_ELEVATION","MOMENTUM"])
             scheme_settings.AddValue("order", self.settings["time_integration_order"])
             time_scheme = SW.FluxCorrectedShallowWaterScheme(scheme_settings)
             if self.settings["shock_capturing_factor"].GetDouble() > 0.0:
@@ -94,8 +93,10 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def _SetUpFormulation(self):
         shock_capturing_type = self.settings["shock_capturing_type"].GetString()
         if  shock_capturing_type == "residual_viscosity":
-            self.element_name = "ShallowWater"
-            self.condition_name = "LineCondition"
+            self.element_name = "ConservativeElementRV"
+            self.condition_name = "ConservativeCondition"
+            # self.element_name = "ShallowWater"
+            # self.condition_name = "LineCondition"
             self.compute_neighbors = False
             self.add_flux_correction = False
         elif shock_capturing_type == "flux_correction":
