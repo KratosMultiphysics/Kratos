@@ -46,6 +46,7 @@ namespace Kratos
         mBoussinesqElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
         mBoussinesqElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
         mConservativeElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+        mConservativeElementRV2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
@@ -137,6 +138,7 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("BoussinesqElement2D3N", mBoussinesqElement2D3N)
         KRATOS_REGISTER_ELEMENT("BoussinesqElement2D4N", mBoussinesqElement2D4N)
         KRATOS_REGISTER_ELEMENT("ConservativeElement2D3N", mConservativeElement2D3N)
+        KRATOS_REGISTER_ELEMENT("ConservativeElementRV2D3N", mConservativeElementRV2D3N)
 
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N) // TODO: move to ConservativeElement
 
