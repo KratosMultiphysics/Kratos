@@ -191,14 +191,27 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
     const auto& fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+    const auto& Velocity = this->GetAtCoordinate(rData.Velocity, rData.N);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
-    sigma *= viscosity;
+    // double det_permeability = MathUtils<double>::Det(permeability);
+    // MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    // sigma *= viscosity;
+
+    double kappa = (1 - fluid_fraction)/fluid_fraction;
+    double velocity_modulus = 0.0;
+
+    for (unsigned int d = 0; d < Dim; d++){
+        velocity_modulus += Velocity[d] * Velocity[d];
+    }
+
+    double velocity_norm = std::sqrt(velocity_modulus);
+    sigma = (viscosity * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
+
     Vector grad_alpha_sym_grad_u, sigma_U;
     BoundedMatrix<double,Dim,Dim> sym_gradient_u;
 
@@ -234,16 +247,28 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
-
+    BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
     const auto& r_fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+    const auto& Velocity = this->GetAtCoordinate(rData.Velocity, rData.N);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    // double det_permeability = MathUtils<double>::Det(permeability);
+    // MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
-    sigma *= viscosity;
+    // sigma *= viscosity;
+
+    double kappa = (1 - fluid_fraction)/fluid_fraction;
+    double velocity_modulus = 0.0;
+
+    for (unsigned int d = 0; d < Dim; d++){
+        velocity_modulus += Velocity[d] * Velocity[d];
+    }
+
+    double velocity_norm = std::sqrt(velocity_modulus);
+    sigma = (viscosity * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
+
     Vector sigma_U, grad_alpha_sym_grad_u;
     BoundedMatrix<double,Dim,Dim> sym_gradient_u;
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -289,12 +314,24 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddMassStabilization(
     double kin_viscosity = viscosity / density;
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
+    const auto& Velocity = this->GetAtCoordinate(rData.Velocity, rData.N);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    // double det_permeability = MathUtils<double>::Det(permeability);
+    // MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+
+    double kappa = (1 - fluid_fraction)/fluid_fraction;
+    double velocity_modulus = 0.0;
+
+    for (unsigned int d = 0; d < Dim; d++){
+        velocity_modulus += Velocity[d] * Velocity[d];
+    }
+
+    double velocity_norm = std::sqrt(velocity_modulus);
+    sigma = (viscosity * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
 
     double W = rData.Weight * density; // This density is for the dynamic term in the residual (rho*Du)
-    sigma *= viscosity;
+    // sigma *= viscosity;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -377,15 +414,27 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
-
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+    const auto Velocity = this->GetAtCoordinate(rData.Velocity, rData.N);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    // double det_permeability = MathUtils<double>::Det(permeability);
+    // MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
-    sigma *= viscosity;
+    // sigma *= viscosity;
+
+    double kappa = (1 - fluid_fraction)/fluid_fraction;
+    double velocity_modulus = 0.0;
+
+    for (unsigned int d = 0; d < Dim; d++){
+        velocity_modulus += Velocity[d] * Velocity[d];
+    }
+
+    double velocity_norm = std::sqrt(velocity_modulus);
+    sigma = (viscosity * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
+
     AGradN *= density; // Convective term is always multiplied by density
 
 
@@ -614,28 +663,36 @@ void AlternativeQSVMSDEMCoupled<TElementData>::CalculateTau(
     double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
+    BoundedMatrix<double,Dim,Dim> eigen_vect_mat, eigen_val_mat;
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
-    double det_permeability = MathUtils<double>::Det(permeability);
-    MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
+    // double det_permeability = MathUtils<double>::Det(permeability);
+    // MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
+    double kappa = (1 - fluid_fraction)/fluid_fraction;
     double velocity_modulus = 0.0;
     double fluid_fraction_gradient_modulus = 0.0;
-    double sigma_term = 0.0;
+
     for (unsigned int d = 0; d < Dim; d++){
         velocity_modulus += Velocity[d] * Velocity[d];
         fluid_fraction_gradient_modulus += std::pow(fluid_fraction_gradient[d],2);
-        for (unsigned int e = d; e < Dim; e++){
-            sigma_term += std::pow(sigma(d,e),2);
-        }
     }
 
     double velocity_norm = std::sqrt(velocity_modulus);
+    sigma = (viscosity * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
+    MathUtils<double>::GaussSeidelEigenSystem(sigma, eigen_vect_mat, eigen_val_mat);
+
+    double spectral_radius = 0;
+    for(unsigned int d = 0; d < Dim; d++)
+        for(unsigned int e = 0; e < Dim; e++)
+            spectral_radius = std::max(eigen_val_mat(d,e), spectral_radius);
+
     double fluid_fraction_gradient_norm = std::sqrt(fluid_fraction_gradient_modulus);
+
     double c_alpha = fluid_fraction + h / c1 * fluid_fraction_gradient_norm;
-    inv_tau = (c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h )) * c_alpha + std::sqrt(sigma_term);
-    inv_tau_NS = c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term);
+    inv_tau = (c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h )) * c_alpha + spectral_radius;
+    inv_tau_NS = c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + spectral_radius;
 
     double tau_one = 1 / inv_tau;
     double tau_one_NS = 1 / inv_tau_NS;
