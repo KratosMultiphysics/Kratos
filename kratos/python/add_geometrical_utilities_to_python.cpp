@@ -90,13 +90,54 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def(py::init<>())
         .def("CalculateNormalsInConditions", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ConditionsContainerType>)
         .def("CalculateNormalsInElements", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ElementsContainerType>)
-        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
-        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart);})
-        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
-        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart);})
-        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension);})
-        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension);})
-        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateOnSimplex(rModelPart);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart);})
+        .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,false>(rModelPart);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,true>(rModelPart);})
+        .def("CalculateUnitNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateUnitNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateUnitNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,false>(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart, rNormalVariable);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rConditions, Dimension);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rConditions, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart, Dimension);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart, rNormalVariable);})
         .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
         .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<int>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
         .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable,const double Zero,const double Alpha){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable, Zero, Alpha);})

@@ -14,6 +14,7 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "includes/define_python.h"
@@ -93,20 +94,26 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("size1", &CsrMatrix<double,IndexType>::size1)
     .def("size2", &CsrMatrix<double,IndexType>::size2)
     .def("nnz", &CsrMatrix<double,IndexType>::nnz)
-    .def("index1_data", [](CsrMatrix<double,IndexType>& rA){
-        const auto& data = rA.index1_data();
-        std::vector<IndexType> v(data.begin(), data.end());
-        return v;
+    .def("index1_data", [](CsrMatrix<double,IndexType>& self){
+            return py::array_t<IndexType>(
+                self.index1_data().size(),
+                self.index1_data().begin(),
+                py::cast(self) //this is fundamental to avoid copying
+            );
     }, py::return_value_policy::reference_internal)
-    .def("index2_data", [](CsrMatrix<double,IndexType>& rA){
-        const auto& data = rA.index2_data();
-        std::vector<IndexType> v(data.begin(), data.end());
-        return v;
+    .def("index2_data", [](CsrMatrix<double,IndexType>& self){
+            return py::array_t<IndexType>(
+                self.index2_data().size(),
+                self.index2_data().begin(),
+                py::cast(self) //this is fundamental to avoid copying
+            );
     }, py::return_value_policy::reference_internal)
-    .def("value_data", [](CsrMatrix<double,IndexType>& rA){
-        const auto& data = rA.value_data();
-        std::vector<double> v(data.begin(), data.end());
-        return v;
+    .def("value_data", [](CsrMatrix<double,IndexType>& self){
+            return py::array_t<double>(
+                self.value_data().size(),
+                self.value_data().begin(),
+                py::cast(self) //this is fundamental to avoid copying
+            );
     }, py::return_value_policy::reference_internal)
     .def("__setitem__", [](CsrMatrix<double,IndexType>& self, const std::pair<int,int> index, const  double value)
         {
@@ -133,7 +140,7 @@ void AddSparseMatricesToPython(pybind11::module& m)
         return py;
     }, py::is_operator())
     .def("__matmul__", [](const CsrMatrix<double,IndexType>& rA,const Vector& x){
-        auto py  = std::make_shared<SystemVector<double,IndexType>>(x.size());
+        auto py  = std::make_shared<SystemVector<double,IndexType>>(rA.size1());
         py->SetValue(0.0);
         rA.SpMV(x,*py);
         return py;

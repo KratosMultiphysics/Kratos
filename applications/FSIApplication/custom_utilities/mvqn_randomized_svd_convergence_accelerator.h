@@ -599,8 +599,10 @@ private:
     void CalculateAuxiliaryMatrixM(MatrixType& rAuxM)
     {
         // Do the QR decomposition of V
-        auto& r_V = *(BaseType::pGetResidualObservationMatrix());
-        mpDenseQR->Compute(r_V);
+        // Note that we require to do a copy of V observation matrix as QR decomposition is done inplace
+        const auto& r_V = *(BaseType::pGetResidualObservationMatrix());
+        MatrixType aux_V(r_V);
+        mpDenseQR->Compute(aux_V);
 
         // Get the QR decomposition matrices
         // Note that in here we are assuming that the pivoting QR is used
