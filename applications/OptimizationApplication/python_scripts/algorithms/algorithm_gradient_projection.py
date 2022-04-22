@@ -21,7 +21,7 @@ from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.OptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 
-
+import csv, os
 
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):
@@ -56,6 +56,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def InitializeOptimizationLoop(self):
         super().InitializeOptimizationLoop()
         self.opt_algorithm.Initialize()
+        self._InitializeCSVLogger()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -81,22 +82,24 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             # compute objectives values
             objectives_values = self.responses_controller.CalculateResponsesValue(self.objectives)
+            self.objectives_hist.append(list(objectives_values.values()))
             for name,value in objectives_values.items():
                 Logger.Print("  ========================= objective ",name,": ",value," =========================  ")
                 # set value
                 for objective in self.opt_parameters["objectives"]:
                     if objective["name"].GetString() == name:
                         objective["value"].SetDouble(value)
-                    
-
+        
             # compute constraint values
             constraints_values = self.responses_controller.CalculateResponsesValue(self.constraints)
+            self.constraints_hist.append(list(constraints_values.values()))
             for name,value in constraints_values.items():
                 Logger.Print("  ========================= Constraint ",name,": ",value," =========================  ")
                 # set value
                 for constraint in self.opt_parameters["constraints"]:
                     if constraint["name"].GetString() == name:
-                        constraint["value"].SetDouble(value)
+                        constraint["value"].SetDouble(value)        
+            self._WriteCurrentResponseValuesToCSVFile()
 
             # calculate gradients       
             for response in self.responses_controlled_objects.keys():
@@ -139,5 +142,66 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
         super().FinalizeOptimizationLoop()
+
+    # --------------------------------------------------------------------------
+    def _InitializeCSVLogger(self):
+        self.complete_log_file_name = "optimization_log.csv"
+        with open(self.complete_log_file_name, 'w') as csvfile:
+            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
+            row = []
+            row.append("{:>4s}".format("itr"))
+            for itr in range(len(self.objectives)):
+                row.append("{:>4s}".format("f: "+str(self.objectives[itr])))
+                row.append("{:>4s}".format("abs[%]"))
+                row.append("{:>4s}".format("rel[%]"))
+
+            for itr in range(len(self.constraints)):
+                row.append("{:>4s}".format("c: "+str(self.constraints[itr])))
+                row.append("{:>4s}".format("ref_val "))
+                row.append("{:>4s}".format("ref_diff[%]"))
+
+            historyWriter.writerow(row)
+
+    # --------------------------------------------------------------------------
+    def _WriteCurrentResponseValuesToCSVFile( self ):
+        
+        with open(self.complete_log_file_name, 'a') as csvfile:
+            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
+            row = []
+            row.append("{:>4d}".format(self.optimization_iteration))
+            if self.optimization_iteration>1:                
+                objectives_initial_values = self.objectives_hist[0]
+                objectives_previous_values = self.objectives_hist[self.optimization_iteration-2]
+                objectives_current_values = self.objectives_hist[self.optimization_iteration-1]
+                for obj_i in range(len(objectives_current_values)):
+                    current_val = objectives_current_values[obj_i]
+                    rel_change = 100 * (current_val-objectives_previous_values[obj_i])/objectives_previous_values[obj_i]
+                    abs_change = 100 * (current_val-objectives_initial_values[obj_i])/objectives_initial_values[obj_i]
+                    row.append(" {:> .5E}".format(current_val))
+                    row.append(" {:> .5E}".format(abs_change))
+                    row.append(" {:> .5E}".format(rel_change))
+                    
+            else:
+                objectives_initial_values = self.objectives_hist[self.optimization_iteration-1]                
+                for obj_i in range(len(objectives_initial_values)):
+                    initial_val = objectives_initial_values[obj_i]
+                    row.append(" {:> .5E}".format(initial_val))
+                    row.append(" {:> .5E}".format(0))
+                    row.append(" {:> .5E}".format(0))
+
+            constraints_current_values = self.constraints_hist[self.optimization_iteration-1]
+            for cons_i in range(len(constraints_current_values)):
+                current_val = constraints_current_values[cons_i]
+                ref_val = self.constraints_ref_values[cons_i]
+                abs_change = 100 * abs(current_val-ref_val)/abs(ref_val)
+                row.append(" {:> .5E}".format(current_val))
+                row.append(" {:> .5E}".format(ref_val))
+                row.append(" {:> .5E}".format(abs_change))
+
+            historyWriter.writerow(row)
+
+
+
+
 
 # ==============================================================================

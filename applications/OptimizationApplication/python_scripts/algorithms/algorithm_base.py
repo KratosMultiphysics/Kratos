@@ -218,6 +218,9 @@ class OptimizationAlgorithm:
             controlling_model_part_vtkIO.ExecuteBeforeSolutionLoop()
             self.root_model_parts_vtkIOs[root_model_part] = controlling_model_part_vtkIO
 
+        self.constraints_hist = []
+        self.objectives_hist = []
+
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
         raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> RunOptimizationLoop << .")
