@@ -14,8 +14,36 @@ import os
 
 class RigidBodySolver(object):
     """
-    This class implements a Rigid Body solver independent of Kratos.
-    Several types of load applications are available, and they can be applyed to each degree of freedom.
+    This class implements a Rigid Body within Kratos. It can be seen as a combination of 6 single-degree-of-freedom
+    (SDOF) solvers, solving independently the 3 displacements and 3 rotations of a rigid body. It is meant to be used
+    with CoSimulationApplication (e.g. rigid object submerged in a certain flow). For standalone usage, it can also
+    be called directly, since the class acts at the same time as a solver and as an analysis.
+
+    Two sub model parts, each of them with one node in (0,0,0), are directly generated here: "RigidBody" (representing
+    the body itself) and "RootPoint" (representing the attachment point). Here is a summary of the variables that each
+    sub model part has (note that the sketch represents each of the DOFs):
+
+     ---------------        Sub model part: RigidBody                          \ 
+    |               |       Node ID: 1                                         |
+    |    Node 1     |       Specific variables:                                |
+    |       X       |           FORCE, MOMENT,                                 |
+    |    (0,0,0)    |           PRESCRIBED_FORCE, PRESCRIBED_MOMENT            |
+    |               |           EFFECTIVE_FORCE, EFFECTIVE_MOMENT              |    Model part: Main
+     ---------------            BODY_FORCE, BODY_MOMENT                        |    Nodes IDs: 1, 2
+        |       |                                                               >   General variables:
+       <_      _|_                                                             |        DISPLACEMENT, ROTATION,
+        _>    |___|                                                            |        VELOCITY, ANGULAR_VELOCITY
+       <_     | | |                                                            |        ACCELERATION, ANGULAR_ACCELERATION
+         >      |           Sub model part: RootPoint                          |
+        |       |           Node ID: 2                                         |
+    /////// X ////////      Specific variables:                                |
+         Node 2                 REACTION, REACTION_MOMENT                      |
+         (0,0,0)                PRESCRIBED_DISPLACEMENT, PRESCRIBED_ROTATION   /
+
+    It is possible to apply forces to the rigid body as well as displacements to the reference point (e.g. to be used
+    as a TMD). The "PRESCRIBED_*" variables have the same behaviour as their original version but are necessary to avoid
+    overwriting data in some cases (e.g. when a force comes from another solver with CoSimulation but an extra force must
+    be prescribed directly from the project parameters).
     """
 
     def __init__(self, model, project_parameters):

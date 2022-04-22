@@ -5,8 +5,9 @@ import json
 from importlib import import_module
 
 
-#TODO
-"""INSERT FILE DESCRIPTION HERE"""
+"""
+This file checks the input for the RigidBodySolver and raises exceptions if necessary.
+"""
 
 
 def _CheckMandatoryInputParameters(project_parameters):
