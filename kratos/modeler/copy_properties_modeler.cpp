@@ -31,10 +31,10 @@ CopyPropertiesModeler::CopyPropertiesModeler(
     mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
 }
 
-
 CopyPropertiesModeler::CopyPropertiesModeler(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart)
+        : Modeler()
 {
     mpModel = &rOriginModelPart.GetModel();
     KRATOS_ERROR_IF_NOT(mpModel == &rDestinationModelPart.GetModel()) << "CopyPropertiesModeler. The model parts belong to different models." << std::endl;
