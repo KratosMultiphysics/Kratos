@@ -176,15 +176,15 @@ void BoussinesqElement<TNumNodes>::AlgebraicResidual(
     const double H2 = std::pow(H, 2);
 
     // Spatial derivatives
-    rFreeSurfaceGradient = prod(rData.nodal_f, rDN_DX);
-    const double v_divergence = WaveElementType::VectorProduct(rData.nodal_v, rDN_DX);
+    rFreeSurfaceGradient = WaveElementType::ScalarGradient(rData.nodal_f, rDN_DX);
+    const double v_divergence = WaveElementType::VectorDivergence(rData.nodal_v, rDN_DX);
 
     // Mass conservation residual
     const double vertical_vel = inner_prod(rData.nodal_w, rN);
     const double wave_f = rData.height * v_divergence;
     const double convection_f = rData.velocity[0] * rFreeSurfaceGradient[0] + rData.velocity[1] * rFreeSurfaceGradient[1];
-    double dispersion_f = C1 * H3 * WaveElementType::VectorProduct(rData.nodal_v_lap, rDN_DX);
-    dispersion_f       += C3 * H2 * WaveElementType::VectorProduct(rData.nodal_q_lap, rDN_DX);
+    double dispersion_f = C1 * H3 * WaveElementType::VectorDivergence(rData.nodal_v_lap, rDN_DX);
+    dispersion_f       += C3 * H2 * WaveElementType::VectorDivergence(rData.nodal_q_lap, rDN_DX);
     rMassResidual = vertical_vel + wave_f + convection_f + dispersion_f;
 }
 

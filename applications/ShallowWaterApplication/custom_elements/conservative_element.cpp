@@ -156,11 +156,15 @@ void ConservativeElement<TNumNodes>::CalculateArtificialDamping(
     BoundedMatrix<double,3,3>& rDamping,
     const ElementData& rData)
 {
+    // Add the absorbing boundary damping
+    WaveElementType::CalculateArtificialDamping(rDamping, rData);
+
+    // Add the dry domain damping
     double factor = 1e3 / rData.length;
     double threshold = rData.relative_dry_height * rData.length;
     factor *= 1.0 - PhaseFunction::WetFraction(rData.height, threshold);
-    rDamping(0,0) = factor;
-    rDamping(1,1) = factor;
+    rDamping(0,0) += factor;
+    rDamping(1,1) += factor;
 }
 
 template<std::size_t TNumNodes>
