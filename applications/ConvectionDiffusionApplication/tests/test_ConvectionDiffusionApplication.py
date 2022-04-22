@@ -70,16 +70,16 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)
-    nightSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
-    nightSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
-    validationSuite.addTests(smallSuite)
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTest(BFECCConvectionTest('testBFECCConvection'))
+    validationSuite.addTest(BFECCConvectionTest('testBFECCElementalLimiterConvection'))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite)
+    allSuite.addTests(validationSuite)
 
     return suites
 

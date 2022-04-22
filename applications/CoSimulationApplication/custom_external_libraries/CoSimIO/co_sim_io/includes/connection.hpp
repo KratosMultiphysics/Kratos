@@ -24,6 +24,7 @@
 #include "includes/info.hpp"
 #include "includes/data_communicator.hpp"
 #include "includes/communication/communication.hpp"
+#include "includes/communication/factory.hpp"
 
 namespace CoSimIO {
 namespace Internals {
@@ -37,7 +38,8 @@ public:
 
     Connection(
         const Info& I_Settings,
-        std::shared_ptr<DataCommunicator> I_DataComm);
+        std::shared_ptr<DataCommunicator> I_DataComm,
+        const CommunicationFactory& rCommFactory);
 
     Info Connect(const Info& I_Info);
 
@@ -92,7 +94,9 @@ private:
 
     std::unordered_map<std::string, FunctionPointerType> mRegisteredFunctions;
 
-    void Initialize(const Info& I_Settings);
+    void Initialize(
+        const Info& I_Settings,
+        const CommunicationFactory& rCommFactory);
 
     void CheckIfNameIsValid(const std::string& rName) const;
 
