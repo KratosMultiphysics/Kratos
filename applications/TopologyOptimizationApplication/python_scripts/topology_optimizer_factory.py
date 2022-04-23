@@ -14,6 +14,7 @@ Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
 import KratosMultiphysics as km
 import KratosMultiphysics.TopologyOptimizationApplication as kto
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 import time
 
 
@@ -33,31 +34,55 @@ class SIMPMethod:
             'Topology_Optimization_Results',
             km.Parameters(
                 """
-                                    {
-                                        "result_file_configuration": {
-                                            "gidpost_flags": {
-                                                "GiDPostMode": "GiD_PostBinary",
-                                                "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                "WriteConditionsFlag": "WriteConditions",
-                                                "MultiFileFlag": "SingleFile"
-                                            },
-                                            "file_label": "time",
-                                            "output_control_type": "step",
-                                            "output_interval": 1.0,
-                                            "body_output": true,
-                                            "node_output": false,
-                                            "skin_output": false,
-                                            "plane_output": [],
-                                            "nodal_results": ["DISPLACEMENT","REACTION"],
-                                            "nodal_nonhistorical_results": [],
-                                            "nodal_flags_results": [],
-                                            "gauss_point_results": ["X_PHYS","VON_MISES_STRESS"],
-                                            "additional_list_files": []
-                                        }
-                                    }
-                                    """
+                {
+                "result_file_configuration": {
+                    "gidpost_flags": {
+                        "GiDPostMode": "GiD_PostBinary",
+                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                        "WriteConditionsFlag": "WriteConditions",
+                        "MultiFileFlag": "SingleFile"
+                    },
+                    "file_label": "time",
+                    "output_control_type": "step",
+                    "output_interval": 1.0,
+                    "body_output": true,
+                    "node_output": false,
+                    "skin_output": false,
+                    "plane_output": [],
+                    "nodal_results": ["DISPLACEMENT","REACTION"],
+                    "nodal_nonhistorical_results": [],
+                    "nodal_flags_results": [],
+                    "gauss_point_results": ["X_PHYS","VON_MISES_STRESS"],
+                    "additional_list_files": []
+                    }
+                }
+                """
             ),
         )
+        vtk_parameters = km.Parameters(
+            """
+            {
+            "model_part_name": "",
+            "output_control_type": "step",
+            "output_interval": 1,
+            "file_format": "ascii",
+            "output_precision": 7,
+            "output_sub_model_parts": false,
+            "output_path": "vtk_output",
+            "save_output_files_in_folder": true,
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION"],
+            "nodal_data_value_variables": [],
+            "element_data_value_variables": ["X_PHYS","VON_MISES_STRESS"],
+            "condition_data_value_variables": [],
+            "gauss_point_variables_extrapolated_to_nodes": []
+            }
+            """
+        )
+        vtk_parameters['model_part_name'].SetString(opt_model_part.Name)
+        self.vtk_io = VtkOutputProcess(
+            opt_model_part.GetModel(), vtk_parameters
+        )
+
         # Set analyzer
         self.analyzer = analyzer
 
@@ -150,6 +175,8 @@ class SIMPMethod:
         # Initialize the design output in GiD format and print initial 0 state
         self.gid_io.ExecuteInitialize()
         self.gid_io.ExecuteBeforeSolutionLoop()
+        self.vtk_io.ExecuteInitialize()
+        self.vtk_io.ExecuteBeforeSolutionLoop()
 
         # Call for the specified optimization algorithm
         if self.config['optimization_algorithm'].GetString() == 'oc_algorithm':
@@ -160,17 +187,21 @@ class SIMPMethod:
                 'Specified optimization_algorithm not implemented!'
             )
 
-        # Finalize the design output in GiD format
+        # Finalize the design output in GiD and vtk formats
         self.gid_io.PrintOutput()
         self.gid_io.ExecuteFinalizeSolutionStep()
         self.gid_io.ExecuteFinalize()
+
+        self.vtk_io.PrintOutput()
+        self.vtk_io.ExecuteFinalizeSolutionStep()
+        self.vtk_io.ExecuteFinalize()
 
         # Stop timer
         opt_end_time = time.time()
 
         km.Logger.Print('\n>' + '-' * 45)
         km.Logger.Print('> Topology optimization complete')
-        #km.Logger.Print('> Iteration: ', opt_itr)
+        # km.Logger.Print('> Iteration: ', opt_itr)
         km.Logger.Print(
             '> Duration: ', round(opt_end_time - self.opt_start_time, 1), ' s!'
         )
@@ -208,7 +239,9 @@ class SIMPMethod:
             '  Material interp.:  ',
             self.config['material_interpolation'].GetString(),
         )
-        km.Logger.Print('  Penalty factor:    ', self.config['penalty'].GetInt())
+        km.Logger.Print(
+            '  Penalty factor:    ', self.config['penalty'].GetInt()
+        )
         km.Logger.Print(
             '  Emin:              ',
             self.opt_model_part.GetProperties()[
@@ -247,9 +280,7 @@ class SIMPMethod:
                     '  No restart file created during the simulation'
                 )
         else:
-            km.Logger.Print(
-                '  No restart file created during the simulation'
-            )
+            km.Logger.Print('  No restart file created during the simulation')
 
         # Start optimization loop
         for opt_itr in range(
@@ -351,9 +382,7 @@ class SIMPMethod:
 
             # Continuation Strategy
             if self.config['continuation_strategy'].GetInt() == 1:
-                km.Logger.Print(
-                    '  Continuation strategy:         active'
-                )
+                km.Logger.Print('  Continuation strategy:         active')
                 if opt_itr < 20:
                     for element_i in self.opt_model_part.Elements:
                         element_i.SetValue(kto.PENAL, 1)
@@ -364,9 +393,7 @@ class SIMPMethod:
                             min(pmax, 1.02 * element_i.GetValue(kto.PENAL)),
                         )
             else:
-                km.Logger.Print(
-                    '  Continuation strategy:         inactive'
-                )
+                km.Logger.Print('  Continuation strategy:         inactive')
 
             # Write restart file every selected number of iterations
             restart_filename = (
@@ -402,9 +429,7 @@ class SIMPMethod:
                         round(end_time - self.opt_start_time, 1),
                         's',
                     )
-                    km.Logger.Print(
-                        '\n  Maximum iterations reached!'
-                    )
+                    km.Logger.Print('\n  Maximum iterations reached!')
                     self.io_utils.SaveOptimizationResults(
                         self.config['restart_input_file'].GetString(),
                         self.opt_model_part,
