@@ -170,6 +170,7 @@ class SIMPMethod:
 
         km.Logger.Print('\n>' + '-' * 45)
         km.Logger.Print('> Topology optimization complete')
+        #km.Logger.Print('> Iteration: ', opt_itr)
         km.Logger.Print(
             '> Duration: ', round(opt_end_time - self.opt_start_time, 1), ' s!'
         )
@@ -198,35 +199,35 @@ class SIMPMethod:
         Obj_Function_absolute_change = None
 
         # Print the Topology Optimization Settings that will be used in the program
-        km.Logger.Print('\n  Topology optimization settings:')
+        km.Logger.Print('  Topology optimization settings:')
         km.Logger.Print(
-            '  Algorithm:       ',
+            '  Algorithm:         ',
             self.config['optimization_algorithm'].GetString(),
         )
         km.Logger.Print(
-            '  Material interp.:',
+            '  Material interp.:  ',
             self.config['material_interpolation'].GetString(),
         )
+        km.Logger.Print('  Penalty factor:    ', self.config['penalty'].GetInt())
         km.Logger.Print(
-            '  E_min:           ',
+            '  Emin:              ',
             self.opt_model_part.GetProperties()[
                 self.config['simp_property'].GetInt()
             ].GetValue(kto.YOUNGS_MODULUS_MIN),
         )
         km.Logger.Print(
-            '  Filter radius:   ', self.config['filter_radius'].GetDouble()
+            '  Filter radius:     ', self.config['filter_radius'].GetDouble()
         )
-        km.Logger.Print('  Penalty factor:  ', self.config['penalty'].GetInt())
         km.Logger.Print(
-            '  Relative tolerance: ',
+            '  Relative tolerance:',
             self.config['relative_tolerance'].GetDouble(),
         )
         km.Logger.Print(
-            '  Volume fraction: ',
+            '  Volume fraction:   ',
             self.config['initial_volume_fraction'].GetDouble(),
         )
         km.Logger.Print(
-            '  Max. iterations: ', self.config['max_opt_iterations'].GetInt()
+            '  Maximum iterations:', self.config['max_opt_iterations'].GetInt()
         )
 
         if (
@@ -237,7 +238,7 @@ class SIMPMethod:
                 km.Logger.Print('  Restart file every iteration')
             elif self.config['restart_write_frequency'].GetInt() > 1:
                 km.Logger.Print(
-                    '  Restart file every',
+                    '  Restart file:       every',
                     self.config['restart_write_frequency'].GetInt(),
                     'iterations',
                 )
@@ -315,11 +316,11 @@ class SIMPMethod:
             C_Function = response[only_C_id]['func']
 
             km.Logger.Print(
-                '  Objective value               =',
+                '  Objective value:              ',
                 '{:.6f}'.format(Obj_Function),
             )
             km.Logger.Print(
-                '  Constraint value              =',
+                '  Constraint value:             ',
                 '{:.6f}'.format(C_Function),
             )
 
@@ -331,7 +332,7 @@ class SIMPMethod:
                     Obj_Function - Obj_Function_old
                 ) / Obj_Function_initial
                 km.Logger.Print(
-                    '  Relative change in objective =',
+                    '  Relative change in objective: ',
                     '{:.9f}'.format(Obj_Function_relative_change),
                 )
 
@@ -339,7 +340,7 @@ class SIMPMethod:
                     Obj_Function - Obj_Function_initial
                 ) / Obj_Function_initial
                 km.Logger.Print(
-                    '  Absolute change in objective =',
+                    '  Absolute change in objective: ',
                     '{:.9f}'.format(Obj_Function_absolute_change),
                 )
 
@@ -351,7 +352,7 @@ class SIMPMethod:
             # Continuation Strategy
             if self.config['continuation_strategy'].GetInt() == 1:
                 km.Logger.Print(
-                    '   Active continuation strategy for current iteration'
+                    '  Continuation strategy:         active'
                 )
                 if opt_itr < 20:
                     for element_i in self.opt_model_part.Elements:
@@ -364,7 +365,7 @@ class SIMPMethod:
                         )
             else:
                 km.Logger.Print(
-                    '   Inactive continuation strategy for current iteration'
+                    '  Continuation strategy:         inactive'
                 )
 
             # Write restart file every selected number of iterations
@@ -392,17 +393,17 @@ class SIMPMethod:
                 if opt_itr == self.config['max_opt_iterations'].GetInt():
                     end_time = time.time()
                     km.Logger.Print(
-                        '\n  Duration of current topology optimization iteration = ',
+                        '  Iteration time:               ',
                         round(end_time - start_time, 1),
                         's',
                     )
                     km.Logger.Print(
-                        '  Elasped time for topology optimization = ',
+                        '  Elapsed time:                 ',
                         round(end_time - self.opt_start_time, 1),
                         's',
                     )
                     km.Logger.Print(
-                        '\n  Maximal iterations of topology optimization problem reached!'
+                        '\n  Maximum iterations reached!'
                     )
                     self.io_utils.SaveOptimizationResults(
                         self.config['restart_input_file'].GetString(),
@@ -418,17 +419,17 @@ class SIMPMethod:
                 ):
                     end_time = time.time()
                     km.Logger.Print(
-                        '\n  Duration of current topology optimization iteration = ',
+                        '  Iteration time:               ',
                         round(end_time - start_time, 1),
                         's',
                     )
                     km.Logger.Print(
-                        '  Elasped time for topology optimization = ',
+                        '  Elapsed time:                 ',
                         round(end_time - self.opt_start_time, 1),
                         's',
                     )
                     km.Logger.Print(
-                        '\n  Optimization problem converged within a relative objective tolerance of',
+                        '\n  Converged to relative change in objective: ',
                         self.config['relative_tolerance'].GetDouble(),
                     )
                     self.io_utils.SaveOptimizationResults(
@@ -448,12 +449,12 @@ class SIMPMethod:
             # Take time needed for current optimization step
             end_time = time.time()
             km.Logger.Print(
-                '\n  Duration of current topology optimization iteration = ',
+                '  Iteration time:               ',
                 round(end_time - start_time, 1),
                 's',
             )
             km.Logger.Print(
-                '  Elasped time for topology optimization = ',
+                '  Elapsed time:                 ',
                 round(end_time - self.opt_start_time, 1),
                 's',
             )
