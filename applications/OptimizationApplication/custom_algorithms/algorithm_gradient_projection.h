@@ -282,9 +282,12 @@ public:
 
                     auto ref_value = constraint["ref_value"].GetDouble();
                     auto value = constraint["value"].GetDouble();
-                    double current_alpha = 10 * std::abs(value-ref_value)/std::abs(ref_value);
-                    if (current_alpha>alpha)
+                    double current_alpha = 0.0;
+                    double violation_percentes = 100 * std::abs(value-ref_value)/std::abs(ref_value);
+                    if(violation_percentes>1.0)
                         current_alpha = alpha;
+                    else
+                        current_alpha = alpha * violation_percentes;
 
                     std::cout<<"current_alpha : "<<current_alpha<<std::endl;
 
