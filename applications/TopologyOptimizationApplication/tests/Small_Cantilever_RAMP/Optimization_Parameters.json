@@ -44,12 +44,7 @@
                 "MultiFileFlag": "SingleFile",
                 "WriteConditionsFlag": "WriteElementsOnly",
                 "WriteDeformedMeshFlag": "WriteUndeformed"
-
             }
         }
-
-
-
-
     }
 }
