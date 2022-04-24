@@ -25,7 +25,6 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
     def __init__(self,response_name, response_settings,response_analysis,model):
 
         self.type = "strain_energy"
-        self.variable = "STRAIN_ENERGY"
         super().__init__(response_name, response_settings, model, response_analysis)
 
         if not self.response_settings.Has("gradient_settings"):
@@ -35,8 +34,15 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
         else:
             self.gradient_settings = self.response_settings["gradient_settings"]     
 
+        if not self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_1_D_X")):
+            self.variable = "STRAIN_ENERGY_1"
+        elif not self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_2_D_X")):
+            self.variable = "STRAIN_ENERGY_2"
+        elif not self.analysis_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_3_D_X")):
+            self.variable = "STRAIN_ENERGY_3"
+
         self.supported_control_types = ["shape","thickness","topology"]
-        self.gradients_variables = {"shape":"D_STRAIN_ENERGY_D_X","thickness":"D_STRAIN_ENERGY_D_PT","topology":"D_STRAIN_ENERGY_D_PD"}
+        self.gradients_variables = {"shape":"D_"+self.variable+"_D_X","thickness":"D_STRAIN_ENERGY_D_PT","topology":"D_STRAIN_ENERGY_D_PD"}
 
         if len(self.evaluated_model_parts) != 1:
             raise RuntimeError("StrainEnergyResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name)) 
@@ -121,7 +127,7 @@ class StrainEnergyResponseFunction(BaseResponseFunction):
             for node in model_part.Nodes:
                 if control_type == "shape":
                     shape_gradient = node.GetSolutionStepValue(KM.SHAPE_SENSITIVITY)
-                    node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_X, shape_gradient)
+                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]), shape_gradient)
                 if control_type == "thickness":
                     thickness_gradient = node.GetSolutionStepValue(KSM.THICKNESS_SENSITIVITY)
                     node.SetSolutionStepValue(KOA.D_STRAIN_ENERGY_D_PT, thickness_gradient)

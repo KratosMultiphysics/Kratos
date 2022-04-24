@@ -14,6 +14,8 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.vtk_output_process import VtkOutputProcess
+
+import csv
 # ==============================================================================
 class OptimizationAlgorithm:
     def __init__(self,name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
@@ -58,8 +60,19 @@ class OptimizationAlgorithm:
         self.controls_response_gradient_names = {}
         self.controls_response_control_gradient_names = {}
         self.root_model_part_data_field_names = {}
+        self.analyses_responses = {}
+        self.analysis_free_responses = []
         for response in self.responses:
             response_type = self.responses_controller.GetResponseType(response)
+            response_analysis = self.responses_controller.GetResponseAnalysis(response)
+            if response_analysis != None:
+                if response_analysis in self.analyses_responses.keys():
+                    self.analyses_responses[response_analysis].append(response)
+                else:
+                    self.analyses_responses[response_analysis] = [response]
+            else:
+                self.analysis_free_responses.append(response)
+
             self.responses_types[response] = response_type
             response_controlled_objects = self.responses_controller.GetResponseControlledObjects(response)
             response_control_types = self.responses_controller.GetResponseControlTypes(response)
@@ -218,8 +231,14 @@ class OptimizationAlgorithm:
             controlling_model_part_vtkIO.ExecuteBeforeSolutionLoop()
             self.root_model_parts_vtkIOs[root_model_part] = controlling_model_part_vtkIO
 
-        self.constraints_hist = []
-        self.objectives_hist = []
+        self.constraints_hist = {}
+        self.objectives_hist = {}
+
+        for objective in self.objectives:
+            self.objectives_hist[objective] = []
+
+        for constraint in self.constraints:
+            self.constraints_hist[constraint] = []
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
@@ -228,6 +247,87 @@ class OptimizationAlgorithm:
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop( self ):
         for vtkIO in self.root_model_parts_vtkIOs.values():
-            vtkIO.ExecuteFinalize()     
+            vtkIO.ExecuteFinalize() 
+
+    # --------------------------------------------------------------------------
+    def SetResponseValue( self,response,value ):
+
+        for objective in self.objectives:
+            if objective == response:
+                self.objectives_hist[objective].append(value)
+                break
+
+        for constraint in self.constraints:
+            if constraint == response:
+                self.constraints_hist[constraint].append(value)
+                break
+
+        for objective in self.opt_parameters["objectives"]:
+            if objective["name"].GetString() == response:
+                objective["value"].SetDouble(value)  
+
+        for constraint in self.opt_parameters["constraints"]:
+            if constraint["name"].GetString() == response:
+                constraint["value"].SetDouble(value) 
+
+    # --------------------------------------------------------------------------
+    def _InitializeCSVLogger(self):
+        self.complete_log_file_name = "optimization_log.csv"
+        with open(self.complete_log_file_name, 'w') as csvfile:
+            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
+            row = []
+            row.append("{:>4s}".format("itr"))
+            for itr in range(len(self.objectives)):
+                row.append("{:>4s}".format("f: "+str(self.objectives[itr])))
+                row.append("{:>4s}".format("abs[%]"))
+                row.append("{:>4s}".format("rel[%]"))
+
+            for itr in range(len(self.constraints)):
+                row.append("{:>4s}".format("c: "+str(self.constraints[itr])))
+                row.append("{:>4s}".format("ref_val "))
+                row.append("{:>4s}".format("ref_diff[%]"))
+
+            historyWriter.writerow(row)
+
+    # --------------------------------------------------------------------------
+    def _WriteCurrentResponseValuesToCSVFile( self ):
+        
+        with open(self.complete_log_file_name, 'a') as csvfile:
+            historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
+            row = []
+            row.append("{:>4d}".format(self.optimization_iteration))
+            for objective,objective_hist_values in self.objectives_hist.items():
+                objectivs_current_value = objective_hist_values[self.optimization_iteration-1]
+                objective_initial_value = objectivs_current_value
+                objective_previous_value = objectivs_current_value
+                if self.optimization_iteration>1:                
+                    objective_initial_value = objective_hist_values[0]
+                    objective_previous_value = objective_hist_values[self.optimization_iteration-2]
+                rel_change = 100 * (objectivs_current_value-objective_previous_value)/objective_previous_value
+                abs_change = 100 * (objectivs_current_value-objective_initial_value)/objective_initial_value
+                Logger.Print("  ===== objective: ",objective)
+                Logger.Print("                   current value: ",objectivs_current_value)
+                Logger.Print("                   rel_change: ",rel_change)
+                Logger.Print("                   abs_change: ",abs_change)
+                row.append(" {:> .5E}".format(objectivs_current_value))
+                row.append(" {:> .5E}".format(abs_change))
+                row.append(" {:> .5E}".format(rel_change)) 
+
+            constraint_index = 0
+            for constraint,constraint_hist_values in self.constraints_hist.items():
+                constraint_current_value = constraint_hist_values[self.optimization_iteration-1]
+                constraint_ref_val = self.constraints_ref_values[constraint_index]
+                abs_change = 100 * abs(constraint_current_value-constraint_ref_val)/abs(constraint_ref_val)
+
+                Logger.Print("  ===== constraint: ",constraint)
+                Logger.Print("                   current value: ",constraint_current_value)
+                Logger.Print("                   abs_change: ",abs_change)
+
+                row.append(" {:> .5E}".format(constraint_current_value))
+                row.append(" {:> .5E}".format(constraint_ref_val))
+                row.append(" {:> .5E}".format(abs_change))
+                constraint_index = constraint_index + 1
+
+            historyWriter.writerow(row)
 
 # ==============================================================================

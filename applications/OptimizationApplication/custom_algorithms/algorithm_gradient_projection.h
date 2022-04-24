@@ -73,6 +73,7 @@ public:
         mObjectiveGradients = ZeroVector(mTotalNumControlVars);
         mControlVarsUpdate = ZeroVector(mTotalNumControlVars);
         mSearchDirection = ZeroVector(mTotalNumControlVars);
+        mCorrection = ZeroVector(mTotalNumControlVars);
 
         mSumObjectiveWeights = 0.0;
         for(auto& objetive : mrSettings["objectives"]){
@@ -144,6 +145,7 @@ public:
         mObjectiveGradients.clear();
         mControlVarsUpdate.clear();
         mSearchDirection.clear();
+        mCorrection.clear();
 
         // analyze the constraints
         int num_active_constraints = 0;
@@ -250,21 +252,6 @@ public:
 
         if(num_active_constraints>0)
         {
-
-            // double obj_norm = 0.0;
-            // for(int i=0;i<mObjectiveGradients.size();i++)
-            //     obj_norm += mObjectiveGradients[i] * mObjectiveGradients[i];
-            // std::cout<<"obj_norm : "<<std::sqrt(obj_norm)<<std::endl;
-
-            // for(int i=0;i<active_constraints_gradients.size1();i++){
-            //     double constraint_norm = 0.0;
-            //     for(int j=0;j<active_constraints_gradients.size2();j++)            
-            //         constraint_norm += active_constraints_gradients(i,j) * active_constraints_gradients(i,j);
-            
-            //     std::cout<<"constraint_norm : "<<std::sqrt(constraint_norm)<<std::endl;
-            // }
-
-            // std::exit(0);
             // compute feasible self.lin_solversearch direction
             Matrix NTN = prod(active_constraints_gradients,trans(active_constraints_gradients));
             Matrix I = IdentityMatrix(active_constraints_gradients.size1());
@@ -275,62 +262,40 @@ public:
             mSearchDirection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
             mSearchDirection /= norm_2(mSearchDirection);
 
+
+            double sum_violations = 0.0;
             for(auto& constraint : mrSettings["constraints"]){
                 if(constraint["is_active"].GetBool()){        
-
-                    Vector constraint_gradient = row(active_constraints_gradients,0);
-
                     auto ref_value = constraint["ref_value"].GetDouble();
                     auto value = constraint["value"].GetDouble();
-                    double current_alpha = 0.0;
                     double violation_percentes = 100 * std::abs(value-ref_value)/std::abs(ref_value);
-                    if(violation_percentes>1.0)
-                        current_alpha = alpha;
+                    sum_violations += violation_percentes;
+                }
+            }
+
+            for(auto& constraint : mrSettings["constraints"]){
+                if(constraint["is_active"].GetBool()){        
+                    Vector constraint_gradient = row(active_constraints_gradients,0);
+                    auto ref_value = constraint["ref_value"].GetDouble();
+                    auto value = constraint["value"].GetDouble();
+                    double violation_percentes = 100 * std::abs(value-ref_value)/std::abs(ref_value);
+                    double constraint_alpha = 0;
+                    if(sum_violations>1)
+                      constraint_alpha = (violation_percentes/sum_violations) * alpha;
                     else
-                        current_alpha = alpha * violation_percentes;
-
-                    std::cout<<"current_alpha : "<<current_alpha<<std::endl;
-
+                      constraint_alpha = (violation_percentes/sum_violations) * sum_violations * alpha;     
+                    
+                    std::cout<<" ****** Constraint "<<constraint["name"].GetString()<<", violation: "<<violation_percentes<<" %, constraint alpha: "<<constraint_alpha<<std::endl;
                     if (value>ref_value)
                         constraint_gradient *= -1;
 
-                    mSearchDirection = (1.0-current_alpha) * mSearchDirection + current_alpha * constraint_gradient;
-
-                    break;
+                    mCorrection += constraint_alpha * constraint_gradient;
                 }
             }
-            // if(sum_violation>0.5)
-            //     mSearchDirection *= 0.5;
-            // else
-            //     mSearchDirection *= (1.0-sum_violation);
-
-            // int constraint_index = 0;
-            // for(auto& constraint : mrSettings["constraints"]){
-            //     if(constraint["is_active"].GetBool()){        
-
-            //         auto ref_value = constraint["ref_value"].GetDouble();
-            //         auto value = constraint["value"].GetDouble();
-            //         double violation = 10 * std::abs(value-ref_value)/std::abs(ref_value);
-            //         double factor = 1.0;
-            //         if (value>ref_value)
-            //             factor = -1.0;
-                    
-            //         double share;
-            //         if (sum_violation>0.5)
-            //             share = 0.5 * violation / sum_violation;
-            //         else
-            //             share = violation;
-
-            //         mSearchDirection += factor * share * row(active_constraints_gradients,constraint_index);
-
-            //         // std::cout<<" norm : "<<norm_2(mSearchDirection)<<std::endl;
-            //         // std::exit(0);
-
-            //         constraint_index++;
-
-            //     }
-            // }            
-        
+            if(sum_violations>1)
+                mSearchDirection = (1.0-alpha) * mSearchDirection + mCorrection;
+            else
+                mSearchDirection = (1.0-alpha*sum_violations) * mSearchDirection + mCorrection;
         }
         else
             mSearchDirection = - mObjectiveGradients;
@@ -339,13 +304,6 @@ public:
 
         mSearchDirection /= norm_2(mSearchDirection);
 
-
-
-        // std::cout<<"mrSettings : "<<mrSettings<<std::endl;
-        // std::exit(0);
-
-        // // compute control variables update
-        // mControlVarsUpdate = 20 * mSearchDirection;
 
         // compute and set the updates
         int index = 0;
@@ -407,6 +365,7 @@ public:
     Vector mObjectiveGradients;
     Vector mControlVarsUpdate;
     Vector mSearchDirection;
+    Vector mCorrection;
     LinearSolver<DenseSpace, DenseSpace>& mrSolver;
     int mTotalNumControlVars;
     double mSumObjectiveWeights;
