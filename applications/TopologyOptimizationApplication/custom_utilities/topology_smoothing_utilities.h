@@ -99,10 +99,7 @@ public:
 	///@name Operations
 	///@{
 
-	// ---------------------------------------------------------------------------------------------------------------------------------------------
-	// --------------------------------- SMOOTH EXTRACTED MESH  ------------------------------------------------------------------------------------
-	// ---------------------------------------------------------------------------------------------------------------------------------------------
-
+	//  SMOOTH EXTRACTED MESH
 	/// Smooth mesh by performing a Laplacian smoothing on a given surface mesh
 	// Laplacian smoothing modifies a given node-position by an average of the positions of the neighbour-nodes
 	void SmoothMesh( ModelPart& mModelPart, double relaxation_factor, double iterations )
