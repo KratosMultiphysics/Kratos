@@ -1,8 +1,8 @@
 {
     "optimization_parameters" : {
         "simp_property"                 : 1,
-        "material_interpolation"        : "simp_modified",
-        "penalty"                       : 3,
+        "material_interpolation"        : "ramp",
+        "penalty"                       : 4,
         "continuation_strategy"         : 0,
         "initial_volume_fraction"       : 0.5,
         "density_filter"	            : "densit",
@@ -15,7 +15,6 @@
         "optimization_algorithm"        : "oc_algorithm",
         "max_opt_iterations"            : 100,
         "relative_tolerance"            : 0.001,
-        "increasing_obj"                : 0,
         "objectives"    :{
             "strain_energy":    {
                 "grad"      :"provided"
@@ -31,8 +30,8 @@
         "restart_output_file"           : "Small_Cantilever_Restart_File.mdpa",
         "restart_write_frequency"       : 10,
         "GiD_output_file_name"          : "Topology_Optimization_Results",
-        "nodal_results"                 : ["DISPLACEMENT","REACTION"],
-        "gauss_points_results"          : ["X_PHYS"],
+        "nodal_results"                 :["DISPLACEMENT","REACTION"],
+        "gauss_points_results"          :["X_PHYS"],
         "VolumeOutput"                  : true,
         "GiDPostMode"                   : "Binary",
         "GiDWriteMeshFlag"              : false,
@@ -45,12 +44,7 @@
                 "MultiFileFlag": "SingleFile",
                 "WriteConditionsFlag": "WriteElementsOnly",
                 "WriteDeformedMeshFlag": "WriteUndeformed"
-
             }
         }
-
-
-
-
     }
 }

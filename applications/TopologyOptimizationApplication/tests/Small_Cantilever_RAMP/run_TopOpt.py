@@ -26,8 +26,7 @@ results = km.Parameters(
                     "compliance"                            : 0.0,
                     "number_of_iterations"                  : 0,
                     "volume_fraction"                       : 0.0
-                    
-                    } 
+                    }
                     """
 )
 
@@ -192,10 +191,12 @@ optimizer = kto.topology_optimizer_factory.ConstructOptimizer(
 optimizer.optimize()
 
 # Testing the results of the optimization
-TestCase().assertEqual(results['number_of_iterations'].GetInt(), 13)
-TestCase().assertAlmostEqual(results['compliance'].GetDouble(), 278.493, 3)
+TestCase().assertEqual(results['number_of_iterations'].GetInt(), 8)
 TestCase().assertAlmostEqual(
-    results['volume_fraction'].GetDouble(), 0.50010, 5
+    results['compliance'].GetDouble(), 234.11181274748333, 3
+)
+TestCase().assertAlmostEqual(
+    results['volume_fraction'].GetDouble(), 0.5000107634737211, 5
 )
 
 FinalizeKSMProcess()
