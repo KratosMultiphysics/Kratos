@@ -14,7 +14,7 @@
         "q_max"                         : 2.0,
         "optimization_algorithm"        : "oc_algorithm",
         "max_opt_iterations"            : 100,
-        "relative_tolerance"            : 0.001,      
+        "relative_tolerance"            : 0.001,
         "increasing_obj"                : 0,
         "objectives"    :{
             "strain_energy":    {

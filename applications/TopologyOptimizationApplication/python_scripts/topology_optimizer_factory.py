@@ -1,5 +1,4 @@
-"""
-KratosTopologyOptimizationApplication
+"""KratosTopologyOptimizationApplication
 
 License:         BSD License
                  license: TopologyOptimizationApplication/license.txt
