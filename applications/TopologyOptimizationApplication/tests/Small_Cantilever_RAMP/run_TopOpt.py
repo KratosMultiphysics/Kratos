@@ -20,14 +20,13 @@ OptimizationParameters = km.Parameters(optimization_file.read())
 
 # Optimization results to compare for the unittest
 results = km.Parameters(
-    """ 
+    """
                     {
 
                     "compliance"                            : 0.0,
                     "number_of_iterations"                  : 0,
                     "volume_fraction"                       : 0.0
-                    
-                    } 
+                    }
                     """
 )
 

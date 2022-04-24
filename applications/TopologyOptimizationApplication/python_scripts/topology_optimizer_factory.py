@@ -1,15 +1,15 @@
-"""KratosTopologyOptimizationApplication
-
-License:         BSD License
-                 license: TopologyOptimizationApplication/license.txt
-
-Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
-                 Erich Wehrle, https://github.com/e-dub
-                 based on original file from
-                 Baumgärtner Daniel, https://github.com/dbaumgaertner
-                 Octaviano Malfavón Farías
-                 Eric Gonzales
-"""
+# KratosTopologyOptimizationApplication
+#
+# License:         BSD License
+#                  license: TopologyOptimizationApplication/license.txt
+#
+# Main authors:    Philipp Hofer, https://github.com/PhiHo-eng
+#                  Erich Wehrle, https://github.com/e-dub
+#                  based on original file from
+#                  Baumgärtner Daniel, https://github.com/dbaumgaertner
+#                  Octaviano Malfavón Farías
+#                  Eric Gonzales
+#
 import KratosMultiphysics as km
 import KratosMultiphysics.TopologyOptimizationApplication as kto
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
