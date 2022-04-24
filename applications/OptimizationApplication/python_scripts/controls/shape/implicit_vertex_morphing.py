@@ -30,6 +30,7 @@ class ImplicitVertexMorphing(ShapeControl):
                     "adaptive_filter_size" : false,
                     "surface_filter_radius" : 0.000000000001,
                     "surface_bulk_ratio" : 2,
+                    "project_to_normal" : true,
                     "poisson_ratio" : 0.3,            
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",

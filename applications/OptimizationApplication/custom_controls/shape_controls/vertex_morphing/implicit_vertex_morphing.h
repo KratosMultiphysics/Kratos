@@ -170,6 +170,8 @@ public:
 
         }        
         AdjustFilterSizes();
+        if(mTechniqueSettings["project_to_normal"].GetBool())
+            ComputeSurfaceNormals();
         KRATOS_INFO("ImplicitVertexMorphing:MapControlUpdate:") << "Finished updating in " << timer.ElapsedSeconds() << " s." << std::endl;
     };  
     // --------------------------------------------------------------------------
@@ -213,6 +215,9 @@ public:
         BuiltinTimer timer;
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("ImplicitVertexMorphing:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
+
+        if(mTechniqueSettings["project_to_normal"].GetBool())
+            ProjectToNormal(rDerivativeVariable);
 
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
@@ -519,6 +524,54 @@ private:
                     node_i.Fix(HELMHOLTZ_VARS_SHAPE_Y);
                 if(fixed_model_parts_Z[i].GetBool())
                     node_i.Fix(HELMHOLTZ_VARS_SHAPE_Z);
+            }
+        }
+    }
+
+    void ProjectToNormal(const Variable<array_3d> &rDerivativeVariable){
+        if(mTechniqueSettings["project_to_normal"].GetBool())
+        {
+            for(auto& control_obj : mControlSettings["controlling_objects"]){
+                ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+                for (auto& node_i : r_controlling_object.Nodes())
+                {
+                    array_3d& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rDerivativeVariable);
+                    const array_1d<double,3>& normal = node_i.FastGetSolutionStepValue(NORMAL);
+                    const double magnitude = inner_prod(r_nodal_variable1, normal);
+                    noalias(r_nodal_variable1) = magnitude * normal;
+                }
+            }
+        }
+    }
+
+    void ComputeSurfaceNormals(){
+
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            VariableUtils().SetHistoricalVariableToZero(NORMAL, r_controlling_object.Nodes());
+            const array_1d<double,3> local_coords = ZeroVector(3);
+            for(auto& cond_i : r_controlling_object.Conditions()){
+                const auto& r_geom = cond_i.GetGeometry();
+
+                const array_1d<double,3> normal = r_geom.Normal(local_coords);
+                const double coeff = 1.0/r_geom.size();
+
+                for(auto& node_i : r_geom)
+                {
+                    node_i.SetLock();
+                    noalias(node_i.FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+                    node_i.UnSetLock();
+                }
+            }
+            for (auto& node_i : r_controlling_object.Nodes())
+            {
+                array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
+
+                const double norm2 = norm_2(area_normal);
+                KRATOS_ERROR_IF(norm2<1e-10) << "CalculateUnitNormals: Norm2 of normal for node "
+                    << node_i.Id() << " is < 1e-10!" << std::endl;
+
+                noalias(area_normal) = area_normal/norm2;
             }
         }
     }
