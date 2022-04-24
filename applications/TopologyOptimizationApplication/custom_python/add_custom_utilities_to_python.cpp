@@ -12,21 +12,15 @@
 //                   Eric Gonzales
 //					 Philipp Hofer
 //					 Erich Wehrle
-//
-// ==============================================================================
 
-// External includes 
 
-// Project includes
-
-// Application includes
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
-
-// Utilities
 #include "custom_utilities/structure_response_function_utilities.h"
 #include "custom_utilities/topology_filtering_utilities.h"
 #include "custom_utilities/topology_updating_utilities.h"
+#include "custom_utilities/topology_extractor_utilities.h"
+#include "custom_utilities/topology_smoothing_utilities.h"
 #include "custom_utilities/io_utilities.h"
 
 
@@ -41,12 +35,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-
-
-    // =============================================================================================================================================
     // Utility Classes
-    // =============================================================================================================================================
-
     py::class_<StructureResponseFunctionUtilities>(m, "StructureResponseFunctionUtilities")
     .def(py::init<ModelPart& >())
     .def("ComputeStrainEnergy", &StructureResponseFunctionUtilities::ComputeStrainEnergy)
@@ -62,6 +51,17 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<TopologyUpdatingUtilities >(m, "TopologyUpdatingUtilities")
     .def(py::init<ModelPart&>())
     .def("UpdateDensitiesUsingOCMethod", &TopologyUpdatingUtilities::UpdateDensitiesUsingOCMethod)
+    ;
+
+    py::class_<TopologyExtractorUtilities >(m, "TopologyExtractorUtilities")
+    .def(py::init<>())
+    .def("ExtractVolumeMesh", &TopologyExtractorUtilities::ExtractVolumeMesh)
+    .def("ExtractSurfaceMesh", &TopologyExtractorUtilities::ExtractSurfaceMesh)
+    ;
+
+    py::class_<TopologySmoothingUtilities >(m, "TopologySmoothingUtilities" )
+    .def(py::init<>())
+    .def("SmoothMesh", &TopologySmoothingUtilities::SmoothMesh)
     ;
 
     py::class_<IOUtilities >(m, "IOUtilities" )
