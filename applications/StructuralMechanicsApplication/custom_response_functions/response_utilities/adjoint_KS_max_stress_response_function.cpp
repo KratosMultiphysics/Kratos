@@ -57,6 +57,7 @@ namespace Kratos
         ModelPart& primal_agglomeration_part = rPrimalModelPart.GetSubModelPart(mCriticalPartName);
 
         IndexType elem_id_at_max = 0;
+        max_mean_stress = 0.0;
 
         for(auto& elem : primal_agglomeration_part.Elements())
         {
