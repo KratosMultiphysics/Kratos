@@ -28,6 +28,7 @@
 
 namespace Kratos
 {
+
 ///@name Kratos Globals
 ///@{
 
@@ -198,7 +199,7 @@ public:
         const array_1d<double, 3>&,
         const std::size_t)>;
 
-    using SolvingStrategyType = ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver >;
+    using SolvingStrategyType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     using BuilderAndSolverPointerType = typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer;
 

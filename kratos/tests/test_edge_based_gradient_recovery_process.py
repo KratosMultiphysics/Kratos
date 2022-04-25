@@ -12,13 +12,6 @@ def GetFilePath(fileName):
 
 class TestEdgeBasedGradientRecoveryProcess(KratosUnittest.TestCase):
 
-    def tearDown(self):
-        # Remove the .time file
-        try:
-            os.remove('levelset_convection_process_mesh.time')
-        except :
-            pass
-
     def _SetUpTestModelPart(self, IsOriginHistorical, IsGradientHistorical, OriginVar = None, GradientVar = None):
         # Create the background mesh
         self.model = KratosMultiphysics.Model()
