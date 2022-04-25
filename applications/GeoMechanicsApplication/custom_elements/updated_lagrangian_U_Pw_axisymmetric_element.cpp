@@ -59,7 +59,6 @@ void UPwUpdatedLagrangianAxisymmetricElement<TDim,TNumNodes>::
         rB( INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y ) = GradNpT( i, INDEX_X );
     }
 
-    // KRATOS_INFO("1-UPwUpdatedLagrangianAxisymmetricElement::CalculateBMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
