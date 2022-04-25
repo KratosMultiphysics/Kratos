@@ -1257,7 +1257,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         rVariables.PermeabilityUpdateFactor = 1.0;
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor") << std::endl;
     KRATOS_CATCH( "" )
 }
 
