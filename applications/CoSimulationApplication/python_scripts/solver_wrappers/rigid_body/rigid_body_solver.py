@@ -370,10 +370,10 @@ class RigidBodySolver(object):
 
         # Set to zero variables that might not be overwritten each time step
         zero_vector = np.zeros(self.system_size)
-        self._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, zero_vector)
-        self._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, zero_vector)
-        self._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, zero_vector)
-        self._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, zero_vector)
+        self._SetCompleteVector("rigid_body", KM.FORCE, KM.MOMENT, zero_vector, broadcast=False)
+        self._SetCompleteVector("rigid_body", KMC.PRESCRIBED_FORCE, KMC.PRESCRIBED_MOMENT, zero_vector, broadcast=False)
+        self._SetCompleteVector("root_point", KM.DISPLACEMENT, KM.ROTATION, zero_vector, broadcast=False)
+        self._SetCompleteVector("root_point", KMC.PRESCRIBED_DISPLACEMENT, KMC.PRESCRIBED_ROTATION, zero_vector, broadcast=False)
 
 
     def _CalculateEffectiveLoad(self):
@@ -462,9 +462,14 @@ class RigidBodySolver(object):
         return np.array(list(linear_values) + list(angular_values))
 
     
-    def _SetCompleteVector(self, model_part_name, linear_variable, angular_variable, values, buffer=0):
+    def _SetCompleteVector(self, model_part_name, linear_variable, angular_variable, values, buffer=0, broadcast=True):
         # Method to transform a single vector into the linear and angular variables stored in the model part.
         # For example, the displacement vector will splitted and saved in KM.DISPLACEMENT and KM.ROTATION.
+
+        # In case of MPI, broadcast data from rank 0 to avoid numerical discrepancies
+        if broadcast:
+            values = self.main_model_part.GetCommunicator().GetDataCommunicator().BroadcastDoubles(values, 0)
+            #values = KM.DataCommunicator.GetDefault().BroadcastDoubles(values, 0)
 
         # Decompose the original vector into its linear and angular components
         linear_values = list(values[:self.linear_size])
