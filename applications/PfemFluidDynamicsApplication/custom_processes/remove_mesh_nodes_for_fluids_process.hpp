@@ -505,7 +505,7 @@ namespace Kratos
 						unsigned int propertyIdFirstNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 						for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 						{
-							unsigned int propertyIdSecondNode = in->FastGetSolutionStepValue(PROPERTY_ID);
+							unsigned int propertyIdSecondNode = (nn)->FastGetSolutionStepValue(PROPERTY_ID);
 							if ((nn)->Is(FREE_SURFACE))
 							{
 								freeSurfaceNeighNodes++;
