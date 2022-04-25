@@ -163,6 +163,10 @@ namespace Kratos
 			mrRemesh.Info->RemovedNodes += error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
 			int distance_remove = inside_nodes_removed + boundary_nodes_removed;
 
+			std::cout << "   [ NODES (all)      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
+			std::cout << "   [ NODES (principal)     ( removed : " << mrRemesh.Info->RemovedNodesPrincipalModelPart << " ) ]" << std::endl;
+			std::cout << "   [ NODES (secondary)     ( removed : " << mrRemesh.Info->RemovedNodesSecondaryModelPart << " ) ]" << std::endl;
+
 			if (mEchoLevel > 1)
 			{
 				std::cout << "   [ NODES      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
@@ -401,6 +405,8 @@ namespace Kratos
 			double initialTimeForRefinement = mrRemesh.RefiningBoxInitialTime;
 			double finalTimeForRefinement = mrRemesh.RefiningBoxFinalTime;
 			bool refiningBox = mrRemesh.UseRefiningBox;
+			unsigned int principalModelPartId = 0;
+			bool principalModelPartSet = false;
 
 			if (!(refiningBox == true && currentTime > initialTimeForRefinement && currentTime < finalTimeForRefinement))
 			{
@@ -415,6 +421,7 @@ namespace Kratos
 				// coordinates
 				for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
 				{
+
 					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
 					{
 						rigidNodes++;
@@ -435,6 +442,16 @@ namespace Kratos
 
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
 			{
+
+				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
+
+				if (in->Is(FLUID) && in->IsNot(RIGID) && principalModelPartSet == false)
+				{
+					principalModelPartId = propertyIdNode;
+					principalModelPartSet = true;
+					std::cout << "principalModelPartId " << principalModelPartId << std::endl;
+					mrRemesh.Info->IdPrincipalModelPart = propertyIdNode;
+				}
 
 				if (refiningBox == true)
 				{
@@ -502,7 +519,6 @@ namespace Kratos
 					else
 					{
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
-						unsigned int propertyIdFirstNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 						for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 						{
 							unsigned int propertyIdSecondNode = (nn)->FastGetSolutionStepValue(PROPERTY_ID);
@@ -514,7 +530,7 @@ namespace Kratos
 							{
 								neighErasedNodes++;
 							}
-							if (propertyIdFirstNode != propertyIdSecondNode && (nn)->IsNot(RIGID))
+							if (propertyIdNode != propertyIdSecondNode && (nn)->IsNot(RIGID))
 							{
 								interfaceElement = true;
 							}
@@ -524,9 +540,18 @@ namespace Kratos
 						}
 					}
 
-					if (freeSurfaceNeighNodes > 1 || interfaceElement == true)
+					// if (freeSurfaceNeighNodes > 1 || interfaceElement == true)
+					// {
+					// 	radius = 0.5 * initialMeanRadius;
+					// }
+
+					if (freeSurfaceNeighNodes > 1)
 					{
 						radius = 0.5 * initialMeanRadius;
+					}
+					else if (interfaceElement == true)
+					{
+						radius = 0.55 * initialMeanRadius;
 					}
 
 					if (in->Is(INLET))
@@ -607,6 +632,16 @@ namespace Kratos
 										in->Set(TO_ERASE);
 										any_node_removed = true;
 										inside_nodes_removed++;
+										std::cout << "removed prpperty " << propertyIdNode << std::endl;
+
+										if (propertyIdNode == principalModelPartId)
+										{
+											mrRemesh.Info->RemovedNodesPrincipalModelPart += 1;
+										}
+										else
+										{
+											mrRemesh.Info->RemovedNodesSecondaryModelPart += 1;
+										}
 										// distance_remove++;
 									}
 								}
@@ -654,6 +689,18 @@ namespace Kratos
 									std::cout << "     Removed Boundary Node [" << in->Id() << "] on Distance " << std::endl;
 								any_node_removed = true;
 								boundary_nodes_removed++;
+
+								std::cout << "removed prpperty " << propertyIdNode << std::endl;
+
+								if (propertyIdNode == principalModelPartId)
+								{
+									mrRemesh.Info->RemovedNodesPrincipalModelPart += 1;
+								}
+								else
+								{
+									mrRemesh.Info->RemovedNodesSecondaryModelPart += 1;
+								}
+
 								// distance_remove ++;
 							}
 							else if (counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact)
@@ -663,6 +710,17 @@ namespace Kratos
 									std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
 								any_node_removed = true;
 								boundary_nodes_removed++;
+
+								std::cout << "removed prpperty " << propertyIdNode << std::endl;
+
+								if (propertyIdNode == principalModelPartId)
+								{
+									mrRemesh.Info->RemovedNodesPrincipalModelPart += 1;
+								}
+								else
+								{
+									mrRemesh.Info->RemovedNodesSecondaryModelPart += 1;
+								}
 							}
 						}
 					}
