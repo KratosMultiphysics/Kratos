@@ -1862,8 +1862,7 @@ void SmallStrainUPwDiffOrderElement::
 
     const PropertiesType& rProp = this->GetProperties();
 
-    if (rProp.Has(PERMEABILITY_CHANGE_INVERSE_FACTOR) &&
-        rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
+    if (rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR] > 0.0) {
         const double InverseCK = rProp[PERMEABILITY_CHANGE_INVERSE_FACTOR];
         StressStrainUtilities EquivalentStress;
         const double epsV = EquivalentStress.CalculateTrace(rVariables.StrainVector);
