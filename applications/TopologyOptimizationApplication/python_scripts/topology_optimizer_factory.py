@@ -17,13 +17,12 @@ from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 import time
 
 
-def ConstructOptimizer(opt_model_part, config, analyzer):
-    optimizer = SIMPMethod(opt_model_part, config, analyzer)
-    return optimizer
+def CreateTopologyOptimizer(optimization_settings, model): #, analyzer):
+    return TopologyOptimizer(model, optimization_settings) #, analyzer)
 
 
-class SIMPMethod:
-    def __init__(self, opt_model_part, config, analyzer):
+class TopologyOptimizer:
+    def __init__(self, opt_model_part, config): #, analyzer):
         # Set Topology Optimization configurations
         self.config = config
 
@@ -58,32 +57,32 @@ class SIMPMethod:
                 """
             ),
         )
-        vtk_parameters = km.Parameters(
-            """
-            {
-            "model_part_name": "",
-            "output_control_type": "step",
-            "output_interval": 1,
-            "file_format": "ascii",
-            "output_precision": 7,
-            "output_sub_model_parts": false,
-            "output_path": "vtk_output",
-            "save_output_files_in_folder": true,
-            "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION"],
-            "nodal_data_value_variables": [],
-            "element_data_value_variables": ["X_PHYS","VON_MISES_STRESS"],
-            "condition_data_value_variables": [],
-            "gauss_point_variables_extrapolated_to_nodes": []
-            }
-            """
-        )
-        vtk_parameters['model_part_name'].SetString(opt_model_part.Name)
-        self.vtk_io = VtkOutputProcess(
-            opt_model_part.GetModel(), vtk_parameters
-        )
+        # vtk_parameters = km.Parameters(
+        #     """
+        #     {
+        #     "model_part_name": "",
+        #     "output_control_type": "step",
+        #     "output_interval": 1,
+        #     "file_format": "ascii",
+        #     "output_precision": 7,
+        #     "output_sub_model_parts": false,
+        #     "output_path": "vtk_output",
+        #     "save_output_files_in_folder": true,
+        #     "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION"],
+        #     "nodal_data_value_variables": [],
+        #     "element_data_value_variables": ["X_PHYS","VON_MISES_STRESS"],
+        #     "condition_data_value_variables": [],
+        #     "gauss_point_variables_extrapolated_to_nodes": []
+        #     }
+        #     """
+        # )
+        # vtk_parameters['model_part_name'].SetString(opt_model_part.Name)
+        # self.vtk_io = VtkOutputProcess(
+        #     opt_model_part.GetModel(), vtk_parameters
+        # )
 
         # Set analyzer
-        self.analyzer = analyzer
+        #self.analyzer = analyzer
 
         # Set response functions
         self.objectives = config['objectives'].items()
@@ -120,6 +119,7 @@ class SIMPMethod:
         self.controller = Controller(config)
 
         # Model parameters
+        # needs to be "original" part!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.opt_model_part = opt_model_part
 
         # Initialize element variables
@@ -163,7 +163,31 @@ class SIMPMethod:
         # Add toolbox for I/O
         self.io_utils = kto.IOUtilities()
 
-    def optimize(self):
+    def analyzer(self, controls, response, opt_itr):
+        response_analyzer = self.StructureResponseFunctionUtilities(self.model_part)
+        linear_solver = km.python_linear_solver_factory.ConstructSolver(
+            self.ProjectParameters['solver_settings']['linear_solver_settings']
+        )
+        sensitivity_solver = self.StructureAdjointSensitivityStrategy(
+            self.model_part,
+            linear_solver,
+            self.ProjectParameters['solver_settings']['domain_size'].GetInt(),
+        )
+        self.solve_structure(opt_itr)
+        strain_energy = response_analyzer.ComputeStrainEnergy()
+        response['strain_energy']['func'] = strain_energy
+        target_volume_fraction = self.OptimizationParameters['optimization_parameters'][
+            'initial_volume_fraction'
+        ].GetDouble()
+        volume_fraction = response_analyzer.ComputeVolumeFraction()
+        response['volume_fraction']['func'] = (
+            volume_fraction - target_volume_fraction
+        )
+        sensitivity_solver.ComputeStrainEnergySensitivities()
+        sensitivity_solver.ComputeVolumeFractionSensitivities()
+
+
+    def Optimize(self):
         km.Logger.Print('\n>' + '-' * 45)
         km.Logger.Print('> Starting topology optimization')
         km.Logger.Print('>' + '-' * 45 + '\n')
