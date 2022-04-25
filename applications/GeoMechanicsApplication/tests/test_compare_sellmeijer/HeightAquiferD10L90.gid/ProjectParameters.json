@@ -40,7 +40,6 @@
         "rayleigh_m": 0.0,
         "rayleigh_k": 0.0,
         "strategy_type": "newton_raphson_with_piping",
-        "max_piping_iterations": 500,
         "convergence_criterion": "water_pressure_criterion",
         "displacement_relative_tolerance": 0.0001,
         "displacement_absolute_tolerance": 1e-09,
@@ -82,7 +81,8 @@
         "body_domain_sub_model_part_list": [
             "Soil",
             "Embankment"
-        ]
+        ],
+        "max_piping_iterations": 500
     },
     "output_processes": {
         "gid_output": [
@@ -118,6 +118,13 @@
                                 "LOCAL_FLUID_FLUX_VECTOR",
                                 "LOCAL_PERMEABILITY_MATRIX",
                                 "HYDRAULIC_HEAD",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
+                                "PIPE_ACTIVE",
                                 "PIPE_ACTIVE"
                             ]
                         },
