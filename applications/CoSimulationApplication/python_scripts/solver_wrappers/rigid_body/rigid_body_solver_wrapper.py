@@ -90,4 +90,4 @@ class RigidBodySolverWrapper(CoSimulationSolverWrapper):
     
     def _GetDataCommunicator(self):
         # this solver does not support MPI
-        return GetRankZeroDataCommunicator()
+        return KM.ParallelEnvironment.GetDefaultDataCommunicator() 
