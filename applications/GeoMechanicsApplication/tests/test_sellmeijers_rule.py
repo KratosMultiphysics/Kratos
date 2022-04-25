@@ -3,7 +3,7 @@ import os
 import csv
 import json
 import math
-
+sys.path.append(os.path.join('D:/kratos'))
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 sys.path.append(os.path.join('..', 'python_scripts'))
@@ -99,7 +99,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
         parameter_file_name = os.path.join(file_path, 'ProjectParameters.json')
         with open(parameter_file_name, 'r') as parameter_file:
             parameters = json.load(parameter_file)
-            parameters['processes']['constraints_process_list'][1]['Parameters']['reference_coordinate'] = head_level
+            parameters['processes']['constraints_process_list'][0]['Parameters']['reference_coordinate'] = head_level
         with open(parameter_file_name, 'w') as parameter_file:
             json.dump(parameters, parameter_file, indent=4)
 
