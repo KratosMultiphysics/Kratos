@@ -1241,7 +1241,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculatePermeabilityUpdateFactor( ElementVariables &rVariables)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor") << std::endl;
 
     const PropertiesType& rProp = this->GetProperties();
 
