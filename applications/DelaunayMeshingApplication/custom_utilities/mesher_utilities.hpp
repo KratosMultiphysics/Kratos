@@ -286,8 +286,7 @@ namespace Kratos
                   // total for all refining boxes
                   unsigned int InsertedNodes;
                   unsigned int RemovedNodes;
-                  int RemovedNodesPrincipalModelPart;
-                  int RemovedNodesSecondaryModelPart;
+                  int BalancePrincipalSecondaryPartsNodes;
                   unsigned int InsertedBoundaryNodes;
                   unsigned int InsertedBoundaryConditions;
 
@@ -313,8 +312,6 @@ namespace Kratos
 
                         InsertedNodes = 0;
                         RemovedNodes = 0;
-                        // RemovedNodesPrincipalModelPart = 0;
-                        // RemovedNodesSecondaryModelPart = 0;
 
                         InsertedBoundaryNodes = 0;
                         InsertedBoundaryConditions = 0;

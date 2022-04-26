@@ -117,8 +117,7 @@ namespace Kratos
 			if (currentTime < 2 * timeInterval)
 			{
 				mrRemesh.Info->RemovedNodes = 0;
-				mrRemesh.Info->RemovedNodesPrincipalModelPart = 0;
-				mrRemesh.Info->RemovedNodesSecondaryModelPart = 0;
+				mrRemesh.Info->BalancePrincipalSecondaryPartsNodes = 0;
 
 				if (mEchoLevel > 1)
 					std::cout << " First meshes: I repare the mesh without adding new nodes" << std::endl;
@@ -1083,7 +1082,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8;
+						penalization = 0.9;
 					}
 				}
 			}
@@ -1462,7 +1461,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8;
+						penalization = 0.9;
 					}
 				}
 			}
@@ -1796,7 +1795,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8;
+						penalization = 0.9;
 					}
 				}
 			}
@@ -2051,8 +2050,8 @@ namespace Kratos
 				{
 
 					unsigned int propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
-					if ((mrRemesh.Info->RemovedNodesPrincipalModelPart > 0 && propertyIdNodeSlave1 == principalPropertyId) ||
-						(mrRemesh.Info->RemovedNodesPrincipalModelPart < 0 && propertyIdNodeSlave1 != principalPropertyId) ||
+					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 == principalPropertyId) ||
+						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 != principalPropertyId) ||
 						(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
 					{
 						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
@@ -2062,31 +2061,21 @@ namespace Kratos
 						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
 					}
 
-					// // Master node's properties are set using the maximum PROPERTY_ID value between SlaveNode1 and SlaveNode2
-					// if (SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID) >= SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID))
-					// {
-					// 	TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
-					// }
-					// else
-					// {
-					// 	TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
-					// }
 				}
 
 				unsigned int propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
 				if (propertyIdNode == principalPropertyId)
 				{
-					mrRemesh.Info->RemovedNodesPrincipalModelPart += -1;
+					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 				}
 				else
 				{
-					mrRemesh.Info->RemovedNodesSecondaryModelPart += -1;
+					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 				}
 			}
 
 			std::cout << "   [ after generating -- NODES (all)      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
-			std::cout << "   [ after generating -- NODES (principal)     ( removed : " << mrRemesh.Info->RemovedNodesPrincipalModelPart << " ) ]" << std::endl;
-			std::cout << "   [ after generating -- NODES (secondary)     ( removed : " << mrRemesh.Info->RemovedNodesSecondaryModelPart << " ) ]" << std::endl;
+			std::cout << "   [ after generating -- NODES (principal)     ( removed : " << mrRemesh.Info->BalancePrincipalSecondaryPartsNodes << " ) ]" << std::endl;
 			// set the coordinates to the original value
 			const array_1d<double, 3> ZeroNormal(3, 0.0);
 			for (std::vector<Node<3>::Pointer>::iterator it = list_of_new_nodes.begin(); it != list_of_new_nodes.end(); it++)

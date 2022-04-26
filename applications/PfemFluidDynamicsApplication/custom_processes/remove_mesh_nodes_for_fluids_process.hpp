@@ -164,8 +164,7 @@ namespace Kratos
 			int distance_remove = inside_nodes_removed + boundary_nodes_removed;
 
 			std::cout << "   [ NODES (all)      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
-			std::cout << "   [ NODES (principal)     ( removed : " << mrRemesh.Info->RemovedNodesPrincipalModelPart << " ) ]" << std::endl;
-			std::cout << "   [ NODES (secondary)     ( removed : " << mrRemesh.Info->RemovedNodesSecondaryModelPart << " ) ]" << std::endl;
+			std::cout << "   [ NODES balance     ( removed : " << mrRemesh.Info->BalancePrincipalSecondaryPartsNodes << " ) ]" << std::endl;
 
 			if (mEchoLevel > 1)
 			{
@@ -632,15 +631,14 @@ namespace Kratos
 										in->Set(TO_ERASE);
 										any_node_removed = true;
 										inside_nodes_removed++;
-										std::cout << "removed prpperty " << propertyIdNode << std::endl;
 
 										if (propertyIdNode == principalModelPartId)
 										{
-											mrRemesh.Info->RemovedNodesPrincipalModelPart += 1;
+											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 										}
 										else
 										{
-											mrRemesh.Info->RemovedNodesSecondaryModelPart += 1;
+											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 										}
 										// distance_remove++;
 									}
@@ -690,15 +688,13 @@ namespace Kratos
 								any_node_removed = true;
 								boundary_nodes_removed++;
 
-								std::cout << "removed prpperty " << propertyIdNode << std::endl;
-
 								if (propertyIdNode == principalModelPartId)
 								{
-									mrRemesh.Info->RemovedNodesPrincipalModelPart += 1;
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 								}
 								else
 								{
-									mrRemesh.Info->RemovedNodesSecondaryModelPart += 1;
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 								}
 
 								// distance_remove ++;
@@ -711,15 +707,13 @@ namespace Kratos
 								any_node_removed = true;
 								boundary_nodes_removed++;
 
-								std::cout << "removed prpperty " << propertyIdNode << std::endl;
-
 								if (propertyIdNode == principalModelPartId)
 								{
-									mrRemesh.Info->RemovedNodesPrincipalModelPart += 1;
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 								}
 								else
 								{
-									mrRemesh.Info->RemovedNodesSecondaryModelPart += 1;
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 								}
 							}
 						}
