@@ -12,7 +12,7 @@ import json
 import os
 
 
-class RigidBodySolver(object):
+class RigidBodySolver:
     """
     This class implements a Rigid Body within Kratos. It can be seen as a combination of 6 single-degree-of-freedom
     (SDOF) solvers, solving independently the 3 displacements and 3 rotations of a rigid body. It is meant to be used
@@ -343,6 +343,7 @@ class RigidBodySolver(object):
 
         # Carry out this task only in the first rank (for parallel computing)
         # TODO: This might not be necessary anymore, since it doesn't run in MPI
+        #if self.main_model_part.GetCommunicator().GetDataCommunicator().Rank()==0:
         data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
             
