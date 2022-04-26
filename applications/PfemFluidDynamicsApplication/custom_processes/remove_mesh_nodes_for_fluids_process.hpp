@@ -447,6 +447,8 @@ namespace Kratos
 					principalModelPartId = propertyIdNode;
 					principalModelPartSet = true;
 					mrRemesh.Info->IdPrincipalModelPart = propertyIdNode;
+				}else{
+					principalModelPartId =mrRemesh.Info->IdPrincipalModelPart;
 				}
 
 				if (refiningBox == true)
