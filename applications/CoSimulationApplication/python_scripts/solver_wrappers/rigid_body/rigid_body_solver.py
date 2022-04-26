@@ -340,31 +340,25 @@ class RigidBodySolver:
 
 
     def OutputSolutionStep(self):
-
-        # Carry out this task only in the first rank (for parallel computing)
-        # TODO: This might not be necessary anymore, since it doesn't run in MPI
-        #if self.main_model_part.GetCommunicator().GetDataCommunicator().Rank()==0:
-        data_comm = KM.DataCommunicator.GetDefault()
-        if data_comm.Rank()==0:
             
-            # Ensure that execute is called only once or never (see Kratos analysis stage)
-            execute_was_called = False
-            for output_process in self._list_of_output_processes:
-                if output_process.IsOutputStep():
+        # Ensure that execute is called only once or never (see Kratos analysis stage)
+        execute_was_called = False
+        for output_process in self._list_of_output_processes:
+            if output_process.IsOutputStep():
 
-                    # Let regular processes do their tasks before outputting the step
-                    if not execute_was_called:
-                        for process in self._list_of_processes:
-                            process.ExecuteBeforeOutputStep()
-                        execute_was_called = True
-                    
-                    # Output the step
-                    output_process.PrintOutput()
+                # Let regular processes do their tasks before outputting the step
+                if not execute_was_called:
+                    for process in self._list_of_processes:
+                        process.ExecuteBeforeOutputStep()
+                    execute_was_called = True
+                
+                # Output the step
+                output_process.PrintOutput()
 
-            # Let regular processes do their tasks after outputting the step
-            if execute_was_called:
-                for process in self._list_of_processes:
-                    process.ExecuteAfterOutputStep()
+        # Let regular processes do their tasks after outputting the step
+        if execute_was_called:
+            for process in self._list_of_processes:
+                process.ExecuteAfterOutputStep()
             
     
     def _ResetExternalVariables(self):
@@ -466,11 +460,6 @@ class RigidBodySolver:
     def _SetCompleteVector(self, model_part_name, linear_variable, angular_variable, values, buffer=0, broadcast=True):
         # Method to transform a single vector into the linear and angular variables stored in the model part.
         # For example, the displacement vector will splitted and saved in KM.DISPLACEMENT and KM.ROTATION.
-
-        # In case of MPI, broadcast data from rank 0 to avoid numerical discrepancies
-        if broadcast:
-            values = self.main_model_part.GetCommunicator().GetDataCommunicator().BroadcastDoubles(values, 0)
-            #values = KM.DataCommunicator.GetDefault().BroadcastDoubles(values, 0)
 
         # Decompose the original vector into its linear and angular components
         linear_values = list(values[:self.linear_size])
