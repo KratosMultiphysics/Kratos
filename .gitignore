@@ -20,7 +20,7 @@ scripts/*.sh
 scripts/*.bat
 build/*
 bin/*
-~docs/.jekyll-cache/*
+docs/.jekyll-cache/*
 
 # Times files
 *.time
