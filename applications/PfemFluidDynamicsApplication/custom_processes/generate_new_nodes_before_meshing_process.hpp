@@ -1398,7 +1398,6 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 			double safetyCoefficient2D = 1.5;
 
 			double ElementalVolume = Element.Area();
@@ -1469,6 +1468,7 @@ namespace Kratos
 			{
 				dangerousElement = true;
 			}
+			double limitEdgeLength = 1.9 * meanMeshSize * penalization;
 
 			if (dangerousElement == false && toEraseNodeFound == false)
 			{
@@ -1730,7 +1730,6 @@ namespace Kratos
 				}
 			}
 
-			double limitEdgeLength = 1.6 * meanMeshSize * penalization;
 			double safetyCoefficient3D = 1.6;
 
 			double ElementalVolume = Element.Volume();
@@ -1831,6 +1830,7 @@ namespace Kratos
 			{
 				dangerousElement = true;
 			}
+			double limitEdgeLength = 1.6 * meanMeshSize * penalization;
 
 			// just to fill the vector
 			if (dangerousElement == false && toEraseNodeFound == false)
@@ -2060,7 +2060,6 @@ namespace Kratos
 					{
 						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
 					}
-
 				}
 
 				unsigned int propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
