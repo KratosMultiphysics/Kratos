@@ -10,15 +10,15 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_SMALL_STRAIN_AXISYMMETRIC_FIC_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_SMALL_STRAIN_AXISYMMETRIC_FIC_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_AXISYMMETRIC_FIC_ELEMENT_H_INCLUDED )
+#define  KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_AXISYMMETRIC_FIC_ELEMENT_H_INCLUDED
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
 #include "custom_utilities/stress_strain_utilities.hpp"
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
+#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -26,13 +26,13 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainAxisymmetricFICElement :
-    public UPwSmallStrainFICElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwUpdatedLagrangianAxisymmetricFICElement :
+    public UPwUpdatedLagrangianFICElement<TDim,TNumNodes>
 {
 
 public:
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainAxisymmetricFICElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwUpdatedLagrangianAxisymmetricFICElement );
 
     typedef std::size_t IndexType;
     typedef Properties PropertiesType;
@@ -48,27 +48,27 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainAxisymmetricFICElement(IndexType NewId = 0) :
-        UPwSmallStrainFICElement<TDim,TNumNodes>( NewId ) {}
+    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId = 0) :
+        UPwUpdatedLagrangianFICElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainAxisymmetricFICElement(IndexType NewId,
+    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId,
                                          const NodesArrayType& ThisNodes) :
-        UPwSmallStrainFICElement<TDim,TNumNodes>(NewId, ThisNodes) {}
+        UPwUpdatedLagrangianFICElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    UPwSmallStrainAxisymmetricFICElement(IndexType NewId,
+    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId,
                                          GeometryType::Pointer pGeometry) :
-        UPwSmallStrainFICElement<TDim,TNumNodes>(NewId, pGeometry) {}
+        UPwUpdatedLagrangianFICElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
-    UPwSmallStrainAxisymmetricFICElement(IndexType NewId,
+    UPwUpdatedLagrangianAxisymmetricFICElement(IndexType NewId,
                                          GeometryType::Pointer pGeometry,
                                          PropertiesType::Pointer pProperties) :
-        UPwSmallStrainFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+        UPwUpdatedLagrangianFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    ~UPwSmallStrainAxisymmetricFICElement() override {}
+    ~UPwUpdatedLagrangianAxisymmetricFICElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -141,10 +141,10 @@ private:
     }
 
     // Assignment operator.
-    UPwSmallStrainAxisymmetricFICElement & operator=(UPwSmallStrainAxisymmetricFICElement const& rOther);
+    UPwUpdatedLagrangianAxisymmetricFICElement & operator=(UPwUpdatedLagrangianAxisymmetricFICElement const& rOther);
 
     // Copy constructor.
-    UPwSmallStrainAxisymmetricFICElement(UPwSmallStrainAxisymmetricFICElement const& rOther);
+    UPwUpdatedLagrangianAxisymmetricFICElement(UPwUpdatedLagrangianAxisymmetricFICElement const& rOther);
 
     // Private Operations
 
@@ -157,8 +157,8 @@ private:
     }
 
 
-}; // Class UPwSmallStrainAxisymmetricFICElement
+}; // Class UPwUpdatedLagrangianAxisymmetricFICElement
 
 } // namespace Kratos
 
-#endif // KRATOS_GEO_U_PW_SMALL_STRAIN_AXISYMMETRIC_FIC_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_AXISYMMETRIC_FIC_ELEMENT_H_INCLUDED  defined

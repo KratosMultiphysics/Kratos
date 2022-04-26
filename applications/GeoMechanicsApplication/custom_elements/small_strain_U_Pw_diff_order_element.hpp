@@ -194,7 +194,6 @@ protected:
         Vector VelocityVector;
         Vector PressureVector;
         Vector DeltaPressureVector;
-
         Vector PressureDtVector;
 
         ///Retention Law parameters
@@ -209,6 +208,9 @@ protected:
         bool IgnoreUndrained;
         bool UseHenckyStrain;
         bool ConsiderGeometricStiffness;
+
+        // stress/flow variables
+        double PermeabilityUpdateFactor;
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosityInverse;
@@ -245,20 +247,22 @@ protected:
 
     void InitializeBiotCoefficients( ElementVariables& rVariables, const bool &hasBiotCoefficient=false );
 
-    virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
+    void CalculatePermeabilityUpdateFactor( ElementVariables &rVariables);
+
+    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
 
     void CalculateDerivativesOnInitialConfiguration(double& detJ,
                                                     Matrix& J0,
                                                     Matrix& InvJ0,
                                                     Matrix& DN_DX,
-                                                    const IndexType& PointNumber) const;
+                                                    unsigned int PointNumber) const;
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
     virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                                    const IndexType& PointNumber,
-                                                    const double& detJ);
+                                                    unsigned int PointNumber,
+                                                    double detJ);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
@@ -304,27 +308,27 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables& rVariables );
     virtual void CalculateCauchyStrain( ElementVariables& rVariables );
-    virtual void CalculateStrain( ElementVariables& rVariables, const IndexType& GPoint );
+    virtual void CalculateStrain( ElementVariables& rVariables, unsigned int GPoint );
     virtual void CalculateHenckyStrain( ElementVariables& rVariables );
 
     virtual void CalculateDeformationGradient( ElementVariables& rVariables,
-                                               const IndexType& GPoint );
+                                               unsigned int GPoint );
 
-    double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
+    double CalculateFluidPressure( const ElementVariables &rVariables);
 
     void SetRetentionParameters(const ElementVariables& rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters);
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
                                      RetentionLaw::Parameters &rRetentionParameters,
-                                     const unsigned int &GPoint );
+                                     unsigned int GPoint );
 
     void CalculateSoilDensity(ElementVariables &rVariables);
 
     void CalculateJacobianOnCurrentConfiguration(double& detJ,
                                                  Matrix& rJ,
                                                  Matrix& rInvJ,
-                                                 const IndexType& GPoint) const;
+                                                 unsigned int GPoint) const;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
