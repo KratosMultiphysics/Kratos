@@ -9,7 +9,8 @@ def Create(*args):
     return ComputeResultantsOperation(*args)
 
 class ComputeResultantsOperation(CoSimulationCouplingOperation):
-    """This operation computes the Normals (NORMAL) on a given ModelPart
+    """This operation computes the resultant forces and moments
+    on ModelPart by integrating the reactions of all its nodes.
     """
     def __init__(self, settings, solver_wrappers, process_info, data_communicator):
         super().__init__(settings, process_info, data_communicator)
@@ -37,48 +38,21 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
         pass
 
     def Execute(self):
-        
-        model_part = self.interface_data.GetModelPart()
 
+        # Calculate the total reaction
+        model_part = self.interface_data.GetModelPart()
         reaction_force, reaction_moment = KM.ForceAndTorqueUtils.ComputeEquivalentForceAndTorque(
             model_part,
             self.reference_point,
             KM.REACTION,
             KM.REACTION_MOMENT
         )
+
+        # Sign is flipped to go from reaction to action (force)
         force = -1*reaction_force
         moment= -1*reaction_moment
-
-        '''
-        for node in model_part.GetCommunicator().LocalMesh().Nodes:
-
-            # Sign is flipped to go from reaction to action -> force
-            nodal_force = (-1) * node.GetSolutionStepValue(KM.REACTION, 0)
-
-            # Summing up nodal contributions to get resultant for model_part
-            force[0] += nodal_force[0]
-            force[1] += nodal_force[1]
-            force[2] += nodal_force[2]
-
-            # Summing up nodal contributions to the resultant moment
-            x = node.X - self.reference_point[0]
-            y = node.Y - self.reference_point[1]
-            z = node.Z - self.reference_point[2]
-            moment[0] += y * nodal_force[2] - z * nodal_force[1]
-            moment[1] += z * nodal_force[0] - x * nodal_force[2]
-            moment[2] += x * nodal_force[1] - y * nodal_force[0]
-
-        # here does it on rank 0, which is ok for output
-        # force = model_part.GetCommunicator().GetDataCommunicator().SumDoubles(force,0)
-        # moment = model_part.GetCommunicator().GetDataCommunicator().SumDoubles(moment,0)
-
-        # this will have it on all ranks
-        force = model_part.GetCommunicator().GetDataCommunicator().SumAllDoubles(force)
-        moment = model_part.GetCommunicator().GetDataCommunicator().SumAllDoubles(moment)
-        '''
         
-        # Sign is flipped to go from reaction to action -> force
-        # here [] is the equivalent of .SetValue()
+        # Save the forces in the model part
         model_part[KMC.RESULTANT_FORCE] = force
         model_part[KMC.RESULTANT_MOMENT] = moment
 
