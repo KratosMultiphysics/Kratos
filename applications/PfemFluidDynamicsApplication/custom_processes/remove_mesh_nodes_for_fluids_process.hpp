@@ -163,9 +163,6 @@ namespace Kratos
 			mrRemesh.Info->RemovedNodes += error_nodes_removed + inside_nodes_removed + boundary_nodes_removed;
 			int distance_remove = inside_nodes_removed + boundary_nodes_removed;
 
-			std::cout << "   [ NODES (all)      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
-			std::cout << "   [ NODES balance     ( removed : " << mrRemesh.Info->BalancePrincipalSecondaryPartsNodes << " ) ]" << std::endl;
-
 			if (mEchoLevel > 1)
 			{
 				std::cout << "   [ NODES      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
@@ -398,6 +395,7 @@ namespace Kratos
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
+			double deltaTime = rCurrentProcessInfo[DELTA_TIME];
 
 			double initialMeanRadius = mrRemesh.Refine->CriticalRadius;
 
@@ -444,11 +442,10 @@ namespace Kratos
 
 				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 
-				if (in->Is(FLUID) && in->IsNot(RIGID) && principalModelPartSet == false)
+				if (in->Is(FLUID) && in->IsNot(RIGID) && principalModelPartSet == false && currentTime < (2.0 * deltaTime))
 				{
 					principalModelPartId = propertyIdNode;
 					principalModelPartSet = true;
-					std::cout << "principalModelPartId " << principalModelPartId << std::endl;
 					mrRemesh.Info->IdPrincipalModelPart = propertyIdNode;
 				}
 

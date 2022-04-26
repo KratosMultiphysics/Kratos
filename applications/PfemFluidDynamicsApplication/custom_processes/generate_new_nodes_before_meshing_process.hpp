@@ -2074,8 +2074,6 @@ namespace Kratos
 				}
 			}
 
-			std::cout << "   [ after generating -- NODES (all)      ( removed : " << mrRemesh.Info->RemovedNodes << " ) ]" << std::endl;
-			std::cout << "   [ after generating -- NODES (principal)     ( removed : " << mrRemesh.Info->BalancePrincipalSecondaryPartsNodes << " ) ]" << std::endl;
 			// set the coordinates to the original value
 			const array_1d<double, 3> ZeroNormal(3, 0.0);
 			for (std::vector<Node<3>::Pointer>::iterator it = list_of_new_nodes.begin(); it != list_of_new_nodes.end(); it++)
