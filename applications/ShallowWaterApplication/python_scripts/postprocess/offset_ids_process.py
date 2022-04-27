@@ -5,33 +5,30 @@ import KratosMultiphysics.ShallowWaterApplication as SW
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return SwapCoordinatesAndOffsetIdsProcess(model, settings["Parameters"])
+    return OffsetIdsProcess(model, settings["Parameters"])
 
-class SwapCoordinatesAndOffsetIdsProcess(KM.Process):
+class OffsetIdsProcess(KM.Process):
+
+    """ SwapCoordinatesAndOffsetIdsProcess.
+
+    This process offsets the ids in order to differentiate several model parts
+    at post-processing level.
+    """
+
     def __init__(self, model, settings):
-        """ SwapCoordinatesAndOffsetIdsProcess.
-
-        This process provides several tools for post-processing.
-        - Swap the YZ coordinates in order to make 2D simulations consistent at post process.
-        - Offset the ids in order to differentiate the model parts at the post processing.
-        """
-
+        """Constructor of the class."""
         KM.Process.__init__(self)
 
-        default_settings = KM.Parameters("""
-            {
+        default_settings = KM.Parameters("""{
                 "model_part_name"        : "model_part_name",
-                "swap_yz_coordinates"    : true,
                 "nodes_ids_offset"       : 0,
                 "elements_ids_offset"    : 0,
                 "conditions_ids_offset"  : 0,
                 "properties_ids_offset"  : 0
-            }
-        """)
+            }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model[settings["model_part_name"].GetString()]
-        self.swap_yz_coordinates = settings["swap_yz_coordinates"].GetBool()
         self.nodes_ids_offset = settings["nodes_ids_offset"].GetInt()
         self.elements_ids_offset = settings["elements_ids_offset"].GetInt()
         self.conditions_ids_offset = settings["conditions_ids_offset"].GetInt()
@@ -53,22 +50,13 @@ class SwapCoordinatesAndOffsetIdsProcess(KM.Process):
 
 
     def ExecuteBeforeOutputStep(self):
-        """Swap the mesh and offset the Ids."""
-        if self.swap_yz_coordinates:
-            self._SwapYZCoordinates()
+        """Offset the Ids."""
         self._OffsetIds()
 
 
     def ExecuteAfterOutputStep(self):
-        """Restore the mesh swapping and the Ids offset."""
-        if self.swap_yz_coordinates:
-            self._SwapYZCoordinates()
+        """Restore the Ids offset."""
         self._OffsetIds(-1)
-
-
-    def _SwapYZCoordinates(self):
-        SW.ShallowWaterUtilities().SwapYZCoordinates(self.model_part)
-        SW.ShallowWaterUtilities().SwapY0Z0Coordinates(self.model_part)
 
 
     def _OffsetIds(self, sign=1):
