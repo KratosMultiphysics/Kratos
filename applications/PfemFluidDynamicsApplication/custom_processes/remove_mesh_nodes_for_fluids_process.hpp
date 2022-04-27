@@ -395,12 +395,15 @@ namespace Kratos
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
+			double deltaTime = rCurrentProcessInfo[DELTA_TIME];
 
 			double initialMeanRadius = mrRemesh.Refine->CriticalRadius;
 
 			double initialTimeForRefinement = mrRemesh.RefiningBoxInitialTime;
 			double finalTimeForRefinement = mrRemesh.RefiningBoxFinalTime;
 			bool refiningBox = mrRemesh.UseRefiningBox;
+			unsigned int principalModelPartId = 0;
+			bool principalModelPartSet = false;
 
 			if (!(refiningBox == true && currentTime > initialTimeForRefinement && currentTime < finalTimeForRefinement))
 			{
@@ -415,6 +418,7 @@ namespace Kratos
 				// coordinates
 				for (unsigned int i = 0; i < ie->GetGeometry().size(); i++)
 				{
+
 					if ((ie->GetGeometry()[i].Is(RIGID) && ie->GetGeometry()[i].IsNot(INLET)) || ie->GetGeometry()[i].Is(SOLID))
 					{
 						rigidNodes++;
@@ -435,6 +439,17 @@ namespace Kratos
 
 			for (ModelPart::NodesContainerType::const_iterator in = mrModelPart.NodesBegin(); in != mrModelPart.NodesEnd(); in++)
 			{
+
+				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
+
+				if (in->Is(FLUID) && in->IsNot(RIGID) && principalModelPartSet == false && currentTime < (2.0 * deltaTime))
+				{
+					principalModelPartId = propertyIdNode;
+					principalModelPartSet = true;
+					mrRemesh.Info->IdPrincipalModelPart = propertyIdNode;
+				}else{
+					principalModelPartId =mrRemesh.Info->IdPrincipalModelPart;
+				}
 
 				if (refiningBox == true)
 				{
@@ -502,10 +517,9 @@ namespace Kratos
 					else
 					{
 						NodeWeakPtrVectorType &neighb_nodes = in->GetValue(NEIGHBOUR_NODES);
-						unsigned int propertyIdFirstNode = in->FastGetSolutionStepValue(PROPERTY_ID);
 						for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 						{
-							unsigned int propertyIdSecondNode = in->FastGetSolutionStepValue(PROPERTY_ID);
+							unsigned int propertyIdSecondNode = (nn)->FastGetSolutionStepValue(PROPERTY_ID);
 							if ((nn)->Is(FREE_SURFACE))
 							{
 								freeSurfaceNeighNodes++;
@@ -514,7 +528,7 @@ namespace Kratos
 							{
 								neighErasedNodes++;
 							}
-							if (propertyIdFirstNode != propertyIdSecondNode && (nn)->IsNot(RIGID))
+							if (propertyIdNode != propertyIdSecondNode && (nn)->IsNot(RIGID))
 							{
 								interfaceElement = true;
 							}
@@ -524,9 +538,18 @@ namespace Kratos
 						}
 					}
 
-					if (freeSurfaceNeighNodes > 1 || interfaceElement == true)
+					// if (freeSurfaceNeighNodes > 1 || interfaceElement == true)
+					// {
+					// 	radius = 0.5 * initialMeanRadius;
+					// }
+
+					if (freeSurfaceNeighNodes > 1)
 					{
 						radius = 0.5 * initialMeanRadius;
+					}
+					else if (interfaceElement == true)
+					{
+						radius = 0.55 * initialMeanRadius;
 					}
 
 					if (in->Is(INLET))
@@ -607,6 +630,15 @@ namespace Kratos
 										in->Set(TO_ERASE);
 										any_node_removed = true;
 										inside_nodes_removed++;
+
+										if (propertyIdNode == principalModelPartId)
+										{
+											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+										}
+										else
+										{
+											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
+										}
 										// distance_remove++;
 									}
 								}
@@ -654,6 +686,16 @@ namespace Kratos
 									std::cout << "     Removed Boundary Node [" << in->Id() << "] on Distance " << std::endl;
 								any_node_removed = true;
 								boundary_nodes_removed++;
+
+								if (propertyIdNode == principalModelPartId)
+								{
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+								}
+								else
+								{
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
+								}
+
 								// distance_remove ++;
 							}
 							else if (counter > 2 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && on_contact_tip && derefine_wall_tip_contact)
@@ -663,6 +705,15 @@ namespace Kratos
 									std::cout << "     Removing a TIP POINT due to that criterion [" << in->Id() << "]" << std::endl;
 								any_node_removed = true;
 								boundary_nodes_removed++;
+
+								if (propertyIdNode == principalModelPartId)
+								{
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+								}
+								else
+								{
+									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
+								}
 							}
 						}
 					}
