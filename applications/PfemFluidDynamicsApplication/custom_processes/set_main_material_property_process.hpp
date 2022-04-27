@@ -99,19 +99,15 @@ namespace Kratos
     void Execute() override
     {
       KRATOS_TRY
-      std::cout << "                                SetMainMaterialPropertyProcess" << std::endl;
 #pragma omp parallel
       {
-
         ModelPart::ElementIterator ElemBegin;
         ModelPart::ElementIterator ElemEnd;
         OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
         ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
         ModelPart::ElementIterator itElem = ElemBegin;
-        // ModelPart::PropertiesType &elemPropertiesAll = itElem->GetProperties();
         unsigned int elem_property_id_all = itElem->GetProperties().Id();
         rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY]=elem_property_id_all;
-        std::cout << "                                SetMainMaterialPropertyProcess DONE, elem_property_id_all is " << elem_property_id_all << std::endl;
       }
       KRATOS_CATCH(" ")
     }; // namespace Kratos
