@@ -336,6 +336,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
     def __QNBBStep(self):
         s_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.SEARCH_DIRECTION)
+        print("before s_norm", s_norm)
         if abs(s_norm) > 1e-10:
             s = KM.Vector()
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssembleVector(s, KSO.SEARCH_DIRECTION)
@@ -357,6 +358,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 s[i+1] = s[i+1] * step_i
                 s[i+2] = s[i+2] * step_i
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(s, KSO.CONTROL_POINT_UPDATE)
+
+        s_norm = self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).ComputeMaxNormOfNodalVariable(KSO.SEARCH_DIRECTION)
+        print("after s_norm", s_norm)
 
     def __saveLineSearchData(self):
             self.prev_s = KM.Vector()
