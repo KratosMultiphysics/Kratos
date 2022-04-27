@@ -22,7 +22,7 @@ class ShapeControl():
 
         self.control_variable_name = "CX"
         self.control_update_name = "D_CX"
-        self.output_names = ["CX","D_CX","D_X","NORMAL"]
+        self.output_names = ["CX","D_CX","D_X","NORMAL","AUXILIARY_FIELD"]
 
         # add vars
         for model_part_name in self.controlling_objects:
@@ -31,6 +31,7 @@ class ShapeControl():
             self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.D_CX)
             self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.D_X)
             self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KM.NORMAL)
+            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.AUXILIARY_FIELD)
 
 
     def Initialize(self):
@@ -40,7 +41,8 @@ class ShapeControl():
             for node in model_part.Nodes:
                 node.SetSolutionStepValue(KOA.CX, [0.0, 0.0, 0.0])  
                 node.SetSolutionStepValue(KOA.D_CX, [0.0, 0.0, 0.0])
-                node.SetSolutionStepValue(KOA.D_X, [0.0, 0.0, 0.0])  
+                node.SetSolutionStepValue(KOA.D_X, [0.0, 0.0, 0.0])
+                node.SetSolutionStepValue(KOA.AUXILIARY_FIELD, [0.0, 0.0, 0.0])  
                 node.SetSolutionStepValue(KM.NORMAL, [0.0, 0.0, 0.0]) 
  
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
