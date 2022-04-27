@@ -41,33 +41,29 @@ class SwapCoordinatesAndOffsetIdsProcess(KM.Process):
 
 
     def ExecuteBeforeSolutionLoop(self):
-        # Perform the transformation before printing the mesh
+        """Perform the transformation before printing the initial mesh."""
         self.ExecuteBeforeOutputStep()
 
 
     def ExecuteInitializeSolutionStep(self):
-        # Undo the transformation after the mesh is printed
+        """Undo the transformation after the initial mesh is printed."""
         if not self.execute_initialize_solution_step_is_called:
             self.ExecuteAfterOutputStep()
             self.execute_initialize_solution_step_is_called = True
 
 
     def ExecuteBeforeOutputStep(self):
-        # Move the mesh
+        """Swap the mesh and offset the Ids."""
         if self.swap_yz_coordinates:
             self._SwapYZCoordinates()
-
-        # Offset the ids
-        self._SetOffset()
+        self._OffsetIds()
 
 
     def ExecuteAfterOutputStep(self):
-        # Move the mesh
+        """Restore the mesh swapping and the Ids offset."""
         if self.swap_yz_coordinates:
             self._SwapYZCoordinates()
-
-        # Offset the ids
-        self._UnsetOffset()
+        self._OffsetIds(-1)
 
 
     def _SwapYZCoordinates(self):
@@ -75,15 +71,8 @@ class SwapCoordinatesAndOffsetIdsProcess(KM.Process):
         SW.ShallowWaterUtilities().SwapY0Z0Coordinates(self.model_part)
 
 
-    def _SetOffset(self):
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Nodes, self.nodes_ids_offset)
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Elements, self.elements_ids_offset)
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Conditions, self.conditions_ids_offset)
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Properties, self.properties_ids_offset)
-
-
-    def _UnsetOffset(self):
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Nodes, -self.nodes_ids_offset)
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Elements, -self.elements_ids_offset)
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Conditions, -self.conditions_ids_offset)
-        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Properties, -self.properties_ids_offset)
+    def _OffsetIds(self, sign=1):
+        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Nodes, sign * self.nodes_ids_offset)
+        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Elements, sign * self.elements_ids_offset)
+        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Conditions, sign * self.conditions_ids_offset)
+        SW.ShallowWaterUtilities().OffsetIds(self.model_part.Properties, sign * self.properties_ids_offset)
