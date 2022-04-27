@@ -290,6 +290,12 @@ public:
         return mpExplicitBuilder;
     };
 
+    const ExplicitBuilderPointerType & GetExplicitBuilder() const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpExplicitBuilder == nullptr) << "The explicit builder is not initialized" << std::endl;
+        return *mpExplicitBuilder;
+    };
+
     /**
      * @brief Operations to get the residual norm
      * @return The residual norm
