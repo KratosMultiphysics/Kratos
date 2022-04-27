@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
-# from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -21,6 +21,8 @@ class TestEdgeBasedGradientRecoveryProcess(KratosUnittest.TestCase):
         if IsGradientHistorical:
             model_part.AddNodalSolutionStepVariable(GradientVar)
 
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
+
         problem_domain = KratosMultiphysics.Quadrilateral2D4(
             KratosMultiphysics.Node(1, 0.0, 0.0, 0.0),
             KratosMultiphysics.Node(2, 0.0, 1.0, 0.0),
@@ -30,7 +32,6 @@ class TestEdgeBasedGradientRecoveryProcess(KratosUnittest.TestCase):
         parameters.AddEmptyValue("number_of_divisions").SetInt(20)
         parameters.AddEmptyValue("element_name").SetString("Element2D3N")
         parameters.AddEmptyValue("create_skin_sub_model_part").SetBool(False)
-        # parameters.AddEmptyValue("condition_name").SetString("LineCondition2D2N")
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()
 
@@ -41,7 +42,8 @@ class TestEdgeBasedGradientRecoveryProcess(KratosUnittest.TestCase):
         # Set the origin variable field
         test_model_part = self.model.GetModelPart("TestModelPart")
         for node in test_model_part.Nodes:
-            value = node.X**2 - math.sinh(4*node.X)/math.sinh(4)
+            # value = node.X**2 - math.sinh(4*node.X)/math.sinh(4)
+            value = math.exp(-25*node.X) + math.exp(-25*node.Y)
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, value)
 
         # Set the gradient recovery process
@@ -64,22 +66,21 @@ class TestEdgeBasedGradientRecoveryProcess(KratosUnittest.TestCase):
             linear_solver,
             gradient_process_settings).Execute()
 
-        # gid_output = GiDOutputProcess(model_part,
-        #                            "levelset_test_2D_supg",
-        #                            KratosMultiphysics.Parameters("""
-        #                                {
-        #                                    "result_file_configuration" : {
-        #                                        "gidpost_flags": {
-        #                                            "GiDPostMode": "GiD_PostBinary",
-        #                                            "WriteDeformedMeshFlag": "WriteUndeformed",
-        #                                            "WriteConditionsFlag": "WriteConditions",
-        #                                            "MultiFileFlag": "SingleFile"
-        #                                        },
-        #                                        "nodal_results"       : ["DISTANCE","VELOCITY"]
-        #                                    }
-        #                                }
-        #                                """)
-        #                            )
+        # gid_output = GiDOutputProcess(
+        #     test_model_part,
+        #     "test_edge_based_gradient_recovery_process",
+        #     KratosMultiphysics.Parameters("""{
+        #         "result_file_configuration" : {
+        #             "gidpost_flags": {
+        #                 "GiDPostMode": "GiD_PostBinary",
+        #                 "WriteDeformedMeshFlag": "WriteUndeformed",
+        #                 "WriteConditionsFlag": "WriteConditions",
+        #                 "MultiFileFlag": "SingleFile"
+        #             },
+        #             "nodal_results" : ["DISTANCE","DISTANCE_GRADIENT"]
+        #         }
+        #     }""")
+        # )
 
         # gid_output.ExecuteInitialize()
         # gid_output.ExecuteBeforeSolutionLoop()
@@ -88,12 +89,19 @@ class TestEdgeBasedGradientRecoveryProcess(KratosUnittest.TestCase):
         # gid_output.ExecuteFinalizeSolutionStep()
         # gid_output.ExecuteFinalize()
 
+        # Check results with error norm
+        err_norm_x = 0.0
+        err_norm_y = 0.0
+        KratosMultiphysics.CalculateNonHistoricalNodalAreaProcess(test_model_part,2).Execute()
         for node in test_model_part.Nodes:
-            grad_exact_x = 2*node.X - 4*math.cosh(4*node.X)/math.sinh(4)
-            grad_exact_y = 0.0
+            grad_exact_x = -25.0 * math.exp(-25*node.X)
+            grad_exact_y = -25.0 * math.exp(-25*node.Y)
+            nodal_area = node.GetValue(KratosMultiphysics.NODAL_AREA)
             grad_obtained = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
-            self.assertAlmostEqual(distance_gradient[0], grad_exact_x)
-            self.assertAlmostEqual(distance_gradient[1], grad_exact_y)
+            err_norm_x += nodal_area * (grad_exact_x - grad_obtained[0])**2
+            err_norm_y += nodal_area * (grad_exact_y - grad_obtained[1])**2
+        self.assertAlmostEqual(math.sqrt(err_norm_x), 0.5935743750043295)
+        self.assertAlmostEqual(math.sqrt(err_norm_y), 0.5935743752935422)
 
 if __name__ == '__main__':
     KratosUnittest.main()

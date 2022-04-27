@@ -461,7 +461,11 @@ protected:
         }
 
         // Ensure that the nodes have the auxiliary gradient variable as a DOF
-        VariableUtils().AddDof<Variable<array_1d<double,3>>>(NODAL_VAUX, rOriginModelPart);
+        VariableUtils().AddDof<Variable<double>>(NODAL_VAUX_X, *mpGradientRecoveryModelPart);
+        VariableUtils().AddDof<Variable<double>>(NODAL_VAUX_Y, *mpGradientRecoveryModelPart);
+        if (mpOriginModelPart->GetProcessInfo().GetValue(DOMAIN_SIZE) == 3) {
+            VariableUtils().AddDof<Variable<double>>(NODAL_VAUX_Z, *mpGradientRecoveryModelPart);
+        }
 
         // Calculate the nodal neighbours in the origin model part
         if (mSettings["calculate_nodal_neighbours"].GetBool()) {
@@ -484,7 +488,7 @@ protected:
             for (auto& r_neigh : r_orig_neigh) {
                 if (!r_neigh.Is(VISITED)) {
                     std::vector<std::size_t> aux_ids = {it_node_orig_mp->Id(), r_neigh.Id()};
-                    r_gradient_mp.CreateNewElement(mElementRegisterName, id++, aux_ids, p_prop_0);
+                    r_gradient_mp.CreateNewElement(mElementRegisterName, ++id, aux_ids, p_prop_0);
                 }
             }
 

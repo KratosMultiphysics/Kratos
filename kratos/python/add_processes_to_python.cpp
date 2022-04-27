@@ -723,10 +723,10 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
     ;
 
-    // using ArrayEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<array_1d<double,3>,SparseSpaceType,LocalSpaceType,LinearSolverType>;
-    // py::class_<ArrayEdgeBasedGradientRecoveryProcessType, ArrayEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessArray")
-    //     .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
-    // ;
+    using ArrayEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<array_1d<double,3>,SparseSpaceType,LocalSpaceType,LinearSolverType>;
+    py::class_<ArrayEdgeBasedGradientRecoveryProcessType, ArrayEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessArray")
+        .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
 }
 
 }  // namespace Python.

@@ -42,7 +42,7 @@ void EdgeBasedGradientRecoveryElement<TDim>::CalculateLocalSystem(
     const auto& r_geom = this->GetGeometry();
     const double h_e = r_geom.Length();
     const double kappa = rCurrentProcessInfo[GRADIENT_PENALTY_COEFFICIENT] * h_e;
-    const double val_jump = r_geom[1].GetValue(NODAL_MAUX) - r_geom[0].GetValue(NODAL_MAUX);
+    const double val_jump = r_geom[0].GetValue(NODAL_MAUX) - r_geom[1].GetValue(NODAL_MAUX);
     const array_1d<double,3> l_e = (r_geom[1].Coordinates() - r_geom[0].Coordinates()) / h_e;
 
     // Assemble the current edge RHS contribution
