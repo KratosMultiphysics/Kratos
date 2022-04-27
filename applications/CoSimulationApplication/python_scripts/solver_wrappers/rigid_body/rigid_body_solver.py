@@ -234,7 +234,7 @@ class RigidBodySolver:
 
         # Standard Kratos output
         if self.echo_level > 0:
-            KM.Logger.PrintInfo(self.problem_name, "Analysis -START- ")
+            KM.Logger.PrintInfo("Rigid Body Solver", "Analysis -START- ")
 
 
     def RunSolutionLoop(self):
@@ -258,7 +258,7 @@ class RigidBodySolver:
 
         # Standard Kratos output
         if self.echo_level > 0:
-            KM.Logger.PrintInfo(self.problem_name, "Analysis -END- ")
+            KM.Logger.PrintInfo("Rigid Body Solver", "Analysis -END- ")
 
 
     def AdvanceInTime(self, current_time):
@@ -281,8 +281,8 @@ class RigidBodySolver:
 
         # Standard Kratos output
         if self.echo_level > 0:
-            KM.Logger.PrintInfo(self.problem_name, "STEP: ", self.main_model_part.ProcessInfo[KM.STEP])
-            KM.Logger.PrintInfo(self.problem_name, "TIME: ", self.main_model_part.ProcessInfo[KM.TIME])
+            KM.Logger.PrintInfo("Rigid Body Solver", "STEP: ", self.main_model_part.ProcessInfo[KM.STEP])
+            KM.Logger.PrintInfo("Rigid Body Solver", "TIME: ", self.main_model_part.ProcessInfo[KM.TIME])
         
         # Let the processes do their tasks before solving the step
         for process in self._list_of_processes:
