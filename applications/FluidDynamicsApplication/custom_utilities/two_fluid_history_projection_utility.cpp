@@ -24,7 +24,7 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "radial_basis_functions_utility.h"
+#include "utilities/rbf_shape_functions_utility.h"
 #include "two_fluid_history_projection_utility.h"
 
 namespace Kratos
@@ -202,19 +202,52 @@ namespace Kratos
                     }
                 }
 
+                bool repeated;
+                const double tolerance=1e-7;
+                std::vector<std::size_t> to_keep;
+                for (std::size_t i=0; i<n_cloud_points; i++){
+                    repeated = false;
+                    const auto& r_i_coord = row(cloud_coords, i);
+                    for (std::size_t j=i+1; j < n_cloud_points; j++) {
+                        const auto& r_j_coord = row(cloud_coords, j);
+                        if (norm_2(r_i_coord - r_j_coord) < tolerance) {
+                            repeated = true;
+                            break;
+                        }
+                    }
+                    if (!repeated) {
+                        to_keep.push_back(i);
+                    }
+                }
+
+                if (!(n_cloud_points == to_keep.size())) {
+                    KRATOS_WARNING("TwoFluidHistoryProjectionUtility") << "There are repeated particles." << std::endl;
+                    cloud_coords.resize(to_keep.size(), TDim);
+                    for (std::size_t i_part = 0; i_part< to_keep.size(); i_part++) {
+                        const std::size_t part_id = to_keep[i_part];
+                        const auto& r_particle = *(cloud_particles[part_id]);
+                        for (std::size_t d = 0; d < TDim; ++d) {
+                            cloud_coords(i_part,d) = r_particle[d];
+                        }
+                    }
+                }
+
                 // Calculate the MLS interpolation in the FREE_SURFACE node
                 // TODO: Use an auxiliary lambda to avoid this if
                 Vector cloud_shape_functions;
-                RadialBasisFunctionsUtility::CalculateShapeFunctionsAndShapeParameter(
+                RBFShapeFunctionsUtility::CalculateShapeFunctions(
                     cloud_coords, r_node_coords, cloud_shape_functions);
 
                 // Interpolate the FREE_SURFACE node history and mesh velocity
                 array_1d<double,3> v_n = ZeroVector(3);
-                for (std::size_t i = 0; i < n_cloud_points; ++i) {
+                for (std::size_t i = 0; i < cloud_coords.size1(); ++i) {
                     const auto& r_particle = *(cloud_particles[i]);
+                    KRATOS_WATCH(cloud_shape_functions(i))
+                    KRATOS_WATCH(r_particle.OldVelocity)
                     noalias(v_n) += cloud_shape_functions(i) * r_particle.OldVelocity;
-                }
 
+                }
+                KRATOS_WATCH(v_n)
                 // In order to avoid changing abruptly mesh velocity between adjacent nodes, a progessive change has been done weighting old velocity and new predicted velocity along all the area defined by the user.
                 // The weights are linearly dependant with the ParticleLayerThickness.Close to the area where the nodes have changes its density, new predictd velocity will have more weight.
                 double distance_ratio = 0.0;
@@ -258,8 +291,7 @@ namespace Kratos
                 const array_1d<double, 3> original_velocity=r_node.FastGetSolutionStepValue(VELOCITY);
                 r_node.SetValue(TEMPERATURE,distance_ratio);
                 // Weighted velocity is calculated.
-                v_n= ((1.0 - distance_ratio)*v_n + distance_ratio*original_velocity);
-
+                // v_n= ((1.0 - distance_ratio)*v_n + distance_ratio*original_velocity);
                 // Set new interpolated velocity such that the interface is Lagrangian in an approximate sense.
                 // It should be considered the fixity. For that nodes that ones of each components is fixed it is not applied false fm-ale to that component.Same procedure has been  for SLIP CONDITION,
 
@@ -287,6 +319,7 @@ namespace Kratos
                     const auto& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
                     const array_1d<double,3> v_n_norm = inner_prod(v_n, r_normal) * r_normal;
                     const array_1d<double,3> v_n_tang = v_n - v_n_norm;
+
                     r_node.FastGetSolutionStepValue(VELOCITY) = v_n_tang;
                     r_node.FastGetSolutionStepValue(VELOCITY, 1) = v_n_tang;
                     r_node.FastGetSolutionStepValue(MESH_VELOCITY) = v_n_tang;

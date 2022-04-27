@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/global_variables.h"
 #include "utilities/math_utils.h"
-#include "rbf_shape_functions_utility.h"
+#include "utilities/rbf_shape_functions_utility.h"
 
 namespace Kratos
 {

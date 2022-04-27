@@ -69,7 +69,7 @@ NodalScalarData NodalDynamicViscosity;
 NodalScalarData NodalDynamicViscosityOldStep;
 
 Vector ShearStressOldStep;
-
+double SmagorinskyConstant;
 double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
@@ -119,7 +119,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
-
+    const Properties& r_properties = rElement.GetProperties();
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
@@ -132,7 +132,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_OldStep1,BODY_FORCE,r_geometry,1);
-
+    this->FillFromProperties(SmagorinskyConstant, C_SMAGORINSKY, r_properties);
     this->FillFromHistoricalNodalData(NodalDensity, DENSITY, r_geometry);
     this->FillFromHistoricalNodalData(NodalDensityOldStep, DENSITY, r_geometry, 1);
     this->FillFromHistoricalNodalData(NodalDynamicViscosity, DYNAMIC_VISCOSITY, r_geometry);
@@ -355,9 +355,21 @@ void CalculateEffectiveViscosityAtGaussPoint()
             dynamic_viscosity += NodalDynamicViscosity[i];
         }
     }
-
     DynamicViscosity = dynamic_viscosity / navg;
-    this->EffectiveViscosity = DynamicViscosity;
+     if (SmagorinskyConstant > 0.0)
+    {
+        const double strain_rate_norm = ComputeStrainNorm();
+
+        double length_scale = SmagorinskyConstant*ElementSize;
+        length_scale *= length_scale; // square
+        this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
+
+
+    }
+
+
+   else this->EffectiveViscosity = DynamicViscosity;
+
 }
 
 void ComputeDarcyTerm()

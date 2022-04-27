@@ -359,7 +359,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.energy_preserving:
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, " Particle based fm-ale energy preserving method has initialized")
                 KratosCFD.TwoFluidHistoryProjectionUtility.CalculateHistoryProjection(self.GetComputingModelPart(), True,  self.particle_layer_thickness, self.particle_searching_factor)
-
+                for node in self.GetComputingModelPart().Nodes:
+                    if node.Id==19424:
+                        v=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+                        print("UXUE")
+                        print(v)
             end = time.time()
             print("After history projection. Took {} seconds.".format(end-start))
 
