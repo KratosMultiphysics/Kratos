@@ -419,7 +419,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
         this->AddWaveTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddFrictionTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
-        this->AddArtificialViscosityTerms(lhs, rData, N, DN_DX, weight);
+        this->AddArtificialViscosityTerms(lhs, rRHS, rData, N, DN_DX, weight);
 
         // Deactivating the dry domain
         const double w = WaveElementType::WetFraction(rData);

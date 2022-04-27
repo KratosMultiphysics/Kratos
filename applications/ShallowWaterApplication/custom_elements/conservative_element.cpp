@@ -143,8 +143,8 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
-    double jump = 0;
-    array_1d<double,2> inner_grad_h = prod(rData.nodal_h, rDN_DX);
+    double jump = .0;
+    array_1d<double,2> inner_grad_h = prod(rData.nodal_h + rData.nodal_z, rDN_DX);
     for (auto& r_elem : this->GetValue(NEIGHBOUR_ELEMENTS)) {
         array_1d<double,2> outer_grad_h;
         array_1d<double,2> normal;
@@ -191,6 +191,7 @@ void ConservativeElement<TNumNodes>::CalculateGradient(
     array_1d<double,3> nodal_h;
     for (IndexType i = 0; i < TNumNodes; i++) {
         nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
+        nodal_h[i] += rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
     }
     rGradient = prod(nodal_h, DN_DX);
 }

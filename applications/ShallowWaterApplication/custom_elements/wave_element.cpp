@@ -570,6 +570,7 @@ void WaveElement<TNumNodes>::AddDispersiveTerms(
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     LocalMatrixType& rMatrix,
+    LocalVectorType& rVector,
     const ElementData& rData,
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
@@ -608,6 +609,7 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
             tmp = prod(D, trans(bjq));
             MathUtils<double>::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
             rMatrix(3*i + 2, 3*j + 2) += inner_prod(bih, Weight*prod(C, bjh));
+            rVector[3*i + 2]          -= inner_prod(bih, Weight*prod(C, bjh)) * rData.nodal_z[j];
         }
     }
 }
@@ -687,7 +689,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
         AddDispersiveTerms(rhs, data, N, DN_DX, weight);
-        AddArtificialViscosityTerms(lhs, data, N, DN_DX, weight);
+        AddArtificialViscosityTerms(lhs, rhs, data, N, DN_DX, weight);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)

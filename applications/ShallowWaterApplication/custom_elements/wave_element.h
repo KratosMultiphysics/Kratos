@@ -396,6 +396,7 @@ protected:
 
     void AddArtificialViscosityTerms(
         LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
