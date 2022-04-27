@@ -95,17 +95,15 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         if  shock_capturing_type == "residual_viscosity":
             self.element_name = "ConservativeElementRV"
             self.condition_name = "ConservativeCondition"
-            # self.element_name = "ShallowWater"
-            # self.condition_name = "LineCondition"
             self.compute_neighbors = False
             self.add_flux_correction = False
         elif shock_capturing_type == "flux_correction":
-            self.element_name = "ShallowWater"
-            self.condition_name = "LineCondition"
+            self.element_name = "ConservativeElementFC"
+            self.condition_name = "ConservativeCondition"
             self.compute_neighbors = False
             self.add_flux_correction = True
         elif shock_capturing_type == "gradient_jump":
-            self.element_name = "ConservativeElement"
+            self.element_name = "ConservativeElementGJ"
             self.condition_name = "ConservativeCondition"
             self.compute_neighbors = True
             self.add_flux_correction = False
