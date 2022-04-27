@@ -1992,7 +1992,9 @@ namespace Kratos
 
 			// assign data to dofs
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
-			unsigned int principalPropertyId = mrRemesh.Info->IdPrincipalModelPart;
+
+			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 
 			for (unsigned int nn = 0; nn < NewPositions.size(); nn++)
 			{
@@ -2050,8 +2052,8 @@ namespace Kratos
 				{
 
 					unsigned int propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
-					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 == principalPropertyId) ||
-						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 != principalPropertyId) ||
+					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 == principalModelPartId) ||
+						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 != principalModelPartId) ||
 						(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
 					{
 						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
@@ -2063,7 +2065,7 @@ namespace Kratos
 				}
 
 				unsigned int propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
-				if (propertyIdNode == principalPropertyId)
+				if (propertyIdNode == principalModelPartId)
 				{
 					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 				}

@@ -79,11 +79,17 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
             max_property_id = 0
             for prop in self.main_model_part.Properties:
+                print("              max_property_id ", prop.Id)
                 if prop.Id > max_property_id:
                     max_property_id = prop.Id
+            print("              max_property_id ", max_property_id)
 
+            biggestFluidBody=0
+            largestNumberOfElements=0
+            
             for i in range(self.bodies_parts_list.size()):
-                #create body model part
+                #create body model part                        
+
                 body_model_part_name = self.bodies_parts_list[i]["body_name"].GetString()
                 self.main_model_part.CreateSubModelPart(body_model_part_name)
                 body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
@@ -109,7 +115,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                             property_id = self.main_model_part.GetProperties()[materials["properties"][k]["properties_id"].GetInt()]
                             body_model_part.AddProperties(property_id)
                             is_solid_or_fluid = True
-
+                            print("               property id ",property_id)
                     # Assign a new dummy property to the rigid boundaries to keep them separated in the GiD post process
                     if not is_solid_or_fluid:
                         max_property_id += 1
@@ -121,14 +127,28 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                 body_model_part_type = self.bodies_parts_list[i]["body_type"].GetString()
 
+                # if (body_model_part_type=="Fluid"):
+                #     numElements=len(body_model_part.Elements)
+                #     propertyIDm=body_model_part.Properties
+                #     print("               ......................      numElements ", numElements, propertyIDm)
+                #     if(numElements>largestNumberOfElements):
+                #         biggestFluidBody=counter
+                #         largestNumberOfElements=numElements
+
+                counter=0
                 for part in body_parts_list:
                     entity_type = "Nodes"
                     clock_time = StartTimeMeasuring()
-
                     if (body_model_part_type=="Fluid"):
                         assign_flags = [KratosMultiphysics.FLUID]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
+                        numElements=len(part.Elements)
+                        propertyIDm=part.Properties
+                        print("               ......................      numElements ", numElements, propertyIDm)
+                        if(numElements>largestNumberOfElements):
+                            biggestFluidBody=counter
+                            largestNumberOfElements=numElements
                     elif (body_model_part_type=="Solid"):
                         assign_flags  = [KratosMultiphysics.SOLID]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
@@ -137,6 +157,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                         assign_flags  = [KratosMultiphysics.RIGID,KratosMultiphysics.BOUNDARY]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
+
+                    counter+=1
 
                     StopTimeMeasuring(clock_time,"1. for node in part.Nodes", True);
 
@@ -155,9 +177,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
 
                     StopTimeMeasuring(clock_time,"1. part.Conditions", True);
 
-
-                print(" Bodies Appended ")
-
                 if body_model_part_type == "Fluid":
                     body_model_part.Set(KratosMultiphysics.FLUID)
                     fluid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
@@ -168,7 +187,18 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 if (body_model_part_type == "Rigid" or body_model_part_type == "Interface"):
                     body_model_part.Set(KratosMultiphysics.RIGID)
                     rigid_body_model_parts.append(self.main_model_part.GetSubModelPart(body_model_part_name))
+
+
             clock_time = StartTimeMeasuring()
+
+            print("               biggest body is number  ", biggestFluidBody)
+            print("               biggest body has numElements ", largestNumberOfElements)
+            print(" Bodies Appended ")
+            print(" body_parts_list[biggestFluidBody] ", body_parts_list[biggestFluidBody])
+            print(" ------------------------------DONE-----------------------")
+
+            set_main_material_property_process=KratosPfemFluid.SetMainMaterialProperty(body_parts_list[biggestFluidBody])
+            set_main_material_property_process.Execute()
 
             #add walls in fluid domains:
             transfer_flags = [KratosMultiphysics.RIGID, (KratosMultiphysics.FLUID).AsFalse()]

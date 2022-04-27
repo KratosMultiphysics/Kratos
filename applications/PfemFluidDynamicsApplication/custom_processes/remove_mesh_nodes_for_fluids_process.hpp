@@ -395,15 +395,13 @@ namespace Kratos
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
-			double deltaTime = rCurrentProcessInfo[DELTA_TIME];
 
 			double initialMeanRadius = mrRemesh.Refine->CriticalRadius;
 
 			double initialTimeForRefinement = mrRemesh.RefiningBoxInitialTime;
 			double finalTimeForRefinement = mrRemesh.RefiningBoxFinalTime;
 			bool refiningBox = mrRemesh.UseRefiningBox;
-			unsigned int principalModelPartId = 0;
-			bool principalModelPartSet = false;
+			unsigned int principalModelPartId = rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY];
 
 			if (!(refiningBox == true && currentTime > initialTimeForRefinement && currentTime < finalTimeForRefinement))
 			{
@@ -441,15 +439,6 @@ namespace Kratos
 			{
 
 				unsigned int propertyIdNode = in->FastGetSolutionStepValue(PROPERTY_ID);
-
-				if (in->Is(FLUID) && in->IsNot(RIGID) && principalModelPartSet == false && currentTime < (2.0 * deltaTime))
-				{
-					principalModelPartId = propertyIdNode;
-					principalModelPartSet = true;
-					mrRemesh.Info->IdPrincipalModelPart = propertyIdNode;
-				}else{
-					principalModelPartId =mrRemesh.Info->IdPrincipalModelPart;
-				}
 
 				if (refiningBox == true)
 				{
