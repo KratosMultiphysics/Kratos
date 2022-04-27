@@ -281,9 +281,9 @@ void CompressibleNavierStokesExplicit<2,3>::CalculateRightHandSideInternal(
     const auto& DN_DX = data.DN_DX;
 
     // Stabilization parameters
-    constexpr double stab_c1 = 12.0;
-    constexpr double stab_c2 = 2.0;
-    constexpr double stab_c3 = 1.0;
+    constexpr double stab_c1 = 12.0 * 0.5;
+    constexpr double stab_c2 = 2.0 * 0.5;
+    constexpr double stab_c3 = 1.0 * 0.5;
 
     if (data.UseOSS)
     {

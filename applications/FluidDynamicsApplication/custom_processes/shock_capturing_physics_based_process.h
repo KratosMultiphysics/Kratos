@@ -321,7 +321,7 @@ private:
             rElement.GetValue(SHOCK_SENSOR) = s_beta_hat;
 
             // Calculate elemental artificial bulk viscosity
-            const double k_beta = 1.5;
+            constexpr double k_beta = 4.5;  // Diferent from original paper. This value works better for us ?
             const double elem_b_star = (k_beta * h_beta / k) * ref_mom_norm * s_beta_hat;
             rElement.GetValue(ARTIFICIAL_BULK_VISCOSITY) = elem_b_star;
 
@@ -353,14 +353,14 @@ private:
                 const double h_kappa = h_ref * norm_2(r_grad_temp) / std::sqrt(CalculateProjectedInverseMetricElementSize(r_inv_metric_tensor, r_grad_temp) + eps);
 
                 // Thermal sensor (detect thermal gradients that are larger than possible with the grid resolution)
-                const double s_kappa_0 = 1.0;
-                const double s_kappa_max = 2.0;
-                const double s_kappa = h_ref * norm_2(r_grad_temp_local) / k / stagnation_temp;
-                const double s_kappa_hat = SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
+                // const double s_kappa_0 = 1.0;
+                // const double s_kappa_max = 2.0;
+                const double s_kappa = h_ref * norm_2(r_grad_temp) / k / stagnation_temp;
+                const double s_kappa_hat = s_kappa; //SmoothedLimitingFunction(s_kappa, s_kappa_0, s_kappa_max);
                 rElement.GetValue(THERMAL_SENSOR) = s_kappa_hat;
 
                 // Calculate elemental artificial conductivity (thermal sensor)
-                const double k_kappa = 1.0;
+                constexpr double k_kappa = 3.0; // Diferent from original paper. This value works better for us.
                 const double elem_k2_star = (gamma * c_v) * (k_kappa * h_kappa / k) * ref_mom_norm * s_kappa_hat;
                 rElement.GetValue(ARTIFICIAL_CONDUCTIVITY) += elem_k2_star;
             }
