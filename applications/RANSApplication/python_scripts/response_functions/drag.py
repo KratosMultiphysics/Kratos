@@ -9,7 +9,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
 from KratosMultiphysics.RANSApplication.response_functions.utilities import SolvePrimalProblem
-from KratosMultiphysics.RANSApplication.response_functions.utilities import SolveAdjointProblem
+from KratosMultiphysics.RANSApplication.response_functions.utilities import CalculateShapeSensitivity
 from KratosMultiphysics.RANSApplication.response_functions.utilities import CalculateTimeAveragedDrag
 from KratosMultiphysics.RANSApplication.response_functions.utilities import RecursiveCopy
 
@@ -169,14 +169,11 @@ class Drag(ResponseFunctionInterface):
         self.gradient = {}
 
         drag_adjoint_model = Kratos.Model()
-        _ = SolveAdjointProblem(
-                drag_adjoint_model,
-                self.drag_configuration.GetAdjointProjectParametersFileName(),
-                self.identifier + ".log")
-
-        drag_adjoint_model_part = drag_adjoint_model[self.drag_configuration.GetMainModelPartName()]
-        for drag_node in drag_adjoint_model_part.Nodes:
-            self.gradient[drag_node.Id] = drag_node.GetSolutionStepValue(Kratos.SHAPE_SENSITIVITY)
+        self.gradient = CalculateShapeSensitivity(
+                            drag_adjoint_model,
+                            self.drag_configuration.GetMainModelPartName(),
+                            self.drag_configuration.GetAdjointProjectParametersFileName(),
+                            self.identifier + ".log")
 
         if self.response_settings["clean_primal_solution"].GetBool():
             shutil.rmtree(self.response_settings["primal_solution_folder_name"].GetString())
