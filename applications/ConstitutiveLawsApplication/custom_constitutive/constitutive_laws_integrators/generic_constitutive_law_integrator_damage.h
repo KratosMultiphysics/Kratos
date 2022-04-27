@@ -284,7 +284,8 @@ class GenericConstitutiveLawIntegratorDamage
             const double irreversibility_damage_check = (stress_damage_curve[i] - stress_damage_curve[i-1]) / (strain_damage_curve[i] - strain_damage_curve[i-1]);
             KRATOS_ERROR_IF(irreversibility_damage_check > E)<< "The defined S-E curve induces negative damage at region " << i << std::endl;
         }
-        KRATOS_ERROR_IF(volumentric_fracture_energy_first_region > volumetric_fracture_energy) << "The Fracture Energy is too low: " << fracture_energy << std::endl;
+        volumentric_fracture_energy_first_region -= 0.5 * stress_damage_curve[curve_points] * strain_damage_curve[curve_points];
+        KRATOS_ERROR_IF(volumentric_fracture_energy_first_region >= volumetric_fracture_energy) << "The Fracture Energy is too low: " << fracture_energy << std::endl;
 
         const double predictive_stress_end_first_region = strain_damage_curve[curve_points] * E;
         if (UniaxialStress < predictive_stress_end_first_region){ //First region: point-by-point definition with linear interpolation
@@ -298,7 +299,7 @@ class GenericConstitutiveLawIntegratorDamage
             }
         } else { //Second region: exponential definition to consume the remaining fracture energy
             const double volumentric_fracture_energy_second_region = volumetric_fracture_energy - volumentric_fracture_energy_first_region;
-            rDamage = 1.0 - stress_damage_curve[curve_points] / UniaxialStress * std::exp(stress_damage_curve[curve_points] * (strain_damage_curve[curve_points] * E - UniaxialStress) / (E * volumentric_fracture_energy_second_region));
+            rDamage = 1.0 - stress_damage_curve[curve_points] / UniaxialStress * std::exp(stress_damage_curve[curve_points] * (UniaxialStress - strain_damage_curve[curve_points] * E) / (E * (0.5 * stress_damage_curve[curve_points] * strain_damage_curve[curve_points] - volumentric_fracture_energy_second_region)));
 		}
     }
 
