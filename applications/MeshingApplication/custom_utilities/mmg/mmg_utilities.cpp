@@ -4234,6 +4234,12 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
         // Boundary conditions
         Condition const& r_clone_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
         rRefCondition[10] = r_clone_condition.Create(0, const_cast<Condition&>(r_clone_condition).pGetGeometry(), it_cond_begin->pGetProperties());
+        /*                                              Δ~~~~~~~~~
+         * TODO: "Create" method should not require a Condition::Pointer, but rather a Condition::PointerToConst.
+         * This is generally not an issue, but here KratosComponents::Get returns a const reference, so we are
+         * forced to use a const_cast.
+         * We have to trust that "Create" will not change the geometry of the condition.
+         */
 
         // Inside outside elements
         rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
