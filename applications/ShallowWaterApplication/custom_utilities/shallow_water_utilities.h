@@ -152,6 +152,11 @@ public:
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
     /**
+     * @brief Move the z-coordinate of the mesh according to a variable
+     */
+    void OffsetMeshZCoordinate(ModelPart& rModelPart, const double Increment);
+
+    /**
      * @brief Swap the Y and Z coordinates of the nodes
      */
     void SwapYZCoordinates(ModelPart& rModelPart);
