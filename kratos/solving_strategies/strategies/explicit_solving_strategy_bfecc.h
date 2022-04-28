@@ -267,25 +267,32 @@ protected:
         const double dt = BaseType::GetDeltaTime();
         KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
 
-        const auto u_fixed = CloneSolutionStepData();
+        // Stash the prev step solution
+        const auto original_starting_values = ExtractSolutionStepData(1);
 
-        // Calculate the intermediate sub steps
+        // Take on step forward
+        const auto u_fixed = CopySolutionStepData(1, 0);
         PerformSubstep(u_fixed, FORWARD);
+
+        // Overwrite previous step solution with backwards step
+        const auto u_fixed = CopySolutionStepData(0, 1);
         PerformSubstep(u_fixed, BACKWARD);
 
+        // Correct error with the previous step solution
+        CorrectErrorAfterForwardsAndBackwards(original_starting_values);
+
         // Final update
-        CorrectErrorAfterForwardsAndBackwards();
+        const auto u_fixed = CopySolutionStepData(1, 0);
         PerformSubstep(u_fixed, FINAL);
 
         KRATOS_CATCH("");
     }
 
     /**
-     * Set the previous step solution in the current buffer position
-     * Note that we set the 0 position of the buffer to be equal to the values in step n (not n+1)
-     * Additionally, we save in an auxiliary vector the value of the fixed DOFs, which is also taken from the previous time step
+     * Ovrwrite the destination buffer position with data from the source buffer position.
+     * Additionally, we save in an auxiliary vector the value of the fixed DOFs in the destination buffer position.
      */
-    LocalSystemVectorType CloneSolutionStepData()
+    LocalSystemVectorType CopySolutionStepData(const SizeType source, const SizeType destination)
     {
         // Get the required data from the explicit builder and solver
         auto& explicit_bs = BaseType::GetExplicitBuilder();
@@ -296,15 +303,33 @@ protected:
         IndexPartition<SizeType>(r_dof_set.size()).for_each(
             [&](const SizeType i_dof){
                 auto it_dof = r_dof_set.begin() + i_dof;
-                double& r_u_0 = it_dof->GetSolutionStepValue(0);
+                double& r_u_0 = it_dof->GetSolutionStepValue(destination);
                 if (it_dof->IsFixed()) {
                     u_fixed(i_dof) = r_u_0;
                 }
-                r_u_0 = it_dof->GetSolutionStepValue(1);
+                r_u_0 = it_dof->GetSolutionStepValue(source);
             }
         );
 
         return u_fixed;
+    }
+
+    LocalSystemVectorType ExtractSolutionStepData(const SizeType BufferPosition) const
+    {
+        // Get the required data from the explicit builder and solver
+        auto& explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = explicit_bs.GetDofSet();
+        const SizeType dof_size = explicit_bs.GetEquationSystemSize();
+
+        LocalSystemVectorType u_copy(dof_size);
+        IndexPartition<SizeType>(r_dof_set.size()).for_each(
+            [&](const SizeType i_dof){
+                const auto it_dof = r_dof_set.cbegin() + i_dof;
+                u_copy[i_dof] = it_dof->GetSolutionStepValue(BufferPosition);
+            }
+        );
+
+        return u_copy;
     }
 
     /**
@@ -372,17 +397,17 @@ protected:
         {
             case FORWARD:
                 InitializeBFECCForwardSubstep();
-                time_integration_theta=0.0;
+                time_integration_theta = 0.0;
                 time_direction = 1.0;
                 break;
             case BACKWARD:
                 InitializeBFECCBackwardSubstep();
-                time_integration_theta=1.0;
+                time_integration_theta = 1.0;
                 time_direction =-1.0;
                 break;
             case FINAL:
                 InitializeBFECCFinalSubstep();
-                time_integration_theta=0.0;
+                time_integration_theta = 0.0;
                 time_direction = 1.0;
                 break;
             default:
@@ -392,8 +417,8 @@ protected:
         r_process_info.GetValue(TIME_INTEGRATION_THETA) = time_integration_theta;
         explicit_bs.BuildRHS(r_model_part);
 
-        IndexPartition<int>(r_dof_set.size()).for_each(
-            [&](int i_dof){
+        IndexPartition<SizeType>(r_dof_set.size()).for_each(
+            [&](SizeType i_dof){
                 auto it_dof = r_dof_set.begin() + i_dof;
 
                 // Save current value in the corresponding vector
@@ -401,13 +426,13 @@ protected:
 
                 // Do the DOF update
                 double& r_u = it_dof->GetSolutionStepValue(0);
-                double& r_u_prev_step = it_dof->GetSolutionStepValue(0);
+                double& r_u_prev_step = it_dof->GetSolutionStepValue(1);
 
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector[i_dof];
                     r_u += time_direction * (dt / mass) * residual;
                 } else {
-                    r_u = time_integration_theta*rFixedDofsValues[i_dof] +(1-time_integration_theta)*r_u_prev_step;
+                    r_u = time_integration_theta*rFixedDofsValues[i_dof] + (1 - time_integration_theta)*r_u_prev_step;
                 }
             }
         );
@@ -429,36 +454,35 @@ protected:
         }(SubstepType));
     }
 
-    void CorrectErrorAfterForwardsAndBackwards()
+    /**
+     * Computes the error by comparing the buffer position 0 and the previous step
+     * solution. Then stores the corrected starting point in the buffer position 1.
+     * @param rPrevStepSolution
+     */
+    void CorrectErrorAfterForwardsAndBackwards(const LocalSystemType& rPrevStepSolution)
     {
         auto& explicit_bs = BaseType::GetExplicitBuilder();
         auto& r_dof_set = explicit_bs.GetDofSet();
 
-        block_for_each(r_dof_set, [&](Dof<double>& r_dof)
-        {
-            const double old_value = r_dof.GetSolutionStepValue(1);
-            double& solution_step_value = r_dof.GetSolutionStepValue(0);
-            const double error = (solution_step_value - old_value)/2.0;
-            solution_step_value = old_value - error;
-        }
-        );
-
-        if(!mStoreError) return;
-
-        auto& model_part = BaseType::GetModelPart();
-        block_for_each(model_part.Nodes(), [&](Node<3>& r_node)
-        {
-            constexpr double eps = 1e-12;
-            double rel_error = 0;
-            for(const auto& pr_dof : r_node.GetDofs())
+        IndexPartition<SizeType>(r_dof_set.size()).for_each(
+            [&](const SizeType dof_index)
             {
-                const double old_value = pr_dof->GetSolutionStepValue(1);
-                double& new_value = pr_dof->GetSolutionStepValue(0);
-                const double dof_rel_error = (new_value - old_value)/(old_value + eps);
-                rel_error += dof_rel_error*dof_rel_error;
+                const double prev_step_solution = rPrevStepSolution[dof_index];
+                const auto r_dof = r_dof_set.begin() + dof_index;
+
+                const double error = (r_dof.GetSolutionStepValue(0) - prev_step_solution)/2.0;
+
+                r_dof.GetSolutionStepValue(1) = prev_step_solution - error;
+
+                if(!mStoreError) return;
+
+                const auto& var = r_dof.GetVariable();
+                if(var == DENSITY)      { r_node.SetValue(NODAL_ERROR, error));             return; }
+                if(var == MOMENTUM_X)   { r_node.SetValue(NODAL_ERROR_COMPONENTS, error));  return; }
+                if(var == MOMENTUM_Y)   { r_node.SetValue(NODAL_ERROR_COMPONENTS, error));  return; }
+                if(var == MOMENTUM_Z)   { r_node.SetValue(NODAL_ERROR_COMPONENTS, error));  return; }
+                if(var == TOTAL_ENERGY) { r_node.SetValue(ERROR_INTEGRATION_POINT, error)); return; }
             }
-            r_node.SetValue(NODAL_ERROR, std::sqrt(rel_error));
-        }
         );
     }
 
