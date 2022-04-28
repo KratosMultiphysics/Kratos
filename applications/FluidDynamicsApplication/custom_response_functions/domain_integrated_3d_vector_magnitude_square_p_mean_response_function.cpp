@@ -120,32 +120,36 @@ void DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<TDim>::Calculat
 
     rResponseGradient.clear();
 
-    if (rEntity.Is(*mpDomainFlag)) {
-        const int k = OpenMPUtils::ThisThread();
-        auto& r_shape_function = mShapeFunctions[k];
+    const double current_time = rProcessInfo[TIME];
 
-        const auto& r_geometry = rEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.PointsNumber();
-        const IndexType block_size = rResidualGradient.size1() / number_of_nodes;
-        const IndexType skip_size = block_size - TDim;
+    if (mStartTime <= current_time) {
+        if (rEntity.Is(*mpDomainFlag)) {
+            const int k = OpenMPUtils::ThisThread();
+            auto& r_shape_function = mShapeFunctions[k];
 
-        const double domain_size = r_geometry.DomainSize();
+            const auto& r_geometry = rEntity.GetGeometry();
+            const IndexType number_of_nodes = r_geometry.PointsNumber();
+            const IndexType block_size = rResidualGradient.size1() / number_of_nodes;
+            const IndexType skip_size = block_size - TDim;
 
-        this->CalculateGeometryData(r_geometry, r_shape_function);
-        const Vector& rN = row(r_shape_function, 0);
+            const double domain_size = r_geometry.DomainSize();
 
-        array_1d<double, 3> phi;
-        FluidCalculationUtilities::EvaluateInPoint(
-            r_geometry, rN, std::tie(phi, *mpVariable));
+            this->CalculateGeometryData(r_geometry, r_shape_function);
+            const Vector& rN = row(r_shape_function, 0);
 
-        const double phi_norm_square_p_1 = std::pow(inner_prod(phi, phi), mPower - 1);
+            array_1d<double, 3> phi;
+            FluidCalculationUtilities::EvaluateInPoint(
+                r_geometry, rN, std::tie(phi, *mpVariable));
 
-        IndexType local_index = mDofPosition;
-        for (IndexType c = 0; c < number_of_nodes; ++c) {
-            for (IndexType k = 0; k < TDim; ++k) {
-                rResponseGradient[local_index++] =  domain_size * 2.0 * mPower * phi_norm_square_p_1 * rN[c] * phi[k] / mIntegrationDomainSize;
+            const double phi_norm_square_p_1 = std::pow(inner_prod(phi, phi), mPower - 1);
+
+            IndexType local_index = mDofPosition;
+            for (IndexType c = 0; c < number_of_nodes; ++c) {
+                for (IndexType k = 0; k < TDim; ++k) {
+                    rResponseGradient[local_index++] =  domain_size * 2.0 * mPower * phi_norm_square_p_1 * rN[c] * phi[k] / mIntegrationDomainSize;
+                }
+                local_index += skip_size;
             }
-            local_index += skip_size;
         }
     }
 
@@ -168,28 +172,32 @@ void DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<TDim>::Calculat
 
     rSensitivityGradient.clear();
 
-    if (rEntity.Is(*mpDomainFlag)) {
-        const int k = OpenMPUtils::ThisThread();
-        auto& r_shape_function = mShapeFunctions[k];
+    const double current_time = rProcessInfo[TIME];
 
-        const auto& r_geometry = rEntity.GetGeometry();
-        const IndexType number_of_nodes = r_geometry.PointsNumber();
+    if (mStartTime <= current_time) {
+        if (rEntity.Is(*mpDomainFlag)) {
+            const int k = OpenMPUtils::ThisThread();
+            auto& r_shape_function = mShapeFunctions[k];
 
-        this->CalculateGeometryData(r_geometry, r_shape_function);
-        const Vector& N = row(r_shape_function, 0);
+            const auto& r_geometry = rEntity.GetGeometry();
+            const IndexType number_of_nodes = r_geometry.PointsNumber();
 
-        array_1d<double, 3> phi;
-        FluidCalculationUtilities::EvaluateInPoint(
-            r_geometry, N, std::tie(phi, *mpVariable));
+            this->CalculateGeometryData(r_geometry, r_shape_function);
+            const Vector& N = row(r_shape_function, 0);
 
-        const double inner_phi_power = std::pow(inner_prod(phi, phi), mPower);
+            array_1d<double, 3> phi;
+            FluidCalculationUtilities::EvaluateInPoint(
+                r_geometry, N, std::tie(phi, *mpVariable));
 
-        IndexType local_index = 0;
-        for (IndexType c = 0; c < number_of_nodes; ++c) {
-            for (IndexType k = 0; k < TDim; ++k) {
-                rSensitivityGradient[local_index++] =
-                    CalculateDomainSizeDerivative(rEntity, c, k) *
-                    (inner_phi_power - mDomainIntegratedSquareMean) / mIntegrationDomainSize;
+            const double inner_phi_power = std::pow(inner_prod(phi, phi), mPower);
+
+            IndexType local_index = 0;
+            for (IndexType c = 0; c < number_of_nodes; ++c) {
+                for (IndexType k = 0; k < TDim; ++k) {
+                    rSensitivityGradient[local_index++] =
+                        CalculateDomainSizeDerivative(rEntity, c, k) *
+                        (inner_phi_power - mDomainIntegratedSquareMean) / mIntegrationDomainSize;
+                }
             }
         }
     }
@@ -212,7 +220,8 @@ DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<TDim>::DomainIntegra
         "dof_position"             : 0,
         "magnitude_square_to_power": 1,
         "flag_to_be_used"          : "STRUCTURE",
-        "entities_to_consider"     : ["conditions"]
+        "entities_to_consider"     : ["conditions"],
+        "start_time"               : 0.0
     })");
 
     Settings.ValidateAndAssignDefaults(default_settings);
@@ -222,6 +231,7 @@ DomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction<TDim>::DomainIntegra
     mpDomainFlag = &KratosComponents<Flags>::Get(Settings["flag_to_be_used"].GetString());
     mPower = Settings["magnitude_square_to_power"].GetInt();
     mDofPosition = Settings["dof_position"].GetInt();
+    mStartTime = Settings["start_time"].GetDouble();
 
     const auto& r_entity_types = Settings["entities_to_consider"].GetStringArray();
     for (const auto& r_entity_type : r_entity_types) {

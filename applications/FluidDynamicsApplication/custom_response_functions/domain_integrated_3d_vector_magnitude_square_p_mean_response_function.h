@@ -150,6 +150,7 @@ protected:
 
     double mIntegrationDomainSize;
     double mDomainIntegratedSquareMean;
+    double mStartTime;
 
     IndexType mPower;
     IndexType mDofPosition;
