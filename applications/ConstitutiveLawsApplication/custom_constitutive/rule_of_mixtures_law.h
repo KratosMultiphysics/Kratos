@@ -644,19 +644,25 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
     std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
-    double mT_eq = 0;                                        // Equivalent Stress
-    double mDamageIndicator = 1;                             // Onset of Damage
-    double mGc = 0;                                          // Mix Mode Energy Release Rate
-    double mElastic_energy = 0;                              // Elastic energy stored before damage initiation 
-    double mDelta_G = 0;
-    double mDelta_epsilon_one = 0;
-    double mSERR = 0;                                        // Strain Energy Release Rate
-    double mdelamination_damage = 0;                         // Scalar delamination damage variable  
-    double mDelta_eq_max = 0;                                // Equivalent Strain History Variable
-    double minitial_threshold = 0;
-    double minitial_Delta_eq = 0;
-    double mthreshold = std::numeric_limits<double>::infinity();
-    double mAParameter = 0;
+    std::vector<double> mGc = ZeroVector(mConstitutiveLaws.size()-1);
+    std::vector<double> minitial_threshold = ZeroVector(mConstitutiveLaws.size()-1);
+    std::vector<double> mthreshold = ZeroVector(mConstitutiveLaws.size()-1);
+    std::vector<double> mdelamination_damage = ZeroVector(mConstitutiveLaws.size()+1);
+    std::vector<double> mAParameter = ZeroVector(mConstitutiveLaws.size()-1);
+    std::vector<double> mDamageIndicator = ZeroVector(mConstitutiveLaws.size()-1);
+    // double mT_eq = 0;                                        // Equivalent Stress
+    // double mDamageIndicator = 1;                             // Onset of Damage
+    // double mGc = 0;                                          // Mix Mode Energy Release Rate
+    // double mElastic_energy = 0;                              // Elastic energy stored before damage initiation 
+    // double mDelta_G = 0;
+    // double mDelta_epsilon_one = 0;
+    // double mSERR = 0;                                        // Strain Energy Release Rate
+    // double mdelamination_damage = 0;                         // Scalar delamination damage variable  
+    // double mDelta_eq_max = 0;                                // Equivalent Strain History Variable
+    // double minitial_threshold = 0;
+    // double minitial_Delta_eq = 0;
+    // double mthreshold = std::numeric_limits<double>::infinity();
+    // double mAParameter = 0;
     ///@}
     ///@name Private Operators
     ///@{
