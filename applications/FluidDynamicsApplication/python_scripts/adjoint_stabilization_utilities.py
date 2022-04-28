@@ -98,6 +98,8 @@ def __CalculateTimeSeriesSlope(time_series_values, time_range):
         indices_range = np.where(np.logical_and(time_values >= time_range[0], time_values <= time_range[1]))[0]
         ranged_time_values = max_time - np.take(time_values, indices_range)
         ranged_values = np.take(time_series_values[:, 1], indices_range)[:-1] / ranged_time_values[1:]
+        if len(ranged_time_values[1:]) == 0:
+            raise Exception("Stabilization analysis plateau time range is not within the adjoint evaluation time range.")
         return np.polyfit(ranged_time_values[1:], ranged_values, 1)[0]
     else:
         return 1e+300
