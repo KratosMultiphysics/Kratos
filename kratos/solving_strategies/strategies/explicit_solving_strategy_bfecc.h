@@ -298,37 +298,37 @@ protected:
      * @brief Initialize the BFECC initial forward substep
      * This method is intended to implement all the operations required before each BFECC initial forward substep
      */
-    virtual void InitializeBFECCForwardSubStep() {};
+    virtual void InitializeBFECCForwardSubstep() {};
 
     /**
      * @brief Finalize the BFECC initial forward substep
      * This method is intended to implement all the operations required after each BFECC initial forward substep
      */
-    virtual void FinalizeBFECCForwardSubStep() {};
+    virtual void FinalizeBFECCForwardSubstep() {};
 
     /**
      * @brief Initialize the BFECC backward substep
      * This method is intended to implement all the operations required before each BFECC backward substep
      */
-    virtual void InitializeBFECCBackwardSubStep() {};
+    virtual void InitializeBFECCBackwardSubstep() {};
 
     /**
      * @brief Finalize the BFECC backward substep
      * This method is intended to implement all the operations required after each BFECC backward substep
      */
-    virtual void FinalizeBFECCBackwardSubStep() {};
+    virtual void FinalizeBFECCBackwardSubstep() {};
 
     /**
      * @brief Initialize the BFECC final substep
      * This method is intended to implement all the operations required before each BFECC final substep
      */
-    virtual void InitializeBFECCFinalSubStep() {};
+    virtual void InitializeBFECCFinalSubstep() {};
 
     /**
      * @brief Finalize the BFECC final substep
      * This method is intended to implement all the operations required after each BFECC final substep
      */
-    virtual void FinalizeBFECCFinalSubStep() {};
+    virtual void FinalizeBFECCFinalSubstep() {};
 
     /**
      * @brief Performs an intermediate RK4 step
@@ -358,17 +358,17 @@ protected:
         switch(SubstepType)
         {
             case FORWARD:
-                InitializeBFECCForwardSubStep();
+                InitializeBFECCForwardSubstep();
                 time_integration_theta=0.0;
                 time_direction = 1.0;
                 break;
             case BACKWARD:
-                InitializeBFECCBackwardSubStep();
+                InitializeBFECCBackwardSubstep();
                 time_integration_theta=1.0;
                 time_direction =-1.0;
                 break;
             case FINAL:
-                InitializeBFECCFinalSubStep();
+                InitializeBFECCFinalSubstep();
                 time_integration_theta=0.0;
                 time_direction = 1.0;
                 break;
@@ -400,9 +400,9 @@ protected:
         );
 
         switch(SubstepType) {
-            case FORWARD:  FinalizeBFECCForwardSubStep();   break;
-            case BACKWARD: FinalizeBFECCBackwardSubStep();  break;
-            case FINAL:    FinalizeBFECCFinalSubStep();     break;
+            case FORWARD:  FinalizeBFECCForwardSubstep();   break;
+            case BACKWARD: FinalizeBFECCBackwardSubstep();  break;
+            case FINAL:    FinalizeBFECCFinalSubstep();     break;
             default: KRATOS_ERROR << "Invalid value for Substep" << std::endl;
         }
 

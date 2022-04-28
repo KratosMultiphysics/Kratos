@@ -23,7 +23,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "factories/factory.h"
-#include "explicit_solving_strategy_bfecc.h"
+#include "solving_strategies/strategies/explicit_solving_strategy_bfecc.h"
 
 namespace Kratos
 {
@@ -153,7 +153,11 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "compressible_navier_stokes_explicit_solving_strategy_bfecc"
+            "name" : "compressible_navier_stokes_explicit_solving_strategy_bfecc",
+            "rebuild_level" : 0,
+            "move_mesh_flag": false,
+            "calculate_non_conservative_magnitudes" : true,
+            "shock_capturing_settings" : { }
         })");
 
         // Getting base class default parameters
@@ -211,7 +215,7 @@ public:
         SetUpShockCapturing(ThisParameters["shock_capturing_settings"]);
 
         if (mpShockCapturingProcess && !mCalculateNonConservativeMagnitudes) {
-            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4")
+            KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyBFECC")
                 << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }
@@ -315,7 +319,7 @@ public:
     }
 
     /**
-     * @brief Finalize the Runge-Kutta step
+     * @brief Finalize the step
      * In this method we calculate the final linearised time derivatives after the final update
      * These will be the time derivatives employed in the first RK4 sub step of the next time step
      */
@@ -388,11 +392,11 @@ protected:
 
     /**
      * @brief Initialize the BFECC forward substep
-     * This method is intended to implement all the operations required before each BFECC forward substep
+     * This method is intended to implement all the operations required before each BFECC initial forward substep
      */
-    void InitializeBFECCForwardSubStep() override
+    void InitializeBFECCForwardSubstep() override
     {
-        BaseType::InitializeBFECCForwardSubStep();
+        BaseType::InitializeBFECCForwardSubstep();
         StashDiffusiveConstants();
         InitializeSubstep();
     };
@@ -401,9 +405,9 @@ protected:
      * @brief Initialize the BFECC backward substep
      * This method is intended to implement all the operations required before each BFECC backward substep
      */
-    void InitializeBFECCBackwardSubStep() override
+    void InitializeBFECCBackwardSubstep() override
     {
-        BaseType::InitializeBFECCBackwardSubStep();
+        BaseType::InitializeBFECCBackwardSubstep();
         InitializeSubstep();
     };
 
@@ -411,20 +415,20 @@ protected:
      * @brief Initialize the BFECC final substep
      * This method is intended to implement all the operations required before each BFECC final substep
      */
-    void InitializeBFECCFinalSubStep() override
+    void InitializeBFECCFinalSubstep() override
     {
-        BaseType::InitializeBFECCFinalSubStep();
+        BaseType::InitializeBFECCFinalSubstep();
         PopDiffusiveConstants();
         InitializeSubstep();
     };
 
     /**
      * @brief Initialize the BFECC forward substep
-     * This method is intended to implement all the operations required before each BFECC forward substep
+     * This method is intended to implement all the operations required before each BFECC initial forward substep
      */
-    void FinalizeBFECCForwardSubStep() override
+    void FinalizeBFECCForwardSubstep() override
     {
-        BaseType::FinalizeBFECCForwardSubStep();
+        BaseType::FinalizeBFECCForwardSubstep();
         FinalizeSubstep();
     };
 
@@ -432,9 +436,9 @@ protected:
      * @brief Finalize the BFECC backward substep
      * This method is intended to implement all the operations required before each BFECC backward substep
      */
-    void FinalizeBFECCBackwardSubStep() override
+    void FinalizeBFECCBackwardSubstep() override
     {
-        BaseType::FinalizeBFECCBackwardSubStep();
+        BaseType::FinalizeBFECCBackwardSubstep();
         FinalizeSubstep();
     };
 
@@ -442,9 +446,9 @@ protected:
      * @brief Finalize the BFECC final substep
      * This method is intended to implement all the operations required before each BFECC final substep
      */
-    void FinalizeBFECCFinalSubStep() override
+    void FinalizeBFECCFinalSubstep() override
     {
-        BaseType::FinalizeBFECCFinalSubStep();
+        BaseType::FinalizeBFECCFinalSubstep();
         PopDiffusiveConstants();
         FinalizeSubstep();
     };
