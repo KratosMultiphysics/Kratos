@@ -188,7 +188,7 @@ void BoussinesqElement<TNumNodes>::AlgebraicResidual(
     const double H2 = std::pow(H, 2);
 
     // Spatial derivatives
-    rFreeSurfaceGradient = WaveElementType::ScalarGradient(rData.nodal_f, rDN_DX);
+    rFreeSurfaceGradient = prod(rData.nodal_f, rDN_DX);
     const double v_divergence = WaveElementType::VectorDivergence(rData.nodal_v, rDN_DX);
 
     // Mass conservation residual
