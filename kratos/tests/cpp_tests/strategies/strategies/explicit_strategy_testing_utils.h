@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Eduard Gómez
+//  Main authors:    Ruben Zorrilla, Eduard Gómez
 //
 
 #if !defined(KRATOS_EXPLICIT_STRATEGY_TEST_UTILS_H_INCLUDED)
