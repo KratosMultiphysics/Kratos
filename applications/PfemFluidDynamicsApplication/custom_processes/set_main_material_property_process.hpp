@@ -106,8 +106,8 @@ namespace Kratos
         OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
         ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
         ModelPart::ElementIterator itElem = ElemBegin;
-        unsigned int elem_property_id_all = itElem->GetProperties().Id();
-        rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY]=elem_property_id_all;
+        unsigned int main_property_id = itElem->GetProperties().Id();
+        rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY]=main_property_id;
       }
       KRATOS_CATCH(" ")
     }; // namespace Kratos
