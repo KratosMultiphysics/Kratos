@@ -57,6 +57,10 @@ public:
     ///@name Type Definitions
     ///@{
 
+    enum Substep { FORWARD, BACKWARD, FINAL };
+
+    typedef ModelPart::SizeType SizeType;
+
     // The base solving strategy class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
 
@@ -179,7 +183,7 @@ public:
     static std::string Name()
     {
         std::stringstream s;
-        s << "explicit_solving_strategy_bfecc"
+        s << "explicit_solving_strategy_bfecc";
         return s.str();
     }
 
@@ -253,12 +257,12 @@ protected:
         const auto u_fixed = CloneSolutionStepData();
 
         // Calculate the intermediate sub steps
-        SubstepForward(u_fixed);
-        SubstepBackward(u_fixed);
+        PerformSubstep(u_fixed, FORWARD);
+        PerformSubstep(u_fixed, BACKWARD);
 
         // Final update
         CorrectErrorAfterForwardsAndBackwards();
-        FinalSubstep(u_fixed);
+        PerformSubstep(u_fixed, FINAL);
 
         KRATOS_CATCH("");
     }
@@ -271,7 +275,7 @@ protected:
     LocalSystemVectorType CloneSolutionStepData()
     {
         // Get the required data from the explicit builder and solver
-        auto& explicit_bs = BaseType::pGetExplicitBuilder();
+        auto& explicit_bs = BaseType::GetExplicitBuilder();
         auto& r_dof_set = explicit_bs.GetDofSet();
         const SizeType dof_size = explicit_bs.GetEquationSystemSize();
 
@@ -291,59 +295,48 @@ protected:
     }
 
     /**
-     * @brief Initialize the BFECC intermediate substep
-     * This method is intended to implement all the operations required before each BFECC intermediate substep
+     * @brief Initialize the BFECC initial forward substep
+     * This method is intended to implement all the operations required before each BFECC initial forward substep
      */
-    virtual void InitializeBFECCIntermediateSubStep(SizeType SubstepIndex) {};
+    virtual void InitializeBFECCForwardSubStep() {};
 
     /**
-     * @brief Finalize the BFECC intermediate substep
-     * This method is intended to implement all the operations required after each BFECC intermediate substep
+     * @brief Finalize the BFECC initial forward substep
+     * This method is intended to implement all the operations required after each BFECC initial forward substep
      */
-    virtual void FinalizeBFECCIntermediateSubStep(SizeType SubstepIndex) {};
+    virtual void FinalizeBFECCForwardSubStep() {};
 
     /**
-     * @brief Initialize the BFECC last substep
-     * This method is intended to implement all the operations required before each BFECC last substep
+     * @brief Initialize the BFECC backward substep
+     * This method is intended to implement all the operations required before each BFECC backward substep
      */
-    virtual void InitializeBFECCLastSubStep(SizeType SubstepIndex) {};
+    virtual void InitializeBFECCBackwardSubStep() {};
 
     /**
-     * @brief Finalize the BFECC last substep
-     * This method is intended to implement all the operations required after each BFECC last substep
+     * @brief Finalize the BFECC backward substep
+     * This method is intended to implement all the operations required after each BFECC backward substep
      */
-    virtual void FinalizeBFECCLastSubStep(SizeType SubstepIndex) {};
+    virtual void FinalizeBFECCBackwardSubStep() {};
 
-    void SubstepForward(const LocalSystemVectorType& rFixedDofsValues)
-    {
-        return PerformSubStep(1, 0.0, rFixedDofsValues, 1.0, false);
-    }
+    /**
+     * @brief Initialize the BFECC final substep
+     * This method is intended to implement all the operations required before each BFECC final substep
+     */
+    virtual void InitializeBFECCFinalSubStep() {};
 
-    void SubstepBackward(const LocalSystemVectorType& rFixedDofsValues)
-    {
-        return PerformSubStep(2, 1.0, rFixedDofsValues,-1.0, false);
-    }
-
-    void FinalSubstep(const LocalSystemVectorType& rFixedDofsValues)
-    {
-        return PerformSubStep(3, 0.0, rFixedDofsValues, 1.0, true);
-    }
+    /**
+     * @brief Finalize the BFECC final substep
+     * This method is intended to implement all the operations required after each BFECC final substep
+     */
+    virtual void FinalizeBFECCFinalSubStep() {};
 
     /**
      * @brief Performs an intermediate RK4 step
      * This functions performs all the operations required in an intermediate RK4 sub step
-     * @param SubStepIndex The sub step index
-     * @param TimeIntegrationTheta The point in time-step to evaulate in
      * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
-     * @param TimeDirection Whether going forawrds or backwards
-     * @param LastSubstep Whether this is the last substep or not
+     * @param Substep The type of substep it is
      */
-    virtual void PerformSubStep(
-        const IndexType SubstepIndex,
-        const double TimeIntegrationTheta,
-        const LocalSystemVectorType& rFixedDofsValues,
-        const double TimeDirection,
-        bool LastSubstep)
+    virtual void PerformSubstep(const LocalSystemVectorType& rFixedDofsValues, const Substep SubstepType)
     {
         KRATOS_TRY
 
@@ -359,14 +352,31 @@ protected:
         auto& r_process_info = r_model_part.GetProcessInfo();
 
         // Perform the intermidate sub step update
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = TimeIntegrationTheta;
 
-        if(LastSubstep) {
-            InitializeBFECCLastSubStep(SubstepIndex);
-        } else {
-            InitializeBFECCIntermediateSubStep(SubstepIndex);
+        double time_integration_theta = -1.0;
+        double time_direction = 0.0;
+        switch(SubstepType)
+        {
+            case FORWARD:
+                InitializeBFECCForwardSubStep();
+                time_integration_theta=0.0;
+                time_direction = 1.0;
+                break;
+            case BACKWARD:
+                InitializeBFECCBackwardSubStep();
+                time_integration_theta=1.0;
+                time_direction =-1.0;
+                break;
+            case FINAL:
+                InitializeBFECCFinalSubStep();
+                time_integration_theta=0.0;
+                time_direction = 1.0;
+                break;
+            default:
+                KRATOS_ERROR << "Invalid value for Substep" << std::endl;
         }
 
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = time_integration_theta;
         explicit_bs.BuildRHS(r_model_part);
 
         IndexPartition<int>(r_dof_set.size()).for_each(
@@ -382,20 +392,28 @@ protected:
 
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector[i_dof];
-                    r_u += TimeDirection * (dt / mass) * residual;
+                    r_u += time_direction * (dt / mass) * residual;
                 } else {
-                    r_u = integration_theta*rFixedDofsValues[i_dof] +(1-integration_theta)*r_u_prev_step;
+                    r_u = time_integration_theta*rFixedDofsValues[i_dof] +(1-time_integration_theta)*r_u_prev_step;
                 }
             }
         );
 
-        if(LastSubstep) {
-            FinalizeBFECCLastSubStep(SubstepIndex);
-        } else {
-            FinalizeBFECCIntermediateSubStep(SubstepIndex);
+        switch(SubstepType) {
+            case FORWARD:  FinalizeBFECCForwardSubStep();   break;
+            case BACKWARD: FinalizeBFECCBackwardSubStep();  break;
+            case FINAL:    FinalizeBFECCFinalSubStep();     break;
+            default: KRATOS_ERROR << "Invalid value for Substep" << std::endl;
         }
 
-        KRATOS_CATCH("SubstepIndex = " + std::to_string(SubStepIndex));
+        KRATOS_CATCH("Substep type: " + [](Substep substep) -> std::string {
+            switch(substep) {
+            case FORWARD:  return "FORWARD";
+            case BACKWARD: return "BACKWARD";
+            case FINAL:    return "FINAL";
+            default: return std::to_string(static_cast<int>(substep));
+            }
+        }(SubstepType));
     }
 
     void CorrectErrorAfterForwardsAndBackwards()

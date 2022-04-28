@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_SOLVING_STRATEGY_BFECC)
-#define KRATOS_EXPLICIT_SOLVING_STRATEGY_BFECC
+#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_BFECC)
+#define KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_BFECC
 
 /* System includes */
 #include <numeric>
@@ -54,7 +54,7 @@ public:
     typedef ExplicitSolvingStrategyBFECC<TSparseSpace, TDenseSpace> BaseType;
 
     /// The definition of the current class
-    typedef CompressibleNavierStokesExplicitSolvingStrategyBFECC<TSparseSpace, TDenseSpace, TButcherTableau> ClassType;
+    typedef CompressibleNavierStokesExplicitSolvingStrategyBFECC<TSparseSpace, TDenseSpace> ClassType;
 
     // The explicit builder and solver definition
     typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
@@ -169,7 +169,7 @@ public:
     static std::string Name()
     {
         std::stringstream s;
-        s << "compressible_navier_stokes_explicit_solving_strategy_bfecc"
+        s << "compressible_navier_stokes_explicit_solving_strategy_bfecc";
         return s.str();
     }
 
@@ -196,40 +196,6 @@ public:
         }
 
         return err_code;
-    }
-
-    /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        KRATOS_TRY
-
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_bfecc",
-            "rebuild_level" : 0,
-            "move_mesh_flag": false,
-            "calculate_non_conservative_magnitudes" : true,
-            "shock_capturing_settings" : { }
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        return "compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4";
     }
 
     /**
@@ -385,7 +351,7 @@ public:
     std::string Info() const override
     {
         std::stringstream ss;
-        ss << "CompressibleNavierStokesExplicitSolvingStrategyBFECC with tableau " << mButcherTableau.Name();
+        ss << "CompressibleNavierStokesExplicitSolvingStrategyBFECC";
         return ss.str();
     }
 
@@ -421,125 +387,67 @@ protected:
     ///@{
 
     /**
-     * @brief Initialize the BFECC intermediate substep
-     * This method is intended to implement all the operations required before each BFECC intermediate substep
+     * @brief Initialize the BFECC forward substep
+     * This method is intended to implement all the operations required before each BFECC forward substep
      */
-    virtual void InitializeBFECCIntermediateSubStep(SizeType SubstepIndex) override
+    void InitializeBFECCForwardSubStep() override
     {
-        if(SubstepIndex == 1)
-        {
-            StashDiffusiveConstants();
-        }
+        BaseType::InitializeBFECCForwardSubStep();
+        StashDiffusiveConstants();
+        InitializeSubstep();
     };
 
     /**
-     * @brief Initialize the BFECC last substep
-     * This method is intended to implement all the operations required before each BFECC last substep
+     * @brief Initialize the BFECC backward substep
+     * This method is intended to implement all the operations required before each BFECC backward substep
      */
-    virtual void InitializeBFECCLastSubStep(SizeType SubstepIndex) override
+    void InitializeBFECCBackwardSubStep() override
     {
+        BaseType::InitializeBFECCBackwardSubStep();
+        InitializeSubstep();
+    };
+
+    /**
+     * @brief Initialize the BFECC final substep
+     * This method is intended to implement all the operations required before each BFECC final substep
+     */
+    void InitializeBFECCFinalSubStep() override
+    {
+        BaseType::InitializeBFECCFinalSubStep();
         PopDiffusiveConstants();
+        InitializeSubstep();
     };
 
-
-    void SubstepForward(const LocalSystemVectorType& rFixedDofsValues)
+    /**
+     * @brief Initialize the BFECC forward substep
+     * This method is intended to implement all the operations required before each BFECC forward substep
+     */
+    void FinalizeBFECCForwardSubStep() override
     {
-        return PerformSubStep(1, 0.0, rFixedDofsValues, 1.0, false);
-    }
-
-    void SubstepBackward(const LocalSystemVectorType& rFixedDofsValues)
-    {
-        return PerformSubStep(2, 1.0, rFixedDofsValues,-1.0, false);
-    }
-
-    void FinalSubstep(const LocalSystemVectorType& rFixedDofsValues)
-    {
-        return PerformSubStep(3, 0.0, rFixedDofsValues, 1.0, true);
-    }
+        BaseType::FinalizeBFECCForwardSubStep();
+        FinalizeSubstep();
+    };
 
     /**
-     * @brief Performs an intermediate RK4 step
-     * This functions performs all the operations required in an intermediate RK4 sub step
-     * @param SubStepIndex The sub step index
-     * @param TimeIntegrationTheta The point in time-step to evaulate in
-     * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
-     * @param TimeDirection Whether going forawrds or backwards
-     * @param LastSubstep Whether this is the last substep or not
+     * @brief Finalize the BFECC backward substep
+     * This method is intended to implement all the operations required before each BFECC backward substep
      */
-    virtual void PerformSubStep(
-        const IndexType SubstepIndex,
-        const double TimeIntegrationTheta,
-        const LocalSystemVectorType& rFixedDofsValues,
-        const double TimeDirection,
-        bool LastSubstep)
+    void FinalizeBFECCBackwardSubStep() override
     {
-        KRATOS_TRY
+        BaseType::FinalizeBFECCBackwardSubStep();
+        FinalizeSubstep();
+    };
 
-        // Get the required data from the explicit builder and solver
-        auto& explicit_bs = BaseType::GetExplicitBuilder();
-        auto& r_dof_set = explicit_bs.GetDofSet();
-        const auto& r_lumped_mass_vector = explicit_bs.GetLumpedMassMatrixVector();
-
-        // Get model part and information
-        const double dt = BaseType::GetDeltaTime();
-        KRATOS_ERROR_IF(dt < 1.0e-12) << "ProcessInfo DELTA_TIME is close to zero." << std::endl;
-        auto& r_model_part = BaseType::GetModelPart();
-        auto& r_process_info = r_model_part.GetProcessInfo();
-
-        // Perform the intermidate sub step update
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = TimeIntegrationTheta;
-
-        if(LastSubstep) {
-            InitializeBFECCLastSubStep(SubstepIndex);
-        } else {
-            InitializeBFECCIntermediateSubStep(SubstepIndex);
-        }
-
-        explicit_bs.BuildRHS(r_model_part);
-
-        IndexPartition<int>(r_dof_set.size()).for_each(
-            [&](int i_dof){
-                auto it_dof = r_dof_set.begin() + i_dof;
-
-                // Save current value in the corresponding vector
-                const double residual = it_dof->GetSolutionStepReactionValue();
-
-                // Do the DOF update
-                double& r_u = it_dof->GetSolutionStepValue(0);
-                double& r_u_prev_step = it_dof->GetSolutionStepValue(0);
-
-                if (!it_dof->IsFixed()) {
-                    const double mass = r_lumped_mass_vector[i_dof];
-                    r_u += TimeDirection * (dt / mass) * residual;
-                } else {
-                    r_u = integration_theta*rFixedDofsValues[i_dof] +(1-integration_theta)*r_u_prev_step;
-                }
-            }
-        );
-
-        if(LastSubstep) {
-            FinalizeBFECCLastSubStep(SubstepIndex);
-        } else {
-            FinalizeBFECCIntermediateSubStep(SubstepIndex);
-        }
-
-        KRATOS_CATCH("SubstepIndex = " + std::to_string(SubStepIndex));
-    }
-
-    void CorrectErrorAfterForwardsAndBackwards()
+    /**
+     * @brief Finalize the BFECC final substep
+     * This method is intended to implement all the operations required before each BFECC final substep
+     */
+    void FinalizeBFECCFinalSubStep() override
     {
-        auto& explicit_bs = BaseType::GetExplicitBuilder();
-        auto& r_dof_set = explicit_bs.GetDofSet();
-
-        block_for_each(r_dof_set, [&](Dof<double>& r_dof)
-        {
-            const double old_value = r_dof.GetSolutionStepValue(1);
-            double& solution_step_value = r_dof.GetSolutionStepValue(0);
-            const double error = (solution_step_value - old_value)/2.0;
-            solution_step_value = old_value - error;
-        }
-        );
-    }
+        BaseType::FinalizeBFECCFinalSubStep();
+        PopDiffusiveConstants();
+        FinalizeSubstep();
+    };
 
     ///@}
     ///@name Protected  Access
@@ -570,7 +478,6 @@ private:
     bool mCalculateNonConservativeMagnitudes = true;
 
     Process::UniquePointer mpShockCapturingProcess = nullptr;
-
 
     struct Stash {
         double conductivity = 0.0;
@@ -714,6 +621,28 @@ private:
         mDiffusionStash.dynamic_viscosity = 0;
     }
 
+    void InitializeSubstep()
+    {
+        // Approximate the unknowns time derivatives with a FE scheme
+        // These will be used in the next RK substep residual calculation to compute the subscales
+        auto& r_model_part = BaseType::GetModelPart();
+        auto& r_process_info = r_model_part.GetProcessInfo();
+
+        // Calculate the Orthogonal SubsScales projections
+        if (r_process_info[OSS_SWITCH]) {
+            CalculateOrthogonalSubScalesProjection();
+        }
+    }
+
+    void FinalizeSubstep()
+    {
+        // Apply the momentum slip condition
+        //TODO: THIS SHOULDN'T BE REQUIRED --> DOING IT AFTER THE FINAL UPDATE MUST BE ENOUGH
+        if (mApplySlipCondition) {
+            ApplySlipCondition();
+        }
+    }
+
 
     ///@}
     ///@name Private  Access
@@ -742,4 +671,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_EXPLICIT_SOLVING_STRATEGY_BFECC  defined */
+#endif /* KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_BFECC  defined */
