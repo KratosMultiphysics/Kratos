@@ -93,8 +93,8 @@ public:
 
 };
 
-
-void GenerateTestExplicitStrategiesModelPart(ModelPart& rModelPart)
+// Fills the modelpart with nodes and dofs
+inline void GenerateTestExplicitStrategiesModelPart(ModelPart& rModelPart)
 {
     // Model part settings
     rModelPart.SetBufferSize(2);
@@ -115,8 +115,87 @@ void GenerateTestExplicitStrategiesModelPart(ModelPart& rModelPart)
     rModelPart.AddElement(p_elem);
 }
 
+// Solves the problem with the given explicit strategy
 template<typename TStrategyType>
-void RunTest(const double tolerance)
+inline void Solve(
+    ModelPart& rModelPart,
+    Node<3>& rTestNode,
+    const double time,
+    const unsigned int n_steps)
+{
+    KRATOS_TRY
+
+    rModelPart.CloneTimeStep(0.0);
+
+    // Create the explicit strategy
+    const bool move_mesh_flag = false;
+    const unsigned int rebuild_level = 0;
+    auto p_explicit_bs = Kratos::make_shared<ExplicitBuilderType>();
+    auto p_explicit_strategy = Kratos::make_unique<TStrategyType>(
+        rModelPart,
+        p_explicit_bs,
+        move_mesh_flag,
+        rebuild_level);
+
+    p_explicit_strategy->Initialize();
+    rTestNode.FastGetSolutionStepValue(TEMPERATURE) = 50.0; // Set initial solution
+
+    const double delta_time = time / n_steps;
+    for(unsigned int step=1; step<=n_steps; ++step)
+    {
+        rModelPart.CloneTimeStep(step * delta_time);
+        p_explicit_strategy->InitializeSolutionStep();
+        p_explicit_strategy->SolveSolutionStep();
+        p_explicit_strategy->FinalizeSolutionStep();
+    }
+
+    KRATOS_CATCH("");
+}
+
+/**
+ * Fits a function to a set of value pairs (x, y):
+ *
+ *  log(y) ~ p0 + p1*log(x)
+ *
+ * it fits a linear polynomial with coefficients p0 and p1
+ * with least squares.
+ *
+ * @param rXValues The x values
+ * @param rYValues The y values
+ *
+ * @return The slope of the fitted polynomial
+ */
+
+template<unsigned int TDataSize>
+inline double LogFittingSlope(
+    const std::array<double, TDataSize>& rX,
+    const std::array<double, TDataSize>& rY)
+{
+    BoundedMatrix<double, TDataSize, 2> A;
+    array_1d<double, TDataSize> y;
+
+    for(unsigned int i=0; i<TDataSize; ++i){
+        A(i, 0) = 1.0;
+        A(i, 1) = std::log(rX[i]);
+        y(i)    = std::log(rY[i]);
+    }
+
+    const BoundedMatrix<double, 2, 2> AtA = prod(trans(A), A);
+    const array_1d<double, 2> AtY = prod(trans(A), y);
+
+    Vector p;
+    MathUtils<double>::Solve(AtA, p, AtY);
+
+    return p[1]; // slope
+}
+
+/**
+ * Runs a whole problem with the given strategy and
+ * checks that the deviation against the analytical solution
+ * stays below a tolerance.
+ */
+template<typename TStrategyType>
+inline void RunTest(const double tolerance)
 {
     KRATOS_TRY
 
@@ -162,68 +241,16 @@ void RunTest(const double tolerance)
     KRATOS_CATCH("");
 }
 
+/**
+ * Runs a whole problem with the given strategy and
+ * checks that the deviation against the analytical solution.
+ *
+ * This process is repeated with diferent time-step sizes in order
+ * to determine the convergence rate of the explicit strategy. This result
+ * is then checked againts the expected one.
+ */
 template<typename TStrategyType>
-void Solve(
-    ModelPart& rModelPart,
-    Node<3>& rTestNode,
-    const double time,
-    const unsigned int n_steps)
-{
-    KRATOS_TRY
-
-    rModelPart.CloneTimeStep(0.0);
-
-    // Create the explicit strategy
-    const bool move_mesh_flag = false;
-    const unsigned int rebuild_level = 0;
-    auto p_explicit_bs = Kratos::make_shared<ExplicitBuilderType>();
-    auto p_explicit_strategy = Kratos::make_unique<TStrategyType>(
-        rModelPart,
-        p_explicit_bs,
-        move_mesh_flag,
-        rebuild_level);
-
-    p_explicit_strategy->Initialize();
-    rTestNode.FastGetSolutionStepValue(TEMPERATURE) = 50.0; // Set initial solution
-
-    const double delta_time = time / n_steps;
-    for(unsigned int step=1; step<=n_steps; ++step)
-    {
-        rModelPart.CloneTimeStep(step * delta_time);
-        p_explicit_strategy->InitializeSolutionStep();
-        p_explicit_strategy->SolveSolutionStep();
-        p_explicit_strategy->FinalizeSolutionStep();
-    }
-
-    KRATOS_CATCH("");
-}
-
-template<unsigned int TDataSize>
-double LogFittingSlope(
-    const std::array<double, TDataSize>& rX,
-    const std::array<double, TDataSize>& rY)
-{
-    BoundedMatrix<double, TDataSize, 2> A;
-    array_1d<double, TDataSize> y;
-
-    for(unsigned int i=0; i<TDataSize; ++i){
-        A(i, 0) = 1.0;
-        A(i, 1) = std::log(rX[i]);
-        y(i)    = std::log(rY[i]);
-    }
-
-    const BoundedMatrix<double, 2, 2> AtA = prod(trans(A), A);
-    const array_1d<double, 2> AtY = prod(trans(A), y);
-
-    Vector p;
-    MathUtils<double>::Solve(AtA, p, AtY);
-
-    return p[1]; // slope
-}
-
-
-template<typename TStrategyType>
-void ConvergenceTest(const unsigned int ExpectedOrder)
+inline void ConvergenceTest(const unsigned int ExpectedOrder)
 {
     KRATOS_TRY
 
