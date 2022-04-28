@@ -94,7 +94,7 @@ void CopyPropertiesModeler::RecursivelyCopyProperties(
 template<class TContainerType>
 void CopyPropertiesModeler::ReplaceProperties(
     TContainerType& rContainer,
-    const ModelPart& rModelPart)
+    ModelPart& rModelPart)
 {
     block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
         auto properties_id = rEntity.GetProperties().Id();
