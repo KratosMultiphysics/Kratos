@@ -10,6 +10,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
 
 from KratosMultiphysics import IsDistributedRun
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
