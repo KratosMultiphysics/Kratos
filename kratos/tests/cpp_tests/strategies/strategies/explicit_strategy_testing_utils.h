@@ -7,8 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Eduard Gómez
 //
+
+#if !defined(KRATOS_EXPLICIT_STRATEGY_TEST_UTILS_H_INCLUDED)
+#define KRATOS_EXPLICIT_STRATEGY_TEST_UTILS_H_INCLUDED
 
 // System includes
 
@@ -25,26 +28,20 @@
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/strategies/explicit_solving_strategy_runge_kutta.h"
+#include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
 {
-namespace Testing
-{
-namespace
-{
-    typedef Node<3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
-    using ExplicitSolvingStrategyRungeKutta1Type = ExplicitSolvingStrategyRungeKutta1<SparseSpaceType, LocalSpaceType>;
-    using ExplicitSolvingStrategyRungeKutta2Type = ExplicitSolvingStrategyRungeKutta2<SparseSpaceType, LocalSpaceType>;
-    using ExplicitSolvingStrategyRungeKutta3Type = ExplicitSolvingStrategyRungeKutta3TVD<SparseSpaceType, LocalSpaceType>;
-    using ExplicitSolvingStrategyRungeKutta4Type = ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>;
+namespace ExplicitStrategyTestingUtils
+{
 
+typedef Node<3> NodeType;
+typedef Geometry<NodeType> GeometryType;
+typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+typedef ExplicitBuilder< SparseSpaceType, LocalSpaceType > ExplicitBuilderType;
 
 class AuxiliaryExplicitStrategiesTestElement : public Element
 {
@@ -262,52 +259,7 @@ void ConvergenceTest(const unsigned int ExpectedOrder)
     KRATOS_CATCH("");
 }
 
-}
-
-    /**
-     * Checks if the Linear strategy performs correctly the resolution of the system
-     */
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta1, KratosCoreFastSuite)
-    {
-        RunTest<ExplicitSolvingStrategyRungeKutta1Type>(1e-1);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta2, KratosCoreFastSuite)
-    {
-        RunTest<ExplicitSolvingStrategyRungeKutta2Type>(1e-2);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta3, KratosCoreFastSuite)
-    {
-        RunTest<ExplicitSolvingStrategyRungeKutta3Type>(1e-5);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4, KratosCoreFastSuite)
-    {
-        RunTest<ExplicitSolvingStrategyRungeKutta4Type>(1e-7);
-    }
-
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta1_convergence, KratosCoreFastSuite)
-    {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta1Type>(1);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta2_convergence, KratosCoreFastSuite)
-    {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta2Type>(2);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta3_convergence, KratosCoreFastSuite)
-    {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta3Type>(3);
-    }
-
-    KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyRungeKutta4_convergence, KratosCoreFastSuite)
-    {
-        ConvergenceTest<ExplicitSolvingStrategyRungeKutta4Type>(4);
-    }
-
-
-} // namespace Testing
+} // namespace ExplicitStrategyTestingUtils
 } // namespace Kratos
+
+#endif // KRATOS_EXPLICIT_STRATEGY_TEST_UTILS_H_INCLUDED
