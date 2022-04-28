@@ -131,7 +131,6 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         strategy_settings.AddEmptyValue("rebuild_level").SetInt(0 if self.settings["reform_dofs_at_each_step"].GetBool() else 1)
         strategy_settings.AddEmptyValue("move_mesh_flag").SetBool(self.settings["move_mesh_flag"].GetBool())
         strategy_settings.AddEmptyValue("shock_capturing_settings").RecursivelyAddMissingParameters(self.settings["shock_capturing_settings"])
-        strategy_settings.AddEmptyValue("store_error").SetBool(True)
 
         requested_strategy = self.settings["time_scheme"].GetString()
 
@@ -141,6 +140,9 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             "forward_euler" : KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyForwardEuler,
             "bfecc" :         KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyBFECC
         }
+
+        if requested_strategy == "bfecc":
+            strategy_settings.AddEmptyValue("store_error").SetBool(True)
 
         if requested_strategy in available_strategies:
             strat = available_strategies[requested_strategy](self.computing_model_part, strategy_settings)
