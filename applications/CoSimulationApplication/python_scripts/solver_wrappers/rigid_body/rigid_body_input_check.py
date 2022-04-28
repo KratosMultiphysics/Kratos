@@ -149,7 +149,7 @@ def _CreateListOfProcesses(model, parameters, main_model_part):
 
     # Import the processes and save them in a list
     list_of_processes = []
-    if parameters.Has("parameters"):
+    if parameters.Has("processes"):
         for process_type in process_types:
             if parameters["processes"].Has(process_type):
                 for process in parameters["processes"][process_type]:
