@@ -163,17 +163,29 @@ public:
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
      */
-    Parameters GetDefaultParameters() const override
+    virtual Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "explicit_solving_strategy_bfecc"
+            "name" : "explicit_solving_strategy_bfecc",
+            "store_error" : false
         })");
 
         // Getting base class default parameters
         const Parameters base_default_parameters = BaseType::GetDefaultParameters();
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        mStoreError = ThisParameters["store_error"].GetBool();
     }
 
     /**
@@ -232,6 +244,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    bool mStoreError = false;
 
     ///@}
     ///@name Protected member Variables
@@ -427,6 +440,24 @@ protected:
             double& solution_step_value = r_dof.GetSolutionStepValue(0);
             const double error = (solution_step_value - old_value)/2.0;
             solution_step_value = old_value - error;
+        }
+        );
+
+        if(!mStoreError) return;
+
+        auto& model_part = BaseType::GetModelPart();
+        block_for_each(model_part.Nodes(), [&](Node<3>& r_node)
+        {
+            constexpr double eps = 1e-12;
+            double rel_error = 0;
+            for(const auto& pr_dof : r_node.GetDofs())
+            {
+                const double old_value = pr_dof->GetSolutionStepValue(1);
+                double& new_value = pr_dof->GetSolutionStepValue(0);
+                const double dof_rel_error = (new_value - old_value)/(old_value + eps);
+                rel_error += dof_rel_error*dof_rel_error;
+            }
+            r_node.SetValue(NODAL_ERROR, std::sqrt(rel_error));
         }
         );
     }
