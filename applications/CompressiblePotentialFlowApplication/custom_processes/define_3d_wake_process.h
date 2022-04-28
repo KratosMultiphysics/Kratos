@@ -125,7 +125,7 @@ private:
 
     void ComputeAndSaveLocalWakeNormal() const;
 
-    void ShedWakeSurfaceFromTheTrailingEdge();
+    void ShedWakeSurfaceFromTheTrailingEdge() const;
 
     void DecreaseWakeWidthAtTheWingTips(array_1d<double, 3>& rPoint1,
                                         const array_1d<double, 3>& rPoint2) const;

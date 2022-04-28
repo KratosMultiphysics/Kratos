@@ -290,7 +290,7 @@ void Define3DWakeProcess::ComputeAndSaveLocalWakeNormal() const
 // of the wake surface in the wake direction. Note that the element size in span
 // direction is predetermined by the size of the conditions constituting the
 // trailing edge.
-void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge()
+void Define3DWakeProcess::ShedWakeSurfaceFromTheTrailingEdge() const
 {
     Properties::Pointer pElemProp = mrStlWakeModelPart.pGetProperties(0);
     const double number_of_elements = mSheddedWakeDistance / mSheddedWakeElementSize;
