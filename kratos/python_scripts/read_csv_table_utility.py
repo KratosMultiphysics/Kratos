@@ -89,5 +89,6 @@ class ReadCsvTableUtility:
         try:
             return float(value)
         except ValueError:
+            KM.Logger.PrintWarning(self.__class__.__name__, "{} replaced by {}".format(value, self.na_replace))
             return self.na_replace
 
