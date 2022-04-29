@@ -68,7 +68,11 @@ class ReadCsvTableUtility:
                         KM.Logger.PrintWarning("Only 2-column tables are supported. However, a {}-column row is found. Extra columns will be ignored.".format(len(row)))
                     table.AddRow(self._Float(row[0]), self._Float(row[1]))
         if self.table_id > -1:
-            model_part.AddTable(self.table_id, table)
+            if model_part:
+                model_part.AddTable(self.table_id, table)
+            else:
+                err_msg = "Asking to save table with id {} but no model part is provided.".format(self.table_id)
+                raise Exception(err_msg)
         return table
 
     def _Float(self, value):
