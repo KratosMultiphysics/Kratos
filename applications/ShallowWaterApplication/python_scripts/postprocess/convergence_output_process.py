@@ -50,6 +50,10 @@ class ConvergenceOutputProcess(KM.Process):
         else:
             self.integrate_over_all_the_domain = False
 
+    def ExecuteInitialize(self):
+        for variable in self.variables:
+            KM.VariableUtils().SetNonHistoricalVariableToZero(variable, self.model_part.Nodes)
+
     def ExecuteBeforeSolutionLoop(self):
         """Look for an existing dataset in the file."""
         self.dset = self._GetDataset()
