@@ -48,7 +48,7 @@ class ReadCsvTableUtility:
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.file_name = settings["file_name"].GetString()
+        self.filename = settings["filename"].GetString()
         self.delimiter = settings["delimiter"].GetString()
         self.skiprows = settings["skiprows"].GetInt()
         self.time_column_id = settings["time_column_id"].GetIn()
@@ -65,7 +65,7 @@ class ReadCsvTableUtility:
         """
         table = KM.PiecewiseLinearTable()
         minimum_columns = max(self.time_column_id, self.value_column_id) + 1
-        with open(self.file_name, 'r') as table_file:
+        with open(self.filename, 'r') as table_file:
             data = csv.reader(table_file, delimiter=self.delimiter, skipinitialspace=True)
             for _ in range(self.skiprows):
                 next(data)
