@@ -16,6 +16,7 @@
         "KratosMeshingApplication==${KRATOS_VERSION}",
         "KratosParticleMechanicsApplication==${KRATOS_VERSION}",
         "KratosPoroMechanicsApplication==${KRATOS_VERSION}",
+        "KratosShallowWaterApplication==${KRATOS_VERSION}",
         "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"
     ],
 	"author": "Kratos Team",
