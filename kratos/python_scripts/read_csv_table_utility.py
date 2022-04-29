@@ -34,7 +34,7 @@ class ReadCsvTableUtility:
         """
         default_settings =  KM.Parameters("""{
             "name"       : "csv_table",
-            "file_name"  : "",
+            "filename"  : "",
             "delimiter"  : ",",
             "skiprows"   : 0,
             "table_id"   : -1,
