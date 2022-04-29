@@ -76,6 +76,9 @@ class Optimizer:
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
         model_part.AddNodalSolutionStepVariable(KM.DISTANCE_GRADIENT)
 
+        # sensitivity heatmap
+        model_part.AddNodalSolutionStepVariable(KSO.SENS_HEATMAP)
+
     def __AddVariablesToBeUsedByDesignVariables(self):
         if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
             self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():

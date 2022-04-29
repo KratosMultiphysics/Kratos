@@ -94,6 +94,9 @@ namespace Kratos
     // For face angle response
     KRATOS_CREATE_VARIABLE(bool, CONSIDER_FACE_ANGLE);
 
+	// For sensitivity heatmap
+	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SENS_HEATMAP);
+
     // Eof variables
 
     KratosShapeOptimizationApplication::KratosShapeOptimizationApplication() :
@@ -174,6 +177,9 @@ namespace Kratos
 
         // For face angle response
         KRATOS_REGISTER_VARIABLE(CONSIDER_FACE_ANGLE);
+
+	    // For sensitivity heatmap
+	    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SENS_HEATMAP);
  	}
 
 }  // namespace Kratos.

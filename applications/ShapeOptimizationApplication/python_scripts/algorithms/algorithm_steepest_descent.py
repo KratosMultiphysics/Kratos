@@ -133,6 +133,38 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
+
+        ############ Calculate heatmap
+        # final update of shape
+        self.optimization_iteration += 1
+        self.__initializeNewShape()
+        # self.__analyzeShape()
+
+        # analyzeShape without damping
+        self.communicator.initializeCommunication()
+        self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
+        self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
+
+        self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
+
+        objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
+        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
+
+        if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
+            self.model_part_controller.ComputeUnitSurfaceNormals()
+            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
+
+        # set variables to zero
+        KM.VariableUtils().SetVariable(KSO.CONTROL_POINT_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+        KM.VariableUtils().SetVariable(KSO.SHAPE_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+        KM.VariableUtils().SetVariable(KSO.DF1DX_MAPPED, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+
+        # copy objective sensitivities to heat map
+        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.DF1DX, KSO.SENS_HEATMAP)
+
+        self.__logCurrentOptimizationStep()
+        ############ End of Calculate heatmap
+
         self.data_logger.FinalizeDataLogging()
         self.analyzer.FinalizeAfterOptimizationLoop()
 
