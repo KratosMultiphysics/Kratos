@@ -271,19 +271,25 @@ protected:
         const auto original_starting_values = ExtractSolutionStepData(1);
 
         // Take on step forward
-        const auto u_fixed = CopySolutionStepData(1, 0);
-        PerformSubstep(u_fixed, FORWARD);
+        {
+            const auto u_fixed = CopySolutionStepData(1, 0);
+            PerformSubstep(u_fixed, FORWARD);
+        }
 
         // Overwrite previous step solution with backwards step
-        const auto u_fixed = CopySolutionStepData(0, 1);
-        PerformSubstep(u_fixed, BACKWARD);
+        {
+            const auto u_fixed = CopySolutionStepData(0, 1);
+            PerformSubstep(u_fixed, BACKWARD);
+        }
 
         // Correct error with the previous step solution
         CorrectErrorAfterForwardsAndBackwards(original_starting_values);
 
         // Final update
-        const auto u_fixed = CopySolutionStepData(1, 0);
-        PerformSubstep(u_fixed, FINAL);
+        {
+            const auto u_fixed = CopySolutionStepData(1, 0);
+            PerformSubstep(u_fixed, FINAL);
+        }
 
         KRATOS_CATCH("");
     }
@@ -459,7 +465,7 @@ protected:
      * solution. Then stores the corrected starting point in the buffer position 1.
      * @param rPrevStepSolution
      */
-    void CorrectErrorAfterForwardsAndBackwards(const LocalSystemType& rPrevStepSolution)
+    void CorrectErrorAfterForwardsAndBackwards(const LocalSystemVectorType& rPrevStepSolution)
     {
         auto& explicit_bs = BaseType::GetExplicitBuilder();
         auto& r_dof_set = explicit_bs.GetDofSet();
@@ -468,20 +474,31 @@ protected:
             [&](const SizeType dof_index)
             {
                 const double prev_step_solution = rPrevStepSolution[dof_index];
-                const auto r_dof = r_dof_set.begin() + dof_index;
+                auto& r_dof = *(r_dof_set.begin() + dof_index);
 
                 const double error = (r_dof.GetSolutionStepValue(0) - prev_step_solution)/2.0;
 
                 r_dof.GetSolutionStepValue(1) = prev_step_solution - error;
 
-                if(!mStoreError) return;
+            }
+        );
+        if(!mStoreError) return;
 
-                const auto& var = r_dof.GetVariable();
-                if(var == DENSITY)      { r_node.SetValue(NODAL_ERROR, error));             return; }
-                if(var == MOMENTUM_X)   { r_node.SetValue(NODAL_ERROR_COMPONENTS, error));  return; }
-                if(var == MOMENTUM_Y)   { r_node.SetValue(NODAL_ERROR_COMPONENTS, error));  return; }
-                if(var == MOMENTUM_Z)   { r_node.SetValue(NODAL_ERROR_COMPONENTS, error));  return; }
-                if(var == TOTAL_ENERGY) { r_node.SetValue(ERROR_INTEGRATION_POINT, error)); return; }
+        // DEBUGGING
+        // TODO: Remove this before merging.
+        block_for_each(BaseType::GetModelPart().Nodes(),
+            [&](Node<3> & r_node) {
+                for(const auto& pr_dof: r_node.GetDofs())
+                {
+                    const double error = pr_dof->GetSolutionStepValue(1) - rPrevStepSolution[pr_dof->EquationId()];
+                    const auto& r_var = pr_dof->GetVariable();
+
+                    if(r_var == DENSITY)      { r_node.SetValue(NODAL_ERROR, error);               continue; }
+                    if(r_var == MOMENTUM_X)   { r_node.SetValue(NODAL_ERROR_COMPONENTS_X, error);  continue; }
+                    if(r_var == MOMENTUM_Y)   { r_node.SetValue(NODAL_ERROR_COMPONENTS_Y, error);  continue; }
+                    if(r_var == MOMENTUM_Z)   { r_node.SetValue(NODAL_ERROR_COMPONENTS_Z, error);  continue; }
+                    if(r_var == TOTAL_ENERGY) { r_node.SetValue(ERROR_INTEGRATION_POINT, error);   continue; }
+                }
             }
         );
     }
