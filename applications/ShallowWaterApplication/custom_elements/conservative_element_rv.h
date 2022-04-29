@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
-#define KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
+#ifndef KRATOS_CONSERVATIVE_ELEMENT_RV_H_INCLUDED
+#define KRATOS_CONSERVATIVE_ELEMENT_RV_H_INCLUDED
 
 // System includes
 
@@ -20,7 +20,7 @@
 
 
 // Project includes
-#include "wave_element.h"
+#include "conservative_element.h"
 
 namespace Kratos
 {
@@ -48,7 +48,7 @@ namespace Kratos
 
 ///@brief Implementation of a linear element for shallow water problems
 template<std::size_t TNumNodes>
-class ConservativeElement : public WaveElement<TNumNodes>
+class ConservativeElementRV : public ConservativeElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -60,25 +60,27 @@ public:
 
     typedef Geometry<NodeType> GeometryType;
 
-    typedef WaveElement<TNumNodes> WaveElementType;
+    typedef ConservativeElement<TNumNodes> ConservativeElementType;
 
-    typedef typename WaveElementType::NodesArrayType NodesArrayType;
+    typedef typename ConservativeElementType::WaveElementType WaveElementType;
 
-    typedef typename WaveElementType::PropertiesType PropertiesType;
+    typedef typename ConservativeElementType::NodesArrayType NodesArrayType;
 
-    typedef typename WaveElementType::ElementData ElementData;
+    typedef typename ConservativeElementType::PropertiesType PropertiesType;
 
-    typedef typename WaveElementType::LocalMatrixType LocalMatrixType;
+    typedef typename ConservativeElementType::ElementData ElementData;
 
-    typedef typename WaveElementType::LocalVectorType LocalVectorType;
+    typedef typename ConservativeElementType::LocalMatrixType LocalMatrixType;
 
-    typedef typename WaveElementType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    typedef typename ConservativeElementType::LocalVectorType LocalVectorType;
+
+    typedef typename ConservativeElementType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     ///@}
     ///@name Pointer definition
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConservativeElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConservativeElementRV);
 
     ///@}
     ///@name Life Cycle
@@ -87,27 +89,27 @@ public:
     /**
      * @brief Default constructor
      */
-    ConservativeElement() : WaveElementType(){}
+    ConservativeElementRV() : ConservativeElementType(){}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    ConservativeElement(IndexType NewId, const NodesArrayType& ThisNodes) : WaveElementType(NewId, ThisNodes){}
+    ConservativeElementRV(IndexType NewId, const NodesArrayType& ThisNodes) : ConservativeElementType(NewId, ThisNodes){}
 
     /**
      * @brief Constructor using Geometry
      */
-    ConservativeElement(IndexType NewId, GeometryType::Pointer pGeometry) : WaveElementType(NewId, pGeometry){}
+    ConservativeElementRV(IndexType NewId, GeometryType::Pointer pGeometry) : ConservativeElementType(NewId, pGeometry){}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    ConservativeElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveElementType(NewId, pGeometry, pProperties){}
+    ConservativeElementRV(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : ConservativeElementType(NewId, pGeometry, pProperties){}
 
     /**
      * @brief Destructor
      */
-    ~ ConservativeElement() override {};
+    ~ ConservativeElementRV() override {};
 
     ///@}
     ///@name Operations
@@ -122,7 +124,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<ConservativeElement<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<ConservativeElementRV<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -134,7 +136,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<ConservativeElement<TNumNodes>>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<ConservativeElementRV<TNumNodes>>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -152,16 +154,6 @@ public:
     }
 
     ///@}
-    ///@name Inquiry
-    ///@{
-
-    /**
-     * @brief This method provides the specifications/requirements of the element
-     * @return specifications The required specifications/requirements
-     */
-    const Parameters GetSpecifications() const override;
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -170,7 +162,7 @@ public:
      */
     std::string Info() const override
     {
-        return "ConservativeElement";
+        return "ConservativeElementRV";
     }
 
     ///@}
@@ -179,19 +171,13 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    static constexpr IndexType mLocalSize = WaveElementType::mLocalSize;
+    static constexpr IndexType mLocalSize = ConservativeElementType::mLocalSize;
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-    const Variable<double>& GetUnknownComponent(int Index) const override;
-
-    LocalVectorType GetUnknownVector(const ElementData& rData) const override;
-
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0) override;
-
-    void UpdateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
 
     void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
@@ -200,15 +186,37 @@ protected:
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
 
-    void CalculateArtificialDamping(
-        BoundedMatrix<double,3,3>& rFriction,
-        const ElementData& rData) override;
+    void ShockCapturingParameters(
+        double& rArtViscosity,
+        double& rArtDiffusion,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
-    double StabilizationParameter(const ElementData& rData) const override;
+    void AlgebraicResidual(
+        array_1d<double,3>& rFlowResidual,
+        double& rHeightresidual,
+        BoundedMatrix<double,3,3>& rFlowGrad,
+        array_1d<double,3>& rHeightGrad,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void CalculateGradient(array_1d<double,2>& rGradient, const GeometryType& rGeometry);
+    void StreamLineTensor(
+        BoundedMatrix<double,2,2>& rTensor,
+        const array_1d<double,3>& rVector);
 
-    void CalculateEdgeUnitNormal(array_1d<double,2>& rNormal, const GeometryType& rGeometry);
+    void CrossWindTensor(
+        BoundedMatrix<double,2,2>& rTensor,
+        const array_1d<double,3>& rVector);
+
+    void StreamLineTensor(
+        BoundedMatrix<double,3,3>& rTensor,
+        const array_1d<double,3>& rVector);
+
+    void CrossWindTensor(
+        BoundedMatrix<double,3,3>& rTensor,
+        const array_1d<double,3>& rVeector);
 
     ///@}
 
@@ -240,7 +248,7 @@ private:
 
     ///@}
 
-}; // Class ConservativeElement
+}; // Class ConservativeElementRV
 
 ///@}
 ///@name Input and output
@@ -253,4 +261,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_CONSERVATIVE_ELEMENT_RV_H_INCLUDED  defined

@@ -27,6 +27,18 @@ namespace Kratos
 {
 
 template<std::size_t TNumNodes>
+const Parameters ConservativeElement<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["MOMENTUM","VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_dofs"              : ["MOMENTUM_X","MOMENTUM_Y","HEIGHT"],
+        "compatible_geometries"      : ["Triangle2D3"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
+
+template<std::size_t TNumNodes>
 const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int Index) const
 {
     switch (Index) {
@@ -131,8 +143,8 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
-    double jump = 0;
-    array_1d<double,2> inner_grad_h = prod(rData.nodal_h, rDN_DX);
+    double jump = .0;
+    array_1d<double,2> inner_grad_h = prod(rData.nodal_h + rData.nodal_z, rDN_DX);
     for (auto& r_elem : this->GetValue(NEIGHBOUR_ELEMENTS)) {
         array_1d<double,2> outer_grad_h;
         array_1d<double,2> normal;
@@ -156,11 +168,15 @@ void ConservativeElement<TNumNodes>::CalculateArtificialDamping(
     BoundedMatrix<double,3,3>& rDamping,
     const ElementData& rData)
 {
+    // Add the absorbing boundary damping
+    WaveElementType::CalculateArtificialDamping(rDamping, rData);
+
+    // Add the dry domain damping
     double factor = 1e3 / rData.length;
     double threshold = rData.relative_dry_height * rData.length;
     factor *= 1.0 - PhaseFunction::WetFraction(rData.height, threshold);
-    rDamping(0,0) = factor;
-    rDamping(1,1) = factor;
+    rDamping(0,0) += factor;
+    rDamping(1,1) += factor;
 }
 
 template<std::size_t TNumNodes>
@@ -175,6 +191,7 @@ void ConservativeElement<TNumNodes>::CalculateGradient(
     array_1d<double,3> nodal_h;
     for (IndexType i = 0; i < TNumNodes; i++) {
         nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
+        nodal_h[i] += rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
     }
     rGradient = prod(nodal_h, DN_DX);
 }

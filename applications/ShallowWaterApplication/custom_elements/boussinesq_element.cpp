@@ -27,6 +27,18 @@ namespace Kratos
 {
 
 template<std::size_t TNumNodes>
+const Parameters BoussinesqElement<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["VELOCITY","FREE_SURFACE_ELEVATION","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY","VELOCITY_LAPLACIAN","VELOCITY_H_LAPLACIAN"],
+        "required_dofs"              : ["VELOCITY_X","VELOCITY_Y","FREE_SURFACE_ELEVATION"],
+        "compatible_geometries"      : ["Triangle2D3"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
+
+template<std::size_t TNumNodes>
 const Variable<double>& BoussinesqElement<TNumNodes>::GetUnknownComponent(int Index) const
 {
     switch (Index) {
@@ -177,14 +189,14 @@ void BoussinesqElement<TNumNodes>::AlgebraicResidual(
 
     // Spatial derivatives
     rFreeSurfaceGradient = prod(rData.nodal_f, rDN_DX);
-    const double v_divergence = WaveElementType::VectorProduct(rData.nodal_v, rDN_DX);
+    const double v_divergence = WaveElementType::VectorDivergence(rData.nodal_v, rDN_DX);
 
     // Mass conservation residual
     const double vertical_vel = inner_prod(rData.nodal_w, rN);
     const double wave_f = rData.height * v_divergence;
     const double convection_f = rData.velocity[0] * rFreeSurfaceGradient[0] + rData.velocity[1] * rFreeSurfaceGradient[1];
-    double dispersion_f = C1 * H3 * WaveElementType::VectorProduct(rData.nodal_v_lap, rDN_DX);
-    dispersion_f       += C3 * H2 * WaveElementType::VectorProduct(rData.nodal_q_lap, rDN_DX);
+    double dispersion_f = C1 * H3 * WaveElementType::VectorDivergence(rData.nodal_v_lap, rDN_DX);
+    dispersion_f       += C3 * H2 * WaveElementType::VectorDivergence(rData.nodal_q_lap, rDN_DX);
     rMassResidual = vertical_vel + wave_f + convection_f + dispersion_f;
 }
 
@@ -407,7 +419,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
         this->AddWaveTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddFrictionTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
-        this->AddArtificialViscosityTerms(lhs, rData, N, DN_DX, weight);
+        this->AddArtificialViscosityTerms(lhs, rRHS, rData, N, DN_DX, weight);
 
         // Deactivating the dry domain
         const double w = WaveElementType::WetFraction(rData);
