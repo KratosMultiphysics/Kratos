@@ -845,7 +845,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 0.9; // 10% less then normal nodes
 					}
 				}
 			}
@@ -1082,7 +1082,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 0.85; // 15% less then normal nodes
 					}
 				}
 			}
@@ -1460,7 +1460,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 0.9; // 10% less then normal nodes
 					}
 				}
 			}
@@ -1794,7 +1794,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9;
+						penalization = 0.85; // 15% less then normal nodes
 					}
 				}
 			}
@@ -2090,6 +2090,8 @@ namespace Kratos
 
 				mrModelPart.Nodes().push_back(*(it));
 			}
+
+			KRATOS_WATCH(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes)
 
 			KRATOS_CATCH("")
 		}

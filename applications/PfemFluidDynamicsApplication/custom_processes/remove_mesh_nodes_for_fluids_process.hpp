@@ -538,7 +538,16 @@ namespace Kratos
 					}
 					else if (interfaceElement == true)
 					{
-						radius = 0.55 * initialMeanRadius;
+						if (dimension == 2)
+							radius = 0.54 * initialMeanRadius; // 10% less then normal nodes
+						if (dimension == 3)
+							radius = 0.51 * initialMeanRadius; // 15% less then normal nodes
+
+						// if ((propertyIdNode == principalModelPartId && mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0) ||
+						// 	(propertyIdNode != principalModelPartId && mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0))
+						// {
+						// 	radius *= 0.95;
+						// }
 					}
 
 					if (in->Is(INLET))
@@ -769,6 +778,7 @@ namespace Kratos
 				std::cout << "boundary_nodes_removed " << boundary_nodes_removed << std::endl;
 				std::cout << "inside_nodes_removed " << inside_nodes_removed << std::endl;
 			}
+			KRATOS_WATCH(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes)
 			return any_node_removed;
 
 			KRATOS_CATCH(" ")
