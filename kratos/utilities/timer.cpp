@@ -106,7 +106,20 @@ void Timer::TimerData::PrintData(
 /// Default constructor.
 Timer::Timer(){}
 
-void Timer::Start(std::string const& rIntervalName)
+void Timer::Start(std::string const& rFullIntervalName)
+{
+    std::vector<std::string> all_interval_names;
+    std::string token;
+    std::stringstream ss(rFullIntervalName);
+    while (getline(ss, token, '/')){
+        all_interval_names.push_back(token);
+    }
+    for (auto& interval_name : all_interval_names) {
+        StartInterval(interval_name);
+    }
+}
+
+void Timer::StartInterval(std::string const& rIntervalName)
 {
     GetLabelsStackInstance().push_back(rIntervalName);
     auto full_name = CreateFullLabel();
@@ -122,7 +135,20 @@ void Timer::Start(std::string const& rIntervalName)
     it_time_data->second.SetStartTime(GetTime());
 }
 
-void Timer::Stop(std::string const& rIntervalName)
+void Timer::Stop(std::string const& rFullIntervalName)
+{
+    std::vector<std::string> all_interval_names;
+    std::string token;
+    std::stringstream ss(rFullIntervalName);
+    while (getline(ss, token, '/')){
+        all_interval_names.push_back(token);
+    }
+    for (auto& interval_name : all_interval_names) {
+        StopInterval(interval_name);
+    }
+}
+
+void Timer::StopInterval(std::string const& rIntervalName)
 {
     auto full_name = CreateFullLabel();
     GetLabelsStackInstance().pop_back();

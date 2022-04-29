@@ -305,6 +305,18 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method starts the timer meassures
+     * @param rIntervalName The internal name that will store the timing data
+     */
+    static void StartInterval(std::string const& rIntervalName);
+
+    /**
+     * @brief This method stops the timer meassures
+     * @param rIntervalName The internal name that will store the timing data
+     */
+    static void StopInterval(std::string const& rIntervalName);
+
     ///@}
     ///@name Protected  Access
     ///@{
