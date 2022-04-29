@@ -50,6 +50,10 @@ class ConvergenceOutputProcess(KM.Process):
         else:
             self.integrate_over_all_the_domain = False
 
+    def ExecuteInitialize(self):
+        for variable in self.variables:
+            KM.VariableUtils().SetNonHistoricalVariableToZero(variable, self.model_part.Nodes)
+
     def ExecuteBeforeSolutionLoop(self):
         """Look for an existing dataset in the file."""
         self.dset = self._GetDataset()
@@ -137,6 +141,7 @@ class ConvergenceOutputProcess(KM.Process):
     def _GetDataset(self):
         for name, data in self.f.items():
             if self._CheckAttributes(data.attrs):
+                self._CheckNumberOfFields(data)
                 return data
 
         dset_name = "analysis_{:03d}".format(self.f.items().__len__())
@@ -144,6 +149,15 @@ class ConvergenceOutputProcess(KM.Process):
         dset = self.f.create_dataset(dset_name, (0,), maxshape=(None,), chunks=True, dtype=header)
         self._WriteAttributes(dset)
         return dset
+
+    def _CheckNumberOfFields(self, dset):
+        header = self._GetHeaderDtype()
+        if len(dset.dtype) != len(header):
+            msg  = f"ConvergenceOutputProcess [HDF5]: "
+            msg += f"Trying to write a different number of variables from previous simulations.\n"
+            msg += f"\nThe existing dataset has {len(dset.dtype)} fields -- {dset.dtype}\n"
+            msg += f"\nThe current case has {len(header)} fields -- {header}."
+            raise Exception(msg)
 
     def _GetHeaderDtype(self):
         header = [
