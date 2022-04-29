@@ -6,6 +6,7 @@
         "KratosMultiphysics==${KRATOS_VERSION}",
         "KratosContactStructuralMechanicsApplication==${KRATOS_VERSION}",
         "KratosConvectionDiffusionApplication==${KRATOS_VERSION}",
+        "KratosConstitutiveLawsApplication==${KRATOS_VERSION}",
         "KratosCoSimulationApplication==${KRATOS_VERSION}",
         "KratosDamApplication==${KRATOS_VERSION}",
         "KratosDEMApplication==${KRATOS_VERSION}",
