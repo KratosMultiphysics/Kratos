@@ -91,7 +91,7 @@ class TestProcesses(KratosUnittest.TestCase):
                         "constrained"     : true,
                         "value"           : {
                             "name"            : "csv_table",
-                            "file_name"       : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
+                            "filename"        : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
                             "delimiter"       : ",",
                             "skiprows"        : 1,
                             "na_replace"      : 0.0
@@ -128,7 +128,7 @@ class TestProcesses(KratosUnittest.TestCase):
                             null,
                             {
                                 "name"       : "csv_table",
-                                "file_name"  : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
+                                "filename"   : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
                                 "delimiter"  : ",",
                                 "skiprows"   : 1
                             }

@@ -23,7 +23,7 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
     - parameters: a csv table can be specified. Example:
         {
             "name"       : "csv_table",
-            "file_name"  : "path/to/file.csv",
+            "filename"   : "path/to/file.csv",
             "delimiter"  : ",",
             "skiprows"   : 0,
             "table_id"   : -1,

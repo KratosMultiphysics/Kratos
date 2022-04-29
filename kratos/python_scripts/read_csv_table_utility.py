@@ -8,7 +8,7 @@ class ReadCsvTableUtility:
     |---------------|---------------------------------------------------|
     | "name"        | The type of input (csv_table)                     |
     |---------------|---------------------------------------------------|
-    | "file_name"   | The file name                                     |
+    | "filename"    | The file name                                     |
     |---------------|---------------------------------------------------|
     | "delimiter"   | ","  comma                                        |
     |               | ";"  semicolon                                    |
@@ -34,7 +34,7 @@ class ReadCsvTableUtility:
         """
         default_settings =  KM.Parameters("""{
             "name"       : "csv_table",
-            "filename"  : "",
+            "filename"   : "",
             "delimiter"  : ",",
             "skiprows"   : 0,
             "table_id"   : -1,
