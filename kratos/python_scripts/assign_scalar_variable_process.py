@@ -26,8 +26,6 @@ class AssignScalarVariableProcess(KratosMultiphysics.Process):
             "filename"   : "path/to/file.csv",
             "delimiter"  : ",",
             "skiprows"   : 0,
-            "table_id"   : -1,
-            "na_replace" : 0.0
         }
     """
 
