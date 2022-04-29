@@ -168,6 +168,12 @@ void Timer::StopInterval(std::string const& rIntervalName)
 
 int Timer::SetOuputFile(std::string const& rOutputFileName)
 {
+    KRATOS_WARNING("DEPRECATION") << "Please fix spelling: SetOuputFile -> SetOutputFile" << std::endl;
+    return SetOutputFile(rOutputFileName);
+}
+
+int Timer::SetOutputFile(std::string const& rOutputFileName)
+{
     if(msOutputFile.is_open())
         msOutputFile.close();
 
@@ -181,6 +187,12 @@ int Timer::SetOuputFile(std::string const& rOutputFileName)
 }
 
 int Timer::CloseOuputFile()
+{
+    KRATOS_WARNING("DEPRECATION") << "Please fix spelling: CloseOuputFile -> CloseOutputFile" << std::endl;
+    return CloseOutputFile();
+}
+
+int Timer::CloseOutputFile()
 {
     if(msOutputFile.is_open())
         msOutputFile.close();

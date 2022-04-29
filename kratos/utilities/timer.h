@@ -191,11 +191,13 @@ public:
      * @param rOutputFileName The name of the output file
      */
     static int SetOuputFile(std::string const& rOutputFileName);
+    static int SetOutputFile(std::string const& rOutputFileName);
 
     /**
      * @brief This method closes the output file
      */
     static int CloseOuputFile();
+    static int CloseOutputFile();
 
     /**
      * @brief This method gets the variable which stores if the information is printed on screen
