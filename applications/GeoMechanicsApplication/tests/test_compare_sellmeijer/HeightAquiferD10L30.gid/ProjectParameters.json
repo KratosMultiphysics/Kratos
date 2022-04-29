@@ -65,7 +65,7 @@
         "line_search_tolerance": 0.5,
         "rotation_dofs": true,
         "linear_solver_settings": {
-            "solver_type": "LinearSolversApplication.sparse_lu",
+            "solver_type": "LinearSolversApplication.skyline_lu_factorization",
             "scaling": true
         },
         "problem_domain_sub_model_part_list": [
@@ -118,18 +118,6 @@
                                 "LOCAL_FLUID_FLUX_VECTOR",
                                 "LOCAL_PERMEABILITY_MATRIX",
                                 "HYDRAULIC_HEAD",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
                                 "PIPE_ACTIVE"
                             ]
                         },
@@ -151,7 +139,7 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 3.33,
+                    "reference_coordinate": 2.47,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000
@@ -167,7 +155,7 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 0,
+                    "reference_coordinate": 0.0,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000

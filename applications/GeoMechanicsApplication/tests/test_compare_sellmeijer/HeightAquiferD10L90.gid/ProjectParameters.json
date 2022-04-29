@@ -118,13 +118,6 @@
                                 "LOCAL_FLUID_FLUX_VECTOR",
                                 "LOCAL_PERMEABILITY_MATRIX",
                                 "HYDRAULIC_HEAD",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
-                                "PIPE_ACTIVE",
                                 "PIPE_ACTIVE"
                             ]
                         },
@@ -141,7 +134,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Right_head",
+                    "model_part_name": "PorousDomain.Left_head",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
@@ -157,12 +150,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyScalarConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Left_head",
+                    "model_part_name": "PorousDomain.Right_head",
                     "variable_name": "WATER_PRESSURE",
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 8.81,
+                    "reference_coordinate": 0,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000

@@ -19,7 +19,7 @@ Importing    KratosGeoMechanicsApplication
   //    / / //       //   / /          
  ((____/ / ((____   ((___/ /  MECHANICS
  Initializing KratosGeoMechanicsApplication...
-GeoMechanics Analysis: Mon Apr 25 14:51:02 2022 
+GeoMechanics Analysis: Thu Apr 28 14:32:50 2022 
 [WARNING] OpenMPUtils: "SetNumThreads" is deprecated, please use ParallelUtilities.SetNumThreads instead
 [WARNING] OpenMPUtils: "GetNumThreads" is deprecated, please use ParallelUtilities.GetNumThreads instead
 GeoMechanics Analysis: OpenMP parallel configuration. OMP_NUM_THREADS = 1 
@@ -30,11 +30,11 @@ GeoMechanics_Pw_Solver: Construction of Solver finished.
 ::[GeoMechanicalSolver]:: : Variables ADDED 
 ::[PythonSolver]::: Reading model part. 
 SingleImportModelPart: Reading model part from file: D:\kratos_new\applications\GeoMechanicsApplication\tests\test_compare_sellmeijer\HeightAquiferD20L90.gid/HeightAquiferD20L90.mdpa
-ModelPartIO:   [Reading Nodes    : 347 nodes read]
-ModelPartIO:   [Reading Elements : 460 elements read] [Type: SteadyStatePwElement2D3N]
-ModelPartIO:   [Reading Elements : 70 elements read] [Type: SteadyStatePwElement2D3N]
-ModelPartIO:   [Reading Elements : 18 elements read] [Type: SteadyStatePwInterfaceElement2D4N]
-ModelPartIO:   [Total Lines Read : 2830]
+ModelPartIO:   [Reading Nodes    : 664 nodes read]
+ModelPartIO:   [Reading Elements : 755 elements read] [Type: SteadyStatePwElement2D3N]
+ModelPartIO:   [Reading Elements : 302 elements read] [Type: SteadyStatePwElement2D3N]
+ModelPartIO:   [Reading Elements : 60 elements read] [Type: SteadyStatePwInterfaceElement2D4N]
+ModelPartIO:   [Total Lines Read : 5540]
 SingleImportModelPart: Finished reading model part from mdpa file.
 ModelPart: -PorousDomain- model part
     Buffer Size : 1
@@ -47,9 +47,9 @@ ModelPart: -PorousDomain- model part
 
     Number of Geometries  : 0
     Mesh 0 :
-        Number of Nodes       : 347
+        Number of Nodes       : 664
         Number of Properties  : 3
-        Number of Elements    : 548
+        Number of Elements    : 1117
         Number of Conditions  : 0
         Number of Constraints : 0
 
@@ -59,9 +59,9 @@ ModelPart: -PorousDomain- model part
 
         Number of Geometries  : 0
         Mesh 0 :
-            Number of Nodes       : 56
+            Number of Nodes       : 198
             Number of Properties  : 0
-            Number of Elements    : 70
+            Number of Elements    : 302
             Number of Conditions  : 0
             Number of Constraints : 0
     -Left_head- model part
@@ -70,7 +70,7 @@ ModelPart: -PorousDomain- model part
 
         Number of Geometries  : 0
         Mesh 0 :
-            Number of Nodes       : 31
+            Number of Nodes       : 41
             Number of Properties  : 0
             Number of Elements    : 0
             Number of Conditions  : 0
@@ -81,9 +81,9 @@ ModelPart: -PorousDomain- model part
 
         Number of Geometries  : 0
         Mesh 0 :
-            Number of Nodes       : 36
+            Number of Nodes       : 120
             Number of Properties  : 0
-            Number of Elements    : 18
+            Number of Elements    : 60
             Number of Conditions  : 0
             Number of Constraints : 0
     -Right_head- model part
@@ -103,9 +103,9 @@ ModelPart: -PorousDomain- model part
 
         Number of Geometries  : 0
         Mesh 0 :
-            Number of Nodes       : 293
+            Number of Nodes       : 468
             Number of Properties  : 0
-            Number of Elements    : 460
+            Number of Elements    : 755
             Number of Conditions  : 0
             Number of Constraints : 0
     -gravity- model part
@@ -114,9 +114,9 @@ ModelPart: -PorousDomain- model part
 
         Number of Geometries  : 0
         Mesh 0 :
-            Number of Nodes       : 347
+            Number of Nodes       : 664
             Number of Properties  : 0
-            Number of Elements    : 530
+            Number of Elements    : 1057
             Number of Conditions  : 0
             Number of Constraints : 0
  
@@ -151,29 +151,29 @@ GeoMechanics Analysis: cycle:  1
 GeoMechanics Analysis: STEP      :  1 
 GeoMechanics Analysis: DELTA_TIME:  1.0 
 GeoMechanics Analysis: TIME      :  1.0 
-ResidualBasedNewtonRaphsonStrategy: Setup Dofs Time: 0.0005322
-ResidualBasedNewtonRaphsonStrategy: Setup System Time: 4.4e-06
-ResidualBasedNewtonRaphsonStrategy: System Matrix Resize Time: 0.000482
-ResidualBasedNewtonRaphsonStrategy: System Construction Time: 0.0010605
-ResidualBasedBlockBuilderAndSolver: Build time: 0.0024686
-ResidualBasedBlockBuilderAndSolver: System solve time: 0.0010703
+ResidualBasedNewtonRaphsonStrategy: Setup Dofs Time: 0.0011471
+ResidualBasedNewtonRaphsonStrategy: Setup System Time: 5.8e-06
+ResidualBasedNewtonRaphsonStrategy: System Matrix Resize Time: 0.0015768
+ResidualBasedNewtonRaphsonStrategy: System Construction Time: 0.0028256
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0027103
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0016891
 CONVERGENCE CHECK:
- WATER_PRESSURE : ratio = 1; exp.ratio = 0.0001 abs = 7.54909 exp.abs = 1e-09
-ResidualBasedBlockBuilderAndSolver: Build time: 0.0014678
-ResidualBasedBlockBuilderAndSolver: System solve time: 0.0005741
+ WATER_PRESSURE : ratio = 1; exp.ratio = 0.0001 abs = 3.89131 exp.abs = 1e-09
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0032294
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0015366
 CONVERGENCE CHECK:
- WATER_PRESSURE : ratio = 0.00120696; exp.ratio = 0.0001 abs = 0.00911157 exp.abs = 1e-09
-ResidualBasedBlockBuilderAndSolver: Build time: 0.0014102
-ResidualBasedBlockBuilderAndSolver: System solve time: 0.0005966
+ WATER_PRESSURE : ratio = 0.00147438; exp.ratio = 0.0001 abs = 0.00573721 exp.abs = 1e-09
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0031302
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0020951
 CONVERGENCE CHECK:
- WATER_PRESSURE : ratio = 5.2228e-05; exp.ratio = 0.0001 abs = 0.000394278 exp.abs = 1e-09
+ WATER_PRESSURE : ratio = 3.97229e-05; exp.ratio = 0.0001 abs = 0.000154572 exp.abs = 1e-09
 *** CONVERGENCE IS ACHIEVED ***
 ResidualBasedNewtonRaphsonStrategy: Convergence achieved after 3 / 15 iterations
 GeoMechanics Analysis: Up-scaling with factor:  2.0 
 GeoMechanics Analysis: Analysis -END-  
 BuilderAndSolver: Clear Function called
-GeoMechanics Analysis: Analysis Completed. Elapsed Time = 0.090  seconds. 
-GeoMechanics Analysis: Mon Apr 25 14:51:02 2022 
+GeoMechanics Analysis: Analysis Completed. Elapsed Time = 0.149  seconds. 
+GeoMechanics Analysis: Thu Apr 28 14:32:50 2022 
 BuilderAndSolver: Clear Function called
 BuilderAndSolver: Clear Function called
 KRATOS TERMINATED CORRECTLY

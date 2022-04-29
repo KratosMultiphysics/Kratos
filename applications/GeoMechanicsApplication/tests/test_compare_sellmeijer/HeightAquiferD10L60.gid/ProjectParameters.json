@@ -139,7 +139,7 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 0,
+                    "reference_coordinate": 4.86,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000
@@ -155,7 +155,7 @@
                     "is_fixed": true,
                     "fluid_pressure_type": "Hydrostatic",
                     "gravity_direction": 1,
-                    "reference_coordinate": 6.2,
+                    "reference_coordinate": 0.0,
                     "table": 0,
                     "pressure_tension_cut_off": 0.0,
                     "specific_weight": 10000
