@@ -51,6 +51,7 @@ class ConvergenceOutputProcess(KM.Process):
             self.integrate_over_all_the_domain = False
 
     def ExecuteBeforeSolutionLoop(self):
+        """Look for an existing dataset in the file."""
         self.dset = self._GetDataset()
         self.start_time = time.time()
 
@@ -64,9 +65,15 @@ class ConvergenceOutputProcess(KM.Process):
         return False
 
     def PrintOutput(self):
+        """Write the values into the file."""
         self._WriteAverageError()
 
+    def ExecuteFinalize(self):
+        """Close the file."""
+        self.f.close()
+
     def Check(self):
+        """Check the correctness of the input parameters."""
         for variable in self.variables:
             if not isinstance(variable, KM.DoubleVariable):
                 raise Exception("This process is expecting only double or component variables")
