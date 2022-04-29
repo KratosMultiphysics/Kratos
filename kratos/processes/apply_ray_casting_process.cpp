@@ -54,6 +54,20 @@ namespace Kratos
 	{
 	}
 
+	template <std::size_t TDim>
+	ApplyRayCastingProcess<TDim>::ApplyRayCastingProcess(
+		FindIntersectedGeometricalObjectsProcess &TheFindIntersectedObjectsProcess,
+		const double RelativeTolerance,
+		const Variable<double>* pDistanceVariable,
+		const DistanceDatabase& rDistanceDatabase)
+		: mRelativeTolerance(RelativeTolerance),
+		  mpFindIntersectedObjectsProcess(&TheFindIntersectedObjectsProcess),
+		  mIsSearchStructureAllocated(false),
+		  mpDistanceVariable(pDistanceVariable)
+		, mDistanceDatabase(rDistanceDatabase)
+	{
+	}
+
 	template<std::size_t TDim>
 	ApplyRayCastingProcess<TDim>::~ApplyRayCastingProcess()
 	{
@@ -65,14 +79,22 @@ namespace Kratos
 	void ApplyRayCastingProcess<TDim>::Execute()
 	{
         if(mIsSearchStructureAllocated) // we have not initialized it yet
-            mpFindIntersectedObjectsProcess->Initialize();
+            mpFindIntersectedObjectsProcess->ExecuteInitialize();
 
 		this->SetRayCastingTolerances();
 
 		ModelPart& ModelPart1 = mpFindIntersectedObjectsProcess->GetModelPart1();
 
+		// Set the getter function according to the database to be used
+		NodeScalarGetFunctionType node_distance_getter;
+		if (mDistanceDatabase == DistanceDatabase::NodeHistorical) {
+			node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.FastGetSolutionStepValue(rDistanceVariable);};
+		} else {
+			node_distance_getter = [](NodeType& rNode, const Variable<double>& rDistanceVariable)->double&{return rNode.GetValue(rDistanceVariable);};
+		}
+
 		block_for_each(ModelPart1.Nodes(), [&](Node<3>& rNode){
-			double &r_node_distance = rNode.FastGetSolutionStepValue(DISTANCE);
+			double& r_node_distance = node_distance_getter(rNode, *mpDistanceVariable);
 			const double ray_distance = this->DistancePositionInSpace(rNode);
 			if (ray_distance * r_node_distance < 0.0) {
 				r_node_distance = -r_node_distance;

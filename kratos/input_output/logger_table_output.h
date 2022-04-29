@@ -28,6 +28,7 @@
 
 // Project includes
 #include "input_output/logger_output.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -56,8 +57,8 @@ public:
   ///@name Life Cycle
   ///@{
 
-  LoggerTableOutput(std::ostream& rOutputStream, std::vector<std::string> const& ColumnsNames);
-
+  LoggerTableOutput(Parameters rSettings);
+  LoggerTableOutput(std::ostream& rMyStream, Parameters rSettings);
   LoggerTableOutput(LoggerTableOutput const& Other);
 
   /// Destructor.
@@ -78,6 +79,7 @@ public:
   ///@}
   ///@name Access
   ///@{
+
 
   void WriteHeader() override;
 
@@ -112,16 +114,25 @@ private:
   ///@{
 
   std::size_t mCurrentColumnIndex;
-  std::vector<std::string> mColumnsNames;
+  std::vector<std::string> mColumnsHeaders;
   std::vector<std::size_t> mColumnsWidth;
-
+  std::vector<std::string> mColumnsTexts;
+  std::vector<std::string> mColumnsLabels;
+  std::ofstream mMyFileStream;
   bool mHeaderIsWritten = false;
+  std::string mFileHeader;
+  std::string mIdLabel;
 
   ///@}
   ///@name Private Operations
   ///@{
-
+  void ApplySettings(Parameters rSettings);
   void MoveCursorToColumn(std::size_t ColumnIndex);
+
+  void WriteHashLine();
+  void WriteTableLine();
+  std::string Centered(int width, const std::string str);
+  void StripLabels(std::string& inLabel, std::string& outGlobalLabel, std::string& outColumnLabel);
 
   ///@}
 }; // Class LoggerTableOutput

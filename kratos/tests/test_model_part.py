@@ -59,6 +59,81 @@ class TestModelPart(KratosUnittest.TestCase):
         self.assertFalse(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 0)
 
+    def test_clear_model_part(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+        model_part.SetBufferSize(3)
+        model_part.ProcessInfo[KratosMultiphysics.PRESSURE] = 1.0
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        model_part.CreateSubModelPart("Inlets")
+        model_part.CreateSubModelPart("Temp")
+        out = model_part.CreateSubModelPart("Outlet")
+        subout=out.CreateSubModelPart("sub_outlet1")
+
+        self.assertEqual(model_part.NumberOfSubModelParts(), 3)
+        sub_model_part_1 = model_part.GetSubModelPart("Inlets")
+        subsub1 = sub_model_part_1.CreateSubModelPart("Inlet1")
+        subsub2 = sub_model_part_1.CreateSubModelPart("Inlet2")
+
+        model_part.CreateNewNode(1,1.0,0.0,0.0)
+        sub_model_part_1.CreateNewNode(2,2.0,0.0,0.0)
+        subsub1.CreateNewNode(3,3.0,0.0,0.0)
+        subsub2.CreateNewNode(4,4.0,0.0,0.0)
+        subout.CreateNewNode(5,5.0,0.0,0.0)
+
+
+        self.assertTrue(1 in model_part.Nodes)
+        self.assertTrue(2 in model_part.Nodes)
+        self.assertTrue(3 in model_part.Nodes)
+        self.assertTrue(4 in model_part.Nodes)
+        self.assertTrue(5 in model_part.Nodes)
+        self.assertTrue(2 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in subsub1.Nodes)
+        self.assertTrue(4 in sub_model_part_1.Nodes)
+        self.assertTrue(4 in subsub2.Nodes)
+        self.assertTrue(5 in out.Nodes)
+        self.assertTrue(5 in subout.Nodes)
+
+        self.assertEqual(out.NumberOfSubModelParts(), 1)
+
+        ##clearing modelpart out
+        out.Clear()
+        self.assertEqual(out.NumberOfSubModelParts(), 0)
+        self.assertTrue(1 in model_part.Nodes)
+        self.assertTrue(2 in model_part.Nodes)
+        self.assertTrue(3 in model_part.Nodes)
+        self.assertTrue(4 in model_part.Nodes)
+        self.assertTrue(5 in model_part.Nodes) #note that node 5 still exists in the root modelpart
+        self.assertTrue(2 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in sub_model_part_1.Nodes)
+        self.assertTrue(3 in subsub1.Nodes)
+        self.assertTrue(4 in sub_model_part_1.Nodes)
+        self.assertTrue(4 in subsub2.Nodes)
+        self.assertFalse(5 in out.Nodes) #however node 5 does not belong any longer to the submodelpart out
+        # self.assertTrue(5 in subout.Nodes) #cannot query this since subout does not exist any longer
+        self.assertEqual(out.GetBufferSize(), 3)
+        self.assertEqual(out.ProcessInfo[KratosMultiphysics.PRESSURE], 1.0)
+        self.assertTrue(out.HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
+
+        model_part.Set(KratosMultiphysics.SLAVE)
+        self.assertTrue(model_part.Is(KratosMultiphysics.SLAVE))
+
+        model_part.Clear()
+
+        self.assertEqual(model_part.NumberOfSubModelParts(),0)
+        self.assertEqual(len(model_part.Nodes),0)
+        self.assertEqual(len(model_part.Properties),0)
+        self.assertEqual(len(model_part.Conditions),0)
+        self.assertFalse(1 in model_part.Nodes)
+        self.assertFalse(2 in model_part.Nodes)
+        self.assertFalse(3 in model_part.Nodes)
+        self.assertFalse(4 in model_part.Nodes)
+        self.assertFalse(5 in model_part.Nodes)
+
+        self.assertFalse(model_part.Is(KratosMultiphysics.SLAVE))
+
     def test_variables_list(self):
         current_model = KratosMultiphysics.Model()
 
@@ -110,6 +185,8 @@ class TestModelPart(KratosUnittest.TestCase):
         #here i try to create a node with Id 1 but the coordinates coincide with the ones of the existing node. EXISTING NODE is returned and no error is thrown
         model_part.CreateNewNode(1, 1.00,0.00,0.00)
         self.assertEqual(model_part.NumberOfNodes(), 1)
+        self.assertTrue(model_part.HasNode(1))
+        self.assertFalse(model_part.HasNode(1000000000))
         self.assertEqual(model_part.GetNode(1).Id, 1)
         self.assertEqual(model_part.GetNode(1,0).X, 1.00)
 
@@ -339,6 +416,8 @@ class TestModelPart(KratosUnittest.TestCase):
             model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfElements(), 1)
+        self.assertTrue(model_part.HasElement(1))
+        self.assertFalse(model_part.HasElement(1000000000))
         self.assertEqual(model_part.GetElement(1).Id, 1)
         self.assertEqual(model_part.GetElement(1,0).Id, 1)
         self.assertEqual(model_part.Elements[1].Id, 1)
@@ -454,6 +533,8 @@ class TestModelPart(KratosUnittest.TestCase):
             model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 1)
+        self.assertTrue(model_part.HasCondition(1))
+        self.assertFalse(model_part.HasCondition(1000000000))
         self.assertEqual(model_part.GetCondition(1).Id, 1)
         self.assertEqual(model_part.GetCondition(1,0).Id, 1)
         self.assertEqual(model_part.Conditions[1].Id, 1)

@@ -6,8 +6,6 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -17,7 +15,6 @@ def GetFilePath(fileName):
 
 class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
-    @classmethod
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_inlet_tests_files")
 
@@ -27,35 +24,30 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
         tolerance = 1.001
-        for node in self.spheres_model_part.Nodes:
+        if self.time >= 1.15:
+            node = self.spheres_model_part.GetNode(8)
             node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             node_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
-            if node.Id == 6:
-                if self.time >= 1.15:
-                    Logger.PrintInfo(node_vel)
-                    Logger.PrintInfo(node_force)
-                    self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
-                    self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
+            self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
+            self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
+            self.check_mark_1 = True
+
+    def Finalize(self):
+        self.assertTrue(self.check_mark_1)
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 
 class TestDEM2DInlet(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
-    @classmethod
     def test_DEM2D_inlet(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_inlet_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_InletTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("DEM2D_inlet_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("DEM2D_inlet_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
-
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_InletTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

@@ -25,8 +25,11 @@
 #include "processes/process.h"
 #include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
+#include "includes/kratos_filesystem.h"
 
 //Other utilities
+#include "utilities/function_parser_utility.h"
+#include "utilities/apply_function_to_nodes_utility.h"
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
@@ -48,11 +51,19 @@
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "utilities/specifications_utilities.h"
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
+#include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
+#include "utilities/force_and_torque_utils.h"
+#include "utilities/sub_model_part_entities_boolean_operation_utility.h"
+#include "utilities/model_part_combination_utilities.h"
+#include "utilities/single_import_model_part.h"
+#include "utilities/rve_periodicity_utility.h"
+#include "utilities/communication_coloring_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -89,6 +100,7 @@ void SetOnProcessInfo(
 //timer
 void PrintTimingInformation(Timer& rTimer)
 {
+    KRATOS_WARNING("[DEPRECATED] Timer.PrintTimingInformation") << "This will be removed at end of 2022. Please, call this function without arguments." << std::endl;
     rTimer.PrintTimingInformation();
 }
 
@@ -158,6 +170,18 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     return name;
 }
 
+template<class TEntityType, class TContainerType>
+void AddSubModelPartEntitiesBooleanOperationToPython(pybind11::module &m, std::string Name)
+{
+    namespace py = pybind11;
+    typedef SubModelPartEntitiesBooleanOperationUtility<TEntityType,TContainerType> UtilityType;
+    py::class_<UtilityType>(m, Name.c_str())
+        .def_static("Union", &UtilityType::Union)
+        .def_static("Intersection", &UtilityType::Intersection)
+        .def_static("Difference", &UtilityType::Difference)
+        ;
+}
+
 void AddOtherUtilitiesToPython(pybind11::module &m)
 {
 
@@ -167,20 +191,29 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-    // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
-    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
+    py::class_<BasicGenericFunctionUtility,  BasicGenericFunctionUtility::Pointer >(m,"BasicGenericFunctionUtility")
+        .def(py::init<const std::string&>() )
+        .def("UseLocalSystem", &BasicGenericFunctionUtility::UseLocalSystem)
+        .def("DependsOnSpace", &BasicGenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &BasicGenericFunctionUtility::FunctionBody)
+        .def("RotateAndCallFunction", &BasicGenericFunctionUtility::RotateAndCallFunction)
+        .def("CallFunction", &BasicGenericFunctionUtility::CallFunction)
+        ;
+
+    py::class_<GenericFunctionUtility,  GenericFunctionUtility::Pointer, BasicGenericFunctionUtility >(m,"GenericFunctionUtility")
         .def(py::init<const std::string&>() )
         .def(py::init<const std::string&, Parameters>())
-        .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
-        .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
-        .def("FunctionBody", &PythonGenericFunctionUtility::FunctionBody)
-        .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
-        .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+        ;
+
+    // NOTE: This is a legacy function
+    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer, GenericFunctionUtility>(m,"PythonGenericFunctionUtility")
+        .def(py::init<const std::string&>() )
+        .def(py::init<const std::string&, Parameters>())
         ;
 
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
-        .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
+        .def(py::init<ModelPart::NodesContainerType&, GenericFunctionUtility::Pointer >() )
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction)
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 
@@ -218,6 +251,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
         .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
+        .def_static("PrintTimingInformation", [](){Timer::PrintTimingInformation();})
         .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
@@ -231,7 +265,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<2,2>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<2,2>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<2,2>::GetConsiderDelaunator)
         ;
 
     py::class_<ExactMortarIntegrationUtility<3,3>>(m,"ExactMortarIntegrationUtility3D3N")
@@ -242,7 +278,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3>::TestIODebug)
         ;
 
@@ -254,7 +292,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4>::TestIODebug)
         ;
 
@@ -266,7 +306,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3,false,4>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3,false,4>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,3,false,4>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,3,false,4>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,3,false,4>::TestIODebug)
         ;
 
@@ -278,7 +320,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<const std::size_t, const double, const std::size_t, const double>())
         .def(py::init<const std::size_t, const double, const std::size_t, const double, const bool>())
         .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactIntegration)
-        .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4,false,3>::TestGetExactAreaIntegration)
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4,false,3>& rExactMortarIntegrationUtility, ModelPart& rMainModelPart, Condition::Pointer pSlaveCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(rMainModelPart, pSlaveCond);})
+        .def("TestGetExactAreaIntegration", [](ExactMortarIntegrationUtility<3,4,false,3>& rExactMortarIntegrationUtility, Condition::Pointer pSlaveCond, Condition::Pointer pMasterCond){return rExactMortarIntegrationUtility.TestGetExactAreaIntegration(pSlaveCond, pMasterCond);})
+        .def("GetConsiderDelaunator",&ExactMortarIntegrationUtility<3,4,false,3>::GetConsiderDelaunator)
         .def("TestIODebug",&ExactMortarIntegrationUtility<3,4,false,3>::TestIODebug)
         ;
 
@@ -338,6 +382,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     // Auxiliar ModelPart Utility
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
         .def(py::init<ModelPart&>())
+        .def("CopySubModelPartStructure", &AuxiliarModelPartUtilities::CopySubModelPartStructure)
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties();})
         .def("RecursiveEnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities, const bool RemovePreviousProperties) { rAuxiliarModelPartUtilities.RecursiveEnsureModelPartOwnsProperties(RemovePreviousProperties);})
         .def("EnsureModelPartOwnsProperties", [](AuxiliarModelPartUtilities& rAuxiliarModelPartUtilities) { rAuxiliarModelPartUtilities.EnsureModelPartOwnsProperties();})
@@ -476,6 +521,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     .def(py::init<Model&>())
     .def(py::init<Parameters, Model&>())
     .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    .def("AssignMaterialToProperty",&ReadMaterialsUtility::AssignMaterialToProperty)
+    .def("AssignVariablesToProperty",&ReadMaterialsUtility::AssignVariablesToProperty)
+    .def("AssignTablesToProperty",&ReadMaterialsUtility::AssignTablesToProperty)
+    .def("AssignConstitutiveLawToProperty",&ReadMaterialsUtility::AssignConstitutiveLawToProperty)
     ;
 
     //activation utilities
@@ -540,6 +589,26 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
 
+    // SpecificationsUtilities
+    auto mod_spec_utils = m.def_submodule("SpecificationsUtilities");
+    mod_spec_utils.def("AddMissingVariables",                     &SpecificationsUtilities::AddMissingVariables );
+    mod_spec_utils.def("AddMissingVariablesFromEntitiesList",     &SpecificationsUtilities::AddMissingVariablesFromEntitiesList );
+    mod_spec_utils.def("AddMissingDofs",                          &SpecificationsUtilities::AddMissingDofs );
+    mod_spec_utils.def("AddMissingDofsFromEntitiesList",          &SpecificationsUtilities::AddMissingDofsFromEntitiesList );
+    mod_spec_utils.def("DetermineFlagsUsed",                      &SpecificationsUtilities::DetermineFlagsUsed );
+    mod_spec_utils.def("DetermineTimeIntegration",                &SpecificationsUtilities::DetermineTimeIntegration );
+    mod_spec_utils.def("DetermineFramework",                      &SpecificationsUtilities::DetermineFramework );
+    mod_spec_utils.def("DetermineSymmetricLHS",                   &SpecificationsUtilities::DetermineSymmetricLHS );
+    mod_spec_utils.def("DeterminePositiveDefiniteLHS",            &SpecificationsUtilities::DeterminePositiveDefiniteLHS );
+    mod_spec_utils.def("DetermineIfCompatibleGeometries",         &SpecificationsUtilities::DetermineIfCompatibleGeometries );
+    mod_spec_utils.def("DetermineIfRequiresTimeIntegration",      &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
+    mod_spec_utils.def("CheckCompatibleConstitutiveLaws",         &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
+    mod_spec_utils.def("CheckGeometricalPolynomialDegree",        &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
+    mod_spec_utils.def("GetDocumention",                          &SpecificationsUtilities::GetDocumention );
+    mod_spec_utils.def("GetDofsListFromSpecifications",           &SpecificationsUtilities::GetDofsListFromSpecifications);
+    mod_spec_utils.def("GetDofsListFromElementsSpecifications",   &SpecificationsUtilities::GetDofsListFromElementsSpecifications);
+    mod_spec_utils.def("GetDofsListFromConditionsSpecifications", &SpecificationsUtilities::GetDofsListFromConditionsSpecifications);
+
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
     mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
@@ -596,15 +665,66 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
-        .def(py::init<ModelPart& >() )
+        .def(py::init([](ModelPart& rModelPart){
+            KRATOS_WARNING("FillCommunicator") << "Using deprecated constructor. Please use constructor with data communicator!";
+            return Kratos::make_shared<FillCommunicator>(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator());
+        }) )
+        .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
+    ;
+
+    typedef DenseQRDecomposition<LocalSpaceType> DenseQRDecompositionType;
+    py::class_<DenseQRDecompositionType, DenseQRDecompositionType::Pointer>(m,"DenseQRDecompositionType")
     ;
 
     typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
     py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
     ;
 
+    py::class_<ForceAndTorqueUtils>(m, "ForceAndTorqueUtils")
+        .def(py::init<>())
+        .def_static("SumForce", &ForceAndTorqueUtils::SumForce)
+        .def_static("SumForceAndTorque", &ForceAndTorqueUtils::SumForceAndTorque)
+        .def_static("ComputeEquivalentForceAndTorque", &ForceAndTorqueUtils::ComputeEquivalentForceAndTorque)
+        ;
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(
+        m, "SubModelPartNodesBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Element,ModelPart::ElementsContainerType>(
+        m, "SubModelPartElementsBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Condition,ModelPart::ConditionsContainerType>(
+        m, "SubModelPartConditionsBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
+        m, "SubModelPartConstraintsBooleanOperationUtility");
+
+    py::class_<ModelPartCombinationUtilities, ModelPartCombinationUtilities::Pointer>(m,"ModelPartCombinationUtilities")
+        .def(py::init<Model& >() )
+        .def("CombineModelParts", [&](ModelPartCombinationUtilities &self, Parameters Param) { return &self.CombineModelParts(Param); }, py::return_value_policy::reference_internal)
+    ;
+
+    auto single_model_part_import = m.def_submodule("SingleImportModelPart");
+    single_model_part_import.def("Import", &SingleImportModelPart::Import );
+
+    // RVE periodicity utility
+    py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
+        .def(py::init<ModelPart&>())
+        .def(py::init<ModelPart&, std::size_t>())
+        .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+    py::class_<MPIColoringUtilities>(m, "MPIColoringUtilities")
+        .def(py::init<>())
+        .def("ComputeRecvList", &MPIColoringUtilities::ComputeRecvList)
+        .def("ComputeCommunicationScheduling", &MPIColoringUtilities::ComputeCommunicationScheduling)
+        ;
+
+    auto fs_extensions = m.def_submodule("FilesystemExtensions");
+    fs_extensions.def("MPISafeCreateDirectories", &FilesystemExtensions::MPISafeCreateDirectories );
 }
 
 } // namespace Python.

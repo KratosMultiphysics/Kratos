@@ -14,15 +14,15 @@
 // System includes
 #include <unordered_set>
 
-// External includes
-
 // Project includes
 #include "includes/model_part_io.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 
+// External includes
 // this needs to be included last to avoid redefinition problems in win
 #include "ghc/filesystem.hpp" // TODO after moving to C++17 this can be removed since the functions can be used directly
 namespace fs = ghc::filesystem;
@@ -40,20 +40,13 @@ ModelPartIO::ModelPartIO(std::string const& Filename, const Flags Options)
     std::fstream::openmode OpenMode;
 
     // Set the mode
-    if (mOptions.Is(IO::READ))
-    {
+    if (mOptions.Is(IO::READ)) {
         OpenMode = std::fstream::in;
-    }
-    else if (mOptions.Is(IO::APPEND))
-    {
+    } else if (mOptions.Is(IO::APPEND)) {
         OpenMode = std::fstream::in | std::fstream::app;
-    }
-    else if (mOptions.Is(IO::WRITE))
-    {
+    } else if (mOptions.Is(IO::WRITE)) {
         OpenMode = std::fstream::out;
-    }
-    else
-    {
+    } else {
         // If none of the READ, WRITE or APPEND are defined we will take READ as
         // default.
         OpenMode = std::fstream::in;
@@ -138,9 +131,13 @@ std::size_t ModelPartIO::ReadNodesNumber()
 
 void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
+    // Printing or not with scientific precision
+    if (mOptions.Is(IO::SCIENTIFIC_PRECISION)) {
+        (*mpStream) << std::setprecision(10) << std::scientific;
+    }
     (*mpStream) << "Begin Nodes" << std::endl;
-    for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; it_node++)
-        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << std::endl;
+    for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; ++it_node)
+        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
     (*mpStream) << "End Nodes" << std::endl << std::endl;
 }
 
@@ -221,6 +218,109 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rThisProperties
 
         (*mpStream) << aux_string << std::endl;
         (*mpStream) << "End Properties" << std::endl << std::endl;
+    }
+}
+
+void ModelPartIO::ReadGeometry(
+    NodesContainerType& rThisNodes,
+    GeometryType::Pointer& pThisGeometries)
+{
+    KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
+}
+
+void ModelPartIO::ReadGeometries(
+    NodesContainerType& rThisNodes,
+    GeometryContainerType& rThisGeometries)
+{
+    KRATOS_TRY
+    ResetInput();
+    std::string word;
+    while(true)
+    {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if(word == "Geometries")
+            ReadGeometriesBlock(rThisNodes,rThisGeometries);
+        else
+            SkipBlock(word);
+    }
+    KRATOS_CATCH("")
+}
+
+std::size_t  ModelPartIO::ReadGeometriesConnectivities(ConnectivitiesContainerType& rGeometriesConnectivities)
+{
+    KRATOS_TRY
+    std::size_t number_of_geometries = 0;
+    ResetInput();
+    std::string word;
+    while(true) {
+        ReadWord(word);
+        if(mpStream->eof())
+            break;
+        ReadBlockName(word);
+        if(word == "Geometries")
+            number_of_geometries += ReadGeometriesConnectivitiesBlock(rGeometriesConnectivities);
+        else
+            SkipBlock(word);
+    }
+    return number_of_geometries;
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
+{
+    // We are going to procede like the following, we are going to iterate over all the geometries and compare with the components, we will save the type and we will compare until we get that the type of geometry has changed
+    if (rThisGeometries.NumberOfGeometries() > 0) {
+        std::string geometry_name;
+
+        auto it_geometry = rThisGeometries.GeometriesBegin();
+        auto geometries_components = KratosComponents<GeometryType>::GetComponents();
+
+        // Fisrt we do the first geometry
+        CompareElementsAndConditionsUtility::GetRegisteredName(*it_geometry, geometry_name);
+
+        (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
+        const auto it_geom_begin = rThisGeometries.Geometries().begin();
+        (*mpStream) << "\t" << it_geom_begin->Id() << "\t";
+        auto& r_geometry = *(it_geom_begin.base()->second);
+        for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
+            (*mpStream) << r_geometry[i_node].Id() << "\t";
+        (*mpStream) << std::endl;
+
+        // Iterators
+        auto it_geom_previous = it_geom_begin;
+        auto it_geom_current = it_geom_begin;
+        ++it_geom_current;
+
+        // Now we iterate over all the geometries
+        for(std::size_t i = 1; i < rThisGeometries.NumberOfGeometries(); i++) {
+            if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
+                (*mpStream) << "\t" << it_geom_current->Id() << "\t";
+                r_geometry = *(it_geom_current.base()->second);
+                for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
+                    (*mpStream) << r_geometry[i_node].Id() << "\t";
+                (*mpStream) << std::endl;
+            } else {
+                (*mpStream) << "End Geometries" << std::endl << std::endl;;
+
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it_geom_current, geometry_name);
+
+                (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
+                (*mpStream) << "\t" << it_geom_current->Id() << "\t";
+                r_geometry = *(it_geom_current.base()->second);
+                for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
+                    (*mpStream) << r_geometry[i_node].Id() << "\t";
+                (*mpStream) << std::endl;
+            }
+
+            ++it_geom_previous;
+            ++it_geom_current;
+        }
+
+        (*mpStream) << "End Geometries" << std::endl << std::endl;
     }
 }
 
@@ -429,8 +529,6 @@ void ModelPartIO::ReadInitialValues(ModelPart& rThisModelPart)
     KRATOS_CATCH("")
 }
 
-//       void ReadGeometries(NodesContainerType& rThisNodes, GeometriesContainerType& rResults);
-
 void ModelPartIO::ReadMesh(MeshType & rThisMesh)
 {
     KRATOS_ERROR << "ModelPartIO does not implement this method." << std::endl;
@@ -473,6 +571,8 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
             ReadPropertiesBlock(rThisModelPart.rProperties());
         } else if(word == "Nodes") {
             ReadNodesBlock(rThisModelPart);
+        } else if(word == "Geometries") {
+            ReadGeometriesBlock(rThisModelPart);
         } else if(word == "Elements") {
             ReadElementsBlock(rThisModelPart);
         } else if(word == "Conditions") {
@@ -515,7 +615,7 @@ void ModelPartIO::ReadModelPart(ModelPart & rThisModelPart)
     KRATOS_CATCH("")
 }
 
-void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
+void ModelPartIO::WriteModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_ERROR_IF_NOT(mOptions.Is(IO::WRITE) || mOptions.Is(IO::APPEND)) << "ModelPartIO needs to be created in write or append mode to write a ModelPart!" << std::endl;
 
@@ -531,6 +631,7 @@ void ModelPartIO::WriteModelPart(ModelPart & rThisModelPart)
     if (mOptions.IsNot(IO::MESH_ONLY))
         WriteTableBlock(rThisModelPart.Tables());
     WriteMesh(rThisModelPart.GetMesh());
+    WriteGeometries(rThisModelPart.Geometries());
     if (mOptions.IsNot(IO::MESH_ONLY)) {
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
         WriteDataBlock(rThisModelPart.Elements(), "Element");
@@ -553,8 +654,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
-    while(true)
-    {
+    while(true) {
         ReadWord(word);
         if(mpStream->eof())
             break;
@@ -565,14 +665,13 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
             // a chance to the derived class to process and renumber
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
-        }
-        else if (word == "Elements") {
+        } else if (word == "Geometries") {
+            FillNodalConnectivitiesFromGeometryBlock(rAuxConnectivities);
+        } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlock(rAuxConnectivities);
-        }
-        else if (word == "Conditions") {
+        } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlock(rAuxConnectivities);
-        }
-        else {
+        } else {
             SkipBlock(word);
         }
     }
@@ -587,15 +686,14 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     }
 
     // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
-    SizeType num_entries = 0;
-    for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
-    {
+    //SizeType num_entries = 0;
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
         std::sort(it->begin(),it->end());
         std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
         it->resize(unique_end - it->begin());
-        num_entries += it->size();
+        //num_entries += it->size();
     }
-    SizeType num_nodes = rAuxConnectivities.size();
+    const SizeType num_nodes = rAuxConnectivities.size();
 
     /*// 4. Write connectivity data in CSR format
     SizeType num_nodes = rAuxConnectivities.size();
@@ -606,8 +704,7 @@ std::size_t ModelPartIO::ReadNodalGraph(ConnectivitiesContainerType& rAuxConnect
     SizeType i = 0;
     SizeType aux_index = 0;
 
-    for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
-    {
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
         for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
             (*NodeConnectivities)[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
         (*NodeIndices)[i++] = aux_index;
@@ -626,8 +723,7 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     //Fill the auxiliary vector by reading elemental and conditional connectivities
     ResetInput();
     std::string word;
-    while(true)
-    {
+    while(true) {
         ReadWord(word);
         if(mpStream->eof())
             break;
@@ -638,14 +734,13 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
             // a chance to the derived class to process and renumber
             // the nodes before reading elements/conditions.
             ScanNodeBlock();
-        }
-        else if (word == "Elements") {
+        } else if (word == "Geometries") {
+            FillNodalConnectivitiesFromGeometryBlockInList(rAuxConnectivities, rElementsIds);
+        } else if (word == "Elements") {
             FillNodalConnectivitiesFromElementBlockInList(rAuxConnectivities, rElementsIds);
-        }
-        else if (word == "Conditions") {
+        } else if (word == "Conditions") {
             FillNodalConnectivitiesFromConditionBlockInList(rAuxConnectivities, rConditionsIds);
-        }
-        else {
+        } else {
             SkipBlock(word);
         }
     }
@@ -660,23 +755,87 @@ std::size_t ModelPartIO::ReadNodalGraphFromEntitiesList(
     // }
 
     // Sort each entry in the auxiliary connectivities vector, remove duplicates
-    SizeType num_entries = 0;
-    for (ConnectivitiesContainerType::iterator it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++)
-    {
+    for (auto it = rAuxConnectivities.begin(); it != rAuxConnectivities.end(); it++) {
         std::sort(it->begin(),it->end());
         std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
         it->resize(unique_end - it->begin());
-        num_entries += it->size();
     }
-    SizeType num_nodes = rAuxConnectivities.size();
+    const SizeType num_nodes = rAuxConnectivities.size();
 
     return num_nodes;
     KRATOS_CATCH("")
 }
 
+void ModelPartIO::FillNodalConnectivitiesFromGeometryBlockInList(
+    ConnectivitiesContainerType& rNodalConnectivities,
+    std::unordered_set<SizeType>& rGeometriesIds)
+{
+    KRATOS_TRY;
+
+    SizeType id;
+    SizeType node_id;
+    SizeType position;
+    SizeType used_size = rNodalConnectivities.size();
+    SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType n_nodes_in_elem = r_clone_geometry.size();
+    ConnectivitiesContainerType::value_type temp_geometry_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        temp_geometry_nodes.clear();
+        for(SizeType i = 0 ; i < n_nodes_in_elem ; i++) {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_geometry_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        if (rGeometriesIds.find(ReorderedGeometryId(id)) != rGeometriesIds.end()) {
+            for (SizeType i = 0; i < n_nodes_in_elem; i++) {
+                position = temp_geometry_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+                if (position >= used_size) {
+                    used_size = position+1;
+                    if (position >= reserved_size)
+                    {
+                        reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                        rNodalConnectivities.reserve(reserved_size);
+                    }
+                    rNodalConnectivities.resize(used_size);
+                }
+
+                for (SizeType j = 0; j < i; j++)
+                    rNodalConnectivities[position].push_back(temp_geometry_nodes[j]);
+                for (SizeType j = i+1; j < n_nodes_in_elem; j++)
+                    rNodalConnectivities[position].push_back(temp_geometry_nodes[j]);
+            }
+        }
+    }
+
+    KRATOS_CATCH("");
+
+}
+
 void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
-    ConnectivitiesContainerType &rNodalConnectivities,
-    std::unordered_set<SizeType> &rElementsIds)
+    ConnectivitiesContainerType& rNodalConnectivities,
+    std::unordered_set<SizeType>& rElementsIds)
 {
     KRATOS_TRY;
 
@@ -748,7 +907,7 @@ void ModelPartIO::FillNodalConnectivitiesFromElementBlockInList(
 
 void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
     ConnectivitiesContainerType& rNodalConnectivities,
-    std::unordered_set<SizeType> &rConditionsIds)
+    std::unordered_set<SizeType>& rConditionsIds)
 {
     KRATOS_TRY;
 
@@ -822,9 +981,11 @@ void ModelPartIO::FillNodalConnectivitiesFromConditionBlockInList(
 
 void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                         PartitionIndicesType const& NodesPartitions,
+//                                         PartitionIndicesType const& GeometriesPartitions,
                                         PartitionIndicesType const& ElementsPartitions,
                                         PartitionIndicesType const& ConditionsPartitions,
                                         PartitionIndicesContainerType const& NodesAllPartitions,
+//                                         PartitionIndicesContainerType const& GeometriesAllPartitions,
                                         PartitionIndicesContainerType const& ElementsAllPartitions,
                                         PartitionIndicesContainerType const& ConditionsAllPartitions)
 {
@@ -840,7 +1001,7 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
     const fs::path folder_name = base_path.parent_path() / raw_file_name += "_partitioned";
 
     fs::remove_all(folder_name); // to remove leftovers
-    fs::create_directory(folder_name);
+    FilesystemExtensions::MPISafeCreateDirectories(folder_name.string());
 
     for(SizeType i = 0 ; i < NumberOfPartitions ; i++)
     {
@@ -865,6 +1026,8 @@ void ModelPartIO::DivideInputToPartitions(SizeType NumberOfPartitions, GraphType
             DividePropertiesBlock(output_files);
         else if(word == "Nodes")
             DivideNodesBlock(output_files, NodesAllPartitions);
+//         else if(word == "Geometries")
+//             DivideGeometriesBlock(output_files, GeometriesAllPartitions);
         else if(word == "Elements")
             DivideElementsBlock(output_files, ElementsAllPartitions);
         else if(word == "Conditions")
@@ -896,9 +1059,11 @@ void ModelPartIO::DivideInputToPartitions(
     Kratos::shared_ptr<std::iostream> * Streams,
     SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
     PartitionIndicesType const& NodesPartitions,
+//     PartitionIndicesType const& GeometriesPartitions,
     PartitionIndicesType const& ElementsPartitions,
     PartitionIndicesType const& ConditionsPartitions,
     PartitionIndicesContainerType const& NodesAllPartitions,
+//     PartitionIndicesContainerType const& GeometriesAllPartitions,
     PartitionIndicesContainerType const& ElementsAllPartitions,
     PartitionIndicesContainerType const& ConditionsAllPartitions) {
 
@@ -926,6 +1091,8 @@ void ModelPartIO::DivideInputToPartitions(
             DividePropertiesBlock(output_files);
         else if(word == "Nodes")
             DivideNodesBlock(output_files, NodesAllPartitions);
+//         else if(word == "Geometries")
+//             DivideElementsBlock(output_files, GeometriesAllPartitions);
         else if(word == "Elements")
             DivideElementsBlock(output_files, ElementsAllPartitions);
         else if(word == "Conditions")
@@ -981,7 +1148,9 @@ void ModelPartIO::SkipBlock(std::string const& BlockName)
             if(number_of_nested_blocks == 0){
                     if(CheckStatement(word , BlockName))
                         break;
-                }
+            } else {
+                number_of_nested_blocks--;
+            }
         }
         else if(word == "Begin")
         {
@@ -1584,6 +1753,108 @@ void ModelPartIO::ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
 
     rThisProperties.push_back(props);
 //         rThisProperties.push_back(temp_properties);
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::ReadGeometriesBlock(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    SizeType node_id;
+    SizeType number_of_read_geometries = 0;
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    KRATOS_INFO("ModelPartIO") << "  [Reading Geometries : ";
+
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application which containing it, is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;;
+        return;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType number_of_nodes = r_clone_geometry.size();
+    Element::NodesArrayType temp_geometry_nodes;
+    ModelPart::GeometryContainerType aux_geometries;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        temp_geometry_nodes.clear();
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_geometry_nodes.push_back( *(FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node").base()));
+        }
+
+        aux_geometries.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
+        number_of_read_geometries++;
+
+    }
+    KRATOS_INFO("") << number_of_read_geometries << " geometries read] [Type: " <<geometry_name << "]" << std::endl;
+
+    rModelPart.AddGeometries(aux_geometries.GeometriesBegin(), aux_geometries.GeometriesEnd());
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::ReadGeometriesBlock(NodesContainerType& rThisNodes, GeometryContainerType& rThisGeometries)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    SizeType node_id;
+    SizeType number_of_read_geometries = 0;
+
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    KRATOS_INFO("ModelPartIO") << "  [Reading Geometries : ";
+
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application which containing it, is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;;
+        return;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType number_of_nodes = r_clone_geometry.size();
+    Element::NodesArrayType temp_geometry_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        temp_geometry_nodes.clear();
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_geometry_nodes.push_back( *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
+        }
+
+        rThisGeometries.AddGeometry(r_clone_geometry.Create(ReorderedGeometryId(id), temp_geometry_nodes));
+        number_of_read_geometries++;
+
+    }
+    KRATOS_INFO("") << number_of_read_geometries << " geometries read] [Type: " <<geometry_name << "]" << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -2446,6 +2717,62 @@ void ModelPartIO::ReadConditionalVectorialVariableData(ConditionsContainerType& 
     KRATOS_CATCH("")
 }
 
+ModelPartIO::SizeType ModelPartIO::ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
+{
+    KRATOS_TRY
+
+    SizeType id;
+    SizeType node_id;
+    SizeType number_of_connectivities = 0;
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+        return number_of_connectivities;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType number_of_nodes = r_clone_geometry.size();
+    ConnectivitiesContainerType::value_type temp_geometry_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        temp_geometry_nodes.clear();
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_geometry_nodes.push_back(ReorderedNodeId(node_id));
+        }
+        const int index = ReorderedGeometryId(id) - 1;
+        const int size = rThisConnectivities.size();
+        if(index == size) { // I do push back instead of resizing to size+1
+            rThisConnectivities.push_back(temp_geometry_nodes);
+        } else if(index < size) {
+            rThisConnectivities[index]= temp_geometry_nodes;
+        } else {
+            rThisConnectivities.resize(index+1);
+            rThisConnectivities[index]= temp_geometry_nodes;
+
+        }
+        number_of_connectivities++;
+    }
+    return number_of_connectivities;
+
+    KRATOS_CATCH("")
+}
+
 ModelPartIO::SizeType ModelPartIO::ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities)
 {
     KRATOS_TRY
@@ -2566,6 +2893,67 @@ ModelPartIO::SizeType ModelPartIO::ReadConditionsConnectivitiesBlock(Connectivit
     return number_of_connectivities;
 
     KRATOS_CATCH("")
+}
+
+void ModelPartIO::FillNodalConnectivitiesFromGeometryBlock(ConnectivitiesContainerType& rNodalConnectivities)
+{
+    KRATOS_TRY;
+
+    SizeType id;
+    SizeType node_id;
+    SizeType position;
+    SizeType used_size = rNodalConnectivities.size();
+    SizeType reserved_size = (rNodalConnectivities.capacity() > 0) ? rNodalConnectivities.capacity() : 1;
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType n_nodes_in_geom = r_clone_geometry.size();
+    ConnectivitiesContainerType::value_type temp_geometry_nodes;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        ReadWord(word); // Reading the properties id;
+        temp_geometry_nodes.clear();
+        for(SizeType i = 0 ; i < n_nodes_in_geom ; i++) {
+            ReadWord(word); // Reading the node id;
+            ExtractValue(word, node_id);
+            temp_geometry_nodes.push_back(ReorderedNodeId(node_id));
+        }
+
+        for (SizeType i = 0; i < n_nodes_in_geom; i++) {
+            position = temp_geometry_nodes[i]-1; // Ids start from 1, position in rNodalConnectivities starts from 0
+            if (position >= used_size) {
+                used_size = position+1;
+                if (position >= reserved_size) {
+                    reserved_size = (used_size > reserved_size) ? 2*used_size : 2*reserved_size;
+                    rNodalConnectivities.reserve(reserved_size);
+                }
+                rNodalConnectivities.resize(used_size);
+            }
+
+            for (SizeType j = 0; j < i; j++)
+                rNodalConnectivities[position].push_back(temp_geometry_nodes[j]);
+            for (SizeType j = i+1; j < n_nodes_in_geom; j++)
+                rNodalConnectivities[position].push_back(temp_geometry_nodes[j]);
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 void ModelPartIO::FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities)
@@ -3521,6 +3909,76 @@ void ModelPartIO::DivideNodesBlock(OutputFilesContainerType& OutputFiles,
     }
 
     WriteInAllFiles(OutputFiles, "End Nodes\n");
+
+    KRATOS_CATCH("")
+}
+
+void ModelPartIO::DivideGeometriesBlock(OutputFilesContainerType& OutputFiles,
+                            PartitionIndicesContainerType const& GeometriesAllPartitions)
+{
+    KRATOS_TRY
+
+    std::string word;
+    std::string geometry_name;
+
+    ReadWord(geometry_name);
+    if(!KratosComponents<GeometryType>::Has(geometry_name)) {
+        std::stringstream buffer;
+        buffer << "Geometry " << geometry_name << " is not registered in Kratos.";
+        buffer << " Please check the spelling of the geometry name and see if the application containing it is registered correctly.";
+        buffer << " [Line " << mNumberOfLines << " ]";
+        KRATOS_ERROR << buffer.str() << std::endl;;
+        return;
+    }
+
+    GeometryType const& r_clone_geometry = KratosComponents<GeometryType>::Get(geometry_name);
+    SizeType number_of_nodes = r_clone_geometry.size();
+
+    WriteInAllFiles(OutputFiles, "Begin Geometries " +  geometry_name);
+
+    SizeType id;
+
+    while(!mpStream->eof()) {
+        ReadWord(word); // Reading the geometry id or End
+        if(CheckEndBlock("Geometries", word))
+            break;
+
+        ExtractValue(word,id);
+        if(ReorderedGeometryId(id) > GeometriesAllPartitions.size()) {
+            std::stringstream buffer;
+            buffer << "Invalid geometry id : " << id;
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR << buffer.str() << std::endl;;
+        }
+
+        std::stringstream geometry_data;
+        geometry_data << '\n' << ReorderedGeometryId(id) << '\t'; // id
+        ReadWord(word); // Reading the properties id;
+        geometry_data << word << '\t'; // properties id
+
+        for(SizeType i = 0 ; i < number_of_nodes ; i++) {
+            ReadWord(word); // Reading the node id;
+            SizeType node_id;
+            ExtractValue(word, node_id);
+            geometry_data << ReorderedNodeId(node_id) << '\t'; // node id
+        }
+
+
+        for(SizeType i = 0 ; i < GeometriesAllPartitions[ReorderedGeometryId(id)-1].size() ; i++) {
+            SizeType partition_id = GeometriesAllPartitions[ReorderedGeometryId(id)-1][i];
+            if(partition_id > OutputFiles.size()) {
+                std::stringstream buffer;
+                buffer << "Invalid prtition id : " << partition_id;
+                buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR << buffer.str() << std::endl;;
+            }
+
+            *(OutputFiles[partition_id]) << geometry_data.str();
+        }
+
+    }
+
+    WriteInAllFiles(OutputFiles, "\nEnd Geometries\n");
 
     KRATOS_CATCH("")
 }
@@ -4990,6 +5448,13 @@ ModelPartIO::SizeType ModelPartIO::ReorderedNodeId(ModelPartIO::SizeType NodeId)
     // The ModelPartIO does not reorder the nodes
     // This method is the one to be overriden by some reordering IO class
     return NodeId;
+}
+
+ModelPartIO::SizeType ModelPartIO::ReorderedGeometryId(ModelPartIO::SizeType GeometryId)
+{
+    // The ModelPartIO does not reorder the geometries
+    // This method is the one to be overriden by some reordering IO class
+    return GeometryId;
 }
 
 ModelPartIO::SizeType ModelPartIO::ReorderedElementId(ModelPartIO::SizeType ElementId)

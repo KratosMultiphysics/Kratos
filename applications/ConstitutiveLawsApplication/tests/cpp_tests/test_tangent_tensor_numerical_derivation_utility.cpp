@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -68,8 +70,8 @@ void SettingBasicCase(
         rMaterialProperties.SetValue(FRICTION_ANGLE, 32.0);
         rMaterialProperties.SetValue(DILATANCY_ANGLE, 16.0);
         rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
-        rMaterialProperties.SetValue(FRACTURE_ENERGY, 100.0);
-        rMaterialProperties.SetValue(HARDENING_CURVE, 3);
+        rMaterialProperties.SetValue(FRACTURE_ENERGY, 1000.0);
+        rMaterialProperties.SetValue(HARDENING_CURVE, 0);
 
         rStrainVector[1] = 1.0e-5;
     }
@@ -312,7 +314,7 @@ void ComputingConvergenceRate(
 /**
  * @brief This test tests that the perturbation utility is valid for computing the elastic linear tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -347,7 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosStruc
 /**
  * @brief This test tests that the perturbation utility is valid for computing the hyperelastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -382,7 +384,7 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosStruct
 /**
  * @brief This test tests that the perturbation utility is valid for computing the elastic linear tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -403,7 +405,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticLinearElasticCasePertubationTensorUtility, Kr
 /**
  * @brief This test tests that the perturbation utility is valid for computing the Kirchhoff hyperelastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticKirchhoffHyperElasticCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticKirchhoffHyperElasticCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main");
@@ -424,7 +426,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticKirchhoffHyperElasticCasePertubationTensorUti
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesFirstOrderCasePertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesFirstOrderCasePertubationTensorUtility, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -460,7 +462,7 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
 /**
  * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
  */
-KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCaseSecondOrderPertubationTensorUtility, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMisesCaseSecondOrderPertubationTensorUtility, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);

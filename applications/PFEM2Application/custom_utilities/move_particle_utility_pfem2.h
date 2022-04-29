@@ -2753,20 +2753,20 @@ namespace Kratos
 
 		if(results_found>0){
 		//loop over the candidate elements and check if the particle falls within
-		for(SizeType i = 0; i< results_found; i++)
-		{
-			Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
-
-			//find local position
-			bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
-
-			if(is_found == true)
+			for(SizeType i = 0; i< results_found; i++)
 			{
-				pelement=Element::Pointer((*(result_begin+i)));
-				return true;
+				Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+
+				//find local position
+				bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+
+				if(is_found == true)
+				{
+					pelement=Element::Pointer((*(result_begin+i)));
+					return true;
+				}
 			}
 		}
-	}
 		//if nothing worked, then:
 		//not found case
 		return false;

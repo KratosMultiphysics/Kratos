@@ -88,7 +88,7 @@ public:
         MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
         ShapeFunctionsGradientsType DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
-        std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
+        std::vector<array_1d<double,3>> pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         std::vector<unsigned int>   int_vec_identifiers;    // Interior (fluid) nodes identifiers
         std::vector<unsigned int>   out_vec_identifiers;    // Outside (stucture) nodes identifiers
@@ -201,26 +201,26 @@ public:
                 rData.N_pos_side,
                 rData.DN_DX_pos_side,
                 rData.w_gauss_pos_side,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the fluid side interface modified shape functions calculator
             p_modified_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
                 rData.N_pos_int,
                 rData.DN_DX_pos_int,
                 rData.w_gauss_pos_int,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Call the fluid side Gauss pts. unit normal calculator
             p_modified_sh_func->ComputePositiveSideInterfaceAreaNormals(
                 rData.pos_int_unit_normals,
-                GeometryData::GI_GAUSS_2);
+                GeometryData::IntegrationMethod::GI_GAUSS_2);
 
             // Normalize the obtained area normals
             const double tol = std::pow(1e-3*rData.h, TDim-1); // Tolerance to avoid the unit normal to blow up
             const unsigned int n_gauss = (rData.pos_int_unit_normals).size();
 
             for (unsigned int i_gauss = 0;  i_gauss < n_gauss; ++i_gauss) {
-                Vector& normal = rData.pos_int_unit_normals[i_gauss];
+                array_1d<double,3>& normal = rData.pos_int_unit_normals[i_gauss];
                 const double n_norm = norm_2(normal);
                 normal /= std::max(n_norm, tol);
             }

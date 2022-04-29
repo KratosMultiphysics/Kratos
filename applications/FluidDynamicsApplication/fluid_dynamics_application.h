@@ -39,8 +39,10 @@
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/qs_vms_dem_coupled.h"
+#include "custom_elements/alternative_qs_vms_dem_coupled.h"
 #include "custom_elements/d_vms.h"
 #include "custom_elements/d_vms_dem_coupled.h"
+#include "custom_elements/alternative_d_vms_dem_coupled.h"
 #include "custom_elements/fic.h"
 #include "custom_elements/symbolic_stokes.h"
 #include "custom_elements/weakly_compressible_navier_stokes.h"
@@ -72,9 +74,9 @@
 #include "custom_elements/navier_stokes.h"
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_elements/embedded_ausas_navier_stokes.h"
-#include "custom_elements/compressible_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
+#include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 #include "custom_elements/vms_adjoint_element.h"
 
 #include "custom_utilities/qsvms_data.h"
@@ -84,6 +86,7 @@
 #include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_stokes_data.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_alpha_method_data.h"
 #include "custom_utilities/weakly_compressible_navier_stokes_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
@@ -272,6 +275,10 @@ private:
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mQSVMSDEMCoupled3D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mQSVMSDEMCoupled2D4N;
     const QSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mQSVMSDEMCoupled3D8N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeQSVMSDEMCoupled2D3N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeQSVMSDEMCoupled3D4N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeQSVMSDEMCoupled2D4N;
+    const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
@@ -280,6 +287,10 @@ private:
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mDVMSDEMCoupled3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mDVMSDEMCoupled2D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mDVMSDEMCoupled3D8N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mAlternativeDVMSDEMCoupled2D3N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,4> > mAlternativeDVMSDEMCoupled3D4N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<2,4> > mAlternativeDVMSDEMCoupled2D4N;
+    const AlternativeDVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeDVMSDEMCoupled3D8N;
     const FIC< FICData<2,3> > mFIC2D3N;
     const FIC< FICData<2,4> > mFIC2D4N;
     const FIC< FICData<3,4> > mFIC3D4N;
@@ -398,14 +409,15 @@ private:
     const EmbeddedAusasNavierStokesWallCondition<3> mEmbeddedAusasNavierStokesWallCondition3D;
 
     /// Compressible Navier-Stokes symbolic element
-    const CompressibleNavierStokes<2> mCompressibleNavierStokes2D;
-    const CompressibleNavierStokes<3> mCompressibleNavierStokes3D;
-    const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D;
-    const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D;
+    const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D3N;
+    const CompressibleNavierStokesExplicit<2, 4> mCompressibleNavierStokesExplicit2D4N;
+    const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D4N;
 
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
+    const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<2, 3> > mTwoFluidNavierStokesAlphaMethod2D3N;
+    const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
     const TwoFluidNavierStokesWallCondition<2, 2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3, 3> mTwoFluidNavierStokesWallCondition3D;
 

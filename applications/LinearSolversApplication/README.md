@@ -49,18 +49,32 @@ The application provides the following direct solvers for dense systems of equat
 
 ## Generalized eigensystem solvers
 
-The application provides a generalized eigensystem solver for sparse matrices. It gives the eigenvalues and eigenvectors for the smallest eigenvalues. MKL routines are used automatically if they are available.
+The application provides the following generalized eigensystem `Ax=λBx` solver for sparse matrices.
+
+| Python class                           | solver_type                | Matrix kind A | Matrix kind B | Domain   | Dependencies |
+|----------------------------------------|----------------------------|:-------------:|:-------------:|:--------:|:------------:|
+| EigensystemSolver                      | `eigen_eigensystem`        | Symmetric     | SPD*          | Real     | None         |
+| SpectraSymGEigsShiftSolver             | `spectra_sym_g_eigs_shift` | Symmetric     | SPD*          | Real     | None         |
+| FEASTGeneralEigensystemSolver**        | `feast`                    | General       | General       | Real     | Intel® MKL   |
+| ComplexFEASTGeneralEigensystemSolver** | `feast_complex`            | General       | General       | Complex  | Intel® MKL   |
+
+*SPD = Symmetric Positive Definite
+**A special version for symmetric matrices can be triggered in the solver settings.
+
+`EigensystemSolver` and `SpectraSymGEigsShiftSolver` compute the smallest eigenvalues and corresponding eigenvectors of the system. MKL routines are used automatically if they are available.
+
+`SpectraSymGEigsShiftSolver` interfaces a solver from the [Spectra library](https://spectralib.org/), and has a shift mode that can be used to compute the smallest eigenvalues > `shift`.
 
 **Example:**
 
 ```json
 {
-    "solver_type": "eigen_eigensystem",
-    "number_of_eigenvalues": 1,
+    "solver_type": "spectra_sym_g_eigs_shift",
+    "number_of_eigenvalues": 3,
     "max_iteration": 1000,
-    "tolerance": 1e-6,
     "echo_level": 1
 }
+
 ```
 If the application is compiled with MKL, [FEAST 4.0](http://www.ecs.umass.edu/~polizzi/feast/) can be used to solve the generalized eigenvalue problem for real and complex systems (symmetric or unsymmetric). The cmake switch `USE_EIGEN_FEAST` must be set to `ON` with
 ```batch

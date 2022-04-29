@@ -63,8 +63,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "model_part_name" : "Main",
                         "variable_name"   : "VISCOSITY",
                         "interval"        : [0.0, 10.0],
-                        "constrained"		  : true,
-                        "value"      : "x+100.0*y*t**2"
+                        "constrained"     : true,
+                        "value"           : "x+100.0*y*t**2"
                     }
                 },
                 {
@@ -74,7 +74,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "Parameters"            : {
                         "model_part_name" : "Main",
                         "variable_name"   : "DENSITY",
-                        "value"      : "x*x+y*y+z*z+t"
+                        "value"           : "x*x+y*y+z*z+t"
                     }
                 },
                 {
@@ -85,8 +85,8 @@ class TestProcesses(KratosUnittest.TestCase):
                         "model_part_name" : "Main",
                         "variable_name"   : "DISPLACEMENT_X",
                         "interval"        : [0.0, 5.0],
-                        "constrained"		  : true,
-                        "value"      : "sqrt(x**2+y**2)*t",
+                        "constrained"     : true,
+                        "value"           : "sqrt(x**2+y**2)*t",
                         "local_axes"               :{
                             "origin" : [0.0, 0.0, 0.0],
                             "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
@@ -1395,6 +1395,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -1445,6 +1446,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -2357,6 +2359,114 @@ class TestProcesses(KratosUnittest.TestCase):
             distance_gradient = node.GetValue(KratosMultiphysics.DISTANCE_GRADIENT)
             for i_gradient, i_reference in zip(distance_gradient, check_map[node.Id]):
                 self.assertAlmostEqual(i_gradient, i_reference)
+
+    def test_sub_model_part_entities_boolean_operation_process(self):
+        model = KratosMultiphysics.Model()
+        model_part = model.CreateModelPart("Main")
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [{
+                "python_module"  : "sub_model_part_entities_boolean_operation_process",
+                "kratos_module"  : "KratosMultiphysics",
+                "process_name"   : "SubModelPartEntitiesBooleanOperationProcess",
+                "Parameters"            : {
+                    "first_model_part_name"  : "Main.Top_side",
+                    "second_model_part_name" : "Main.Left_side",
+                    "result_model_part_name" : "Main.result",
+                    "boolean_operation"      : "Intersection",
+                    "entity_type"            : "Nodes"
+                }
+            }]
+        }""")
+        process_factory.KratosProcessFactory(model).ConstructListOfProcesses(settings["process_list"])
+        result_model_part = model["Main.result"]
+        self.assertEqual(result_model_part.NumberOfNodes(), 1)
+        self.assertEqual(result_model_part.GetNode(13).Id, 13)
+
+        settings["process_list"][0]["Parameters"]["boolean_operation"].SetString("Union")
+        process_factory.KratosProcessFactory(model).ConstructListOfProcesses(settings["process_list"])
+        self.assertEqual(result_model_part.NumberOfNodes(), 7)
+
+        settings["process_list"][0]["Parameters"]["entity_type"].SetString("Conditions")
+        process_factory.KratosProcessFactory(model).ConstructListOfProcesses(settings["process_list"])
+        self.assertEqual(result_model_part.NumberOfConditions(), 6)
+
+        settings["process_list"][0]["Parameters"]["result_model_part_name"].SetString("Main.Top_side")
+        settings["process_list"][0]["Parameters"]["boolean_operation"].SetString("Difference")
+        settings["process_list"][0]["Parameters"]["entity_type"].SetString("Nodes")
+        process_factory.KratosProcessFactory(model).ConstructListOfProcesses(settings["process_list"])
+        result_model_part = model["Main.Top_side"]
+        self.assertEqual(result_model_part.NumberOfNodes(), 3)
+        self.assertEqual(result_model_part.NumberOfElements(), 0)
+        self.assertEqual(result_model_part.NumberOfConditions(), 3)
+        self.assertEqual(result_model_part.NumberOfMasterSlaveConstraints(), 0)
+
+    def test_split_internal_interfaces_process_2D(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" :"Main",
+            "condition_name"   : "PrismCondition2D4N"
+        }""")
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_split_internal_interfaces_process_2D"), model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 9)
+        self.assertEqual(model_part.NumberOfConditions(), 0)
+        process = KratosMultiphysics.SplitInternalInterfacesProcess(current_model, settings)
+        process.ExecuteInitialize()
+        self.assertEqual(model_part.NumberOfNodes(), 12)
+        self.assertEqual(model_part.NumberOfConditions(), 2)
+
+    def test_split_internal_interfaces_process_3D(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=3
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" :"Main",
+            "condition_name"   : "PrismCondition3D6N"
+        }""")
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_split_internal_interfaces_process_3D"), model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 27)
+        self.assertEqual(model_part.NumberOfConditions(), 0)
+        process = KratosMultiphysics.SplitInternalInterfacesProcess(current_model, settings)
+        process.ExecuteInitialize()
+        self.assertEqual(model_part.NumberOfNodes(), 40)
+        self.assertEqual(model_part.NumberOfConditions(), 10)
+
+        self.assertEqual(model_part.GetCondition(1).GetGeometry()[0].Id, 15)
+        self.assertEqual(model_part.GetCondition(1).GetGeometry()[1].Id, 6)
+        self.assertEqual(model_part.GetCondition(1).GetGeometry()[2].Id, 20)
+        self.assertEqual(model_part.GetCondition(2).GetGeometry()[0].Id, 20)
+        self.assertEqual(model_part.GetCondition(2).GetGeometry()[1].Id, 6)
+        self.assertEqual(model_part.GetCondition(2).GetGeometry()[2].Id, 8)
+        self.assertEqual(model_part.GetCondition(3).GetGeometry()[0].Id, 8)
+        self.assertEqual(model_part.GetCondition(3).GetGeometry()[1].Id, 3)
+        self.assertEqual(model_part.GetCondition(3).GetGeometry()[2].Id, 5)
+        self.assertEqual(model_part.GetCondition(4).GetGeometry()[0].Id, 6)
+        self.assertEqual(model_part.GetCondition(4).GetGeometry()[1].Id, 3)
+        self.assertEqual(model_part.GetCondition(4).GetGeometry()[2].Id, 8)
+        self.assertEqual(model_part.GetCondition(5).GetGeometry()[0].Id, 8)
+        self.assertEqual(model_part.GetCondition(5).GetGeometry()[1].Id, 5)
+        self.assertEqual(model_part.GetCondition(5).GetGeometry()[2].Id, 4)
+        self.assertEqual(model_part.GetCondition(6).GetGeometry()[0].Id, 7)
+        self.assertEqual(model_part.GetCondition(6).GetGeometry()[1].Id, 8)
+        self.assertEqual(model_part.GetCondition(6).GetGeometry()[2].Id, 4)
+        self.assertEqual(model_part.GetCondition(7).GetGeometry()[0].Id, 20)
+        self.assertEqual(model_part.GetCondition(7).GetGeometry()[1].Id, 8)
+        self.assertEqual(model_part.GetCondition(7).GetGeometry()[2].Id, 7)
+        self.assertEqual(model_part.GetCondition(8).GetGeometry()[0].Id, 17)
+        self.assertEqual(model_part.GetCondition(8).GetGeometry()[1].Id, 20)
+        self.assertEqual(model_part.GetCondition(8).GetGeometry()[2].Id, 7)
+        self.assertEqual(model_part.GetCondition(9).GetGeometry()[0].Id, 32)
+        self.assertEqual(model_part.GetCondition(9).GetGeometry()[1].Id, 2)
+        self.assertEqual(model_part.GetCondition(9).GetGeometry()[2].Id, 33)
+        self.assertEqual(model_part.GetCondition(10).GetGeometry()[0].Id, 33)
+        self.assertEqual(model_part.GetCondition(10).GetGeometry()[1].Id, 2)
+        self.assertEqual(model_part.GetCondition(10).GetGeometry()[2].Id, 31)
 
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]

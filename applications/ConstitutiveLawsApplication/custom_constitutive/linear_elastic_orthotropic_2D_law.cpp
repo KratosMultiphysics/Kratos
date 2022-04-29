@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -19,8 +21,8 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
-
 #include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -252,9 +254,10 @@ namespace Kratos
 		return rValues.CheckAllParameters();
 	}
 
-	int LinearElasticOrthotropic2DLaw::Check(const Properties& rMaterialProperties,
+	int LinearElasticOrthotropic2DLaw::Check(
+		const Properties& rMaterialProperties,
 		const GeometryType& rElementGeometry,
-		const ProcessInfo& rCurrentProcessInfo)
+		const ProcessInfo& rCurrentProcessInfo) const
 	{
         if(!rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS)) {
             KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_X));

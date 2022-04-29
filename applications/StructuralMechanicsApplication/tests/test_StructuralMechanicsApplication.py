@@ -16,7 +16,6 @@ has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
-from test_perfect_plasticity_implementation_verification import TestPerfectPlasticityImplementationVerification as TTestPerfectPlasticityImplementationVerification
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
@@ -186,23 +185,8 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticStructH
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
-from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityMCTest as TSimpleSmallDeformationPlasticityMCTest
-from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityVMTest as TSimpleSmallDeformationPlasticityVMTest
-from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityDPTest as TSimpleSmallDeformationPlasticityDPTest
-from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityTTest as TSimpleSmallDeformationPlasticityTTest
-from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityMCTest as TBigCubeSmallDeformationPlasticityMCTest
-from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityVMTest as TBigCubeSmallDeformationPlasticityVMTest
-from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityDPTest as TBigCubeSmallDeformationPlasticityDPTest
-from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityTTest as TBigCubeSmallDeformationPlasticityTTest
-from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
-from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ2PlasticityTest
-from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
-# Serial-Parallel Tests
-from structural_mechanics_test_factory import SerialParallelRuleOfMixturesCubeDamageTest as TSerialParallelRuleOfMixturesCubeDamageTest
-from structural_mechanics_test_factory import AnisotropyTest as TAnisotropyTest
 from structural_mechanics_test_factory import InitialStateElasticityTest as TInitialStateElasticityTest
-from structural_mechanics_test_factory import InitialStateInelasticityTest as TInitialStateInelasticityTest
-from structural_mechanics_test_factory import InitialStateInelasticity2Test as TInitialStateInelasticity2Test
+from structural_mechanics_test_factory import InitialStrainShellQ4ThickTest as TInitialStrainShellQ4ThickTest
 
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -275,20 +259,8 @@ def AssembleTestSuites():
     ### Adding the self-contained tests
     # Constitutive Law tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
-    nightSuite.addTest(TSimpleSmallDeformationPlasticityMCTest('test_execution'))
-    smallSuite.addTest(TSimpleSmallDeformationPlasticityVMTest('test_execution'))
-    nightSuite.addTest(TSerialParallelRuleOfMixturesCubeDamageTest('test_execution'))
-    nightSuite.addTest(TAnisotropyTest('test_execution'))
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
-    nightSuite.addTest(TInitialStateInelasticityTest('test_execution'))
-    nightSuite.addTest(TInitialStateInelasticity2Test('test_execution'))
-    smallSuite.addTest(TSimpleSmallDeformationPlasticityDPTest('test_execution'))
-    smallSuite.addTest(TSimpleSmallDeformationPlasticityTTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityMCTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityVMTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityDPTest('test_execution'))
-    nightSuite.addTest(TBigCubeSmallDeformationPlasticityTTest('test_execution'))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerfectPlasticityImplementationVerification]))
+    nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -308,7 +280,6 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
     # Membranes
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TStaticPatchTestMembrane]))
     # Formfinding
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
@@ -396,7 +367,6 @@ def AssembleTestSuites():
     nightSuite.addTest(TTestCookMembrane('test_cook_membrane_incompressible_2d'))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
-    nightSuite.addTest(TMembraneHemisphereTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicDiagonalTests('test_execution'))
     nightSuite.addTest(TMembraneOrthotropicHorizontalTests('test_execution'))
     nightSuite.addTest(TMembranePreStressHorizontalTests('test_execution'))
@@ -409,10 +379,8 @@ def AssembleTestSuites():
     nightSuite.addTest(T3D2NTrussLinearTensionPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NTrussNonLinearSnapthroughPlasticTest('test_execution'))
     nightSuite.addTest(T3D2NTrussNonLinearTensionPlasticTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrNonLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
-    nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NNLDispCtrlTest('test_execution'))
     # Shell tests
     nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
@@ -424,9 +392,6 @@ def AssembleTestSuites():
     # nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
-    # Constitutive Law tests
-    nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
-    nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution'))
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
     nightSuite.addTest(TRigidBlockTest('test_execution'))
     nightSuite.addTest(TRigidEliminationTest('test_execution'))
@@ -478,9 +443,11 @@ def AssembleTestSuites():
     ### Adding Validation Tests
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
-    validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    validationSuite.addTest(T2D2NBeamCrTest('test_execution'))
+    validationSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
     validationSuite.addTest(TMembraneMultiLinearIsotropicPlaneStressTests('test_execution')) # TODO should be in nightSuite but is too slow
     # Pendulus tests with Solid Elements
     validationSuite.addTest(TPendulusTLTest('test_execution'))
@@ -499,12 +466,13 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
-
-    # CL tests
-    validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicPatchTestMembrane]))
 
     # Explicit solid beam
     validationSuite.addTest(TExplicitSolidBeam('test_execution'))
+
+    # Membrane tests
+    validationSuite.addTest(TMembraneHemisphereTests('test_execution'))
 
     ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
     # They have been moved to validation temporarily until they will be removed
@@ -529,8 +497,7 @@ def AssembleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # Already contains the smallSuite
-    validationSuite.addTests(allSuite) # Validation contains all
+    allSuite.addTests(validationSuite)
 
     return suites
 

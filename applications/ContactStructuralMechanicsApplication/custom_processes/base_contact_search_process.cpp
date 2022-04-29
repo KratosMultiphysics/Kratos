@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: StructuralMechanicsApplication/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -19,6 +20,7 @@
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/normal_calculation_utils.h"
 #include "includes/gid_io.h"
 
@@ -215,17 +217,12 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::InitializeMorta
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = this->IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
-    const int num_conditions = static_cast<int>(r_conditions_array.size());
-
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = it_cond_begin + i;
-        if (!(it_cond->Has(INDEX_MAP))) {
-            it_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
-//             it_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
+    block_for_each(r_conditions_array,[&](Condition& rCond) {
+        if (!(rCond.Has(INDEX_MAP))) {
+            rCond.SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+//             rCond.GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
@@ -455,18 +452,14 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdatePointList
 
         if (mCheckGap == CheckGap::MappingCheck && dynamic) {
             NodesArrayType& r_update_r_nodes_array = r_sub_contact_model_part.Nodes();
-            const auto it_node_begin = r_update_r_nodes_array.begin();
-
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_update_r_nodes_array.size()); ++i) {
-                auto it_node = it_node_begin + i;
-                noalias(it_node->Coordinates()) += it_node->GetValue(DELTA_COORDINATES);
-            }
+            block_for_each(r_update_r_nodes_array, [&](NodeType& rNode) {
+                noalias(rNode.Coordinates()) += rNode.GetValue(DELTA_COORDINATES);
+            });
         }
 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(mPointListDestination.size()); ++i)
-            mPointListDestination[i]->UpdatePoint();
+        block_for_each(mPointListDestination,[&](PointTypePointer& pPoint) {
+            pPoint->UpdatePoint();
+        });
     }
 
     KRATOS_CATCH("")
@@ -488,7 +481,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
     ModelPart& r_sub_contact_model_part = this->IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
 
     // Calculate the mean of the normal in all the nodes
-    NormalCalculationUtils().CalculateUnitNormals<Condition>(r_sub_contact_model_part, true);
+    NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_sub_contact_model_part, true);
 
     // We get the computing model part
     IndexType condition_id = GetMaximumConditionsIds();
@@ -541,11 +534,9 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarCon
         if (mThisParameters["dynamic_search"].GetBool()) {
             if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
                 NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-                #pragma omp parallel for
-                for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                    auto it_node = r_nodes_array.begin() + i;
-                    noalias(it_node->Coordinates()) -= it_node->GetValue(DELTA_COORDINATES);
-                }
+                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                    noalias(rNode.Coordinates()) -= rNode.GetValue(DELTA_COORDINATES);
+                });
             }
         }
         // We compute the weighted reaction
@@ -1149,11 +1140,9 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ClearDestinatio
     }
 
     /* Finally we clear the database, that will be filled again later */
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = it_cond_begin + i;
-        it_cond->GetValue(INDEX_MAP)->clear();
-    }
+    block_for_each(r_conditions_array,[&](Condition& rCond) {
+        rCond.GetValue(INDEX_MAP)->clear();
+    });
 
     KRATOS_CATCH("")
 }
@@ -1394,19 +1383,16 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
 
     // We revert the nodes to the original position
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
     if (mThisParameters["dynamic_search"].GetBool()) {
         if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-                auto it_node = it_node_begin + i;
-                noalias(it_node->Coordinates()) -= it_node->GetValue(DELTA_COORDINATES);
-            }
+            block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                noalias(rNode.Coordinates()) -= rNode.GetValue(DELTA_COORDINATES);
+            });
         }
     }
 
     // Calculate the mean of the normal in all the nodes
-    NormalCalculationUtils().CalculateUnitNormals<Condition>(r_sub_contact_model_part, true);
+    NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(r_sub_contact_model_part, true);
 
     // Iterate in the conditions and create the new ones
     CreateAuxiliarConditions(r_sub_contact_model_part, rComputingModelPart, rConditionId);
@@ -1461,21 +1447,19 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveIn
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
 
     // We compute now the normal gap and set the nodes under certain threshold as active
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
-//             if (it_node->GetValue(NORMAL_GAP) < ZeroTolerance) {
-            if (it_node->GetValue(NORMAL_GAP) < GapThreshold * it_node->FastGetSolutionStepValue(NODAL_H)) {
-                SetActiveNode(it_node, common_epsilon, scale_factor);
+    block_for_each(r_nodes_array, [this, &common_epsilon, &scale_factor](NodeType& rNode) {
+        if (rNode.Is(SLAVE) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
+//             if (rNode.GetValue(NORMAL_GAP) < ZeroTolerance) {
+            if (rNode.GetValue(NORMAL_GAP) < GapThreshold * rNode.FastGetSolutionStepValue(NODAL_H)) {
+                SetActiveNode(rNode, common_epsilon, scale_factor);
             } else {
             #ifdef KRATOS_DEBUG
-                KRATOS_WARNING_IF("BaseContactSearchProcess", it_node->Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << it_node->Id() << std::endl;
+                KRATOS_WARNING_IF("BaseContactSearchProcess", rNode.Is(ACTIVE)) << "WARNING: A node that used to be active is not active anymore. Check that. Node ID: " << rNode.Id() << std::endl;
             #endif
-                SetInactiveNode(it_node);
+                SetInactiveNode(rNode);
             }
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
@@ -1485,7 +1469,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ComputeActiveIn
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
-    NodesArrayType::iterator ItNode,
+    NodeType& rNode,
     const double CommonEpsilon,
     const double ScaleFactor
     )
@@ -1493,15 +1477,15 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
     KRATOS_TRY
 
     // We activate
-    ItNode->Set(ACTIVE, true);
-    ItNode->Set(MARKER, true);
+    rNode.Set(ACTIVE, true);
+    rNode.Set(MARKER, true);
 
     // Set SLIP flag
     if (mrMainModelPart.Is(SLIP)) {
-        if (ItNode->GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
-            ItNode->Set(SLIP, true);
-        } else if (!ItNode->IsDefined(SLIP)) {
-            ItNode->Set(SLIP, false);
+        if (rNode.GetValue(FRICTION_COEFFICIENT) < ZeroTolerance || this->Is(BaseContactSearchProcess::PURE_SLIP)) {
+            rNode.Set(SLIP, true);
+        } else if (!rNode.IsDefined(SLIP)) {
+            rNode.Set(SLIP, false);
         }
     }
 
@@ -1512,26 +1496,26 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesArrayType::iterator ItNode)
+void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(Node<3>& rNode)
 {
     KRATOS_TRY
 
     // If the node has been already actived we do not inactivate
-    if (ItNode->IsNot(MARKER)) {
+    if (rNode.IsNot(MARKER)) {
         // Auxiliar zero array
         const array_1d<double, 3> zero_array = ZeroVector(3);
 
-        if (ItNode->Is(ACTIVE) ) {
-            ItNode->Set(ACTIVE, false);
+        if (rNode.Is(ACTIVE) ) {
+            rNode.Set(ACTIVE, false);
             switch(mTypeSolution) {
                 case TypeSolution::VectorLagrangeMultiplier :
-                    noalias(ItNode->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = zero_array;
+                    noalias(rNode.FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = zero_array;
                     break;
                 case TypeSolution::ScalarLagrangeMultiplier :
-                    ItNode->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+                    rNode.FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
                     break;
                 case TypeSolution::NormalContactStress :
-                    ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
+                    rNode.FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
                     break;
                 case TypeSolution::FrictionlessPenaltyMethod :
                     break;
@@ -1545,7 +1529,7 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode
         }
 
         // We set the gap to zero (in order to have something "visible" to post process)
-        ItNode->SetValue(NORMAL_GAP, 0.0);
+        rNode.SetValue(NORMAL_GAP, 0.0);
     }
 
     KRATOS_CATCH("")
@@ -1645,7 +1629,7 @@ inline void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::CreateAu
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
+/*************************************************In 2019, the relative value of Ptas. 30,000.00 from 1985 ranges from €520.48 to €1,274.15.**********************************/
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
@@ -1680,22 +1664,17 @@ void BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::ResetContactOpe
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = this->IsNot(BaseContactSearchProcess::MULTIPLE_SEARCHS) ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
-    const auto it_cond_begin = r_conditions_array.begin();
 
     if (mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            if (it_cond->Is(SLAVE) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
-                IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
-
+        block_for_each(r_conditions_array,[&](Condition& rCond) {
+            if (rCond.Is(SLAVE) == !this->Is(BaseContactSearchProcess::INVERTED_SEARCH)) {
+                IndexMap::Pointer p_indexes_pairs = rCond.GetValue(INDEX_MAP);
                 if (p_indexes_pairs != nullptr) {
                     p_indexes_pairs->clear();
 //                     p_indexes_pairs->reserve(mAllocationSize);
                 }
             }
-        }
+        });
 
         // We remove all the computing conditions conditions
         const std::string sub_computing_model_part_name = "ComputingContactSub" + mThisParameters["id_name"].GetString();

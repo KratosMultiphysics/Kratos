@@ -16,6 +16,7 @@ def ReadModelPart(file_path, current_model):
     model_part = current_model.CreateModelPart(model_part_name)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
     model_part_io = KratosMultiphysics.ModelPartIO(file_path)
     model_part_io.ReadModelPart(model_part)
 

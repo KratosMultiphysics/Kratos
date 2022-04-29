@@ -14,11 +14,6 @@ namespace Kratos {
         return p_clone;
     }
 
-    void DEM_KDEM_CamClay::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_CamClay to Properties " << pProp->Id() << std::endl;
-        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
-    }
-
     void DEM_KDEM_CamClay::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
@@ -33,11 +28,8 @@ namespace Kratos {
             Vector principal_stresses(3);
             noalias(principal_stresses) = AuxiliaryFunctions::EigenValuesDirectMethod(average_stress_tensor);
 
-            Properties& element1_props = element1->GetProperties();
-            Properties& element2_props = element2->GetProperties();
-
             // Preconsolidation pressure
-            const double p_c = 0.5 * (element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
+            const double& p_c = (*mpProperties)[DEM_PRECONSOLIDATION_PRESSURE];
 
             // p and q computation
             const double p = 0.333333333333333333333 * (principal_stresses[0] + principal_stresses[1] + principal_stresses[2]);
@@ -47,7 +39,7 @@ namespace Kratos {
                                        + (principal_stresses[2] - principal_stresses[0]) * (principal_stresses[2] - principal_stresses[0])));
 
             // slope of the straight line function
-            const double M = 0.5 * (element1_props[DEM_M_CAMCLAY_SLOPE] + element2_props[DEM_M_CAMCLAY_SLOPE]);;
+            const double M = (*mpProperties)[DEM_M_CAMCLAY_SLOPE];
 
             // straight line function value
             const double straight_line_function_value = M * p;
@@ -63,10 +55,6 @@ namespace Kratos {
     }
 
     double DEM_KDEM_CamClay::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
-
-        //Properties& element1_props = element1->GetProperties();
-        //Properties& element2_props = element2->GetProperties();
-        //const double mean_preconsolidation_pressure = 0.5*(element1_props[DEM_PRECONSOLIDATION_PRESSURE] + element2_props[DEM_PRECONSOLIDATION_PRESSURE]);
 
         BoundedMatrix<double, 3, 3> average_stress_tensor = ZeroMatrix(3,3);
         for (unsigned i = 0; i < 3; i++) {

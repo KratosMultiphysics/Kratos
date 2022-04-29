@@ -58,7 +58,7 @@ void StationaryStokes<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumNodes = rGeom.PointsNumber();
 
-    this->mIntegrationMethod = GeometryData::GI_GAUSS_2;
+    this->mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->mIntegrationMethod );
 

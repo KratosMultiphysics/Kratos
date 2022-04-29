@@ -36,6 +36,12 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwCondition : public Condition
 
 public:
 
+    /// We define the base class Condition
+    typedef Condition BaseType;
+
+    /// Definition of the size type
+    typedef BaseType::SizeType SizeType;
+
     KRATOS_CLASS_POINTER_DEFINITION( UPwCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -70,6 +76,14 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo ) override;
 
     void EquationIdVector(EquationIdVectorType& rResult,const ProcessInfo& rCurrentProcessInfo ) const override;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

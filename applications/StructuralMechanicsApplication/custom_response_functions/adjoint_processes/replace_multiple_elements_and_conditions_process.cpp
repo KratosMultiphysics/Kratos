@@ -77,7 +77,7 @@ void ReplaceEntities(TEntityContainer& rEntityContainer,
         );
 
         // Deep copy data and flags
-        p_entity->Data() = it->Data();
+        p_entity->GetData() = it->GetData();
         p_entity->Set(Flags(*it));
 
         (*it.base()) = p_entity;

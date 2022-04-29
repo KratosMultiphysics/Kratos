@@ -1,7 +1,6 @@
 import KratosMultiphysics
 
 def GetDefaultInputParameters():
-
     default_settings = KratosMultiphysics.Parameters("""
         {
             "do_print_results_option"          : true,
@@ -20,16 +19,15 @@ def GetDefaultInputParameters():
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
             "dem_inlet_option"                 : true,
+            "dem_inlets_settings"              : {},
             "seed"                             : 42,
             "GravityX"                         : 0.0,
             "GravityY"                         : 0.0,
             "GravityZ"                         : -9.81,
-
             "EnergyCalculationOption"          : false,
             "PotentialEnergyReferencePointX"   : 0.0,
             "PotentialEnergyReferencePointY"   : 0.0,
             "PotentialEnergyReferencePointZ"   : 0.0,
-
             "VelocityTrapOption"               : false,
             "VelocityTrapMaxX"                 : 0.0,
             "VelocityTrapMaxY"                 : 0.0,
@@ -41,6 +39,7 @@ def GetDefaultInputParameters():
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
             "solver_settings" : {},
+            "creator_destructor_settings" : {},
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
@@ -98,7 +97,6 @@ def GetDefaultInputParameters():
             "OutputFileType"                   : "Binary",
             "Multifile"                        : "multiple_files",
             "ElementType"                      : "SphericPartDEMElement3D",
-
             "TranslationalIntegrationScheme"   : "Symplectic_Euler",
             "RotationalIntegrationScheme"      : "Direct_Integration",
             "AutomaticTimestep"                : false,
@@ -118,17 +116,15 @@ def GetDefaultInputParameters():
                 "PostVirtualSeaSurfaceX4"      : 0.0,
                 "PostVirtualSeaSurfaceY4"      : 0.0
             },
-            "output_processes"                 :{},
-
+            "output_processes"                 : {},
             "material_test_settings" : {
                 "TestType"                         : "None",
                 "ConfinementPressure"              : 0.0,
                 "LoadingVelocity"                  : -0.10,
-                "MeshType"                         : "1",
-                "MeshPath"                         : "0",
                 "SpecimenLength"                   : 0.3,
                 "SpecimenDiameter"                 : 0.15,
-                "MeasuringSurface"                 : 0.01767145867644375
+                "YCoordinateOfCylinderBottomBase"  : 0.0,
+                "ZCoordinateOfCylinderBottomBase"  : 0.0
             },
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
@@ -172,6 +168,7 @@ def GetDefaultInputParameters():
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
+            "PostDeltaDisplacement"            : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },
@@ -181,6 +178,5 @@ def GetDefaultInputParameters():
             "LoadingVelocityBot"               : 0.0,
             "problem_name" : "dummy_name.Provide_a_real_one",
             "processes" : {}
-            }""")
-
+        }""")
     return default_settings

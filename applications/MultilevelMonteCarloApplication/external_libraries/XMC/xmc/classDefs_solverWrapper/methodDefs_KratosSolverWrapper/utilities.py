@@ -3,14 +3,12 @@ import numpy as np
 import math
 
 # Import distributed environment
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 
 ####################################################################################################
 ############################################# CLASSES ##############################################
 ####################################################################################################
-
-OUTPUT_QUANTITIES = 1
 
 class UnfolderManager(object):
     """
@@ -18,20 +16,26 @@ class UnfolderManager(object):
     A method managing multiple contributions is present as well.
 
     Attributes:
-    - number: number of values of original list
-    - group: desired length of sublists of output list.
-    - groups: number of sublists of output list.
+
+    number: integer.
+        Number of values of original list
+    group: integer.
+        Desired length of sublists of output list.
+    groups: integer.
+        Number of sublists of output list.
 
     Methods:
-    - UnfoldNValues_Task: task method calling UnfoldNValues.
-    - UnfoldNValues: method creating the list of sublists.
-    - PostprocessContributionsPerInstance: task method summing together multiple contributions, if any. After summing all contributions, it calls UnfoldNValues to create the list of sublists.
+
+    UnfoldNValues_Task:
+        Task method calling UnfoldNValues.
+    UnfoldNValues:
+        Method creating the list of sublists.
+    PostprocessContributionsPerInstance:
+        Task method summing together multiple contributions, if any. After summing all contributions, it calls UnfoldNValues to create the list of sublists.
     """
 
     def __init__(self, number, group):
-        global OUTPUT_QUANTITIES
         self.groups = math.ceil(number/group)
-        OUTPUT_QUANTITIES = self.groups
         self.number=number
         self.group=group
 
@@ -40,10 +44,13 @@ class UnfolderManager(object):
         Method creating list of sublists.
 
         Inputs:
-        - self: an instance of the class.
-        - number: number of values of original list
-        - group: desired length of sublists of output list.
-        - values: original list of values.
+
+        number: integer.
+            Number of values of original list
+        group: integer.
+            Desired length of sublists of output list.
+        values: list.
+            Original list of values.
         """
 
         partial_vals = []
@@ -53,14 +60,15 @@ class UnfolderManager(object):
                 yield partial_vals
                 partial_vals = []
 
-    @ExaquteTask(target_direction=IN,returns='OUTPUT_QUANTITIES')
+    @task(keep=True, target_direction=IN,returns=1)
     def UnfoldNValues_Task(self, values):
         """
         Task method calling UnfoldNValues.
 
         Inputs:
-        - self: an instance of the class.
-        - values: original list of values.
+
+        values: list.
+            Original list of values.
         """
 
         list_unfolded = list(self.UnfoldNValues(self.number, self.group, values))
@@ -68,15 +76,17 @@ class UnfolderManager(object):
             list_unfolded = list_unfolded[0]
         return list_unfolded
 
-    @ExaquteTask(aux_qoi_array_contributions={Type: COLLECTION_IN, Depth: 2},returns='OUTPUT_QUANTITIES')
+    @task(keep=True, aux_qoi_array_contributions={Type: COLLECTION_IN, Depth: 2},returns=1)
     def PostprocessContributionsPerInstance_Task(self,aux_qoi_array_contributions,qoi_estimators):
         """
         Task method summing multiple contribution of a specific realization and calling UnfoldNValues.
 
         Inputs:
-        - self: an instance of the class.
-        - aux_qoi_array_contributions: original list of values with multiple contributions.
-        - qoi_estimators: list of strings. Each string is the corresponding moment estimator of each quantity of interest.
+
+        aux_qoi_array_contributions: list.
+            Original list of values with multiple contributions.
+        qoi_estimators: list.
+            List of strings. Each string is the corresponding moment estimator of each quantity of interest.
         """
 
         aux_qoi_array = [[] for _ in range (0,len(qoi_estimators))] # to store each qoi

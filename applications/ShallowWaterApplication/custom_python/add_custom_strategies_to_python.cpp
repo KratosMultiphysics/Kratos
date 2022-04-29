@@ -23,6 +23,7 @@
 // Schemes
 #include "custom_strategies/shallow_water_residual_based_bdf_scheme.h"
 #include "custom_strategies/flux_corrected_shallow_water_scheme.h"
+#include "custom_strategies/residual_based_adams_moulton_scheme.h"
 
 namespace Kratos
 {
@@ -45,6 +46,7 @@ namespace Python
     (m, "ShallowWaterResidualBasedBDFScheme")
     .def(py::init<std::size_t>())
     .def(py::init<std::size_t, bool>())
+    .def(py::init<Parameters>())
     ;
 
     typedef FluxCorrectedShallowWaterScheme<SparseSpaceType, LocalSpaceType> FluxCorrectedShallowWaterSchemeType;
@@ -52,6 +54,13 @@ namespace Python
     (m, "FluxCorrectedShallowWaterScheme")
     .def(py::init<std::size_t>())
     .def(py::init<std::size_t, bool>())
+    .def(py::init<Parameters>())
+    ;
+
+    typedef ResidualBasedAdamsMoultonScheme<SparseSpaceType, LocalSpaceType> ResidualBasedAdamsMoultonSchemeType;
+    py::class_<ResidualBasedAdamsMoultonSchemeType, ResidualBasedAdamsMoultonSchemeType::Pointer, BaseSchemeType>
+    (m, "ResidualBasedAdamsMoultonScheme")
+    .def(py::init<>())
     .def(py::init<Parameters>())
     ;
 

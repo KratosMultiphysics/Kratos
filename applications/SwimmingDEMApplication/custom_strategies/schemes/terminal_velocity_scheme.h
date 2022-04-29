@@ -15,7 +15,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "../DEMApplication/custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/GeometryFunctions.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos {

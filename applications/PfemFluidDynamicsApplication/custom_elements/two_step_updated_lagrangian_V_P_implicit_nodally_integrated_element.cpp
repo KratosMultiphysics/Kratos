@@ -4,8 +4,6 @@
 //   Date:                $Date:               June 2018 $
 //   Revision:            $Revision:                 0.0 $
 //
-//   Implementation of the Gauss-Seidel two step Updated Lagrangian Velocity-Pressure element
-//     ( There is a ScalingConstant to multiply the mass balance equation for a number because i read it somewhere)
 //
 
 // System includes
@@ -503,7 +501,7 @@ namespace Kratos
     const SizeType LocalSize = 2 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -522,7 +520,7 @@ namespace Kratos
     const SizeType LocalSize = 3 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -577,7 +575,7 @@ namespace Kratos
                                      rElementalVariables.DetFgrad);
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-    rElementalVariables.SpatialVelocityGrad.resize(dimension, dimension);
+    rElementalVariables.SpatialVelocityGrad.resize(dimension, dimension, false);
     rElementalVariables.SpatialVelocityGrad = prod(rElementalVariables.FgradVel, rElementalVariables.InvFgrad);
 
     rElementalVariables.VolumetricDefRate = 0;
@@ -648,7 +646,7 @@ namespace Kratos
                                      rElementalVariables.DetFgrad);
 
     //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
-    rElementalVariables.SpatialVelocityGrad.resize(dimension, dimension);
+    rElementalVariables.SpatialVelocityGrad.resize(dimension, dimension, false);
     rElementalVariables.SpatialVelocityGrad = prod(rElementalVariables.FgradVel, rElementalVariables.InvFgrad);
 
     rElementalVariables.VolumetricDefRate = 0;
@@ -692,13 +690,13 @@ namespace Kratos
   {
     const GeometryType &rGeom = this->GetGeometry();
     Vector DetJ;
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::GI_GAUSS_1);
-    NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-    const GeometryType::IntegrationPointsArrayType &IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1);
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX, DetJ, GeometryData::IntegrationMethod::GI_GAUSS_1);
+    NContainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
+    const GeometryType::IntegrationPointsArrayType &IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_1);
 
-    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1), false);
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1), false);
 
-    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_1); ++g)
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_1); ++g)
     {
       // rGaussWeights[g] = fabs(DetJ[g] * IntegrationPoints[g].Weight());
       rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
@@ -782,12 +780,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
@@ -829,12 +827,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
@@ -894,12 +892,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
@@ -962,12 +960,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -1115,12 +1113,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
@@ -1198,12 +1196,12 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
@@ -1282,7 +1280,7 @@ namespace Kratos
     }
 
     double MeanVelocity = 0;
-    this->CalcMeanVelocity(MeanVelocity, 0);
+    this->CalcMeanVelocityNorm(MeanVelocity, 0);
 
     Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
     if (MeanVelocity == 0)

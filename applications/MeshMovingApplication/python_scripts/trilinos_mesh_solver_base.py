@@ -60,19 +60,19 @@ class TrilinosMeshSolverBase(MeshSolverBase):
 
     def Finalize(self):
         super().Finalize()
-        self.get_mesh_motion_solving_strategy().Clear() # needed for proper finalization of MPI
+        self._GetSolutionStrategy().Clear() # needed for proper finalization of MPI
 
     #### Specific internal functions ####
 
     def get_communicator(self):
         if not hasattr(self, '_communicator'):
-            self._communicator = TrilinosApplication.CreateCommunicator()
+            self._communicator = TrilinosApplication.CreateEpetraCommunicator(self.mesh_model_part.GetCommunicator().GetDataCommunicator())
         return self._communicator
 
     #### Private functions ####
 
-    def _create_linear_solver(self):
+    def _CreateLinearSolver(self):
         return trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-    def _create_mesh_motion_solving_strategy(self):
+    def _CreateSolutionStrategy(self):
         raise Exception("Mesh motion solver must be created by the derived class.")

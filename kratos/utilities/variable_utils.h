@@ -26,6 +26,7 @@
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -130,9 +131,10 @@ public:
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
 
-        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) << "Origin and destination model parts have different number of nodes."
-                                                        << "\n\t- Number of origin nodes: " << n_orig_nodes
-                                                        << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes)
+            << "Origin and destination model parts have different number of nodes."
+            << "\n\t- Number of origin nodes: " << n_orig_nodes
+            << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
         IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
@@ -140,6 +142,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
     }
 
     /**
@@ -183,6 +187,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->GetValue(rDestinationVariable) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
     }
 
     template< class TVarType >
@@ -645,13 +651,13 @@ public:
     void SetVariable(
         const TVarType& rVariable,
         const TDataType& rValue,
-        NodesContainerType& rNodes
-        )
+        NodesContainerType& rNodes,
+        const unsigned int Step = 0)
     {
         KRATOS_TRY
 
         block_for_each(rNodes, [&](Node<3>& rNode) {
-            rNode.FastGetSolutionStepValue(rVariable) = rValue;
+            rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         });
 
         KRATOS_CATCH("")
@@ -774,7 +780,7 @@ public:
         KRATOS_TRY
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-                rEntity.Data().Clear();
+                rEntity.GetData().Clear();
         });
 
         KRATOS_CATCH("")
@@ -808,20 +814,20 @@ public:
     /**
      * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
-     * @param rFlagValue flag value to be set
+     * @param FlagValue flag value to be set
      * @param rContainer Reference to the objective container
      */
     template< class TContainerType >
     void SetFlag(
         const Flags& rFlag,
-        const bool& rFlagValue,
+        const bool FlagValue,
         TContainerType& rContainer
         )
     {
         KRATOS_TRY
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-                rEntity.Set(rFlag, rFlagValue);
+                rEntity.Set(rFlag, FlagValue);
         });
 
         KRATOS_CATCH("")
@@ -1177,9 +1183,7 @@ public:
 
         const auto &r_communicator = rModelPart.GetCommunicator();
 
-        using ReductionType = typename std::conditional< std::is_scalar<TDataType>::value , SumReduction<double> , Array3Reduction >::type;
-
-        TDataType sum_value = block_for_each<ReductionType>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
             return rNode.GetSolutionStepValue(rVariable, BuffStep);
         });
 
@@ -1333,6 +1337,28 @@ public:
     }
 
     /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs variable names, this method adds such variables as DOFs
+     * to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsVarNamesList List with the string variable names to be added as DOFs
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsList(
+        const std::vector<std::string>& rDofsVarNamesList,
+        ModelPart& rModelPart);
+
+    /**
+     * @brief Add a list of DOFs to the nodes
+     * Provided a list with the DOFs and reactions variable names, this method adds such variables
+     * as DOFs and reaction to the nodes of the given model part. Note that the addition is performed at once.
+     * @param rDofsAndReactionsNamesList List with the DOF and reaction string variable names to be added as DOFs and reaction
+     * @param rModelPart Model part to which the DOFs are added
+     */
+    static void AddDofsWithReactionsList(
+        const std::vector<std::array<std::string,2>>& rDofsAndReactionsNamesList,
+        ModelPart& rModelPart);
+
+    /**
      * @brief This method checks the variable keys
      * @return True if all the keys are correct
      */
@@ -1387,33 +1413,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    // TODO use SumReduction once it supports array3 (- Philipp)
-    class Array3Reduction
-    {
-    public:
-        typedef array_1d<double,3> value_type;
-        typedef array_1d<double,3> return_type;
-
-        return_type mValue = ZeroVector(3);
-
-        /// access to reduced value
-        return_type GetValue() const
-        {
-            return mValue;
-        }
-
-        void LocalReduce(const value_type& value)
-        {
-            mValue += value;
-        }
-
-        void ThreadSafeReduce(const Array3Reduction& rOther)
-        {
-            AtomicAdd(mValue, rOther.mValue);
-        }
-    };
-
 
     ///@}
     ///@name Private Operators
@@ -1486,7 +1485,6 @@ private:
 
         KRATOS_CATCH("");
     }
-
 
     ///@}
     ///@name Private  Acces

@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                     license: structural_mechanics_application/license.txt
@@ -20,7 +22,7 @@
 #include "containers/model.h"
 // #include "includes/gid_io.h"
 #include "utilities/read_materials_utility.h"
-#include "custom_advanced_constitutive/rule_of_mixtures_law.h"
+#include "custom_constitutive/rule_of_mixtures_law.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -256,7 +258,7 @@ void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::si
 /**
 * Check the correct work of Rule of Mixtures (Hexahedron 2 layers)
 */
-KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -294,7 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
 /**
 * Check the correct work of Rule of Mixtures (Hexahedron 3 layers)
 */
-KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -332,7 +334,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
 /**
 * Check the correct work of Rule of Mixtures (Tetrahedron 2 layers)
 */
-KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
@@ -370,7 +372,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
 /**
 * Check the correct work of Rule of Mixtures (Tetrahedron 3 layers)
 */
-KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, KratosConstitutiveLawsFastSuite)
 {
     Model this_model;
     ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);

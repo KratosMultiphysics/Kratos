@@ -14,6 +14,8 @@
 #include "geometries/geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 
+#include "iga_application_variables.h"
+
 namespace Kratos
 {
 namespace TestCreationUtility
@@ -33,7 +35,7 @@ namespace TestCreationUtility
     ///@name Operations
     ///@{
 
-    void AddDisplacementDofs(ModelPart& rModelPart) {
+    inline void AddDisplacementDofs(ModelPart& rModelPart) {
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.AddDof(DISPLACEMENT_X);
             r_node.AddDof(DISPLACEMENT_Y);
@@ -41,8 +43,15 @@ namespace TestCreationUtility
         }
     }
 
-    NurbsSurfaceType GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree) {
-        
+    inline void AddDirectorInc2DDofs(ModelPart& rModelPart) {
+        for (auto& r_node : rModelPart.Nodes()) {
+            r_node.AddDof(DIRECTORINC_X);
+            r_node.AddDof(DIRECTORINC_Y);
+        }
+    }
+
+    inline typename NurbsSurfaceType::Pointer GenerateNurbsSurface(ModelPart& rModelPart, SizeType PolynomialDegree)
+    {
         SizeType p = PolynomialDegree;
         SizeType q = 1;
 
@@ -100,20 +109,24 @@ namespace TestCreationUtility
             points(11) = rModelPart.CreateNewNode(12, 1.0, 0.05, 0.0);
         }
 
-        return NurbsSurfaceType(
+        return Kratos::make_shared<NurbsSurfaceType>(
             points, p, q, knot_u, knot_v);
     }
 
-    typename Geometry<NodeType>::Pointer GetQuadraturePointGeometry(
+    inline typename Geometry<NodeType>::Pointer GetQuadraturePointGeometry(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
     {
         typename GeometryType::IntegrationPointsArrayType integration_points(1);
         integration_points[0] = IntegrationPoint;
         typename GeometryType::GeometriesArrayType result_geometries;
-        
-        GenerateNurbsSurface(rModelPart,PolynomialDegree).CreateQuadraturePointGeometries(
-                result_geometries, 3, integration_points);
-        
+
+        auto p_nurbs_surface = GenerateNurbsSurface(rModelPart, PolynomialDegree);
+        p_nurbs_surface->SetId(1);
+        IntegrationInfo integration_info = p_nurbs_surface->GetDefaultIntegrationInfo();
+        p_nurbs_surface->CreateQuadraturePointGeometries(
+                result_geometries, 3, integration_points, integration_info);
+        rModelPart.AddGeometry(p_nurbs_surface);
+
         return result_geometries(0);
     }
 

@@ -52,10 +52,10 @@ virtual ~DemStructuresCouplingUtilities(){}
 
 void TransferStructuresSkinToDem(ModelPart& r_source_model_part, ModelPart& r_destination_model_part, Properties::Pointer props) {
 
-    std::string error = CheckProvidedProperties(props);
+    // std::string error = CheckProvidedProperties(props);
     const int dimension = r_source_model_part.GetProcessInfo()[DOMAIN_SIZE];
 
-    if (error != "all_ok") KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing " << error << " . Exiting." << std::endl;
+    // if (error != "all_ok") KRATOS_ERROR << "The Dem Walls ModelPart has no valid Properties. Missing " << error << " . Exiting." << std::endl;
 
     r_destination_model_part.Conditions().Sort();
     int id = 1;

@@ -26,8 +26,8 @@ class MoveParticleUtilityProcess(KM.Process):
         self.model_part = model[settings["model_part_name"].GetString()]
         self.use_mesh_velocity = settings["use_mesh_velocity"].GetBool()
         self.reset_boundary_conditions = settings["reset_boundary_conditions"].GetBool()
-        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MEAN_SIZE, self.model_part.Nodes)
-        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MEAN_VEL_OVER_ELEM_SIZE, self.model_part.Nodes)
+        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MEAN_SIZE, self.model_part.Elements)
+        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.MEAN_VEL_OVER_ELEM_SIZE, self.model_part.Elements)
 
     def Check(self):
         settings = self.model_part.ProcessInfo[KM.CONVECTION_DIFFUSION_SETTINGS]

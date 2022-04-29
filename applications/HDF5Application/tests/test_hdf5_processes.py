@@ -6,6 +6,7 @@ import KratosMultiphysics.HDF5Application.single_mesh_primal_output_process as s
 import KratosMultiphysics.HDF5Application.initialization_from_hdf5_process as initialization_from_hdf5_process
 import KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process as single_mesh_temporal_input_process
 import KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process as single_mesh_xdmf_output_process
+import KratosMultiphysics.HDF5Application.import_model_part_from_hdf5_process as import_model_part_from_hdf5_process
 from unittest.mock import patch
 
 
@@ -36,6 +37,10 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionFlagValueIO', autospec=True)
         self.patcher10 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionDataValueIO', autospec=True)
+        self.patcher11 = patch(
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementGaussPointOutput', autospec=True)
+        self.patcher12 = patch(
+            'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionGaussPointOutput', autospec=True)
         self.HDF5FileSerial = self.patcher1.start()
         self.HDF5ModelPartIO = self.patcher2.start()
         self.HDF5NodalSolutionStepDataIO = self.patcher3.start()
@@ -46,6 +51,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5NodalFlagValueIO = self.patcher8.start()
         self.HDF5ConditionFlagValueIO = self.patcher9.start()
         self.HDF5ConditionDataValueIO = self.patcher10.start()
+        self.HDF5ElementGaussPointOutput = self.patcher11.start()
+        self.HDF5ConditionGaussPointOutput = self.patcher12.start()
 
     def tearDown(self):
         self.patcher1.stop()
@@ -58,6 +65,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.patcher8.stop()
         self.patcher9.stop()
         self.patcher10.stop()
+        self.patcher11.stop()
+        self.patcher12.stop()
 
     def test_SingleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -85,11 +94,17 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                     "element_flag_value_settings": {
                         "prefix": "/ResultsData/ElementFlagValues"
                     },
+                    "element_gauss_point_value_settings"      : {
+                        "prefix": "/ResultsData/ElementGaussPointValues"
+                    },
                     "condition_data_value_settings": {
                         "prefix": "/ResultsData/ConditionDataValues"
                     },
                     "condition_flag_value_settings": {
                         "prefix": "/ResultsData/ConditionFlagValues"
+                    },
+                    "condition_gauss_point_value_settings"      : {
+                        "prefix": "/ResultsData/ConditionGaussPointValues"
                     },
                     "output_time_settings": {
                         "time_frequency": 0.2,
@@ -167,6 +182,16 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.assert_called_with(
             self.model_part.Elements)
 
+        self.assertEqual(self.HDF5ElementGaussPointOutput.call_count, 2)
+        self.assertEqual(self.HDF5ElementGaussPointOutput.call_args[0][0]['prefix'].GetString(
+        ), '/ResultsData/ElementGaussPointValues')
+        self.assertEqual(
+            self.HDF5ElementGaussPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
+        self.assertEqual(
+            self.HDF5ElementGaussPointOutput.return_value.WriteElementGaussPointValues.call_count, 2)
+        self.HDF5ElementGaussPointOutput.return_value.WriteElementGaussPointValues.assert_called_with(
+            self.model_part.Elements, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
+
         self.assertEqual(self.HDF5ConditionDataValueIO.call_count, 2)
         self.assertEqual(self.HDF5ConditionDataValueIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ConditionDataValues')
@@ -186,6 +211,16 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.call_count, 2)
         self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.assert_called_with(
             self.model_part.Conditions)
+
+        self.assertEqual(self.HDF5ConditionGaussPointOutput.call_count, 2)
+        self.assertEqual(self.HDF5ConditionGaussPointOutput.call_args[0][0]['prefix'].GetString(
+        ), '/ResultsData/ConditionGaussPointValues')
+        self.assertEqual(
+            self.HDF5ConditionGaussPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
+        self.assertEqual(
+            self.HDF5ConditionGaussPointOutput.return_value.WriteConditionGaussPointValues.call_count, 2)
+        self.HDF5ConditionGaussPointOutput.return_value.WriteConditionGaussPointValues.assert_called_with(
+            self.model_part.Conditions, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
 
     def test_MultipleMeshTemporalOutputProcess(self):
         settings = KratosMultiphysics.Parameters('''
@@ -400,6 +435,56 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         patcher1.stop()
         patcher2.stop()
         patcher3.stop()
+
+    def test_ImportModelPartFromHDF5Process(self):
+        settings = KratosMultiphysics.Parameters('''
+            {
+                "Parameters": {
+                    "model_part_name": "test_model_part"
+                }
+            }
+            ''')
+        process = import_model_part_from_hdf5_process.Factory(
+            settings, self.model)
+        process.ExecuteInitialize()
+        self.assertEqual(self.HDF5FileSerial.call_count, 1)
+        self.assertEqual(
+            self.HDF5FileSerial.call_args[0][0]["file_name"].GetString(), "test_model_part.h5")
+        self.assertEqual(
+            self.HDF5FileSerial.call_args[0][0]["file_access_mode"].GetString(), "read_only")
+        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 1)
+        self.assertEqual(
+            self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.call_count, 1)
+        self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.assert_called_with(
+            self.model_part, 0)
+        self.assertEqual(
+            self.HDF5NodalDataValueIO.return_value.ReadNodalResults.call_count, 1)
+        self.HDF5NodalDataValueIO.return_value.ReadNodalResults.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ElementDataValueIO.return_value.ReadElementResults.call_count, 1)
+        self.HDF5ElementDataValueIO.return_value.ReadElementResults.assert_called_with(
+            self.model_part.Elements, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 1)
+        self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.call_count, 1)
+        self.HDF5ElementFlagValueIO.return_value.ReadElementFlags.assert_called_with(
+            self.model_part.Elements, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.call_count, 1)
+        self.HDF5ConditionDataValueIO.return_value.ReadConditionResults.assert_called_with(
+            self.model_part.Conditions, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.call_count, 1)
+        self.HDF5NodalFlagValueIO.return_value.ReadNodalFlags.assert_called_with(
+            self.model_part.Nodes, self.model_part.GetCommunicator())
+        self.assertEqual(
+            self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.call_count, 1)
+        self.HDF5ConditionFlagValueIO.return_value.ReadConditionFlags.assert_called_with(
+            self.model_part.Conditions, self.model_part.GetCommunicator())
 
 
 if __name__ == "__main__":

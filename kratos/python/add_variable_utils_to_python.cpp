@@ -169,7 +169,6 @@ void VariableUtilsSetVariable(
     rVariableUtils.SetVariable(rVariable, rValue, rNodes);
 }
 
-
 /**
  * @brief Auxiliary set variable export function
  * This function is required to export the SetVariable with flag overloaded method with a unique name
@@ -268,8 +267,10 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Vector>>)
         .def("CopyModelPartElementalVar", &VariableUtils::CopyModelPartElementalVar<Variable<Matrix>>)
         .def("SetVectorVar", VariableUtilsSetVariable<array_1d<double,3>>)
+        .def("SetVectorVar", [](VariableUtils& rVariableUtils, const Variable<array_1d<double, 3>>& rVariable, const array_1d<double, 3>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
         .def("SetVectorVar", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
         .def("SetScalarVar", VariableUtilsSetVariable<double>)
+        .def("SetScalarVar", [](VariableUtils& rVariableUtils, const Variable<double>& rVariable, const double& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
         .def("SetScalarVar", VariableUtilsSetVariableForFlag<double>)
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<int, ModelPart::NodesContainerType>)
         .def("SetNonHistoricalScalarVar", VariableUtilsSetNonHistoricalVariable<double, ModelPart::NodesContainerType>)
@@ -281,6 +282,13 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("SetVariable", VariableUtilsSetVariable<Vector>)
         .def("SetVariable", VariableUtilsSetVariable<Matrix>)
         .def("SetVariable", VariableUtilsSetVariable<Quaternion<double>>)
+        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<int>& rVariable, const int& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<bool>& rVariable, const bool& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<double>& rVariable, const double& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<array_1d<double, 3>>& rVariable, const array_1d<double, 3>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<Vector>& rVariable, const Vector& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<Matrix>& rVariable, const Matrix& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
+        .def("SetVariable", [](VariableUtils& rVariableUtils, const Variable<Quaternion<double>>& rVariable, const Quaternion<double>& rValue, ModelPart::NodesContainerType& rNodes, const unsigned int Step){rVariableUtils.SetVariable(rVariable, rValue, rNodes, Step);})
         .def("SetVariable", VariableUtilsSetVariableForFlag<bool>)
         .def("SetVariable", VariableUtilsSetVariableForFlag<double>)
         .def("SetVariable", VariableUtilsSetVariableForFlag<array_1d<double, 3>>)
@@ -454,6 +462,8 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("SumElementVectorVariable", &VariableUtils::SumElementVectorVariable)
         .def("AddDof", &VariableUtils::AddDof<Variable<double>>)
         .def("AddDof", &VariableUtils::AddDofWithReaction<Variable<double>>)
+        .def_static("AddDofsList", &VariableUtils::AddDofsList)
+        .def_static("AddDofsList", &VariableUtils::AddDofsWithReactionsList)
         .def("CheckVariableKeys", &VariableUtils::CheckVariableKeys)
         .def("UpdateCurrentToInitialConfiguration", &VariableUtils::UpdateCurrentToInitialConfiguration)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)

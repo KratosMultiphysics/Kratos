@@ -76,10 +76,42 @@ Matrix& LinearPlaneStrain::GetValue(const Variable<Matrix>& rThisVariable, Matri
 /***********************************************************************************/
 /***********************************************************************************/
 
+// ConstitutiveLaw::VoigtSizeMatrixType& LinearPlaneStrain::GetValue(const Variable<VoigtSizeMatrixType>& rThisVariable, ConstitutiveLaw::VoigtSizeMatrixType& rValue)
+// {
+//     return rValue;
+// }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// ConstitutiveLaw::DeformationGradientMatrixType& LinearPlaneStrain::GetValue(const Variable<DeformationGradientMatrixType>& rThisVariable, ConstitutiveLaw::DeformationGradientMatrixType& rValue)
+// {
+//     return rValue;
+// }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Vector& LinearPlaneStrain::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     return rValue;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// ConstitutiveLaw::StrainVectorType& LinearPlaneStrain::GetValue(const Variable<StrainVectorType>& rThisVariable, ConstitutiveLaw::StrainVectorType& rValue)
+// {
+//     return rValue;
+// }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// ConstitutiveLaw::StressVectorType& LinearPlaneStrain::GetValue(const Variable<StressVectorType>& rThisVariable, ConstitutiveLaw::StressVectorType& rValue)
+// {
+//     return rValue;
+// }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -113,7 +145,7 @@ void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrain::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -137,8 +169,8 @@ void LinearPlaneStrain::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Param
 /***********************************************************************************/
 
 void LinearPlaneStrain::CalculatePK2Stress(
-    const Vector& rStrainVector,
-    Vector& rStressVector,
+    const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
     )
 {
@@ -159,10 +191,10 @@ void LinearPlaneStrain::CalculatePK2Stress(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
+void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, ConstitutiveLaw::StrainVectorType& rStrainVector)
 {
     //1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
+    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
 
     // for shells/membranes in case the DeformationGradient is of size 3x3
     BoundedMatrix<double, 2, 2> F2x2;
@@ -170,7 +202,7 @@ void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, Vector& 
         for (unsigned int j = 0; j<2; ++j)
             F2x2(i, j) = F(i, j);
 
-    Matrix E_tensor = prod(trans(F2x2), F2x2);
+    BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
 
     for (unsigned int i = 0; i<2; ++i)
         E_tensor(i, i) -= 1.0;

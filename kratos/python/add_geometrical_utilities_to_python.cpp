@@ -26,7 +26,6 @@
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/body_distance_calculation_utils.h"
 #include "utilities/signed_distance_calculation_utils.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/brute_force_point_locator.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
@@ -38,7 +37,8 @@
 #include "utilities/iso_printer.h"
 #include "utilities/interval_utility.h"
 #include "utilities/convect_particles_utilities.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/mls_shape_functions_utility.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -82,27 +82,6 @@ void InterpolateDiscontinuousMeshVariableToSkinArray(
     rEmbeddedSkinUtility.InterpolateDiscontinuousMeshVariableToSkin(rVariable, rEmbeddedVariable, rInterfaceSide);
 }
 
-// Parallel distance calculator
-void CalculateDistancesDefault2D(ParallelDistanceCalculator<2>& rParallelDistanceCalculator,ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance)
-{
-    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
-}
-
-void CalculateDistancesFlag2D(ParallelDistanceCalculator<2>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
-{
-    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
-}
-
-void CalculateDistancesDefault3D(ParallelDistanceCalculator<3>& rParallelDistanceCalculator,ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance)
-{
-    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
-}
-
-void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
-{
-    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
-}
-
 void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -111,13 +90,54 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def(py::init<>())
         .def("CalculateNormalsInConditions", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ConditionsContainerType>)
         .def("CalculateNormalsInElements", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ElementsContainerType>)
-        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
-        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart);})
-        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
-        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart);})
-        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension);})
-        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension);})
-        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateOnSimplex(rModelPart);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,true>(rModelPart);})
+        .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateNormals<ModelPart::ConditionsContainerType,false>(rModelPart);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,true>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,true>(rModelPart);})
+        .def("CalculateUnitNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm, rNormalVariable);})
+        .def("CalculateUnitNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,false>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateUnitNormalsNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateUnitNormals<ModelPart::ConditionsContainerType,false>(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplex(rModelPart, rNormalVariable);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rConditions, Dimension);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rConditions, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart, Dimension);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension, NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart, Dimension, rNormalVariable);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart);})
+        .def("CalculateOnSimplexNonHistorical", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const NormalCalculationUtils::NormalVariableType& rNormalVariable){
+            rNormalCalculationUtils.CalculateOnSimplexNonHistorical(rModelPart, rNormalVariable);})
         .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
         .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<int>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
         .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable,const double Zero,const double Alpha){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable, Zero, Alpha);})
@@ -146,26 +166,6 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def(py::init<>())
         .def("CalculateDistances", &SignedDistanceCalculationUtils < 3 > ::CalculateDistances)
         .def("FindMaximumEdgeSize", &SignedDistanceCalculationUtils < 3 > ::FindMaximumEdgeSize)
-        ;
-
-    py::class_<ParallelDistanceCalculator < 2 > >(m,"ParallelDistanceCalculator2D")
-        .def(py::init<>())
-        .def("CalculateDistances", CalculateDistancesDefault2D)
-        .def("CalculateDistances", CalculateDistancesFlag2D)
-        .def("CalculateInterfacePreservingDistances", &ParallelDistanceCalculator < 2 > ::CalculateInterfacePreservingDistances)
-        .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 2 > ::CalculateDistancesLagrangianSurface)
-        .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 2 > ::FindMaximumEdgeSize)
-        .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<2>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        ;
-
-    py::class_<ParallelDistanceCalculator < 3 > >(m,"ParallelDistanceCalculator3D")
-        .def(py::init<>())
-        .def("CalculateDistances", CalculateDistancesDefault3D)
-        .def("CalculateDistances", CalculateDistancesFlag3D)
-        .def("CalculateInterfacePreservingDistances", &ParallelDistanceCalculator < 3 > ::CalculateInterfacePreservingDistances)
-        .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 3 > ::CalculateDistancesLagrangianSurface)
-        .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
-        .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
     py::enum_<Globals::Configuration>( m, "Configuration" )
@@ -309,6 +309,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
+
+    // MLS shape functions utility
+    py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
+        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2>)
+        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
+        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
+        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        ;
 }
 
 } // namespace Python.

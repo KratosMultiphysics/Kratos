@@ -20,7 +20,10 @@
     "CleanIndentationsOption"             : false,
     "solver_settings"                     : {
         "RemoveBallsInitiallyTouchingWalls" : false,
-        "strategy"                          : "continuum_sphere_strategy"
+        "strategy"                          : "continuum_sphere_strategy",
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
     },
     "DeltaOption"                         : "Absolute",
     "SearchTolerance"                     : 0.0001,
@@ -52,10 +55,8 @@
         "TestType"            : "None",
         "ConfinementPressure" : 0.0,
         "LoadingVelocity"     : 0.1,
-        "MeshType"            : "Current",
         "SpecimenLength"      : 0.3,
-        "SpecimenDiameter"    : 0.1016,
-        "MeasuringSurface"    : 0.00806117
+        "SpecimenDiameter"    : 0.1016
     },
     "processes"        : {
         "constraints_process_list" : [],

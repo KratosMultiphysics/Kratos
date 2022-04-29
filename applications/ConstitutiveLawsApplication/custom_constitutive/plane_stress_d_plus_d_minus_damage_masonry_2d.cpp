@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -19,8 +21,10 @@
 // Project includes
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
+#include "constitutive_laws_application_variables.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+
 
 #define OPTIMIZE_CHARACTERISTIC_LENGTH
 #define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)
@@ -423,7 +427,7 @@ void DamageDPlusDMinusMasonry2DLaw::GetLawFeatures(
 int DamageDPlusDMinusMasonry2DLaw::Check(
 	const Properties& rMaterialProperties,
 	const GeometryType& rElementGeometry,
-	const ProcessInfo& rCurrentProcessInfo)
+	const ProcessInfo& rCurrentProcessInfo) const
 {
 	KRATOS_TRY
 
@@ -560,9 +564,9 @@ void DamageDPlusDMinusMasonry2DLaw::TensionCompressionSplit(
 	array_1d<double,3>& effective_tension_stress_vector 	= data.EffectiveTensionStressVector;
 	array_1d<double,3>& effective_compression_stress_vector = data.EffectiveCompressionStressVector;
 
-	ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
+	AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
 		principal_stress_vector, effective_stress_vector);
-	ConstitutiveLawUtilities<3>::SpectralDecomposition(
+	AdvancedConstitutiveLawUtilities<3>::SpectralDecomposition(
 		effective_stress_vector, effective_tension_stress_vector, effective_compression_stress_vector);
 }
 /***********************************************************************************/
@@ -679,8 +683,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(Calculation
 			double I1, J2;
 			array_1d<double, 3> deviator = ZeroVector(3);
 
-			ConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
-			ConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
+			AdvancedConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
+			AdvancedConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
 
 			const double beta 	= yield_compression / yield_tension * (1.0 - alpha) - (1.0 + alpha);
 			const double smax 	= std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)),0.0);
@@ -707,8 +711,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(Calcula
 		double I1, J2;
 		array_1d<double, 3> deviator = ZeroVector(3);
 
-		ConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
-		ConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
+		AdvancedConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
+		AdvancedConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
 
 		const double beta = (yield_compression / yield_tension) * (1.0 - alpha) - (1.0 + alpha);
 		const double smax = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)),0.0);

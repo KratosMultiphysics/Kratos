@@ -28,6 +28,7 @@
 #include "includes/global_pointer_variables.h"
 #include "includes/kratos_flags.h"
 #include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "geometries/geometry_data.h"
 #include "processes/compute_nodal_gradient_process.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -69,14 +70,13 @@ class LevelSetConvectionProcess
 {
 public:
 
-    KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
-    KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
-
     ///@name Type Definitions
     ///@{
 
-    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+    typedef ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderAndSolverPointerType;
+    typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> ComputeGradientProcessType;
+    typedef ComputeGradientProcessType::Pointer ComputeGradientProcessPointerType;
 
     ///@}
     ///@name Pointer Definitions
@@ -130,36 +130,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    LevelSetConvectionProcess(
-        Variable<double>& rLevelSetVar,
-        ModelPart& rBaseModelPart,
-        typename TLinearSolver::Pointer pLinearSolver,
-        const double MaxCFL = 1.0,
-        const double CrossWindStabilizationFactor = 0.7,
-        const unsigned int MaxSubsteps = 0)
-        : mrBaseModelPart(rBaseModelPart)
-        , mrModel(rBaseModelPart.GetModel())
-        , mpLevelSetVar(&rLevelSetVar)
-        , mpConvectVar(&VELOCITY)
-        , mpLevelSetGradientVar(nullptr)
-        , mMaxAllowedCFL(MaxCFL)
-        , mMaxSubsteps(MaxSubsteps)
-        , mIsBfecc(false)
-        , mPartialConvection(false)
-        , mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
-    {
-        KRATOS_TRY
-
-        KRATOS_WARNING("LevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
-
-        SetConvectionProblemSettings(CrossWindStabilizationFactor);
-
-        auto p_builder_solver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);
-        InitializeConvectionStrategy(p_builder_solver);
-
-        KRATOS_CATCH("")
-    }
-
     /// Copy constructor.
     LevelSetConvectionProcess(LevelSetConvectionProcess const& rOther) = delete;
 
@@ -185,7 +155,6 @@ public:
      * @brief Perform the level-set convection
      * This solver provides a stabilized convection solver based on [Codina, R., 1993. Comput. Methods Appl. Mech. Engrg., 110(3-4), pp.325-342.]
      * It uses the sub-stepping approach to comply with the user defined maximum CFL number.
-     * It also allows the user to do the time-marching in a portion of the time-step set by DELTA_TIME_FACTOR in the ProcessInfo (needs "levelset_splitting": true).
      * The error compensation is done according to the BFECC algorithm, which requires forward, backward, and the final forward solution steps (that triplicates the computational cost).
      * The error compensation severely disturbs the monotonicity of the results that is compensated for by implementing a limited BFECC algorithm.
      * The limiter relies on the nodal gradient of LevelSetVar (non-historical variable LevelSetGradientVar). For more info see [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41].
@@ -202,41 +171,37 @@ public:
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
 
-        // Set time step factor in case partial convection (e.g. Strang splitting) is performed
-        double dt_factor = 1.0;
         auto& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
-        if (mPartialConvection){
-            if (rCurrentProcessInfo.Has(DELTA_TIME_FACTOR)) {
-                dt_factor = rCurrentProcessInfo.GetValue(DELTA_TIME_FACTOR);
-                KRATOS_ERROR_IF(dt_factor < 1.0e-2) << "\'DELTA_TIME_FACTOR\' should be larger than zero." <<std::endl;
-            } else {
-                KRATOS_ERROR << "\'DELTA_TIME_FACTOR\' not found in ProcessInfo. Please set it or deactivate the partial convection." << std::endl;
-            }
-        }
 
         // Save the variables to be employed so that they can be restored after the solution
         const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
-        const double levelset_delta_time = dt_factor * previous_delta_time;
 
         // Save current level set value and current and previous step velocity values
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar);
-            mVelocityOld[i_node] = dt_factor*it_node->FastGetSolutionStepValue(*mpConvectVar,1) +
-                (1.0 - dt_factor)*it_node->FastGetSolutionStepValue(*mpConvectVar);
+            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(*mpConvectVar,1);
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(*mpLevelSetVar,1);
             }
         );
 
-        const double dt = levelset_delta_time / static_cast<double>(n_substep);
+        const double dt =  previous_delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
 
+        // We set these values at every time step as other processes/solvers also use them
+        auto fill_process_info_function = GetFillProcessInfoFunction();
+        fill_process_info_function(mrBaseModelPart);
+
         for(unsigned int step = 1; step <= n_substep; ++step){
-            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0) <<
+            KRATOS_INFO_IF("LevelSetConvectionProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
                 "Doing step "<< step << " of " << n_substep << std::endl;
+
+            if (mIsBfecc || mElementRequiresLevelSetGradient){
+                mpGradientCalculator->Execute();
+            }
 
             // Compute shape functions of old and new step
             const double Nold = 1.0 - static_cast<double>(step) / static_cast<double>(n_substep);
@@ -260,7 +225,7 @@ public:
             );
 
             // Storing the levelset variable for error calculation and Evaluating the limiter
-            if (mIsBfecc) {
+            if (mEvaluateLimiter) {
                 EvaluateLimiter();
             }
 
@@ -284,7 +249,7 @@ public:
         [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->FastGetSolutionStepValue(*mpConvectVar) = mVelocity[i_node];
-            it_node->FastGetSolutionStepValue(*mpConvectVar,1) = (mVelocityOld[i_node] - (1.0 - dt_factor)*mVelocity[i_node])/dt_factor;
+            it_node->FastGetSolutionStepValue(*mpConvectVar,1) = mVelocityOld[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar,1) = mOldDistance[i_node];
         }
         );
@@ -292,7 +257,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Clear() override{
+    void Clear() override
+    {
         mpDistanceModelPart->Nodes().clear();
         mpDistanceModelPart->Conditions().clear();
         mpDistanceModelPart->Elements().clear();
@@ -305,26 +271,28 @@ public:
         mVelocityOld.clear();
         mOldDistance.clear();
 
-        if (mIsBfecc){
-            mError.clear();
-            mSigmaPlus.clear();
-            mSigmaMinus.clear();
-            mLimiter.clear();
-        }
+        mSigmaPlus.clear();
+        mSigmaMinus.clear();
+        mLimiter.clear();
+
+        mError.clear();
     }
 
     const Parameters GetDefaultParameters() const override
     {
-        const Parameters default_parameters = Parameters(R"({
+        Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
+            "echo_level" : 0,
+            "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : false,
-            "cross_wind_stabilization_factor" : 0.7
+            "BFECC_limiter_acuteness" : 2.0,
+            "element_type" : "levelset_convection_supg",
+            "element_settings" : {}
         })");
 
         return default_parameters;
@@ -373,21 +341,29 @@ protected:
 
     Model& mrModel;
 
-    ModelPart* mpDistanceModelPart;
+    ModelPart* mpDistanceModelPart = nullptr;
 
-    const Variable<double>* mpLevelSetVar;
+    const Variable<double>* mpLevelSetVar = nullptr;
 
-    const Variable<array_1d<double,3>>* mpConvectVar;
+    const Variable<array_1d<double,3>>* mpConvectVar = nullptr;
 
     const Variable<array_1d<double,3>>* mpLevelSetGradientVar = nullptr;
 
-    double mMaxAllowedCFL;
+    double mMaxAllowedCFL = 1.0;
 
-	unsigned int mMaxSubsteps;
+	unsigned int mMaxSubsteps = 0;
 
     bool mIsBfecc;
 
-    bool mPartialConvection;
+    bool mElementRequiresLimiter;
+
+    bool mElementRequiresLevelSetGradient;
+
+    bool mEvaluateLimiter;
+
+    double mPowerBfeccLimiter = 2.0;
+
+    double mPowerElementalLimiter = 4.0;
 
     Vector mError;
 
@@ -409,6 +385,15 @@ protected:
 
     std::string mAuxModelPartName;
 
+    std::string mConvectionElementType;
+
+    const Element* mpConvectionFactoryElement = nullptr;
+
+    Parameters mLevelSetConvectionSettings;
+
+    ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -423,63 +408,52 @@ protected:
         : mrBaseModelPart(rModelPart)
         , mrModel(rModelPart.GetModel())
     {
+        // Validate the common settings as well as the element formulation specific ones
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        ThisParameters["element_settings"].ValidateAndAssignDefaults(GetConvectionElementDefaultParameters(ThisParameters["element_type"].GetString()));
+
+        // Checks and assign all the required member variables
         CheckAndAssignSettings(ThisParameters);
 
-        SetConvectionProblemSettings(ThisParameters["cross_wind_stabilization_factor"].GetDouble());
-    }
+        // Sets the convection diffusion problem settings
+        SetConvectionProblemSettings();
 
-    /// Constructor without linear solver for derived classes
-    //TODO: Remove this once we remove the deprecated Trilinos constructor
-    LevelSetConvectionProcess(
-        Variable<double>& rLevelSetVar,
-        Variable< array_1d< double, 3 > >& rConvectVar,
-        ModelPart& rBaseModelPart,
-        const double MaxCFL = 1.0,
-        const unsigned int MaxSubsteps = 0,
-        const bool IsBFECC = false,
-        const bool PartialDt = false)
-        : mrBaseModelPart(rBaseModelPart),
-          mrModel(rBaseModelPart.GetModel()),
-          mpLevelSetVar(&rLevelSetVar),
-          mpConvectVar(&rConvectVar),
-          mpLevelSetGradientVar(&DISTANCE_GRADIENT),
-          mMaxAllowedCFL(MaxCFL),
-          mMaxSubsteps(MaxSubsteps),
-          mIsBfecc(IsBFECC),
-          mPartialConvection(PartialDt),
-          mAuxModelPartName(rBaseModelPart.Name() + "_DistanceConvectionPart")
-    {
-        KRATOS_WARNING("LevelSetConvectionProcess") << "This constructor is deprecated. Use the Parameters-based one." << std::endl;
+        if (mIsBfecc || mElementRequiresLevelSetGradient){
+            mpGradientCalculator = Kratos::make_unique<ComputeGradientProcessType>(
+            mrBaseModelPart,
+            *mpLevelSetVar,
+            *mpLevelSetGradientVar,
+            NODAL_AREA,
+            false);
+        }
     }
 
     /**
      * @brief Set the level set convection formulation settings
-     * This method sets the stabilization magnitudes in the ProcessInfo container as well as the convection
-     * diffusion settings specifying the variable to be convect and the convection variable
-     * @param CrossWindStabilizationFactor Cross wind stabilization factor
+     * This method sets the convection diffusion settings specifying the variable to be convect, its gradient, and the convection variable
+     * Additionally, it also sets the required ProcessInfo variables
      */
-    void SetConvectionProblemSettings(const double CrossWindStabilizationFactor)
+    void SetConvectionProblemSettings()
     {
         // Get the base model part process info
         // Note that this will be shared with the auxiliary model part used in the convection resolution
         auto& r_process_info = mrBaseModelPart.GetProcessInfo();
 
-        // Allocate if needed the variable DYNAMIC_TAU of the process info, and if it does not exist, set it to zero
-        if(!r_process_info.Has(DYNAMIC_TAU)){
-            r_process_info.SetValue(DYNAMIC_TAU, 0.0);
-        }
-
         // Allocate if needed the variable CONVECTION_DIFFUSION_SETTINGS of the process info, and create it if it does not exist
         if(!r_process_info.Has(CONVECTION_DIFFUSION_SETTINGS)){
-            ConvectionDiffusionSettings::Pointer p_conv_diff_settings = Kratos::make_unique<ConvectionDiffusionSettings>();
+            auto p_conv_diff_settings = Kratos::make_shared<ConvectionDiffusionSettings>();
             r_process_info.SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_diff_settings);
             p_conv_diff_settings->SetUnknownVariable(*mpLevelSetVar);
             p_conv_diff_settings->SetConvectionVariable(*mpConvectVar);
+            if (mpLevelSetGradientVar) {
+                p_conv_diff_settings->SetGradientVariable(*mpLevelSetGradientVar);
+            }
         }
 
-        // Set up the cross wind stabilization factor
-        r_process_info.SetValue(CROSS_WIND_STABILIZATION_FACTOR, CrossWindStabilizationFactor);
+        // This call returns a function pointer with the ProcessInfo filling directives
+        // If the user-defined level set convection requires nothing to be set, the function does nothing
+        auto fill_process_info_function = GetFillProcessInfoFunction();
+        fill_process_info_function(mrBaseModelPart);
     }
 
     virtual void ReGenerateConvectionModelPart(ModelPart& rBaseModelPart){
@@ -505,7 +479,9 @@ protected:
 
         mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
         mpDistanceModelPart->SetBufferSize(base_buffer_size);
-        mpDistanceModelPart->SetProperties(rBaseModelPart.pProperties());
+        for(auto it_properties = rBaseModelPart.PropertiesBegin() ; it_properties != rBaseModelPart.PropertiesEnd() ; ++it_properties){
+            mpDistanceModelPart->AddProperties(*(it_properties).base());
+        }
         mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
 
         // Assigning the nodes to the new model part
@@ -516,21 +492,19 @@ protected:
 
         // Generating the elements
         mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
+        KRATOS_ERROR_IF(mpConvectionFactoryElement == nullptr) << "Convection factory element has not been set yet." << std::endl;
         for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
-            Element::Pointer p_element = Kratos::make_intrusive< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
+            // Create the new element from the factory registered one
+            auto p_element = mpConvectionFactoryElement->Create(
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
 
-            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = it_elem->pGetGeometry();
-
             mpDistanceModelPart->Elements().push_back(p_element);
         }
 
-        // Next is for mpi (but mpi would also imply calling an mpi strategy)
-        Communicator::Pointer pComm = rBaseModelPart.GetCommunicator().Create();
-        mpDistanceModelPart->SetCommunicator(pComm);
+        // Initialize the nodal and elemental databases
+        InitializeDistanceModelPartDatabases();
 
         // Resize the arrays
         const auto n_nodes = mpDistanceModelPart->NumberOfNodes();
@@ -538,11 +512,14 @@ protected:
         mVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
 
-        if (mIsBfecc){
-            mError.resize(n_nodes);
+        if (mEvaluateLimiter){
             mSigmaPlus.resize(n_nodes);
             mSigmaMinus.resize(n_nodes);
             mLimiter.resize(n_nodes);
+        }
+
+        if (mIsBfecc){
+            mError.resize(n_nodes);
         }
 
         mDistancePartIsInitialized = true;
@@ -550,6 +527,22 @@ protected:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief Initializes the databases values
+     * This function initializes is intended to collect all the database initializations
+     */
+    void InitializeDistanceModelPartDatabases()
+    {
+        // If required, initialize the limiter elemental and nodal databases
+        const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
+        if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
+                block_for_each(mpDistanceModelPart->Elements(), [&](Element &rElement) {rElement.SetValue(LIMITER_COEFFICIENT, 0.0);});
+        }
+
+        if (mElementRequiresLimiter){
+                block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
+        }
+    }
 
     unsigned int EvaluateNumberOfSubsteps(){
         // First of all compute the maximum local CFL number
@@ -601,12 +594,12 @@ protected:
 
     /**
      * @brief Convection limiter evaluation
-     * BLA BLA
+     * This function implements the limiter evaluation
+     * Note that both the standard and the high order limiter (with nodal projections contributions) are implemented
      */
     void EvaluateLimiter()
     {
-        const double epsilon = 1.0e-15;
-        const double power_bfecc = 2.0;
+        const double epsilon = 1.0e-12;
 
         auto& r_default_comm = mpDistanceModelPart->GetCommunicator().GetDataCommunicator();
         GlobalPointersVector< Node<3 > > gp_list;
@@ -631,13 +624,6 @@ protected:
             }
         );
 
-        auto distance_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3> >& global_pointer) -> double
-            {
-                return global_pointer->FastGetSolutionStepValue(*mpLevelSetVar);
-            }
-        );
-
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
@@ -645,7 +631,7 @@ protected:
             it_node->SetValue(*mpLevelSetVar, it_node->FastGetSolutionStepValue(*mpLevelSetVar)); //Store mpLevelSetVar
 
             const auto& X_i = it_node->Coordinates();
-            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& grad_i = it_node->GetValue(*mpLevelSetGradientVar);
 
             double S_plus = 0.0;
             double S_minus = 0.0;
@@ -669,13 +655,20 @@ protected:
         }
         );
 
+        auto combined_proxy = pointer_comm.Apply(
+            [&](GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
+                return std::make_pair(
+                    global_pointer->FastGetSolutionStepValue(*mpLevelSetVar),
+                    global_pointer->Coordinates());
+            });
+
         //Calculating beta_ij in a way that the linearity is preserved on non-symmetrical meshes
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
             const auto& X_i = it_node->Coordinates();
-            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& grad_i = it_node->GetValue(*mpLevelSetGradientVar);
 
             double numerator = 0.0;
             double denominator = 0.0;
@@ -685,8 +678,9 @@ protected:
             for (unsigned int j = 0; j< global_pointer_list.size(); ++j)
             {
                 auto& global_pointer = global_pointer_list(j);
-                auto X_j = coordinate_proxy.Get(global_pointer);
-                const double distance_j = distance_proxy.Get(global_pointer);
+                auto result = combined_proxy.Get(global_pointer);
+                const auto X_j = std::get<1>(result);
+                const double distance_j = std::get<0>(result);
 
                 double beta_ij = 1.0;
 
@@ -700,26 +694,43 @@ protected:
             }
 
             const double fraction = std::abs(numerator) / (denominator + epsilon);
-            mLimiter[i_node] = 1.0 - std::pow(fraction, power_bfecc);
+
+            if (mIsBfecc){
+                mLimiter[i_node] = 1.0 - std::pow(fraction, mPowerBfeccLimiter);
+            }
+
+            if (mElementRequiresLimiter){
+                it_node->GetValue(LIMITER_COEFFICIENT) = (1.0 - std::pow(fraction, mPowerElementalLimiter));
+            }
         }
         );
+
+        if (mElementRequiresLimiter){
+            block_for_each(mpDistanceModelPart->Elements(), [&](Element& rElement){
+                const auto& r_geometry = rElement.GetGeometry();
+                double elemental_limiter = 1.0;
+                for(unsigned int i_node=0; i_node< TDim+1; ++i_node) {
+                    elemental_limiter = std::min(r_geometry[i_node].GetValue(LIMITER_COEFFICIENT), elemental_limiter);
+                }
+                rElement.GetValue(LIMITER_COEFFICIENT) = elemental_limiter;
+            }
+            );
+        }
     }
 
     /**
      * @brief Eulerian error calculation and correction
-     * BLA BLA
+     * This function implements the Backward Forward Error Compensation and Correction (BFECC) algorithm
+     * Note that this assumes that the first forward convection to n+1 has been completed. Then we go backwards
+     * to n* to calculate and apply the convection error.
      */
     void ErrorCalculationAndCorrection()
     {
-        IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
-        [&](int i_node){
-            auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-
-            it_node->FastGetSolutionStepValue(*mpConvectVar) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
-            it_node->FastGetSolutionStepValue(*mpConvectVar, 1) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar, 1);
-            it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
-        }
-        );
+        block_for_each(mpDistanceModelPart->Nodes(), [this](Node<3>& rNode){
+            noalias(rNode.FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar);
+            noalias(rNode.FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * rNode.FastGetSolutionStepValue(*mpConvectVar, 1);
+            rNode.FastGetSolutionStepValue(*mpLevelSetVar, 1) = rNode.FastGetSolutionStepValue(*mpLevelSetVar);
+        });
 
         mpSolvingStrategy->InitializeSolutionStep();
         mpSolvingStrategy->Predict();
@@ -732,20 +743,17 @@ protected:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             mError[i_node] =
                 0.5*(it_node->GetValue(*mpLevelSetVar) - it_node->FastGetSolutionStepValue(*mpLevelSetVar));
-        }
-        );
+        });
 
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
         [&](int i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-
-            it_node->FastGetSolutionStepValue(*mpConvectVar) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
-            it_node->FastGetSolutionStepValue(*mpConvectVar, 1) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar, 1);
+            noalias(it_node->FastGetSolutionStepValue(*mpConvectVar)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar);
+            noalias(it_node->FastGetSolutionStepValue(*mpConvectVar, 1)) = -1.0 * it_node->FastGetSolutionStepValue(*mpConvectVar, 1);
             const double phi_n_star = it_node->GetValue(*mpLevelSetVar) + mLimiter[i_node]*mError[i_node];
             it_node->FastGetSolutionStepValue(*mpLevelSetVar) = phi_n_star;
             it_node->FastGetSolutionStepValue(*mpLevelSetVar, 1) = phi_n_star;
-        }
-        );
+        });
 
         mpSolvingStrategy->InitializeSolutionStep();
         mpSolvingStrategy->Predict();
@@ -782,17 +790,142 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Checks and assign the required member variables
+     * This function checks the provided parameters, which need to have been already validated and sets the member variables
+     * @param ThisParameters Json string containing the already validated process and formulation settings
+     */
     void CheckAndAssignSettings(const Parameters ThisParameters)
     {
+        mLevelSetConvectionSettings = ThisParameters;
+
+        // Convection element formulation settings
+        std::string element_type = ThisParameters["element_type"].GetString();
+        const auto element_list = GetConvectionElementsList();
+        KRATOS_ERROR_IF(std::find(element_list.begin(), element_list.end(), element_type) == element_list.end()) << "Specified \'" << element_type << "\' is not in the available elements list." << std::endl;
+        mConvectionElementType = GetConvectionElementName(element_type);
+        std::string element_register_name = mConvectionElementType + std::to_string(TDim) + "D" + std::to_string(TDim + 1) + "N";
+        mpConvectionFactoryElement = &KratosComponents<Element>::Get(element_register_name);
+        mElementRequiresLimiter =  ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
+
+        if (ThisParameters["element_settings"].Has("elemental_limiter_acuteness") && mElementRequiresLimiter) {
+            mPowerElementalLimiter = ThisParameters["element_settings"]["elemental_limiter_acuteness"].GetDouble();
+        }
+
+        if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization"){
+            ThisParameters["element_settings"]["requires_distance_gradient"].SetBool(mElementRequiresLimiter);
+        }
+
+        mElementRequiresLevelSetGradient = ThisParameters["element_settings"]["requires_distance_gradient"].GetBool();;
+
+        // Convection related settings
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mMaxSubsteps = ThisParameters["max_substeps"].GetInt();
         mIsBfecc = ThisParameters["eulerian_error_compensation"].GetBool();
-        mPartialConvection = ThisParameters["levelset_splitting"].GetBool();
+        if (mIsBfecc) {
+            mPowerBfeccLimiter = ThisParameters["BFECC_limiter_acuteness"].GetDouble();
+        }
+
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        mpLevelSetGradientVar = mIsBfecc ? &(KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
-        mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
+        if (ThisParameters["convection_model_part_name"].GetString() == "") {
+            mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
+        } else {
+            mAuxModelPartName = ThisParameters["convection_model_part_name"].GetString();
+        }
+
+        // Limiter related settings
+        mpLevelSetGradientVar = (mIsBfecc || mElementRequiresLevelSetGradient) ? &(KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
+        mEvaluateLimiter = (mIsBfecc || mElementRequiresLimiter) ? true : false;
+    }
+
+    /**
+     * @brief Get the Convection Elements List object
+     * This method returns a list with the available formulations for the level set convection
+     * @return const std::vector<std::string> List containing the available formulations
+     */
+    const virtual inline std::vector<std::string> GetConvectionElementsList()
+    {
+        std::vector<std::string> elements_list = {
+            "levelset_convection_supg",
+            "levelset_convection_algebraic_stabilization"
+        };
+        return elements_list;
+    }
+
+    /**
+     * @brief Get the Convection Element Name object
+     * This method maps the user-defined element name to the Kratos class name
+     * @param InputName User-defined element name
+     * @return const std::string Kratos convection element class name
+     */
+    const virtual std::string GetConvectionElementName(std::string InputName)
+    {
+        const std::map<std::string, std::string> elements_name_map {
+            {"levelset_convection_supg","LevelSetConvectionElementSimplex"},
+            {"levelset_convection_algebraic_stabilization", "LevelSetConvectionElementSimplexAlgebraicStabilization"}
+        };
+        return elements_name_map.at(InputName);
+    }
+
+    /**
+     * @brief Get the Convection Element Default Parameters object
+     * For each of the available formulations, this method returns the corresponding settings
+     * @param ElementType User-defined element type
+     * @return const Parameters Json string encapsulating the input element settings
+     */
+    const virtual Parameters GetConvectionElementDefaultParameters(const std::string ElementType)
+    {
+        Parameters default_parameters;
+        if (ElementType == "levelset_convection_supg") {
+            default_parameters = Parameters(R"({
+                "dynamic_tau" : 0.0,
+                "cross_wind_stabilization_factor" : 0.7,
+                "requires_distance_gradient" : false,
+                "time_integration_theta" : 0.5
+            })");
+        } else if (ElementType == "levelset_convection_algebraic_stabilization") {
+            default_parameters = Parameters(R"({
+                "include_anti_diffusivity_terms" : false,
+                "elemental_limiter_acuteness" : 4.0,
+                "requires_distance_gradient" : false,
+                "time_integration_theta" : 0.5
+            })");
+        } else {
+            KRATOS_ERROR << "Default parameters are not implemented for the specified \'" << ElementType << "\' element. Available options are \n\t- \'levelset_convection_supg\'\n\t- \'levelset_convection_algebraic_stabilization\'" << std::endl;
+        }
+
+        return default_parameters;
+    }
+
+    /**
+     * @brief Get the Fill Process Info Function object
+     * This method returns a lambda function with the required operations to be performed in the process info
+     * It has to be particularised for all the formulations. If not particularised a do nothing instruction is returned
+     * @return const std::function<void(ModelPart&)> A function pointer to be called when setting up the distance model part
+     */
+    const virtual std::function<void(ModelPart&)> GetFillProcessInfoFunction()
+    {
+        std::function<void(ModelPart&)> fill_process_info_function;
+
+        if (mConvectionElementType == "LevelSetConvectionElementSimplex") {
+            fill_process_info_function = [this](ModelPart &rModelPart) {
+                auto &r_process_info = rModelPart.GetProcessInfo();
+                r_process_info.SetValue(DYNAMIC_TAU, mLevelSetConvectionSettings["element_settings"]["dynamic_tau"].GetDouble());
+                r_process_info.SetValue(CROSS_WIND_STABILIZATION_FACTOR, mLevelSetConvectionSettings["element_settings"]["cross_wind_stabilization_factor"].GetDouble());
+                r_process_info.SetValue(TIME_INTEGRATION_THETA, mLevelSetConvectionSettings["element_settings"]["time_integration_theta"].GetDouble());
+            };
+        } else if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
+            fill_process_info_function = [this](ModelPart &rModelPart) {
+                auto &r_process_info = rModelPart.GetProcessInfo();
+                r_process_info.SetValue(TIME_INTEGRATION_THETA, mLevelSetConvectionSettings["element_settings"]["time_integration_theta"].GetDouble());
+            };
+        } else {
+            fill_process_info_function = [](ModelPart &rModelPart) {};
+        }
+
+        return fill_process_info_function;
     }
 
     void InitializeConvectionStrategy(BuilderAndSolverPointerType pBuilderAndSolver)
@@ -807,10 +940,10 @@ private:
 
         // Check the base model part element family (only simplex elements are supported)
         if(TDim == 2){
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Triangle) <<
+            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle) <<
                 "In 2D the element type is expected to be a triangle" << std::endl;
         } else if(TDim == 3) {
-            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::Kratos_Tetrahedra) <<
+            KRATOS_ERROR_IF(mrBaseModelPart.ElementsBegin()->GetGeometry().GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) <<
                 "In 3D the element type is expected to be a tetrahedra" << std::endl;
         }
 
@@ -830,8 +963,7 @@ private:
             ReformDofAtEachIteration,
             CalculateNormDxFlag);
 
-        //TODO: check flag DO_EXPENSIVE_CHECKS
-        mpSolvingStrategy->SetEchoLevel(0);
+        mpSolvingStrategy->SetEchoLevel(mLevelSetConvectionSettings["echo_level"].GetInt());
         mpSolvingStrategy->Check();
         mpSolvingStrategy->Initialize();
     }

@@ -19,14 +19,13 @@ namespace Kratos {
 
         DEM_D_Bentonite_Colloid();
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
-
         std::string GetTypeOfLaw() override;
 
-        ~DEM_D_Bentonite_Colloid() {
-        }
+        ~DEM_D_Bentonite_Colloid() {}
 
         DEMDiscontinuumConstitutiveLaw::Pointer Clone() const override;
+
+        std::unique_ptr<DEMDiscontinuumConstitutiveLaw> CloneUnique() override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                             const double OldLocalContactForce[3],

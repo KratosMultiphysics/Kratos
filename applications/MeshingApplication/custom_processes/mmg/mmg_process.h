@@ -220,6 +220,11 @@ public:
     void CleanSuperfluousNodes();
 
     /**
+     * @brief Ths function removes superfluous (defined by "not belonging to an element") conditions from the model part
+     */
+    void CleanSuperfluousConditions();
+
+    /**
      * @brief This method retrieves the current Mmg version
      * @return The current version of Mmg (as a string)
      */

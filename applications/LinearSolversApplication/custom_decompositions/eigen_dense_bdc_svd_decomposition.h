@@ -18,6 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers_define.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/dense_svd_decomposition.h"
 
@@ -57,8 +58,8 @@ public:
     typedef typename TDenseSpace::VectorType VectorType;
     typedef typename TDenseSpace::MatrixType MatrixType;
 
-    using EigenVector = Eigen::Matrix<DataType, Eigen::Dynamic, 1>;
-    using EigenMatrix = Eigen::Matrix<DataType, Eigen::Dynamic, Eigen::Dynamic>;
+    using EigenVector = Kratos::EigenDynamicVector<DataType>;
+    using EigenMatrix = Kratos::EigenDynamicMatrix<DataType>;
     using DecompositionOptions = Eigen::DecompositionOptions;
 
     ///@}
@@ -167,6 +168,11 @@ public:
     std::size_t NonZeroSingularValues() override
     {
         return mBDCSVD.nonzeroSingularValues();
+    }
+
+    void SetThreshold(const double RelTolerance) override
+    {
+        mBDCSVD.setThreshold(RelTolerance);
     }
 
     std::size_t Rank() override

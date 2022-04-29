@@ -37,7 +37,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
             "model_part_name"      : "please_specify_model_part_name",
             "variable_name"        : "SPECIFY_VARIABLE_NAME",
             "interval"             : [0.0, 1e30],
-            "modulus"              : 1.0,
+            "modulus"              : 0.0,
             "direction"            : [1.0, 0.0, 0.0],
             "local_axes"           : {},
             "entities"             : []
@@ -48,10 +48,15 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
         if settings.Has("modulus"):
             if settings["modulus"].IsString():
                 default_settings["modulus"].SetString("0.0")
+        else:
+            raise RuntimeError("Please specify the modulus of the vector")
+
 
         if settings.Has("direction"):
             if settings["direction"].IsString():
                 default_settings["direction"].SetString("Automatic")
+        else:
+            raise RuntimeError("Please specify the direction of the vector")
 
         # Detect "End" as a tag and replace it by a large number
         if settings.Has("interval"):
@@ -104,7 +109,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
                 avg_normal = KratosMultiphysics.VariableUtils().SumConditionVectorVariable(KratosMultiphysics.NORMAL, self.model_part)
                 avg_normal_norm = math.sqrt(pow(avg_normal[0],2) + pow(avg_normal[1],2) + pow(avg_normal[2],2))
                 if avg_normal_norm < 1.0e-6:
-                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
+                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToEntityProcess.")
 
                 unit_direction = KratosMultiphysics.Vector(3)
                 unit_direction = (1.0/avg_normal_norm) * avg_normal
@@ -129,7 +134,7 @@ class AssignVectorByDirectionToEntityProcess(KratosMultiphysics.Process):
             if all_numeric:
                 direction_norm = math.sqrt(direction_norm)
                 if direction_norm < 1.0e-6:
-                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToConditionProcess.")
+                    raise Exception("Direction norm is close to 0 in AssignVectorByDirectionToEntityProcess.")
 
                 for i in range(0,3):
                     unit_direction[i] = unit_direction[i]/direction_norm

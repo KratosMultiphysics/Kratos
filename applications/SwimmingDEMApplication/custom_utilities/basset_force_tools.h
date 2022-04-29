@@ -26,17 +26,16 @@
 #include "processes/find_nodal_neighbours_process.h"
 
 //Database includes
-
 #include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
-#include "../../DEMApplication/custom_elements/discrete_element.h"
+#include "custom_elements/discrete_element.h"
 #include "custom_elements/swimming_particle.h"
 #include "custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.h"
 #include "includes/define.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
-#include "../../DEMApplication/custom_elements/spheric_particle.h"
-#include "../swimming_DEM_application.h"
-#include "../../../kratos/utilities/geometry_utilities.h"
+#include "custom_elements/spheric_particle.h"
+#include "swimming_DEM_application.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {

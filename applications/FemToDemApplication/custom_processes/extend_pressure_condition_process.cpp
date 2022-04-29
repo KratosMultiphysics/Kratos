@@ -41,8 +41,8 @@ void ExtendPressureConditionProcess<TDim>::GetMaximumConditionIdOnSubmodelPart(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<3>::CreatePressureLoads(
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::CreatePressureLoads(
     const int Id1,
     const int Id2,
     const int Id3,
@@ -70,13 +70,13 @@ void ExtendPressureConditionProcess<3>::CreatePressureLoads(
                                         pProperties, 0);
 
     // Adding the conditions to the computing model part
-    mrModelPart.GetSubModelPart("computing_domain").AddCondition(p_pressure_condition); 
+    mrModelPart.GetSubModelPart("computing_domain").AddCondition(p_pressure_condition);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-template <>
-void ExtendPressureConditionProcess<2>::CreateLineLoads(
+template <SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::CreateLineLoads(
     const int Id1,
     const int Id2,
     ModelPart::ElementsContainerType::ptr_iterator itElem,
@@ -103,8 +103,8 @@ void ExtendPressureConditionProcess<2>::CreateLineLoads(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
+template<SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::GenerateLineLoads2Nodes(
     const int NonWetLocalIdNode,
     const int PressureId,
     int& rMaximumConditionId,
@@ -129,8 +129,8 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads2Nodes(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
+template<SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::GenerateLineLoads3Nodes(
     const int PressureId,
     int& rMaximumConditionId,
     ModelPart::ElementsContainerType::ptr_iterator itElem
@@ -170,8 +170,8 @@ void ExtendPressureConditionProcess<2>::GenerateLineLoads3Nodes(
 
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void ExtendPressureConditionProcess<3>::GeneratePressureLoads4WetNodes(
+template<SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::GeneratePressureLoads4WetNodes(
     const int PressureId,
     int& rMaximumConditionId,
     ModelPart::ElementsContainerType::ptr_iterator itElem
@@ -201,8 +201,8 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads4WetNodes(
 }
 /***********************************************************************************/
 /***********************************************************************************/
-template<>
-void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
+template<SizeType TDim>
+void ExtendPressureConditionProcess<TDim>::GeneratePressureLoads3WetNodes(
     const int NonWetLocalIdNode,
     const int PressureId,
     int& rMaximumConditionId,
@@ -222,8 +222,8 @@ void ExtendPressureConditionProcess<3>::GeneratePressureLoads3WetNodes(
 
     // We only create pressure loads when the surface is skin
     auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
-    if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {     
-        this->CreatePressureLoads(id_2, id_3, id_4, itElem, r_sub_model_part, p_properties, rMaximumConditionId);  
+    if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
+        this->CreatePressureLoads(id_2, id_3, id_4, itElem, r_sub_model_part, p_properties, rMaximumConditionId);
     }
 }
 
@@ -419,7 +419,7 @@ void ExtendPressureConditionProcess<TDim>::CalculateNumberOfElementsOnNodes()
 
 template <SizeType TDim>
 int ExtendPressureConditionProcess<TDim>::GetPressureIdSubModel(
-    const std::string& rSubModelName 
+    const std::string& rSubModelName
 )
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();

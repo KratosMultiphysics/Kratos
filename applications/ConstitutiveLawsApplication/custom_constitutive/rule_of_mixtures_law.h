@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -20,7 +22,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+
 
 namespace Kratos
 {
@@ -142,7 +144,7 @@ public:
      * @brief Voigt tensor size
      * @details This is not used, so 0 is returned
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -476,66 +478,6 @@ public:
         ) override;
 
     /**
-     * @brief To be called at the beginning of each solution step
-     * @details (e.g. from Element::InitializeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void InitializeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief To be called at the end of each solution step
-     * @details (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief  To be called at the beginning of each step iteration
-     * @details (e.g. from Element::InitializeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void InitializeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief To be called at the end of each step iteration
-     * @details (e.g. from Element::FinalizeNonLinearIteration)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param the current ProcessInfo instance
-     */
-    void FinalizeNonLinearIteration(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @see Parameters
      */
@@ -638,7 +580,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
     /**
      * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
@@ -659,6 +601,18 @@ public:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure& rStressMeasure
     );
+
+    /**
+     * This method computes the Green-Lagrange strain
+     * @see Parameters
+     */
+    void CalculateGreenLagrangeStrain(Parameters &rValues);
+
+    /**
+     * This method computes the Almansi strain
+     * @see Parameters
+     */
+    void CalculateAlmansiStrain(Parameters &rValues);
 
 protected:
 

@@ -32,7 +32,7 @@
 #include "processes/process.h"
 
 // Application includes
-#include "../FluidDynamicsApplication/custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
 namespace Kratos {
 

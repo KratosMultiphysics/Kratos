@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -15,6 +17,7 @@
 
 // Project includes
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
+#include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
@@ -138,7 +141,8 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateGreenLagrangianStrai
     const Matrix& F = rValues.GetDeformationGradientF();
 
     // e = 0.5*(inv(C) - I)
-    Matrix C_tensor = prod(trans(F),F);
+    Matrix C_tensor(Dimension, Dimension);
+    noalias(C_tensor) = prod(trans(F), F);
 
     rStrainVector[0] = 0.5 * ( C_tensor( 0, 0 ) - 1.00 );
     rStrainVector[1] = 0.5 * ( C_tensor( 1, 1 ) - 1.00 );
@@ -157,10 +161,11 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateAlmansiStrain(
     const Matrix& F = rValues.GetDeformationGradientF();
 
     // e = 0.5*(1-inv(B))
-    Matrix B_tensor = prod(F,trans(F));
+    Matrix B_tensor(Dimension, Dimension);
+    noalias(B_tensor) = prod(F,trans(F));
 
     //Calculating the inverse of the jacobian
-    Matrix inverse_B_tensor ( 2, 2 );
+    Matrix inverse_B_tensor ( Dimension, Dimension );
     double aux_det_b = 0;
     MathUtils<double>::InvertMatrix( B_tensor, inverse_B_tensor, aux_det_b);
 
