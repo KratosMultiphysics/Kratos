@@ -202,30 +202,32 @@ if __name__ == "__main__":
     with open("_data/topnav.yml", "w") as file_output:
         file_output.writelines(lines)
 
-    # generate side navigation bars
-    with open("_data/sidebars/default.yml.orig", "r") as file_input:
-        lines = file_input.readlines()
-
     for iter_dir in Path("pages").iterdir():
         if iter_dir.is_dir():
             for sub_itr_dir in iter_dir.iterdir():
                 if sub_itr_dir.is_dir():
                     print("Creating side bar for {:s}...".format(str(sub_itr_dir)))
-                    copied_lines = list(lines)
+
                     root_dict = GetEntryDict(sub_itr_dir)
-                    root_dict["product"] = root_dict["title"]
+                    json_settings = GetDirEntryDictFromJson(sub_itr_dir)
+                    if "product" in json_settings:
+                        root_dict["product"] = json_settings["product"]
+                    else:
+                        root_dict["product"] = root_dict["title"]
                     root_dict["title"] = "sidebar"
                     list_of_entries = CreateNavigationBarStructure(
                             root_dict, 0, 3)
                     list_of_entries = GenerateStrings(list_of_entries)
-                    copied_lines.extend(list_of_entries)
-                    json_settings = GetDirEntryDictFromJson(sub_itr_dir)
+
+                    lines = ["entries:\n"]
+                    lines.extend(list_of_entries)
+
                     if "file_name" in json_settings:
                         file_name = json_settings["file_name"]
                     else:
                         file_name = str(root_dict["path"]).replace("/", "_")
                     with open("_data/sidebars/{:s}.yml".format(file_name), "w") as file_output:
-                        file_output.writelines(copied_lines)
+                        file_output.writelines(lines)
 
 
 
