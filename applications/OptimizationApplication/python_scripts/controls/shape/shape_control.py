@@ -19,19 +19,33 @@ class ShapeControl():
         self.model = model
         self.settings = settings
         self.controlling_objects = self.settings["controlling_objects"].GetStringArray() 
+        self.auxiliary_field = False
 
         self.control_variable_name = "CX"
         self.control_update_name = "D_CX"
-        self.output_names = ["CX","D_CX","D_X","NORMAL","AUXILIARY_FIELD"]
+        self.vector_fields = ["CX","D_CX","D_X"]
+        self.scalar_fields = []
+        
+        if self.project_to_normal or self.plane_symmetry:
+            self.vector_fields.append("NORMAL")
+            self.scalar_fields.append("NODAL_AREA")
+
+        if self.plane_symmetry:
+            self.vector_fields.append("AUXILIARY_FIELD")
+            self.vector_fields.append("NEAREST_NEIGHBOUR_POINT")
+            self.scalar_fields.append("NEAREST_NEIGHBOUR_DIST")
+            self.scalar_fields.append("NEAREST_NEIGHBOUR_COND_ID")
+
+        if self.auxiliary_field:
+            self.vector_fields.append("AUXILIARY_FIELD")
+
+        self.output_names = self.vector_fields + self.scalar_fields
 
         # add vars
         for model_part_name in self.controlling_objects:
             root_model = model_part_name.split(".")[0]
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.CX)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.D_CX)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.D_X)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KM.NORMAL)
-            self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KOA.AUXILIARY_FIELD)
+            for field_name in self.output_names:
+                self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(field_name))
 
 
     def Initialize(self):
@@ -39,11 +53,10 @@ class ShapeControl():
         for model_part_name in self.controlling_objects:
             model_part = self.model.GetModelPart(model_part_name)         
             for node in model_part.Nodes:
-                node.SetSolutionStepValue(KOA.CX, [0.0, 0.0, 0.0])  
-                node.SetSolutionStepValue(KOA.D_CX, [0.0, 0.0, 0.0])
-                node.SetSolutionStepValue(KOA.D_X, [0.0, 0.0, 0.0])
-                node.SetSolutionStepValue(KOA.AUXILIARY_FIELD, [0.0, 0.0, 0.0])  
-                node.SetSolutionStepValue(KM.NORMAL, [0.0, 0.0, 0.0]) 
+                for vec_field in self.vector_fields:
+                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(vec_field), [0.0, 0.0, 0.0])
+                for scala_field in self.scalar_fields:
+                    node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(scala_field), 0)
  
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         raise RuntimeError("ShapeControl:MapFirstDerivative: calling base class function") 

@@ -26,6 +26,7 @@
 #include "optimization_application.h"
 #include "optimization_application_variables.h"
 #include "custom_python/add_custom_controls_to_python.h"
+#include "custom_python/add_custom_responses_to_python.h"
 #include "custom_python/add_custom_optimization_algorithm_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
@@ -44,6 +45,7 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
         .def(py::init<>())
         ;
 
+    AddCustomResponsesToPython(m);
     AddCustomControlsToPython(m);
     AddCustomOptimizationAlgorithmToPython(m);
     AddCustomStrategiesToPython(m);
@@ -58,6 +60,13 @@ PYBIND11_MODULE(KratosOptimizationApplication, m)
     //linear function
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_LINEAR_D_X);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_LINEAR_D_CX); 
+
+    //symmetry plane
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_PLANE_SYMMETRY_D_X);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_PLANE_SYMMETRY_D_CX);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NEAREST_NEIGHBOUR_POINT); 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NEAREST_NEIGHBOUR_DIST);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NEAREST_NEIGHBOUR_COND_ID);
 
     //strain energy
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, D_STRAIN_ENERGY_1_D_X);

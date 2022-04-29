@@ -38,6 +38,11 @@
 #include "geometries/geometry_data.h"
 #include "spatial_containers/spatial_containers.h"
 
+#include "utilities/integration_utilities.h"
+#include "utilities/geometry_utilities.h"
+#include "utilities/math_utils.h"
+#include "processes/find_conditions_neighbours_process.h"
+
 
 // ==============================================================================
 
@@ -89,6 +94,18 @@ public:
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
+    // Type definitions for better reading later
+    typedef Node < 3 > NodeType;
+    typedef Node < 3 > ::Pointer NodeTypePointer;
+    typedef std::vector<NodeType::Pointer> NodeVector;
+    typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
+    typedef std::vector<double>::iterator DoubleVectorIterator;
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+
+    // Type definitions for tree-search
+    typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTree;    
+
     /// Pointer definition of ImplicitVertexMorphing
     KRATOS_CLASS_POINTER_DEFINITION(ImplicitVertexMorphing);
 
@@ -138,6 +155,8 @@ public:
 
         ComputeInitialControlPoints();
 
+        InitializePlaneSymmetry();
+
         KRATOS_INFO("ImplicitVertexMorphing:Initialize") << "Finished initialization of shape control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 
     };
@@ -170,8 +189,12 @@ public:
 
         }        
         AdjustFilterSizes();
+
         if(mTechniqueSettings["project_to_normal"].GetBool())
             ComputeSurfaceNormals();
+
+        if(plane_symmetry)
+            ComputePlaneSymmetry();
         KRATOS_INFO("ImplicitVertexMorphing:MapControlUpdate:") << "Finished updating in " << timer.ElapsedSeconds() << " s." << std::endl;
     };  
     // --------------------------------------------------------------------------
@@ -218,6 +241,9 @@ public:
 
         if(mTechniqueSettings["project_to_normal"].GetBool())
             ProjectToNormal(rDerivativeVariable);
+
+        if(plane_symmetry)
+            ApplyPlaneSymmetry(rDerivativeVariable);        
 
         for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
@@ -293,6 +319,11 @@ protected:
     std::vector<std::string> mpVMModelPartsTypes;
     std::vector<Properties::Pointer> mpVMModelPartsProperties;
     Parameters mTechniqueSettings;
+
+    array_1d<double,3> plane_normal;
+    array_1d<double,3> plane_point;
+    Parameters mPlaneSymmetrySettings; 
+    bool plane_symmetry;              
     
     ///@}
     ///@name Protected Operators
@@ -566,12 +597,14 @@ private:
             for (auto& node_i : r_controlling_object.Nodes())
             {
                 array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
+                double& nodal_area = node_i.FastGetSolutionStepValue(NODAL_AREA);
 
                 const double norm2 = norm_2(area_normal);
                 KRATOS_ERROR_IF(norm2<1e-10) << "CalculateUnitNormals: Norm2 of normal for node "
                     << node_i.Id() << " is < 1e-10!" << std::endl;
 
                 noalias(area_normal) = area_normal/norm2;
+                nodal_area = norm2;
             }
         }
     }
@@ -635,6 +668,162 @@ private:
 
             }  
     }  
+
+    void InitializePlaneSymmetry(){
+
+        BuiltinTimer timer;      
+
+        mPlaneSymmetrySettings = mTechniqueSettings["plane_symmetry_settings"];
+
+        std::cout<<"mPlaneSymmetrySettings : "<<mPlaneSymmetrySettings<<std::endl;
+
+        if(!mPlaneSymmetrySettings.IsNull()){
+
+            plane_symmetry = true;
+
+            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings.Has("point"))
+            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: coordinates of a point on symmtery plane should be provided !"<<std::endl;
+
+            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings["point"].IsVector())
+            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: point should be a vector !"<<std::endl;
+
+            plane_point = mPlaneSymmetrySettings["point"].GetVector();
+
+            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings.Has("plane"))
+            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: coordinates of the normal to the symmtery plane should be provided !"<<std::endl; 
+
+            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings["plane"].IsVector())
+            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: plane should be a vector !"<<std::endl;          
+
+            plane_normal = mPlaneSymmetrySettings["plane"].GetVector();
+            plane_normal /= norm_2(plane_normal);        
+
+            for(auto& control_obj : mControlSettings["controlling_objects"]){
+                ModelPart& r_eval_object = mrModel.GetModelPart(control_obj.GetString());
+                // check if control_obj has surface condition and root_model_part has elements
+                KRATOS_ERROR_IF_NOT(r_eval_object.Conditions().size()>0)
+                <<"ImplicitVertexMorphing::InitializePlaneSymmetry: controlling object "<<control_obj.GetString()<<" must have surface conditions !"<<std::endl;
+                FindConditionsNeighboursProcess find_conditions_neighbours_process(r_eval_object, r_eval_object.GetProcessInfo()[DOMAIN_SIZE]);
+                find_conditions_neighbours_process.Execute(); 
+            } 
+            KRATOS_INFO("ImplicitVertexMorphing:InitializePlaneSymmetry:") << "Finished in " << timer.ElapsedSeconds() << " s." << std::endl;
+        }
+    }
+
+    void ComputePlaneSymmetry(){
+
+        ComputeSurfaceNormals();
+
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_eval_object = mrModel.GetModelPart(control_obj.GetString());
+
+            NodeVector mListOfNodesInModelPart;
+            mListOfNodesInModelPart.resize(r_eval_object.Nodes().size());
+            int counter = 0;
+            for (ModelPart::NodesContainerType::iterator node_it = r_eval_object.NodesBegin(); node_it != r_eval_object.NodesEnd(); ++node_it)
+            {
+                NodeTypePointer pnode = *(node_it.base());
+                mListOfNodesInModelPart[counter++] = pnode;
+            }
+
+            const size_t bucket_size = 100;
+            KDTree search_tree(mListOfNodesInModelPart.begin(), mListOfNodesInModelPart.end(), bucket_size);
+
+           for (auto& r_node : r_eval_object.Nodes()){
+                const array_1d<double, 3>& coords = r_node.Coordinates();
+                array_1d<double, 3> reflected_point = 2.0 * inner_prod(plane_point-coords,plane_normal) * plane_normal + coords;
+                NodeType reflected_node(0,reflected_point[0],reflected_point[1],reflected_point[2]);                
+                double distance;
+                NodeTypePointer p_neighbor = search_tree.SearchNearestPoint(reflected_node, distance);
+
+                array_1d<double, 3> closest_projection_point = p_neighbor->Coordinates();
+                double smallest_dist = distance;
+                const GlobalPointersVector<Condition>& rConditions = p_neighbor->GetValue(NEIGHBOUR_CONDITIONS);
+                int nearest_cond_id = rConditions[0].Id();
+                for(unsigned int c_itr=0; c_itr<rConditions.size(); c_itr++)
+                {
+                    // Get geometry of current condition
+                    Condition rCondition = rConditions[c_itr];
+                    Condition::GeometryType& geom_i = rCondition.GetGeometry();
+                    const array_1d<double,3> local_coords = ZeroVector(3);
+                    array_1d<double,3> cond_normal = geom_i.UnitNormal(local_coords);
+                    array_1d<double, 3> a_point_on_cond = geom_i.Center();
+                    array_1d<double, 3> projection_on_cond = inner_prod(a_point_on_cond-reflected_point,cond_normal) * cond_normal + reflected_point;
+                    array_1d<double, 3> dist_vec = projection_on_cond - reflected_point;
+                    double dist = sqrt(inner_prod(dist_vec,dist_vec));
+                    if(dist<smallest_dist){
+                        closest_projection_point =  projection_on_cond; 
+                        smallest_dist = dist;
+                        nearest_cond_id = rCondition.Id();
+                    }
+                      
+                }
+                auto& node_i_nn_reflected_point = r_node.FastGetSolutionStepValue(NEAREST_NEIGHBOUR_POINT);
+                auto& node_i_nn_reflected_dist = r_node.FastGetSolutionStepValue(NEAREST_NEIGHBOUR_DIST);
+                auto& node_i_nn_reflected_cond_id = r_node.FastGetSolutionStepValue(NEAREST_NEIGHBOUR_COND_ID);
+                node_i_nn_reflected_point = closest_projection_point;
+                node_i_nn_reflected_dist = smallest_dist;
+                node_i_nn_reflected_cond_id = nearest_cond_id;
+            }
+        }
+
+    }
+
+    void ApplyPlaneSymmetry(const Variable<array_3d> &rFieldVariable){
+        DeintegrateField(rFieldVariable);
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_eval_object = mrModel.GetModelPart(control_obj.GetString());
+            VariableUtils().SetHistoricalVariableToZero(AUXILIARY_FIELD, r_eval_object.Nodes());
+            ModelPart& root_model_part = r_eval_object.GetRootModelPart();
+            for (auto& r_node : r_eval_object.Nodes()){
+                auto& r_node_var = r_node.FastGetSolutionStepValue(rFieldVariable);
+                auto& r_node_aux_var = r_node.FastGetSolutionStepValue(AUXILIARY_FIELD);
+                auto& r_node_cond_id = r_node.FastGetSolutionStepValue(NEAREST_NEIGHBOUR_COND_ID);
+                auto& r_node_nn_p = r_node.FastGetSolutionStepValue(NEAREST_NEIGHBOUR_POINT);
+                auto& r_node_cond = root_model_part.GetCondition(r_node_cond_id);
+                const auto& r_geom = r_node_cond.GetGeometry();
+                Point local_point;
+                r_geom.PointLocalCoordinates(local_point,r_node_nn_p);
+                int node_counter = 0;
+                // r_node_aux_var = r_node_var;
+                for(auto& node_i : r_geom){
+                    r_node_aux_var += r_geom.ShapeFunctionValue(node_counter,local_point) * node_i.FastGetSolutionStepValue(rFieldVariable);
+                    node_counter++;
+                }
+                //now mirror the aux field
+                array_1d<double,3> p1 = r_node_nn_p;
+                array_1d<double,3> p2 = p1 + r_node_aux_var;
+                array_1d<double,3> p1_r = 2.0 * inner_prod(plane_point-p1,plane_normal) * plane_normal + p1;
+                array_1d<double,3> p2_r = 2.0 * inner_prod(plane_point-p2,plane_normal) * plane_normal + p2;
+                r_node_aux_var = r_node_var + p2_r - p1_r;
+            }
+            SetVariable1ToVarible2(&r_eval_object,AUXILIARY_FIELD,rFieldVariable);
+        }
+        IntegrateField(rFieldVariable);
+    }
+
+    void DeintegrateField(const Variable<array_3d> &rFieldVariable){
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            for (auto& r_node : r_controlling_object.Nodes()){            
+                auto& field = r_node.FastGetSolutionStepValue(rFieldVariable);
+                auto& node_area = r_node.FastGetSolutionStepValue(NODAL_AREA);
+                field /=node_area;
+            }
+        }
+    }
+
+    void IntegrateField(const Variable<array_3d> &rFieldVariable){
+        for(auto& control_obj : mControlSettings["controlling_objects"]){
+            ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
+            for (auto& r_node : r_controlling_object.Nodes()){            
+                auto& field = r_node.FastGetSolutionStepValue(rFieldVariable);
+                auto& node_area = r_node.FastGetSolutionStepValue(NODAL_AREA);
+                field *=node_area;
+            }
+        }
+    }    
+
 
     void ComputeInitialControlPoints()
     {

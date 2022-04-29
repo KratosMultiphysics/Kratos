@@ -14,11 +14,8 @@ import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.OptimizationApplication.controls.shape.shape_control import ShapeControl
 
 class ImplicitVertexMorphing(ShapeControl):
-
     def __init__(self, name, model, settings):
-        super().__init__(name,model,settings)
-        self.technique_settings = self.settings["technique_settings"] 
-
+        self.technique_settings = settings["technique_settings"] 
         self.default_technique_settings = KM.Parameters("""{
                     "fixed_model_parts"  : [],
                     "fixed_model_parts_X"  : [],
@@ -30,8 +27,9 @@ class ImplicitVertexMorphing(ShapeControl):
                     "adaptive_filter_size" : false,
                     "surface_filter_radius" : 0.000000000001,
                     "surface_bulk_ratio" : 2,
-                    "project_to_normal" : true,
-                    "poisson_ratio" : 0.3,            
+                    "project_to_normal" : false,
+                    "poisson_ratio" : 0.3,
+                    "plane_symmetry_settings": {},            
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -49,7 +47,13 @@ class ImplicitVertexMorphing(ShapeControl):
                     }
                 }""")
 
-        self.technique_settings.RecursivelyValidateAndAssignDefaults(self.default_technique_settings)
+        self.technique_settings.ValidateAndAssignDefaults(self.default_technique_settings)
+        self.project_to_normal = self.technique_settings["project_to_normal"].GetBool()
+        self.plane_symmetry = False
+        if not self.technique_settings["plane_symmetry_settings"].IsNull():
+            self.plane_symmetry = True
+
+        super().__init__(name,model,settings)
 
         fixed_model_parts = self.technique_settings["fixed_model_parts"]
         fixed_model_parts_X = self.technique_settings["fixed_model_parts_X"]

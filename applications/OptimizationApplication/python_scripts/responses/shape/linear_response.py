@@ -1,5 +1,3 @@
-from numpy import gradient
-from . import base_response
 import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.OptimizationApplication as KOA
