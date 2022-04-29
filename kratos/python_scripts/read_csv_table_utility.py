@@ -48,7 +48,7 @@ class ReadCsvTableUtility:
         self.table_id = settings["table_id"].GetInt()
         self.na_replace = settings["na_replace"].GetDouble()
 
-    def Read(self, model_part):
+    def Read(self, model_part = None):
         """Read a csv table.
 
         Keyword arguments:
