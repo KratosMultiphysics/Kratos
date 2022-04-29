@@ -3,7 +3,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi
 try:
-    import numpy as np 
+    import numpy as np
     numpy_availabe = True
 except ImportError:
     numpy_availabe = False
