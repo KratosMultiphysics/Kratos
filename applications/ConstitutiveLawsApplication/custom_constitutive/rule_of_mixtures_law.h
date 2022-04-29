@@ -644,12 +644,12 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws; /// The vector containing the constitutive laws (must be cloned, the ones contained on the properties can conflict between them)
     std::vector<double> mCombinationFactors;                 /// The vector containing the combination factors of the different layers of the material
-    std::vector<double> mGc = ZeroVector(mConstitutiveLaws.size()-1);
-    std::vector<double> minitial_threshold = ZeroVector(mConstitutiveLaws.size()-1);
-    std::vector<double> mthreshold = ZeroVector(mConstitutiveLaws.size()-1);
-    std::vector<double> mdelamination_damage = ZeroVector(mConstitutiveLaws.size()+1);
-    std::vector<double> mAParameter = ZeroVector(mConstitutiveLaws.size()-1);
-    std::vector<double> mDamageIndicator = ZeroVector(mConstitutiveLaws.size()-1);
+    Vector mGc = ZeroVector(mConstitutiveLaws.size()-1);
+    Vector minitial_threshold = ZeroVector(mConstitutiveLaws.size()-1);
+    Vector mthreshold = ZeroVector(mConstitutiveLaws.size()-1);
+    Vector mdelamination_damage = ZeroVector(mConstitutiveLaws.size()+1);
+    Vector mAParameter = ZeroVector(mConstitutiveLaws.size()-1);
+    Vector mDamageIndicator = ZeroVector(mConstitutiveLaws.size()-1);
     // double mT_eq = 0;                                        // Equivalent Stress
     // double mDamageIndicator = 1;                             // Onset of Damage
     // double mGc = 0;                                          // Mix Mode Energy Release Rate
