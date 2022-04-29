@@ -29,6 +29,7 @@ from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_piping_elements import TestPipingElements
 from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
+from test_piping_mesh_dependency import TestMeshDependencyPiping
 
 # cpp tests
 from test_piping_element_unit import TestUnitPipingElements
@@ -70,7 +71,8 @@ def AssambleTestSuites(is_team_city):
         TestUnitPipingElements,
         TestElementaryGroundWaterFlow,
         TestSellmeijersRule,
-        TestNormalFluxCondition
+        TestNormalFluxCondition,
+        TestMeshDependencyPiping
         ]
 
     # Create an array with the selected tests
