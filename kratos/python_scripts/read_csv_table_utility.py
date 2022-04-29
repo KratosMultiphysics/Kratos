@@ -65,18 +65,20 @@ class ReadCsvTableUtility:
         """
         table = KM.PiecewiseLinearTable()
         minimum_columns = max(self.first_column_id, self.second_column_id) + 1
+        row_id = self.skiprows
         with open(self.filename, 'r') as table_file:
             data = csv.reader(table_file, delimiter=self.delimiter, skipinitialspace=True)
             for _ in range(self.skiprows):
                 next(data)
             for row in data:
+                row_id += 1
                 if row:  # skip empty rows
                     if len(row) < minimum_columns:
                         msg = self.__class__.__name__ + ". "
                         msg += "There is not enough data, a {}-column row is found.\n".format(len(row))
                         msg += "In order to get the time at column {} and the value at column {}, the table must have at least {} columns.".format(self.time_column_id, self.value_column_id, minimum_columns)
                         raise Exception(msg)
-                    table.AddRow(self._Float(row[self.first_column_id]), self._Float(row[self.second_column_id]))
+                    table.AddRow(self._Float(row[self.first_column_id], row_id), self._Float(row[self.second_column_id], row_id))
         if self.table_id > -1:
             if model_part:
                 model_part.AddTable(self.table_id, table)
@@ -85,10 +87,10 @@ class ReadCsvTableUtility:
                 raise Exception(err_msg)
         return table
 
-    def _Float(self, value):
+    def _Float(self, value, row_id):
         try:
             return float(value)
         except ValueError:
-            KM.Logger.PrintWarning(self.__class__.__name__, "{} replaced by {}".format(value, self.na_replace))
+            KM.Logger.PrintWarning(self.__class__.__name__, "{} replaced by {} at row {}".format(value, self.na_replace, row_id))
             return self.na_replace
 
