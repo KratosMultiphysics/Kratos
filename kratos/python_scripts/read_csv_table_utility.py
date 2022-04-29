@@ -51,8 +51,8 @@ class ReadCsvTableUtility:
         self.filename = settings["filename"].GetString()
         self.delimiter = settings["delimiter"].GetString()
         self.skiprows = settings["skiprows"].GetInt()
-        self.time_column_id = settings["time_column_id"].GetIn()
-        self.value_column_id = settings["value_column_id"].GetIn()
+        self.time_column_id = settings["time_column_id"].GetInt()
+        self.value_column_id = settings["value_column_id"].GetInt()
         self.table_id = settings["table_id"].GetInt()
         self.na_replace = settings["na_replace"].GetDouble()
 
