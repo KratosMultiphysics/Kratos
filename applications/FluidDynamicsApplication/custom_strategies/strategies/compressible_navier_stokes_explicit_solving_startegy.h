@@ -158,8 +158,8 @@ public:
         KRATOS_ERROR_IF_NOT(r_process_info.Has(OSS_SWITCH)) << "OSS_SWITCH variable has not been set in the ProcessInfo container. Please set it in the strategy \'Initialize\'." << std::endl;
 
         // Shock capturing process check
-        if (mpShockCapturingProcess) {
-            mpShockCapturingProcess->Check();
+        if (ShockCapturingEnabled()) {
+            GetShockCapturingProcess()->Check();
         }
 
         return err_code;
@@ -237,8 +237,8 @@ public:
         }
 
         // If required, initialize the physics-based shock capturing variables
-        if (mpShockCapturingProcess) {
-            mpShockCapturingProcess->ExecuteInitialize();
+        if (ShockCapturingEnabled()) {
+            GetShockCapturingProcess()->ExecuteInitialize();
         }
     }
 
@@ -246,12 +246,12 @@ public:
     {
         BaseType::InitializeSolutionStep();
 
-        if (mCalculateNonConservativeMagnitudes) {
+        if (ConservativeMagnitudeCalculationEnabled()) {
             CalculateNonConservativeMagnitudes();
         }
 
-        if (mpShockCapturingProcess) {
-            mpShockCapturingProcess->ExecuteInitializeSolutionStep();
+        if (ShockCapturingEnabled()) {
+            GetShockCapturingProcess()->ExecuteInitializeSolutionStep();
         }
     }
 
@@ -265,21 +265,21 @@ public:
         BaseType::FinalizeSolutionStep();
 
         // Apply the momentum slip condition
-        if (mApplySlipCondition) {
+        if (SlipConditionEnabled()) {
             ApplySlipCondition();
         }
 
         // Postprocess the non-conservative magnitudes
         // This needs to be done before the shock capturing as it is based on these
-        if (mCalculateNonConservativeMagnitudes) {
+        if (ConservativeMagnitudeCalculationEnabled()) {
             CalculateNonConservativeMagnitudes();
         }
 
         // Perform the shock capturing detection and artificial values calculation
         // This needs to be done at the end of the step in order to include the future shock
         // capturing magnitudes in the next automatic dt calculation
-        if (mpShockCapturingProcess) {
-            mpShockCapturingProcess->ExecuteFinalizeSolutionStep();
+        if (ShockCapturingEnabled()) {
+            GetShockCapturingProcess()->ExecuteFinalizeSolutionStep();
         }
     }
 
@@ -482,15 +482,35 @@ protected:
     {
         // Apply the momentum slip condition
         //TODO: THIS SHOULDN'T BE REQUIRED --> DOING IT AFTER THE FINAL UPDATE MUST BE ENOUGH
-        if (mApplySlipCondition) {
+        if (SlipConditionEnabled()) {
             ApplySlipCondition();
         }
     }
+
+    bool ShockCapturingEnabled() const noexcept
+    {
+        return mpShockCapturingProcess != nullptr;
+    }
+
+    bool ConservativeMagnitudeCalculationEnabled() const noexcept
+    {
+        return mCalculateNonConservativeMagnitudes;
+    }
+
+    bool SlipConditionEnabled() const noexcept
+    {
+        return mApplySlipCondition;
+    }
+
 
     ///@}
     ///@name Protected  Access
     ///@{
 
+    const Process::UniquePointer& GetShockCapturingProcess()
+    {
+        return mpShockCapturingProcess;
+    }
 
     ///@}
     ///@name Protected Inquiry
