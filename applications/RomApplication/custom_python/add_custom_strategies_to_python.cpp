@@ -62,6 +62,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("HardSetCurrentCluster",&ROMBuilderAndSolverType::HardSetCurrentCluster) //
         .def("GetCurrentReducedCoefficients",&ROMBuilderAndSolverType::GetCurrentReducedCoefficients) //
         .def("GetCurrentCluster",&ROMBuilderAndSolverType::GetCurrentCluster) //
+        .def("GetCurrentSmallDimensionalVector",&ROMBuilderAndSolverType::GetCurrentSmallDimensionalVector) //
         .def("ProjectToReducedBasis",&ROMBuilderAndSolverType::ProjectToReducedBasis) //
         ;
 
