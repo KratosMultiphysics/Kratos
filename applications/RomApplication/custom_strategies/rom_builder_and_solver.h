@@ -394,6 +394,21 @@ public:
         return q;
     }
 
+
+    virtual void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        // Call the base B&S InitializeSolutionStep
+        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
+
+        mFlagInitializedSmallDimensionalVector = false;
+
+    }
+
+
     void ProjectToFineBasis(
         const TSystemVectorType &rRomUnkowns,
         TSystemVectorType &Dx)
@@ -466,6 +481,10 @@ public:
         return CurrentFullDimensionalVector;
     }
 
+        Vector GetCurrentSmallDimensionalVector(){
+        return mSmallDimensionalVector;
+    }
+
 
     /*@{ */
 
@@ -482,6 +501,12 @@ public:
         TSystemVectorType &b) override
     {
         KRATOS_TRY
+        mRomDofs = mRomDofsVector.at(mDistanceToClusters.GetCurrentCluster());
+        if (mFlagInitializedSmallDimensionalVector == false){
+            mFlagInitializedSmallDimensionalVector = true;
+            mSmallDimensionalVector = ZeroVector(mRomDofs);
+        }
+
         //define a dense matrix to hold the reduced problem
         Matrix Arom = ZeroMatrix(mRomDofs, mRomDofs);
         Vector brom = ZeroVector(mRomDofs);
@@ -613,6 +638,8 @@ public:
         // project reduced solution back to full order model
         const auto timer_backward_projection = BuiltinTimer();
         ProjectToFineBasis(dq, Dx);
+        mSmallDimensionalVector += dq;
+
         KRATOS_INFO_IF("ROMBuilderAndSolver", this->GetEchoLevel() >=1) << "Projection to Full Order Space: " << timer_backward_projection.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
@@ -741,6 +768,8 @@ protected:
     int just_a_counter = 0;
     Vector CurrentFullDimensionalVector;
     int mNumberOfClusters;
+    Vector mSmallDimensionalVector;
+    bool mFlagInitializedSmallDimensionalVector;
 
 
     /*@} */
