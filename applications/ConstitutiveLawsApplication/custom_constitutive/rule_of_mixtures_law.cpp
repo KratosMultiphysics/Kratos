@@ -60,12 +60,12 @@ ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw(const std::vector<dou
     }
 
     mthreshold.resize(mConstitutiveLaws.size()-1, false);
-    for (int i=0; i < mConstitutiveLaws.size()-1; i++) {
+    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
             mthreshold[i] = std::numeric_limits<double>::infinity();
         }
     
     mDamageIndicator.resize(mConstitutiveLaws.size()-1, false);
-    for (int i=0; i < mConstitutiveLaws.size()-1; i++) {
+    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
             mDamageIndicator[i] = 1;
         }
 }
@@ -991,12 +991,12 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
 
 
         std::vector<Vector> layer_stress(mConstitutiveLaws.size());
-        for (int i=0; i < mConstitutiveLaws.size(); i++) {
+        for (int i=0; i < mConstitutiveLaws.size(); ++i) {
             layer_stress[i].resize(6, false);
         }
 
         std::vector<Vector> interfacial_stress(mConstitutiveLaws.size()-1);
-        for (int i=0; i < mConstitutiveLaws.size()-1; i++) {
+        for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
             interfacial_stress[i].resize(3, false);
         }
 
@@ -1025,15 +1025,15 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
 
-        std::vector<double> Gc(mConstitutiveLaws.size()-1);
-        std::vector<double> initial_threshold(mConstitutiveLaws.size()-1);
-        std::vector<double> threshold(mConstitutiveLaws.size()-1);
-        std::vector<double> delamination_damage(mConstitutiveLaws.size()+1);
-        std::vector<double> AParameter(mConstitutiveLaws.size()-1);
-        std::vector<double> DamageIndicator(mConstitutiveLaws.size()-1);
+        Vector Gc(mConstitutiveLaws.size()-1);
+        Vector initial_threshold(mConstitutiveLaws.size()-1);
+        Vector threshold(mConstitutiveLaws.size()-1);
+        Vector delamination_damage(mConstitutiveLaws.size()+1);
+        Vector AParameter(mConstitutiveLaws.size()-1);
+        Vector DamageIndicator(mConstitutiveLaws.size()-1);
 
 
-        for(int i=0; i < mConstitutiveLaws.size()-1; i++) {
+        for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
 
             interfacial_stress[i][0] = (layer_stress[i][2] + layer_stress[i+1][2]) * 0.5; // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
@@ -1080,7 +1080,7 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             // End damage calculation
         }
 
-        for(int i=0; i < mConstitutiveLaws.size(); i++) {
+        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
 
             Properties& r_prop             = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
@@ -1681,12 +1681,12 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
 
 
         std::vector<Vector> layer_stress(mConstitutiveLaws.size());
-        for (int i=0; i < mConstitutiveLaws.size(); i++) {
+        for (int i=0; i < mConstitutiveLaws.size(); ++i) {
             layer_stress[i].resize(6, false);
         }
 
         std::vector<Vector> interfacial_stress(mConstitutiveLaws.size()-1);
-        for (int i=0; i < mConstitutiveLaws.size()-1; i++) {
+        for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
             interfacial_stress[i].resize(3, false);
         }
 
@@ -1715,15 +1715,15 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             noalias(rValues.GetStrainVector()) = strain_vector;
         }
 
-        std::vector<double> Gc(mConstitutiveLaws.size()-1);
-        std::vector<double> initial_threshold(mConstitutiveLaws.size()-1);
-        std::vector<double> threshold(mConstitutiveLaws.size()-1);
-        std::vector<double> delamination_damage(mConstitutiveLaws.size()+1);
-        std::vector<double> AParameter(mConstitutiveLaws.size()-1);
-        std::vector<double> DamageIndicator(mConstitutiveLaws.size()-1);
+        Vector Gc(mConstitutiveLaws.size()-1);
+        Vector initial_threshold(mConstitutiveLaws.size()-1);
+        Vector threshold(mConstitutiveLaws.size()-1);
+        Vector delamination_damage(mConstitutiveLaws.size()+1);
+        Vector AParameter(mConstitutiveLaws.size()-1);
+        Vector DamageIndicator(mConstitutiveLaws.size()-1);
 
 
-        for(int i=0; i < mConstitutiveLaws.size()-1; i++) {
+        for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
 
             interfacial_stress[i][0] = (layer_stress[i][2] + layer_stress[i+1][2]) * 0.5; // interfacial normal stress
             interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
@@ -1776,7 +1776,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             // End damage calculation
         }
 
-        for(int i=0; i < mConstitutiveLaws.size(); i++) {
+        for(int i=0; i < mConstitutiveLaws.size(); ++i) {
 
             Properties& r_prop             = *(it_prop_begin + i);
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
