@@ -236,9 +236,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
 
             if self.__isConstraintActive(constraint):
                 if constraint["type"].GetString() == "=":
-                    self.constraint_buffer_variables[identifier]["buffer_value"] = 1 - abs(constraint_value) / self.constraint_buffer_variables[identifier]["buffer_size"]
+                    self.constraint_buffer_variables[identifier]["buffer_value"] = min(1 - abs(constraint_value) / self.constraint_buffer_variables[identifier]["buffer_size"], 2.0)
                 else:
-                    self.constraint_buffer_variables[identifier]["buffer_value"] = (constraint_value - self.constraint_buffer_variables[identifier]["lower_buffer_value"]) / self.constraint_buffer_variables[identifier]["buffer_size"]
+                    self.constraint_buffer_variables[identifier]["buffer_value"] = min( (constraint_value - self.constraint_buffer_variables[identifier]["lower_buffer_value"]) / self.constraint_buffer_variables[identifier]["buffer_size"], 2.0 )
             else:
                 self.constraint_buffer_variables[identifier]["buffer_value"] = 0.0
 
