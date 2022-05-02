@@ -63,14 +63,53 @@ def SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name, skip
 
     RemoveFileLoggerOutput(default_severity, file_logger)
 
+    Kratos.Logger.PrintInfo("SolveAdjointProblem", "Solved adjoint problem at {}.".format(adjoint_parameters_file_name))
+
     return adjoint_simulation
+
+def WriteShapeSensitivities(model_part, file_name) -> dict:
+    # now write shape sensitivities to results file
+    shape_sensitivities_dict = {}
+    with open(file_name, "w") as file_output:
+        file_output.write("# node_id, shape_sensitivity_x, shape_sensitivity_y, shape_sensitivity_z\n")
+        for node in model_part.Nodes:
+            shape_sensitivity = node.GetSolutionStepValue(Kratos.SHAPE_SENSITIVITY)
+            shape_sensitivities_dict[node.Id] = shape_sensitivity
+            file_output.write("{:d},{:0.16e},{:0.16e},{:0.16e}\n".format(node.Id, shape_sensitivity[0], shape_sensitivity[1], shape_sensitivity[2]))
+
+    return shape_sensitivities_dict
+
+def CalculateShapeSensitivity(model, optimization_model_part_name, adjoint_parameters_file_name, log_file_name) -> dict:
+    base_name = adjoint_parameters_file_name[:adjoint_parameters_file_name.rfind(".")]
+    shape_sensitivity_file = Path(base_name + "_results.csv")
+
+    if not shape_sensitivity_file.is_file():
+        _ = SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name)
+        return WriteShapeSensitivities(model[optimization_model_part_name], str(shape_sensitivity_file))
+    else:
+        Kratos.Logger.PrintInfo("SolveAdjointProblem", "Found existing completed adjoint evaluation at {}.".format(str(shape_sensitivity_file)))
+
+        with open(str(shape_sensitivity_file), "r") as file_input:
+            lines = file_input.readlines()
+
+        lines = lines[1:-1]
+        shape_sensitivities_dict = {}
+        for line in lines:
+            data_str = line[:-1].split(",")
+            shape_sensitivities_dict[int(data_str[0])] = Kratos.Array3([float(data_str[1]), float(data_str[2]), float(data_str[3])])
+
+        return shape_sensitivities_dict
 
 def RecursiveCopy(src, dest):
     src_path = Path(src)
     dest_path = Path(dest)
     for item in src_path.iterdir():
         if (item.is_file()):
-            copy(str(item), dest)
+            dest_item = dest_path / item.relative_to(item.parent)
+            if not dest_item.is_file():
+                copy(str(item), dest)
+            else:
+                Kratos.Logger.PrintInfo("RecursiveCopy", "Found existing file at {}, therefore template file is not copied.".format(str(dest_item.absolute())))
         elif (item.is_dir()):
             new_path = dest_path / item.relative_to(src)
             new_path.mkdir(exist_ok=True)
