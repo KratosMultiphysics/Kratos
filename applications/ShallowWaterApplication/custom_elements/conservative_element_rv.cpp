@@ -106,10 +106,10 @@ void ConservativeElementRV<TNumNodes>::ShockCapturingParameters(
 
     // slope limits
     const double min_slope = 0.1;
-    const double max_slope = 1.0;
+    const double max_slope = 10.0;
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
-    const double min_q_slope = std::max(eigenvalue * 1.0, min_slope);
-    const double max_q_slope = std::max(eigenvalue * 10.0, max_slope);
+    const double min_q_slope = std::max(10 * eigenvalue * min_slope, min_slope);
+    const double max_q_slope = std::max(10 * eigenvalue * max_slope, max_slope);
 
     // Final assembly of the parameters
     const double q_residual_norm = norm_2(flow_residual);
