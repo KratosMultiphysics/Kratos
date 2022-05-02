@@ -135,46 +135,6 @@ void ConservativeElementRV<TNumNodes>::AlgebraicResidual(
     rHeightResidual = height_acc + flow_div;
 }
 
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::StreamLineTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
-{
-    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
-    array_1d<double,2> aux_vector;
-    aux_vector[0] = rVector[0];
-    aux_vector[1] = rVector[1];
-    rTensor = outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + e);
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::CrossWindTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
-{
-    StreamLineTensor(rTensor, rVector);
-    rTensor = IdentityMatrix(2) - rTensor;
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::StreamLineTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
-{
-    BoundedMatrix<double,2,2> stream_line_tensor;
-    StreamLineTensor(stream_line_tensor, rVector);
-    rTensor(0,0) = stream_line_tensor(0,0);
-    rTensor(1,1) = stream_line_tensor(1,1);
-    rTensor(0,1) = stream_line_tensor(0,1);
-    rTensor(1,0) = stream_line_tensor(0,1);
-    rTensor(2,2) = stream_line_tensor(0,1);
-    rTensor(0,2) = 0.0;
-    rTensor(1,2) = 0.0;
-    rTensor(2,0) = 0.0;
-    rTensor(2,1) = 0.0;
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::CrossWindTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
-{
-    StreamLineTensor(rTensor, rVector);
-    rTensor = IdentityMatrix(3) - rTensor;
-}
-
 template class ConservativeElementRV<3>;
 
 } // namespace Kratos
