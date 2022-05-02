@@ -85,8 +85,12 @@ void AddSparseMatricesToPython(pybind11::module& m)
     py::class_<CsrMatrix<double,IndexType>, CsrMatrix<double,IndexType>::Pointer >(m, "CsrMatrix")
     .def(py::init<>())
     .def(py::init<const DataCommunicator&>())
+    .def(py::init<const CsrMatrix<double,IndexType>&>())
     .def(py::init<SparseGraph<IndexType>&>())
     .def(py::init<SparseContiguousRowGraph<IndexType>&>())
+    .def("copy", [](const CsrMatrix<double,IndexType>& self){
+        return Kratos::make_shared<CsrMatrix<double,IndexType>>(self);
+    })
     .def("GetComm", &CsrMatrix<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
     .def("SetValue", &CsrMatrix<double,IndexType>::SetValue)
     .def("Size1", &CsrMatrix<double,IndexType>::size1)
@@ -186,6 +190,10 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def(py::init<IndexType, DataCommunicator&>())
     .def(py::init<SparseGraph<IndexType>&>())
     .def(py::init<SparseContiguousRowGraph<IndexType>&>())
+    .def(py::init<Vector&>())
+    .def("copy", [](const SystemVector<double,IndexType>& self){
+        return Kratos::make_shared<SystemVector<double,IndexType>>(self);
+    })
     .def("GetComm", &SystemVector<double,IndexType>::GetComm, py::return_value_policy::reference_internal)
     .def("Size", &SystemVector<double,IndexType>::size)
     .def("size", &SystemVector<double,IndexType>::size)
