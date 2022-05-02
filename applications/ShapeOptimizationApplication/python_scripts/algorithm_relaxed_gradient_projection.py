@@ -390,11 +390,11 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         if len(self.g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
             p = nabla_f * (-1.0)
-            p *= 1.0 / f_norm
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.SEARCH_DIRECTION)
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.PROJECTION)
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable([0.0]*len(p), KSO.CORRECTION)
             self.optimization_utilities(self.design_surface, KM.Parameters("""{"optimization_algorithm":{"name":"none"}}""")).AssignVectorToVariable(p, KSO.CONTROL_POINT_UPDATE)
+            self.__LineSearch()
             return
 
         omega_r = KM.Matrix()
@@ -481,7 +481,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         constraint_value = self.communicator.getStandardizedValue(identifier)
         if constraint["type"].GetString() == "=":
             return True
-        elif constraint_value >= self.constraint_buffer_variables[identifier]["lower_buffer_value"]:
+        elif constraint["type"].GetString() == "<=" and constraint_value >= self.constraint_buffer_variables[identifier]["lower_buffer_value"]:
+            return True
+        elif constraint["type"].GetString() == ">=" and constraint_value <= self.constraint_buffer_variables[identifier]["upper_buffer_value"]:
             return True
         else:
             return False
