@@ -1089,10 +1089,10 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
             std::vector<double> layer_damage_vector(6);
             layer_damage_vector = {1,
                                     1,
-                                    1-((1-delamination_damage[i])*(1-delamination_damage[i+1])),
+                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
                                     1,
-                                    1-((1-delamination_damage[i])*(1-delamination_damage[i+1])),
-                                    1-((1-delamination_damage[i])*(1-delamination_damage[i+1]))};
+                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
+                                    (1-delamination_damage[i])*(1-delamination_damage[i+1])};
 
             auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
             auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
@@ -1785,10 +1785,10 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
             std::vector<double> layer_damage_vector(6);
             layer_damage_vector = {1,
                                     1,
-                                    1-((1-delamination_damage[i])*(1-delamination_damage[i+1])),
+                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
                                     1,
-                                    1-((1-delamination_damage[i])*(1-delamination_damage[i+1])),
-                                    1-((1-delamination_damage[i])*(1-delamination_damage[i+1]))};
+                                    (1-delamination_damage[i])*(1-delamination_damage[i+1]),
+                                    (1-delamination_damage[i])*(1-delamination_damage[i+1])};
 
             auxiliar_stress_vector[0] += factor * layer_damage_vector[0] * layer_stress[i][0];
             auxiliar_stress_vector[1] += factor * layer_damage_vector[1] * layer_stress[i][1];
