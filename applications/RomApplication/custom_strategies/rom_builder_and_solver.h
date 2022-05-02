@@ -29,6 +29,7 @@
 /* Application includes */
 #include "rom_application_variables.h"
 #include "custom_utilities/rom_auxiliary_utilities.h"
+#include "custom_utilities/rom_residuals_utility.h"
 
 namespace Kratos
 {
@@ -120,6 +121,10 @@ public:
         Parameters this_parameters_copy = ThisParameters.Clone();
         this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
         this->AssignSettings(this_parameters_copy);
+
+        // ResidualsUtilityParameters
+        mResidualsUtilityParameters = ThisParameters.Clone();
+        mResidualsUtilityParameters.RemoveValue("name");
     }
 
     ~ROMBuilderAndSolver() = default;
@@ -731,11 +736,15 @@ public:
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
-        Kratos::Vector AssembledResiduals;
-        RomAuxiliaryUtilities RomAuxiliaryUtility;
         if (mSolveWithQR){
-            RomAuxiliaryUtility.GetAssembledResiduals(rModelPart, pScheme, BaseType::GetEquationSystemSize());
+            Kratos::Vector NonConvergedAssembledResiduals = RomResidualsUtility(rModelPart, mResidualsUtilityParameters, pScheme).GetAssembledResiduals(true);
         }
+        // if (mSolveWithQR){
+        //     RomAuxiliaryUtility.GetAssembledResiduals(rModelPart, pScheme, BaseType::GetEquationSystemSize());
+        // }
+        // else if (mSolveWithGalerkin){
+        //     RomAuxiliaryUtility.GetAssembledResiduals(rModelPart, pScheme, BaseType::GetEquationSystemSize());
+        // }
     }
 
     void ResizeAndInitializeVectors(
@@ -841,6 +850,8 @@ protected:
     ///@name Protected member variables
     ///@{
 
+    Parameters mResidualsUtilityParameters;
+
     SizeType mNodalDofs;
     SizeType mNumberOfRomModes, mNumberOfPetrovGalerkinRomModes;
     std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
@@ -898,6 +909,7 @@ protected:
                 KRATOS_ERROR << "Variable \""<< r_var_name << "\" not valid" << std::endl;
             }
         }
+
     }
 
     ///@}

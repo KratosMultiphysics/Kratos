@@ -172,7 +172,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             while self.KeepAdvancingSolutionLoop():
                 self.time = self._GetSolver().AdvanceInTime(self.time)
                 self.InitializeSolutionStep()
-                # self._GetSolver().Predict()
+                self._GetSolver().Predict()
                 is_converged = self._GetSolver().SolveSolutionStep()
                 self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
                 self.FinalizeSolutionStep()
@@ -182,10 +182,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             #####Added Petrov
             if self.train_petrov_galerkin:
                 self.__petrov_galerkin_training_utility.AppendCurrentStepProjectedSystem()
-            ## Delete all .mm files when training Petrov-Galerkin with AssembledResiduals
-            files_to_delete_list = glob('*.mm')
-            for to_erase_file in files_to_delete_list:
-                remove(to_erase_file)
+                ## Delete all .res.mm files when training Petrov-Galerkin with AssembledResiduals
+                files_to_delete_list = glob('*.res.mm')
+                for to_erase_file in files_to_delete_list:
+                    remove(to_erase_file)
             #####
 
             # Call the HROM training utility to append the current step residuals

@@ -34,6 +34,7 @@ class PetrovGalerkinTrainingUtility(object):
         self.rom_settings = custom_settings["rom_settings"]
         # self.basis_strategy = "Assembled_Residuals" if self.rom_settings["solving_strategy"].GetString()=="QR" else settings["basis_strategy"].GetString() #FIXME: Either stop writing to memory or make sure that we can erase after SVD. When solving with QR, force this option to erase the matrices that are written to build the assembled residual option.
         self.basis_strategy = settings["basis_strategy"].GetString()
+        self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
     def AppendCurrentStepProjectedSystem(self):
@@ -62,12 +63,16 @@ class PetrovGalerkinTrainingUtility(object):
             if current_time.is_integer():
                 current_time = int(current_time) #FIXME: I dont like this, c++ writes step with no decimals when is integer and python does. (i.e. c++ step 1=1, python step 1=1.0)
             number_of_iterations = computing_model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER]
-            for i in range(number_of_iterations):
-                iteration_snapshot = KratosMultiphysics.Vector()
-                snapshot_name = "R_"+str(current_time)+"_"+str(i+1)+".mm"
-                KratosMultiphysics.ReadMatrixMarketVector(snapshot_name, iteration_snapshot)
-                snapshots_matrix.append(iteration_snapshot)
+            # This loop reads NON-CONVERGED assembled residuals that had been written into disk
+            for i in range(number_of_iterations+1):
+                non_converged_iteration_snapshot = KratosMultiphysics.Vector()
+                snapshot_name = "R_"+str(current_time)+"_"+str(i)+".res.mm"
+                KratosMultiphysics.ReadMatrixMarketVector(snapshot_name, non_converged_iteration_snapshot)
+                snapshots_matrix.append(non_converged_iteration_snapshot)
                 # kratos_utils.DeleteFileIfExisting(GetFilePath(snapshot_name))
+            write_to_disk_converged_residual = False
+            converged_snapshot = self.__rom_residuals_utility.GetAssembledResiduals(write_to_disk_converged_residual)
+            snapshots_matrix.append(converged_snapshot)
             snapshots_matrix = np.array(snapshots_matrix).T
         else:
             err_msg = "\'self.basis_strategy\' is not available. Select either Projected_System or Assembled_Residuals."
@@ -87,6 +92,7 @@ class PetrovGalerkinTrainingUtility(object):
         default_settings = KratosMultiphysics.Parameters("""{
                 "train": false,
                 "basis_strategy": "Assembled_Residuals",
+                "include_phi": true,
                 "svd_truncation_tolerance": 1.0e-4,
                 "echo_level": 0
         }""")
@@ -97,29 +103,33 @@ class PetrovGalerkinTrainingUtility(object):
         n_steps = len(self.time_step_snapshots_matrix_container)
         snapshots_matrix = self.time_step_snapshots_matrix_container[0]
         for i in range(1,n_steps):
-            snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[i]]
-        u_temp,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+            del self.time_step_snapshots_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
+            snapshots_matrix = np.c_[snapshots_matrix,self.time_step_snapshots_matrix_container[0]]
+        u_left,s_left,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
             snapshots_matrix,
             self.svd_truncation_tolerance)
-        #Read Galerkin modes from RomParameters.json
-        u_galerkin = self.__GetGalerkinBasis()
-        u,R, _ = scipy.linalg.qr(np.c_[u_galerkin,u_temp],pivoting=True)
-        tol = np.sqrt(u.shape[1])*self.svd_truncation_tolerance # Norm of u is equal to the sqrt of the number of nodes because of its orthogonality.
-        rank = R.shape[1]
-        for i in range(rank):
-            if abs(R[i,i])<tol:
-                rank = i
-                break
-        u = u[:,:rank]
-        # Repeat application of projector to avoid numeric cancellation
-        # for i in range(3):
-        #     snapshots_matrix = self.__OrthogonalProjector(snapshots_matrix, u_galerkin)
-        # snapshots_matrix = np.c_[u_galerkin,snapshots_matrix]
-        # del u_galerkin
-        # # Calculate the randomized and truncated SVD of the snapshots
-        # u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
-        #     snapshots_matrix,
+        del(snapshots_matrix)
+        if self.include_phi:
+            #Read Galerkin modes from RomParameters.json
+            u_right = self.__GetGalerkinBasis()
+            u , _= np.linalg.qr(np.c_[u_right,u_left])
+        else:
+            u = u_left
+        # u,s,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
+        #     np.c_[u_right,u_left],
         #     self.svd_truncation_tolerance)
+        # del(u_right)
+        # del(u_left)
+        # u,R, _ = scipy.linalg.qr(np.c_[u_right,u_left],pivoting=True)
+        # del(u_right)
+        # del(u_left)
+        # tol = np.sqrt(u.shape[1])*self.svd_truncation_tolerance # Norm of u is equal to the sqrt of the number of nodes because of its orthogonality.
+        # rank = R.shape[1]
+        # for i in range(rank):
+        #     if abs(R[i,i])<tol:
+        #         rank = i
+        #         break
+        # u = u[:,:rank]
 
         return u
     

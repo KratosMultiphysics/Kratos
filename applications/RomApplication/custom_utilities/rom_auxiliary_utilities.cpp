@@ -577,7 +577,7 @@ void RomAuxiliaryUtilities::GetAssembledResiduals(
 
         // Matrix will be written to disk and then readed in python using calculate_rom_residual_basis_output_process.py
         std::stringstream matrix_market_vector_name;
-        matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".mm";
+        matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".res.mm";
         SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), AssembledResiduals);
     }
 }// namespace Kratos

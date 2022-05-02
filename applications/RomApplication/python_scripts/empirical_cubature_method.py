@@ -21,7 +21,7 @@ class EmpiricalCubatureMethod():
         Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
         Plotting: whether to plot the error evolution of the element selection algorithm
     """
-    def __init__(self, ECM_tolerance = 0, Filter_tolerance = 1e-16, Plotting = False):
+    def __init__(self, ECM_tolerance = 0, Filter_tolerance = 0, Plotting = False):
         self.ECM_tolerance = ECM_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
@@ -36,10 +36,12 @@ class EmpiricalCubatureMethod():
     def SetUp(self, ResidualsBasis, constrain_sum_of_weights=True):
 
         self.W = np.ones(np.shape(ResidualsBasis)[0])
-        self.G = ResidualsBasis.T
+        self.G = ResidualsBasis.T.copy()
         if constrain_sum_of_weights:
-            dummy_number = 0
-            # self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+            aux_ones = np.ones( np.shape(self.G)[1] )
+            Gamma = aux_ones - self.G.T @ (self.G @ aux_ones)
+            Gamma = Gamma/np.linalg.norm(Gamma)
+            self.G = np.vstack([ self.G , Gamma]  )
         self.b = self.G @ self.W
 
 

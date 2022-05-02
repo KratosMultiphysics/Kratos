@@ -44,6 +44,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("GetProjectedResidualsOntoPhi",&RomResidualsUtility::GetProjectedResidualsOntoPhi) //
     .def("GetProjectedResidualsOntoPsi",&RomResidualsUtility::GetProjectedResidualsOntoPsi) //
     .def("GetProjectedGlobalLHS", &RomResidualsUtility::GetProjectedGlobalLHS)//
+    .def("GetAssembledResiduals", &RomResidualsUtility::GetAssembledResiduals)
     ;
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
