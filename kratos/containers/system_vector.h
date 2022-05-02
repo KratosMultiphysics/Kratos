@@ -88,7 +88,9 @@ public:
         mData.resize(size,false);
     }
 
-    SystemVector(const Vector& data, DataCommunicator& rComm=ParallelEnvironment::GetDataCommunicator("Serial")){
+    SystemVector(
+        const Vector& data,
+        DataCommunicator& rComm = ParallelEnvironment::GetDataCommunicator("Serial")) {
         if(rComm.IsDistributed())
             KRATOS_ERROR << "Attempting to construct a serial system_vector with a distributed communicator" << std::endl;
         mpComm = &rComm;
@@ -278,7 +280,7 @@ public:
     void PrintInfo(std::ostream& rOStream) const {
         rOStream << "SystemVector" << std::endl;
         PrintData(rOStream);
-        }
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {
