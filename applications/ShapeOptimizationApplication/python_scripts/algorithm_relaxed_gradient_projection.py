@@ -231,7 +231,6 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                     self.constraint_buffer_variables[identifier]["max_constraint_change"] = abs(constraint_value - self.constraint_buffer_variables[identifier]["constraint_value-1"])
 
                 self.constraint_buffer_variables[identifier]["buffer_size"] = max(self.constraint_buffer_variables[identifier]["buffer_size_factor"] * self.constraint_buffer_variables[identifier]["max_constraint_change"], 1e-12)
-
             self.constraint_buffer_variables[identifier]["lower_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] - self.constraint_buffer_variables[identifier]["buffer_size"]
             self.constraint_buffer_variables[identifier]["upper_buffer_value"] = self.constraint_buffer_variables[identifier]["central_buffer_value"] + self.constraint_buffer_variables[identifier]["buffer_size"]
 
@@ -481,9 +480,7 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
         constraint_value = self.communicator.getStandardizedValue(identifier)
         if constraint["type"].GetString() == "=":
             return True
-        elif constraint["type"].GetString() == "<=" and constraint_value >= self.constraint_buffer_variables[identifier]["lower_buffer_value"]:
-            return True
-        elif constraint["type"].GetString() == ">=" and constraint_value <= self.constraint_buffer_variables[identifier]["upper_buffer_value"]:
+        elif constraint_value >= self.constraint_buffer_variables[identifier]["lower_buffer_value"]:
             return True
         else:
             return False
@@ -508,16 +505,9 @@ class AlgorithmRelaxedGradientProjection(OptimizationAlgorithm):
                 print("constraint_value = ", constraint_value)
                 print("delta_g = ", delta_g)
                 print("constraint_value - 1 = ", self.constraint_buffer_variables[identifier]["constraint_value-1"])
-                # if constraint["type"].GetString() == ">=":
-                #     if delta_g >= 0.0 and constraint_value > 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] > 0:
-                #         self.constraint_buffer_variables[identifier]["central_buffer_value"] += self.constraint_buffer_variables[identifier]["constraint_value-1"]
-                #     elif delta_g <= 0.0 and constraint_value < 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] < 0:
-                #         self.constraint_buffer_variables[identifier]["central_buffer_value"] += self.constraint_buffer_variables[identifier]["constraint_value-1"]
-                #         self.constraint_buffer_variables[identifier]["central_buffer_value"] = max(self.constraint_buffer_variables[identifier]["central_buffer_value"],0.0)
-                # elif constraint["type"].GetString() == "<=":
-                if delta_g >= 0.0 and constraint_value > 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] > 0:
-                    self.constraint_buffer_variables[identifier]["central_buffer_value"] += self.constraint_buffer_variables[identifier]["constraint_value-1"]
-                elif delta_g <= 0.0 and constraint_value < 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] < 0:
+                if delta_g >= 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] > 0:
+                    self.constraint_buffer_variables[identifier]["central_buffer_value"] -= self.constraint_buffer_variables[identifier]["constraint_value-1"]
+                elif delta_g <= 0.0 and self.constraint_buffer_variables[identifier]["constraint_value-1"] < 0:
                     self.constraint_buffer_variables[identifier]["central_buffer_value"] += self.constraint_buffer_variables[identifier]["constraint_value-1"]
                     self.constraint_buffer_variables[identifier]["central_buffer_value"] = max(self.constraint_buffer_variables[identifier]["central_buffer_value"],0.0)
 
