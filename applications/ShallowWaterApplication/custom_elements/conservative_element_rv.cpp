@@ -52,41 +52,15 @@ void ConservativeElementRV<TNumNodes>::CalculateArtificialViscosity(
     double art_diff;
     ShockCapturingParameters(art_visc, art_diff, rData, rN, rDN_DX);
 
-    // The viscosity previously added by the stabilization
-    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
-    const double stab_viscosity = this->StabilizationParameter(rData) * std::pow(eigenvalue,2);
-
-    // The orthogonal fourth order tensor
-    BoundedMatrix<double,3,3> crosswind_tensor_4;
-    CrossWindTensor(crosswind_tensor_4, rData.velocity);
-    crosswind_tensor_4 *= art_visc;
-
-    // The streamline fourth order tensor
-    BoundedMatrix<double,3,3> streamline_tensor_4;
-    StreamLineTensor(streamline_tensor_4, rData.velocity);
-    streamline_tensor_4 *= std::max(0.0, art_visc - stab_viscosity);
-
-    // The constitutive tensor
+    // The fourth order constitutive tensor for viscosity
     BoundedMatrix<double,3,3> constitutive_tensor = IdentityMatrix(3,3);
     array_1d<double,3> m({1.0, 1.0, 0.0});
     constitutive_tensor -= outer_prod(m, m) / 3.0;
-    rViscosity = prod(constitutive_tensor, crosswind_tensor_4 + streamline_tensor_4);
+    rViscosity = art_visc * constitutive_tensor;
 
-    // The diffusion previously added by the stabilization
-    const double stab_diffusivity = this->StabilizationParameter(rData) * std::pow(eigenvalue,2);
+    // The diffusion tensor
+    rDiffusion = art_diff * IdentityMatrix(2);
 
-    // The second order crosswind tensor
-    BoundedMatrix<double,2,2> crosswind_tensor_2;
-    CrossWindTensor(crosswind_tensor_2, rData.velocity);
-    crosswind_tensor_2 *= art_diff;
-
-    // The second order streamline tensor
-    BoundedMatrix<double,2,2> streamline_tensor_2;
-    StreamLineTensor(streamline_tensor_2, rData.velocity);
-    streamline_tensor_2 *= std::max(0.0, art_diff - stab_diffusivity);
-
-    // The constitutive matrix
-    rDiffusion = crosswind_tensor_2 + streamline_tensor_2;
 }
 
 template<std::size_t TNumNodes>
