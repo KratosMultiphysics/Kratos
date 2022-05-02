@@ -141,9 +141,6 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             "bfecc" :         KratosFluid.CompressibleNavierStokesExplicitSolvingStrategyBFECC
         }
 
-        if requested_strategy == "bfecc":
-            strategy_settings.AddEmptyValue("store_error").SetBool(True)
-
         if requested_strategy in available_strategies:
             strat = available_strategies[requested_strategy](self.computing_model_part, strategy_settings)
             self.settings["shock_capturing_settings"] = strategy_settings["shock_capturing_settings"]
