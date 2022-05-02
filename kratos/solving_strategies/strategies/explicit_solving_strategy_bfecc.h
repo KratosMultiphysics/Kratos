@@ -266,7 +266,7 @@ protected:
         // Stash the prev step solution
         const auto original_starting_values = ExtractSolutionStepData(1);
 
-        // Take on step forward
+        // Take step forward
         {
             const auto u_fixed = CopySolutionStepData(1, 0);
             PerformSubstep(u_fixed, FORWARD);
