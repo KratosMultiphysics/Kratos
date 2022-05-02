@@ -770,7 +770,7 @@ namespace Kratos
 
 			double limitEdgeLength = 1.4 * mrRemesh.Refine->CriticalRadius;
 			double safetyCoefficient2D = 1.5;
-			double penalization = 1.0;
+			double penalization = 1.0; //penalization here should be smaller than 1
 			if (rigidNodes > 1)
 			{
 				// penalization=0.7;
@@ -1000,7 +1000,7 @@ namespace Kratos
 
 			double limitEdgeLength = 1.25 * mrRemesh.Refine->CriticalRadius;
 			double safetyCoefficient3D = 1.6;
-			double penalization = 1.0;
+			double penalization = 1.0; //penalization here should be smaller than 1
 			if (rigidNodes > 2)
 			{
 				penalization = 0.7;
@@ -1082,7 +1082,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.85; // 15% less then normal nodes
+						penalization = 0.8; // 20% less then normal nodes
 					}
 				}
 			}
@@ -1384,7 +1384,7 @@ namespace Kratos
 				}
 			}
 
-			double penalization = 1.0;
+			double penalization = 1.0; //penalization here should be greater than 1
 			if (refiningBox == true)
 			{
 				if (freesurfaceNodes > 0)
@@ -1460,7 +1460,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9; // 10% less then normal nodes
+						penalization = 1.1; // 10% more then normal nodes
 					}
 				}
 			}
@@ -1716,7 +1716,7 @@ namespace Kratos
 					}
 				}
 			}
-			double penalization = 1.0;
+			double penalization = 1.0; //penalization here should be greater than 1
 			if (refiningBox == true)
 			{
 				if (freesurfaceNodes > 0)
@@ -1794,7 +1794,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.85; // 15% less then normal nodes
+						penalization = 1.2; // 20% less then normal nodes
 					}
 				}
 			}
