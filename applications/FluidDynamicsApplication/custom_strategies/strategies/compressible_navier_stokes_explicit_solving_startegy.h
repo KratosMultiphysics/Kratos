@@ -57,9 +57,9 @@ namespace Kratos
  * @details This is the base class from which we will derive all the explicit strategies
  * for the compressible Navier Stokes equations (BFECC, RK4, ...)
  */
-template <typename BaseClass>
+template <typename TBaseExplicitStartegy>
 class CompressibleNavierStokesExplicitSolvingStrategy
-: public BaseClass
+: public TBaseExplicitStartegy
 {
 public:
     ///@name Type Definitions
@@ -67,13 +67,13 @@ public:
 
     /// The base class definition
 
-    typedef BaseClass BaseType;
+    typedef TBaseExplicitStartegy BaseType;
 
     /// The explicit builder and solver definition
     typedef typename BaseType::ExplicitBuilderType ExplicitBuilderType;
 
     /// The local vector definition
-    typedef typename BaseClass::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename TBaseExplicitStartegy::LocalSystemVectorType LocalSystemVectorType;
 
     /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategy
     KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategy);
