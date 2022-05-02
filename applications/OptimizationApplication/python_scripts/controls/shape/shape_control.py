@@ -38,6 +38,9 @@ class ShapeControl():
 
         if self.auxiliary_field:
             self.vector_fields.append("AUXILIARY_FIELD")
+        
+        if self.smooth_surface:
+            self.vector_fields.append("SX")
 
         self.output_names = self.vector_fields + self.scalar_fields
 

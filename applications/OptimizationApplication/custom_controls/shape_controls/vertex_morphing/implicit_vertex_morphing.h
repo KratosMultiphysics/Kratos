@@ -151,9 +151,17 @@ public:
             mpStrategies.push_back(mpStrategy);
         }
 
+        if(smooth_surface){
+            for(int model_i=0;model_i<mpSMVMModelParts.size();model_i++){
+                StrategyType* mpStrategy = new StrategyType (*mpSMVMModelParts[model_i],rLinearSystemSolvers[model_i+mpVMModelParts.size()]);            
+                mpStrategy->Initialize();
+                mpSMStrategies.push_back(mpStrategy);
+            }
+        }
+
         AdjustFilterSizes();
 
-        ComputeInitialControlPoints();
+        ComputeInitialControlPoints();        
 
         InitializePlaneSymmetry();
 
@@ -195,6 +203,10 @@ public:
 
         if(plane_symmetry)
             ComputePlaneSymmetry();
+
+        if(smooth_surface)
+            SmoothSurface();
+
         KRATOS_INFO("ImplicitVertexMorphing:MapControlUpdate:") << "Finished updating in " << timer.ElapsedSeconds() << " s." << std::endl;
     };  
     // --------------------------------------------------------------------------
@@ -320,10 +332,15 @@ protected:
     std::vector<Properties::Pointer> mpVMModelPartsProperties;
     Parameters mTechniqueSettings;
 
+    std::vector<StrategyType*>mpSMStrategies;
+    std::vector<ModelPart*> mpSMVMModelParts;
+    std::vector<Properties::Pointer> mpSMVMModelPartsProperties;    
+
     array_1d<double,3> plane_normal;
     array_1d<double,3> plane_point;
     Parameters mPlaneSymmetrySettings; 
-    bool plane_symmetry;              
+    bool plane_symmetry; 
+    bool smooth_surface;              
     
     ///@}
     ///@name Protected Operators
@@ -424,7 +441,7 @@ private:
 
     void CreateModelParts()
     {
-        
+        smooth_surface = mTechniqueSettings["smooth_surface"].GetBool();
         // creating vm model nodes and variables
         for(auto& control_obj : mControlSettings["controlling_objects"]){
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
@@ -525,6 +542,41 @@ private:
                 TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(*p_vm_model_part,false,TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
                 tetrahedralMeshOrientationCheck.Execute();                  
             }
+
+            if(smooth_surface){
+
+                std::string sm_vm_model_part_name =  root_model_part.Name()+"_Implicit_VM_Part_Smooth";
+                ModelPart* p_sm_vm_model_part;
+                Properties::Pointer p_sm_vm_model_part_property; 
+
+                if (root_model_part.HasSubModelPart(sm_vm_model_part_name)){
+                    p_sm_vm_model_part = &(root_model_part.GetSubModelPart(sm_vm_model_part_name));
+                    for(int i =0; i<mpSMVMModelParts.size(); i++)
+                        if(mpSMVMModelParts[i]->Name()==p_sm_vm_model_part->Name())
+                            p_sm_vm_model_part_property = mpSMVMModelPartsProperties[i];
+                }
+                else{
+                    p_sm_vm_model_part = &(root_model_part.CreateSubModelPart(sm_vm_model_part_name));
+                    p_sm_vm_model_part_property = p_sm_vm_model_part->CreateNewProperties(root_model_part.NumberOfProperties()+1);
+                    mpSMVMModelPartsProperties.push_back(p_sm_vm_model_part_property);
+                    mpSMVMModelParts.push_back(p_sm_vm_model_part);
+                }
+                p_sm_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,mTechniqueSettings["smooth_surface_filter_radius"].GetDouble());
+
+                for(auto& node : r_controlling_object.Nodes())
+                    p_sm_vm_model_part->AddNode(&node);   
+
+                ModelPart::ElementsContainerType &rmesh_elements_sm = p_sm_vm_model_part->Elements();  
+
+                for (int i = 0; i < (int)r_controlling_object.Conditions().size(); i++) {
+                    ModelPart::ConditionsContainerType::iterator it = r_controlling_object.ConditionsBegin() + i;
+                    Element::Pointer p_element = new HelmholtzSurfShapeElement(it->Id(), it->pGetGeometry(), p_sm_vm_model_part_property);
+                    rmesh_elements_sm.push_back(p_element);
+                }                            
+
+            }
+
+
         }
 
         // now add dofs
@@ -675,27 +727,21 @@ private:
 
         mPlaneSymmetrySettings = mTechniqueSettings["plane_symmetry_settings"];
 
-        std::cout<<"mPlaneSymmetrySettings : "<<mPlaneSymmetrySettings<<std::endl;
+        if(mPlaneSymmetrySettings.Has("point") && mPlaneSymmetrySettings.Has("normal"))
+            plane_symmetry = true;  
+        else
+            plane_symmetry = false;
 
-        if(!mPlaneSymmetrySettings.IsNull()){
-
-            plane_symmetry = true;
-
-            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings.Has("point"))
-            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: coordinates of a point on symmtery plane should be provided !"<<std::endl;
+        if(plane_symmetry){
 
             KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings["point"].IsVector())
             <<"ImplicitVertexMorphing::InitializePlaneSymmetry: point should be a vector !"<<std::endl;
-
             plane_point = mPlaneSymmetrySettings["point"].GetVector();
 
-            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings.Has("plane"))
-            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: coordinates of the normal to the symmtery plane should be provided !"<<std::endl; 
+            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings["normal"].IsVector())
+            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: normal should be a vector !"<<std::endl;          
 
-            KRATOS_ERROR_IF_NOT(mPlaneSymmetrySettings["plane"].IsVector())
-            <<"ImplicitVertexMorphing::InitializePlaneSymmetry: plane should be a vector !"<<std::endl;          
-
-            plane_normal = mPlaneSymmetrySettings["plane"].GetVector();
+            plane_normal = mPlaneSymmetrySettings["normal"].GetVector();
             plane_normal /= norm_2(plane_normal);        
 
             for(auto& control_obj : mControlSettings["controlling_objects"]){
@@ -708,6 +754,53 @@ private:
             } 
             KRATOS_INFO("ImplicitVertexMorphing:InitializePlaneSymmetry:") << "Finished in " << timer.ElapsedSeconds() << " s." << std::endl;
         }
+    }
+
+    void SmoothSurface(){
+        BuiltinTimer timer;
+        KRATOS_INFO("") << std::endl;
+        KRATOS_INFO("ImplicitVertexMorphing:SmoothSurface:") << " Starting smoothing of optimization surfaces" << std::endl;
+
+        for(int model_i =0;model_i<mpSMVMModelParts.size();model_i++)
+        {
+            ModelPart* mpVMModePart = mpSMVMModelParts[model_i];
+
+            //first we need to multiply with mass matrix 
+            SetVariableZero(mpVMModePart,HELMHOLTZ_VARS_SHAPE);
+            SetVariableZero(mpVMModePart,HELMHOLTZ_SOURCE_SHAPE);
+            //now we need to multiply with the mass matrix 
+            for(auto& elem_i : mpVMModePart->Elements())
+            {
+                VectorType origin_values;
+                GetElementCoordVector(elem_i,origin_values);
+                MatrixType mass_matrix;
+                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());            
+                VectorType int_vals = prod(mass_matrix,origin_values);
+                AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_SHAPE,int_vals);
+            }
+
+            for(auto& node_i : mpVMModePart->Nodes())
+            {
+                array_3d& r_nodal_variable_hl_vars = node_i.FastGetSolutionStepValue(HELMHOLTZ_VARS_SHAPE);
+
+                if(node_i.IsFixed(HELMHOLTZ_VARS_SHAPE_X))
+                    r_nodal_variable_hl_vars(0) = node_i.X0();
+
+                if(node_i.IsFixed(HELMHOLTZ_VARS_SHAPE_Y))
+                    r_nodal_variable_hl_vars(1) = node_i.Y0();
+
+                if(node_i.IsFixed(HELMHOLTZ_VARS_SHAPE_Z))
+                    r_nodal_variable_hl_vars(2) = node_i.Z0();                
+            }            
+
+            mpSMStrategies[model_i]->Solve();
+
+            //filling the solution
+            SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VARS_SHAPE,SX); 
+
+        }
+
+        KRATOS_INFO("ImplicitVertexMorphing:SmoothSurface:") << " Finished smoothing in " << timer.ElapsedSeconds() << " s." << std::endl;        
     }
 
     void ComputePlaneSymmetry(){
@@ -922,6 +1015,27 @@ private:
           
         }
     }
+
+    void GetElementCoordVector(const Element& rElement,
+                                VectorType &rValues) const
+    {
+        const GeometryType &rgeom = rElement.GetGeometry();
+        const SizeType num_nodes = rgeom.PointsNumber();
+        SizeType dofs_per_node=3;
+
+        const unsigned int local_size = num_nodes * dofs_per_node;
+
+        if (rValues.size() != local_size)
+            rValues.resize(local_size, false);
+
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+            const array_3d& r_nodal_variable = rgeom[i_node].Coordinates();    
+            rValues[dofs_per_node*i_node+0] = r_nodal_variable[0];
+            rValues[dofs_per_node*i_node+1] = r_nodal_variable[1];
+            rValues[dofs_per_node*i_node+2] = r_nodal_variable[2];          
+        }
+    }
+
     void GetConditionVariableValuesVector(const Condition& rCondition,
                                         const Variable<array_3d> &rVariable,
                                         VectorType &rValues) const

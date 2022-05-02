@@ -53,6 +53,7 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("Update", &ImplicitVertexMorphing::Update)
         .def("MapControlUpdate", &ImplicitVertexMorphing::MapControlUpdate)
         .def("MapFirstDerivative", &ImplicitVertexMorphing::MapFirstDerivative)
+        .def("Finalize", &ImplicitVertexMorphing::Finalize)
         ;
 
     py::class_<HelmholtzThickness >(m, "HelmholtzThickness")
@@ -61,6 +62,7 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("Update", &HelmholtzThickness::Update)
         .def("MapControlUpdate", &HelmholtzThickness::MapControlUpdate)
         .def("MapFirstDerivative", &HelmholtzThickness::MapFirstDerivative)
+        .def("Finalize", &HelmholtzThickness::Finalize)
         ;
 
     py::class_<HelmholtzTopology >(m, "HelmholtzTopology")
@@ -69,6 +71,7 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("Update", &HelmholtzTopology::Update)
         .def("MapControlUpdate", &HelmholtzTopology::MapControlUpdate)
         .def("MapFirstDerivative", &HelmholtzTopology::MapFirstDerivative)
+        .def("Finalize", &HelmholtzTopology::Finalize)
         ;                  
  
 }

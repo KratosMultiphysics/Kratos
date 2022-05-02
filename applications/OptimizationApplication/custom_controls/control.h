@@ -100,6 +100,9 @@ public:
   virtual void MapFirstDerivative(const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable) {};
 
   // --------------------------------------------------------------------------
+  virtual void Finalize(){};
+
+  // --------------------------------------------------------------------------
 
   ///@}
   ///@name Access

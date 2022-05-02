@@ -129,10 +129,7 @@ class AlgorithmOptimalityCriteria(OptimizationAlgorithm):
             Logger.PrintInfo("AlgorithmOptimalityCriteria", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
             Logger.PrintInfo("AlgorithmOptimalityCriteria", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
-        #     if self.__isAlgorithmConverged():
-        #         break
-        #     else:
-        #         self.__determineAbsoluteChanges()
+        self.FinalizeOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
