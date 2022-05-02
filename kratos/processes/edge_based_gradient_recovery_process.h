@@ -145,6 +145,10 @@ void GradientDataHandler<array_1d<double,3>, true>::SetGradient(
     const std::size_t Component)
 {
     auto &r_grad = rNode.FastGetSolutionStepValue(rGradientVar);
+    if (r_grad.size1() != 3 || r_grad.size2() != 3) {
+        r_grad = ZeroMatrix(3,3);
+    }
+
     for (std::size_t i = 0; i < 3; ++i) {
         r_grad(Component, i) = rGradientComponentValue[i];
     }
@@ -158,6 +162,10 @@ void GradientDataHandler<array_1d<double,3>, false>::SetGradient(
     const std::size_t Component)
 {
     auto &r_grad = rNode.GetValue(rGradientVar);
+    if (r_grad.size1() != 3 || r_grad.size2() != 3) {
+        r_grad = ZeroMatrix(3,3);
+    }
+
     for (std::size_t i = 0; i < 3; ++i) {
         r_grad(Component, i) = rGradientComponentValue[i];
     }
