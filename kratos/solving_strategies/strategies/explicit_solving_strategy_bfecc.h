@@ -167,8 +167,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "explicit_solving_strategy_bfecc",
-            "store_error" : false
+            "name" : "explicit_solving_strategy_bfecc"
         })");
 
         // Getting base class default parameters
@@ -184,8 +183,6 @@ public:
     virtual void AssignSettings(const Parameters ThisParameters) override
     {
         BaseType::AssignSettings(ThisParameters);
-
-        mStoreError = ThisParameters["store_error"].GetBool();
     }
 
     /**
@@ -244,7 +241,6 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    bool mStoreError = false;
 
     ///@}
     ///@name Protected member Variables
@@ -480,25 +476,6 @@ protected:
 
                 r_dof.GetSolutionStepValue(1) = prev_step_solution - error;
 
-            }
-        );
-        if(!mStoreError) return;
-
-        // DEBUGGING
-        // TODO: Remove this before merging.
-        block_for_each(BaseType::GetModelPart().Nodes(),
-            [&](Node<3> & r_node) {
-                for(const auto& pr_dof: r_node.GetDofs())
-                {
-                    const double error = pr_dof->GetSolutionStepValue(1) - rPrevStepSolution[pr_dof->EquationId()];
-                    const auto& r_var = pr_dof->GetVariable();
-
-                    if(r_var == DENSITY)      { r_node.SetValue(NODAL_ERROR, error);               continue; }
-                    if(r_var == MOMENTUM_X)   { r_node.SetValue(NODAL_ERROR_COMPONENTS_X, error);  continue; }
-                    if(r_var == MOMENTUM_Y)   { r_node.SetValue(NODAL_ERROR_COMPONENTS_Y, error);  continue; }
-                    if(r_var == MOMENTUM_Z)   { r_node.SetValue(NODAL_ERROR_COMPONENTS_Z, error);  continue; }
-                    if(r_var == TOTAL_ENERGY) { r_node.SetValue(ERROR_INTEGRATION_POINT, error);   continue; }
-                }
             }
         );
     }
