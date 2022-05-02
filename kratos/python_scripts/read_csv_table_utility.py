@@ -74,9 +74,9 @@ class ReadCsvTableUtility:
                 row_id += 1
                 if row:  # skip empty rows
                     if len(row) < minimum_columns:
-                        msg = self.__class__.__name__ + ". "
-                        msg += "There is not enough data, a {}-column row is found.\n".format(len(row))
-                        msg += "In order to get the time at column {} and the value at column {}, the table must have at least {} columns.".format(self.time_column_id, self.value_column_id, minimum_columns)
+                        msg = self.__class__.__name__ + ". {}\n".format(self.filename)
+                        msg += "There is not enough data, a {}-column row is found at line {}.\n".format(len(row), row_id)
+                        msg += "In order to read the columns {} and {}, the table must have at least {} columns.".format(self.first_column_id, self.second_column_id, minimum_columns)
                         raise Exception(msg)
                     table.AddRow(self._Float(row[self.first_column_id], row_id), self._Float(row[self.second_column_id], row_id))
         if self.table_id > -1:
