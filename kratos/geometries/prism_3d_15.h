@@ -1000,15 +1000,15 @@ private:
         )
     {
         if (ShapeFunctionIndex < 3)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex, rPoint)*ShapeFunctionLine2D3(0, rPoint);
         else if (ShapeFunctionIndex < 6)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionLine2D3(1, rPoint);
         else if (ShapeFunctionIndex < 9)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionLine2D3(0, rPoint);
         else if (ShapeFunctionIndex < 12)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(2, rPoint);
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionLine2D3(2, rPoint);
         else
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
+            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionLine2D3(1, rPoint);
     }
 
     /**
