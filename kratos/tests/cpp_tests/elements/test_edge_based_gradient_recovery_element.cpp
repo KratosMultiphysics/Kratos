@@ -62,10 +62,10 @@ namespace Testing
         const double tolerance = 1.0e-8;
         Vector rhs_reference = ZeroVector(4);
         Matrix lhs_reference = ZeroMatrix(4,4);
-        rhs_reference[0] = -0.8;
-        rhs_reference[1] = -0.4;
-        rhs_reference[2] = -0.8;
-        rhs_reference[3] = -0.4;
+        rhs_reference[0] = 0.8;
+        rhs_reference[1] = 0.4;
+        rhs_reference[2] = 0.8;
+        rhs_reference[3] = 0.4;
         lhs_reference(0,0) = 0.800002236068;
         lhs_reference(0,1) = 0.4;
         lhs_reference(0,2) = 0.799997763932;
