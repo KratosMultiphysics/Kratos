@@ -162,6 +162,8 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         """This method overloads FluidSolver in order to enforce:
         ```
         self.settings["time_stepping"]["consider_compressibility_in_CFL"] == True
+        self.settings["time_stepping"]["nodal_density_formulation"] == True
+        self.settings["time_stepping"]["consider_artificial_diffusion"] == SHOCK_CAPTURING_SWITCH
         ```
         """
         self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "consider_compressibility_in_CFL", True)
