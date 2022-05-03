@@ -177,7 +177,9 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         # Even though these are auxiliary model parts, this is mandatory to be done to properly set up the database
         # Note that if this operations are removed, some auxiliary utils (e.g. FM-ALE algorithm in embedded) will perform wrong
         self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceFluid().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
         self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceStructure().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
 
     def _InitializeCouplingInterfaces(self):
         # FSI interface coupling interfaces initialization
@@ -356,12 +358,14 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 0)
 
             # Convert the pressure scalar load to a traction vector one
-            swap_traction_sign = True
-            self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
-                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
-                KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-                self._GetTractionVariable(),
-                swap_traction_sign)
+            # This is required in the IBQN case as the structure and fluid interface residual sizes must match
+            if self._GetConvergenceAccelerator().IsBlockNewton():
+                swap_traction_sign = True
+                self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
+                    self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                    KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+                    self._GetTractionVariable(),
+                    swap_traction_sign)
 
         elif (self.level_set_type == "discontinuous"):
             # Map the POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the auxiliary embedded skin model part,
@@ -499,9 +503,23 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         raise Exception(err_msg)
 
     def _GetTractionVariable(self):
-        if self._GetDomainSize() == 2:
-            return KratosStructural.LINE_LOAD
-        elif self._GetDomainSize() == 3:
-            return KratosStructural.SURFACE_LOAD
+        if self._GetConvergenceAccelerator().IsBlockNewton():
+            if self._GetDomainSize() == 2:
+                return KratosStructural.LINE_LOAD
+            elif self._GetDomainSize() == 3:
+                return KratosStructural.SURFACE_LOAD
+            else:
+                raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
+            if self.level_set_type == "continuous":
+                return KratosMultiphysics.POSITIVE_FACE_PRESSURE
+            elif self.level_set_type == "discontinuous":
+                if self._GetDomainSize() == 2:
+                    return KratosStructural.LINE_LOAD
+                elif self._GetDomainSize() == 3:
+                    return KratosStructural.SURFACE_LOAD
+                else:
+                    raise Exception(
+                        "Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
+            else:
+                raise Exception("Wrong level set type '{}'".format(self.level_set_type))
