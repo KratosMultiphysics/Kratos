@@ -364,79 +364,6 @@ public:
     }
 
     /**
-     * Informations
-     */
-
-    /**
-     * This method calculates and returns Length or charactereistic
-     * length of this geometry depending on it's dimension. For one
-     * dimensional geometry for example Line it returns length of it
-     * and for the other geometries it gives Characteristic length
-     * otherwise.
-     *
-     * @return double value contains length or Characteristic
-     * length
-     * @see Area()
-     * @see Volume()
-     * @see DomainSize()
-     *
-     * :TODO: might be necessary to reimplement
-     */
-    double Length() const override
-    {        
-        const double volume = Volume();
-
-        return std::pow(volume, 1.0/3.0)/3.0;
-//        return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
-    }
-
-    /**
-     * This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
-     * and for three dimensional geometries it gives surface area.
-     *
-     *
-     * @return double value contains area or surface area.
-     * @see Length()
-     * @see Volume()
-     * @see DomainSize()
-     *
-     * :TODO: might be necessary to reimplement
-     */
-    double Area() const override
-    {
-        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
-    }
-
-    /** This method calculates and returns the volume of this geometry.
-     * This method calculates and returns the volume of this geometry.
-     *
-     * This method uses the V = (A x B) * C / 6 formula.
-     *
-     * @return double value contains length, area or volume.
-     *
-     * @see Length()
-     * @see Area()
-     * @see Volume()
-     *
-     * :TODO: might be necessary to reimplement
-     */
-    double Volume() const override
-    {
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.0;
-
-        for ( std::size_t i = 0; i < integration_points.size(); ++i) {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
-
-        return Volume;
-    }
-
-    /**
      * This method calculate and return length, area or volume of
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
@@ -447,12 +374,39 @@ public:
      * @see Area()
      * @see Volume()
      *
-     * :TODO: might be necessary to reimplement
      */
     double DomainSize() const override
     {
-        return Volume();
+        return this->Volume();
     }
+
+    /**
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     *
+     */
+    double Volume() const override
+    {
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double volume = 0.0;
+
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            volume += temp[i] * integration_points[i].Weight();
+        }
+
+        return volume;
+    }
+
 
     /**
     * Returns a matrix of the local coordinates of all points
@@ -464,19 +418,19 @@ public:
         if ( rResult.size1() != 15 || rResult.size2() != 3 )
             rResult.resize( 15, 3, false );
 
-        rResult( 0, 0 ) = 0.0;
+        rResult( 0, 0 ) = 0.0; //corners of bottom base
         rResult( 0, 1 ) = 0.0;
-        rResult( 0, 2 ) = -1.0;
+        rResult( 0, 2 ) = 0.0;
 
         rResult( 1, 0 ) = 1.0;
         rResult( 1, 1 ) = 0.0;
-        rResult( 1, 2 ) = -1.0;
+        rResult( 1, 2 ) = 0.0;
 
         rResult( 2, 0 ) = 0.0;
         rResult( 2, 1 ) = 1.0;
-        rResult( 2, 2 ) = -1.0;
+        rResult( 2, 2 ) = 0.0;
 
-        rResult( 3, 0 ) = 0.0;
+        rResult( 3, 0 ) = 0.0; //corners of top base
         rResult( 3, 1 ) = 0.0;
         rResult( 3, 2 ) = 1.0;
 
@@ -488,7 +442,7 @@ public:
         rResult( 5, 1 ) = 1.0;
         rResult( 5, 2 ) = 1.0;
 
-        rResult( 6, 0 ) = 0.5;
+        rResult( 6, 0 ) = 0.5; //mid point of bottom base
         rResult( 6, 1 ) = 0.0;
         rResult( 6, 2 ) = -1.0;
 
@@ -500,19 +454,19 @@ public:
         rResult( 8, 1 ) = 0.5;
         rResult( 8, 2 ) = -1.0;
 
-        rResult( 9, 0 ) = 0.0;
+        rResult( 9, 0 ) = 0.0; //veritices of mid height
         rResult( 9, 1 ) = 0.0;
-        rResult( 9, 2 ) = 0.0;
+        rResult( 9, 2 ) = 0.5;
 
         rResult( 10, 0 ) = 1.0;
         rResult( 10, 1 ) = 0.0;
-        rResult( 10, 2 ) = 0.0;
+        rResult( 10, 2 ) = 0.5;
 
         rResult( 11, 0 ) = 0.0;
         rResult( 11, 1 ) = 1.0;
-        rResult( 11, 2 ) = 0.0;
+        rResult( 11, 2 ) = 0.5;
 
-        rResult( 12, 0 ) = 0.5;
+        rResult( 12, 0 ) = 0.5; //mid point of top base
         rResult( 12, 1 ) = 0.0;
         rResult( 12, 2 ) = 1.0;
 
@@ -707,7 +661,6 @@ public:
      * value of the shape function is calculated
      *
      * @return the value of the shape function at the given point
-     * TODO: TO BE VERIFIED
      */
     double ShapeFunctionValue( 
         IndexType ShapeFunctionIndex,
@@ -809,180 +762,7 @@ private:
      * Private Operations
      */
 
-    static double ShapeFunctionLine2D3(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        ) 
-    {
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return 1.0 - 3.0*rPoint[2] + 2.0*rPoint[2]*rPoint[2];
-        case 1:
-            return 2.0*rPoint[2]*rPoint[2] - rPoint[2];
-        case 2:
-            return 4.0*(rPoint[2] - rPoint[2]*rPoint[2]);
-        default:
-            KRATOS_ERROR << "Wrong index of shape function Line2D3: " << ShapeFunctionIndex << std::endl;
-        }
-
-        return 0;
-    }
-
-    static double ShapeFunctionLine2D3DerivativesZ(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        ) 
-    {
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return -3.0 + 4.0*rPoint[2];
-        case 1:
-            return 4.0*rPoint[2]* - 1.0;
-        case 2:
-            return 4.0*(1.0 - 2.0*rPoint[2]);
-        default:
-            KRATOS_ERROR << "Wrong index of shape function Line2D3: " << ShapeFunctionIndex << std::endl;
-        }
-
-        return 0;
-    }
-
-    static double ShapeFunctionTriangle2D6(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        ) 
-    {
-        const double thirdCoord = 1 - rPoint[0] - rPoint[1];
-
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return( thirdCoord*( 2*thirdCoord - 1 ) );
-        case 1:
-            return( rPoint[0]*( 2*rPoint[0] - 1 ) );
-        case 2:
-            return( rPoint[1]*( 2*rPoint[1] - 1 ) );
-        case 3:
-            return( 4*thirdCoord*rPoint[0] );
-        case 4:
-            return( 4*rPoint[0]*rPoint[1] );
-        case 5:
-            return( 4*rPoint[1]*thirdCoord );
-        default:
-            KRATOS_ERROR << "Wrong index of shape function Triangle2D6: " << ShapeFunctionIndex << std::endl;
-        }
-
-        return 0;
-    }
-
-    static double ShapeFunctionTriangle2D6DerivativesX(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        ) 
-    {
-        const double thirdCoord = 1 - rPoint[0] - rPoint[1];
-
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return - ( 4 * thirdCoord - 1 );
-        case 1:
-            return 4 * rPoint[0] - 1;
-        case 2:
-            return 0.;
-        case 3:
-            return -4 * rPoint[0] + 4 * thirdCoord;
-        case 4:
-            return 4. * rPoint[1];
-        case 5:
-            return -4. * rPoint[1];
-        default:
-            KRATOS_ERROR << "Wrong index of shape function Triangle2D6: " << ShapeFunctionIndex << std::endl;
-        }
-
-        return 0;
-    }
-
-    static double ShapeFunctionTriangle2D6DerivativesY(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        ) 
-    {
-        const double thirdCoord = 1 - rPoint[0] - rPoint[1];
-
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return - ( 4 * thirdCoord - 1 );
-        case 1:
-            return 0.;
-        case 2:
-            return 4. * rPoint[1] - 1.;
-        case 3:
-            return -4. * rPoint[0];
-        case 4:
-            return 4. * rPoint[0];
-        case 5:
-            return - 4 * rPoint[1] + 4 * thirdCoord;
-        default:
-            KRATOS_ERROR << "Wrong index of shape function Triangle2D6: " << ShapeFunctionIndex << std::endl;
-        }
-
-        return 0;
-    }
-
-    static double ShapeFunctionPrism3D15DerivativesX(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        )
-    {
-        if (ShapeFunctionIndex < 3)
-            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
-        else if (ShapeFunctionIndex < 6 )
-            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
-        else if (ShapeFunctionIndex < 9 )
-            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
-        else if (ShapeFunctionIndex < 12 )
-            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(2, rPoint);
-        else
-            return ShapeFunctionTriangle2D6DerivativesX(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
-    }
-
-    static double ShapeFunctionPrism3D15DerivativesY(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        )
-    {
-        if (ShapeFunctionIndex < 3)
-            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
-        else if (ShapeFunctionIndex < 6 )
-            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
-        else if (ShapeFunctionIndex < 9 )
-            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6(0, rPoint);
-        else if (ShapeFunctionIndex < 12 )
-            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(2, rPoint);
-        else
-            return ShapeFunctionTriangle2D6DerivativesY(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6(1, rPoint);
-    }
-
-    static double ShapeFunctionPrism3D15DerivativesZ(
-        const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
-        )
-    {
-        if (ShapeFunctionIndex < 3)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex, rPoint)*ShapeFunctionTriangle2D6DerivativesX(0, rPoint);
-        else if (ShapeFunctionIndex < 6 )
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6DerivativesX(1, rPoint);
-        else if (ShapeFunctionIndex < 9 )
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionTriangle2D6DerivativesX(0, rPoint);
-        else if (ShapeFunctionIndex < 12 )
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6DerivativesX(2, rPoint);
-        else
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionTriangle2D6DerivativesX(1, rPoint);
-    }
+    
 
     /**
      * Calculates the value of a given shape function at a given point.
@@ -992,28 +772,37 @@ private:
      * value of the shape function is calculated
      *
      * @return the value of the shape function at the given point
-     * TODO: TO BE VERIFIED
      */
     static double CalculateShapeFunctionValue( 
         const IndexType ShapeFunctionIndex,
         const CoordinatesArrayType& rPoint 
         )
     {
-        if (ShapeFunctionIndex < 3)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex, rPoint)*ShapeFunctionLine2D3(0, rPoint);
-        else if (ShapeFunctionIndex < 6)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionLine2D3(1, rPoint);
-        else if (ShapeFunctionIndex < 9)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-3, rPoint)*ShapeFunctionLine2D3(0, rPoint);
-        else if (ShapeFunctionIndex < 12)
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionLine2D3(2, rPoint);
-        else
-            return ShapeFunctionTriangle2D6(ShapeFunctionIndex-9, rPoint)*ShapeFunctionLine2D3(1, rPoint);
+        double x = rPoint[0];
+        double y = rPoint[1];
+        double z = rPoint[2];
+        switch ( ShapeFunctionIndex )
+        {
+            case 0 : return  (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+            case 1 : return  (1.0/2.0)*x*(2.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+            case 2 : return  (1.0/2.0)*y*(2.0*y - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+            case 3 : return  z*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+            case 4 : return  x*z*(2.0*x - 1.0)*(2*z - 1) ;
+            case 5 : return  y*z*(2.0*y - 1.0)*(2*z - 1) ;
+            case 6 : return  (1.0/2.0)*x*(2*z - 2.0)*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+            case 7 : return  2.0*x*y*(2*z - 2.0)*(2*z - 1) ;
+            case 8 : return  2.0*y*(2*z - 2.0)*(2*z - 1)*(-x - y + 1.0) ;
+            case 9 : return  (1.0 - std::pow(2*z - 1, 2))*(-x - y + 1.0) ;
+            case 10 : return  x*(1.0 - std::pow(2*z - 1, 2)) ;
+            case 11 : return  y*(1.0 - std::pow(2*z - 1, 2)) ;
+            case 12 : return  x*z*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+            case 13 : return  4.0*x*y*z*(2*z - 1) ;
+            case 14 : return  4.0*y*z*(2*z - 1)*(-x - y + 1.0) ;
+            default:
+                KRATOS_ERROR << "Wrong index of shape function!" << ShapeFunctionIndex << std::endl;
+        }
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the gradients in terms of local coordinateds
      * of all shape functions in a given point.
@@ -1022,20 +811,62 @@ private:
      * @return the gradients of all shape functions
      * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
      */
-    static Matrix& CalculateShapeFunctionsLocalGradients( Matrix& rResult, const CoordinatesArrayType& rPoint )
+    static Matrix& CalculateShapeFunctionsLocalGradients( Matrix& DN, const CoordinatesArrayType& rPoint )
     {
-        rResult.resize(15,3,false);
-        for (int i = 0; i < 15; ++i) {
-            rResult(i, 0) = ShapeFunctionPrism3D15DerivativesX(i, rPoint);
-            rResult(i, 1) = ShapeFunctionPrism3D15DerivativesY(i, rPoint);
-            rResult(i, 2) = ShapeFunctionPrism3D15DerivativesZ(i, rPoint);
-        }
-        return rResult;
+        double x = rPoint[0];
+        double y = rPoint[1];
+        double z = rPoint[2];
+        DN.resize(15,3,false);
+
+        DN( 0 , 0 )= (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(4.0*x + 4.0*y - 3.0) ;
+        DN( 0 , 1 )= (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(4.0*x + 4.0*y - 3.0) ;
+        DN( 0 , 2 )= (4*z - 3.0)*(x + y - 1.0)*(2.0*x + 2.0*y - 1.0) ;
+        DN( 1 , 0 )= (1.0/2.0)*(4.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+        DN( 1 , 1 )= 0 ;
+        DN( 1 , 2 )= x*(2.0*x - 1.0)*(4*z - 3.0) ;
+        DN( 2 , 0 )= 0 ;
+        DN( 2 , 1 )= (1.0/2.0)*(4.0*y - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+        DN( 2 , 2 )= y*(2.0*y - 1.0)*(4*z - 3.0) ;
+        DN( 3 , 0 )= z*(2*z - 1)*(4.0*x + 4.0*y - 3.0) ;
+        DN( 3 , 1 )= z*(2*z - 1)*(4.0*x + 4.0*y - 3.0) ;
+        DN( 3 , 2 )= (4*z - 1)*(x + y - 1.0)*(2.0*x + 2.0*y - 1.0) ;
+        DN( 4 , 0 )= z*(4.0*x - 1.0)*(2*z - 1) ;
+        DN( 4 , 1 )= 0 ;
+        DN( 4 , 2 )= x*(2.0*x - 1.0)*(4*z - 1) ;
+        DN( 5 , 0 )= 0 ;
+        DN( 5 , 1 )= z*(4.0*y - 1.0)*(2*z - 1) ;
+        DN( 5 , 2 )= y*(2.0*y - 1.0)*(4*z - 1) ;
+        DN( 6 , 0 )= 2.0*(2*z - 2.0)*(2*z - 1)*(-2*x - y + 1) ;
+        DN( 6 , 1 )= x*(-8.0*std::pow(z, 2) + 12.0*z - 4.0) ;
+        DN( 6 , 2 )= 4.0*x*(3.0 - 4*z)*(x + y - 1) ;
+        DN( 7 , 0 )= y*(8.0*std::pow(z, 2) - 12.0*z + 4.0) ;
+        DN( 7 , 1 )= x*(8.0*std::pow(z, 2) - 12.0*z + 4.0) ;
+        DN( 7 , 2 )= x*y*(16.0*z - 12.0) ;
+        DN( 8 , 0 )= y*(-8.0*std::pow(z, 2) + 12.0*z - 4.0) ;
+        DN( 8 , 1 )= -(2*z - 2.0)*(2.0*y*(2*z - 1) + (4.0*z - 2.0)*(x + y - 1.0)) ;
+        DN( 8 , 2 )= 4.0*y*(3.0 - 4*z)*(x + y - 1.0) ;
+        DN( 9 , 0 )= 4*z*(z - 1) ;
+        DN( 9 , 1 )= 4*z*(z - 1) ;
+        DN( 9 , 2 )= 4*(2*z - 1)*(x + y - 1.0) ;
+        DN( 10 , 0 )= 4*z*(1 - z) ;
+        DN( 10 , 1 )= 0 ;
+        DN( 10 , 2 )= 4*x*(1 - 2*z) ;
+        DN( 11 , 0 )= 0 ;
+        DN( 11 , 1 )= 4*z*(1 - z) ;
+        DN( 11 , 2 )= 4*y*(1 - 2*z) ;
+        DN( 12 , 0 )= 4.0*z*(2*z - 1)*(-2*x - y + 1) ;
+        DN( 12 , 1 )= x*z*(4.0 - 8.0*z) ;
+        DN( 12 , 2 )= x*(4.0 - 16.0*z)*(x + y - 1) ;
+        DN( 13 , 0 )= y*z*(8.0*z - 4.0) ;
+        DN( 13 , 1 )= x*z*(8.0*z - 4.0) ;
+        DN( 13 , 2 )= x*y*(16.0*z - 4.0) ;
+        DN( 14 , 0 )= y*z*(4.0 - 8.0*z) ;
+        DN( 14 , 1 )= 4.0*z*(2*z - 1)*(-x - 2*y + 1.0) ;
+        DN( 14 , 2 )= y*(4.0 - 16.0*z)*(x + y - 1.0) ;
+
+        return DN;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1058,17 +889,30 @@ private:
         // Loop over all integration points
         for ( std::size_t pnt = 0; pnt < integration_points_number; pnt++ ) {
             const auto& r_point = integration_points[pnt];
-            for ( std::size_t index = 0; index < 15; index++ ) {
-                shape_function_values( pnt, index ) = CalculateShapeFunctionValue(index, r_point);
-            }
+            double x = r_point[0];
+            double y = r_point[1];
+            double z = r_point[2];
+
+            shape_function_values( pnt,  0  ) = (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+            shape_function_values( pnt,  1  ) = (1.0/2.0)*x*(2.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+            shape_function_values( pnt,  2  ) = (1.0/2.0)*y*(2.0*y - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+            shape_function_values( pnt,  3  ) = z*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+            shape_function_values( pnt,  4  ) = x*z*(2.0*x - 1.0)*(2*z - 1) ;
+            shape_function_values( pnt,  5  ) = y*z*(2.0*y - 1.0)*(2*z - 1) ;
+            shape_function_values( pnt,  6  ) = (1.0/2.0)*x*(2*z - 2.0)*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+            shape_function_values( pnt,  7  ) = 2.0*x*y*(2*z - 2.0)*(2*z - 1) ;
+            shape_function_values( pnt,  8  ) = 2.0*y*(2*z - 2.0)*(2*z - 1)*(-x - y + 1.0) ;
+            shape_function_values( pnt,  9  ) = (1.0 - std::pow(2*z - 1, 2))*(-x - y + 1.0) ;
+            shape_function_values( pnt,  10  ) = x*(1.0 - std::pow(2*z - 1, 2)) ;
+            shape_function_values( pnt,  11  ) = y*(1.0 - std::pow(2*z - 1, 2)) ;
+            shape_function_values( pnt,  12  ) = x*z*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+            shape_function_values( pnt,  13  ) = 4.0*x*y*z*(2*z - 1) ;
+            shape_function_values( pnt,  14  ) = 4.0*y*z*(2*z - 1)*(-x - y + 1.0) ;
         }
 
         return shape_function_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     /**
      * Calculates the local gradients of all shape functions in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -1159,9 +1003,6 @@ private:
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
     static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
