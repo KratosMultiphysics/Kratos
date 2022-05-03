@@ -68,18 +68,3 @@ class FluidDEMSolver(FluidSolver):
                 raise Exception(err_msg)
 
         return scheme
-
-    def _CreateNewtonRaphsonStrategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        time_scheme = self._GetScheme()
-        convergence_criterion = self._GetConvergenceCriterion()
-        builder_and_solver = self._GetBuilderAndSolver()
-        return KratosSDEM.RelaxedResidualBasedNewtonRaphsonStrategy(
-            computing_model_part,
-            time_scheme,
-            convergence_criterion,
-            builder_and_solver,
-            self.settings["maximum_iterations"].GetInt(),
-            self.settings["compute_reactions"].GetBool(),
-            self.settings["reform_dofs_at_each_step"].GetBool(),
-            self.settings["move_mesh_flag"].GetBool())

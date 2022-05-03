@@ -326,6 +326,32 @@ public:
 
     }
 
+    /// Store the iteration results as solution step variables and update acceleration after a Newton-Raphson iteration.
+    /**
+     * @param rModelPart fluid ModelPart
+     * @param rDofSet DofSet containing the Newton-Raphson system degrees of freedom.
+     * @param A Newton-Raphson system matrix (unused)
+     * @param Dx Newton-Raphson iteration solution
+     * @param b Newton-Raphson right hand side (unused)
+     */
+    void Update(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        double alpha = rModelPart.GetProcessInfo()[RELAXATION_ALPHA];
+
+        TSparseSpace::InplaceMult(Dx, alpha);
+
+        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::Update(rModelPart,rDofSet,A,Dx,b);
+
+        KRATOS_CATCH("");
+    }
+
     void UpdateFluidFraction(
         ModelPart& r_model_part,
         ProcessInfo& r_current_process_info)
