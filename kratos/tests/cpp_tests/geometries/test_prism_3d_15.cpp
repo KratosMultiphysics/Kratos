@@ -26,15 +26,15 @@ namespace Testing {
 
     typedef Node<3>                                PointType;
     typedef Node<3>::Pointer                    PointPtrType;
-    typedef Prism3D15<PointType>           PrismGeometryType;
-    typedef Geometry<PointType>::Pointer  PrismGeometryPtrType;
+    typedef Prism3D15<PointType>           Prism15GeometryType;
+    typedef Prism3D15<PointType>::Pointer  Prism15GeometryPtrType;
 
     /** Generates a sample Prism3D15.
      * Generates a trirectangular prism on the origin with positive volume and side 1.
      * @return  Pointer to a Prism3D15
      */
-    PrismGeometryPtrType GenerateRegularPrism3D15() {
-      return PrismGeometryPtrType(new PrismGeometryType(
+    Prism15GeometryPtrType GenerateRegularPrism3D15() {
+      return Prism15GeometryPtrType(new Prism15GeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0), //node0 //vertex of bottom
         GeneratePoint<PointType>(1.0, 0.0, 0.0), //node1
         GeneratePoint<PointType>(0.0, 1.0, 0.0), //node2
