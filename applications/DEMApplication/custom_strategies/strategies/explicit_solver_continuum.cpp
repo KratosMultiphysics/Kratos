@@ -113,7 +113,7 @@ namespace Kratos {
 
         if (mRemoveBallsInitiallyTouchingWallsOption) {
             MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
-            mpParticleCreatorDestructor->DestroyParticles(r_model_part);
+            mpParticleCreatorDestructor->DestroyParticles<SphericParticle>(r_model_part);
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
@@ -207,7 +207,7 @@ namespace Kratos {
                 if (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]) {
                     BoundingBoxUtility();
                 } else {
-                    GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
+                    GetParticleCreatorDestructor()->DestroyParticles<SphericParticle>(r_model_part);
                     GetParticleCreatorDestructor()->DestroyContactElements(*mpContact_model_part);
                 }
 
@@ -669,13 +669,13 @@ namespace Kratos {
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ParticleCreatorDestructor::Pointer& p_creator_destructor = GetParticleCreatorDestructor();
 
-        p_creator_destructor->MarkDistantParticlesForErasing(r_model_part);
+        p_creator_destructor->MarkDistantParticlesForErasing<SphericParticle>(r_model_part);
 
         if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
             p_creator_destructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
             p_creator_destructor->DestroyContactElements(*mpContact_model_part);
         }
-        p_creator_destructor->DestroyParticles(r_model_part);
+        p_creator_destructor->DestroyParticles<SphericParticle>(r_model_part);
 
         KRATOS_CATCH("")
     }
@@ -770,7 +770,7 @@ namespace Kratos {
 
         ModelPart& r_model_part = GetModelPart();
 
-        GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
+        GetParticleCreatorDestructor()->DestroyParticles<SphericParticle>(r_model_part);
 
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles); //These lists are necessary because the elements in this partition might have changed.
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
