@@ -77,7 +77,13 @@ template<unsigned int TDim>
 ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw(const ParallelRuleOfMixturesLaw<TDim>& rOther)
     : ConstitutiveLaw(rOther),
       mConstitutiveLaws(rOther.mConstitutiveLaws),
-      mCombinationFactors(rOther.mCombinationFactors)
+      mCombinationFactors(rOther.mCombinationFactors),
+      mGc(rOther.mGc),
+      minitial_threshold(rOther.minitial_threshold),
+      mthreshold(rOther.mthreshold),
+      mdelamination_damage(rOther.mdelamination_damage),
+      mAParameter(rOther.mAParameter),
+      mDamageIndicator(rOther.mDamageIndicator)
 {
 }
 
