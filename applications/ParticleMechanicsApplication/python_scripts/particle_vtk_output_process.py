@@ -17,7 +17,7 @@ def Factory(settings, Model):
     parameters = settings["Parameters"]
     return ParticleVTKOutputProcess(model_part, parameters)
 
-class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
+class ParticleVTKOutputProcess(KratosMultiphysics.Process):
     defaults = KratosMultiphysics.Parameters("""{
         "model_part_name"                    : "MPM_Material",
         "output_control_type"                : "step",
@@ -31,7 +31,7 @@ class ParticleVTKOutputProcess(KratosMultiphysics.OutputProcess):
     }""")
 
     def __init__(self, model_part, param):
-        KratosMultiphysics.OutputProcess.__init__(self)
+        KratosMultiphysics.Process.__init__(self)
 
         if param is None:
             param = self.defaults
