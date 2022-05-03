@@ -117,6 +117,8 @@ namespace Kratos
 			if (currentTime < 2 * timeInterval)
 			{
 				mrRemesh.Info->RemovedNodes = 0;
+				mrRemesh.Info->BalancePrincipalSecondaryPartsNodes = 0;
+
 				if (mEchoLevel > 1)
 					std::cout << " First meshes: I repare the mesh without adding new nodes" << std::endl;
 				mrRemesh.Info->InitialNumberOfNodes = mrRemesh.Info->NumberOfNodes;
@@ -843,7 +845,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8;
+						penalization = 0.9;
 					}
 				}
 			}
@@ -1080,7 +1082,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8;
+						penalization = 0.9;
 					}
 				}
 			}
@@ -1459,7 +1461,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8;
+						penalization = 0.9;
 					}
 				}
 			}
@@ -1793,7 +1795,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8;
+						penalization = 0.9;
 					}
 				}
 			}
@@ -1990,6 +1992,7 @@ namespace Kratos
 
 			// assign data to dofs
 			VariablesList &VariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
+			unsigned int principalPropertyId = mrRemesh.Info->IdPrincipalModelPart;
 
 			for (unsigned int nn = 0; nn < NewPositions.size(); nn++)
 			{
@@ -2046,19 +2049,29 @@ namespace Kratos
 				else
 				{
 
-					TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+					unsigned int propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
+					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 == principalPropertyId) ||
+						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 != principalPropertyId) ||
+						(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
+					{
+						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+					}
+					else
+					{
+						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+					}
 
-					// // Master node's properties are set using the maximum PROPERTY_ID value between SlaveNode1 and SlaveNode2
-					// if (SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID) >= SlaveNode2->FastGetSolutionStepValue(PROPERTY_ID))
-					// {
-					// 	TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
-					// }
-					// else
-					// {
-					// 	TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
-					// }
 				}
 
+				unsigned int propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
+				if (propertyIdNode == principalPropertyId)
+				{
+					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
+				}
+				else
+				{
+					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+				}
 			}
 
 			// set the coordinates to the original value
