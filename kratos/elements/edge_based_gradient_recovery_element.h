@@ -354,7 +354,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    const array_1d<double, 2> GetDistanceBasedShapeFunctionValues();
 
     ///@}
     ///@name Private  Access
