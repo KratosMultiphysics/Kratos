@@ -99,7 +99,7 @@ double BrooksCoreyLaw::
     KRATOS_TRY;
     const double &p = rParameters.GetFluidPressure();
 
-    if (p > 0.0)
+    if (p > 0.0 & p > pb)
     {
         const auto &rMaterialProperties = rParameters.GetMaterialProperties();
         const double &satMax = rMaterialProperties[SATURATED_SATURATION];
