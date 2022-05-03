@@ -165,6 +165,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         ```
         """
         self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "consider_compressibility_in_CFL", True)
+        self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "nodal_density_formulation", True)
 
         sc_enabled = self.GetComputingModelPart().ProcessInfo[KratosFluid.SHOCK_CAPTURING_SWITCH]
         self._OverrideBoolParameterWithWarning(self.settings["time_stepping"], "consider_artificial_diffusion", sc_enabled)
