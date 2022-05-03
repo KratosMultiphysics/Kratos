@@ -22,6 +22,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 
 # ==============================================================================
 class AlgorithmSteepestDescent(OptimizationAlgorithm):
@@ -137,6 +138,15 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         ############ Calculate heatmap
         # final update of shape
         self.optimization_iteration += 1
+
+        # save previous search direction and objective gradient
+        d_prev = []
+        df_prev = []
+        for node in self.design_surface.Nodes:
+            # The following variables are not yet updated and therefore contain the information from the previos step
+            d_prev.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
+            df_prev.append(node.GetSolutionStepValue(KSO.DF1DX))
+
         self.__initializeNewShape()
         # self.__analyzeShape()
 
@@ -159,8 +169,20 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         KM.VariableUtils().SetVariable(KSO.SHAPE_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
         KM.VariableUtils().SetVariable(KSO.DF1DX_MAPPED, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
 
-        # copy objective sensitivities to heat map
-        self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.DF1DX, KSO.SENS_HEATMAP)
+        df = []
+        for node in self.design_surface.Nodes:
+            df.append(node.GetSolutionStepValue(KSO.DF1DX))
+
+        for i in range(len(self.design_surface.Nodes)):
+            delta_df = cm.Minus(df[i], df_prev[i])
+            alpha = abs(cm.Dot(delta_df, delta_df) / cm.Dot(delta_df, d_prev[i]))
+            d = cm.ScalarVectorProduct(alpha, df[i])
+            KM.VariableUtils().SetVariable(KSO.SENS_HEATMAP, KM.Vector(d), self.design_surface.GetNode(i))
+
+
+        # # copy objective sensitivities to heat map
+        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.DF1DX, KSO.SENS_HEATMAP)
+
 
         self.__logCurrentOptimizationStep()
         ############ End of Calculate heatmap
