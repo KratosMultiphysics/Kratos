@@ -27,7 +27,7 @@ namespace Testing {
     typedef Node<3>                                PointType;
     typedef Node<3>::Pointer                    PointPtrType;
     typedef Prism3D15<PointType>           PrismGeometryType;
-    typedef PrismGeometryType::Pointer  PrismGeometryPtrType;
+    typedef Geometry<PointType>::Pointer  PrismGeometryPtrType;
 
     /** Generates a sample Prism3D15.
      * Generates a trirectangular prism on the origin with positive volume and side 1.
@@ -35,21 +35,21 @@ namespace Testing {
      */
     PrismGeometryPtrType GenerateRegularPrism3D15() {
       return PrismGeometryPtrType(new PrismGeometryType(
-        GeneratePoint<PointType>(0.0, 0.0, 0.0),
-        GeneratePoint<PointType>(1.0, 0.0, 0.0),
-        GeneratePoint<PointType>(0.0, 1.0, 0.0),
-        GeneratePoint<PointType>(0.0, 0.0, 1.0),
-        GeneratePoint<PointType>(1.0, 0.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.5, 0.0, 0.0),
-        GeneratePoint<PointType>(0.5, 0.5, 0.0),
-        GeneratePoint<PointType>(0.0, 0.5, 0.0),
-        GeneratePoint<PointType>(0.0, 0.0, 0.5),
-        GeneratePoint<PointType>(1.0, 0.0, 0.5),
-        GeneratePoint<PointType>(0.0, 1.0, 0.5),
-        GeneratePoint<PointType>(0.5, 0.0, 1.0),
-        GeneratePoint<PointType>(0.5, 0.5, 1.0),
-        GeneratePoint<PointType>(0.0, 0.5, 1.0)
+        GeneratePoint<PointType>(0.0, 0.0, 0.0), //node0 //vertex of bottom
+        GeneratePoint<PointType>(1.0, 0.0, 0.0), //node1
+        GeneratePoint<PointType>(0.0, 1.0, 0.0), //node2
+        GeneratePoint<PointType>(0.0, 0.0, 1.0), //node3 //vertex of top
+        GeneratePoint<PointType>(1.0, 0.0, 1.0), //node4
+        GeneratePoint<PointType>(0.0, 1.0, 1.0), //node5
+        GeneratePoint<PointType>(0.5, 0.0, 0.0), //node6 //mid of bottom
+        GeneratePoint<PointType>(0.5, 0.5, 0.0), //node7
+        GeneratePoint<PointType>(0.0, 0.5, 0.0), //node8
+        GeneratePoint<PointType>(0.0, 0.0, 0.5), //node9 //vertex of mid height
+        GeneratePoint<PointType>(1.0, 0.0, 0.5), //node10
+        GeneratePoint<PointType>(0.0, 1.0, 0.5), //node11
+        GeneratePoint<PointType>(0.5, 0.0, 1.0), //node12 //mid of top
+        GeneratePoint<PointType>(0.5, 0.5, 1.0), //node13
+        GeneratePoint<PointType>(0.0, 0.5, 1.0)  //node14
       ));
     }
 
@@ -95,7 +95,6 @@ namespace Testing {
      */
     KRATOS_TEST_CASE_IN_SUITE(Prism3D15Volume, KratosCoreGeometriesFastSuite) {
         auto geomRegular = GenerateRegularPrism3D15();
-
         KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
     }
 
