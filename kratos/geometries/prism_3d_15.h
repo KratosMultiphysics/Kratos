@@ -407,6 +407,17 @@ public:
         return volume;
     }
 
+    double Area() const override
+    {
+        return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
+    }
+
+    double Length() const override
+    {
+        const double volume = Volume();
+        return std::pow(volume, 1.0/3.0)/3.0;
+    }
+
 
     /**
     * Returns a matrix of the local coordinates of all points
@@ -801,6 +812,41 @@ private:
             default:
                 KRATOS_ERROR << "Wrong index of shape function!" << ShapeFunctionIndex << std::endl;
         }
+    }
+
+        /**
+     * This method gives all non-zero shape functions values
+     * evaluated at the rCoordinates provided
+     * @return Vector of values of shape functions \f$ F_{i} \f$ where i is the shape function index (for NURBS it is the index of the local enumeration in the element).
+     * @see ShapeFunctionValue
+     * @see ShapeFunctionsLocalGradients
+     * @see ShapeFunctionLocalGradient
+    */
+    Vector& ShapeFunctionsValues (
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates
+        ) const override
+    {
+            double x = rCoordinates[0];
+            double y = rCoordinates[1];
+            double z = rCoordinates[2];
+
+            rResult(  0  ) = (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+            rResult(  1  ) = (1.0/2.0)*x*(2.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+            rResult(  2  ) = (1.0/2.0)*y*(2.0*y - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+            rResult(  3  ) = z*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+            rResult(  4  ) = x*z*(2.0*x - 1.0)*(2*z - 1) ;
+            rResult(  5  ) = y*z*(2.0*y - 1.0)*(2*z - 1) ;
+            rResult(  6  ) = (1.0/2.0)*x*(2*z - 2.0)*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+            rResult(  7  ) = 2.0*x*y*(2*z - 2.0)*(2*z - 1) ;
+            rResult(  8  ) = 2.0*y*(2*z - 2.0)*(2*z - 1)*(-x - y + 1.0) ;
+            rResult(  9  ) = (1.0 - std::pow(2*z - 1, 2))*(-x - y + 1.0) ;
+            rResult(  10  ) = x*(1.0 - std::pow(2*z - 1, 2)) ;
+            rResult(  11  ) = y*(1.0 - std::pow(2*z - 1, 2)) ;
+            rResult(  12  ) = x*z*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+            rResult(  13  ) = 4.0*x*y*z*(2*z - 1) ;
+            rResult(  14  ) = 4.0*y*z*(2*z - 1)*(-x - y + 1.0) ;
+
     }
 
     /**
