@@ -1301,36 +1301,36 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
-        if (flag_const_tensor) {
-            this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
-        }
+        // if (flag_const_tensor) {
+        //     this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
+        // }
 
         // test for tangent tensor
 
-        // const double E  = 800000000;
-        // const double NU = 0.0;
+        const double E  = 800000000;
+        const double NU = 0.0;
 
-        // const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
-        // const double c2 = c1 * ( 1 - NU );
-        // const double c3 = c1 * NU;
-        // const double c4 = c1 * 0.5 * ( 1 - 2 * NU );
+        const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
+        const double c2 = c1 * ( 1 - NU );
+        const double c3 = c1 * NU;
+        const double c4 = c1 * 0.5 * ( 1 - 2 * NU );
 
-        // Matrix test_tangent_tensor = ZeroMatrix(6,6);
+        Matrix test_tangent_tensor = ZeroMatrix(6,6);
 
-        // test_tangent_tensor( 0, 0 ) = c2;
-        // test_tangent_tensor( 0, 1 ) = c3;
-        // test_tangent_tensor( 0, 2 ) = c3;
-        // test_tangent_tensor( 1, 0 ) = c3;
-        // test_tangent_tensor( 1, 1 ) = c2;
-        // test_tangent_tensor( 1, 2 ) = c3;
-        // test_tangent_tensor( 2, 0 ) = c3;
-        // test_tangent_tensor( 2, 1 ) = c3;
-        // test_tangent_tensor( 2, 2 ) = c2;
-        // test_tangent_tensor( 3, 3 ) = c4;
-        // test_tangent_tensor( 4, 4 ) = c4;
-        // test_tangent_tensor( 5, 5 ) = c4;
+        test_tangent_tensor( 0, 0 ) = c2;
+        test_tangent_tensor( 0, 1 ) = c3;
+        test_tangent_tensor( 0, 2 ) = c3;
+        test_tangent_tensor( 1, 0 ) = c3;
+        test_tangent_tensor( 1, 1 ) = c2;
+        test_tangent_tensor( 1, 2 ) = c3;
+        test_tangent_tensor( 2, 0 ) = c3;
+        test_tangent_tensor( 2, 1 ) = c3;
+        test_tangent_tensor( 2, 2 ) = c2;
+        test_tangent_tensor( 3, 3 ) = c4;
+        test_tangent_tensor( 4, 4 ) = c4;
+        test_tangent_tensor( 5, 5 ) = c4;
 
-        // rValues.GetConstitutiveMatrix() = test_tangent_tensor;
+        rValues.GetConstitutiveMatrix() = test_tangent_tensor;
 
         // test for tangent tensor
 
@@ -1832,7 +1832,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
     
 
 
-        // KRATOS_WATCH(delamination_damage);
+        KRATOS_WATCH(delamination_damage);
         
         noalias(rValues.GetStressVector()) = auxiliar_stress_vector;
 
