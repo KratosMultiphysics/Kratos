@@ -1,0 +1,14 @@
+entries:
+- title: sidebar
+  product: Meshing Application
+  output: web
+  folders:
+  - title: General
+    output: web
+    folderitems:
+    - title: Utilities MMG Process
+      url: /pages/2_Applications/Meshing_Application/General/Utilities-MMG-Process.html
+      output: web
+    - title: Utilities ParMmg Process
+      url: /pages/2_Applications/Meshing_Application/General/Utilities-ParMmg-Process.html
+      output: web

@@ -1,0 +1,176 @@
+entries:
+- title: sidebar
+  product: For Developers
+  output: web
+  folders:
+  - title: General
+    output: web
+    folderitems:
+    - title: Adjoint API
+      url: /pages/1_Kratos/2_For_Developers/General/Adjoint-API.html
+      output: web
+    - title: Application Cases
+      url: /pages/1_Kratos/2_For_Developers/General/Application-Cases.html
+      output: web
+    - title: Applications as python modules
+      url: /pages/1_Kratos/2_For_Developers/General/Applications-as-python-modules.html
+      output: web
+    - title: Applying periodic boundary conditions
+      url: /pages/1_Kratos/2_For_Developers/General/Applying-periodic-boundary-conditions.html
+      output: web
+    - title: Authorship of Kratos files
+      url: /pages/1_Kratos/2_For_Developers/General/Authorship-of-Kratos-files.html
+      output: web
+    - title: Common Python Interface of Applications for Users
+      url: /pages/1_Kratos/2_For_Developers/General/Common-Python-Interface-of-Applications-for-Users.html
+      output: web
+    - title: Data management
+      url: /pages/1_Kratos/2_For_Developers/General/Data-management.html
+      output: web
+    - title: How to Access DataBase
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-Access-DataBase.html
+      output: web
+    - title: How to apply a function to a list of variables
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-apply-a-function-to-a-list-of-variables.html
+      output: web
+    - title: How to create unitary tests
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-create-unitary-tests.html
+      output: web
+    - title: How to generate python wheels
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-generate-python-wheels.html
+      output: web
+    - title: How to make Git ignore the files resulting from a compilation without conflicts in .gitignore
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-make-Git-ignore-the-files-resulting-from-a-compilation-without-conflicts-in-.gitignore.html
+      output: web
+    - title: How to run multiple cases using PyCOMPSs
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-run-multiple-cases-using-PyCOMPSs.html
+      output: web
+    - title: Clang Tidy to automatically correct code
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-Clang-Tidy-to-automatically-correct-code.html
+      output: web
+    - title: Cotire
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-Cotire.html
+      output: web
+    - title: Logger
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-Logger.html
+      output: web
+    - title: PointerCommunicator
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-PointerCommunicator.html
+      output: web
+    - title: PointerMapCommunicator
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-PointerMapCommunicator.html
+      output: web
+    - title: Processes In the application of BCs
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-Processes-In-the-application-of-BCs.html
+      output: web
+    - title: Smart Pointers within Kratos
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-Smart-Pointers-within-Kratos.html
+      output: web
+    - title: Quaternions in Kratos
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-quaternions-in-Kratos.html
+      output: web
+    - title: Constitutive Law
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-the-Constitutive-Law-class.html
+      output: web
+    - title: the FEAST Solver in Kratos?
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-the-FEAST-Solver-in-Kratos.html
+      output: web
+    - title: the Geometry
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-the-Geometry.html
+      output: web
+    - title: the PaStiX solver in Kratos
+      url: /pages/1_Kratos/2_For_Developers/General/How-to-use-the-PaStiX-solver-in-Kratos.html
+      output: web
+    - title: KRATOS_API for Windows Compilation
+      url: /pages/1_Kratos/2_For_Developers/General/KRATOS_API-for-Windows-Compilation.html
+      output: web
+    - title: Kratos classes accesible via python
+      url: /pages/1_Kratos/2_For_Developers/General/Kratos-classes-accesible-via-python.html
+      output: web
+    - title: Kratos input files and I O
+      url: /pages/1_Kratos/2_For_Developers/General/Kratos-input-files-and-I-O.html
+      output: web
+    - title: Kratos input files and IO
+      url: /pages/1_Kratos/2_For_Developers/General/Kratos-input-files-and-IO.html
+      output: web
+    - title: Local axes orientation
+      url: /pages/1_Kratos/2_For_Developers/General/Local-axes-orientation.html
+      output: web
+    - title: Manipulating solution values
+      url: /pages/1_Kratos/2_For_Developers/General/Manipulating-solution-values.html
+      output: web
+    - title: Mesh node ordering
+      url: /pages/1_Kratos/2_For_Developers/General/Mesh-node-ordering.html
+      output: web
+    - title: ModelPart and SubModelPart
+      url: /pages/1_Kratos/2_For_Developers/General/ModelPart-and-SubModelPart.html
+      output: web
+    - title: ModelPart entities
+      url: /pages/1_Kratos/2_For_Developers/General/ModelPart-entities.html
+      output: web
+    - title: KratosAPI MultiPoint Constraint (MPC) interface
+      url: /pages/1_Kratos/2_For_Developers/General/MultiPoint-Constraint-interface.html
+      output: web
+    - title: Nodes and Nodal Data
+      url: /pages/1_Kratos/2_For_Developers/General/Nodes-and-Nodal-Data.html
+      output: web
+    - title: Parallel Utilities
+      url: /pages/1_Kratos/2_For_Developers/General/Parallel-Utilities.html
+      output: web
+    - title: Porting to AMatrix
+      url: /pages/1_Kratos/2_For_Developers/General/Porting-to-AMatrix.html
+      output: web
+    - title: Porting to PyBind11   common steps
+      url: /pages/1_Kratos/2_For_Developers/General/Porting-to-PyBind11-common-steps.html
+      output: web
+    - title: Solving strategies
+      url: /pages/1_Kratos/2_For_Developers/General/Solving-strategies.html
+      output: web
+    - title: Sparse Linear Algebra (native Kratos implementation)
+      url: /pages/1_Kratos/2_For_Developers/General/Sparse-Linear-Algebra-(native-Kratos-implementation).html
+      output: web
+    - title: Style Guide
+      url: /pages/1_Kratos/2_For_Developers/General/Style-Guide.html
+      output: web
+    - title: Adding dynamic contributions to the element file
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Adding-dynamic-contributions-to-the-element-file.html
+      output: web
+    - title: Analysis stage for pure diffusion problem
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Analysis-stage-for-pure-diffusion-problem.html
+      output: web
+    - title: Creating a wrapper of convergence criteria
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Creating-a-wrapper-of-convergence-criteria.html
+      output: web
+    - title: Creating an Utility
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Creating-an-Utility.html
+      output: web
+    - title: Creating the Conditions
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Creating-the-Conditions.html
+      output: web
+    - title: Creating the Element
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Creating-the-Element.html
+      output: web
+    - title: Creating the Python Solver file
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Creating-the-Python-Solver-file.html
+      output: web
+    - title: Editing the main files
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Editing-the-main-files.html
+      output: web
+    - title: Pure diffusion solver derived from main python solver
+      url: /pages/1_Kratos/2_For_Developers/General/Tutorial-Pure-diffusion-solver-derived-from-main-python-solver.html
+      output: web
+    - title: Using alias for Ublas matrix and vector
+      url: /pages/1_Kratos/2_For_Developers/General/Using-alias-for-Ublas-matrix-and-vector.html
+      output: web
+    - title: Using processes to customize a simulation
+      url: /pages/1_Kratos/2_For_Developers/General/Using-processes-to-customize-a-simulation.html
+      output: web
+    - title: Utilities Colors utility
+      url: /pages/1_Kratos/2_For_Developers/General/Utilities-Colors-utility.html
+      output: web
+    - title: Windows Install (MinGW)
+      url: /pages/1_Kratos/2_For_Developers/General/Windows-Install-(MinGW).html
+      output: web
+    - title: Windows Install
+      url: /pages/1_Kratos/2_For_Developers/General/Windows-Install.html
+      output: web

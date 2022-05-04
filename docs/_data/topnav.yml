@@ -12,21 +12,50 @@ topnav:
 topnav_dropdowns:
 - title: Topnav dropdowns
   folders:
-    - title: Jekyll Help
-      folderitems:
-        - title: Jekyll Talk
-          external_url: https://talk.jekyllrb.com
-        - title: Jekyll documentation
-          external_url: http://jekyllrb.com/docs/home/
-        - title: Jekyll on Stack Overflow
-          external_url: http://stackoverflow.com/questions/tagged/jekyll
-        - title: Jekyll on my blog
-          external_url: http://idratherbewriting.com/category-jekyll/
-    - title: Products
-      folderitems:
-        - title: Jekyll Documentation Theme
-          url: /mydoc_introduction.html
-        - title: Product 1
-          url: /p1_landing_page.html
-        - title: Product 2
-          url: /p2_landing_page.html
+  - title: Kratos
+    output: web
+    folderitems:
+    - title: "Page Not Found"
+      url: /pages/1_Kratos/404.html
+      output: web
+    - title: README
+      url: /pages/1_Kratos/README.html
+      output: web
+    - title: _Sidebar
+      url: /pages/1_Kratos/_Sidebar.html
+      output: web
+    - title: For Users
+      url: /pages/1_Kratos/1_For_Users/1_General/1_Overview.html
+      output: web
+    - title: For Developers
+      url: /pages/1_Kratos/2_For_Developers/General/Application-Cases.html
+      output: web
+    - title: Debuging
+      url: /pages/1_Kratos/3_Debuging/General/Checking-memory-usage-with-Valgrind.html
+      output: web
+  - title: Applications
+    output: web
+    folderitems:
+    - title: 
+      output: web
+    - title: Discrete Element Modelling Application
+      url: /pages/2_Applications/Discrete_Element_Modelling_Application/General/Basic-DEM-Benchmarking.html
+      output: web
+    - title: Fluid-Structure Interaction Application
+      url: /pages/2_Applications/Fluid-Structure_Interaction_Application/General/2D-Mok-benchmark.html
+      output: web
+    - title: Fluid Dynamics Application
+      url: /pages/2_Applications/Fluid_Dynamics_Application/General/2D-Cavity-flow-problem.html
+      output: web
+    - title: Mapping Application
+      url: /pages/2_Applications/Mapping_Application/General/How-to-do-Mapping-between-nonmatching-meshes.html
+      output: web
+    - title: Meshing Application
+      url: /pages/2_Applications/Meshing_Application/General/Utilities-MMG-Process.html
+      output: web
+    - title: Reduced Order Modelling Application
+      url: /pages/2_Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
+      output: web
+    - title: Structural Mechanics Application
+      url: /pages/2_Applications/Structural_Mechanics_Application/General/0_Roll-up-beam-cantilever.html
+      output: web

@@ -187,6 +187,17 @@ def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
 
     return list_of_strings
 
+def UpdateSideBarInformation(current_entry: dict, side_bar_name: str):
+    current_path = current_entry["path"]
+    if current_path.is_file() and str(current_path).endswith(".md"):
+        with open(str(current_path), "r") as file_input:
+            lines = file_input.readlines()
+
+        closing_index = lines[1:].index("---\n") + 1
+        output_lines = []
+        for line in lines[: closing_index]:
+            if line.startswith("sidebar:")
+
 if __name__ == "__main__":
     print("Creating top navigation bar...")
     # generate top navigation bar

@@ -1,0 +1,11 @@
+entries:
+- title: sidebar
+  product: Fluid Dynamics Application
+  output: web
+  folders:
+  - title: General
+    output: web
+    folderitems:
+    - title: 2D Cavity flow problem
+      url: /pages/2_Applications/Fluid_Dynamics_Application/General/2D-Cavity-flow-problem.html
+      output: web

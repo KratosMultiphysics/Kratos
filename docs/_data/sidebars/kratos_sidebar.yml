@@ -1,7 +1,7 @@
 entries:
 - title: sidebar
-  product: Kratos Multiphysics
-  version: 8.0
+  product: K1ratos Multdiphysics
+  version: 8.0.0
   folders:
 
   - title: Project information
@@ -114,6 +114,7 @@ entries:
     folderitems:
 
     - title: Introduction
+      url: /pages/How-to-Compile-Kratos-in-Debug-mode.html
       output: web
 
       subfolders:
@@ -154,7 +155,7 @@ entries:
       - title: Testing
         output: web
         subfolderitems:
-          
+
         - title: Creating unitary tests
           url: /pages/How-to-create-unitary-tests.html
           output: web
@@ -163,7 +164,7 @@ entries:
     output: web
     folderitems:
 
-    - title: 
+    - title:
       output: web
 
       subfolders:
@@ -286,7 +287,7 @@ entries:
         - title: How to use Clang-Tidy to automatically correct code
           url: /pages/How-to-use-Clang-Tidy-to-automatically-correct-code.html
           output: web
-    
+
         - title: Pybind11 Interface
           url: /pages/Porting-to-PyBind11-common-steps.html
           output: web
@@ -310,7 +311,7 @@ entries:
         - title: How to apply a function to a list of variables
           url: /pages/How-to-apply-a-function-to-a-list-of-variables.html
           output: web
-          
+
         - title: How to use Kratos Native sparse linear algebra
           url: /pages/Sparse-Linear-Algebra-(native-Kratos-implementation).html
           output: web
