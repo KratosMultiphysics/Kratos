@@ -1050,6 +1050,13 @@ void  ParallelRuleOfMixturesLaw<TDim>::CalculateMaterialResponsePK2(Constitutive
         Vector AParameter(mConstitutiveLaws.size()-1);
         Vector DamageIndicator(mConstitutiveLaws.size()-1);
 
+        noalias(Gc) = mGc;
+        noalias(initial_threshold) = minitial_threshold;
+        noalias(threshold) = mthreshold;
+        noalias(delamination_damage) = mdelamination_damage;
+        noalias(AParameter) = mAParameter;
+        noalias(DamageIndicator) = mDamageIndicator;
+
 
         for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
 
@@ -1739,6 +1746,13 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
         Vector delamination_damage(mConstitutiveLaws.size()+1);
         Vector AParameter(mConstitutiveLaws.size()-1);
         Vector DamageIndicator(mConstitutiveLaws.size()-1);
+
+        noalias(Gc) = mGc;
+        noalias(initial_threshold) = minitial_threshold;
+        noalias(threshold) = mthreshold;
+        noalias(delamination_damage) = mdelamination_damage;
+        noalias(AParameter) = mAParameter;
+        noalias(DamageIndicator) = mDamageIndicator;
 
 
         for(int i=0; i < mConstitutiveLaws.size()-1; ++i) {
