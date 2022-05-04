@@ -58,16 +58,6 @@ ParallelRuleOfMixturesLaw<TDim>::ParallelRuleOfMixturesLaw(const std::vector<dou
     for (IndexType i_layer = 0; i_layer < rCombinationFactors.size(); ++i_layer) {
         mCombinationFactors[i_layer] = rCombinationFactors[i_layer]/aux_factor;
     }
-
-    mthreshold.resize(mConstitutiveLaws.size()-1, false);
-    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
-            mthreshold[i] = std::numeric_limits<double>::infinity();
-        }
-    
-    mDamageIndicator.resize(mConstitutiveLaws.size()-1, false);
-    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
-            mDamageIndicator[i] = 1;
-        }
 }
 
 /******************************COPY CONSTRUCTOR*************************************/
@@ -930,6 +920,28 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterial(
     }
 
     KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ParallelRuleOfMixturesLaw: No CL defined" << std::endl;
+
+    mthreshold.resize(mConstitutiveLaws.size()-1, false);
+    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+            mthreshold[i] = std::numeric_limits<double>::infinity();
+        }
+    
+    mDamageIndicator.resize(mConstitutiveLaws.size()-1, false);
+    for (int i=0; i < mConstitutiveLaws.size()-1; ++i) {
+            mDamageIndicator[i] = 1;
+        }
+    
+    mGc.resize(mConstitutiveLaws.size()-1, false);
+    noalias(mGc) = ZeroVector(mConstitutiveLaws.size()-1);
+
+    minitial_threshold.resize(mConstitutiveLaws.size()-1, false);
+    noalias(minitial_threshold) = ZeroVector(mConstitutiveLaws.size()-1);
+
+    mdelamination_damage.resize(mConstitutiveLaws.size()+1, false);
+    noalias(mdelamination_damage) = ZeroVector(mConstitutiveLaws.size()+1);
+
+    mAParameter.resize(mConstitutiveLaws.size()-1, false);
+    noalias(mAParameter) = ZeroVector(mConstitutiveLaws.size()-1);
 }
 
 /***********************************************************************************/
