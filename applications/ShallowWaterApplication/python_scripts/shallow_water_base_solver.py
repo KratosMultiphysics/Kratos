@@ -21,10 +21,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
-        if self.model.HasModelPart(model_part_name):
-            self.main_model_part = self.model.GetModelPart(model_part_name)
-        else:
-            self.main_model_part = self.model.CreateModelPart(model_part_name)
+        self.main_model_part = self.model.CreateModelPart(model_part_name)
 
         self._SetProcessInfo()
 
@@ -38,8 +35,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "gravity"                  : 9.81,
             "density"                  : 1000,
             "model_import_settings"    : {
-                "input_type"               : "mdpa",
-                "input_filename"           : "unknown_name"
+                "input_type"               : "use_input_model_part"
             },
             "material_import_settings" :{
                 "materials_filename": ""
