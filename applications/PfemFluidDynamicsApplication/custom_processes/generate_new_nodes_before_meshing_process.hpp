@@ -770,7 +770,7 @@ namespace Kratos
 
 			double limitEdgeLength = 1.4 * mrRemesh.Refine->CriticalRadius;
 			double safetyCoefficient2D = 1.5;
-			double penalization = 1.0; //penalization here should be smaller than 1
+			double penalization = 1.0; // penalization here should be smaller than 1
 			if (rigidNodes > 1)
 			{
 				// penalization=0.7;
@@ -1000,7 +1000,7 @@ namespace Kratos
 
 			double limitEdgeLength = 1.25 * mrRemesh.Refine->CriticalRadius;
 			double safetyCoefficient3D = 1.6;
-			double penalization = 1.0; //penalization here should be smaller than 1
+			double penalization = 1.0; // penalization here should be smaller than 1
 			if (rigidNodes > 2)
 			{
 				penalization = 0.7;
@@ -1384,7 +1384,7 @@ namespace Kratos
 				}
 			}
 
-			double penalization = 1.0; //penalization here should be greater than 1
+			double penalization = 1.0; // penalization here should be greater than 1
 			if (refiningBox == true)
 			{
 				if (freesurfaceNodes > 0)
@@ -1716,7 +1716,7 @@ namespace Kratos
 					}
 				}
 			}
-			double penalization = 1.0; //penalization here should be greater than 1
+			double penalization = 1.0; // penalization here should be greater than 1
 			if (refiningBox == true)
 			{
 				if (freesurfaceNodes > 0)
@@ -2052,8 +2052,18 @@ namespace Kratos
 				{
 
 					unsigned int propertyIdNodeSlave1 = SlaveNode1->FastGetSolutionStepValue(PROPERTY_ID);
-					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 == principalModelPartId) ||
-						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 != principalModelPartId) ||
+					// if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 == principalModelPartId) ||
+					// 	(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 != principalModelPartId) ||
+					// 	(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
+					// {
+					// 	TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
+					// }
+					// else
+					// {
+					// 	TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode2);
+					// }
+					if ((mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0 && propertyIdNodeSlave1 == principalModelPartId) ||
+						(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0 && propertyIdNodeSlave1 != principalModelPartId) ||
 						(SlaveNode2->Is(RIGID) || SlaveNode2->Is(SOLID)))
 					{
 						TakeMaterialPropertiesFromNotRigidNode(pnode, SlaveNode1);
@@ -2065,14 +2075,19 @@ namespace Kratos
 				}
 
 				unsigned int propertyIdNode = pnode->FastGetSolutionStepValue(PROPERTY_ID);
-				if (propertyIdNode == principalModelPartId)
+				// if (propertyIdNode == principalModelPartId)
+				// {
+				// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
+				// }
+				// else
+				// {
+				// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+				// }
+				if (propertyIdNode != principalModelPartId)
 				{
 					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
 				}
-				else
-				{
-					mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-				}
+
 			}
 
 			// set the coordinates to the original value

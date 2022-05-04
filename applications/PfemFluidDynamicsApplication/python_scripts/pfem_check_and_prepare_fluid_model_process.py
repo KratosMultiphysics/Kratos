@@ -133,7 +133,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                         assign_flags = [KratosMultiphysics.FLUID]
                         transfer_process = KratosDelaunay.TransferEntitiesProcess(body_model_part,part,entity_type,void_flags,assign_flags)
                         transfer_process.Execute()
-                        propertyIDm=part.Properties
                         if(numElements>largestNumberOfElements):
                             biggestFluidBody=counter
                             largestNumberOfElements=numElements
