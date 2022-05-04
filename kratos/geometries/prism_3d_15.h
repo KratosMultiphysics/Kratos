@@ -773,8 +773,6 @@ private:
      * Private Operations
      */
 
-    
-
     /**
      * Calculates the value of a given shape function at a given point.
      *
@@ -789,9 +787,9 @@ private:
         const CoordinatesArrayType& rPoint 
         )
     {
-        double x = rPoint[0];
-        double y = rPoint[1];
-        double z = rPoint[2];
+        const double x = rPoint[0];
+        const double y = rPoint[1];
+        const double z = rPoint[2];
         switch ( ShapeFunctionIndex )
         {
             case 0 : return  (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
@@ -823,30 +821,31 @@ private:
      * @see ShapeFunctionLocalGradient
     */
     Vector& ShapeFunctionsValues (
-        Vector &rResult,
+        Vector& rResult,
         const CoordinatesArrayType& rCoordinates
         ) const override
     {
-            double x = rCoordinates[0];
-            double y = rCoordinates[1];
-            double z = rCoordinates[2];
+        const double x = rCoordinates[0];
+        const double y = rCoordinates[1];
+        const double z = rCoordinates[2];
 
-            rResult(  0  ) = (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
-            rResult(  1  ) = (1.0/2.0)*x*(2.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
-            rResult(  2  ) = (1.0/2.0)*y*(2.0*y - 1.0)*(2*z - 2.0)*(2*z - 1) ;
-            rResult(  3  ) = z*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
-            rResult(  4  ) = x*z*(2.0*x - 1.0)*(2*z - 1) ;
-            rResult(  5  ) = y*z*(2.0*y - 1.0)*(2*z - 1) ;
-            rResult(  6  ) = (1.0/2.0)*x*(2*z - 2.0)*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
-            rResult(  7  ) = 2.0*x*y*(2*z - 2.0)*(2*z - 1) ;
-            rResult(  8  ) = 2.0*y*(2*z - 2.0)*(2*z - 1)*(-x - y + 1.0) ;
-            rResult(  9  ) = (1.0 - std::pow(2*z - 1, 2))*(-x - y + 1.0) ;
-            rResult(  10  ) = x*(1.0 - std::pow(2*z - 1, 2)) ;
-            rResult(  11  ) = y*(1.0 - std::pow(2*z - 1, 2)) ;
-            rResult(  12  ) = x*z*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
-            rResult(  13  ) = 4.0*x*y*z*(2*z - 1) ;
-            rResult(  14  ) = 4.0*y*z*(2*z - 1)*(-x - y + 1.0) ;
-
+        rResult(  0  ) = (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+        rResult(  1  ) = (1.0/2.0)*x*(2.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+        rResult(  2  ) = (1.0/2.0)*y*(2.0*y - 1.0)*(2*z - 2.0)*(2*z - 1) ;
+        rResult(  3  ) = z*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
+        rResult(  4  ) = x*z*(2.0*x - 1.0)*(2*z - 1) ;
+        rResult(  5  ) = y*z*(2.0*y - 1.0)*(2*z - 1) ;
+        rResult(  6  ) = (1.0/2.0)*x*(2*z - 2.0)*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+        rResult(  7  ) = 2.0*x*y*(2*z - 2.0)*(2*z - 1) ;
+        rResult(  8  ) = 2.0*y*(2*z - 2.0)*(2*z - 1)*(-x - y + 1.0) ;
+        rResult(  9  ) = (1.0 - std::pow(2*z - 1, 2))*(-x - y + 1.0) ;
+        rResult(  10  ) = x*(1.0 - std::pow(2*z - 1, 2)) ;
+        rResult(  11  ) = y*(1.0 - std::pow(2*z - 1, 2)) ;
+        rResult(  12  ) = x*z*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
+        rResult(  13  ) = 4.0*x*y*z*(2*z - 1) ;
+        rResult(  14  ) = 4.0*y*z*(2*z - 1)*(-x - y + 1.0) ;
+        
+        return rResult;
     }
 
     /**
@@ -859,9 +858,9 @@ private:
      */
     static Matrix& CalculateShapeFunctionsLocalGradients( Matrix& DN, const CoordinatesArrayType& rPoint )
     {
-        double x = rPoint[0];
-        double y = rPoint[1];
-        double z = rPoint[2];
+        const double x = rPoint[0];
+        const double y = rPoint[1];
+        const double z = rPoint[2];
         DN.resize(15,3,false);
 
         DN( 0 , 0 )= (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(4.0*x + 4.0*y - 3.0) ;
@@ -933,11 +932,12 @@ private:
         Matrix shape_function_values( integration_points_number, 15 );
         
         // Loop over all integration points
+        double x, y, z;
         for ( std::size_t pnt = 0; pnt < integration_points_number; pnt++ ) {
             const auto& r_point = integration_points[pnt];
-            double x = r_point[0];
-            double y = r_point[1];
-            double z = r_point[2];
+            x = r_point[0];
+            y = r_point[1];
+            z = r_point[2];
 
             shape_function_values( pnt,  0  ) = (1.0/2.0)*(2*z - 2.0)*(2*z - 1)*(-2.0*x - 2.0*y + 1.0)*(-x - y + 1.0) ;
             shape_function_values( pnt,  1  ) = (1.0/2.0)*x*(2.0*x - 1.0)*(2*z - 2.0)*(2*z - 1) ;
