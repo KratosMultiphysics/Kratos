@@ -7,9 +7,9 @@ import math
 
 class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
     @classmethod
-    def GetDefaultParameters(cls):
+    def GetDefaultRVEParameters(cls):
 
-        ##settings string in json format
+        # RVE settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "boundary_mp_name": "unknown_name",
@@ -29,7 +29,7 @@ class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
 
         # Check validity of RVE settings
         input_rve_settings = project_parameters["rve_settings"]
-        default_rve_settings = self.GetDefaultParameters()
+        default_rve_settings = self.GetDefaultRVEParameters()
         input_rve_settings.ValidateAndAssignDefaults(default_rve_settings)
         
         # input parameters of the analysis
@@ -103,7 +103,7 @@ class FluidDynamicsAnalysisRVE(FluidDynamicsAnalysis):
                         node.Fix(KratosMultiphysics.PRESSURE)
                         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0.0)
                         break
-                    else: #have to thinkabout a better way of doing this...
+                    else: #have to think about a better way of doing this...
                         node.Fix(KratosMultiphysics.PRESSURE)
                         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0.0)
                         break
