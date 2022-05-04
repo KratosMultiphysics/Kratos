@@ -2,7 +2,7 @@
 title: How to profile Kratos using MAQAO
 keywords: 
 tags: [How-to-profile-Kratos-using-MAQAO.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: KRATOS_API for Windows Compilation
 keywords: 
 tags: [KRATOS_API-for-Windows-Compilation.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

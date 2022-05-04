@@ -2,7 +2,7 @@
 title: Open cylinder pull out
 keywords: 
 tags: [Open-cylinder-pull-out.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

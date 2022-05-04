@@ -2,7 +2,7 @@
 title: How to cross debug Kratos under Windows
 keywords: 
 tags: [How-to-cross-debug-Kratos-under-Windows.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

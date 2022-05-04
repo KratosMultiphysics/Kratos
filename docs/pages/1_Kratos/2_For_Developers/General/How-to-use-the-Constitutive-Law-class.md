@@ -2,7 +2,7 @@
 title: Constitutive Law
 keywords: 
 tags: [Constitutive Law Tutorial C++]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

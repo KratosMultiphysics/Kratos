@@ -2,7 +2,7 @@
 title: Common Python Interface of Applications for Users
 keywords: 
 tags: [Common-Python-Interface-of-Applications-for-Users.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: ModelPart and SubModelPart
 keywords: 
 tags: [ModelPart-and-SubModelPart.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

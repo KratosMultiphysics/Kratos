@@ -2,7 +2,7 @@
 title: Roll up beam cantilever
 keywords: 
 tags: [Roll-up-beam-cantilever.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

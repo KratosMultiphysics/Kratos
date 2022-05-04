@@ -2,7 +2,7 @@
 title: PointerMapCommunicator
 keywords: 
 tags: [How-to-use-PointerMapCommunicator.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

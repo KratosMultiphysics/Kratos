@@ -2,7 +2,7 @@
 title: Smart Pointers within Kratos
 keywords: 
 tags: [How-to-use-Smart-Pointers-within-Kratos.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

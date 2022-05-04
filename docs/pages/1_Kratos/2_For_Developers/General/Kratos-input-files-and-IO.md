@@ -2,7 +2,7 @@
 title: Kratos input files and IO
 keywords: 
 tags: [Kratos-input-files-and-IO.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

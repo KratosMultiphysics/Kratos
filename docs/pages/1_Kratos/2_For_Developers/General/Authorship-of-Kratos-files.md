@@ -2,7 +2,7 @@
 title: Authorship of Kratos files
 keywords: 
 tags: [Authorship-of-Kratos-files.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

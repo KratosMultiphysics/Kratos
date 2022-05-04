@@ -2,7 +2,7 @@
 title: Kratos classes accesible via python
 keywords: 
 tags: [Kratos-classes-accesible-via-python.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Debug Memory Using ASAN
 keywords: 
 tags: [Debug-Memory-Using-ASAN.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

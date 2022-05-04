@@ -2,7 +2,7 @@
 title: How to Create a New Application using cmake
 keywords: 
 tags: [How-to-Create-a-New-Application-using-cmake.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

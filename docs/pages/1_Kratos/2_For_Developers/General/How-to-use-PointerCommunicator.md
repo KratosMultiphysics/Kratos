@@ -2,7 +2,7 @@
 title: PointerCommunicator
 keywords: 
 tags: [How-to-use-PointerCommunicator.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Manipulating solution values
 keywords: 
 tags: [Manipulating-solution-values.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Python Script  ModelPart Elements and Conditions
 keywords: 
 tags: [Python Script Tutorial ModelPart Elements Conditions]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

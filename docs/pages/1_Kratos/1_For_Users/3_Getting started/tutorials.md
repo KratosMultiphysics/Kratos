@@ -2,7 +2,7 @@
 title: Python Tutorials
 keywords: 
 tags: [Python Script Tutorial]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

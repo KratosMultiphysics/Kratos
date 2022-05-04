@@ -2,7 +2,7 @@
 title: How to create unitary tests
 keywords: 
 tags: [How-to-create-unitary-tests.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

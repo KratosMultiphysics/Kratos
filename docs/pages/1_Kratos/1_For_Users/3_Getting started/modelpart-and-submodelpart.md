@@ -2,7 +2,7 @@
 title: Python Script  ModelPart and SubModelPart
 keywords: 
 tags: [Python Script Tutorial ModelPart SubModelPart]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

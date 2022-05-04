@@ -2,7 +2,7 @@
 title: Sparse Linear Algebra (native Kratos implementation)
 keywords: 
 tags: [Sparse-Linear-Algebra-(native-Kratos-implementation).md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

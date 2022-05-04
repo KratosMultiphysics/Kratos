@@ -2,7 +2,7 @@
 title: Nodes and Nodal Data
 keywords: 
 tags: [Nodes-and-Nodal-Data.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: How to make Git ignore the files resulting from a compilation without conflicts in .gitignore
 keywords: 
 tags: [How-to-make-Git-ignore-the-files-resulting-from-a-compilation-without-conflicts-in-.gitignore.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

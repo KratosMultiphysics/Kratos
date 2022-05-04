@@ -2,7 +2,7 @@
 title: How to apply a function to a list of variables
 keywords: 
 tags: [How-to-apply-a-function-to-a-list-of-variables.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

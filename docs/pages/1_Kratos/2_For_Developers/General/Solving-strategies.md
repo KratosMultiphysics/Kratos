@@ -2,7 +2,7 @@
 title: Solving strategies
 keywords: 
 tags: [Solving-strategies.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

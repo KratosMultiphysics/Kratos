@@ -2,7 +2,7 @@
 title: Two bar truss   snap through
 keywords: 
 tags: [Two-bar-truss---snap-through.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Windows Install
 keywords: 
 tags: [Windows-Install.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

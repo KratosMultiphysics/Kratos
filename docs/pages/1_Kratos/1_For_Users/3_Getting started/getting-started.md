@@ -2,7 +2,7 @@
 title: Python Script  Getting Started
 keywords: 
 tags: [Python Script Tutorial Getting Started]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

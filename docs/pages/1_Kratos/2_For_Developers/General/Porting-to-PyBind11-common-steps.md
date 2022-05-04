@@ -2,7 +2,7 @@
 title: Porting to PyBind11   common steps
 keywords: 
 tags: [Porting-to-PyBind11---common-steps.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

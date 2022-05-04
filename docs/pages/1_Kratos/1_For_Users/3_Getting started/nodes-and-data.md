@@ -2,7 +2,7 @@
 title: Python Script  Nodes and Nodal Data
 keywords: 
 tags: [Python Script Tutorial Nodes Nodal Data]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Checking memory usage with Valgrind
 keywords: 
 tags: [Checking-memory-usage-with-Valgrind.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Kernel and Applications
 keywords: 
 tags: [Kernel Applications]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

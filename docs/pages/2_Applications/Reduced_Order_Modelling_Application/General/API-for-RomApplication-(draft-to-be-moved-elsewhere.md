@@ -2,7 +2,7 @@
 title: API for RomApplication (draft to be moved elsewhere
 keywords: 
 tags: [API-for-RomApplication-(draft-to-be-moved-elsewhere.md]
-sidebar: kratos_sidebar
+sidebar: rom_application
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Getting Kratos Binaries for Windows
 keywords: 
 tags: [Getting-Kratos-Binaries-for-Windows.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

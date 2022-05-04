@@ -2,7 +2,7 @@
 title: Composite clamped cylinder
 keywords: 
 tags: [Composite-clamped-cylinder.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

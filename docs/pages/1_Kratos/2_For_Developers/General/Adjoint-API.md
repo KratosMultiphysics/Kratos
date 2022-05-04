@@ -2,7 +2,7 @@
 title: Adjoint API
 keywords: 
 tags: [Adjoint-API.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

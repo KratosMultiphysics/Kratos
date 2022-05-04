@@ -2,7 +2,7 @@
 title: Python Script  Reading ProjectParameters
 keywords: 
 tags: [Python Script Tutorial Reading ProjectParameters Project Parameters]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

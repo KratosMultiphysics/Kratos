@@ -2,7 +2,7 @@
 title: Python Script  Reading ModelPart From Input File
 keywords: 
 tags: [Python Script Tutorial Reading ModelPart Input File]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

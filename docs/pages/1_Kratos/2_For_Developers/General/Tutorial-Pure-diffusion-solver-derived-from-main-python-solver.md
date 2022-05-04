@@ -2,7 +2,7 @@
 title:  Pure diffusion solver derived from main python solver
 keywords: 
 tags: [Tutorial-Pure-diffusion-solver-derived-from-main-python-solver.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

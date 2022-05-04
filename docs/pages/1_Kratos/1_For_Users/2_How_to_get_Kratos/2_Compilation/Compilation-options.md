@@ -2,7 +2,7 @@
 title: Compilation options
 keywords: 
 tags: [Compilation-options.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

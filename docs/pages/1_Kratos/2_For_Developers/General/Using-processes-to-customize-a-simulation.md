@@ -2,7 +2,7 @@
 title: Using processes to customize a simulation
 keywords: 
 tags: [Using-processes-to-customize-a-simulation.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

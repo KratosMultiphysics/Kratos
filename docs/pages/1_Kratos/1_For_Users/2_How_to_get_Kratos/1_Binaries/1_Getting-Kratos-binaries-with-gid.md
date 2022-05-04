@@ -2,7 +2,7 @@
 title: Getting Kratos binaries (via GiD)
 keywords: 
 tags: [Getting-Kratos-binaries-(via-GiD).md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

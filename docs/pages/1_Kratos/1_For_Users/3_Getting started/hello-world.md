@@ -2,7 +2,7 @@
 title: Python Script  Hello Kratos
 keywords: 
 tags: [Python Script Tutorial Hello World Kratos]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

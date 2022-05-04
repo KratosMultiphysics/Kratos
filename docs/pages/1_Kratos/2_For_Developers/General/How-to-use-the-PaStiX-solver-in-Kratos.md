@@ -2,7 +2,7 @@
 title: the PaStiX solver in Kratos
 keywords: 
 tags: [How-to-use-the-PaStiX-solver-in-Kratos.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Utilities ParMmg Process
 keywords: 
 tags: [Utilities-ParMmg-Process.md]
-sidebar: kratos_sidebar
+sidebar: mmg_application
 summary: 
 ---
 

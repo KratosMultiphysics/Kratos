@@ -2,7 +2,7 @@
 title: How to Compile Kratos in Debug mode
 keywords: 
 tags: [How-to-Compile-Kratos-in-Debug-mode.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

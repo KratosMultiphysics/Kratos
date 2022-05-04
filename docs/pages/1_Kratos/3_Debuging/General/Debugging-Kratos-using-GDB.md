@@ -2,7 +2,7 @@
 title: Debugging Kratos using GDB
 keywords: 
 tags: [Debugging-Kratos-using-GDB.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Thread Sanitizer
 keywords: 
 tags: [Thread Sanitizer Debug]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

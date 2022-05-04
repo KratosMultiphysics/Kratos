@@ -2,7 +2,7 @@
 title: How to write a JSON configuration file
 keywords: 
 tags: [How-to-write-a-JSON-configuration-file.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

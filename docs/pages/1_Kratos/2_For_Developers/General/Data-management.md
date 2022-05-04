@@ -2,7 +2,7 @@
 title: Data management
 keywords: 
 tags: [Data-management.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Serialization
 keywords: 
 tags: [How-to-use-Serialization.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 ## Introduction

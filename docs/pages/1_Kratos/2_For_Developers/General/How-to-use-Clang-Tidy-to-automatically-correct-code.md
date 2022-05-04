@@ -2,7 +2,7 @@
 title: Clang Tidy to automatically correct code
 keywords: 
 tags: [How-to-use-Clang-Tidy-to-automatically-correct-code.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

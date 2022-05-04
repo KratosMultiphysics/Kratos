@@ -2,7 +2,7 @@
 title: Cotire
 keywords: 
 tags: [How-to-use-Cotire.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

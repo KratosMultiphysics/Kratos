@@ -2,7 +2,7 @@
 title: Shell obstacle course Pinched cylinder
 keywords: 
 tags: [Shell-obstacle-course-Pinched-cylinder.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

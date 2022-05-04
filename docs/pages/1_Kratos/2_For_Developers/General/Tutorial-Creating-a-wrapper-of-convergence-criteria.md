@@ -2,7 +2,7 @@
 title:  Creating a wrapper of convergence criteria
 keywords: 
 tags: [Tutorial-Creating-a-wrapper-of-convergence-criteria.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

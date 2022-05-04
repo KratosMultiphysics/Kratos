@@ -2,7 +2,7 @@
 title: Kratos For Dummies Transient non linear heat transfer
 keywords: 
 tags: [Kratos-For-Dummies-Transient-non-linear-heat-transfer.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

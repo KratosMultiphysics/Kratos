@@ -132,7 +132,7 @@ def CreateNavigationBarStructure(
             # add a dummy file entry
             dummy_dict = {
                 "title": "",
-                "path": ".",
+                "path": Path("."),
                 "output": "web",
                 "type": file_tabbing_info[0]
             }
@@ -196,7 +196,14 @@ def UpdateSideBarInformation(current_entry: dict, side_bar_name: str):
         closing_index = lines[1:].index("---\n") + 1
         output_lines = []
         for line in lines[: closing_index]:
-            if line.startswith("sidebar:")
+            if line.startswith("sidebar:"):
+                output_lines.append("sidebar: {:s}\n".format(side_bar_name))
+            else:
+                output_lines.append(line)
+        output_lines.extend(lines[closing_index:])
+
+        with open(str(current_path), "w") as file_output:
+            file_output.writelines(output_lines)
 
 if __name__ == "__main__":
     print("Creating top navigation bar...")
@@ -229,15 +236,21 @@ if __name__ == "__main__":
                     root_dict["title"] = "sidebar"
                     list_of_entries = CreateNavigationBarStructure(
                             root_dict, 0, 3)
-                    list_of_entries = GenerateStrings(list_of_entries)
-
-                    lines = ["entries:\n"]
-                    lines.extend(list_of_entries)
 
                     if "file_name" in json_settings:
                         file_name = json_settings["file_name"]
                     else:
                         file_name = str(root_dict["path"]).replace("/", "_")
+
+                    for entry in list_of_entries:
+                        UpdateSideBarInformation(entry, file_name)
+
+                    list_of_entries = GenerateStrings(list_of_entries)
+
+                    lines = ["entries:\n"]
+                    lines.extend(list_of_entries)
+
+
                     with open("_data/sidebars/{:s}.yml".format(file_name), "w") as file_output:
                         file_output.writelines(lines)
 

@@ -2,7 +2,7 @@
 title: Debugging Kratos using Visual Studio
 keywords: 
 tags: [Debugging-Kratos-using-Visual-Studio.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: ModelPart entities
 keywords: 
 tags: [ModelPart-entities.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

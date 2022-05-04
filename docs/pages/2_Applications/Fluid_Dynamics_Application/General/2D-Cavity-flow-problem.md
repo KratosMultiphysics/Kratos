@@ -2,7 +2,7 @@
 title: 2D Cavity flow problem
 keywords: 
 tags: [2D-Cavity-flow-problem.md]
-sidebar: kratos_sidebar
+sidebar: fluid_dynamics_application
 summary: 
 ---
 

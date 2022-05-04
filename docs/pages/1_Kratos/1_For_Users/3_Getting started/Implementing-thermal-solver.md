@@ -2,7 +2,7 @@
 title: Implementing thermal solver
 keywords: 
 tags: [Implementing-thermal-solver.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

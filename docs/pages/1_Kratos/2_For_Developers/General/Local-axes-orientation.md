@@ -2,7 +2,7 @@
 title: Local axes orientation
 keywords: 
 tags: [Local-axes-orientation.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

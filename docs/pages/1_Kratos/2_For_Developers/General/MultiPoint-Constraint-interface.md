@@ -2,7 +2,7 @@
 title: KratosAPI MultiPoint Constraint (MPC) interface
 keywords: 
 tags: [KratosAPI-MultiPoint-Constraint-(MPC)-interface.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

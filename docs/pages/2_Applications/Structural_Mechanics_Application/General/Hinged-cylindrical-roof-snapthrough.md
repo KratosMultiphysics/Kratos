@@ -2,7 +2,7 @@
 title: Hinged cylindrical roof snapthrough
 keywords: 
 tags: [Hinged-cylindrical-roof-snapthrough.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

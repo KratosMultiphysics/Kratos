@@ -2,7 +2,7 @@
 title: Formfinding and Membrane Analysis
 keywords: 
 tags: [Formfinding-and-Membrane-Analysis.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

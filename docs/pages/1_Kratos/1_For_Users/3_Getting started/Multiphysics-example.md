@@ -2,7 +2,7 @@
 title: Multiphysics example
 keywords: 
 tags: [Multiphysics-example.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

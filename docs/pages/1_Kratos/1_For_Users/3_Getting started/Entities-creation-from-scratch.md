@@ -2,7 +2,7 @@
 title: Entities creation from scratch
 keywords: 
 tags: [Entities-creation-from-scratch.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

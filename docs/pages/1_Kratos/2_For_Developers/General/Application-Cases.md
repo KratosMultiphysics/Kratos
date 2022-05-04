@@ -2,7 +2,7 @@
 title: Application Cases
 keywords: 
 tags: [Application-Cases.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

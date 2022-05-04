@@ -2,7 +2,7 @@
 title: Profiling Kratos with LineProfile
 keywords: 
 tags: [Profiling-Kratos-with-LineProfile.md]
-sidebar: kratos_sidebar
+sidebar: kratos_debugging
 summary: 
 ---
 

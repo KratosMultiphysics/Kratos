@@ -2,7 +2,7 @@
 title: How to run multiple cases using PyCOMPSs
 keywords: 
 tags: [How-to-run-multiple-cases-using-PyCOMPSs.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

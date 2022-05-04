@@ -2,7 +2,7 @@
 title: Running an example from GiD
 keywords: 
 tags: [Running-an-example-from-GiD.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

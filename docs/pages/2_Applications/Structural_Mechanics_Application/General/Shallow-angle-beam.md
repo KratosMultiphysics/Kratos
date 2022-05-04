@@ -2,7 +2,7 @@
 title: Shallow angle beam
 keywords: 
 tags: [Shallow-angle-beam.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Applications as python modules
 keywords: 
 tags: [Applications-as-python-modules.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

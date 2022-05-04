@@ -2,7 +2,7 @@
 title: How to do Mapping between nonmatching meshes
 keywords: 
 tags: [How-to-do-Mapping-between-nonmatching-meshes.md]
-sidebar: kratos_sidebar
+sidebar: mapping_application
 summary: 
 ---
 

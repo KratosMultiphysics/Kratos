@@ -2,7 +2,7 @@
 title: Processes In the application of BCs
 keywords: 
 tags: [How-to-use-Processes-In-the-application-of-BCs.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

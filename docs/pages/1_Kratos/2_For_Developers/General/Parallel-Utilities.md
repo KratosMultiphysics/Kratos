@@ -2,7 +2,7 @@
 title: Parallel Utilities
 keywords: 
 tags: [Parallel-Utilities.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

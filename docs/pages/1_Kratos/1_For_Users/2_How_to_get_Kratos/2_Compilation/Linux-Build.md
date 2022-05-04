@@ -2,7 +2,7 @@
 title: Linux Build
 keywords: 
 tags: [Linux-Build.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

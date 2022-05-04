@@ -2,7 +2,7 @@
 title:  Editing the main files
 keywords: 
 tags: [Tutorial-Editing-the-main-files.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

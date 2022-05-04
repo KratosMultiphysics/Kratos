@@ -2,7 +2,7 @@
 title:  Creating the Conditions
 keywords: 
 tags: [Tutorial-Creating-the-Conditions.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

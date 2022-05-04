@@ -2,7 +2,7 @@
 title: Python Script  Writing Output File
 keywords: 
 tags: [Python Script Tutorial Writing Output File]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

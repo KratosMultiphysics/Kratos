@@ -2,7 +2,7 @@
 title: Using alias for Ublas matrix and vector
 keywords: 
 tags: [Using-alias-for-Ublas-matrix-and-vector.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: How to interact with a simulation to visualize real time results
 keywords: 
 tags: [How-to-interact-with-a-simulation-to-visualize-real-time-results.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

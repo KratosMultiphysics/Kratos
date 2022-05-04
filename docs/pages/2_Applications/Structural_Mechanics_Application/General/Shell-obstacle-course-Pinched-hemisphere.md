@@ -2,7 +2,7 @@
 title: Shell obstacle course Pinched hemisphere
 keywords: 
 tags: [Shell-obstacle-course-Pinched-hemisphere.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

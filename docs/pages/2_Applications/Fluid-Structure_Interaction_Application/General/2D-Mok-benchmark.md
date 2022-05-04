@@ -2,7 +2,7 @@
 title: 2D Mok benchmark
 keywords: 
 tags: [2D-Mok-benchmark.md]
-sidebar: kratos_sidebar
+sidebar: fsi_application
 summary: 
 ---
 

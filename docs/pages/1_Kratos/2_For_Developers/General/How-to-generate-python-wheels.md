@@ -2,7 +2,7 @@
 title: How to generate python wheels
 keywords: 
 tags: [How-to-generate-python-wheels.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

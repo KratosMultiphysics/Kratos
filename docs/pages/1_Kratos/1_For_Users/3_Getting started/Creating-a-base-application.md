@@ -2,7 +2,7 @@
 title: Creating a base application
 keywords: 
 tags: [Creating-a-base-application.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_users
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Porting to AMatrix
 keywords: 
 tags: [Porting-to-AMatrix.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

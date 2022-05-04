@@ -2,7 +2,7 @@
 title: Shell obstacle course Scordelis Lo roof
 keywords: 
 tags: [Shell-obstacle-course-Scordelis-Lo-roof.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

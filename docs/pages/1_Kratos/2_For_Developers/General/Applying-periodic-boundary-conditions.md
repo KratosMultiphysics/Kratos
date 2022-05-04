@@ -2,7 +2,7 @@
 title: Applying periodic boundary conditions
 keywords: 
 tags: [Applying-periodic-boundary-conditions.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

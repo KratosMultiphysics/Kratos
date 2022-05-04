@@ -2,7 +2,7 @@
 title: the Geometry
 keywords: 
 tags: [How-to-use-the-Geometry.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

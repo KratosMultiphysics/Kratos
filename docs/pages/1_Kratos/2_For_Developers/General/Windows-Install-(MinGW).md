@@ -2,7 +2,7 @@
 title: Windows Install (MinGW)
 keywords: 
 tags: [Windows-Install-(MinGW).md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

@@ -2,7 +2,7 @@
 title: Utilities MMG Process
 keywords: 
 tags: [Utilities-MMG-Process.md]
-sidebar: kratos_sidebar
+sidebar: mmg_application
 summary: 
 ---
 

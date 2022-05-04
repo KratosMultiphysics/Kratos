@@ -2,7 +2,7 @@
 title: KratosStructuralMechanicsAPI Constitutive laws in Structural Mechanics Application
 keywords: 
 tags: [KratosStructuralMechanicsAPI-Constitutive-laws-in-Structural-Mechanics-Application.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 

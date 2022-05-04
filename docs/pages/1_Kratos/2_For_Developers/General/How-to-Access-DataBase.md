@@ -2,7 +2,7 @@
 title: How to Access DataBase
 keywords: 
 tags: [How-to-Access-DataBase.md]
-sidebar: kratos_sidebar
+sidebar: kratos_for_developers
 summary: 
 ---
 

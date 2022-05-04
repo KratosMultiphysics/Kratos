@@ -2,7 +2,7 @@
 title: Non linear cantilever beam
 keywords: 
 tags: [Non-linear-cantilever-beam.md]
-sidebar: kratos_sidebar
+sidebar: structural_mechanics_application
 summary: 
 ---
 
