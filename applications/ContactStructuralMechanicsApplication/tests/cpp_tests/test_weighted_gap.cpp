@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -129,7 +129,7 @@ namespace Kratos
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -285,7 +285,7 @@ namespace Kratos
             master_conds.push_back(pcond2);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -480,7 +480,7 @@ namespace Kratos
             master_conds.push_back(pcond5);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar
@@ -670,7 +670,7 @@ namespace Kratos
             }
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
 
             // We compute the normal gap to compare with the weighted gap
             // We add the index SetScalarVar

@@ -217,9 +217,11 @@ public:
         const Variable<TVarType> &rEmbeddedNodalVariable,
         const double GradientPenaltyCoefficient = 0.0,
         const unsigned int BufferPosition = 0,
-        const std::string AuxPartName = "IntersectedElementsModelPart")
-        : Process(),
-          mBufferPosition(BufferPosition),
+        const std::string AuxPartName = "IntersectedElementsModelPart",
+        const std::size_t EchoLevel = 0)
+        : Process()
+        , mEchoLevel(EchoLevel)
+        , mBufferPosition(BufferPosition),
           mAuxModelPartName(AuxPartName),
           mGradientPenaltyCoefficient(GradientPenaltyCoefficient),
           mrBaseModelPart(rBaseModelPart),
@@ -330,6 +332,7 @@ public:
     {
         Parameters default_settings(R"(
         {
+            "echo_level" : 0,
             "base_model_part_name": "",
             "skin_model_part_name": "",
             "skin_variable_name": "",
@@ -406,6 +409,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    const std::size_t mEchoLevel;
     const unsigned int mBufferPosition;
     const std::string mAuxModelPartName;
     const double mGradientPenaltyCoefficient;
@@ -612,6 +616,7 @@ protected:
             calculate_norm_dx);
 
         mpSolvingStrategy->Check();
+        mpSolvingStrategy->SetEchoLevel(mEchoLevel);
     }
 
     ///@}
@@ -652,7 +657,8 @@ protected:
             KratosComponents<Variable<TVarType>>::Get(rSettings["embedded_nodal_variable_name"].GetString()),
             rSettings["gradient_penalty_coefficient"].GetDouble(),
             rSettings["buffer_position"].GetInt(),
-            rSettings["aux_model_part_name"].GetString())
+            rSettings["aux_model_part_name"].GetString(),
+            rSettings["echo_level"].GetInt())
     {
     }
 

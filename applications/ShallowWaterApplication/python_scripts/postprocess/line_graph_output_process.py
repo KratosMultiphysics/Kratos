@@ -29,7 +29,7 @@ class LineGraphOutputProcess(KM.OutputProcess):
             "end_point"               : [0, 0, 0],
             "sampling_points"         : 100,
             "output_variables"        : [],
-            "historical_value"        : true,
+            "nonhistorical_variables" : [],
             "search_configuration"    : "initial",
             "search_tolerance"        : 1e-6,
             "print_format"            : "{:.6f}",
@@ -74,8 +74,8 @@ class LineGraphOutputProcess(KM.OutputProcess):
             raise Exception("Invalid 'entity_type' : {} (Expecting 'node', 'element' or 'condition')".format(self.entity_type))
 
         # Retrieve the variables list
-        self.historical_value = settings["historical_value"].GetBool()
-        self.variables = self._GenerateVariablesList(settings["output_variables"])
+        self.variables = self._GenerateVariablesList(settings["output_variables"], historical_value=True)
+        self.nonhistorical_variables = self._GenerateVariablesList(settings["nonhistorical_variables"], historical_value=False)
 
         # Search settings
         if settings["search_configuration"].GetString() == "initial":
@@ -140,12 +140,12 @@ class LineGraphOutputProcess(KM.OutputProcess):
         file.close()
 
 
-    def _GenerateVariablesList(self, parameters):
+    def _GenerateVariablesList(self, parameters, historical_value):
         all_variables_list = GenerateVariableListFromInput(parameters)
         variables = []
         # Validate the types of variables
         for var in all_variables_list:
-            if self.historical_value:
+            if historical_value:
                 if not self.model_part.HasNodalSolutionStepVariable(var):
                     raise Exception("ModelPart '{}' does not have {} as SolutionStepVariable".format(self.model_part.Name, var.Name()))
             if isinstance(var, KM.DoubleVariable):
@@ -198,6 +198,8 @@ class LineGraphOutputProcess(KM.OutputProcess):
             header += c + "\t\t"
         for var in self.variables:
             header += var.Name() + "\t"
+        for var in self.nonhistorical_variables:
+            header += var.Name() + "\t"
         return header + "\n"
 
 
@@ -206,7 +208,9 @@ class LineGraphOutputProcess(KM.OutputProcess):
         data += "\t" + self.print_format.format(node.Y)
         data += "\t" + self.print_format.format(node.Z)
         for var in self.variables:
-            data += "\t" + self.print_format.format(Interpolate(var, entity, area_coords, self.historical_value))
+            data += "\t" + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=True))
+        for var in self.nonhistorical_variables:
+            data += "\t" + self.print_format.format(Interpolate(var, entity, area_coords, historical_value=False))
         return data + "\n"
 
 

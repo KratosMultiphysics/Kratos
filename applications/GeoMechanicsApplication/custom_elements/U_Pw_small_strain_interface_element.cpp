@@ -636,7 +636,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
-            Variables.FluidPressure = CalculateFluidPressure(Variables, GPoint);
+            Variables.FluidPressure = CalculateFluidPressure(Variables);
             SetRetentionParameters(Variables, RetentionParameters);
 
             if (rVariable == DEGREE_OF_SATURATION)     rValues[GPoint] = mRetentionLawVector[GPoint]->CalculateSaturation(RetentionParameters);
@@ -1623,8 +1623,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CheckAndCalculateJointWidth(double& rJointWidth, 
                                 ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                 double& rNormalRelDisp,
-                                const double& MinimumJointWidth,
-                                const unsigned int& GPoint)
+                                double MinimumJointWidth,
+                                unsigned int GPoint)
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CheckAndCalculateJointWidth()") << std::endl;
@@ -2166,8 +2166,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 double UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CalculateFluidPressure(const InterfaceElementVariables &rVariables,
-                           const unsigned int &GPoint)
+    CalculateFluidPressure(const InterfaceElementVariables &rVariables)
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateFluidPressure()") << std::endl;
@@ -2186,12 +2185,12 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     CalculateRetentionResponse( InterfaceElementVariables& rVariables,
                                 RetentionLaw::Parameters& rRetentionParameters,
-                                const unsigned int &GPoint )
+                                unsigned int GPoint )
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateRetentionResponse()") << std::endl;
 
-    rVariables.FluidPressure = CalculateFluidPressure(rVariables, GPoint);
+    rVariables.FluidPressure = CalculateFluidPressure(rVariables);
     SetRetentionParameters(rVariables, rRetentionParameters);
 
     rVariables.DegreeOfSaturation = mRetentionLawVector[GPoint]->CalculateSaturation(rRetentionParameters);

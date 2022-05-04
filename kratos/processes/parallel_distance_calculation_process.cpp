@@ -170,7 +170,6 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
     unsigned int unknown_node_index = 0;
     array_1d<double,TDim> d;
     double nodal_vol = Volume/static_cast<double>(TDim+1);
-    //double avg_dist = 0.0;
 
     //compute discriminant and find the index of the unknown node
     noalias(d) = ZeroVector(TDim);
@@ -179,15 +178,12 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
         if (rGeometry[iii].Is(VISITED)) //identyfing the unknown node
         {
             const double distance = mDistanceGetter(rGeometry[iii]);
-            // const double distance = rGeometry[iii].FastGetSolutionStepValue(*mpDistanceVar);
-            //avg_dist += distance;
             for (unsigned int jjj = 0; jjj < TDim; jjj++)
                 d[jjj] += rDN_DX(iii, jjj) * distance;
         }
         else
             unknown_node_index = iii;
     }
-    //avg_dist /= static_cast<double>(TDim);
 
     //finalizing computation of discriminant
     double c = -1.0;
@@ -307,7 +303,6 @@ void ParallelDistanceCalculationProcess<TDim>::ResetVariables()
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode) {
         // Save the current distance in the non-historical database
         // Note that we use an auxiliary distance variable in case the final distance is to be stored in the non-historical one as well
-        // double& r_dist = rNode.FastGetSolutionStepValue(*mpDistanceVar);
         double& r_dist = mDistanceGetter(rNode);
         rNode.SetValue(*mpAuxDistanceVar, r_dist); //here we copy the distance function to the fixed database
 
@@ -340,7 +335,6 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
         auto& element_geometry = rElement.GetGeometry();
         // Set distances vector from non-historical database
         for (unsigned int j = 0; j < TDim + 1; j++) {
-            // rDist[j] = element_geometry[j].GetValue(*mpAuxDistanceVar);
             rDist[j] = mAuxDistanceGetter(element_geometry[j]);
         }
 
@@ -355,7 +349,6 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
             // loop over nodes and apply the new distances.
             for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
                 double& r_distance = mDistanceGetter(element_geometry[i_node]);
-                // double& r_distance = element_geometry[i_node].GetSolutionStepValue(*mpDistanceVar);
                 const double new_distance = rDist[i_node];
 
                 element_geometry[i_node].SetLock();
@@ -380,13 +373,10 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
 
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
         if(rNode.IsNot(VISITED)) {
-            // rNode.FastGetSolutionStepValue(*mpAreaVar) = 0.0;
             mNodalAreaGetter(rNode) = 0.0;
-            // rNode.FastGetSolutionStepValue(*mpDistanceVar) = 0.0;
             mDistanceGetter(rNode) = 0.0;
         } else {
             mNodalAreaGetter(rNode) = 1.0; // This is not correct
-            // rNode.GetSolutionStepValue(*mpAreaVar) = 1.00; // This is not correct
         }
     });
 
@@ -428,14 +418,11 @@ void ParallelDistanceCalculationProcess<TDim>::ExtendDistancesByLayer()
         {
             block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
                 if (rNode.Is(VISITED)) {
-                    // double& r_distance = rNode.FastGetSolutionStepValue(*mpDistanceVar);
                     double& r_distance = mDistanceGetter(rNode);
-                    // rNode.GetValue(*mpAuxDistanceVar) = r_distance;
                     mAuxDistanceGetter(rNode) = r_distance;
                     r_distance = 0.0;
                 } else {
                     mAuxDistanceGetter(rNode) = 0.0;
-                    // rNode.GetValue(*mpAuxDistanceVar) = 0.0;
                 }
             });
 
@@ -449,7 +436,6 @@ void ParallelDistanceCalculationProcess<TDim>::ExtendDistancesByLayer()
 
             block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
                 mDistanceGetter(rNode) += rNode.GetValue(*mpAuxDistanceVar);
-                // rNode.FastGetSolutionStepValue(*mpDistanceVar) += rNode.GetValue(*mpAuxDistanceVar);
             });
 
             mrModelPart.GetCommunicator().GetDataCommunicator().Barrier();
@@ -458,10 +444,8 @@ void ParallelDistanceCalculationProcess<TDim>::ExtendDistancesByLayer()
         //finalize the computation of the distance
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
             const double area = mNodalAreaGetter(rNode);
-            // const double area = rNode.FastGetSolutionStepValue(*mpAreaVar);
             if (area > 1e-20 && rNode.IsNot(VISITED)) { //this implies that node was computed at the current level and not before
                 double& r_distance = mDistanceGetter(rNode);
-                // double& r_distance = rNode.FastGetSolutionStepValue(*mpDistanceVar);
                 r_distance /= area;
                 rNode.Set(VISITED, true);
             }
@@ -478,10 +462,8 @@ void ParallelDistanceCalculationProcess<TDim>::AssignDistanceSign()
 
     //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
     block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-        // const double area = rNode.FastGetSolutionStepValue(*mpAreaVar);
         const double area = mNodalAreaGetter(rNode);
         double& r_dist = mDistanceGetter(rNode);
-        // double& r_dist = rNode.FastGetSolutionStepValue(*mpDistanceVar);
 
         KRATOS_ERROR_IF(r_dist < 0.0) << "IMPOSSIBLE negative distance found !!" << std::endl;
         if (r_dist > mMaxDistance || area < 1e-20) {

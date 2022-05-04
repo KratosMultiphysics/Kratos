@@ -115,7 +115,7 @@ public:
      * @tparam TEntity The entity type considered
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TEntity, bool TIsHistorical = true>
+    template<class TContainerType, bool TIsHistorical = true>
     void CalculateNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
@@ -131,7 +131,7 @@ public:
      * @tparam TEntity The entity type considered
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TEntity, bool TIsHistorical = true>
+    template<class TContainerType, bool TIsHistorical = true>
     void CalculateUnitNormals(
         ModelPart& rModelPart,
         const bool EnforceGenericGeometryAlgorithm = false,
@@ -565,10 +565,10 @@ private:
      * @brief It initializes the normal in the entites and in all the nodes
      * @param rModelPart The model part to compute
      * @param rNormalVariable Component variable storing the normal value
-     * @tparam TEntity The entity type considered
+     * @tparam TContainerType Type of the container that will store the entities for the normal calculation
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<class TEntity, bool TIsHistorical>
+    template<class TContainerType, bool TIsHistorical>
     void InitializeNormals(
         ModelPart& rModelPart,
         const NormalVariableType& rNormalVariable
@@ -578,9 +578,10 @@ private:
      * @brief It computes the unit normals from the area normals
      * @param rModelPart The model part to compute
      * @param rNormalVariable Component variable storing the normal value
+     * @tparam TContainerType Type of the container that will store the entities for the normal calculation
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      */
-    template<bool TIsHistorical>
+    template<class TContainerType, bool TIsHistorical>
     void ComputeUnitNormalsFromAreaNormals(
         ModelPart& rModelPart,
         const NormalVariableType& rNormalVariable
@@ -654,7 +655,7 @@ private:
         );
 
     /**
-     * @brief Get the Normal Value object
+     * @brief Gets the normal value from a node
      * Returns a reference to the nodal normal value
      * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
      * @param rNode Reference to the target node
@@ -665,6 +666,21 @@ private:
     array_1d<double,3>& GetNormalValue(
         NodeType& rNode,
         const NormalVariableType& rNormalVariable
+        );
+
+    /**
+     * @brief Sets the normal value to a node
+     * Sets the provided normal value to the node
+     * @tparam TIsHistorical Specifies if the historical or non-historical nodal database is used
+     * @param rNode Reference to the target node
+     * @param rNormalVariable Component variable storing the normal value
+     * @param rNormalValue Normal value to be set
+     */
+    template<bool TIsHistorical>
+    void SetNormalValue(
+        NodeType& rNode,
+        const NormalVariableType& rNormalVariable,
+        const array_1d<double,3>& rNormalValue
         );
 
     /**
