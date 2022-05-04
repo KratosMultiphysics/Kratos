@@ -1,4 +1,5 @@
 from pathlib import Path
+from collections import OrderedDict
 import json
 
 spacing_information = {
@@ -155,33 +156,33 @@ def GetTypeInfo(item_type: str) -> str:
     raise Exception("Entry type {:s} is not defined.".format(item_type))
 
 def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
-    written_types = {
-        "root": False,
-        "folders": False,
-        "folderitems": False,
-        "subfolders": False,
-        "subfolderitems": False
-    }
-    list_of_types = []
+    written_types = OrderedDict()
+    written_types["root"]= False,
+    written_types["folders"]= False,
+    written_types["folderitems"]= False,
+    written_types["subfolders"]= False,
+    written_types["subfolderitems"]= False
+
     list_of_strings = []
     previous_dict_type = ""
-    for dict in list_of_dicts:
-        dict_type = dict["type"]
+    for dict_item in list_of_dicts:
+        dict_type = dict_item["type"]
         if dict_type == "unsupported":
-            print("Warning: Entry with unsupported level found at {:s}.".format(str(dict["path"])))
+            print("Warning: Entry with unsupported level found at {:s}.".format(str(dict_item["path"])))
         else:
             if not written_types[dict_type]:
                 written_types[dict_type] = True
-                list_of_types.append(dict_type)
                 spacing_info = GetTypeInfo(dict_type)
                 if spacing_info != "":
                     list_of_strings.append(spacing_info + dict_type + ":\n")
             elif previous_dict_type != dict_type:
-                for i in reversed(list_of_types):
-                    if i != dict_type:
-                        written_types[i] = False
+                for k in reversed(written_types.keys()):
+                    if k != dict_type:
+                        written_types[k] = False
+                    else:
+                        break
 
-        list_of_strings.append(dict["str"])
+        list_of_strings.append(dict_item["str"])
         previous_dict_type = dict_type
 
     return list_of_strings
@@ -231,3 +232,27 @@ if __name__ == "__main__":
 
 
 
+
+    # sub_itr_dir = Path("pages/1_Kratos/1_For_Users")
+    # print("Creating side bar for {:s}...".format(str(sub_itr_dir)))
+
+    # root_dict = GetEntryDict(sub_itr_dir)
+    # json_settings = GetDirEntryDictFromJson(sub_itr_dir)
+    # if "product" in json_settings:
+    #     root_dict["product"] = json_settings["product"]
+    # else:
+    #     root_dict["product"] = root_dict["title"]
+    # root_dict["title"] = "sidebar"
+    # list_of_entries = CreateNavigationBarStructure(
+    #         root_dict, 0, 3)
+    # list_of_entries = GenerateStrings(list_of_entries)
+
+    # lines = ["entries:\n"]
+    # lines.extend(list_of_entries)
+
+    # if "file_name" in json_settings:
+    #     file_name = json_settings["file_name"]
+    # else:
+    #     file_name = str(root_dict["path"]).replace("/", "_")
+    # with open("_data/sidebars/{:s}.yml".format(file_name), "w") as file_output:
+    #     file_output.writelines(lines)
