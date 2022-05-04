@@ -8,8 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Eduardo Soudah,
-//                   Ruben Zorilla,
-//                   Eduardo Soudah
+//                   Ruben Zorilla
 //
 
 // System includes
@@ -66,11 +65,11 @@ void WssStatisticsUtilities::CalculateWSS(
         VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rModelPart.Conditions(), REACTION, FACE_LOAD, tolerance, max_it);
 
         // Set the nodal normal getter
-        std::function<const array_1d<double,3>&(const NodeType&)> normal_getter;
+        std::function<const array_1d<double,3>(const NodeType&)> normal_getter;
         if (IsNormalHistorical) {
-            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>&{return rNode.FastGetSolutionStepValue(rNormalVariable);};
+            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>{return rNode.FastGetSolutionStepValue(rNormalVariable);};
         } else {
-            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>&{return rNode.GetValue(rNormalVariable);};
+            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>{return rNode.GetValue(rNormalVariable);};
         }
 
         // Declare the auxiliary TLS container

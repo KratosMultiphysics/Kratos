@@ -63,45 +63,36 @@ void TetrahedraModelPartForWSSTests(ModelPart& rModelPart)
     const auto& r_skin_mp = rModelPart.GetSubModelPart("Skin");
     for (auto& r_node : r_skin_mp.Nodes()) {
         r_node.FastGetSolutionStepValue(REACTION_X) = r_node.X();
-        r_node.FastGetSolutionStepValue(REACTION_Y) = r_node.Y();
-        r_node.FastGetSolutionStepValue(REACTION_Z) = r_node.Z();
+        r_node.FastGetSolutionStepValue(REACTION_Y) = 2.0*r_node.Y();
+        r_node.FastGetSolutionStepValue(REACTION_Z) = 4.0*r_node.Z();
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WSSUtilities3DWSS, FluidDynamicsBiomedicalApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WSSStatisticsUtilitiesWSS, FluidDynamicsBiomedicalApplicationFastSuite)
 {
     // Set up the test model part
     Model model;
     auto& r_test_model_part = model.CreateModelPart("TestModelPart");
     TetrahedraModelPartForWSSTests(r_test_model_part);
+    auto& r_test_skin_model_part = r_test_model_part.GetSubModelPart("Skin");
 
     // Calculate nodal normals
     const std::size_t domain_size = r_test_model_part.GetProcessInfo()[DOMAIN_SIZE];
-    NormalCalculationUtils().CalculateOnSimplexNonHistorical(r_test_model_part, domain_size, NORMAL);
+    NormalCalculationUtils().CalculateOnSimplexNonHistorical(r_test_skin_model_part, domain_size, NORMAL);
 
     // Calculate WSS
     const bool is_normal_historical = false;
-    WssStatisticsUtilities::InitializeWSSVariables(r_test_model_part);
-    WssStatisticsUtilities::CalculateWSS(r_test_model_part, NORMAL, is_normal_historical);
+    WssStatisticsUtilities::InitializeWSSVariables(r_test_skin_model_part);
+    WssStatisticsUtilities::CalculateWSS(r_test_skin_model_part, NORMAL, is_normal_historical);
 
     // Check results
     const double tolerance = 1.0e-8;
-    const auto& r_node = *(r_test_model_part.GetSubModelPart("Skin").NodesEnd() - 1);
-    KRATOS_WATCH(r_node)
-    KRATOS_WATCH(r_node.GetValue(NORMAL))
-    KRATOS_WATCH(r_node.GetValue(FACE_LOAD))
-    KRATOS_WATCH(r_node.FastGetSolutionStepValue(REACTION))
-    KRATOS_WATCH(r_node.GetValue(REACTION))
-    std::cout << std::setprecision(12) << r_node.GetValue(WSS) << std::endl;
-    std::cout << std::setprecision(12) << r_node.GetValue(WSS_NORMAL_STRESS)[0] << std::endl;
-    std::cout << std::setprecision(12) << r_node.GetValue(WSS_NORMAL_STRESS)[1] << std::endl;
-    std::cout << std::setprecision(12) << r_node.GetValue(WSS_NORMAL_STRESS)[2] << std::endl;
-    std::cout << std::setprecision(12) << r_node.GetValue(WSS_TANGENTIAL_STRESS)[0] << std::endl;
-    std::cout << std::setprecision(12) << r_node.GetValue(WSS_TANGENTIAL_STRESS)[1] << std::endl;
-    std::cout << std::setprecision(12) << r_node.GetValue(WSS_TANGENTIAL_STRESS)[2] << std::endl;
-    KRATOS_CHECK_NEAR(r_node.GetValue(WSS), 0.0, 1e-8);
-    KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_NORMAL_STRESS), 2.0, 1e-8);
-    KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_TANGENTIAL_STRESS), 0.0, 1e-8);
+    const auto &r_node = *(r_test_skin_model_part.NodesEnd() - 1);
+    std::vector<double> expected_wss_norm_stress = {11.6666870136, 11.6666870136, 11.6666870136};
+    std::vector<double> expected_wss_tang_stress = {-6.66667829347, -1.66666957337, 8.33334786684};
+    KRATOS_CHECK_NEAR(r_node.GetValue(WSS), 10.8012533349, tolerance);
+    KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_NORMAL_STRESS), expected_wss_norm_stress, tolerance);
+    KRATOS_CHECK_VECTOR_NEAR(r_node.GetValue(WSS_TANGENTIAL_STRESS), expected_wss_tang_stress, tolerance);
 }
 
 }
