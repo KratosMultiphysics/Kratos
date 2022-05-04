@@ -48,10 +48,12 @@ void WssStatisticsUtilities::InitializeWSSVariables(ModelPart& rModelPart)
 void WssStatisticsUtilities::CalculateWSS(
     ModelPart& rModelPart,
     const Variable<array_1d<double,3>>& rNormalVariable,
-    const bool IsHistorical)
+    const bool IsNormalHistorical)
 {
     // Check if buffer size is filled (we need REACTION to be already computed)
     // TODO: Remove this once https://github.com/KratosMultiphysics/Kratos/pull/9592 is merged
+    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(STEP))
+        << "STEP is not in '"<< rModelPart.FullName() <<"' modelpart ProcessInfo container." << std::endl;
     const unsigned int buffer_size = rModelPart.GetBufferSize();
     const unsigned int step = rModelPart.GetProcessInfo()[STEP];
     if (step > buffer_size) {
@@ -60,12 +62,12 @@ void WssStatisticsUtilities::CalculateWSS(
         // This avoids the need of adding the FACE_LOAD variable to the historical nodal database in the CFD solver
         double tolerance = 1.0e-5;
         const unsigned int max_it = 100;
-        VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(REACTION, rModelPart, rModelPart);
+        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){rNode.SetValue(REACTION, rNode.FastGetSolutionStepValue(REACTION));});
         VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rModelPart.Conditions(), REACTION, FACE_LOAD, tolerance, max_it);
 
         // Set the nodal normal getter
         std::function<const array_1d<double,3>&(const NodeType&)> normal_getter;
-        if (IsHistorical) {
+        if (IsNormalHistorical) {
             normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>&{return rNode.FastGetSolutionStepValue(rNormalVariable);};
         } else {
             normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>&{return rNode.GetValue(rNormalVariable);};
