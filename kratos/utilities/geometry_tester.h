@@ -753,16 +753,13 @@ protected:
 
     void GenerateNodes(ModelPart& rModelPart)
     {
-        const double dx = 0.333333333333333333333;
-        const double dy = 0.333333333333333333333;
-        const double dz = 0.333333333333333333333;
+        const double dx = 1.0/3.0;
+        const double dy = 1.0/3.0;
+        const double dz = 1.0/3.0;
         std::size_t counter = 1;
-        for(unsigned int k=0; k<3; k++)
-        {
-            for(unsigned int j=0; j<3; j++)
-            {
-                for(unsigned int i=0; i<3; i++)
-                {
+        for(std::size_t k=0; k<3; k++) {
+            for(std::size_t j=0; j<3; j++) {
+                for(std::size_t i=0; i<3; i++) {
                     rModelPart.CreateNewNode(counter++, i*dx, j*dy,k*dz);
                 }
             }
@@ -804,17 +801,15 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    bool VerifyAreaByIntegration( Geometry<Node<3> >& geom, Geometry<Node<3> >::IntegrationMethod ThisMethod, const double reference_area, std::stringstream& error_msg)
+    bool VerifyAreaByIntegration( Geometry<Node<3> >& geom, Geometry<Node<3> >::IntegrationMethod ThisMethod, const double reference_area, std::stringstream& rErrorMessage)
     {
-        if(geom.WorkingSpaceDimension() != geom.LocalSpaceDimension())
-            KRATOS_THROW_ERROR(std::logic_error,"VerifyStrainExactness can not be used if LocalSpaceDimension and WorkingSpaceDimension do not coincide --> geometry is ",GetGeometryName(geom) );
+        KRATOS_ERROR_IF(geom.WorkingSpaceDimension() != geom.LocalSpaceDimension()) << "VerifyStrainExactness can not be used if LocalSpaceDimension and WorkingSpaceDimension do not coincide --> geometry is " << GetGeometryName(geom) << std::endl;
 
         double area = 0.0;
         const Element::GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints( ThisMethod );
 
-        if ( integration_points.size() == 0 )
-        {
-            error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -- the integration method is not supported " << std::endl;
+        if ( integration_points.size() == 0 ) {
+            rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -- the integration method is not supported " << std::endl;
             return false;
         }
 
@@ -827,83 +822,66 @@ private:
         Vector determinants;
         geom.DeterminantOfJacobian(determinants, ThisMethod);
 
-        for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-        {
+        for ( std::size_t PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
             const double IntegrationWeight = integration_points[PointNumber].Weight();
 
-            //calculating and storing inverse of the jacobian and the parameters needed
-            double DetJ0 = MathUtils<double>::Det( J0[PointNumber] );
+            // Calculating and storing inverse of the jacobian and the parameters needed
+            const double DetJ0 = MathUtils<double>::Det( J0[PointNumber] );
 
-            if( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-13)
-            {
-                error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
+            if( std::abs(determinants[PointNumber] - DetJ0)/std::abs(DetJ0) > 1e-13) {
+                rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " determinant as computed from DeterminantOfJacobian does not match the value computed by taking the determinant of J "  << std::endl;
                 return true;
             }
-
 
             //calculating the total area
             area += DetJ0 * IntegrationWeight;
         }
 
-        if( std::abs(area - reference_area)/reference_area < 1e-13)
-        {
-            error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " Area Calculation Test: OK "  << std::endl;
+        if( std::abs(area - reference_area)/reference_area < 1e-13) {
+            rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " Area Calculation Test: OK "  << std::endl;
             return true;
-        }
-        else
-        {
-            error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " error: the area value " << std::endl;
-            error_msg << "                            " << area << " was obtained by integration, while the reference data was "  << reference_area << std::endl;
+        } else {
+            rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " error: the area value " << std::endl;
+            rErrorMessage << "                            " << area << " was obtained by integration, while the reference data was "  << reference_area << std::endl;
             return false;
         }
 
     }
 
-
     //here we verify that a  "displacement field" which varies linearly in space, produces the expected strain distribution.
     //this shall be considered a test for shape function derivatives
-    void VerifyStrainExactness( Geometry<Node<3> >& geom,  Geometry<Node<3> >::IntegrationMethod ThisMethod, std::stringstream& error_msg)
+    void VerifyStrainExactness( Geometry<Node<3> >& geom,  Geometry<Node<3> >::IntegrationMethod ThisMethod, std::stringstream& rErrorMessage)
     {
 
         const Element::GeometryType::IntegrationPointsArrayType& integration_points = geom.IntegrationPoints( ThisMethod );
-        const unsigned int number_of_nodes = geom.PointsNumber();
-        const unsigned int dim = geom.WorkingSpaceDimension();
+        const std::size_t number_of_nodes = geom.PointsNumber();
+        const std::size_t dim = geom.WorkingSpaceDimension();
 
-        if(dim != geom.LocalSpaceDimension())
-            KRATOS_THROW_ERROR(std::logic_error,"VerifyStrainExactness can not be used if LocalSpaceDimension and WorkingSpaceDimension do not coincide ",GetGeometryName(geom) );
+        KRATOS_ERROR_IF(dim != geom.LocalSpaceDimension()) << "VerifyStrainExactness can not be used if LocalSpaceDimension and WorkingSpaceDimension do not coincide " << GetGeometryName(geom) << std::endl;
 
-        if ( integration_points.size() == 0 )
-        {
-            error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -- the integration method is not supported " << std::endl;
-        }
-        else
-        {
-
-
-            unsigned int strain_size;
+        if ( integration_points.size() == 0 ) {
+            rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -- the integration method is not supported " << std::endl;
+        } else {
+            std::size_t strain_size;
             if(dim == 2) strain_size = 3;
             else strain_size = 6;
 
             //definition of the expected strain
             Matrix MatrixA(dim,dim);
             Vector VectorB(dim);
-            for(unsigned int i=0; i<dim; i++)
-            {
+            for(std::size_t i=0; i<dim; i++) {
                 VectorB[i]=i*i+0.567; //arbitrary values
-                for(unsigned int j=0; j<dim; j++)
+                for(std::size_t j=0; j<dim; j++)
                     MatrixA(i,j)=i*j + 0.12345; //initialization fo the values of this matrix is arbitrary
             }
 
 
             Vector expected_strain(strain_size);
-            if(dim == 2)
-            {
+            if(dim == 2) {
                 expected_strain[0] = MatrixA(0,0);
                 expected_strain[1] = MatrixA(1,1);
                 expected_strain[2] = MatrixA(0,1)+MatrixA(1,0);
-            }
-            else
-            {
+            } else {
                 expected_strain[0] = MatrixA(0,0);
                 expected_strain[1] = MatrixA(1,1);
                 expected_strain[2] = MatrixA(2,2);
@@ -912,7 +890,7 @@ private:
                 expected_strain[5] = MatrixA(0,2)+MatrixA(2,0);
             }
 
-            //resizing jacobian inverses containers
+            // Resizing jacobian inverses containers
             Matrix InvJ0(dim,dim);
             double DetJ0;
             Matrix B;
@@ -932,54 +910,46 @@ private:
             Element::GeometryType::JacobiansType Jinv;
             geom.InverseOfJacobian(Jinv, ThisMethod);
 
-            bool succesful = true;
-            for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-            {
+            bool successful = true;
+            for ( std::size_t PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ ) {
                 //check that shape functions sum to 1
                 double sum = 0.0;
-                for(unsigned int k = 0; k<number_of_nodes; k++)
-                {
+                for(std::size_t k = 0; k<number_of_nodes; k++) {
                     sum += Ncontainer(PointNumber,k);
                 }
                 if(std::abs(sum-1.0)>1e-14)
-                    error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " error: shape functions do not sum to 1 on gauss point" << std::endl;
+                    rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " error: shape functions do not sum to 1 on gauss point" << std::endl;
 
                 //calculating and storing inverse of the jacobian and the parameters needed
                 MathUtils<double>::InvertMatrix( J0[PointNumber], InvJ0, DetJ0 );
                 DN_DX  = prod( DN_De[PointNumber], InvJ0 );
 
                 //check that the shape function gradients as obtained from the geomety match what is obtained here starting from the local_gradients
-                if(norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) > 1e-13)
-                {
-                    error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -->  " << std::endl;
-                     error_msg << "     error: shape function gradients are wrongly calculated in function ShapeFunctionsIntegrationPointsGradients: DN_DX_geom " << DN_DX_geom[PointNumber] << " vs " << DN_DX << std::endl;
-                    error_msg << " norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) = " << norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) <<std::endl;
+                if(norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) > 1e-13) {
+                    rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " -->  " << std::endl;
+                     rErrorMessage << "     error: shape function gradients are wrongly calculated in function ShapeFunctionsIntegrationPointsGradients: DN_DX_geom " << DN_DX_geom[PointNumber] << " vs " << DN_DX << std::endl;
+                    rErrorMessage << " norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) = " << norm_frobenius(DN_DX_geom[PointNumber] - DN_DX)/norm_frobenius(DN_DX) <<std::endl;
                 }
-                if(norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) > 1e-13)
-                {
-                    error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << std::endl;
-                     error_msg << "     error: shape function gradients are wrongly calculated in function ShapeFunctionsIntegrationPointsGradients: DN_DX_geom " << DN_DX_geom[PointNumber] << " vs " << DN_DX << std::endl;
-                    error_msg << " norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) = " << norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) <<std::endl;
+                if(norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) > 1e-13) {
+                    rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << std::endl;
+                     rErrorMessage << "     error: shape function gradients are wrongly calculated in function ShapeFunctionsIntegrationPointsGradients: DN_DX_geom " << DN_DX_geom[PointNumber] << " vs " << DN_DX << std::endl;
+                    rErrorMessage << " norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) = " << norm_frobenius(Jinv[PointNumber] - InvJ0)/norm_frobenius(InvJ0) <<std::endl;
                 }
 
                 CalculateB(B, DN_DX, number_of_nodes, dim);
 
                 //calculate a displacement_field which varies linearly in the space
-                for(unsigned int i=0; i<number_of_nodes; i++)
-                {
+                for(std::size_t i=0; i<number_of_nodes; i++) {
                     const array_1d<double,3>& coords = geom[i].Coordinates();
                     Vector disp(dim);
-                    for(unsigned int k=0; k<dim; k++)
-                    {
+                    for(std::size_t k=0; k<dim; k++) {
                         disp[k] = VectorB[k];
-                        for(unsigned int l=0; l<dim; l++)
-                        {
+                        for(std::size_t l=0; l<dim; l++) {
                             disp[k] += MatrixA(k,l)*coords[l] ;
                         }
                     }
 //                     Vector disp = prod(MatrixA,) + VectorB;
-                    for(unsigned int k=0; k<dim; k++)
-                    {
+                    for(std::size_t k=0; k<dim; k++) {
                         displacements[i*dim+k] = disp[k];
                     }
                 }
@@ -988,35 +958,26 @@ private:
 
                 Vector strain_err = strain-expected_strain;
 
-                if( norm_2(strain_err)/norm_2(expected_strain) < 1e-14)
-                {
+                if( norm_2(strain_err)/norm_2(expected_strain) < 1e-14) {
                     //do nothing
+                } else {
+                    successful = false;
+                    rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " error: expected strain found was not correctly recovered on gauss point. recovered strain = " << strain << " expected value "  << expected_strain << std::endl;
                 }
-                else
-                {
-                    succesful = false;
-                    error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " error: expected strain found was not correctly recovered on gauss point. recovered strain = " << strain << " expected value "  << expected_strain << std::endl;
-                }
-
-
-
             }
 
-            if(succesful == true)
-                error_msg << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " Strain Calculation Test: OK "  << std::endl;
+            if(successful == true)
+                rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " - IntegrationMethod = " << GetIntegrationName(geom,ThisMethod) << " --> " << " Strain Calculation Test: OK "  << std::endl;
 
         }
     }
-
-
-
 
     //this function computes the linear strain matrix - useful to verify that a constant strain can be correctly reproduced
     void CalculateB(
         Matrix& B,
         Matrix& DN_DX,
-        const unsigned int number_of_nodes,
-        const unsigned int dimension
+        const std::size_t number_of_nodes,
+        const std::size_t dimension
     )
     {
         KRATOS_TRY
@@ -1026,21 +987,17 @@ private:
         else
             B.resize(6, 3*number_of_nodes, false);
 
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = dimension * i;
+        for ( std::size_t i = 0; i < number_of_nodes; i++ ) {
+            std::size_t index = dimension * i;
 
-            if ( dimension == 2 )
-            {
+            if ( dimension == 2 ) {
                 B( 0, index + 0 ) = DN_DX( i, 0 );
                 B( 0, index + 1 ) = 0.0;
                 B( 1, index + 0 ) = 0.0;
                 B( 1, index + 1 ) = DN_DX( i, 1 );
                 B( 2, index + 0 ) = DN_DX( i, 1 ) ;
                 B( 2, index + 1 ) = DN_DX( i, 0 );
-            }
-            else
-            {
+            } else {
                 B( 0, index + 0 ) = DN_DX( i, 0 );
                 B( 0, index + 1 ) = 0.0;
                 B( 0, index + 2 ) = 0.0;
