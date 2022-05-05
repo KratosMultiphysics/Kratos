@@ -45,6 +45,9 @@ topnav_dropdowns:
     - title: Reduced Order Modelling Application
       url: /pages/2_Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
       output: web
+    - title: Shape Optimization Application
+      url: /pages/2_Applications/Shape_Optimization_Application/1_General/Multi_objective_optimization.html
+      output: web
     - title: Structural Mechanics Application
       url: /pages/2_Applications/Structural_Mechanics_Application/General/0_Roll-up-beam-cantilever.html
       output: web

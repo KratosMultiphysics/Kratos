@@ -1,6 +1,7 @@
 from pathlib import Path
 from collections import OrderedDict
 import json
+import requests
 
 spacing_information = {
     "dirs": [
@@ -274,7 +275,36 @@ def GetFilesList(current_path: Path) -> list[Path]:
 
     return list_of_files
 
+def ConvertToRawGitHubUrl(url: str) -> str:
+    if url.startswith("https://github.com"):
+        tree_index = url.find("/tree/")
+        return "https://raw.githubusercontent.com" + url[len("https://github.com"):tree_index] + url[tree_index+5:]
+
+def GenerateEntriesFromInfoJsonFiles(current_path: Path):
+    list_of_files = GetFilesList(current_path)
+    for file in list_of_files:
+        if str(file.relative_to(file.parent)) == "info.json":
+            with open(str(file), "r") as file_input:
+                json_data = dict(json.loads(file_input.read()))
+
+            if "entries" in json_data.keys():
+                for entry in json_data["entries"]:
+                    file_name = Path(file.parent / entry["file_name"])
+                    if str(file_name).endswith(".md"):
+                        file_name.parent.mkdir(exist_ok=True, parents=True)
+                        entry_url = entry["url"]
+                        raw_url = ConvertToRawGitHubUrl(entry_url)
+                        print("Downloading data from: " + entry_url)
+                        r = requests.get(raw_url + "/README.md", allow_redirects=True)
+                        with open(str(file_name), "w") as file_output:
+                            if r.status_code == 200:
+                                data = r.text
+                                data = data.replace("<img src=\"", "<img src=\"{:s}/".format(raw_url))
+                                file_output.write(data)
+                            file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(entry_url, entry_url))
+
 if __name__ == "__main__":
+    GenerateEntriesFromInfoJsonFiles(Path("pages"))
     list_of_files = GetFilesList(Path("pages"))
     defaults_dict = OrderedDict()
     defaults_dict["title"] = "<PRETTY_FILE_NAME>"

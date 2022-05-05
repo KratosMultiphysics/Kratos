@@ -1,0 +1,81 @@
+entries:
+- title: sidebar
+  product: Shape Optimization Application
+  output: web
+  folders:
+  - title: General
+    output: web
+    folderitems:
+    - title: Multi objective optimization
+      url: /pages/2_Applications/Shape_Optimization_Application/1_General/Multi_objective_optimization.html
+      output: web
+      subfolders:
+      - title: Sensitivity Analysis
+        output: web
+        subfolderitems:
+        - title: Adjoint approach
+          url: /pages/2_Applications/Shape_Optimization_Application/1_General/Sensitivity_Analysis/Adjoint_approach.html
+          output: web
+        - title: Finite difference or direct approach
+          url: /pages/2_Applications/Shape_Optimization_Application/1_General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html
+          output: web
+  - title: Examples
+    output: web
+    folderitems:
+    - title: Strain Energy Minimization 3D Hook
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/01_Strain_Energy_Minimization_3D_Hook.html
+      output: web
+    - title: Strain Energy Minimization 3D Shell
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/02_Strain_Energy_Minimization_3D_Shell.html
+      output: web
+    - title: Mesh independent optimization 3D Shell
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/03_Mesh_independent_optimization_3D_Shell.html
+      output: web
+    - title: mesh independent optimization 3D Shell
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/03_mesh_independent_optimization_3D_Shell.html
+      output: web
+    - title: Eigenfrequency Maximization 3D Cantilever
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/04_Eigenfrequency_Maximization_3D_Cantilever.html
+      output: web
+    - title: Constrained Shell Opt
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/05_Constrained_Shell_Opt.html
+      output: web
+    - title: Bead optimization plate
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/06_Bead_optimization_plate.html
+      output: web
+    - title: bead optimization plate
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/06_bead_optimization_plate.html
+      output: web
+    - title: Optimization plate with step adaption
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/07_Optimization_plate_with_step_adaption.html
+      output: web
+    - title: optimization plate with step adaption
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/07_optimization_plate_with_step_adaption.html
+      output: web
+    - title: Optimization 3D Hook plane constraint
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/08_Optimization_3D_Hook_plane_constraint.html
+      output: web
+    - title: Packaging 3D Shell
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/09_Packaging_3D_Shell.html
+      output: web
+    - title: Multi Constraint Optimization 3D Hook
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/10_Multi_Constraint_Optimization_3D_Hook.html
+      output: web
+    - title: Shape Update Optimization Stanford Bunny
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/11_Shape_Update_Optimization_Stanford_Bunny.html
+      output: web
+    - title: Bead optimization of a plate
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/Bead_optimization_of_a_plate.html
+      output: web
+    - title: Optimization of a Solid Hook
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/Optimization_of_a_Solid Hook.html
+      output: web
+    - title: Smooth surface wrapping
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/Smooth_surface_wrapping.html
+      output: web
+    - title: Strain energy minimization 3D hook
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/Strain_energy_minimization_3D_hook.html
+      output: web
+    - title: Strain energy minimization 3D shell
+      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/Strain_energy_minimization_3D_shell.html
+      output: web
