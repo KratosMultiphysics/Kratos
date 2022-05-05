@@ -430,11 +430,9 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -445,7 +443,6 @@ private:
 
     /// Copy constructor.
     GeometryTesterUtility(GeometryTesterUtility const& rOther) {}
-
 
     ///@}
 
