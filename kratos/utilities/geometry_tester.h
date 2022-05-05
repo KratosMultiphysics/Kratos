@@ -51,6 +51,7 @@ namespace Kratos
 ///@addtogroup KratosCore
 ///@{
 
+///@}
 ///@name Kratos Globals
 ///@{
 
@@ -90,12 +91,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    GeometryTesterUtility()
-    {
-    }
+    /// Default constructor
+    GeometryTesterUtility() {}
 
-    /// Default constructor.
-    bool RunTest(Model& rModel) //std::string& out_error_msg)
+    /// Destructor.
+    virtual ~GeometryTesterUtility() {};
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    bool RunTest(Model& rModel)
     {
         //create a cloud of 27 nodes, to be used in testing the geometries, so that 1 10 19 are on the same vertical
         //side has a lenght 0f 2.0/3.0
