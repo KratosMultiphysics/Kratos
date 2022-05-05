@@ -220,6 +220,7 @@ namespace MPMParticleGeneratorUtility
 
         std::vector<double> mpc_area(1);
         std::vector<double> mpc_penalty_factor(1);
+        PointerVector<Condition> ParticleConditions;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = rBackgroundGridModelPart.NumberOfConditions();
@@ -259,6 +260,7 @@ namespace MPMParticleGeneratorUtility
                 }
                  // For boundary conditions: create particle conditions for all the necessary conditions
                 else{
+                    ParticleConditions.clear();
                     // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the rMPMModelPart
                     rMPMModelPart.CreateSubModelPart(submodelpart_name);
@@ -427,13 +429,15 @@ namespace MPMParticleGeneratorUtility
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
                         else{
+                            std::vector<array_1d<double, 3>> xg_tmp;
+                            std::vector<double> area_temp(1);
                             for ( IndexType i_integration_point = 0; i_integration_point < integration_points.size(); ++i_integration_point )
                             {
                                 local_coordinates = integration_points[i_integration_point];
                                 
                                 r_geometry.GlobalCoordinates(xg, local_coordinates);
 
-                                mpc_area[0] = integration_points[i_integration_point].Weight();
+                                mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point);
                                 
                                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                                 Element::Pointer pelem;
@@ -447,53 +451,75 @@ namespace MPMParticleGeneratorUtility
                                     xg,
                                     integration_points[i_integration_point].Weight());
 
-                                // Create new material point condition
-                                new_condition_id = last_condition_id + i_integration_point + 1 ;
-                                
-                                Condition::Pointer p_condition = new_condition.Create(
-                                    new_condition_id, p_quadrature_point_geometry, properties);
-                              
-
-                                
-                                ProcessInfo process_info = ProcessInfo();
-
-                                // Setting particle condition's initial condition
-                                //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_COORD, {xg} , process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
-
-
-                                p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
-                                p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
-                                // Mark as boundary condition
-                                p_condition->Set(BOUNDARY, true);
-
-                                if (boundary_condition_type == 1)
-                                {
-                                    p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
+                                // Particle condition are not created twice
+                                bool create_condition = true;
+                                // loop only necessary for equal particle distribution to avoid doubled conditions
+                                if (is_equal_int_volumes){
+                                    for(auto it=ParticleConditions.begin(); it!=ParticleConditions.end(); ++it)
+                                    {
+                                        it->CalculateOnIntegrationPoints(MPC_COORD, xg_tmp, rMPMModelPart.GetProcessInfo());
+                                        
+                                        if (xg[0] == xg_tmp[0][0] && xg[1] == xg_tmp[0][1]  && xg[2] == xg_tmp[0][2] )
+                                        {
+                                            create_condition = false;
+                                            it->CalculateOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
+                                            area_temp[0] += mpc_area[0];
+                                            it->SetValuesOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
+                                            
+                                        }
+                                    }
                                 }
 
+                                if (create_condition){
 
-                                if (is_slip)
-                                    p_condition->Set(SLIP);
-                                if (is_contact)
-                                    p_condition->Set(CONTACT);
-                                if (is_interface)
-                                {
-                                    p_condition->Set(INTERFACE);
-                                    p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , process_info);
+                                    // Create new material point condition
+                                    new_condition_id = last_condition_id + 1 ;
+                                    
+                                    Condition::Pointer p_condition = new_condition.Create(
+                                        new_condition_id, p_quadrature_point_geometry, properties);
+                                
+                                    ParticleConditions.push_back(p_condition);
+                                    
+                                    ProcessInfo process_info = ProcessInfo();
+
+                                    // Setting particle condition's initial condition
+                                    //p_condition->SetValuesOnIntegrationPoints(MPC_CONDITION_ID, mpc_condition_id, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_COORD, {xg} , process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
+
+
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+                                    // Mark as boundary condition
+                                    p_condition->Set(BOUNDARY, true);
+
+                                    if (boundary_condition_type == 1)
+                                    {
+                                        p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
+                                    }
+
+
+                                    if (is_slip)
+                                        p_condition->Set(SLIP);
+                                    if (is_contact)
+                                        p_condition->Set(CONTACT);
+                                    if (is_interface)
+                                    {
+                                        p_condition->Set(INTERFACE);
+                                        p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , process_info);
+                                    }
+
+                                    // Add the MP Condition to the model part
+                                    rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                                    last_condition_id +=1;
                                 }
-
-                                // Add the MP Condition to the model part
-                                rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
 
                             }
-                            last_condition_id += integration_points.size();
 
                         }
 
