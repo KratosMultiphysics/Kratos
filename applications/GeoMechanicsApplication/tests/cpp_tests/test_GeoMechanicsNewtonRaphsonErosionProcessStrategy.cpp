@@ -1,3 +1,5 @@
+
+
 // KRATOS___
 //     //   ) )
 //    //         ___      ___
@@ -18,9 +20,7 @@
 
 /* Project includes */
 #include "testing/testing.h"
-#include "cpp_geomechanics_application.hpp"
-
-using namespace std;
+#include "cpp_geomechanics_application.h"
 
 namespace Kratos
 {
@@ -33,12 +33,8 @@ namespace Kratos
             auto projectpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/ProjectParameters.json";
             auto materialpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/MaterialParameters.json";
 
-            TCHAR pwd[MAX_PATH];
-            GetCurrentDirectory(MAX_PATH, pwd);
-            cout << pwd << std::endl;
-
-            auto execute = CppExecution();
-            execute.cpp_geomechanics(meshpath, projectpath, materialpath);
+            auto execute = KratosExecute();
+    		execute.cpp_geomechanics(meshpath, projectpath, materialpath);
 
         }
     }

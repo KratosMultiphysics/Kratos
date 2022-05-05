@@ -30,18 +30,18 @@
 #include <ctime> 
 #include <tuple>
 
+
 namespace Kratos
 {
+    // bool isOpen(Element* element) {
+    //     if (element->Has(PIPE_ACTIVE))
+    //     {
+    //         return element->GetValue(PIPE_ACTIVE);
+    //     }
+    //     else
+    //         return true;
+    // }
 
-bool isOpen(Element* element) {
-    if (element->Has(PIPE_ACTIVE))
-    {
-        return element->GetValue(PIPE_ACTIVE);
-    }
-    else
-        return true;
-}
-	
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicsNewtonRaphsonErosionProcessStrategy :
     public GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
@@ -60,8 +60,7 @@ public:
     typedef typename BaseType::TSystemMatrixType                                  TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType                                  TSystemVectorType;
     typedef typename boost::range_detail::filtered_range
-        <bool(__cdecl*)(Element*), std::vector<Element*>>                         filtered_elements;
-
+        <std::function<bool(Element*)>, std::vector<Element*>>                         filtered_elements;
 
     typedef typename SteadyStatePwPipingElement<2, 4>                    SteadyStatePwPipingElement;
     typedef Properties PropertiesType;
@@ -101,11 +100,11 @@ public:
 
     ///Destructor
     ~GeoMechanicsNewtonRaphsonErosionProcessStrategy() override {}
-	
 
     void FinalizeSolutionStep() override
     {
-        KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
+
+    	KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
 
         int openPipeElements = 0;
         bool grow = true;
@@ -136,7 +135,8 @@ public:
             tip_element->SetValue(PIPE_ACTIVE, true);
 
             // Get all open pipe elements
-            auto OpenPipeElements = PipeElements | boost::adaptors::filtered(isOpen);
+            std::function<bool(Element*)> filter = [](Element* i) {return i->Has(PIPE_ACTIVE) && i->GetValue(PIPE_ACTIVE); };
+            filtered_elements OpenPipeElements = PipeElements | boost::adaptors::filtered(filter);
             KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
             
             // non-lin picard iteration, for deepening the pipe
@@ -249,7 +249,6 @@ private:
     {
         return max_pipe_height / (n_steps - 1);
     }
-
 
     bool Recalculate()
     {
