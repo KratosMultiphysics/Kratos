@@ -187,7 +187,7 @@ def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
 
     return list_of_strings
 
-def UpdateSideBarInformation(current_entry: dict, side_bar_name: str):
+def UpdateMetaData(current_entry: dict, side_bar_name: str):
     current_path = current_entry["path"]
     if current_path.is_file() and str(current_path).endswith(".md"):
         with open(str(current_path), "r") as file_input:
@@ -195,11 +195,21 @@ def UpdateSideBarInformation(current_entry: dict, side_bar_name: str):
 
         closing_index = lines[1:].index("---\n") + 1
         output_lines = []
+        found_side_bar = False
         for line in lines[: closing_index]:
             if line.startswith("sidebar:"):
+                found_side_bar = True
+                current_side_bar = line[line.find(":")+1:-1].strip()
+                if current_side_bar != side_bar_name:
+                    print("Warning: Side bar entry of \"{:s}\" does not match with the identified side bar name of \"{:s}\" for file at {:s}. Updating the side bar entry with identified side bar name.".format(current_side_bar, side_bar_name, str(current_path)))
                 output_lines.append("sidebar: {:s}\n".format(side_bar_name))
             else:
                 output_lines.append(line)
+
+        if not found_side_bar:
+            print("Warning: Side bar entry is not found for file at {:s}. Adding \"{:s}\" as side bar.".format(str(current_path), side_bar_name))
+
+            output_lines.append("sidebar: {:s}\n".format(side_bar_name))
         output_lines.extend(lines[closing_index:])
 
         with open(str(current_path), "w") as file_output:
@@ -243,40 +253,12 @@ if __name__ == "__main__":
                         file_name = str(root_dict["path"]).replace("/", "_")
 
                     for entry in list_of_entries:
-                        UpdateSideBarInformation(entry, file_name)
+                        UpdateMetaData(entry, file_name)
 
                     list_of_entries = GenerateStrings(list_of_entries)
 
                     lines = ["entries:\n"]
                     lines.extend(list_of_entries)
 
-
                     with open("_data/sidebars/{:s}.yml".format(file_name), "w") as file_output:
                         file_output.writelines(lines)
-
-
-
-
-    # sub_itr_dir = Path("pages/1_Kratos/1_For_Users")
-    # print("Creating side bar for {:s}...".format(str(sub_itr_dir)))
-
-    # root_dict = GetEntryDict(sub_itr_dir)
-    # json_settings = GetDirEntryDictFromJson(sub_itr_dir)
-    # if "product" in json_settings:
-    #     root_dict["product"] = json_settings["product"]
-    # else:
-    #     root_dict["product"] = root_dict["title"]
-    # root_dict["title"] = "sidebar"
-    # list_of_entries = CreateNavigationBarStructure(
-    #         root_dict, 0, 3)
-    # list_of_entries = GenerateStrings(list_of_entries)
-
-    # lines = ["entries:\n"]
-    # lines.extend(list_of_entries)
-
-    # if "file_name" in json_settings:
-    #     file_name = json_settings["file_name"]
-    # else:
-    #     file_name = str(root_dict["path"]).replace("/", "_")
-    # with open("_data/sidebars/{:s}.yml".format(file_name), "w") as file_output:
-    #     file_output.writelines(lines)
