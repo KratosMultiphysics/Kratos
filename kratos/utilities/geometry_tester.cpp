@@ -65,24 +65,24 @@ bool GeometryTesterUtility::RunTest(Model& rModel)
 
     std::stringstream error_message;
 
-    if(TestTriangle2D3N(model_part, error_message) == false) successful=false;
-    if(TestTriangle2D6N(model_part, error_message) == false) successful=false;
+    if(StreamTestTriangle2D3N(model_part, error_message) == false) successful=false;
+    if(StreamTestTriangle2D6N(model_part, error_message) == false) successful=false;
     
-    if(TestQuadrilateral2D4N(model_part, error_message) == false) successful=false;
-    if(TestQuadrilateral2D9N(model_part, error_message) == false) successful=false;
-    if(TestQuadrilateralInterface2D4N(model_part, error_message) == false) successful=false;
+    if(StreamTestQuadrilateral2D4N(model_part, error_message) == false) successful=false;
+    if(StreamTestQuadrilateral2D9N(model_part, error_message) == false) successful=false;
+    if(StreamTestQuadrilateralInterface2D4N(model_part, error_message) == false) successful=false;
 
-    if(TestTetrahedra3D4N(model_part, error_message) == false) successful=false;
-    if(TestTetrahedra3D10N(model_part, error_message) == false) successful=false;
+    if(StreamTestTetrahedra3D4N(model_part, error_message) == false) successful=false;
+    if(StreamTestTetrahedra3D10N(model_part, error_message) == false) successful=false;
 
-    if(TestHexahedra3D8N(model_part, error_message) == false) successful=false;
-    if(TestHexahedra3D20N(model_part, error_message) == false) successful=false;
-    if(TestHexahedra3D27N(model_part, error_message) == false) successful=false;
-    if(TestHexahedraInterface3D8N(model_part, error_message) == false) successful=false;
+    if(StreamTestHexahedra3D8N(model_part, error_message) == false) successful=false;
+    if(StreamTestHexahedra3D20N(model_part, error_message) == false) successful=false;
+    if(StreamTestHexahedra3D27N(model_part, error_message) == false) successful=false;
+    if(StreamTestHexahedraInterface3D8N(model_part, error_message) == false) successful=false;
 
-    if(TestPrism3D6N(model_part, error_message) == false) successful=false;
-    if(TestPrism3D15N(model_part, error_message) == false) successful=false; 
-    if(TestPrismInterface3D6N(model_part, error_message) == false) successful=false;
+    if(StreamTestPrism3D6N(model_part, error_message) == false) successful=false;
+    if(StreamTestPrism3D15N(model_part, error_message) == false) successful=false; 
+    if(StreamTestPrismInterface3D6N(model_part, error_message) == false) successful=false;
 
     KRATOS_WARNING_IF("GeometryTesterUtility", !successful) << "Some errors were detected in the GeometryTester Utility\n" << error_message.str() << std::endl;
 
@@ -92,7 +92,7 @@ bool GeometryTesterUtility::RunTest(Model& rModel)
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestTetrahedra3D4N(
+bool GeometryTesterUtility::StreamTestTetrahedra3D4N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -136,7 +136,7 @@ bool GeometryTesterUtility::TestTetrahedra3D4N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestTetrahedra3D10N(
+bool GeometryTesterUtility::StreamTestTetrahedra3D10N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -178,7 +178,7 @@ bool GeometryTesterUtility::TestTetrahedra3D10N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestTriangle2D3N(
+bool GeometryTesterUtility::StreamTestTriangle2D3N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -222,7 +222,7 @@ bool GeometryTesterUtility::TestTriangle2D3N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestTriangle2D6N(
+bool GeometryTesterUtility::StreamTestTriangle2D6N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -261,7 +261,7 @@ bool GeometryTesterUtility::TestTriangle2D6N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestQuadrilateral2D4N(
+bool GeometryTesterUtility::StreamTestQuadrilateral2D4N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -299,7 +299,7 @@ bool GeometryTesterUtility::TestQuadrilateral2D4N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestQuadrilateral2D9N(
+bool GeometryTesterUtility::StreamTestQuadrilateral2D9N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -339,7 +339,7 @@ bool GeometryTesterUtility::TestQuadrilateral2D9N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestQuadrilateralInterface2D4N(
+bool GeometryTesterUtility::StreamTestQuadrilateralInterface2D4N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -365,7 +365,7 @@ bool GeometryTesterUtility::TestQuadrilateralInterface2D4N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestHexahedra3D8N(
+bool GeometryTesterUtility::StreamTestHexahedra3D8N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -409,7 +409,7 @@ bool GeometryTesterUtility::TestHexahedra3D8N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestHexahedra3D20N(
+bool GeometryTesterUtility::StreamTestHexahedra3D20N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -452,7 +452,7 @@ bool GeometryTesterUtility::TestHexahedra3D20N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestHexahedra3D27N(
+bool GeometryTesterUtility::StreamTestHexahedra3D27N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -507,7 +507,7 @@ bool GeometryTesterUtility::TestHexahedra3D27N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestHexahedraInterface3D8N(
+bool GeometryTesterUtility::StreamTestHexahedraInterface3D8N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -534,7 +534,7 @@ bool GeometryTesterUtility::TestHexahedraInterface3D8N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestPrism3D6N(
+bool GeometryTesterUtility::StreamTestPrism3D6N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -575,7 +575,7 @@ bool GeometryTesterUtility::TestPrism3D6N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestPrism3D15N(
+bool GeometryTesterUtility::StreamTestPrism3D15N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
@@ -616,7 +616,7 @@ bool GeometryTesterUtility::TestPrism3D15N(
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool GeometryTesterUtility::TestPrismInterface3D6N(
+bool GeometryTesterUtility::StreamTestPrismInterface3D6N(
     ModelPart& rModelPart,
     std::stringstream& rErrorMessage
     )
