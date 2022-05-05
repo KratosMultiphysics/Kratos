@@ -9,3 +9,5 @@ The Fluid Dynamics Biomedical Application contains the biomedical Computational 
 - Calculation of the Wall Shear Stress (WSS).
 
 - Calculation of other blood flow related magnitudes (OSI, TWSS, ECAP, ...)
+
+- Support for parabolic inlet profiles in arbitrary blood vessel geometries
