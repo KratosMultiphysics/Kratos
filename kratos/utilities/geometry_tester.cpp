@@ -577,11 +577,11 @@ bool GeometryTesterUtility::TestPrism3D15N(
     std::stringstream& rErrorMessage
     )
 {
-    Prism3D15<Node<3> > geom( rModelPart.pGetNode(1),  rModelPart.pGetNode(2),  rModelPart.pGetNode(3),
-                            rModelPart.pGetNode(5),  rModelPart.pGetNode(7),  rModelPart.pGetNode(4),
+    Prism3D15<Node<3> > geom( rModelPart.pGetNode(1),  rModelPart.pGetNode(3),  rModelPart.pGetNode(7),
+                            rModelPart.pGetNode(19),  rModelPart.pGetNode(21),  rModelPart.pGetNode(25),
+                            rModelPart.pGetNode(2), rModelPart.pGetNode(5), rModelPart.pGetNode(4),
                             rModelPart.pGetNode(10), rModelPart.pGetNode(12), rModelPart.pGetNode(16),
-                            rModelPart.pGetNode(19), rModelPart.pGetNode(20), rModelPart.pGetNode(21),
-                            rModelPart.pGetNode(23), rModelPart.pGetNode(25), rModelPart.pGetNode(22)
+                            rModelPart.pGetNode(20), rModelPart.pGetNode(23), rModelPart.pGetNode(22)
                             );
 
     bool successful = true;
