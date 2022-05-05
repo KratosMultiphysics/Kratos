@@ -1,5 +1,5 @@
 ---
-title:  Creating the Python Solver file
+title: Creating the Python Solver file
 keywords: 
 tags: [Tutorial-Creating-the-Python-Solver-file.md]
 sidebar: kratos_for_developers

@@ -1,5 +1,5 @@
 ---
-title:  Creating an Utility
+title: Creating an Utility
 keywords: 
 tags: [Tutorial-Creating-an-Utility.md]
 sidebar: kratos_for_developers

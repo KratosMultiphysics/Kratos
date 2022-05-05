@@ -1,5 +1,5 @@
 ---
-title:  Editing the main files
+title: Editing the main files
 keywords: 
 tags: [Tutorial-Editing-the-main-files.md]
 sidebar: kratos_for_developers

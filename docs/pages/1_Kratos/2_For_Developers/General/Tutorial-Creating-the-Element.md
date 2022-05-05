@@ -1,5 +1,5 @@
 ---
-title:  Creating the Element
+title: Creating the Element
 keywords: 
 tags: [Tutorial-Creating-the-Element.md]
 sidebar: kratos_for_developers

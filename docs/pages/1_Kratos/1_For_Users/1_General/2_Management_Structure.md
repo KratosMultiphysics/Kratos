@@ -1,9 +1,9 @@
 ---
 title: Management Structure
-keywords:
+keywords: 
 tags: [Management-Structure.md]
 sidebar: kratos_for_users
-summary:
+summary: 
 ---
 
 # Steering Committee

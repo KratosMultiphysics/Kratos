@@ -1,9 +1,9 @@
 ---
 title: Basic DEM Benchmarking12
-keywords:
+keywords: 
 tags: [Basic-DEM-Benchmarking.md]
 sidebar: discrete_element_modelling
-summary:
+summary: 
 ---
 
 ## Benchmark definition

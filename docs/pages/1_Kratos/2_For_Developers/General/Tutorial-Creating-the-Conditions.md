@@ -1,5 +1,5 @@
 ---
-title:  Creating the Conditions
+title: Creating the Conditions
 keywords: 
 tags: [Tutorial-Creating-the-Conditions.md]
 sidebar: kratos_for_developers

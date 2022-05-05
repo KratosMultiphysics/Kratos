@@ -1,9 +1,9 @@
 ---
 title: General Structure
-keywords:
+keywords: 
 tags: [General-Structure]
 sidebar: kratos_for_users
-summary:
+summary: 
 ---
 
 Kratos is designed as a framework for building multi-disciplinary finite element programs. Generality in design

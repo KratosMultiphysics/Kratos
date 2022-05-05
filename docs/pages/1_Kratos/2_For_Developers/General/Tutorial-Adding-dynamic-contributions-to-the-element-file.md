@@ -1,5 +1,5 @@
 ---
-title:  Adding dynamic contributions to the element file
+title: Adding dynamic contributions to the element file
 keywords: 
 tags: [Tutorial-Adding-dynamic-contributions-to-the-element-file.md]
 sidebar: kratos_for_developers

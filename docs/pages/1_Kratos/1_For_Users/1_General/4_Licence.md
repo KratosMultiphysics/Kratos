@@ -1,9 +1,9 @@
 ---
-title: Licence
-keywords:
+title: Copyright and Licence
+keywords: 
 tags: [Licence.md]
 sidebar: kratos_for_users
-summary:
+summary: 
 ---
 
 # Kratos Multi-Physics

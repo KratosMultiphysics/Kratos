@@ -29,6 +29,19 @@ def GetFileIndex(file_name: Path) -> int:
         index = int(relative_file_name[:pos])
     return index
 
+def GetPrettyName(file_path: Path) -> str:
+    file_name = str(file_path.relative_to(file_path.parent))
+    if file_path.is_file():
+        char_index = file_name.rfind(".")
+        if char_index != -1:
+            file_name = file_name[:char_index]
+
+    char_index = file_name.find("_")
+    if char_index != -1 and file_name[:char_index].isnumeric():
+        file_name = file_name[char_index+1:]
+    file_name = file_name.replace("_", " ")
+    return file_name
+
 def CreateNavigationBarEntry(entry_info: dict) -> str:
     if "title" not in entry_info.keys():
         raise Exception("title is not found in entry {:s}".format(entry_info))
@@ -77,11 +90,7 @@ def GetEntryDict(current_path: Path) -> dict:
                 entry_dict["title"] = line[6:-1].strip()
         entry_dict["url"] = GetAbsolutePath(str(current_path))[:-2] + "html"
     else:
-        folder_name = str(current_path.relative_to(current_path.parent))
-        index_pos = folder_name.find("_")
-        if index_pos != -1 and folder_name[:index_pos].isnumeric():
-            folder_name = folder_name[index_pos+1:]
-        entry_dict["title"] = folder_name.replace("_", " ")
+        entry_dict["title"] = GetPrettyName(current_path)
 
     entry_dict["output"] = "web"
     entry_dict["path"] = current_path
@@ -187,35 +196,89 @@ def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
 
     return list_of_strings
 
-def UpdateMetaData(current_entry: dict, side_bar_name: str):
-    current_path = current_entry["path"]
-    if current_path.is_file() and str(current_path).endswith(".md"):
-        with open(str(current_path), "r") as file_input:
+def GetDataFromFileEntry(file_path: Path):
+    if file_path.is_file() and str(file_path).endswith(".md"):
+        with open(str(file_path), "r") as file_input:
             lines = file_input.readlines()
+        meta_data_dict = {}
+        if lines[0] == "---\n":
+            closing_index = lines[1:].index("---\n") + 1
+            for line in lines[1:closing_index]:
+                line_data = line[:-1].strip().split(":")
+                meta_data_dict[line_data[0].strip()] = line_data[1].strip()
+            return meta_data_dict, lines[closing_index+1:]
+        else:
+            return meta_data_dict, lines
+    else:
+        return None, None
 
-        closing_index = lines[1:].index("---\n") + 1
-        output_lines = []
-        found_side_bar = False
-        for line in lines[: closing_index]:
-            if line.startswith("sidebar:"):
-                found_side_bar = True
-                current_side_bar = line[line.find(":")+1:-1].strip()
-                if current_side_bar != side_bar_name:
-                    print("Warning: Side bar entry of \"{:s}\" does not match with the identified side bar name of \"{:s}\" for file at {:s}. Updating the side bar entry with identified side bar name.".format(current_side_bar, side_bar_name, str(current_path)))
-                output_lines.append("sidebar: {:s}\n".format(side_bar_name))
-            else:
-                output_lines.append(line)
+def FillDataFileEntries(file_path: Path, default_entries: OrderedDict):
+    meta_data_dict, content = GetDataFromFileEntry(file_path)
+    copied_default_entries = dict(default_entries)
 
-        if not found_side_bar:
-            print("Warning: Side bar entry is not found for file at {:s}. Adding \"{:s}\" as side bar.".format(str(current_path), side_bar_name))
+    replacement_tag_dict = {
+        "<PRETTY_FILE_NAME>": GetPrettyName(file_path),
+        "<FILE_NAME>": str(file_path.relative_to(file_path.parent)),
+        "<ABSOLUTE_FILE_NAME>": str(file_path.absolute())
+    }
 
-            output_lines.append("sidebar: {:s}\n".format(side_bar_name))
-        output_lines.extend(lines[closing_index:])
+    for k1 in copied_default_entries.keys():
+        for k2, v2 in replacement_tag_dict.items():
+            copied_default_entries[k1] = copied_default_entries[k1].replace(k2, v2)
 
-        with open(str(current_path), "w") as file_output:
-            file_output.writelines(output_lines)
+    # check if it is a file with content
+    if content is not None:
+        if meta_data_dict is not None:
+            # now add missing entries from the defaults
+            for k, v in copied_default_entries.items():
+                if v.startswith("<!>"):
+                    v = v[3:]
+                    if v != meta_data_dict[k]:
+                        print("Warning: {:s} of file at {:s} is \"{:s}\" which is different from forced defaults of \"{:s}\". Overwriting with forced default value.".format(k, str(file_path), meta_data_dict[k], v))
+                    meta_data_dict[k] = v
+                else:
+                    if not k in meta_data_dict.keys():
+                        meta_data_dict[k] = v
+        else:
+            meta_data_dict = copied_default_entries
+
+        # now create ordered dict from the following order
+        ordered_meta_data_dict = OrderedDict()
+        for k in default_entries.keys():
+            ordered_meta_data_dict[k] = meta_data_dict[k]
+
+        with open(str(file_path), "w") as file_output:
+            file_output.write("---\n")
+
+            for k, v in ordered_meta_data_dict.items():
+                file_output.write("{:s}: {:s}\n".format(k, v))
+
+            file_output.write("---\n")
+            file_output.writelines(content)
+
+def GetFilesList(current_path: Path) -> list[Path]:
+    list_of_files = []
+    for iter_dir in current_path.iterdir():
+        if iter_dir.is_file():
+            list_of_files.append(iter_dir)
+        else:
+            list_of_files.extend(GetFilesList(iter_dir))
+
+    return list_of_files
 
 if __name__ == "__main__":
+    list_of_files = GetFilesList(Path("pages"))
+    defaults_dict = OrderedDict()
+    defaults_dict["title"] = "<PRETTY_FILE_NAME>"
+    defaults_dict["keywords"] = ""
+    defaults_dict["tags"] = "[<FILE_NAME>]"
+    defaults_dict["sidebar"] = "<DEFAULT_SIDE_BAR>"
+    defaults_dict["summary"] = ""
+
+    print("Processing pages for meta data completeness...")
+    for file in list_of_files:
+        FillDataFileEntries(file, defaults_dict)
+
     print("Creating top navigation bar...")
     # generate top navigation bar
     with open("_data/topnav.yml.orig", "r") as file_input:
@@ -236,7 +299,6 @@ if __name__ == "__main__":
             for sub_itr_dir in iter_dir.iterdir():
                 if sub_itr_dir.is_dir():
                     print("Creating side bar for {:s}...".format(str(sub_itr_dir)))
-
                     root_dict = GetEntryDict(sub_itr_dir)
                     json_settings = GetDirEntryDictFromJson(sub_itr_dir)
                     if "product" in json_settings:
@@ -244,16 +306,20 @@ if __name__ == "__main__":
                     else:
                         root_dict["product"] = root_dict["title"]
                     root_dict["title"] = "sidebar"
-                    list_of_entries = CreateNavigationBarStructure(
-                            root_dict, 0, 3)
 
                     if "file_name" in json_settings:
                         file_name = json_settings["file_name"]
                     else:
                         file_name = str(root_dict["path"]).replace("/", "_")
 
-                    for entry in list_of_entries:
-                        UpdateMetaData(entry, file_name)
+                    list_of_files = GetFilesList(sub_itr_dir)
+                    # forcefully update side bar with <!> prefix flag
+                    defaults_dict["sidebar"] = "<!>{:s}".format(file_name)
+                    for file in list_of_files:
+                        FillDataFileEntries(file, defaults_dict)
+
+                    list_of_entries = CreateNavigationBarStructure(
+                            root_dict, 0, 3)
 
                     list_of_entries = GenerateStrings(list_of_entries)
 

@@ -10,16 +10,16 @@ entries:
       url: /pages/1_Kratos/1_For_Users/1_General/1_Overview.html
       output: web
     - title: Management Structure
-      url: /pages/1_Kratos/1_For_Users/1_General/2_Management-Structure.html
+      url: /pages/1_Kratos/1_For_Users/1_General/2_Management_Structure.html
       output: web
     - title: General Structure
       url: /pages/1_Kratos/1_For_Users/1_General/3_General_Structure.html
       output: web
-    - title: Licence
+    - title: Copyright and Licence
       url: /pages/1_Kratos/1_For_Users/1_General/4_Licence.html
       output: web
     - title: How to configure clang‐format
-      url: /pages/1_Kratos/1_For_Users/1_General/How-to-configure-clang‐format.html
+      url: /pages/1_Kratos/1_For_Users/1_General/5_How-to-configure-clang‐format.html
       output: web
   - title: How to get Kratos
     output: web
@@ -114,12 +114,31 @@ entries:
     - title: Python Script  Reading ProjectParameters
       url: /pages/1_Kratos/1_For_Users/3_Getting started/project-parameters.html
       output: web
-    - title: Python Script  Reading ModelPart From Input File
-      url: /pages/1_Kratos/1_For_Users/3_Getting started/reading-input.html
-      output: web
     - title: Python Tutorials
       url: /pages/1_Kratos/1_For_Users/3_Getting started/tutorials.html
       output: web
     - title: Python Script  Writing Output File
       url: /pages/1_Kratos/1_For_Users/3_Getting started/writing-output.html
       output: web
+      subfolders:
+      - title: File structure
+        output: web
+        subfolderitems:
+        - title: Python Script  Reading ModelPart From Input File
+          url: /pages/1_Kratos/1_For_Users/3_Getting started/1_File_structure/reading-input.html
+          output: web
+      - title: Running simulations
+        output: web
+        subfolderitems:
+        - title: 
+          output: web
+      - title: Visualization of output
+        output: web
+        subfolderitems:
+        - title: 
+          output: web
+      - title: Tutorials
+        output: web
+        subfolderitems:
+        - title: 
+          output: web
