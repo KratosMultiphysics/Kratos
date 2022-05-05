@@ -15,15 +15,6 @@ topnav_dropdowns:
   - title: Kratos
     output: web
     folderitems:
-    - title: "Page Not Found"
-      url: /pages/1_Kratos/404.html
-      output: web
-    - title: README
-      url: /pages/1_Kratos/README.html
-      output: web
-    - title: _Sidebar
-      url: /pages/1_Kratos/_Sidebar.html
-      output: web
     - title: For Users
       url: /pages/1_Kratos/1_For_Users/1_General/1_Overview.html
       output: web
@@ -36,8 +27,6 @@ topnav_dropdowns:
   - title: Applications
     output: web
     folderitems:
-    - title: 
-      output: web
     - title: Discrete Element Modelling Application
       url: /pages/2_Applications/Discrete_Element_Modelling_Application/General/Basic-DEM-Benchmarking.html
       output: web

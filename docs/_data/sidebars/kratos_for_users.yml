@@ -16,7 +16,7 @@ entries:
       url: /pages/1_Kratos/1_For_Users/1_General/3_General_Structure.html
       output: web
     - title: Copyright and Licence
-      url: /pages/1_Kratos/1_For_Users/1_General/4_Licence.html
+      url: /pages/1_Kratos/1_For_Users/1_General/4_Copyright_and_Licence.html
       output: web
     - title: How to configure clang‐format
       url: /pages/1_Kratos/1_For_Users/1_General/5_How-to-configure-clang‐format.html
