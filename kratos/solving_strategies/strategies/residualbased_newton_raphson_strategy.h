@@ -789,25 +789,24 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
         ModelPart& r_model_part = BaseType::GetModelPart();
 
-        //set up the system, operation performed just once unless it is required
-        //to reform the dof set at each iteration
+        // Set up the system, operation performed just once unless it is required
+        // to reform the dof set at each iteration
         BuiltinTimer system_construction_time;
-        if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-            mReformDofSetAtEachStep == true)
+        if (!p_builder_and_solver->GetDofSetIsInitializedFlag() || mReformDofSetAtEachStep)
         {
-            //setting up the list of the DOFs to be solved
+            // Setting up the list of the DOFs to be solved
             BuiltinTimer setup_dofs_time;
             p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
                 << setup_dofs_time.ElapsedSeconds() << std::endl;
 
-            //shaping correctly the system
+            // Shaping correctly the system
             BuiltinTimer setup_system_time;
             p_builder_and_solver->SetUpSystem(r_model_part);
             KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
                 << setup_system_time.ElapsedSeconds() << std::endl;
 
-            //setting up the Vectors involved to the correct size
+            // Setting up the Vectors involved to the correct size
             BuiltinTimer system_matrix_resize_time;
             p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                 r_model_part);
@@ -829,7 +828,7 @@ class ResidualBasedNewtonRaphsonStrategy
         p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
         // Initialisation of the convergence criteria
-        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag())
         {
             TSparseSpace::SetToZero(rb);
             p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
@@ -837,8 +836,9 @@ class ResidualBasedNewtonRaphsonStrategy
 
         mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
-        if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
+        if (mpConvergenceCriteria->GetActualizeRHSflag()) {
             TSparseSpace::SetToZero(rb);
+        }
 
         KRATOS_CATCH("");
     }
