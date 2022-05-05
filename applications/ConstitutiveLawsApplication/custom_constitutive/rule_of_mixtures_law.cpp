@@ -1794,6 +1794,7 @@ void ParallelRuleOfMixturesLaw<TDim>::FinalizeMaterialResponsePK2(Parameters& rV
                 minitial_threshold[i] = initial_threshold[i];
                 mthreshold[i] = threshold[i];
                 mGc[i] = Gc[i];
+                mAParameter[i] = AParameter[i];
                 mDamageIndicator[i] = 2;
             }
             const double Fp = T_eq - threshold[i];
