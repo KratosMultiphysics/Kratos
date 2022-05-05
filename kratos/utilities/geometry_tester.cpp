@@ -67,19 +67,21 @@ bool GeometryTesterUtility::RunTest(Model& rModel)
 
     if(TestTriangle2D3N(model_part, error_message) == false) successful=false;
     if(TestTriangle2D6N(model_part, error_message) == false) successful=false;
+    
     if(TestQuadrilateral2D4N(model_part, error_message) == false) successful=false;
     if(TestQuadrilateral2D9N(model_part, error_message) == false) successful=false;
     if(TestQuadrilateralInterface2D4N(model_part, error_message) == false) successful=false;
 
     if(TestTetrahedra3D4N(model_part, error_message) == false) successful=false;
     if(TestTetrahedra3D10N(model_part, error_message) == false) successful=false;
+
     if(TestHexahedra3D8N(model_part, error_message) == false) successful=false;
     if(TestHexahedra3D20N(model_part, error_message) == false) successful=false;
     if(TestHexahedra3D27N(model_part, error_message) == false) successful=false;
     if(TestHexahedraInterface3D8N(model_part, error_message) == false) successful=false;
 
     if(TestPrism3D6N(model_part, error_message) == false) successful=false;
-    //if(TestPrism3D15N(model_part, error_message) == false) successful=false; 
+    if(TestPrism3D15N(model_part, error_message) == false) successful=false; 
     if(TestPrismInterface3D6N(model_part, error_message) == false) successful=false;
 
     KRATOS_WARNING_IF("GeometryTesterUtility", !successful) << "Some errors were detected in the GeometryTester Utility\n" << error_message.str() << std::endl;
