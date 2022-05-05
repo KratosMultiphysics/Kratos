@@ -126,6 +126,7 @@ void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rRe
 
     // Additional check to modify zero shape function values
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const GeometryType& r_geometry = GetGeometry();
 
     double denominator = 1.0;
     const double small_cut_instability_tolerance = 0.01;
@@ -138,6 +139,14 @@ void MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues( Vector& rRe
     }
 
     rResult = rResult / denominator;
+
+    // Nodes with zero mass are not connected to the body--> zero shape function result in zero line and columns in stiffness matrix
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) <= std::numeric_limits<double>::epsilon()){
+            rResult[i]=0.0;
+        }
+    }
 
     KRATOS_CATCH( "" )
 }
