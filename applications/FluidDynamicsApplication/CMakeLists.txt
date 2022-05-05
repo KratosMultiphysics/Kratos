@@ -93,6 +93,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_physics_based_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_entropy_viscosity_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_aerodynamic_coefficients_process.cpp
 )
 
 ## define python interface sources
