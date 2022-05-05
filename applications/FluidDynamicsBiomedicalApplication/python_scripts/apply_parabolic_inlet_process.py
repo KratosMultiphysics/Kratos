@@ -23,9 +23,9 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         default_settings = self.GetDefaultParameters()
         if settings.Has("parabola_vertex_value"):
             if settings["parabola_vertex_value"].IsString():
-                settings["parabola_vertex_value"].SetString("0.0")
+                default_settings["parabola_vertex_value"].SetString("0.0")
         else:
-            raise Exception("'max_value' not found. It needs to be user-provided.")
+            raise Exception("'parabola_vertex_value' not found. It needs to be user-provided.")
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
