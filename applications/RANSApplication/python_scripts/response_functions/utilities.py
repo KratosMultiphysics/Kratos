@@ -144,6 +144,8 @@ def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, respon
                 if is_valid_respones_function:
                     return process_settings
 
+    Kratos.Logger.PrintWarning("", "No output response function found maching following settings.\n{:s}".format(response_function_parameters))
+
     return None
 
 def ReadResponseValuesFile(file_name):
