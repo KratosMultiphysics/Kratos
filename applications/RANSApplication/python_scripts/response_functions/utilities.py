@@ -127,7 +127,6 @@ def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
 
 def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, response_function_parameters):
     output_processes_categories_list = kratos_parameters["output_processes"]
-    print(output_processes_categories_list)
     for _, value in output_processes_categories_list.items():
         for process_settings in value:
             if (
