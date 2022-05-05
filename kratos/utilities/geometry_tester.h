@@ -9,12 +9,11 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_GEOMETRY_TEST_H_INCLUDED )
 #define  KRATOS_GEOMETRY_TEST_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -22,7 +21,6 @@
 #include <sstream>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
