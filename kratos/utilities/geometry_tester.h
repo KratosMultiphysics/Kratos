@@ -76,7 +76,6 @@ namespace Kratos
  * @class GeometryTesterUtility
  * @ingroup KratosCore
  * @brief This utility tests the geometries
- * @todo Migrate to the new cpp test interface
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
 */
