@@ -44,13 +44,13 @@ class DomainIntegrated3DVectorMagnitudeSquarePowerMean(ResponseFunctionInterface
         with open(adjoint_project_parameters_file, "r") as file_input:
             adjoint_settings = Kratos.Parameters(file_input.read())
 
-        adjoint_response_function_settings = adjoint_settings["solver_settings"]["response_function_settings"]
-        response_type = adjoint_response_function_settings["response_type"].GetString()
+        self.adjoint_response_function_settings = adjoint_settings["solver_settings"]["response_function_settings"]
+        response_type = self.adjoint_response_function_settings["response_type"].GetString()
         if (response_type != "domain_integrated_3d_vector_magnitude_square_power_mean"):
             raise Exception("DomainIntegrated3DVectorMagnitudeSquarePowerMeanneeds \"response_type\" in \"response_function_settings\" of \"adjoint_project_parameters_file\" file to be domain_integrated_3d_vector_magnitude_square_power_mean. [ \"adjoint_project_parameters_file\" = {:s}, \"response_type\" = {:s} ].".format(
                 adjoint_project_parameters_file, response_type))
 
-        self.model_part_name = adjoint_response_function_settings["custom_settings"]["model_part_name"].GetString()
+        self.model_part_name = self.adjoint_response_function_settings["custom_settings"]["model_part_name"].GetString()
 
         # check for model part name settings
         primal_project_parameters_file = self.problem_setup_folder / self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
@@ -90,7 +90,7 @@ class DomainIntegrated3DVectorMagnitudeSquarePowerMean(ResponseFunctionInterface
         primal_parameters = SolvePrimalProblem(primal_settings_file_name)
 
         # calculate lift and drag
-        self.value = CalculateTimeAveragedResponseValue(primal_parameters, self.model_part_name)
+        self.value = CalculateTimeAveragedResponseValue(primal_parameters, self.model_part_name, self.adjoint_response_function_settings)
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 

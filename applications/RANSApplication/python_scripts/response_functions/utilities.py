@@ -125,22 +125,24 @@ def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
 
     return None
 
-def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name):
-    auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
-    for process_settings in auxiliar_process_list:
-        if (
-            process_settings.Has("python_module") and process_settings["python_module"].GetString() == "response_function_output_process" and
-            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication"):
+def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, response_function_parameters):
+    output_processes_categories_list = kratos_parameters["output_processes"]
+    for _, value in output_processes_categories_list.items():
+        for process_settings in value:
+            if (
+                process_settings.Has("python_module") and process_settings["python_module"].GetString() == "response_function_output_process" and
+                process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication"):
+                # found a reponse function output process
 
-            process_model_part_name  = ""
-            if process_settings["Parameters"].Has("model_part_name"):
-                 process_model_part_name = process_settings["Parameters"]["model_part_name"].GetString()
+                process_parameters = process_settings["Parameters"]
+                is_valid_respones_function = True
 
-            if process_settings["Parameters"]["response_settings"].Has("model_part_name"):
-                process_model_part_name += "." + process_settings["Parameters"]["response_settings"]["model_part_name"].GetString()
+                is_valid_respones_function = is_valid_respones_function and process_parameters["response_type"].GetString() ==  response_function_parameters["response_type"].GetString()
+                is_valid_respones_function = is_valid_respones_function and process_parameters["model_part_name"].GetString() == model_part_name
+                is_valid_respones_function = is_valid_respones_function and process_parameters["response_settings"].IsEquivalentTo(response_function_parameters["custom_settings"])
 
-            if process_model_part_name == model_part_name:
-                return process_settings
+                if is_valid_respones_function:
+                    return process_settings
 
     return None
 
@@ -159,8 +161,8 @@ def ReadResponseValuesFile(file_name):
         values.append(value)
     return time_steps, values
 
-def GetResponseValues(kratos_parameters, model_part_name):
-    output_process = _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name)
+def GetResponseValues(kratos_parameters, model_part_name, response_function_parameters):
+    output_process = _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, response_function_parameters)
     if (output_process is not None):
         file_path = Path(".")
         if output_process["Parameters"]["output_file_settings"].Has("output_path"):
@@ -171,8 +173,8 @@ def GetResponseValues(kratos_parameters, model_part_name):
     else:
         raise RuntimeError("No \"response_function_output_process\" found in auxiliar_process_list matching {:s} model part".format(model_part_name))
 
-def CalculateTimeAveragedResponseValue(kratos_parameters, model_part_name, start_time = 0.0):
-    time_steps, values = GetResponseValues(kratos_parameters, model_part_name)
+def CalculateTimeAveragedResponseValue(kratos_parameters, model_part_name, response_function_parameters, start_time = 0.0):
+    time_steps, values = GetResponseValues(kratos_parameters, model_part_name, response_function_parameters)
     total_value = 0.0
     for index, value in enumerate(reversed(values)):
         if (time_steps[len(time_steps) - index - 1] >= start_time):
