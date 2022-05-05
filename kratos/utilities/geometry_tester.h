@@ -55,7 +55,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
 */
-class GeometryTesterUtility
+class KRATOS_API(KRATOS_CORE) GeometryTesterUtility
 {
 public:
     ///@name Type Definitions
