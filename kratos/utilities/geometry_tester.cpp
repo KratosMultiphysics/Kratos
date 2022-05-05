@@ -919,12 +919,12 @@ bool GeometryTesterUtility::VerfiyShapeFunctionsValues(
     }
 
     if( norm_2(residual) < 1e-15 ) {
-    return true;
+        return true;
     } else {
-    rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
-    rErrorMessage << "Failed VerfiyShapeFunctionsValues test." << std::endl;
-    rErrorMessage << "The difference between exact and interpolated coordinates was : " << residual << std::endl;
-    return false;
+        rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
+        rErrorMessage << "Failed VerfiyShapeFunctionsValues test." << std::endl;
+        rErrorMessage << "The difference between exact and interpolated coordinates was : " << residual << std::endl;
+        return false;
     }
 }
 
