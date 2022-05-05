@@ -64,6 +64,12 @@ public:
     /// Pointer definition of GeometryTesterUtility
     KRATOS_CLASS_POINTER_DEFINITION(GeometryTesterUtility);
 
+    /// Node type
+    typedef Node<3> NodeType;
+
+    /// Geometry type
+    typedef Geometry<NodeType> GeometryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -82,73 +88,162 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This function tests the geometries
+     * @param rModel A model containing a model part
+     * @return true If teh test fails, true otherwise¡
+     */
     bool RunTest(Model& rModel);
 
+    /**
+     * @brief This function tests the Tetrahedra3D4N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestTetrahedra3D4N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Tetrahedra3D10N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestTetrahedra3D10N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Triangle2D3N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestTriangle2D3N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Triangle2D6N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestTriangle2D6N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Quadrilateral2D4N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestQuadrilateral2D4N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Quadrilateral2D9N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestQuadrilateral2D9N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Quadrilateral2D4N (interface)
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestQuadrilateralInterface2D4N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Hexahedra3D8N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestHexahedra3D8N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Hexahedra3D20N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestHexahedra3D20N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Hexahedra3D27N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestHexahedra3D27N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Hexahedra3D8N (interface)
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestHexahedraInterface3D8N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Prism3D6N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestPrism3D6N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function tests the Prism3D15N
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
    bool TestPrism3D15N(
        ModelPart& rModelPart,
        std::stringstream& rErrorMessage
        );
 
+    /**
+     * @brief This function tests the Prism3D6N (interface)
+     * @param rModelPart Model part containing nodes
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool TestPrismInterface3D6N(
         ModelPart& rModelPart,
         std::stringstream& rErrorMessage
@@ -209,6 +304,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This function generates the nodes of the model part
+     * @param rModelPart Model part containing nodes
+     */
     void GenerateNodes(ModelPart& rModelPart);
 
     ///@}
@@ -239,45 +338,93 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Here we verify the area of the element
+     * @param rGeometry The geometry
+     * @param ThisMethod The integration method
+     * @param ReferenceArea The reference area
+     * @param rErrorMessage The error message
+     */
     bool VerifyAreaByIntegration( 
-        Geometry<Node<3> >& geom, 
-        Geometry<Node<3> >::IntegrationMethod ThisMethod, 
-        const double reference_area, 
+        GeometryType& rGeometry, 
+        GeometryType::IntegrationMethod ThisMethod, 
+        const double ReferanceArea, 
         std::stringstream& rErrorMessage
         );
 
-    //here we verify that a  "displacement field" which varies linearly in space, produces the expected strain distribution.
-    //this shall be considered a test for shape function derivatives
+    /**
+     * @brief Here we verify that a  "displacement field" which varies linearly in space, produces the expected strain distribution.
+     * @details This shall be considered a test for shape function derivatives
+     * @param rGeometry The geometry
+     * @param ThisMethod The integration method
+     * @param rErrorMessage The error message
+     */
     void VerifyStrainExactness( 
-        Geometry<Node<3> >& geom,  
-        Geometry<Node<3> >::IntegrationMethod ThisMethod, 
+        GeometryType& rGeometry,  
+        GeometryType::IntegrationMethod ThisMethod, 
         std::stringstream& rErrorMessage
         );
 
-    //this function computes the linear strain matrix - useful to verify that a constant strain can be correctly reproduced
+    /**
+     * @brief This function computes the linear strain matrix - useful to verify that a constant strain can be correctly reproduced
+     * @param rB The B matrix
+     * @param rDN_DX The shape function derivatives
+     * @param NumberOfNodes The number of nodes
+     * @param Dimension The dimension of the problem
+     */
     void CalculateB(
-        Matrix& B,
-        Matrix& DN_DX,
-        const std::size_t number_of_nodes,
-        const std::size_t dimension
+        Matrix& rB,
+        Matrix& rDN_DX,
+        const std::size_t NumberOfNodes,
+        const std::size_t Dimension
         );
 
+    /**
+     * @brief This function verifies if the coordinates are inside the geometry
+     * @param rGeometry The geometry
+     * @param rGlobalCoordinates The global coordinates
+     * @param ExpectedResult The expected result
+     * @param rErrorMessage The error message
+     * @return true if the test passes, false otherwise
+     */
     bool VerifyIsInside(
-        Geometry< Node<3> >& geom,
-        Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
-        bool expected_result,
+        GeometryType& rGeometry,
+        GeometryType::CoordinatesArrayType& rGlobalCoordinates,
+        const bool ExpectedResult,
         std::stringstream& rErrorMessage
         );
 
+    /**
+     * @brief This function verifies the shape functions
+     * @param rGeometry The geometry
+     * @param rGlobalCoordinates The global coordinates
+     * @param rErrorMessage The error message
+     * @return true If teh test fails, true otherwise¡
+     */
     bool VerfiyShapeFunctionsValues(
-        Geometry< Node<3> >& geom,
-        Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
+        GeometryType& rGeometry,
+        GeometryType::CoordinatesArrayType& rGlobalCoordinates,
         std::stringstream& rErrorMessage
         );
 
-    std::string GetIntegrationName(Geometry< Node<3> >& geom, Geometry<Node<3> >::IntegrationMethod ThisMethod);
+    /**
+     * @brief Get the name of the intergration method
+     * @param rGeometry The geometry
+     * @param ThisMethod The integration method
+     * @return The integration method name
+     */
+    std::string GetIntegrationName(
+        GeometryType& rGeometry, 
+        GeometryType::IntegrationMethod ThisMethod
+        );
 
-    std::string GetGeometryName(Geometry< Node<3> >& geom);
+    /**
+     * @brief Get the name of the geometry
+     * @param rGeometry The geometry
+     * @return The geometry name
+     */
+    std::string GetGeometryName(GeometryType& rGeometry);
 
     ///@}
     ///@name Private  Access
