@@ -35,6 +35,7 @@ void WssStatisticsUtilities::InitializeWSSVariables(ModelPart& rModelPart)
     block_for_each(rModelPart.Nodes(), [&aux_zero](NodeType& rNode){
         rNode.SetValue(WSS, 0.0);
         rNode.SetValue(RRT, 0.0);
+        rNode.SetValue(OSI, 0.0);
         rNode.SetValue(ECAP, 0.0);
         rNode.SetValue(TWSS, 0.0);
         rNode.SetValue(TAWSS, 0.0);
@@ -114,6 +115,8 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 {
     // Check if buffer size is filled (we need REACTION to be already computed)
     // TODO: Remove this once https://github.com/KratosMultiphysics/Kratos/pull/9592 is merged
+    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(STEP))
+        << "STEP is not in '"<< rModelPart.FullName() <<"' modelpart ProcessInfo container." << std::endl;
     const unsigned int step = rModelPart.GetProcessInfo()[STEP];
     const unsigned int buffer_size = rModelPart.GetBufferSize();
     if (step > buffer_size) {
@@ -132,7 +135,7 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 
             // Calculate OSI and OSI-dependent magnitudes
             double& r_osi = rNode.GetValue(OSI);
-            r_osi = r_twss / r_tawss > 1.0 ? 0.0 : 0.5 * (1.0 - r_tawss/r_twss);
+            r_osi = r_tawss / r_twss > 1.0 ? 0.0 : 0.5 * (1.0 - r_tawss/r_twss);
             if (r_twss > 1.0e-12) {
                 if (std::abs(r_osi - 0.5) < 1.0e-12) {
                     rNode.GetValue(RRT) = 0.0;
