@@ -152,6 +152,14 @@ def CreateNavigationBarStructure(
             dir_dict = GetEntryDict(dir_path)
             list_of_dicts.extend(CreateNavigationBarStructure(dir_dict, navigation_level + 1, max_navigation_level))
 
+    # clean empty dummy dicts which are not required
+    current_index = 0
+    while (current_index < len(list_of_dicts) - 1):
+        if list_of_dicts[current_index]["title"] == "" and list_of_dicts[current_index]["type"] == list_of_dicts[current_index+1]["type"]:
+            del list_of_dicts[current_index]
+        else:
+            current_index += 1
+
     return list_of_dicts
 
 def GetTypeInfo(item_type: str) -> str:
