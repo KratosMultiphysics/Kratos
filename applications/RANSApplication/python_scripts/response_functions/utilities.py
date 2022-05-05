@@ -140,6 +140,9 @@ def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, respon
 
                 is_valid_respones_function = is_valid_respones_function and process_parameters["response_type"].GetString() ==  response_function_parameters["response_type"].GetString()
                 is_valid_respones_function = is_valid_respones_function and process_parameters["model_part_name"].GetString() == model_part_name
+                print(is_valid_respones_function)
+                print(process_parameters["response_settings"])
+                print(response_function_parameters["custom_settings"])
                 is_valid_respones_function = is_valid_respones_function and process_parameters["response_settings"].IsEquivalentTo(response_function_parameters["custom_settings"])
 
                 if is_valid_respones_function:
