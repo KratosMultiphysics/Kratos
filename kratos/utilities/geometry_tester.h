@@ -1069,16 +1069,15 @@ private:
         Geometry< Node<3> >& geom,
         Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
         bool expected_result,
-        std::stringstream& error_msg)
+        std::stringstream& rErrorMessage)
     {
       Geometry< Node<3> >::CoordinatesArrayType local_coordinates;
       if( geom.IsInside(global_coordinates,local_coordinates) == expected_result )
         return true;
-      else
-      {
-        error_msg << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
-        error_msg << "Failed VerifyIsInside test. Expected result was: ";
-        error_msg << ( (expected_result) ? "inside" : "outside" );
+      else {
+        rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
+        rErrorMessage << "Failed VerifyIsInside test. Expected result was: ";
+        rErrorMessage << ( (expected_result) ? "inside" : "outside" );
         return false;
       }
     }
@@ -1086,7 +1085,7 @@ private:
     bool VerfiyShapeFunctionsValues(
         Geometry< Node<3> >& geom,
         Geometry< Node<3> >::CoordinatesArrayType& global_coordinates,
-        std::stringstream& error_msg)
+        std::stringstream& rErrorMessage)
     {
       Geometry< Node<3> >::CoordinatesArrayType local_coordinates;
       geom.PointLocalCoordinates( local_coordinates, global_coordinates );
@@ -1095,20 +1094,16 @@ private:
       geom.ShapeFunctionsValues(shape_functions,local_coordinates);
 
       array_1d<double,3> residual = global_coordinates;
-      for(unsigned int i=0; i<geom.size(); i++)
-      {
+      for(std::size_t i=0; i<geom.size(); i++) {
            residual -= shape_functions[i]*geom[i].Coordinates();
       }
 
-      if( norm_2(residual) < 1e-15 )
-      {
+      if( norm_2(residual) < 1e-15 ) {
         return true;
-      }
-      else
-      {
-        error_msg << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
-        error_msg << "Failed VerfiyShapeFunctionsValues test." << std::endl;
-        error_msg << "The difference between exact and interpolated coordinates was : " << residual << std::endl;
+      } else {
+        rErrorMessage << "Geometry Type = " << GetGeometryName(geom) << " and point = " << global_coordinates << std::endl;
+        rErrorMessage << "Failed VerfiyShapeFunctionsValues test." << std::endl;
+        rErrorMessage << "The difference between exact and interpolated coordinates was : " << residual << std::endl;
         return false;
       }
     }
