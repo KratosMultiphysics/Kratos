@@ -660,7 +660,7 @@ public:
         const std::string& rEntry,
         const Matrix& rValue
         );
-        
+
     /**
      * @brief This method sets the string array contained in the current Parameter
      * @param Value The string array
@@ -789,6 +789,14 @@ public:
         const nlohmann::json& rBaseValue,
         const nlohmann::json& rValueToFind
         ) const;
+
+    /**
+     * @brief Checks if the names and values are the same, no importance to the order and whether this is a subset of the rParameters.
+     * @details Lists have to be ordered, though! Take into account that in Kratos some physical vectors are represented with a list.
+     * @param rParameters The parameters which are equal or larger set
+     * @return True if it has, false othersise
+     */
+    bool IsKeysSubSetWithEquivalentValuesTo(const Parameters& rParameters) const;
 
     /**
      * @brief Checks if the names and values are the same, no importance to the order.
