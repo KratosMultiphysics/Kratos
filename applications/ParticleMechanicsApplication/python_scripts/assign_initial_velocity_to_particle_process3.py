@@ -68,7 +68,7 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
             #self.velocity[1] = 0.0
             #self.velocity[2] = 0.0
 
-            self.velocity[0] = 50*math.sin(math.pi*mp_coord[2]/12)*mp_coord[1]
-            self.velocity[1] = -50*math.sin(math.pi*mp_coord[2]/12)*mp_coord[0]
+            self.velocity[0] = 105*math.sin(math.pi*mp_coord[2]/12)*mp_coord[1]
+            self.velocity[1] = -105*math.sin(math.pi*mp_coord[2]/12)*mp_coord[0]
             self.velocity[2] = 0.0
             element.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY,[self.velocity],model_part.ProcessInfo)
