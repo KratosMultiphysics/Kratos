@@ -54,7 +54,7 @@ void ParabolicProfileUtilities::CalculateWallParallelDistance(
     // Note that these will be the values to be preserved by the parallel distance calculation below
     auto aux_tls = std::make_pair(array_1d<double,3>(), array_1d<double,3>());
     KRATOS_ERROR_IF(rWallModelPart.GetCommunicator().GlobalNumberOfConditions() == 0) << "Wall model part has no conditions." << std::endl;
-    block_for_each(rWallModelPart.Conditions(), aux_tls, [](
+    block_for_each(rWallModelPart.Conditions(), aux_tls, [&rWallModelPart](
         Condition& rCondition,
         std::pair<array_1d<double,3>, array_1d<double,3>>& rTLS)
     {
