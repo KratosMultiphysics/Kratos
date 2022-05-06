@@ -5,7 +5,6 @@ import numpy as np
 import keras
 import tensorflow as tf
 
-import utils
 import networks.network as network
 
 from keras import layers
@@ -95,7 +94,7 @@ class GradModel2(keras.Model):
 
         # Automatic Gradient
         with tf.GradientTape(persistent=True) as tape:
-            y, e = self(x, training=True)
+            y = self(x, training=True)
             loss = self.diff_loss(x, y)
 
         # Compute gradients
@@ -136,34 +135,7 @@ class GradientShallow(network.Network):
 
         self.model_name = "./saved_models/gradient_shallow"
         self.valid = 0.8
-
-    def define_network_old(self, input_data, custom_loss, encoded_size):
-        data = np.transpose(input_data)
-        
-        decoded_size = data.shape[1]
-
-        print(f'{encoded_size=} and {decoded_size=}')
-
-        tfcns = tf.keras.constraints.NonNeg()
-
-        self.model_input = tf.keras.Input(shape=(decoded_size,))
-
-        self.encoder = tf.keras.layers.Dense(decoded_size * 4,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.model_input)
-        self.encoder = tf.keras.layers.LeakyReLU(alpha=0.3)                                                                                                                               (self.encoder)
-        self.encoder = tf.keras.layers.Dense(5,                 activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.encoder)
-        self.decoder = tf.keras.layers.Dense(decoded_size * 0.5,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.encoder)
-        self.decoder = tf.keras.layers.LeakyReLU(alpha=0.3)                                                                                                                               (self.decoder)
-        self.decoder = tf.keras.layers.Dense(decoded_size * 1,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.decoder)
-
-
-        self.encoder_model = GradModel(self.model_input, self.encoder)
-        self.decoder_model = GradModel(self.model_input, self.decoder)
-        ## self.autoenco = GradModel(self.model_input, [self.decoder, self.encoder])
-        self.autoenco.compile(loss=custom_loss, optimizer=tf.keras.optimizers.Adam(learning_rate=0.0025, amsgrad=True), run_eagerly=False)
-        self.autoenco.summary()
-
-        return self.autoenco, self.autoenco
-
+    
     def define_network(self, input_data, custom_loss, encoded_size):
         data = np.transpose(input_data)
         
@@ -174,6 +146,34 @@ class GradientShallow(network.Network):
         tfcns = tf.keras.constraints.NonNeg()
 
         self.model_input = tf.keras.Input(shape=(decoded_size,))
+        self.decod_input = tf.keras.Input(shape=(5,))
+
+        self.encoder = tf.keras.layers.Dense(decoded_size * 4,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.model_input)
+        self.encoder = tf.keras.layers.LeakyReLU(alpha=0.3)                                                                                                                               (self.encoder)
+        self.cmprssd = tf.keras.layers.Dense(5,                 activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.encoder)
+        
+        self.decoder = tf.keras.layers.Dense(decoded_size * 0.5,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.decod_input)
+        self.decoder = tf.keras.layers.LeakyReLU(alpha=0.3)                                                                                                                               (self.decoder)
+        self.decoder = tf.keras.layers.Dense(decoded_size * 1,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.decoder)
+
+        self.encoder_model = GradModel2(self.model_input, self.cmprssd)
+        self.decoder_model = GradModel2(self.decod_input, self.decoder)
+        self.autoenco = GradModel2(self.encoder_model.input, self.decoder_model(self.encoder_model.output))
+        self.autoenco.compile(loss=custom_loss, optimizer=tf.keras.optimizers.Adam(learning_rate=0.00025, amsgrad=True), run_eagerly=False)
+
+        return self.autoenco, self.autoenco
+
+    def define_network_conv(self, input_data, custom_loss, encoded_size):
+        data = np.transpose(input_data)
+        
+        decoded_size = data.shape[1]
+
+        print(f'{encoded_size=} and {decoded_size=}')
+
+        tfcns = tf.keras.constraints.NonNeg()
+
+        self.model_input = tf.keras.Input(shape=(decoded_size,))
+        self.decod_input = tf.keras.Input(shape=(5,))
         self.model_input_cnn = tf.expand_dims(self.model_input, axis=-1)
 
         self.encoder = tf.keras.layers.Conv1D(64, 3, input_shape=(decoded_size,))(self.model_input_cnn)
@@ -186,10 +186,9 @@ class GradientShallow(network.Network):
         self.encoder = tf.keras.layers.MaxPooling1D(2, padding="same")(self.encoder)
         self.encoder = tf.keras.layers.LeakyReLU(alpha=0.3)(self.encoder)
         self.faltten = tf.keras.layers.Reshape((self.encoder.shape[1]*self.encoder.shape[2],), input_shape=self.encoder.shape)(self.encoder)
-    
         self.cmprssd = tf.keras.layers.Dense(5,                                            activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.faltten)
-        self.decoder = tf.keras.layers.Dense(self.encoder.shape[1]*self.encoder.shape[2],  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.cmprssd)
         
+        self.decoder = tf.keras.layers.Dense(self.encoder.shape[1]*self.encoder.shape[2],  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.decod_input)
         self.decoder = tf.keras.layers.Reshape((self.encoder.shape[1], self.encoder.shape[2],), input_shape=(self.encoder.shape[1]*self.encoder.shape[2],))(self.decoder)
 
         self.decoder = tf.keras.layers.Conv1DTranspose(16, 3)(self.decoder)
@@ -205,7 +204,7 @@ class GradientShallow(network.Network):
         self.decoder = tf.keras.layers.Reshape((self.decoder.shape[1]*self.decoder.shape[2],), input_shape=self.decoder.shape)(self.decoder)
         self.decoder_cnn = tf.keras.layers.Dense(decoded_size, activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.decoder)
         
-        self.decoder = tf.keras.layers.Dense(decoded_size * 0.5,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.cmprssd)
+        self.decoder = tf.keras.layers.Dense(decoded_size * 0.5,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.decod_input)
         self.decoder = tf.keras.layers.LeakyReLU(alpha=0.3)(self.decoder)
         self.decoder_atn = tf.keras.layers.Dense(decoded_size * 1,  activation=tf.keras.activations.linear, use_bias=True, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01))(self.decoder)
 
@@ -213,8 +212,13 @@ class GradientShallow(network.Network):
 
         print("outputshape:", self.decoder.shape)
 
-        self.autoenco = GradModel2(self.model_input, [self.decoder, self.encoder])
+        self.encoder_model = GradModel2(self.model_input, self.cmprssd)
+        self.decoder_model = GradModel2(self.decod_input, self.decoder)
+        self.autoenco = GradModel2(self.encoder_model.input, self.decoder_model(self.encoder_model.output))
+
+        # self.autoenco = GradModel2(self.decoder(self.encoder), [self.decoder, self.encoder])
         self.autoenco.compile(loss=custom_loss, optimizer=tf.keras.optimizers.Adam(learning_rate=0.0025, amsgrad=True), run_eagerly=False)
+        
         self.autoenco.summary()
 
         return self.autoenco, self.autoenco
@@ -235,12 +239,7 @@ class GradientShallow(network.Network):
 
     def predict_snapshot(self, network, snapshot):
 
-        a, e = network.predict(snapshot.T)
-        # b = self.err_autoencoder.predict(abs(snapshot.T-a))
-
-        print(e)
-        # print(network.layers[1].get_weights())
-        # exit()
+        a = network.predict(snapshot.T)
 
         return a.T
 
