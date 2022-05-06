@@ -68,7 +68,7 @@ void ParabolicProfileUtilities::CalculateWallParallelDistance(
 
         // Get parent geometry to search for the first layer of nodes
         const auto& r_neighbours = rCondition.GetValue(NEIGHBOUR_ELEMENTS);
-        KRATOS_ERROR_IF(r_neighbours.size() == 0) << "No parent found in condition with id. " << rCondition.Id() << "." << std::endl;
+        KRATOS_ERROR_IF(r_neighbours.size() == 0) << "No parent found in condition with id " << rCondition.Id() << " in " <<  rWallModelPart.FullName() << "." << std::endl;
         auto& r_parent_geom = r_neighbours[0].GetGeometry();
 
         // Calculate the minimum distance from the wall to the parent nodes
