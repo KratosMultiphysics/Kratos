@@ -176,8 +176,6 @@ public:
     ///Destructor.
     ~GidIO() override
     {
-        Timer::PrintTimingInformation();
-
         if ( mResultFileOpen ) {
             GiD_fClosePostResultFile( mResultFile );
             mResultFileOpen = false;

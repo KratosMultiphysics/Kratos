@@ -1,7 +1,7 @@
 #!/bin/bash
-# PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
-PYTHONS=("cp38")
-export KRATOS_VERSION="9.1.1"
+PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
+# PYTHONS=("cp38")
+export KRATOS_VERSION="9.1.3"
 
 source /opt/intel/oneapi/setvars.sh
 
