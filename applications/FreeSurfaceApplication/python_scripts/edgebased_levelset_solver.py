@@ -165,8 +165,9 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.SetBufferSize(self.GetMinimumBufferSize())
 
     def Check(self) -> None:
-        if all(not component for component in self.body_force):
-            raise ValueError("Body force cannot be a zero vector")
+        pass
+        # if all(not component for component in self.body_force):
+        #     raise ValueError("Body force cannot be a zero vector")
 
     def Initialize(self) -> None:
         # Get rid of isolated nodes
@@ -179,12 +180,12 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         small_value = 1e-4
         active_node_count = 0
         for node in self.model_part.Nodes:
-            # Initialize DISTANCE
-            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
-                active_node_count += 1
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -small_value)
-            else:
-                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, small_value)
+            # # Initialize DISTANCE
+            # if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
+            #     active_node_count += 1
+            #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -small_value)
+            # else:
+            #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, small_value)
 
             # Make sure no node has null porosity and diameter
             # Note: this was set in the main script, not sure if it needs to be here
@@ -196,8 +197,8 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             porosity = node.GetSolutionStepValue(KratosMultiphysics.POROSITY)
             node.SetSolutionStepValue(KratosMultiphysics.PRESS_PROJ, 0, initializer * porosity)
 
-        if not active_node_count:
-            raise RuntimeError("At least 1 node must be initialized with a negative DISTANCE")
+        # if not active_node_count:
+        #     raise RuntimeError("At least 1 node must be initialized with a negative DISTANCE")
 
         # Build edge data structure
         self.matrix_container.ConstructCSRVector(self.model_part)
