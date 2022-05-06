@@ -5,6 +5,21 @@ from KratosMultiphysics.restart_utility import RestartUtility
 # Other imports
 import os
 
+class PhysicalSolver:
+    def __init__(self, settings, creator, args):
+        self.settings = settings
+        self.create = creator
+        self.args = args
+        self.solver = None
+        
+    def __call__(self):
+        if self.solver is not None:
+            return self.solver
+
+    def CreateSolver(self, *args, **kwargs):
+        self.solver = self.create(*args, **kwargs)
+        print("Created Solver:", self.solver)
+
 class PythonSolver:
     """The base class for the Python Solvers in the applications
     Changes to this BaseClass have to be discussed first!
@@ -29,10 +44,19 @@ class PythonSolver:
 
         self.model = model
         self.settings = settings
+        self.solvers = {}
 
         self.ValidateSettings()
 
         self.echo_level = self.settings["echo_level"].GetInt()
+
+    def _RegisterPhysicalSolvers(self):
+        pass
+
+    def _CreatePhysicalSolvers(self):
+        meta_s = self.GetAllPhysicalSolvers()
+        for solver in meta_s:
+            meta_s[solver].CreateSolver(*meta_s[solver].args)
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -44,6 +68,26 @@ class PythonSolver:
                 "input_type" : "use_input_model_part"
             }
         }""")
+
+    def GetPhysicalSolversNames(self):
+        """Return the list of available internal solvers
+        """
+        return self.solvers.keys()
+
+    def GetAllPhysicalSolvers(self):
+        """Return all of the available internal solvers
+        """
+        return self.solvers
+
+    def GetPhysicalSolver(self, solver_name):
+        """Return a specific available internal solver
+        """
+        return self.solvers[solver_name]
+
+    def AddPhysicalSolver(self, solver_name, solver):
+        """Adds an internal solver
+        """
+        self.solvers[solver_name] = solver
 
     def ValidateSettings(self):
         """This function validates the settings of the solver

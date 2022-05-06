@@ -3,6 +3,7 @@ import KratosMultiphysics as KM
 
 # other imports
 import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as fluid_solvers_wrapper
+from KratosMultiphysics.python_solver import PythonSolver, PhysicalSolver
 from  KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 have_mesh_moving = CheckIfApplicationsAvailable("MeshMovingApplication")
@@ -17,6 +18,18 @@ def CreateSolver(model, solver_settings, parallelism):
 
 
 class NavierStokesAleFluidSolver(AleFluidSolver):
+
+    def _RegisterPhysicalSolvers(self):
+        super()._RegisterPhysicalSolvers()
+        self.AddPhysicalSolver("Fluid", PhysicalSolver(
+            self.settings["fluid_solver_settings"],
+            self._CreateFluidSolver,
+            [self.model, self.settings["fluid_solver_settings"], "OpenMP"]
+        ))
+
+    def __init__(self, model, solver_settings, parallelism):
+        super().__init__(model, solver_settings, parallelism)
+
     def _CreateFluidSolver(self, solver_settings, parallelism):
         return fluid_solvers_wrapper.CreateSolverByParameters(
             self.model, solver_settings, parallelism)

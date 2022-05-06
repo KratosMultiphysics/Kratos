@@ -2,17 +2,20 @@
 import KratosMultiphysics as KM
 
 # Other imports
-from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver, PhysicalSolver
 import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_motion as mesh_mothion_solvers_wrapper
 
 class AleFluidSolver(PythonSolver):
+    
     def __init__(self, model, solver_settings, parallelism):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
+        
         super().__init__(model, solver_settings)
 
         self.start_fluid_solution_time = self.settings["start_fluid_solution_time"].GetDouble()
 
+        print("Assing Parallelism type for", self)
         self.parallelism = parallelism
 
         fluid_solver_settings       = self.settings["fluid_solver_settings"]
@@ -23,48 +26,62 @@ class AleFluidSolver(PythonSolver):
             model.CreateModelPart(fluid_model_part_name)
 
         # Derived class decides if the reactions should be computed or not
-        self._ManipulateFluidSolverSettingsForReactionsComputation(fluid_solver_settings)
+        self._ManipulateFluidSolverSettingsForReactionsComputation(self.settings["fluid_solver_settings"])
 
-        # Creating the fluid solver
-        self.fluid_solver = self._CreateFluidSolver(fluid_solver_settings, parallelism)
-
+        # # Creating the fluid solver (DOWN)
+        # self.GetPhysicalSolver("Fluid").Create(self.GetPhysicalSolver("Fluid").settings, parallelism)
+        
         # Creating the mesh-motion solver
-        if not mesh_motion_solver_settings.Has("echo_level"):
-            mesh_motion_solver_settings.AddValue("echo_level", self.settings["echo_level"])
+        if not self.settings["mesh_motion_solver_settings"].Has("echo_level"):
+            self.settings["mesh_motion_solver_settings"].AddValue("echo_level", self.settings["echo_level"])
 
         # Making sure the settings are consistent btw fluid and mesh-motion
-        if mesh_motion_solver_settings.Has("model_part_name"):
-            if not fluid_model_part_name == mesh_motion_solver_settings["model_part_name"].GetString():
+        if self.settings["mesh_motion_solver_settings"].Has("model_part_name"):
+            if not fluid_model_part_name == self.settings["mesh_motion_solver_settings"]["model_part_name"].GetString():
                 err_msg =  'Fluid- and Mesh-Solver have to use the same MainModelPart ("model_part_name")!\n'
                 err_msg += 'Use "mesh_motion_parts" for specifying mesh-motion on sub-model-parts'
                 raise Exception(err_msg)
         else:
-            mesh_motion_solver_settings.AddValue("model_part_name", fluid_solver_settings["model_part_name"])
+            self.settings["mesh_motion_solver_settings"].AddValue("model_part_name", self.settings["fluid_solver_settings"]["model_part_name"])
 
-        domain_size = fluid_solver_settings["domain_size"].GetInt()
-        if mesh_motion_solver_settings.Has("domain_size"):
-            mesh_motion_domain_size = mesh_motion_solver_settings["domain_size"].GetInt()
+        domain_size = self.settings["fluid_solver_settings"]["domain_size"].GetInt()
+        if self.settings["mesh_motion_solver_settings"].Has("domain_size"):
+            mesh_motion_domain_size = self.settings["mesh_motion_solver_settings"]["domain_size"].GetInt()
             if not domain_size == mesh_motion_domain_size:
                 raise Exception('Fluid- and Mesh-Solver have to use the same "domain_size"!')
         else:
-            mesh_motion_solver_settings.AddValue("domain_size", fluid_solver_settings["domain_size"])
+            self.settings["mesh_motion_solver_settings"].AddValue("domain_size", self.settings["fluid_solver_settings"]["domain_size"])
 
         # Derived class decides if the mesh velocities should be computed or not
-        self._ManipulateMeshMotionSolverSettingsForMeshVelocityComputation(fluid_solver_settings, mesh_motion_solver_settings)
+        self._ManipulateMeshMotionSolverSettingsForMeshVelocityComputation(self.settings["fluid_solver_settings"], self.settings["mesh_motion_solver_settings"])
 
-        # Constructing the mesh-solver with the entire mesh
-        # if no submodelparts are specified then this is used for the computation of the mesh-motion
-        # otherwise it only adds the dofs and the variables (to the entire ModelPart!)
-        self.mesh_motion_solver_full_mesh = mesh_mothion_solvers_wrapper.CreateSolverByParameters(
-            model, mesh_motion_solver_settings, parallelism)
+        # # Constructing the mesh-solver with the entire mesh (DOWN)
+        # # if no submodelparts are specified then this is used for the computation of the mesh-motion
+        # # otherwise it only adds the dofs and the variables (to the entire ModelPart!)
+        # self.mesh_motion_solver_full_mesh = self.GetPhysicalSolver("MeshMotion").Create(
+        #     model, self.GetPhysicalSolver("MeshMotion").settings, parallelism
+        # )
 
-        # Getting the min_buffer_size from both solvers
-        # and assigning it to the fluid_solver, bcs this one handles the model_part
-        self.fluid_solver.min_buffer_size = max(
-            self.fluid_solver.GetMinimumBufferSize(),
-            self.mesh_motion_solver_full_mesh.GetMinimumBufferSize())
+        # # Getting the min_buffer_size from both solvers (DOWN)
+        # # and assigning it to the fluid_solver, bcs this one handles the model_part
+        # self.GetPhysicalSolver("Fluid")().min_buffer_size = max(
+        #     self.GetPhysicalSolver("Fluid")().GetMinimumBufferSize(),
+        #     self.mesh_motion_solver_full_mesh.GetMinimumBufferSize())
+
+        print("CREATING SOLVERS")
+        # Create the solvers with the arguments and the functions registered
+        # for solver in self.GetPhysicalSolvers():
+        #     solver.CreateSolver(*solver.arguments)
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
+
+    def _RegisterPhysicalSolvers(self):
+        super()._RegisterPhysicalSolvers()
+        self.AddPhysicalSolver("MeshMotion", PhysicalSolver(
+            self.settings["mesh_motion_solver_settings"],
+            mesh_mothion_solvers_wrapper.CreateSolverByParameters,
+            [self.model, self.settings["mesh_motion_solver_settings"], self.parallelism]
+        ))
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -80,17 +97,23 @@ class AleFluidSolver(PythonSolver):
         return this_defaults
 
     def AddVariables(self):
-        self.mesh_motion_solver_full_mesh.AddVariables()
-        self.fluid_solver.AddVariables()
+        self.GetPhysicalSolver("MeshMotion")().AddVariables()
+        self.GetPhysicalSolver("Fluid")().AddVariables()
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Variables Added")
 
     def AddDofs(self):
-        self.mesh_motion_solver_full_mesh.AddDofs()
-        self.fluid_solver.AddDofs()
+        self.GetPhysicalSolver("MeshMotion")().AddDofs()
+        self.GetPhysicalSolver("Fluid")().AddDofs()
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "DOFs Added")
 
     def Initialize(self):
+        # Getting the min_buffer_size from both solvers
+        # and assigning it to the fluid_solver, bcs this one handles the model_part
+        self.GetPhysicalSolver("Fluid")().min_buffer_size = max(
+            self.GetPhysicalSolver("Fluid")().GetMinimumBufferSize(),
+            self.GetPhysicalSolver("MeshMotion")().GetMinimumBufferSize())
+
         # Saving the ALE-interface-parts for later
         # this can only be done AFTER reading the ModelPart
         main_model_part_name = self.settings["fluid_solver_settings"]["model_part_name"].GetString()
@@ -106,7 +129,7 @@ class AleFluidSolver(PythonSolver):
         self.mesh_motion_solvers = []
         if mesh_motion_parts_params.size() == 0:
             # the entire Fluid-ModelPart is used in the Mesh-Solver
-            self.mesh_motion_solvers.append(self.mesh_motion_solver_full_mesh)
+            self.mesh_motion_solvers.append(self.GetPhysicalSolver("MeshMotion")())
         else:
             # SubModelParts of the Fluid-ModelPart are used in the Mesh-Solver
             # each SubModelPart has its own mesh-solver
@@ -127,67 +150,67 @@ class AleFluidSolver(PythonSolver):
 
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.Initialize()
-        self.fluid_solver.Initialize()
+        self.GetPhysicalSolver("Fluid")().Initialize()
 
         KM.Logger.PrintInfo("::[AleFluidSolver]::", "Finished initialization")
 
     def ImportModelPart(self):
-        self.fluid_solver.ImportModelPart() # only ONE mesh_solver imports the ModelPart
+        self.GetPhysicalSolver("Fluid")().ImportModelPart() # only ONE mesh_solver imports the ModelPart
 
     def PrepareModelPart(self):
         # Doing it ONLY for the fluid solver (since this contains filling the buffer)
-        self.fluid_solver.PrepareModelPart()
+        self.GetPhysicalSolver("Fluid")().PrepareModelPart()
 
     def AdvanceInTime(self, current_time):
         # Doing it ONLY for the fluid solver
-        return self.fluid_solver.AdvanceInTime(current_time)
+        return self.GetPhysicalSolver("Fluid")().AdvanceInTime(current_time)
 
     def Finalize(self):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.Finalize()
-        self.fluid_solver.Finalize()
+        self.GetPhysicalSolver("Fluid")().Finalize()
 
     def InitializeSolutionStep(self):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.InitializeSolutionStep()
-        self.fluid_solver.InitializeSolutionStep()
+        self.GetPhysicalSolver("Fluid")().InitializeSolutionStep()
 
     def Predict(self):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.Predict()
-        self.fluid_solver.Predict()
+        self.GetPhysicalSolver("Fluid")().Predict()
 
     def FinalizeSolutionStep(self):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.FinalizeSolutionStep()
-        self.fluid_solver.FinalizeSolutionStep()
+        self.GetPhysicalSolver("Fluid")().FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
         is_converged = True
         for mesh_solver in self.mesh_motion_solvers:
             is_converged &= mesh_solver.SolveSolutionStep()
 
-        if self.fluid_solver.GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
+        if self.GetPhysicalSolver("Fluid")().GetComputingModelPart().ProcessInfo[KM.TIME] >= self.start_fluid_solution_time:
             self.__ApplyALEBoundaryCondition()
-            is_converged &= self.fluid_solver.SolveSolutionStep()
+            is_converged &= self.GetPhysicalSolver("Fluid")().SolveSolutionStep()
 
         return is_converged
 
     def Check(self):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.Check()
-        self.fluid_solver.Check()
+        self.GetPhysicalSolver("Fluid")().Check()
 
     def Clear(self):
         for mesh_solver in self.mesh_motion_solvers:
             mesh_solver.Clear()
-        self.fluid_solver.Clear()
+        self.GetPhysicalSolver("Fluid")().Clear()
 
     def GetComputingModelPart(self):
-        return self.fluid_solver.GetComputingModelPart() # this is the same as the one used in the MeshSolver
+        return self.GetPhysicalSolver("Fluid")().GetComputingModelPart() # this is the same as the one used in the MeshSolver
 
     def GetFluidSolver(self):
-        return self.fluid_solver
+        return self.GetPhysicalSolver("Fluid")()
 
     def GetMeshMotionSolver(self):
         if len(self.mesh_motion_solvers) > 1:

@@ -44,6 +44,7 @@ class AnalysisStage(object):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
         """
+        print("RUNNING")
         self.Initialize()
         self.RunSolutionLoop()
         self.Finalize()
@@ -205,6 +206,8 @@ class AnalysisStage(object):
     def _GetSolver(self):
         if not hasattr(self, '_solver'):
             self._solver = self._CreateSolver()
+            self._solver._RegisterPhysicalSolvers()
+            self._solver._CreatePhysicalSolvers()
         return self._solver
 
     def _CreateSolver(self):

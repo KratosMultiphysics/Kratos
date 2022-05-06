@@ -19,6 +19,7 @@ class FsiAnalysis(AnalysisStage):
             fluid_restart_utility.LoadRestart()
             structure_restart_utility.LoadRestart()
         else:
+            self._GetSolver().Create()
             self._GetSolver().ImportModelPart()
             self._GetSolver().PrepareModelPart()
             self._GetSolver().AddDofs()

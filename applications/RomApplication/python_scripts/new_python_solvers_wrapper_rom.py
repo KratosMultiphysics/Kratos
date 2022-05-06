@@ -54,7 +54,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
     aux_base_solver_instance = solvers_wrapper_module.CreateSolverByParameters(KratosMultiphysics.Model(), aux_solver_settings, parallelism)
 
     # Create the ROM solver from the base solver
-    rom_solver_instance = rom_solver.CreateSolver(type(aux_base_solver_instance), model, solver_settings)
+    print("Typename passed to CreateSolver:", type(aux_base_solver_instance), type(aux_base_solver_instance).__name__)
+    rom_solver_instance = rom_solver.CreateSolver(type(aux_base_solver_instance), model, solver_settings, "OpenMP")
 
     return rom_solver_instance
 
