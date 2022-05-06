@@ -77,7 +77,7 @@ def RecursiveCopy(src, dest):
             RecursiveCopy(str(item), str(new_path))
 
 def GetDragValues(kratos_parameters, model_part_name):
-    output_process = _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name)
+    output_process = GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name)
     if (output_process is not None):
         output_file_name = output_process["Parameters"]["output_file_settings"]["file_name"].GetString()
         time_steps, reactions = ReadDrag(output_file_name)
@@ -113,7 +113,7 @@ def ReadDrag(file_name):
         reaction.append([fx, fy, fz])
     return time_steps, reaction
 
-def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
+def GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
     auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
     for process_settings in auxiliar_process_list:
         if (
@@ -125,7 +125,7 @@ def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
 
     return None
 
-def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, response_function_parameters):
+def GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, response_function_parameters):
     output_processes_categories_list = kratos_parameters["output_processes"]
     for _, value in output_processes_categories_list.items():
         for process_settings in value:
@@ -139,12 +139,10 @@ def _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, respon
 
                 is_valid_respones_function = is_valid_respones_function and process_parameters["response_type"].GetString() ==  response_function_parameters["response_type"].GetString()
                 is_valid_respones_function = is_valid_respones_function and model_part_name.startswith(process_parameters["model_part_name"].GetString())
-                is_valid_respones_function = is_valid_respones_function and process_parameters["response_settings"].HasSameKeysAndTypeOfValuesAs(response_function_parameters["custom_settings"])
+                is_valid_respones_function = is_valid_respones_function and (response_function_parameters["custom_settings"].IsKeysSubSetWithEquivalentValuesTo(process_parameters["response_settings"]))
 
                 if is_valid_respones_function:
                     return process_settings
-
-    Kratos.Logger.PrintWarning("", "No output response function found maching following settings.\n Reponse function parameters: {:s}\n------\nOutput processes:\n{:s}".format(str(response_function_parameters), str(kratos_parameters["output_processes"])))
 
     return None
 
@@ -164,7 +162,7 @@ def ReadResponseValuesFile(file_name):
     return time_steps, values
 
 def GetResponseValues(kratos_parameters, model_part_name, response_function_parameters):
-    output_process = _GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, response_function_parameters)
+    output_process = GetResponseFunctionOutputProcess(kratos_parameters, model_part_name, response_function_parameters)
     if (output_process is not None):
         file_path = Path(".")
         if output_process["Parameters"]["output_file_settings"].Has("output_path"):
