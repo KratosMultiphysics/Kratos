@@ -42,7 +42,7 @@
 #include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
 #include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
 #include "custom_processes/shock_capturing_entropy_viscosity_process.h"
-#include "custom_processes/compute_aerodynamic_coefficients_process.h"
+#include "custom_processes/compute_pressure_coefficient_process.h"
 
 #include "spaces/ublas_space.h"
 
@@ -178,7 +178,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     ;
 
-    py::class_<ComputeAerodynamicCoefficientsProcess, ComputeAerodynamicCoefficientsProcess::Pointer, Process>(m, "ComputeAerodynamicCoefficientsProcess")
+    py::class_<ComputePressureCoefficientProcess, ComputePressureCoefficientProcess::Pointer, Process>(m, "ComputePressureCoefficientProcess")
     .def(py::init<Model&, Parameters>())
     ;
 }

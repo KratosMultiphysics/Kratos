@@ -11,24 +11,20 @@
 //
 //
 
-#ifndef KRATOS_AERODYNAMIC_COEFFICIENTS_PROCESS_H
-#define KRATOS_AERODYNAMIC_COEFFICIENTS_PROCESS_H
+#ifndef KRATOS_COMUTE_PRESSURE_COEFFICIENT_PROCESS_H
+#define KRATOS_COMUTE_PRESSURE_COEFFICIENT_PROCESS_H
 
 // System includes
 #include <string>
 #include <iostream>
-#include <functional>
-
 
 // External includes
-
 
 // Project includes
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
-
 
 // Application includes
 
@@ -46,7 +42,6 @@ namespace Kratos
 ///@{
 
 using NodeType = ModelPart::NodeType;
-using DensityGetter = std::function<double(Properties const&, NodeType const&)>;
 
 ///@}
 ///@name  Enum's
@@ -62,31 +57,31 @@ using DensityGetter = std::function<double(Properties const&, NodeType const&)>;
 
 /// Utility to modify the distances of an embedded object in order to avoid bad intersections
 /// Besides, it also deactivate the full negative distance elements
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ComputeAerodynamicCoefficientsProcess : public Process
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ComputePressureCoefficientProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ComputeAerodynamicCoefficientsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeAerodynamicCoefficientsProcess);
+    /// Pointer definition of ComputePressureCoefficientProcess
+    KRATOS_CLASS_POINTER_DEFINITION(ComputePressureCoefficientProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor with Kratos parameters.
-    ComputeAerodynamicCoefficientsProcess(
+    ComputePressureCoefficientProcess(
         ModelPart& rModelPart,
         Parameters Params);
 
     /// Constructor with Kratos model
-    ComputeAerodynamicCoefficientsProcess(
+    ComputePressureCoefficientProcess(
         Model& rModel,
         Parameters Params);
 
     /// Destructor.
-    ~ComputeAerodynamicCoefficientsProcess() override {}
+    ~ComputePressureCoefficientProcess() override {}
 
     ///@}
     ///@name Operators
@@ -97,6 +92,8 @@ public:
     void ExecuteInitialize() override;
 
     void ExecuteFinalizeSolutionStep() override;
+
+    void ExecuteBeforeOutputStep() override;
 
     ///@}
     ///@name Operations
@@ -118,12 +115,12 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "ComputeAerodynamicCoefficientsProcess" ;
+        buffer << "ComputePressureCoefficientProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {rOStream << "ComputeAerodynamicCoefficientsProcess";}
+    void PrintInfo(std::ostream& rOStream) const override {rOStream << "ComputePressureCoefficientProcess";}
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
@@ -144,12 +141,9 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    bool mComputeAsPostProcess;
     double mFreestreamStaticPressure;   // Freestream pressure
     double mFreestreamDynamicPressure;  // Freestream q=rho*V²/2  
-    array_1d<double, 3> mLiftDirection; // Vector pointing towards lift (usually +Y)
-    array_1d<double, 3> mDragDirection; // Vector pointing towards drag (usually +X)
-    double mReferenceArea;              // Area under the wing in 3D, cord in 2D
-    bool mComputeForces;                // Enables computing Cd and Cl, which are more expensive
 
     ///@}
     ///@name Protected Operators
@@ -160,10 +154,6 @@ private:
     ///@{
 
     void CheckDefaultsAndProcessSettings(Parameters Params);
-    static DensityGetter ProcessDensityDatabaseInput(const std::string& RequestedDatabase);
-
-    void ComputePressureCoefficient(const Properties& rProperties, NodeType& rNode) const;
-    static array_1d<double, 3> IntegrateOnCondition(const Condition& rCondition);
 
     ///@}
     ///@name Private  Access
@@ -180,17 +170,17 @@ private:
     ///@{
 
     /// Default constructor.
-    ComputeAerodynamicCoefficientsProcess() = delete;
+    ComputePressureCoefficientProcess() = delete;
 
     /// Assignment operator.
-    ComputeAerodynamicCoefficientsProcess& operator=(ComputeAerodynamicCoefficientsProcess const& rOther) = delete;
+    ComputePressureCoefficientProcess& operator=(ComputePressureCoefficientProcess const& rOther) = delete;
 
     /// Copy constructor.
-    ComputeAerodynamicCoefficientsProcess(ComputeAerodynamicCoefficientsProcess const& rOther) = delete;
+    ComputePressureCoefficientProcess(ComputePressureCoefficientProcess const& rOther) = delete;
 
     ///@}
 
-}; // Class ComputeAerodynamicCoefficientsProcess
+}; // Class ComputePressureCoefficientProcess
 
 ///@}
 ///@name Type Definitions
@@ -206,4 +196,4 @@ private:
 
 };  // namespace Kratos.
 
-#endif // KRATOS_AERODYNAMIC_COEFFICIENTS_PROCESS_H
+#endif // KRATOS_COMUTE_PRESSURE_COEFFICIENT_PROCESS_H
