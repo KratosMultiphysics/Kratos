@@ -1,6 +1,5 @@
 # Import kratos core and applications
 import KratosMultiphysics
-from KratosMultiphysics import FluidDynamicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication import compute_pressure_coefficient_process
 
@@ -19,6 +18,7 @@ class ComputePressureCoefficientProcessTest(KratosUnittest.TestCase):
 
         return model
 
+    @classmethod
     def _GetBlankParameters(cls):
         return KratosMultiphysics.Parameters("""
         {
