@@ -15,7 +15,6 @@
 #include "cpp_geomechanics_application.h"
 
 #include <geo_mechanics_application.h>
-#include <factories/linear_solver_factory.h>
 #include <processes/apply_constant_scalarvalue_process.h>
 #include <utilities/read_materials_utility.h>
 
@@ -50,6 +49,14 @@ void GaussLOCAL_FLUID_FLUX_VECTOR::write(Kratos::GidIO<>& gid_io, Kratos::ModelP
 
 void GaussLOCAL_PERMEABILITY_MATRIX::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::LOCAL_PERMEABILITY_MATRIX, model_part, 0, 0); }
 
+void GaussPERMEABILITY_MATRIX::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::PERMEABILITY_MATRIX, model_part, 0, 0); }
+
+void GaussDEGREE_OF_SATURATION::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::DEGREE_OF_SATURATION, model_part, 0, 0); }
+
+void GaussDERIVATIVE_OF_SATURATION::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::DERIVATIVE_OF_SATURATION, model_part, 0, 0); }
+
+void GaussRELATIVE_PERMEABILITY::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::RELATIVE_PERMEABILITY, model_part, 0, 0); }
+
 #pragma endregion GaussVariables
 
 namespace Kratos
@@ -71,6 +78,7 @@ namespace Kratos
         //return linear_solver_factory.Create(linear_solver_settings);
         //LinearSolverType::Pointer p_solver = LinearSolverFactoryType().Create(linear_solver_settings);
     	LinearSolverType::Pointer p_solver = Kratos::make_shared<SkylineLUFactorizationSolverType>();
+        //LinearSolverType::Pointer p_solver = Kratos::make_shared<EigenSparseLUSolverType>();
         return p_solver;
     }
 
@@ -374,7 +382,7 @@ namespace Kratos
         processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_X,
             0.0, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
-        processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Y, 10.0,
+        processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Y, -9.81,
             0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
 
         processes.push_back(make_shared<Process>(ApplyConstantScalarValueProcess(part, VOLUME_ACCELERATION_Z, 0.0,
@@ -440,7 +448,11 @@ namespace Kratos
         GaussOutput["HYDRAULIC_HEAD"] = std::make_unique<GaussHYDRAULIC_HEAD>();
         GaussOutput["LOCAL_FLUID_FLUX_VECTOR"] = std::make_unique<GaussLOCAL_FLUID_FLUX_VECTOR>();
         GaussOutput["LOCAL_PERMEABILITY_MATRIX"] = std::make_unique<GaussLOCAL_PERMEABILITY_MATRIX>();
-        auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
+        GaussOutput["PERMEABILITY_MATRIX"] = std::make_unique<GaussPERMEABILITY_MATRIX>();
+        GaussOutput["DEGREE_OF_SATURATION"] = std::make_unique<GaussDEGREE_OF_SATURATION>();
+        GaussOutput["DERIVATIVE_OF_SATURATION"] = std::make_unique<GaussDERIVATIVE_OF_SATURATION>();
+        GaussOutput["RELATIVE_PERMEABILITY"] = std::make_unique<GaussRELATIVE_PERMEABILITY>();
+    	auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
         for (string var : gauss_outputs)
         {
             GaussOutput[var]->write(gid_io, model_part);
@@ -452,7 +464,7 @@ namespace Kratos
     int KratosExecute::cpp_geomechanics(string meshpath, string projectpath, string materialpath)
     {
 
-        std::cout << "MeshPath= " << meshpath << std::endl;
+    	std::cout << "MeshPath= " << meshpath << std::endl;
         std::cout << "ProjectPath= " << projectpath << std::endl;
         std::cout << "MaterialPath= " << materialpath << std::endl;
 
@@ -461,6 +473,8 @@ namespace Kratos
 
     	Kratos::KratosGeoMechanicsApplication application;
         application.Register();
+
+        
 
         Kratos::OpenMPUtils::SetNumThreads(1);
         Kratos::OpenMPUtils::PrintOMPInfo();

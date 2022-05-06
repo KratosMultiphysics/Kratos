@@ -101,6 +101,23 @@ class GaussLOCAL_PERMEABILITY_MATRIX : public GaussOperation {
 public:
     void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
 };
+class GaussPERMEABILITY_MATRIX : public GaussOperation {
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+};
+class GaussDEGREE_OF_SATURATION : public GaussOperation {
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+};
+class GaussDERIVATIVE_OF_SATURATION : public GaussOperation {
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+};
+class GaussRELATIVE_PERMEABILITY : public GaussOperation {
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+};
+
 #pragma endregion GaussVariables
 
 namespace Kratos
@@ -110,6 +127,7 @@ namespace Kratos
     public:
 
         KratosExecute() {};
+		~KratosExecute() {};
 
         int cpp_geomechanics(string meshpath, string projectpath, string materialpath);
 
