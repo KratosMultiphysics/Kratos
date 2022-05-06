@@ -135,7 +135,7 @@ ModelPart& FluidTestUtilities::CreateTestModelPart(
 }
 
 template<class TDataType>
-void FluidTestUtilities::RandomFillNodalHistoricalVariable(
+void FluidTestUtilities::RandomFillHistoricalVariable(
     ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const double MinValue,
@@ -150,57 +150,35 @@ void FluidTestUtilities::RandomFillNodalHistoricalVariable(
     }
 }
 
-template<class TDataType>
-void FluidTestUtilities::RandomFillContainerNonHistoricalVariable(
-    NodesContainerType& rNodesContainer,
+template<class TContainerType, class TDataType>
+void FluidTestUtilities::RandomFillNonHistoricalVariable(
+    TContainerType& rContainer,
     const Variable<TDataType>& rVariable,
     const IndexType DomainSize,
     const double MinValue,
     const double MaxValue)
 {
-    FluidTestUtilitiesHelper::RandomFillContainerNonHistoricalVariable(
-        rNodesContainer, rVariable, DomainSize, MinValue, MaxValue);
-}
-
-template<class TDataType>
-void FluidTestUtilities::RandomFillContainerNonHistoricalVariable(
-    ConditionsContainerType& rConditionsContainer,
-    const Variable<TDataType>& rVariable,
-    const IndexType DomainSize,
-    const double MinValue,
-    const double MaxValue)
-{
-    FluidTestUtilitiesHelper::RandomFillContainerNonHistoricalVariable(
-        rConditionsContainer, rVariable, DomainSize, MinValue, MaxValue);
-}
-
-template<class TDataType>
-void FluidTestUtilities::RandomFillContainerNonHistoricalVariable(
-    ElementsContainerType& rElementsContainer,
-    const Variable<TDataType>& rVariable,
-    const IndexType DomainSize,
-    const double MinValue,
-    const double MaxValue)
-{
-    FluidTestUtilitiesHelper::RandomFillContainerNonHistoricalVariable(
-        rElementsContainer, rVariable, DomainSize, MinValue, MaxValue);
+    for (auto& item : rContainer) {
+        std::stringstream seed;
+        seed << item.Id() << "_NonHistoricalV_" << rVariable.Name();
+        TDataType value = rVariable.Zero();
+        FluidTestUtilities::AssignRandomValues(value, seed.str(), DomainSize, MinValue, MaxValue);
+        item.SetValue(rVariable, value);
+    }
 }
 
 template<class TContainerType>
-void FluidTestUtilities::Testing<TContainerType>::RunEntityGetDofListTest(
-    ModelPart& rModelPart,
+void FluidTestUtilities::RunEntityGetDofListTest(
+    const TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo,
     const std::vector<const Variable<double>*>& rDofVariablesList)
 {
     KRATOS_TRY
 
-    auto& r_container = GetContainer(rModelPart);
-    const auto& r_process_info = rModelPart.GetProcessInfo();
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
+    for (const auto& r_entity : rContainer) {
 
         DofsVectorType dofs;
-        r_entity.GetDofList(dofs, r_process_info);
+        r_entity.GetDofList(dofs, rProcessInfo);
 
         auto& r_geometry = r_entity.GetGeometry();
 
@@ -218,20 +196,17 @@ void FluidTestUtilities::Testing<TContainerType>::RunEntityGetDofListTest(
 }
 
 template<class TContainerType>
-void FluidTestUtilities::Testing<TContainerType>::RunEntityEquationIdVectorTest(
-    ModelPart& rModelPart,
+void FluidTestUtilities::RunEntityEquationIdVectorTest(
+    const TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo,
     const std::vector<const Variable<double>*>& rDofVariablesList)
 {
     KRATOS_TRY
 
-    auto& r_container = GetContainer(rModelPart);
-    const auto& r_process_info = rModelPart.GetProcessInfo();
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
+    for (const auto& r_entity : rContainer) {
 
         EquationIdVectorType equation_ids;
-        r_entity.EquationIdVector(equation_ids, r_process_info);
+        r_entity.EquationIdVector(equation_ids, rProcessInfo);
 
         auto& r_geometry = r_entity.GetGeometry();
 
@@ -249,16 +224,13 @@ void FluidTestUtilities::Testing<TContainerType>::RunEntityEquationIdVectorTest(
 }
 
 template<class TContainerType>
-void FluidTestUtilities::Testing<TContainerType>::RunEntityGetValuesVectorTest(
-    ModelPart& rModelPart,
+void FluidTestUtilities::RunEntityGetValuesVectorTest(
+    const TContainerType& rContainer,
     const std::vector<const Variable<double>*>& rDofVariablesList)
 {
     KRATOS_TRY
 
-    auto& r_container = GetContainer(rModelPart);
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
+    for (const auto& r_entity : rContainer) {
 
         Vector values;
         r_entity.GetValuesVector(values);
@@ -279,16 +251,13 @@ void FluidTestUtilities::Testing<TContainerType>::RunEntityGetValuesVectorTest(
 }
 
 template<class TContainerType>
-void FluidTestUtilities::Testing<TContainerType>::RunEntityGetFirstDerivativesVectorTest(
-    ModelPart& rModelPart,
+void FluidTestUtilities::RunEntityGetFirstDerivativesVectorTest(
+    const TContainerType& rContainer,
     const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
 {
     KRATOS_TRY
 
-    auto& r_container = GetContainer(rModelPart);
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
+    for (const auto& r_entity : rContainer) {
 
         Vector values;
         r_entity.GetFirstDerivativesVector(values);
@@ -306,16 +275,13 @@ void FluidTestUtilities::Testing<TContainerType>::RunEntityGetFirstDerivativesVe
 }
 
 template<class TContainerType>
-void FluidTestUtilities::Testing<TContainerType>::RunEntityGetSecondDerivativesVectorTest(
-    ModelPart& rModelPart,
+void FluidTestUtilities::RunEntityGetSecondDerivativesVectorTest(
+    const TContainerType& rContainer,
     const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod)
 {
     KRATOS_TRY
 
-    auto& r_container = GetContainer(rModelPart);
-
-    for (IndexType i = 0; i < r_container.size(); ++i) {
-        const auto& r_entity = *(r_container.begin() + i);
+    for (const auto& r_entity : rContainer) {
 
         Vector values;
         r_entity.GetSecondDerivativesVector(values);
@@ -333,32 +299,47 @@ void FluidTestUtilities::Testing<TContainerType>::RunEntityGetSecondDerivativesV
 }
 
 template <>
-ModelPart::ElementsContainerType& FluidTestUtilities::Testing<ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
+ModelPart::ElementsContainerType& FluidTestUtilities::GetContainer<ModelPart::ElementsContainerType>::operator()(ModelPart& rModelPart)
 {
     return rModelPart.Elements();
 }
 
 template <>
-ModelPart::ConditionsContainerType& FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
+ModelPart::ConditionsContainerType& FluidTestUtilities::GetContainer<ModelPart::ConditionsContainerType>::operator()(ModelPart& rModelPart)
 {
     return rModelPart.Conditions();
 }
 
 //// Static Operations Template Instantiations //////////////////////////
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNodalHistoricalVariable<double>(ModelPart&, const Variable<double>&, const double, const double, const int);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double, const int);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetDofListTest<ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&, const ProcessInfo&, const std::vector<const Variable<double>*>&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetDofListTest<ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&, const ProcessInfo&, const std::vector<const Variable<double>*>&);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<double>(ModelPart::NodesContainerType&, const Variable<double>&, const std::size_t, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<array_1d<double, 3>>(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityEquationIdVectorTest<ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&, const ProcessInfo&, const std::vector<const Variable<double>*>&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityEquationIdVectorTest<ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&, const ProcessInfo&, const std::vector<const Variable<double>*>&);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<double>(ModelPart::ConditionsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<array_1d<double, 3>>(ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetValuesVectorTest<ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&, const std::vector<const Variable<double>*>&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetValuesVectorTest<ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&, const std::vector<const Variable<double>*>&);
 
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<double>(ModelPart::ElementsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
-template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillContainerNonHistoricalVariable<array_1d<double, 3>>(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetFirstDerivativesVectorTest<ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&, const std::function<Vector(const ModelPart::NodeType&)>&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetFirstDerivativesVectorTest<ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&, const std::function<Vector(const ModelPart::NodeType&)>&);
 
-template class FluidTestUtilities::Testing<ModelPart::ConditionsContainerType>;
-template class FluidTestUtilities::Testing<ModelPart::ElementsContainerType>;
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetSecondDerivativesVectorTest<ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&, const std::function<Vector(const ModelPart::NodeType&)>&);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RunEntityGetSecondDerivativesVectorTest<ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&, const std::function<Vector(const ModelPart::NodeType&)>&);
+
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillHistoricalVariable<double>(ModelPart&, const Variable<double>&, const double, const double, const int);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillHistoricalVariable<array_1d<double, 3>>(ModelPart&, const Variable<array_1d<double, 3>>&, const double, const double, const int);
+
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::NodesContainerType, double>(ModelPart::NodesContainerType&, const Variable<double>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::NodesContainerType, array_1d<double, 3>>(ModelPart::NodesContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ConditionsContainerType, double>(ModelPart::ConditionsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>(ModelPart::ConditionsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, double>(ModelPart::ElementsContainerType&, const Variable<double>&, const std::size_t, const double, const double);
+template KRATOS_API(FLUID_DYNAMICS_APPLICATION) void FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>(ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::size_t, const double, const double);
+
+template class FluidTestUtilities::GetContainer<ModelPart::ConditionsContainerType>;
+template class FluidTestUtilities::GetContainer<ModelPart::ElementsContainerType>;
 
 } // namespace Kratos

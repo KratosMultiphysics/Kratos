@@ -74,71 +74,57 @@ public:
         const int BufferSize = 2);
 
     template<class TDataType>
-    static void RandomFillNodalHistoricalVariable(
+    static void RandomFillHistoricalVariable(
         ModelPart& rModelPart,
         const Variable<TDataType>& rVariable,
         const double MinValue = 0.0,
         const double MaxValue = 1.0,
         const int Step = 0);
 
-    template<class TDataType>
-    static void RandomFillContainerNonHistoricalVariable(
-        NodesContainerType& rNodesContainer,
+    template<class TContainerType, class TDataType>
+    static void RandomFillNonHistoricalVariable(
+        TContainerType& rContainer,
         const Variable<TDataType>& rVariable,
         const IndexType DomainSize,
         const double MinValue = 0.0,
         const double MaxValue = 1.0);
 
-    template<class TDataType>
-    static void RandomFillContainerNonHistoricalVariable(
-        ConditionsContainerType& rConditionsContainer,
-        const Variable<TDataType>& rVariable,
-        const IndexType DomainSize,
-        const double MinValue = 0.0,
-        const double MaxValue = 1.0);
+    template<class TContainerType>
+    static void RunEntityGetDofListTest(
+        const TContainerType& rContainer,
+        const ProcessInfo& rProcessInfo,
+        const std::vector<const Variable<double>*>& rDofVariablesList);
 
-    template<class TDataType>
-    static void RandomFillContainerNonHistoricalVariable(
-        ElementsContainerType& rElementsContainer,
-        const Variable<TDataType>& rVariable,
-        const IndexType DomainSize,
-        const double MinValue = 0.0,
-        const double MaxValue = 1.0);
+    template<class TContainerType>
+    static void RunEntityEquationIdVectorTest(
+        const TContainerType& rContainer,
+        const ProcessInfo& rProcessInfo,
+        const std::vector<const Variable<double>*>& rDofVariablesList);
+
+    template<class TContainerType>
+    static void RunEntityGetValuesVectorTest(
+        const TContainerType& rContainer,
+        const std::vector<const Variable<double>*>& rDofVariablesList);
+
+    template<class TContainerType>
+    static void RunEntityGetFirstDerivativesVectorTest(
+        const TContainerType& rContainer,
+        const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
+
+    template<class TContainerType>
+    static void RunEntityGetSecondDerivativesVectorTest(
+        const TContainerType& rContainer,
+        const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
 
     ///@}
     ///@name Classes
     ///@{
 
     template<class TContainerType>
-    class Testing
+    class GetContainer
     {
     public:
-        ///@name Static Operations
-        ///@{
-
-        static void RunEntityGetDofListTest(
-            ModelPart& rModelPart,
-            const std::vector<const Variable<double>*>& rDofVariablesList);
-
-        static void RunEntityEquationIdVectorTest(
-            ModelPart& rModelPart,
-            const std::vector<const Variable<double>*>& rDofVariablesList);
-
-        static void RunEntityGetValuesVectorTest(
-            ModelPart& rModelPart,
-            const std::vector<const Variable<double>*>& rDofVariablesList);
-
-        static void RunEntityGetFirstDerivativesVectorTest(
-            ModelPart& rModelPart,
-            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
-
-        static void RunEntityGetSecondDerivativesVectorTest(
-            ModelPart& rModelPart,
-            const std::function<Vector(const ModelPart::NodeType&)>& rValueRetrievalMethod);
-
-        static TContainerType& GetContainer(ModelPart& rModelPart);
-
-        ///@}
+        TContainerType& operator()(ModelPart& rModelPart);
     };
 
     ///@}
