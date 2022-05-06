@@ -35,6 +35,7 @@ class TestEdgeBasedGradientRecoveryProcess(KratosUnittest.TestCase):
 
         KratosMultiphysics.StructuredMeshGeneratorProcess(problem_domain, model_part, parameters).Execute()
 
+    @classmethod
     def _SetUpLinearSolver(self):
         linear_solver_settings = KratosMultiphysics.Parameters("""{
             "solver_type" : "skyline_lu_factorization"
