@@ -112,15 +112,15 @@ namespace MPMParticleGeneratorUtility
                     std::string element_type_name = "UpdatedLagrangian";
                     if (IsMixedFormulation) {
                         if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION) == 0) {
-                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUP";
+                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "UpdatedLagrangianUP";
                             else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                         }
                         else if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION) == 1) {
-                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUPVMS";
+                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3  || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "UpdatedLagrangianUPVMS";
                             else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                         }
                         else if (rCurrentProcessInfo.GetValue(STABILIZATION_OPTION) == 2 || rCurrentProcessInfo.GetValue(STABILIZATION_OPTION) == 3) {
-                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3) element_type_name = "UpdatedLagrangianUPVMS";
+                            if (background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3  || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) element_type_name = "UpdatedLagrangianUPVMS";
                             else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                         }
                     }
