@@ -144,9 +144,12 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-    double mFreestreamPressure;
-    DensityGetter mGetDensity;
-    bool mComputeForces;
+    double mFreestreamStaticPressure;   // Freestream pressure
+    double mFreestreamDynamicPressure;  // Freestream q=rho*V²/2  
+    array_1d<double, 3> mLiftDirection; // Vector pointing towards lift (usually +Y)
+    array_1d<double, 3> mDragDirection; // Vector pointing towards drag (usually +X)
+    double mReferenceArea;              // Area under the wing in 3D, cord in 2D
+    bool mComputeForces;                // Enables computing Cd and Cl, which are more expensive
 
     ///@}
     ///@name Protected Operators

@@ -13,6 +13,7 @@
 
 // System includes
 #include <algorithm>
+#include <boost/numeric/ublas/vector_expression.hpp>
 #include <sstream>
 #include <map>
 
@@ -64,44 +65,33 @@ void ComputeAerodynamicCoefficientsProcess::CheckDefaultsAndProcessSettings(Para
     Parameters default_parameters( R"(
     {
         "model_part_name"     : "",
+        "freestream_density" : 0,
+        "freestream_velocity" : 0,
         "freestream_pressure" : 0,
-        "density_database"    : "historical",
+        "reference_area" : 1.0,
+        "lift_direction" : [1.0, 0.0, 0.0],
+        "drag_direction" : [0.0, 1.0, 0.0],
         "compute_force_coefficient": true
     })" );
 
+    // WIP: ALLOW CHOICE TO EXECUTE ONLY DURING OUTPUT STEPS!!! (HOW?)
+
     Params.ValidateAndAssignDefaults(default_parameters);
-    mFreestreamPressure = Params["freestream_pressure"].GetDouble();
     mComputeForces = Params["compute_force_coefficient"].GetBool();
-    mGetDensity = ProcessDensityDatabaseInput(Params["density_database"].GetString());
 
-    KRATOS_CATCH("")
-}
+    mFreestreamStaticPressure = Params["freestream_pressure"].GetDouble();
 
-DensityGetter ComputeAerodynamicCoefficientsProcess::ProcessDensityDatabaseInput(const std::string& RequestedDatabase)
-{
-    KRATOS_TRY
+    const double freestream_density = Params["freestream_density"].GetDouble();
+    const double free_stream_velocity = Params["freestream_velocity"].GetDouble();
+    mFreestreamDynamicPressure = 0.5 * freestream_density * free_stream_velocity * free_stream_velocity;
 
-    std::map<std::string, DensityGetter> available_databases;
-    available_databases.emplace("non-historical", [](Properties const&, NodeType const& r_node)       { return r_node.GetValue(DENSITY); });
-    available_databases.emplace("historical",     [](Properties const&, NodeType const& r_node)       { return r_node.GetSolutionStepValue(DENSITY); });
-    available_databases.emplace("properties",     [](Properties const& r_properties, NodeType const&) { return r_properties.GetValue(DENSITY); });
+    mLiftDirection = Params["lift_direction"].GetVector();
+    mDragDirection = Params["drag_direction"].GetVector();
 
-    auto it = available_databases.find(RequestedDatabase);
-    
-    if (it == available_databases.end())
-    {
-        std::stringstream error_msg;
-        error_msg << "Invalid database. Try any of :" << '\n';
-        for(auto const& pair: available_databases)
-        {
-            error_msg << " - " << pair.first << '\n';
-        }
-        KRATOS_ERROR << error_msg.str();
-    }
-    else
-    {
-        return it->second;
-    }
+    mLiftDirection /= norm_2(mLiftDirection);
+    mDragDirection /= norm_2(mDragDirection);
+
+    mReferenceArea = Params["reference_area"].GetDouble();
 
     KRATOS_CATCH("")
 }
@@ -119,14 +109,8 @@ void ComputeAerodynamicCoefficientsProcess::ExecuteFinalizeSolutionStep()
 
 void ComputeAerodynamicCoefficientsProcess::ComputePressureCoefficient(const Properties& rProperties, NodeType& rNode) const
 {
-    const auto velocity = rNode.GetSolutionStepValue(VELOCITY);
     const auto pressure = rNode.GetSolutionStepValue(PRESSURE);
-    const double density = mGetDensity(rProperties, rNode);
-
-    const double velocity_2 = inner_prod(velocity, velocity);
-    const double total_pressure = pressure + 0.5 * density * velocity_2;
-
-    const double cp = (pressure - mFreestreamPressure) / (total_pressure - mFreestreamPressure);
+    const double cp = (pressure - mFreestreamStaticPressure) / mFreestreamDynamicPressure;
     rNode.SetValue(PRESSURE_COEFFICIENT, cp);
 }
 
@@ -137,7 +121,7 @@ array_1d<double, 3> ComputeAerodynamicCoefficientsProcess::IntegrateOnCondition(
 
     auto cp = Vector(r_geometry.size());
     std::transform(r_geometry.begin(), r_geometry.end(), cp.begin(), [](NodeType const& r_node) { return r_node.GetValue(PRESSURE_COEFFICIENT); });
-    
+
     Vector N;
 
     Vector force_coefficient = ZeroVector(3);
@@ -147,9 +131,9 @@ array_1d<double, 3> ComputeAerodynamicCoefficientsProcess::IntegrateOnCondition(
         r_geometry.ShapeFunctionsValues(N, gauss_point.Coordinates());
         const double w = gauss_point.Weight();
         const double detJ = r_geometry.DeterminantOfJacobian(gauss_point.Coordinates());
-        const auto n = r_geometry.UnitNormal(gauss_point.Coordinates());
+        const auto inwards_normal = - r_geometry.UnitNormal(gauss_point.Coordinates());
 
-        force_coefficient += w * detJ * inner_prod(N, cp) * n;
+        force_coefficient += w * detJ * inner_prod(N, cp) * inwards_normal;
     }
 
     return force_coefficient;
@@ -167,16 +151,24 @@ void ComputeAerodynamicCoefficientsProcess::Execute()
         return mrModelPart.ElementsBegin()->GetProperties();
     }();
 
-    block_for_each(mrModelPart.Nodes(), [&](NodeType& r_node) { ComputePressureCoefficient(r_props, r_node); });
+    KRATOS_TRY
+    {
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& r_node) { ComputePressureCoefficient(r_props, r_node); });
+    }
+    KRATOS_CATCH("Error computing pressure coefficient")
 
     if(!mComputeForces) return;
 
-    using Reduction = SumReduction<array_1d<double, 3>>;
-    const array_1d<double, 3> c_f  = block_for_each<Reduction>(mrModelPart.Conditions(), IntegrateOnCondition);
+    KRATOS_TRY
+    {
+        using Reduction = SumReduction<array_1d<double, 3>>;
+        const array_1d<double, 3> c_f = (1/mReferenceArea) * block_for_each<Reduction>(mrModelPart.Conditions(), IntegrateOnCondition);
 
-    r_props.SetValue(FORCE_CM, c_f);
+        r_props.SetValue(LIFT_COEFFICIENT, inner_prod(c_f, mLiftDirection));
+        r_props.SetValue(DRAG_COEFFICIENT, inner_prod(c_f, mDragDirection));
+    }
+    KRATOS_CATCH("Error computing lift and drag coefficients")
 }
-
 
 
 }
