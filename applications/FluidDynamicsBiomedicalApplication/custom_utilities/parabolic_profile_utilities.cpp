@@ -102,7 +102,8 @@ void ParabolicProfileUtilities::CalculateWallParallelDistance(
     std::size_t current_max_levels = WallDistanceLevels / 2;
     while (std::abs(current_max_dist - char_length) < 1.0e-12) {
         // Calculate the parallel distance with the new number of levels
-        parallel_distance_settings["max_levels"].SetInt(2 * current_max_levels);
+        current_max_levels *= 2;
+        parallel_distance_settings["max_levels"].SetInt(current_max_levels);
         if (domain_size == 2) {
             ParallelDistanceCalculationProcess<2>(rFluidModelPart, parallel_distance_settings).Execute();
         } else if (domain_size == 3) {

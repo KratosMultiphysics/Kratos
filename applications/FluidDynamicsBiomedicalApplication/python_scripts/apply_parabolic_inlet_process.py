@@ -5,7 +5,7 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsBiomedicalApplication as KratosBio
 
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyParabolicInletProcess(model, settings["Parameters"])
 
@@ -53,7 +53,7 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         self.model = model
         self.settings = settings
 
-    @classmethod
+    @staticmethod
     def GetDefaultParameters(cls):
         default_settings = KratosMultiphysics.Parameters("""{
             "wall_model_part_name": "",

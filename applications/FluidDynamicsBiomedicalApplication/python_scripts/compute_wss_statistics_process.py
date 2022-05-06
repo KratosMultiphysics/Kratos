@@ -1,11 +1,12 @@
 # Importing the Kratos Library
+from numpy import isin
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsBiomedicalApplication as KratosBio
 
 def Factory(settings, model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(isinstance(settings, KratosMultiphysics.Parameters)):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ComputeWssStatisticsProcess(model, settings["Parameters"])
 

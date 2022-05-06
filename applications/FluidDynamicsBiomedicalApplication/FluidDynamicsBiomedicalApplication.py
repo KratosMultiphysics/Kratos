@@ -1,3 +1,4 @@
+import KratosMultiphysics.FluidDynamicsApplication
 from KratosFluidDynamicsBiomedicalApplication import *
 
 from KratosMultiphysics import _ImportApplication
