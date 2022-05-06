@@ -1,23 +1,38 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
+from KratosMultiphysics.python_solver import PythonSolver, PhysicalSolver
+
 # Import applications
 import KratosMultiphysics.RomApplication as KratosROM
+from KratosMultiphysics.RomApplication.navier_stokes_solver_vmsmonolithic_rom import CreateSolver as CreateNavierStokesVsMonolithicSolverRom
 
-def CreateSolver(cls, model, custom_settings):
-    class ROMSolver(cls):
+def CreateSolver(solver_class, model, custom_settings, parallelism):
+    class ROMSolver(solver_class):
         """ROM solver generic main class.
         This class serves as a generic class to make a standard Kratos solver ROM-compatible.
         It extends the default parameters to include the \'rom_settings\' and overrides the
         creation of the builder and solver to use the ROM one.
         """
 
-        def __init__(self, model, custom_settings):
-            super().__init__(model, custom_settings)
+        def _RegisterPhysicalSolvers(self):
+            super()._RegisterPhysicalSolvers()
+            self.AddPhysicalSolver("Fluid", PhysicalSolver(
+                self.rom_solver_settings["fluid_solver_settings"],
+                CreateNavierStokesVsMonolithicSolverRom,
+                [self.model, self.rom_solver_settings["fluid_solver_settings"]]
+            ))
+
+        def __init__(self, model, custom_settings, parallelism):
+            super().__init__(model, custom_settings, parallelism)
+
+            self.rom_solver_settings = custom_settings
+            self.rom_solver_model = model
+
             KratosMultiphysics.Logger.PrintInfo("::[ROMSolver]:: ", "Construction finished")
 
         @classmethod
-        def GetDefaultParameters(cls):
+        def GetDefaultParameters(solver_class):
             default_settings = KratosMultiphysics.Parameters("""{
                 "rom_settings": {
                     "nodal_unknowns": [],
@@ -55,4 +70,5 @@ def CreateSolver(cls, model, custom_settings):
             # Return the validated ROM parameters
             return self.settings["rom_settings"]
 
-    return ROMSolver(model, custom_settings)
+    print("=====",type(solver_class).__name__)
+    return ROMSolver(model, custom_settings, "OpenMP")
