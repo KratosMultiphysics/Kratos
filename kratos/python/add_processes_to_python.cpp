@@ -39,8 +39,6 @@
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_embedded_signed_distance_to_3d_skin_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
-#include "processes/translation_operation.h"
-#include "processes/rotation_operation.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "processes/variational_distance_calculation_process.h"
@@ -264,14 +262,6 @@ void  AddProcessesToPython(pybind11::module& m)
 
    py::class_<CalculateSignedDistanceTo3DConditionSkinProcess, CalculateSignedDistanceTo3DConditionSkinProcess::Pointer, Process>(m,"CalculateSignedDistanceTo3DConditionSkinProcess")
             .def(py::init<ModelPart&, ModelPart&>())
-    ;
-
-    py::class_<TranslationOperation, TranslationOperation::Pointer, Process>(m,"TranslationOperation")
-            .def(py::init<ModelPart&, DenseVector<int> ,DenseVector<int> ,unsigned int>())
-    ;
-
-    py::class_<RotationOperation, RotationOperation::Pointer, Process>(m,"RotationOperation")
-            .def(py::init<ModelPart&, DenseVector<int> ,DenseVector<int> ,unsigned int>())
     ;
 
     py::class_<StructuredMeshGeneratorProcess, StructuredMeshGeneratorProcess::Pointer, Process>(m,"StructuredMeshGeneratorProcess")
