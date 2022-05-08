@@ -65,7 +65,12 @@ void CalculateDistanceToBoundaryProcess::FindApproximatingGeometry(
         mRSquared = r_squared_b;
         pEntity = Kratos::make_shared<Line2D2<Point>>(line_b);
     }
-    KRATOS_WARNING_IF(Info(), mRSquared < mRSquaredThreshold) << "The fitted boundary has an R squared greather than " << std::to_string(mRSquaredThreshold) << std::endl;
+    if (mRSquared < mRSquaredThreshold) {
+        KRATOS_INFO(Info()) << "The fitted boundary has an R squared smaller than " << std::to_string(mRSquaredThreshold) << ". A brute force search will be executed." << std::endl;
+        mBruteForceSerch = true;
+    } else {
+        mBruteForceSerch = false;
+    }
 }
 
 double CalculateDistanceToBoundaryProcess::RSquared(const GeometryType& rLine, const ModelPart& rBoundaryPart)
@@ -77,7 +82,7 @@ double CalculateDistanceToBoundaryProcess::RSquared(const GeometryType& rLine, c
 
     std::tie(areas, squared_deviations) = block_for_each<SumSumReduction>(rBoundaryPart.Nodes(), [&](NodeType& rNode){
         Point projected;
-        double deviation = (GeometricalProjectionUtilities::FastProjectOnLine2D(rLine, rNode, projected));
+        double deviation = GeometricalProjectionUtilities::FastProjectOnLine2D(rLine, rNode, projected);
         double area = SquaredDistance(center, rNode);
         return std::make_tuple(area, std::pow(deviation, 2));
     });
@@ -89,6 +94,11 @@ double CalculateDistanceToBoundaryProcess::SquaredDistance(const Point& rPointA,
 {
     array_1d<double,3> vector = rPointA.Coordinates() - rPointB.Coordinates();
     return inner_prod(vector, vector);
+}
+
+double CalculateDistanceToBoundaryProcess::Distance(const Point& rPointA, const Point& rPointB)
+{
+    return std::sqrt(SquaredDistance(rPointA, rPointB));
 }
 
 double CalculateDistanceToBoundaryProcess::GetRSquared()
@@ -104,12 +114,22 @@ int CalculateDistanceToBoundaryProcess::Check()
 
 void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
 {
-    block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
-        Point projected;
-        double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
-        const auto projection = std::abs(GeometricalProjectionUtilities::FastProjectOnLine2D(*mpBoundary, rNode, projected));
-        r_distance = std::min(r_distance, projection);
-    });
+    if (mBruteForceSerch) {
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            for (auto& r_boundary_node : mrBoundaryPart.Nodes()) {
+                double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
+                const double new_distance = Distance(rNode, r_boundary_node);
+                r_distance = std::min(r_distance, new_distance);
+            }
+        });
+    } else {
+        block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            Point projected;
+            double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
+            const auto projection = std::abs(GeometricalProjectionUtilities::FastProjectOnLine2D(*mpBoundary, rNode, projected));
+            r_distance = std::min(r_distance, projection);
+        });
+    }
 }
 
 const Parameters CalculateDistanceToBoundaryProcess::GetDefaultParameters() const

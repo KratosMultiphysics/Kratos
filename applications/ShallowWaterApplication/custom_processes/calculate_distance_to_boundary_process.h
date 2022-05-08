@@ -83,11 +83,12 @@ public:
         ModelPart& rBoundaryModelPart,
         Parameters ThisParameters = Parameters()) :
             Process(),
-            mrModelPart(rComputingModelPart)
+            mrModelPart(rComputingModelPart),
+            mrBoundaryPart(rBoundaryModelPart)
     {
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
-        FindApproximatingGeometry(mpBoundary, rBoundaryModelPart);
+        FindApproximatingGeometry(mpBoundary, mrBoundaryPart);
     }
 
     /// Destructor.
@@ -156,9 +157,11 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
+    ModelPart& mrBoundaryPart;
     GeometryType::Pointer mpBoundary;
     double mRSquaredThreshold;
     double mRSquared;
+    bool mBruteForceSerch;
 
     ///@}
     ///@name Member Variables
@@ -179,6 +182,8 @@ private:
     double RSquared(const GeometryType& rLine, const ModelPart& rBoundaryPart);
 
     double SquaredDistance(const Point& rPointA, const Point& rPointB);
+
+    double Distance(const Point& rPointA, const Point& rPointB);
 
     ///@}
     ///@name Private  Access
