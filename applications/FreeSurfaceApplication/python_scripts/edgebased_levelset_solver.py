@@ -60,10 +60,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         # Parse numeric parameters
         self.domain_size = self.settings["domain_size"].GetInt()
-        self.body_force                    = self.settings["body_force"].GetVector()
+        self.body_force = self.settings["body_force"].GetVector()
         self.density = self.settings["density"].GetDouble()
         self.viscosity = self.settings["viscosity"].GetDouble()
-        self.wall_law_y                    = self.settings["wall_law_y"].GetDouble()
+        self.wall_law_y = self.settings["wall_law_y"].GetDouble()
         self.stabdt_pressure_factor = self.settings["stabdt_pressure_factor"].GetDouble()
         self.stabdt_convection_factor = self.settings["stabdt_convection_factor"].GetDouble()
         self.redistance_frequency = self.settings["redistance_frequency"].GetInt()
@@ -165,9 +165,8 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.SetBufferSize(self.GetMinimumBufferSize())
 
     def Check(self) -> None:
-        pass
-        # if all(not component for component in self.body_force):
-        #     raise ValueError("Body force cannot be a zero vector")
+        if all(not component for component in self.body_force):
+            raise ValueError("Body force cannot be a zero vector")
 
     def Initialize(self) -> None:
         # Get rid of isolated nodes
