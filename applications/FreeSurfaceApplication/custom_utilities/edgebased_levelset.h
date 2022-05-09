@@ -87,6 +87,11 @@ namespace Kratos
 
             mMolecularViscosity = viscosity;
 
+            for (unsigned int i = 0; i < TDim; i++)
+            {
+                mBodyForce[i] = body_force[i];
+            }
+
             mRho = density;
 
             mdelta_t_avg = 1000.0;
