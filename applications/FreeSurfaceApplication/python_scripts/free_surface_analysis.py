@@ -25,6 +25,7 @@ class FreeSurfaceAnalysis(AnalysisStage):
 
         # Initialize remaining nodes
         density = self.project_parameters["solver_settings"]["density"].GetDouble()
+        body_force = self.project_parameters["solver_settings"]["body_force"].GetVector()
         small_value = 1e-4
         active_node_count = 0
         for node in self.model.GetModelPart(model_part_name).Nodes:

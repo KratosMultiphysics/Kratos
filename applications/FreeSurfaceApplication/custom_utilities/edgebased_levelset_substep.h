@@ -762,8 +762,7 @@ namespace Kratos
             double energy_final = 1.0;
 
 // compute initial kinetic energy
-#pragma omp parallel for firstprivate(n_nodes) reduction(+ \
-                                                         : energy_initial)
+        #pragma omp parallel for firstprivate(n_nodes) reduction(+:energy_initial)
             for (int i_node = 0; i_node < n_nodes; i_node++)
                 if (mdistances[i_node] <= 0.0)
                     energy_initial += mr_matrix_container.GetLumpedMass()[i_node] * inner_prod(mvel_n[i_node], mvel_n[i_node]);
@@ -810,8 +809,7 @@ namespace Kratos
 
                 energy_final = 0.0;
 // compute initial kinetic energy
-#pragma omp parallel for firstprivate(n_nodes) reduction(+ \
-                                                         : energy_final)
+            #pragma omp parallel for firstprivate(n_nodes) reduction(+:energy_final)
                 for (int i_node = 0; i_node < n_nodes; i_node++)
                     if (mdistances[i_node] <= 0.0)
                         energy_final += mr_matrix_container.GetLumpedMass()[i_node] * inner_prod(mvel_n1[i_node], mvel_n1[i_node]);

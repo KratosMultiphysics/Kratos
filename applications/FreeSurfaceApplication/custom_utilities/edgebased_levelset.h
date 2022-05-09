@@ -66,6 +66,7 @@ namespace Kratos
                           ModelPart &mr_model_part,
                           const double viscosity,
                           const double density,
+                          const Vector body_force,
                           bool use_mass_correction,
                           double edge_detection_angle,
                           double stabdt_pressure_factor,

@@ -330,6 +330,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.model_part,
             self.viscosity,
             self.density,
+            self.body_force,
             self.use_mass_correction,
             self.edge_detection_angle,
             self.stabdt_pressure_factor,
