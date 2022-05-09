@@ -16,7 +16,8 @@ class WaveGeneratorProcess(KM.Process):
         """Default parameters for wave generator process.
 
         A zero value in the wave specifications will be ignored.
-        The direction can be specified with a vector or the 'normal' keyword.
+        The direction can be specified with a vector or the 'normal' keyword. If the direction is missing,
+        it will be taken as the normal to the boundary.
         """
         return KM.Parameters("""{
             "model_part_name"          : "model_part",
@@ -82,14 +83,13 @@ class WaveGeneratorProcess(KM.Process):
 
         # Creation of the parameters for the c++ process
         velocity_parameters = KM.Parameters("""{}""")
-        velocity_parameters.AddEmptyValue("amplitude").SetDouble(wave_theory.horizontal_velocity)
-        velocity_parameters.AddEmptyValue("wavelength").SetDouble(wave_theory.wavelength)
-        velocity_parameters.AddEmptyValue("period").SetDouble(wave_theory.period)
+        velocity_parameters.AddDouble("amplitude", wave_theory.horizontal_velocity)
+        velocity_parameters.AddDouble("wavelength", wave_theory.wavelength)
+        velocity_parameters.AddDouble("period", wave_theory.period)
         velocity_parameters.AddValue("phase", self.settings["wave_specifications"]["t_shift"])
         velocity_parameters.AddValue("shift", self.settings["wave_specifications"]["x_shift"])
         velocity_parameters.AddValue("smooth_time", self.settings["smooth_time"])
         velocity_parameters.AddValue("direction", self.settings["direction"])
-
         self.velocity_process = SW.ApplySinusoidalFunctionToVector(self.model_part, KM.VELOCITY, velocity_parameters)
 
 
