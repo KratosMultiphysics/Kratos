@@ -11,12 +11,6 @@ def Factory(settings, Model):
 
 class WaveGeneratorProcess(KM.Process):
 
-    __formulation = {
-        "primitive_variables" : SW.Formulation.PrimitiveVariables,
-        "conserved_variables" : SW.Formulation.ConservativeVariables
-    }
-
-
     @staticmethod
     def GetDefaultParameters():
         """Default parameters for wave generator process.
@@ -26,7 +20,6 @@ class WaveGeneratorProcess(KM.Process):
         """
         return KM.Parameters("""{
             "model_part_name"          : "model_part",
-            "formulation"              : "primitive_variables",
             "interval"                 : [0.0, "End"],
             "direction"                : [0.0, 0.0, 0.0],
             "normal_positive_outwards" : true,
@@ -62,8 +55,15 @@ class WaveGeneratorProcess(KM.Process):
         # Get the custom settings
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.interval = KM.IntervalUtility(self.settings)
-        self.formulation = self.__formulation[self.settings["formulation"].GetString()]
-        self.fix_dofs = True
+        variables_names_list = KM.SpecificationsUtilities.GetDofsListFromConditionsSpecifications(self.model_part)
+        self.variables_to_fix = []
+        self.compute_momentum = False
+        for variable_name in variables_names_list:
+            if variable_name.startswith("VELOCITY") or variable_name.startswith("MOMENTUM"):
+                variable = KM.KratosGlobals.GetVariable(variable_name)
+                self.variables_to_fix.append(variable)
+            if variable_name.startswith("MOMENTUM"):
+                self.compute_momentum = True
 
 
     def ExecuteInitialize(self):
@@ -100,15 +100,10 @@ class WaveGeneratorProcess(KM.Process):
     def ExecuteInitializeSolutionStep(self):
         if self._IsInInterval():
             self.velocity_process.ExecuteInitializeSolutionStep()
-            if self.formulation == SW.Formulation.ConservativeVariables:
+            if self.compute_momentum:
                 SW.ShallowWaterUtilities().ComputeMomentum(self.model_part)
-            if self.fix_dofs:
-                if self.formulation == SW.Formulation.PrimitiveVariables:
-                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_X, True, self.model_part.Nodes)
-                    KM.VariableUtils().ApplyFixity(KM.VELOCITY_Y, True, self.model_part.Nodes)
-                if self.formulation == SW.Formulation.ConservativeVariables:
-                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_X, True, self.model_part.Nodes)
-                    KM.VariableUtils().ApplyFixity(KM.MOMENTUM_Y, True, self.model_part.Nodes)
+            for variable in self.variables_to_fix:
+                KM.VariableUtils().ApplyFixity(variable, True, self.model_part.Nodes)
 
 
     def _IsInInterval(self):

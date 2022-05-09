@@ -67,3 +67,6 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         dissipation_factor = self.wave.frequency * self.settings["relative_damping"].GetDouble()
         self.model_part.ProcessInfo.SetValue(SW.ABSORBING_DISTANCE, absorbing_distance)
         self.model_part.ProcessInfo.SetValue(SW.DISSIPATION, dissipation_factor)
+
+        for variable in self.variables_to_fix:
+            KM.VariableUtils.ApplyFixity(variable, True, self.boundary_part)
