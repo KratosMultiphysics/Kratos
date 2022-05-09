@@ -68,6 +68,7 @@
 #include "processes/set_initial_state_process.h"
 #include "processes/split_internal_interfaces_process.h"
 #include "processes/parallel_distance_calculation_process.h"
+#include "processes/generic_find_elements_neighbours_process.h"
 
 
 #include "spaces/ublas_space.h"
@@ -716,6 +717,10 @@ void  AddProcessesToPython(pybind11::module& m)
     using ArrayEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<array_1d<double,3>,SparseSpaceType,LocalSpaceType,LinearSolverType>;
     py::class_<ArrayEdgeBasedGradientRecoveryProcessType, ArrayEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessArray")
         .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
+
+    py::class_<GenericFindElementalNeighboursProcess, GenericFindElementalNeighboursProcess::Pointer, Process> (m, "GenericFindElementalNeighboursProcess")
+    .def(py::init<ModelPart&>())
     ;
 }
 
