@@ -629,14 +629,6 @@ namespace Kratos
 										any_node_removed = true;
 										inside_nodes_removed++;
 
-										// if (propertyIdNode == principalModelPartId)
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-										// }
-										// else
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-										// }
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -689,14 +681,6 @@ namespace Kratos
 								any_node_removed = true;
 								boundary_nodes_removed++;
 
-								// if (propertyIdNode == principalModelPartId)
-								// {
-								// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-								// }
-								// else
-								// {
-								// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-								// }
 								if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 								{
 									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -712,14 +696,6 @@ namespace Kratos
 								any_node_removed = true;
 								boundary_nodes_removed++;
 
-								// if (propertyIdNode == principalModelPartId)
-								// {
-								// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-								// }
-								// else
-								// {
-								// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-								// }
 								if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 								{
 									mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -790,7 +766,6 @@ namespace Kratos
 				std::cout << "boundary_nodes_removed " << boundary_nodes_removed << std::endl;
 				std::cout << "inside_nodes_removed " << inside_nodes_removed << std::endl;
 			}
-			KRATOS_WATCH(mrRemesh.Info->BalancePrincipalSecondaryPartsNodes)
 			return any_node_removed;
 
 			KRATOS_CATCH(" ")
@@ -878,14 +853,6 @@ namespace Kratos
 						inside_nodes_removed++;
 
 						unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
-						// if (propertyIdNode == principalModelPartId)
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-						// }
-						// else
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-						// }
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -913,14 +880,6 @@ namespace Kratos
 							inside_nodes_removed++;
 
 							unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
-							// if (propertyIdNode == principalModelPartId)
-							// {
-							// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-							// }
-							// else
-							// {
-							// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-							// }
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 							{
 								mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -944,14 +903,6 @@ namespace Kratos
 										inside_nodes_removed++;
 
 										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
-										// if (propertyIdNode == principalModelPartId)
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-										// }
-										// else
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-										// }
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1248,14 +1199,6 @@ namespace Kratos
 						inside_nodes_removed++;
 
 						unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
-						// if (propertyIdNode == principalModelPartId)
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-						// }
-						// else
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-						// }
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1315,14 +1258,6 @@ namespace Kratos
 					inside_nodes_removed++;
 
 					unsigned int propertyIdNode = eElement[notRigidNodeId].FastGetSolutionStepValue(PROPERTY_ID);
-					// if (propertyIdNode == principalModelPartId)
-					// {
-					// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-					// }
-					// else
-					// {
-					// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-					// }
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
 						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1349,14 +1284,6 @@ namespace Kratos
 							inside_nodes_removed++;
 
 							unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
-							// if (propertyIdNode == principalModelPartId)
-							// {
-							// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-							// }
-							// else
-							// {
-							// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-							// }
 							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 							{
 								mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1385,14 +1312,6 @@ namespace Kratos
 										inside_nodes_removed++;
 
 										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
-										// if (propertyIdNode == principalModelPartId)
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-										// }
-										// else
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-										// }
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1416,14 +1335,6 @@ namespace Kratos
 										inside_nodes_removed++;
 
 										unsigned int propertyIdNode = eElement[i].FastGetSolutionStepValue(PROPERTY_ID);
-										// if (propertyIdNode == principalModelPartId)
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-										// }
-										// else
-										// {
-										// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-										// }
 										if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 										{
 											mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1584,14 +1495,6 @@ namespace Kratos
 						erased_nodes += 1;
 
 						unsigned int propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-						// if (propertyIdNode == principalModelPartId)
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-						// }
-						// else
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-						// }
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
@@ -1604,14 +1507,6 @@ namespace Kratos
 						erased_nodes += 1;
 
 						unsigned int propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-						// if (propertyIdNode == principalModelPartId)
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-						// }
-						// else
-						// {
-						// 	mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += 1;
-						// }
 						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 						{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
