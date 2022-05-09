@@ -23,10 +23,8 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         {
             "model_part_name"                       : "",
             "domain_size"                           : 3,
-            "body_force"                            : [0.0, 0.0, 0.0],
             "density"                               : 0.0,
             "viscosity"                             : 0.0,
-            "wall_law_y"                            : 0.0,
             "stabdt_pressure_factor"                : 1.0,
             "stabdt_convection_factor"              : 0.1,
             "use_mass_correction"                   : true,
@@ -60,10 +58,8 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         # Parse numeric parameters
         self.domain_size = self.settings["domain_size"].GetInt()
-        self.body_force = self.settings["body_force"].GetVector()
         self.density = self.settings["density"].GetDouble()
         self.viscosity = self.settings["viscosity"].GetDouble()
-        self.wall_law_y = self.settings["wall_law_y"].GetDouble()
         self.stabdt_pressure_factor = self.settings["stabdt_pressure_factor"].GetDouble()
         self.stabdt_convection_factor = self.settings["stabdt_convection_factor"].GetDouble()
         self.redistance_frequency = self.settings["redistance_frequency"].GetInt()
@@ -109,10 +105,8 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         return KratosMultiphysics.Parameters("""{
             "model_part_name"                       : "",
             "domain_size"                           : 3,
-            "body_force"                            : [0.0, 0.0, 0.0],
             "density"                               : 0.0,
             "viscosity"                             : 0.0,
-            "wall_law_y"                            : 0.0,
             "stabdt_pressure_factor"                : 1.0,
             "stabdt_convection_factor"              : 0.1,
             "use_mass_correction"                   : true,
@@ -328,7 +322,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             self.model_part,
             self.viscosity,
             self.density,
-            self.body_force,
             self.use_mass_correction,
             self.edge_detection_angle,
             self.stabdt_pressure_factor,
