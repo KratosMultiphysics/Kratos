@@ -21,6 +21,7 @@
 
 
 // Project includes
+#include "containers/model.h"
 #include "processes/process.h"
 #include "geometries/geometry.h"
 #include "includes/kratos_parameters.h"
@@ -77,17 +78,29 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor with Model and Parameters
+    CalculateDistanceToBoundaryProcess(
+        Model& rModel,
+        Parameters ThisParameters) :
+            Process(),
+            mrModelPart(rModel.GetModelPart(ThisParameters["computing_model_part_name"].GetString())),
+            mrBoundaryPart(rModel.GetModelPart(ThisParameters["absorbing_boundary_name"].GetString()))
+    {
+        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+        mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
+        FindApproximatingGeometry(mpBoundary, mrBoundaryPart);
+    }
+
+    /// Constructor with ModelPart
     CalculateDistanceToBoundaryProcess(
         ModelPart& rComputingModelPart,
         ModelPart& rBoundaryModelPart,
-        Parameters ThisParameters = Parameters()) :
+        double RSquaredThreshold = 0.99) :
             Process(),
             mrModelPart(rComputingModelPart),
             mrBoundaryPart(rBoundaryModelPart)
     {
-        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
+        mRSquaredThreshold = RSquaredThreshold;
         FindApproximatingGeometry(mpBoundary, mrBoundaryPart);
     }
 
@@ -158,7 +171,6 @@ private:
     ModelPart& mrBoundaryPart;
     GeometryType::Pointer mpBoundary;
     double mRSquaredThreshold;
-    double mRSquared;
     bool mBruteForceSearch;
 
     ///@}

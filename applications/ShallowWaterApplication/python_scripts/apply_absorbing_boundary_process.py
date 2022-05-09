@@ -37,9 +37,8 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         self.settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.model_part = model.GetModelPart(self.settings["computing_model_part_name"].GetString())
-        self.boundary_part = model.GetModelPart(self.settings["absorbing_boundary_name"].GetStringArray())
-        distance_calculation_settings = self.settings["r_squared_threshold"]
-        self.distance_process = SW.CalculateDistanceToBoundaryProcess(self.model_part, self.boundary_part, distance_calculation_settings)
+        self.boundary_part = model.GetModelPart(self.settings["absorbing_boundary_name"].GetString())
+        self.distance_process = SW.CalculateDistanceToBoundaryProcess(self.model_part, self.boundary_part, self.settings["r_squared_threshold"].GetDouble())
 
         self.wave = WaveTheoryFactory(self.boundary_part, self.settings["wave_settings"])
 

@@ -59,13 +59,11 @@ void CalculateDistanceToBoundaryProcess::FindApproximatingGeometry(
     double r_squared_b = RSquared(line_b, rBoundaryPart);
 
     if (r_squared_a > r_squared_b) {
-        mRSquared = r_squared_a;
         pEntity = Kratos::make_shared<Line2D2<Point>>(line_a);
     } else {
-        mRSquared = r_squared_b;
         pEntity = Kratos::make_shared<Line2D2<Point>>(line_b);
     }
-    if (mRSquared < mRSquaredThreshold) {
+    if (r_squared_a < mRSquaredThreshold && r_squared_b < mRSquaredThreshold) {
         KRATOS_INFO(Info()) << "The fitted boundary has an R squared smaller than " << std::to_string(mRSquaredThreshold) << ". A brute force search will be executed." << std::endl;
         mBruteForceSearch = true;
     } else {
@@ -131,6 +129,8 @@ const Parameters CalculateDistanceToBoundaryProcess::GetDefaultParameters() cons
 {
     auto default_parameters = Parameters(R"(
     {
+        "computing_model_part_name" : "",
+        "absorbing_boundary_name"   : "",
         "r_squared_threshold" : 0.99
     })");
     return default_parameters;
