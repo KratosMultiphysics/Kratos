@@ -41,7 +41,7 @@ class DEM3D_SearchToleranceMain(KratosMultiphysics.DEMApplication.DEM_analysis_s
         super().FinalizeSolutionStep()
         node = self.spheres_model_part.GetNode(2)
         #reference data with freq=1 searchtolerance=0.0
-        tol = 1.0e-15
+        tol = 1.0e-10
 
         if self.spheres_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] == 572:
             y_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
