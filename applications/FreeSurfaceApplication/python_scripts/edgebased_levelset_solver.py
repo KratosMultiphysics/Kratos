@@ -142,6 +142,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_INDEX)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POROSITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
@@ -175,31 +176,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.model_part).Execute()
         KratosMultiphysics.EliminateIsolatedNodesProcess(self.model_part).Execute()
 
-        # Initialize remaining nodes
-        initializer = self.density * self.body_force
-        small_value = 1e-4
-        active_node_count = 0
-        for node in self.model_part.Nodes:
-            # # Initialize DISTANCE
-            # if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) < 0.0:
-            #     active_node_count += 1
-            #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -small_value)
-            # else:
-            #     node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, small_value)
-
-            # Make sure no node has null porosity and diameter
-            # Note: this was set in the main script, not sure if it needs to be here
-            if node.GetSolutionStepValue(KratosMultiphysics.POROSITY) == 0.0:
-                node.SetSolutionStepValue(KratosMultiphysics.POROSITY, 0, 1.0)
-            if node.GetSolutionStepValue(KratosMultiphysics.DIAMETER) == 0.0:
-                node.SetSolutionStepValue(KratosMultiphysics.DIAMETER, 0, 1.0)
-
-            porosity = node.GetSolutionStepValue(KratosMultiphysics.POROSITY)
-            node.SetSolutionStepValue(KratosMultiphysics.PRESS_PROJ, 0, initializer * porosity)
-
-        # if not active_node_count:
-        #     raise RuntimeError("At least 1 node must be initialized with a negative DISTANCE")
-
         # Build edge data structure
         self.matrix_container.ConstructCSRVector(self.model_part)
         self.matrix_container.BuildCSRData(self.model_part)
@@ -213,9 +189,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         # original script prints the number of edges with positive/negative DISTANCE values
         # before and after calling self.fluid_solver.Initialize
         self.fluid_solver.Initialize()
-        self.__Redistance()
-        if 1e-10 < self.wall_law_y:
-            self.fluid_solver.ActivateWallResistance(self.wall_law_y)
 
     def AdvanceInTime(self, current_time: float) -> float:
         """
@@ -294,6 +267,15 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         self.__Log("Model part written to '{}'".format(file_name))
 
+    def _Redistance(self) -> None:
+        if self.use_parallel_distance_calculation:
+            self.distance_utils.Execute()
+        else:
+            self.distance_utils.CalculateDistances(
+                self.model_part,
+                KratosMultiphysics.DISTANCE,
+                self.distance_size)
+
     def __MakeMatrixContainer(self) -> FreeSurface.MatrixContainer3D:
         if self.domain_size == 2:
             return FreeSurface.MatrixContainer2D()
@@ -361,15 +343,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         return step_size
 
-    def __Redistance(self) -> None:
-        if self.use_parallel_distance_calculation:
-            self.distance_utils.Execute()
-        else:
-            self.distance_utils.CalculateDistances(
-                self.model_part,
-                KratosMultiphysics.DISTANCE,
-                self.distance_size)
-
     def __SolveLocalSolutionStep(self):
         """Solve the system in its current state without checking the time step."""
         if self.extrapolation_layers < 3:
@@ -398,7 +371,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         step = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
         if 0 < (step - 4) and ((step - 4) % self.redistance_frequency) == 0:
             self.timer.Start("Redistance")
-            self.__Redistance()
+            self._Redistance()
             self.timer.Stop("Redistance")
 
         # Solve fluid
