@@ -99,16 +99,10 @@ namespace Kratos
     void Execute() override
     {
       KRATOS_TRY
-#pragma omp parallel
-      {
-        ModelPart::ElementIterator ElemBegin;
-        ModelPart::ElementIterator ElemEnd;
-        OpenMPUtils::PartitionedIterators(mrModelPart.Elements(), ElemBegin, ElemEnd);
-        ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-        ModelPart::ElementIterator itElem = ElemBegin;
-        unsigned int main_property_id = itElem->GetProperties().Id();
-        rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY]=main_property_id;
-      }
+      const auto elem_begin = mrModelPart.ElementsBegin();
+      unsigned int main_property_id = elem_begin->GetProperties().Id();
+      ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+      rCurrentProcessInfo[MAIN_MATERIAL_PROPERTY] = main_property_id;
       KRATOS_CATCH(" ")
     }; // namespace Kratos
 
