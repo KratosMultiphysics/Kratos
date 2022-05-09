@@ -234,14 +234,14 @@ public:
             // Free the DISTANCE values
             rNode.Free(DISTANCE);
             // Set the fix flag to 0
-            node.Set(BLOCKED, false);
+            rNode.Set(BLOCKED, false);
 
             // Save the distances
             rNode.SetValue(DISTANCE, d);
 
             if(d == 0){
                 d = 1.0e-15;
-                node.Set(BLOCKED, true);
+                rNode.Set(BLOCKED, true);
                 rNode.Fix(DISTANCE);
             } else {
                 if(d > 0.0){
@@ -290,7 +290,7 @@ public:
                     if(std::abs(d) > std::abs(distances[i])){
                         d = distances[i];
                     }
-                    node.Set(BLOCKED, true);
+                    geom[i].Set(BLOCKED, true);
                     geom[i].Fix(DISTANCE);
                     geom[i].UnSetLock();
                 }
@@ -601,7 +601,7 @@ private:
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
                 auto it_node = r_distance_model_part.NodesBegin() + i_node;
-                if (node.Is(BLOCKED)){
+                if (it_node->Is(BLOCKED)){
                     it_node->Fix(DISTANCE);
                 }
             }
