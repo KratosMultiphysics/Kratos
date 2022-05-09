@@ -118,7 +118,6 @@ class Network(abc.ABC):
             tape.watch(in_tf_var)
             output = model(in_tf_var, training=False)
         auto_grad = tape.batch_jacobian(output, in_tf_var, unconnected_gradients=tf.UnconnectedGradients.ZERO, experimental_use_pfor=False) 
-        print(output.shape, in_tf_var.shape, auto_grad.shape)
 
         # Compute gradients
         return auto_grad[0].numpy()
