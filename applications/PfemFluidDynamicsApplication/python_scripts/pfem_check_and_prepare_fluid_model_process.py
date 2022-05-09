@@ -112,7 +112,6 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                             property_id = self.main_model_part.GetProperties()[materials["properties"][k]["properties_id"].GetInt()]
                             body_model_part.AddProperties(property_id)
                             is_solid_or_fluid = True
-                            print("               property id ",property_id)
                     # Assign a new dummy property to the rigid boundaries to keep them separated in the GiD post process
                     if not is_solid_or_fluid:
                         max_property_id += 1

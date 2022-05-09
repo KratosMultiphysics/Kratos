@@ -542,12 +542,6 @@ namespace Kratos
 							radius = 0.54 * initialMeanRadius; // 10% less than normal nodes
 						if (dimension == 3)
 							radius = 0.48 * initialMeanRadius; // 20% less than normal nodes
-
-						// if ((propertyIdNode == principalModelPartId && mrRemesh.Info->BalancePrincipalSecondaryPartsNodes > 0) ||
-						// 	(propertyIdNode != principalModelPartId && mrRemesh.Info->BalancePrincipalSecondaryPartsNodes < 0))
-						// {
-						// 	radius *= 0.95;
-						// }
 					}
 
 					if (in->Is(INLET))
