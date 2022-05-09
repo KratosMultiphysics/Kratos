@@ -11,9 +11,6 @@ if not CheckIfApplicationsAvailable("ParticleMechanicsApplication"):
 import KratosMultiphysics.ParticleMechanicsApplication as KPM
 from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
 
-# Other imports
-import math
-
 def Create(settings, model, solver_name):
     return ParticleMechanicsNeumannWrapper(settings, model, solver_name)
 
