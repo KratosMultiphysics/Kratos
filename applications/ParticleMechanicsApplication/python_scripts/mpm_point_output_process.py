@@ -136,7 +136,7 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
 
         # Write the tracking of points values
         #if (self.model_part.GetCommunicator().MyPID() == 0):
-        self.output_file.write(str(current_time)+" "+format(mp_coord[0],self.format)+" "+format(mp_coord[1],self.format)+" "+format(mp_coord[2],self.format)+" "+format(velocity[0],self.format)+" "+format(velocity[1],self.format)+" "+format(velocity[2],self.format)+format(mp_coord[2],self.format)+" "+format(displacement[0],self.format)+" "+format(displacement[1],self.format)+" "+format(displacement[2],self.format)+" "+format(pressure,self.format)+"\n")
+        self.output_file.write(str(current_time)+" "+format(mp_coord[0],self.format)+" "+format(mp_coord[1],self.format)+" "+format(mp_coord[2],self.format)+" "+format(velocity[0],self.format)+" "+format(velocity[1],self.format)+" "+format(velocity[2],self.format)+" "+format(displacement[0],self.format)+" "+format(displacement[1],self.format)+" "+format(displacement[2],self.format)+" "+format(pressure,self.format)+"\n")
 
     def ExecuteFinalize(self):
         #if (self.write_tracking_output_file):
