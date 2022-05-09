@@ -109,8 +109,6 @@ public:
 
     const Parameters GetDefaultParameters() const override;
 
-    double GetRSquared();
-
     ///@}
     ///@name Access
     ///@{
@@ -161,7 +159,7 @@ private:
     GeometryType::Pointer mpBoundary;
     double mRSquaredThreshold;
     double mRSquared;
-    bool mBruteForceSerch;
+    bool mBruteForceSearch;
 
     ///@}
     ///@name Member Variables

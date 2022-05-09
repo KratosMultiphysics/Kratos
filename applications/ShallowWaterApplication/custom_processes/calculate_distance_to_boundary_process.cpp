@@ -67,9 +67,9 @@ void CalculateDistanceToBoundaryProcess::FindApproximatingGeometry(
     }
     if (mRSquared < mRSquaredThreshold) {
         KRATOS_INFO(Info()) << "The fitted boundary has an R squared smaller than " << std::to_string(mRSquaredThreshold) << ". A brute force search will be executed." << std::endl;
-        mBruteForceSerch = true;
+        mBruteForceSearch = true;
     } else {
-        mBruteForceSerch = false;
+        mBruteForceSearch = false;
     }
 }
 
@@ -101,11 +101,6 @@ double CalculateDistanceToBoundaryProcess::Distance(const Point& rPointA, const 
     return std::sqrt(SquaredDistance(rPointA, rPointB));
 }
 
-double CalculateDistanceToBoundaryProcess::GetRSquared()
-{
-    return mRSquared;
-}
-
 int CalculateDistanceToBoundaryProcess::Check()
 {
     VariableUtils().CheckVariableExists(DISTANCE, mrModelPart.Nodes());
@@ -114,10 +109,10 @@ int CalculateDistanceToBoundaryProcess::Check()
 
 void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
 {
-    if (mBruteForceSerch) {
+    if (mBruteForceSearch) {
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
+            double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
             for (auto& r_boundary_node : mrBoundaryPart.Nodes()) {
-                double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
                 const double new_distance = Distance(rNode, r_boundary_node);
                 r_distance = std::min(r_distance, new_distance);
             }

@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesProcess, ShallowWaterA
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToWrongBoundaryProcess, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesBruteForceProcess, ShallowWaterApplicationFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("model_part");
@@ -113,15 +113,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToWrongBoundaryProcess, ShallowWaterA
         if (r_node.X() >= 1.0) {
             r_boundary_part.AddNode(&r_node);
         }
-        if ((r_node.X() > 0.5) && (r_node.Y() >= 1.0)) {
+        if ((r_node.Y() >= 1.0)) {
             r_boundary_part.AddNode(&r_node);
         }
     }
 
-    CalculateDistanceToBoundaryProcess process(r_model_part, r_boundary_part);
+    CalculateDistanceToBoundaryProcess(r_model_part, r_boundary_part).ExecuteBeforeSolutionLoop();
 
-    const double reference = 0.771668;
-    KRATOS_CHECK_NEAR(process.GetRSquared(), reference, 1e-6);
+    const double tolerance = 1e-16;
+    for (auto& r_node : r_model_part.Nodes()) {
+        const double distance = std::min(1.0 - r_node.X(), 1.0 - r_node.Y());
+        KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(DISTANCE), distance, tolerance);
+    }
 }
 
 } // namespace Testing
