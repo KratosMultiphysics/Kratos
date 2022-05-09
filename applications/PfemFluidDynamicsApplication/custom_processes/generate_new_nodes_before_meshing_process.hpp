@@ -845,7 +845,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.9; // 10% less then normal nodes
+						penalization = 0.9; // 10% less than normal nodes
 					}
 				}
 			}
@@ -1082,7 +1082,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 0.8; // 20% less then normal nodes
+						penalization = 0.8; // 20% less than normal nodes
 					}
 				}
 			}
@@ -1460,7 +1460,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 1.1; // 10% more then normal nodes
+						penalization = 1.1; // 10% more than normal nodes
 					}
 				}
 			}
@@ -1794,7 +1794,7 @@ namespace Kratos
 					unsigned int propertyIdSecondNode = Element[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdFirstNode != propertyIdSecondNode)
 					{
-						penalization = 1.2; // 20% less then normal nodes
+						penalization = 1.2; // 20% less than normal nodes
 					}
 				}
 			}
