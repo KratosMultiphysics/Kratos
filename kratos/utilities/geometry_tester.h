@@ -45,7 +45,7 @@
 #include "geometries/hexahedra_interface_3d_8.h"
 
 #include "geometries/prism_3d_6.h"
-//#include "geometries/prism_3d_15.h"
+#include "geometries/prism_3d_15.h"
 #include "geometries/prism_interface_3d_6.h"
 
 namespace Kratos
@@ -130,7 +130,7 @@ public:
         if(TestHexahedraInterface3D8N(model_part) == false) succesful=false;
 
         if(TestPrism3D6N(model_part) == false) succesful=false;
-//        if(TestPrism3D15N( error_msg ) == false) succesful=false;
+        //if(TestPrism3D15N(model_part) == false) succesful=false;  TODO: Debug this
         if(TestPrismInterface3D6N(model_part) == false) succesful=false;
 
         if(succesful == false)
@@ -627,42 +627,41 @@ public:
 
     }
 
-//    bool TestPrism3D15N(ModelPart& rModelPart)
-//     {
-//         std::stringstream error_msg;
-//          Prism3D15<Node<3> > geom( rModelPart.pGetNode(1),  rModelPart.pGetNode(2),  rModelPart.pGetNode(3),
-//                                    rModelPart.pGetNode(5),  rModelPart.pGetNode(7),  rModelPart.pGetNode(4),
-//                                    rModelPart.pGetNode(10), rModelPart.pGetNode(12), rModelPart.pGetNode(16),
-//                                    rModelPart.pGetNode(19), rModelPart.pGetNode(20), rModelPart.pGetNode(21),
-//                                    rModelPart.pGetNode(23), rModelPart.pGetNode(25), rModelPart.pGetNode(22)
-//                                    );
+   bool TestPrism3D15N(ModelPart& rModelPart)
+   {
+        std::stringstream error_msg;
+        Prism3D15<Node<3> > geom( rModelPart.pGetNode(1),  rModelPart.pGetNode(2),  rModelPart.pGetNode(3),
+                                rModelPart.pGetNode(5),  rModelPart.pGetNode(7),  rModelPart.pGetNode(4),
+                                rModelPart.pGetNode(10), rModelPart.pGetNode(12), rModelPart.pGetNode(16),
+                                rModelPart.pGetNode(19), rModelPart.pGetNode(20), rModelPart.pGetNode(21),
+                                rModelPart.pGetNode(23), rModelPart.pGetNode(25), rModelPart.pGetNode(22)
+                                );
 
-//          bool succesful = true;
+        bool succesful = true;
 
-//          //compute analytical volume
+        // Compute analytical volume
+        const double expected_vol = pow(2.0/3.0,3)/2.0;
 
-//          const double expected_vol = pow(2.0/3.0,3)/2.0;
+        if(std::abs(geom.Volume() - expected_vol) > 1e-14)
+            error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
 
-//          if(std::abs(geom.Volume() - expected_vol) > 1e-14)
-//              error_msg << "Geometry Type = " << GetGeometryName(geom) << " --> " << " error: area returned by the function geom.Area() does not deliver the correct result " << std::endl;
+        //now let's verify that all integration methods give the same
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
+        if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
 
-//          //now let's verify that all integration methods give the same
-//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, expected_vol, error_msg) ) succesful=false;
-//          if( !VerifyAreaByIntegration( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, expected_vol, error_msg) ) succesful=false;
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
+        VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
 
-//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_1, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_2, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_3, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_4, error_msg);
-//          VerifyStrainExactness( geom, GeometryData::IntegrationMethod::GI_GAUSS_5, error_msg);
+        error_msg << std::endl;
 
-//          error_msg << std::endl;
-
-//          return succesful;
-//    }
+        return succesful;
+    }
 
     bool TestPrismInterface3D6N(ModelPart& rModelPart)
     {

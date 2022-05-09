@@ -1315,7 +1315,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //General Variables
     rVariables.VoigtVector.resize(VoigtSize);
     noalias(rVariables.VoigtVector) = ZeroVector(VoigtSize);
-    for (unsigned int i=0; i < TDim; ++i) rVariables.VoigtVector[i] = 1.0;
+    for (unsigned int i=0; i < StressTensorSize; ++i) rVariables.VoigtVector[i] = 1.0;
 
     rVariables.B.resize(VoigtSize,TNumNodes*TDim,false);
     noalias(rVariables.B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
