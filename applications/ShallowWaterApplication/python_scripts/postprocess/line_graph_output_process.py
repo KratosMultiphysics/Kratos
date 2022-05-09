@@ -189,8 +189,12 @@ class LineGraphOutputProcess(KM.OutputProcess):
 
 
     def _GetHeader(self):
-        start = list(self.found_positions[0])
-        end = list(self.found_positions[-1])
+        if len(self.found_positions) > 1:
+            start = list(self.found_positions[0])
+            end = list(self.found_positions[-1])
+        else:
+            start = "'NOT FOUND'"
+            end = "'NOT FOUND'"
         time = self.model_part.ProcessInfo[KM.TIME]
         header = "# Results for '{}s' over line {}-{} at time {}\n# ".format(self.entity_type, start, end, time)
         coordinates = ["X", "Y", "Z"]
