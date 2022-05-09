@@ -43,7 +43,6 @@ class FreeSurfaceAnalysis(AnalysisStage):
                 node.SetSolutionStepValue(KratosMultiphysics.DIAMETER, 1.0)
 
             porosity = node.GetSolutionStepValue(KratosMultiphysics.POROSITY)
-            body_force = node.GetSolutionStepValue(KratosMultiphysics.BODY_FORCE)
             node.SetSolutionStepValue(KratosMultiphysics.PRESS_PROJ, density * body_force * porosity)
 
         if not active_node_count:
