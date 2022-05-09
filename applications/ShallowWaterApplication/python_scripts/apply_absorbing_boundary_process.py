@@ -23,7 +23,7 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
             "r_squared_threshold"       : 0.99,
             "relative_distance"         : 2.0,
             "relative_damping"          : 2.0,
-            "wave_settings"             : {}
+            "wave_specifications"       : {}
         }""")
 
     _instances_count = count(0)
@@ -40,26 +40,31 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         self.boundary_part = model.GetModelPart(self.settings["absorbing_boundary_name"].GetString())
         self.distance_process = SW.CalculateDistanceToBoundaryProcess(self.model_part, self.boundary_part, self.settings["r_squared_threshold"].GetDouble())
 
-        self.wave = WaveTheoryFactory(self.boundary_part, self.settings["wave_settings"])
-
+        # The distances should be initialized only once
         if next(self._instances_count) == 0:
             self.initialize_distances = True
         else:
             self.initialize_distances = False
 
-        variables_names = KM.SpecificationUtilities.GetDofsNamesFromConditionsSpecifications(self.boundary_part)
+        variables_names = KM.SpecificationsUtilities.GetDofsListFromConditionsSpecifications(self.boundary_part)
         self.variables_to_fix = []
         for variable_name in variables_names:
             if variable_name.startswith("VELOCITY") or variable_name.startswith("MOMENTUM"):
                 variable = KM.KratosGlobals.GetVariable(variable_name)
                 self.variables_to_fix.append(variable)
 
+    def ExecuteInitialize(self):
+        """Initialize the wave theory. The topography must be already set."""
+        self.wave = WaveTheoryFactory(self.boundary_part, self.settings["wave_specifications"])
+
     def Check(self):
+        """Check the correctness of the input."""
         self.distance_process.Check()
 
     def ExecuteBeforeSolutionLoop(self):
+        """Calculate the distances and the damping parameters."""
         if self.initialize_distances:
-            KM.VariableUtils().SetVariableToZero(KM.DISTANCE, self.model_part)
+            KM.VariableUtils().SetHistoricalVariableToZero(KM.DISTANCE, self.model_part.Nodes)
         self.distance_process.ExecuteBeforeSolutionLoop()
 
         absorbing_distance = self.wave.wavelength * self.settings["relative_distance"].GetDouble()
@@ -68,4 +73,4 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         self.model_part.ProcessInfo.SetValue(SW.DISSIPATION, dissipation_factor)
 
         for variable in self.variables_to_fix:
-            KM.VariableUtils.ApplyFixity(variable, True, self.boundary_part)
+            KM.VariableUtils().ApplyFixity(variable, True, self.boundary_part.Nodes)
