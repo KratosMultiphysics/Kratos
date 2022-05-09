@@ -35,6 +35,7 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
             "search_tolerance"     : 1e-4, 
             "print_format"         : ".8f",
             "write_tracking_output_file" : true,
+            "output_pressure"      : false,
             "output_file_settings": {}
             }''')
 
@@ -82,6 +83,7 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
         self.interval[1] = self.params["interval"][1].GetDouble()
         #self.print_tracking_to_screen = self.params["print_tracking_to_screen"].GetBool()
         self.write_drag_output_file = self.params["write_tracking_output_file"].GetBool()
+        self.output_press = self.params["output_pressure"].GetBool()
 
         #Read position point
         point_position = self.params["position"].GetVector()
@@ -108,7 +110,8 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
         #self.initial_point = KratosMultiphysics.Point(4.8, 6,0)
         variable_disp = KratosMultiphysics.KratosGlobals.GetVariable( "MP_DISPLACEMENT" )
         variable_vel = KratosMultiphysics.KratosGlobals.GetVariable( "MP_VELOCITY" )
-        variable_press = KratosMultiphysics.KratosGlobals.GetVariable( "MP_PRESSURE" )
+        if (self.output_press==True):
+            variable_press = KratosMultiphysics.KratosGlobals.GetVariable( "MP_PRESSURE" )
         
         
         if (current_step==1):
@@ -125,18 +128,27 @@ class MPMPointOutputProcess(KratosMultiphysics.Process):
                 raise Exception("No particle found with that tolerance. Try a bigger tolerance.")    
             self.output_file.write("#Tracking of particles" + "\n")
             self.output_file.write("#Particle " + str(self.particle_id) +" found for the introduced location: " + str(self.initial_point) + "\n")
-            self.output_file.write("#TIME" + " " + "COORD_X" + " " + "COORD_Y"+ " " + "COORD_Z" + " "  + "VELOC_X"+ " " + "VELOC_Y" + "" + " " + "VELOC_Z"+ " "+ "DISPL_X"+ " " + "DISPL_Y" + "" + " " + "DISPL_Z"+ " " + "PRESSURE"+ "\n")
+            self.output_file.write("#TIME" + " " + "COORD_X" + " " + "COORD_Y"+ " " + "COORD_Z" + " "  + "VELOC_X"+ " " + "VELOC_Y" + "" + " " + "VELOC_Z"+ " "+ "DISPL_X"+ " " + "DISPL_Y" + " " + "DISPL_Z")
+            if (self.output_press==True):
+                self.output_file.write(" " + "PRESSURE"+ "\n")
+            else: 
+                self.output_file.write("\n")
 
         
         mp=self.model_part.Elements[self.particle_id]
         mp_coord = mp.CalculateOnIntegrationPoints(KratosParticle.MP_COORD,self.model_part.ProcessInfo)[0]
-        displacement = mp.CalculateOnIntegrationPoints(variable_disp,self.model_part.ProcessInfo)[0];
-        velocity = mp.CalculateOnIntegrationPoints(variable_vel,self.model_part.ProcessInfo)[0];
-        pressure = mp.CalculateOnIntegrationPoints(variable_press,self.model_part.ProcessInfo)[0];
+        displacement = mp.CalculateOnIntegrationPoints(variable_disp,self.model_part.ProcessInfo)[0]
+        velocity = mp.CalculateOnIntegrationPoints(variable_vel,self.model_part.ProcessInfo)[0]
+        if (self.output_press==True):
+            pressure = mp.CalculateOnIntegrationPoints(variable_press,self.model_part.ProcessInfo)[0]
 
         # Write the tracking of points values
         #if (self.model_part.GetCommunicator().MyPID() == 0):
-        self.output_file.write(str(current_time)+" "+format(mp_coord[0],self.format)+" "+format(mp_coord[1],self.format)+" "+format(mp_coord[2],self.format)+" "+format(velocity[0],self.format)+" "+format(velocity[1],self.format)+" "+format(velocity[2],self.format)+" "+format(displacement[0],self.format)+" "+format(displacement[1],self.format)+" "+format(displacement[2],self.format)+" "+format(pressure,self.format)+"\n")
+        self.output_file.write(str(current_time)+" "+format(mp_coord[0],self.format)+" "+format(mp_coord[1],self.format)+" "+format(mp_coord[2],self.format)+" "+format(velocity[0],self.format)+" "+format(velocity[1],self.format)+" "+format(velocity[2],self.format)+" "+format(displacement[0],self.format)+" "+format(displacement[1],self.format)+" "+format(displacement[2],self.format)+" ")
+        if (self.output_press==True):
+            self.output_file.write(format(pressure,self.format)+"\n")
+        else: 
+            self.output_file.write("\n")
 
     def ExecuteFinalize(self):
         #if (self.write_tracking_output_file):
