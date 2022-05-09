@@ -230,7 +230,7 @@ public:
 
         block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
-            double& fix_flag = rNode.FastGetSolutionStepValue(FLAG_VARIABLE);
+            double& fix_flag = rNode.GetValue(FLAG_VARIABLE);
 
             // Free the DISTANCE values
             fix_flag = 1.0;
@@ -286,7 +286,7 @@ public:
 
                 for(unsigned int i = 0; i < TDim+1; ++i){
                     double &d = geom[i].FastGetSolutionStepValue(DISTANCE);
-                    double &fix_flag = geom[i].FastGetSolutionStepValue(FLAG_VARIABLE);
+                    double &fix_flag = geom[i].GetValue(FLAG_VARIABLE);
                     geom[i].SetLock();
                     if(std::abs(d) > std::abs(distances[i])){
                         d = distances[i];
@@ -443,7 +443,8 @@ protected:
 
         // Check that required nodal variables are present
         VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mrBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mrBaseModelPart.Nodes());
+        // Initialize flag variable
+        VariableUtils().SetNonHistoricalVariableToZero(FLAG_VARIABLE, mrBaseModelPart.Nodes());
     }
 
     void InitializeSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
@@ -597,13 +598,13 @@ private:
 
             // Synchronize the fixity flag variable to minium
             // (-1.0 means fixed and 1.0 means free)
-            r_communicator.SynchronizeCurrentDataToMin(FLAG_VARIABLE);
+            r_communicator.SynchronizeNonHistoricalDataToMin(FLAG_VARIABLE);
 
             // Set the fixity according to the synchronized flag
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
                 auto it_node = r_distance_model_part.NodesBegin() + i_node;
-                const double &r_fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
+                const double &r_fix_flag = it_node->GetValue(FLAG_VARIABLE);
                 if (r_fix_flag == -1.0){
                     it_node->Fix(DISTANCE);
                 }
