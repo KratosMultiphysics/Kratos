@@ -1931,7 +1931,7 @@ namespace Kratos
                 array_1d<double, 3> &face_normal = cond_it->GetValue(NORMAL);
 
                 // slip condition
-                if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) == true)
+                if (static_cast<bool>(cond_it->Is(SLIP)))
                     for (unsigned int if_node = 0; if_node < TDim; if_node++)
                     {
                         unsigned int i_node = static_cast<unsigned int>(face_geometry[if_node].FastGetSolutionStepValue(AUX_INDEX));
@@ -1970,7 +1970,7 @@ namespace Kratos
 
                 // inlet or outlet condition
                 bool is_inlet_or_outlet = false;
-                if (cond_it->GetValue(IS_STRUCTURE) != true)
+                if (cond_it->IsNot(SLIP))
                     is_inlet_or_outlet = true;
                 else
                 {
@@ -3172,7 +3172,7 @@ namespace Kratos
                 unsigned int current_id = cond_it->Id();
 
                 // slip condition
-                if (cond_it->GetValue(IS_STRUCTURE) == 1.0) // this is a slip face --> now look for its neighbours
+                if (cond_it->Is(SLIP)) // this is a slip face --> now look for its neighbours
                 {
                     const GlobalPointersVector<Condition> &neighb = cond_it->GetValue(NEIGHBOUR_CONDITIONS);
 

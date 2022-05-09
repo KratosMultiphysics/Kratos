@@ -129,7 +129,7 @@ namespace Kratos
                 ;
 
             py::class_<EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSetSubstep3D")
-                .def(py::init<MatrixContainerC2C<3, SparseSpaceType> &, ModelPart &, const double, const double, const Vector, bool, double, double, double, double, bool>())
+                .def(py::init<MatrixContainerC2C<3, SparseSpaceType> &, ModelPart &, const double, const double, bool, double, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
                 .def("GatherValues", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::GatherValues)
                 .def("ComputeTimeStep", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
