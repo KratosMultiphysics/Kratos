@@ -69,6 +69,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
