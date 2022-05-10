@@ -334,6 +334,223 @@ namespace Kratos
             }
             KRATOS_CATCH("")
         }
+
+        void InitializeSolutionStep()
+        {
+            KRATOS_TRY
+            // get number of nodes
+            unsigned int n_nodes = mr_model_part.Nodes().size();
+            unsigned int n_edges = mr_matrix_container.GetNumberEdges();
+            // size data vectors
+            mViscosity.resize(n_nodes);
+            mr_matrix_container.SetToZero(mViscosity);
+            mWork.resize(n_nodes);
+            mr_matrix_container.SetToZero(mWork);
+            mvel_n.resize(n_nodes);
+            mr_matrix_container.SetToZero(mvel_n);
+            mvel_n1.resize(n_nodes);
+            mr_matrix_container.SetToZero(mvel_n1);
+            mPn.resize(n_nodes);
+            mr_matrix_container.SetToZero(mPn);
+            mPn1.resize(n_nodes);
+            mr_matrix_container.SetToZero(mPn1);
+            mHmin.resize(n_nodes);
+            mr_matrix_container.SetToZero(mHmin);
+            mHavg.resize(n_nodes);
+            mr_matrix_container.SetToZero(mHavg);
+            mNodalFlag.resize(n_nodes);
+            mr_matrix_container.SetToZero(mNodalFlag);
+            mdistances.resize(n_nodes);
+            mr_matrix_container.SetToZero(mdistances);
+            mTauPressure.resize(n_nodes);
+            mr_matrix_container.SetToZero(mTauPressure);
+            mTauConvection.resize(n_nodes);
+            mr_matrix_container.SetToZero(mTauConvection);
+            mTau2.resize(n_nodes);
+            mr_matrix_container.SetToZero(mTau2);
+            mPi.resize(n_nodes);
+            mr_matrix_container.SetToZero(mPi);
+            mXi.resize(n_nodes);
+            mr_matrix_container.SetToZero(mXi);
+            mx.resize(n_nodes);
+            mr_matrix_container.SetToZero(mx);
+            mEdgeDimensions.resize(n_edges);
+            mr_matrix_container.SetToZero(mEdgeDimensions);
+            // convection variables
+            mBeta.resize(n_nodes);
+            mr_matrix_container.SetToZero(mBeta);
+            mPiConvection.resize(n_nodes);
+            mr_matrix_container.SetToZero(mPiConvection);
+            mphi_n.resize(n_nodes);
+            mr_matrix_container.SetToZero(mphi_n);
+            mphi_n1.resize(n_nodes);
+            mr_matrix_container.SetToZero(mphi_n1);
+            mEps.resize(n_nodes);
+            mr_matrix_container.SetToZero(mEps);
+            //         mD.resize(n_nodes);
+            // 	mr_matrix_container.SetToZero(mD);
+            mA.resize(n_nodes);
+            mr_matrix_container.SetToZero(mA);
+            mB.resize(n_nodes);
+            mr_matrix_container.SetToZero(mB);
+            mdiv_error.resize(n_nodes);
+            mr_matrix_container.SetToZero(mdiv_error);
+            mWallReductionFactor.resize(n_nodes);
+            mr_matrix_container.SetToZero(mWallReductionFactor);
+            mdiag_stiffness.resize(n_nodes);
+            mr_matrix_container.SetToZero(mdiag_stiffness);
+            mis_slip.resize(n_nodes);
+            mis_visited.resize(n_nodes);
+            macc.resize(n_nodes);
+            mr_matrix_container.SetToZero(macc);
+            //	    ValuesVectorType external_pressure;
+            //	    external_pressure.resize(n_nodes);
+            // read velocity and pressure data from Kratos
+            mr_matrix_container.FillScalarFromDatabase(VISCOSITY, mViscosity, mr_model_part.Nodes());
+            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
+            mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
+            mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
+            mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, mr_model_part.Nodes());
+            mr_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes());
+            // set flag for first time step
+            mFirstStep = true;
+            // loop to categorize boundary nodes
+            std::vector<unsigned int> tempFixedVelocities;
+            std::vector<array_1d<double, TDim>> tempFixedVelocitiesValues;
+            std::vector<unsigned int> tempPressureOutletList;
+            std::vector<unsigned int> tempDistanceList;
+            for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                 inode != mr_model_part.NodesEnd();
+                 inode++)
+            {
+                int index = inode->FastGetSolutionStepValue(AUX_INDEX);
+                if (inode->IsFixed(VELOCITY_X)) // note that the variables can be either all fixed or no one fixed
+                {
+                    if (inode->IsFixed(VELOCITY_Y) == false || inode->IsFixed(VELOCITY_Z) == false)
+                    {
+                        std::cout << "error found on the fixity of node " << inode->Id() << std::endl;
+                        KRATOS_THROW_ERROR(std::logic_error, "velocities can be either all fixed or none fixed", "")
+                    }
+                    tempFixedVelocities.push_back(index);
+                    tempFixedVelocitiesValues.push_back(mvel_n1[index]);
+                }
+                if (inode->IsFixed(DISTANCE))
+                    tempDistanceList.push_back(index);
+                if (inode->IsFixed(PRESSURE))
+                {
+                    tempPressureOutletList.push_back(index);
+                    //		    mPressureOutlet.push_back(external_pressure[index]);
+                }
+            }
+            mFixedVelocities.resize(tempFixedVelocities.size(), false);
+            mFixedVelocitiesValues.resize(tempFixedVelocitiesValues.size(), false);
+            mPressureOutletList.resize(tempPressureOutletList.size(), false);
+            mDistanceBoundaryList.resize(tempDistanceList.size(), false);
+            mDistanceValuesList.resize(tempDistanceList.size(), false);
+#pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(tempFixedVelocities.size()); i++)
+            {
+                mFixedVelocities[i] = tempFixedVelocities[i];
+                mFixedVelocitiesValues[i] = tempFixedVelocitiesValues[i];
+            }
+#pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(tempPressureOutletList.size()); i++)
+            {
+                mPressureOutletList[i] = tempPressureOutletList[i];
+            }
+            for (int i = 0; i < static_cast<int>(tempDistanceList.size()); i++)
+            {
+                mDistanceBoundaryList[i] = tempDistanceList[i];
+            }
+            // compute slip normals and fill SlipList
+            CalculateNormals(mr_model_part.Conditions());
+            mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes());
+            if (TDim == 3)
+                DetectEdges3D(mr_model_part.Conditions());
+            // print number of nodes corresponding to the different types of boundary conditions
+            //				KRATOS_WATCH(mFixedVelocities.size())
+            //				KRATOS_WATCH(mPressureOutletList.size())
+            //				KRATOS_WATCH(mSlipBoundaryList.size())
+            // determine number of edges and entries
+            unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
+            // allocate memory for variables
+            mL.resize(n_nodes, n_nodes, n_nonzero_entries);
+            int number_of_threads = ParallelUtilities::GetNumThreads();
+            std::vector<int> row_partition(number_of_threads);
+            OpenMPUtils::DivideInPartitions(n_nodes, number_of_threads, row_partition);
+            for (int k = 0; k < number_of_threads; k++)
+            {
+#pragma omp parallel
+                if (OpenMPUtils::ThisThread() == k)
+                {
+                    for (int i_node = static_cast<int>(row_partition[k]); i_node < static_cast<int>(row_partition[k + 1]); i_node++)
+                    {
+                        // loop over all nodes
+                        // 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
+                        // flag for considering diagonal matrix elements
+                        bool flag = 0;
+                        // loop over all neighbours
+                        for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                        {
+                            // get global index of neighbouring node j
+                            unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+                            // define matrix structure row by row (the order does matter!)
+                            if ((static_cast<int>(j_neighbour) > i_node) && (flag == 0))
+                            {
+                                // add diagonal/nodal contribution
+                                mL.push_back(i_node, i_node, 0.0);
+                                flag = 1;
+                            }
+                            // add non-diagonal/edge contribution
+                            mL.push_back(i_node, j_neighbour, 0.0);
+                        }
+                        // if diagonal element is the last non-zero element of the row
+                        if (flag == 0)
+                            mL.push_back(i_node, i_node, 0.0);
+                    }
+                }
+            }
+            // compute minimum length of the surrounding edges
+            CalculateEdgeLengths(mr_model_part.Nodes());
+            // set the pressure projection to the body force value
+            array_1d<double, 3> temp = mRho * mBodyForce;
+            for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                 inode != mr_model_part.NodesEnd();
+                 inode++)
+                inode->FastGetSolutionStepValue(PRESS_PROJ) = temp;
+            mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
+            // verify that neither h_min nor havg are 0
+            for (unsigned int i_node = 0; i_node < mHmin.size(); i_node++)
+            {
+                if (mHmin[i_node] < 1e-20)
+                    KRATOS_THROW_ERROR(std::logic_error, "hmin too small on node ", i_node + 1)
+                if (mHavg[i_node] < 1e-20)
+                    KRATOS_THROW_ERROR(std::logic_error, "havg too small on node ", i_node + 1)
+                if (mHmin[i_node] > 1e20)
+                    KRATOS_THROW_ERROR(std::logic_error, "hmin too big on node ", i_node + 1)
+                if (mHavg[i_node] > 1e20)
+                    KRATOS_THROW_ERROR(std::logic_error, "havg too big on node ", i_node + 1)
+            }
+            for (ModelPart::ElementsContainerType::iterator it = mr_model_part.ElementsBegin(); it != mr_model_part.ElementsEnd(); it++)
+            {
+                if (it->Id() < 1)
+                {
+                    KRATOS_THROW_ERROR(std::logic_error, "Element found with Id 0 or negative", "")
+                }
+                double elem_vol = 0.0;
+                if (TDim == 2)
+                    elem_vol = it->GetGeometry().Area();
+                else
+                    elem_vol = it->GetGeometry().Volume();
+                if (elem_vol <= 0)
+                {
+                    std::cout << "error on element -> " << it->Id() << std::endl;
+                    KRATOS_THROW_ERROR(std::logic_error, "Area can not be lesser than 0", "")
+                }
+            }
+            KRATOS_CATCH("")
+        }
+
         void SetShockCapturingCoefficient(double coeff)
         {
             mshock_coeff = coeff;
@@ -761,8 +978,9 @@ namespace Kratos
             double energy_initial = 0.0;
             double energy_final = 1.0;
 
-// compute initial kinetic energy
-        #pragma omp parallel for firstprivate(n_nodes) reduction(+:energy_initial)
+            // compute initial kinetic energy
+#pragma omp parallel for firstprivate(n_nodes) reduction(+ \
+                                                         : energy_initial)
             for (int i_node = 0; i_node < n_nodes; i_node++)
                 if (mdistances[i_node] <= 0.0)
                     energy_initial += mr_matrix_container.GetLumpedMass()[i_node] * inner_prod(mvel_n[i_node], mvel_n[i_node]);
@@ -808,8 +1026,9 @@ namespace Kratos
                 }
 
                 energy_final = 0.0;
-// compute initial kinetic energy
-            #pragma omp parallel for firstprivate(n_nodes) reduction(+:energy_final)
+                // compute initial kinetic energy
+#pragma omp parallel for firstprivate(n_nodes) reduction(+ \
+                                                         : energy_final)
                 for (int i_node = 0; i_node < n_nodes; i_node++)
                     if (mdistances[i_node] <= 0.0)
                         energy_final += mr_matrix_container.GetLumpedMass()[i_node] * inner_prod(mvel_n1[i_node], mvel_n1[i_node]);

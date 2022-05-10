@@ -39,11 +39,10 @@ namespace Kratos
             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
             typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-
-    py::class_< EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType> >
-    (pymodule,"EdgeBasedLevelSet2D")
-    .def(py::init< MatrixContainer< 2, SparseSpaceType>&, ModelPart&, const double, const double, const Vector,bool,double,double, double,double,bool >() )
+            py::class_<EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSet2D")
+                .def(py::init<MatrixContainer<2, SparseSpaceType> &, ModelPart &, const double, const double, const Vector, bool, double, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
+                .def("InitializeSolutionStep", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::InitializeSolutionStep)
                 .def("ComputeTimeStep", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
                 .def("SolveStep1", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep1)
                 .def("SolveStep2", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep2)
@@ -67,11 +66,10 @@ namespace Kratos
                 .def("CalculatePorousResistanceLaw", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::CalculatePorousResistanceLaw)
                 .def("PushFreeSurface", &EdgeBasedLevelSet<2, MatrixContainer<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::PushFreeSurface);
 
-
-    py::class_< EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType> >
-    (pymodule, "EdgeBasedLevelSet3D")
-    .def(py::init< MatrixContainer< 3, SparseSpaceType>&, ModelPart&, const double, const double, const Vector,bool,double,double, double,double,bool >() )
+            py::class_<EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSet3D")
+                .def(py::init<MatrixContainer<3, SparseSpaceType> &, ModelPart &, const double, const double, const Vector, bool, double, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
+                .def("InitializeSolutionStep", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::InitializeSolutionStep)
                 .def("ComputeTimeStep", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
                 .def("SolveStep1", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep1)
                 .def("SolveStep2", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep2)
@@ -94,26 +92,16 @@ namespace Kratos
                 .def("DiscreteVolumeCorrection", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::DiscreteVolumeCorrection)
                 .def("CalculatePorousResistanceLaw", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::CalculatePorousResistanceLaw)
                 .def("PushFreeSurface", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::PushFreeSurface)
-    .def("ComputeBoundedTimeStep",&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeBoundedTimeStep)
-    ;
+                .def("ComputeBoundedTimeStep", &EdgeBasedLevelSet<3, MatrixContainer<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeBoundedTimeStep);
 
+            py::class_<MatrixContainerC2C<2, SparseSpaceType>>(pymodule, "MatrixContainerC2C2D").def(py::init<>()).def("ConstructCSRVector", &MatrixContainerC2C<2, SparseSpaceType>::ConstructCSRVector).def("BuildCSRData", &MatrixContainerC2C<2, SparseSpaceType>::BuildCSRData).def("Clear", &MatrixContainerC2C<2, SparseSpaceType>::Clear);
 
-    py::class_< MatrixContainerC2C < 2, SparseSpaceType> > (pymodule,"MatrixContainerC2C2D").def(py::init< >())
-    .def("ConstructCSRVector", &MatrixContainerC2C < 2, SparseSpaceType >::ConstructCSRVector)
-    .def("BuildCSRData", &MatrixContainerC2C < 2, SparseSpaceType >::BuildCSRData)
-    .def("Clear", &MatrixContainerC2C < 2, SparseSpaceType >::Clear)
-    ;
+            py::class_<MatrixContainerC2C<3, SparseSpaceType>>(pymodule, "MatrixContainerC2C3D").def(py::init<>()).def("ConstructCSRVector", &MatrixContainerC2C<3, SparseSpaceType>::ConstructCSRVector).def("BuildCSRData", &MatrixContainerC2C<3, SparseSpaceType>::BuildCSRData).def("Clear", &MatrixContainerC2C<3, SparseSpaceType>::Clear);
 
-    py::class_< MatrixContainerC2C < 3, SparseSpaceType> > (pymodule,"MatrixContainerC2C3D").def(py::init< >())
-    .def("ConstructCSRVector", &MatrixContainerC2C < 3, SparseSpaceType >::ConstructCSRVector)
-    .def("BuildCSRData", &MatrixContainerC2C < 3, SparseSpaceType >::BuildCSRData)
-    .def("Clear", &MatrixContainerC2C < 3, SparseSpaceType >::Clear)
-    ;
-
-    py::class_< EdgeBasedLevelSetSubstep< 2, MatrixContainerC2C< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType> >
-    (pymodule,"EdgeBasedLevelSetSubstep2D")
+            py::class_<EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSetSubstep2D")
                 .def(py::init<MatrixContainerC2C<2, SparseSpaceType> &, ModelPart &, const double, const double, const Vector, bool, double, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
+                .def("InitializeSolutionStep", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::InitializeSolutionStep)
                 .def("GatherValues", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::GatherValues)
                 .def("ComputeTimeStep", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
                 .def("SolveStep1", &EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep1)
@@ -143,10 +131,10 @@ namespace Kratos
                 //                           .def("CalculatePorousResistanceLaw"   ,&EdgeBasedLevelSet< 2, MatrixContainerC2C< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculatePorousResistanceLaw)
                 ;
 
-    py::class_< EdgeBasedLevelSetSubstep< 3, MatrixContainerC2C< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType> >
-    (pymodule,"EdgeBasedLevelSetSubstep3D")
-                .def(py::init< MatrixContainerC2C< 3, SparseSpaceType>&, ModelPart&, const double, const double, const Vector,bool,double,double, double,double,bool >() )
+            py::class_<EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSetSubstep3D")
+                .def(py::init<MatrixContainerC2C<3, SparseSpaceType> &, ModelPart &, const double, const double, const Vector, bool, double, double, double, double, bool>())
                 .def("Initialize", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::Initialize)
+                .def("InitializeSolutionStep", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::InitializeSolutionStep)
                 .def("GatherValues", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::GatherValues)
                 .def("ComputeTimeStep", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::ComputeTimeStep)
                 .def("SolveStep1", &EdgeBasedLevelSetSubstep<3, MatrixContainerC2C<3, SparseSpaceType>, SparseSpaceType, LinearSolverType>::SolveStep1)
