@@ -102,6 +102,9 @@ def CreateCoreSettings(user_settings, model):
                 "file_name": "<model_part_name>.h5",
                 "file_access_mode": "truncate"
             },
+            "controller_settings" : {
+                "controller_type" : "single_use_controller"
+            },
             "list_of_operations": []
         },{
             "model_part_name" : "",

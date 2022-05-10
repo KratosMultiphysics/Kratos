@@ -10,6 +10,7 @@ license: HDF5Application/license.txt
 
 
 # Kratos imports
+from tokenize import Single
 import KratosMultiphysics
 from . import file_io
 
@@ -55,6 +56,22 @@ class DefaultController(Controller):
 
     def __call__(self) -> None:
         self.ExecuteOperations()
+
+
+class SingleUseController(Controller):
+    """!Controller that executes its operations only on the first call."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__is_called = False
+
+    def IsExecuteStep(self) -> bool:
+        return not self.__is_called
+
+    def __call__(self) -> None:
+        if not self.__is_called:
+            self.ExecuteOperations()
+            self.__is_called = True
 
 
 class TemporalController(Controller):
@@ -111,6 +128,8 @@ def Factory(model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO, setti
     controller_type = settings['controller_type']
     if controller_type == 'default_controller':
         return DefaultController(model_part, io)
+    elif controller_type == "single_use_controller":
+        return SingleUseController(model_part, io)
     elif controller_type == 'temporal_controller':
         return TemporalController(model_part, io, settings)
     else:
