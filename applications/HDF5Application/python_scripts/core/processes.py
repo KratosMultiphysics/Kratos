@@ -116,7 +116,8 @@ class OrderedOutputOperationProcess(KratosMultiphysics.OutputProcess, OrderedOpe
         for controller in self.__GetAggregateControllerList():
             controller.ExecuteOperations()
 
-    def __GetAggregateControllerList(self) -> list[controllers.Controller]:
+    # TODO: remove the double quotes from the return type hint after adopting python3.9 or newer
+    def __GetAggregateControllerList(self) -> "list[controllers.Controller]":
         """!Get all registered controllers."""
         return sum([self.initialize_controllers,self.before_solution_loop_controllers,self.initialize_solution_step_controllers,self.finalize_solution_step_controllers,self.before_output_step_controllers,self.after_output_step_controllers,self.finalize_controllers],[])
 ##!@}
