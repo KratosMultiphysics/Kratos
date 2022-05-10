@@ -35,6 +35,7 @@ from test_mesh_dependency_piping import TestMeshDependencyPiping
 from test_piping_element_unit import TestUnitPipingElements
 from test_normal_flux_condition import TestNormalFluxCondition
 
+
 def AssambleTestSuites(is_team_city):
     ''' Populates the test suites to run.
 
@@ -69,10 +70,7 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsCurvedBeamElementTests,
         TestPipingElements,
         TestUnitPipingElements,
-        TestElementaryGroundWaterFlow,
-        TestSellmeijersRule,
-        TestNormalFluxCondition,
-        TestMeshDependencyPiping
+        TestNormalFluxCondition
         ]
 
     # Create an array with the selected tests
@@ -81,8 +79,7 @@ def AssambleTestSuites(is_team_city):
     # - testNightlyFirstExample
     # - testNightlySecondExample
 
-    night_test_cases = [KratosGeoMechanicsDynamicsTests]
-    night_test_cases.extend(small_test_cases)
+    night_test_cases = [KratosGeoMechanicsDynamicsTests, TestSellmeijersRule, TestMeshDependencyPiping]
 
     # Create an array that contains all the tests from every testCase
     # in the list:
@@ -90,9 +87,9 @@ def AssambleTestSuites(is_team_city):
     all_test_cases = []
     all_test_cases.extend(night_test_cases)
 
+
     # add the tests to the corresponding suite,
     if is_team_city:
-
         smallSuite = unittest.TestSuite()
         nightSuite = unittest.TestSuite()
         allSuite = unittest.TestSuite()
