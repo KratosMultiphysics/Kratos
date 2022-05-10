@@ -22,6 +22,7 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -33,6 +34,7 @@ class TestProcesses(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, model_part)
 
         #reset all data
         for node in model_part.Nodes:
@@ -44,6 +46,7 @@ class TestProcesses(KratosUnittest.TestCase):
             node.Free(KratosMultiphysics.VELOCITY_Z)
             node.SetSolutionStepValue(KratosMultiphysics.DENSITY,0,0.0)
             node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,0,0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0,0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0,0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0,0.0)
@@ -79,6 +82,24 @@ class TestProcesses(KratosUnittest.TestCase):
                 },
                 {
                     "python_module"   : "assign_scalar_variable_process",
+                    "kratos_module"   : "KratosMultiphysics",
+                    "process_name"    : "AssignScalarVariableProcess",
+                    "Parameters"      : {
+                        "model_part_name" : "Main",
+                        "variable_name"   : "TEMPERATURE",
+                        "interval"        : [0.0, 10.0],
+                        "constrained"     : true,
+                        "value"           : {
+                            "name"            : "csv_table",
+                            "filename"        : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
+                            "delimiter"       : ",",
+                            "skiprows"        : 1,
+                            "na_replace"      : 0.0
+                        }
+                    }
+                },
+                {
+                    "python_module"   : "assign_scalar_variable_process",
                     "kratos_module" : "KratosMultiphysics",
                     "process_name"          : "AssignScalarVariableProcess",
                     "Parameters"            : {
@@ -91,6 +112,27 @@ class TestProcesses(KratosUnittest.TestCase):
                             "origin" : [0.0, 0.0, 0.0],
                             "axes"  : [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0] ]
                         }
+                    }
+                },
+                {
+                    "python_module"   : "assign_vector_variable_process",
+                    "kratos_module"   : "KratosMultiphysics",
+                    "process_name"    : "AssignVectorVariableProcess",
+                    "Parameters"      : {
+                        "model_part_name"      : "Main",
+                        "variable_name"        : "DISPLACEMENT",
+                        "interval"             : [0.0, 5.0],
+                        "constrained"          : false,
+                        "value"                : [
+                            null,
+                            null,
+                            {
+                                "name"       : "csv_table",
+                                "filename"   : "auxiliar_files_for_python_unittest/test_processes/table_input.csv",
+                                "delimiter"  : ",",
+                                "skiprows"   : 1
+                            }
+                        ]
                     }
                 },
                 {
@@ -196,10 +238,14 @@ class TestProcesses(KratosUnittest.TestCase):
         t = model_part.ProcessInfo[KratosMultiphysics.TIME]
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), math.sqrt(node.X**2+node.Y**2)*t)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.6)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), node.X**2+node.Y**2+node.Z**2+t)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY), node.X+100.0*node.Y*t**2)
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.6)
             self.assertTrue(node.IsFixed(KratosMultiphysics.DENSITY))
             self.assertTrue(node.IsFixed(KratosMultiphysics.VISCOSITY))
+            self.assertTrue(node.IsFixed(KratosMultiphysics.TEMPERATURE))
             self.assertTrue(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
             self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
             self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
@@ -217,7 +263,7 @@ class TestProcesses(KratosUnittest.TestCase):
             self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
 
         ############################################################
-        ##time = 3 - KratosMultiphysics.DISPLACEMENT_X is not in the active interval
+        ##time = 6 - KratosMultiphysics.DISPLACEMENT_X is not in the active interval
         model_part.CloneTimeStep(6.0)
 
         for node in model_part.Nodes:
@@ -250,7 +296,7 @@ class TestProcesses(KratosUnittest.TestCase):
 
         ############################################################
         ##time = 12 - KratosMultiphysics.DISPLACEMENT applied as a vector. x,z components fixed, y component not imposed
-        ##time = 12 - KratosMultiphysics.VELOCITY applied as a vector by componentes. All components free. x component is not zero.
+        ##time = 12 - KratosMultiphysics.VELOCITY applied as a vector by components. All components free. x component is not zero.
         model_part.CloneTimeStep(12.0)
 
         for process in list_of_processes:

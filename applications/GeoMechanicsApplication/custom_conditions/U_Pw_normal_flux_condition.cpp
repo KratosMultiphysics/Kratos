@@ -34,32 +34,30 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::JacobiansType JContainer(NumGPoints);
-    for(unsigned int i = 0; i<NumGPoints; i++)
+    for(unsigned int i = 0; i<NumGPoints; ++i)
         (JContainer[i]).resize(TDim,LocalDim,false);
     Geom.Jacobian( JContainer, mThisIntegrationMethod );
     
     //Condition variables
     array_1d<double,TNumNodes> NormalFluxVector;
-    for(unsigned int i=0; i<TNumNodes; i++)
+    for(unsigned int i=0; i<TNumNodes; ++i)
     {
         NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
     NormalFluxVariables Variables;
     
     //Loop over integration points
-    for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
-    {
+    for(unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute normal flux 
         Variables.NormalFlux = 0.0;
-        for(unsigned int i=0; i<TNumNodes; i++)
-        {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             Variables.NormalFlux += NContainer(GPoint,i)*NormalFluxVector[i];
         }
         
@@ -69,7 +67,7 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
                                               JContainer[GPoint],
-                                              integration_points[GPoint].Weight() );
+                                              IntegrationPoints[GPoint].Weight() );
                 
         //Contributions to the right hand side
         this->CalculateAndAddRHS(rRightHandSideVector, Variables);

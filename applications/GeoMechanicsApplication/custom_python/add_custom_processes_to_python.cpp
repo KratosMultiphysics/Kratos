@@ -37,6 +37,8 @@
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
+#include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
+#include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 
 namespace Kratos
 {
@@ -119,6 +121,14 @@ namespace Python
         class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>
             (m, "ApplyWriteScalarProcess")
             .def(init < ModelPart&, Parameters&>());
+
+        class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>
+            (m, "FindNeighbourElementsOfConditionsProcess")
+            .def(init < ModelPart&>());
+
+        class_<DeactivateConditionsOnInactiveElements, DeactivateConditionsOnInactiveElements::Pointer, Process>
+            (m, "DeactivateConditionsOnInactiveElements")
+            .def(init < ModelPart&>());
 
     }
 }  // namespace Python.

@@ -7,6 +7,7 @@ from KratosMultiphysics.HDF5Application.core import operations
 from KratosMultiphysics.HDF5Application.core import file_io
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
+import pathlib
 from unittest.mock import call, patch, MagicMock
 
 
@@ -143,36 +144,26 @@ class TestFileIO(KratosUnittest.TestCase):
         mock_instance = mock_class.return_value
         mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec=True)
-        patcher2 = patch('os.makedirs', autospec=True)
-        pathexists = patcher1.start()
-        makedirs = patcher2.start()
-        pathexists.return_value = True
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
         data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
         obj.Get(_SurrogateModelPart())
-        pathexists.assert_called_once_with('/foo')
-        self.assertEqual(makedirs.call_count, 0)
-        patcher1.stop()
-        patcher2.stop()
+        makedirs.assert_called_once_with('/foo')
+        patcher.stop()
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
     def test_FilenameGetterWithDirectoryInitialization_DirectoryDoesNotExist(self, mock_class):
         mock_instance = mock_class.return_value
         mock_instance.GetFileName.return_value = '/foo/kratos.h5'
         settings = self._FilenameGetterSettings(file_name='/foo/kratos.h5')
-        patcher1 = patch('os.path.exists', autospec=True)
-        patcher2 = patch('os.makedirs', autospec=True)
-        pathexists = patcher1.start()
-        makedirs = patcher2.start()
-        pathexists.return_value = False
+        patcher = patch('KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories', autospec=True)
+        makedirs = patcher.start()
         data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         obj = file_io._FilenameGetterWithDirectoryInitialization(settings, data_comm)
         obj.Get(_SurrogateModelPart())
-        pathexists.assert_called_once_with('/foo')
         makedirs.assert_called_once_with('/foo')
-        patcher1.stop()
-        patcher2.stop()
+        patcher.stop()
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
     def test_FileIOMaxFilesToKeepExclusiveNoDeletion(self, mock_class):

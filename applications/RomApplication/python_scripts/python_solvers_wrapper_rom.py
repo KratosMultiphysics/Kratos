@@ -5,6 +5,8 @@ from importlib import import_module
 
 def CreateSolverByParameters(model, solver_settings, parallelism):
 
+    KratosMultiphysics.Logger.PrintWarning('\x1b[1;31m[DEPRECATED CLASS] \x1b[0m',"\'python_solvers_wrapper_rom\'", "module is deprecated. Use the generic\'new_python_solvers_wrapper_rom\' one instead.")
+
     if (type(model) != KratosMultiphysics.Model):
         raise Exception("input is expected to be provided as a Kratos Model object")
 

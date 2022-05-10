@@ -415,7 +415,7 @@ public:
     void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
     /** Returns if the Node corresponding to it's identifier exists */
-    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0)
+    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasNode(NodeId);
     }
@@ -559,7 +559,7 @@ public:
         return *mpVariablesList;
     }
 
-    VariablesList::Pointer pGetNodalSolutionStepVariablesList()
+    VariablesList::Pointer pGetNodalSolutionStepVariablesList() const
     {
         return mpVariablesList;
     }
@@ -862,7 +862,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
-    PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
@@ -880,7 +880,7 @@ public:
      * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
+    const PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const;
 
     /**
      * @brief Returns if the sub Properties corresponding to it's address exists
@@ -1090,7 +1090,7 @@ public:
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns if the Element corresponding to it's identifier exists */
-    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0)
+    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasElement(ElementId);
     }
@@ -1282,7 +1282,7 @@ public:
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /** Returns if the Condition corresponding to it's identifier exists */
-    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).HasCondition(ConditionId);
     }
@@ -1864,7 +1864,7 @@ public:
     }
 
     /// run input validation
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const;
+    virtual int Check() const;
 
     ///@}
     ///@name Access

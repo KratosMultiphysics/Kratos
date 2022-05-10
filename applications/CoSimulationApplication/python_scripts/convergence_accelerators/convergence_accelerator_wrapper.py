@@ -3,6 +3,7 @@ from KratosMultiphysics.CoSimulationApplication.factories.convergence_accelerato
 
 # Other imports
 import numpy as np
+from abc import ABCMeta, abstractmethod
 
 class ConvergenceAcceleratorWrapper:
     """This class wraps the convergence accelerators such that they can be used "automized"
@@ -11,12 +12,16 @@ class ConvergenceAcceleratorWrapper:
     In case of distributed data, it is checked whether the convergence accelerator supports it.
     If not, the data is gathered / scattered and the accelerator is executed on only one rank
     """
-    def __init__(self, settings, solver_wrapper):
+    def __init__(self, settings, solver_wrapper, parent_coupled_solver_data_communicator):
         self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
+        self.residual_computation = CreateResidualComputation(settings, solver_wrapper)
+
         settings.RemoveValue("data_name")
         settings.RemoveValue("solver")
+        settings.RemoveValue("residual_computation")
 
         self.conv_acc = CreateConvergenceAccelerator(settings)
+        self.data_communicator = parent_coupled_solver_data_communicator
 
         if self.interface_data.IsDefinedOnThisRank():
             conv_acc_supports_dist_data = self.conv_acc.SupportsDistributedData()
@@ -52,8 +57,7 @@ class ConvergenceAcceleratorWrapper:
     def ComputeAndApplyUpdate(self):
         if not self.interface_data.IsDefinedOnThisRank(): return
 
-        current_data = self.interface_data.GetData()
-        residual = current_data - self.input_data
+        residual = self.residual_computation.ComputeResidual(self.input_data)
         input_data_for_acc = self.input_data
 
         if self.gather_scatter_required:
@@ -78,3 +82,35 @@ class ConvergenceAcceleratorWrapper:
 
     def Check(self):
         self.conv_acc.Check()
+
+class ConvergenceAcceleratorResidual(metaclass=ABCMeta):
+    @abstractmethod
+    def ComputeResidual(self, input_data): pass
+
+class DataDifferenceResidual(ConvergenceAcceleratorResidual):
+    def __init__(self, settings, solver_wrapper):
+        self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
+
+    def ComputeResidual(self, input_data):
+        return self.interface_data.GetData() - input_data
+
+class DifferentDataDifferenceResidual(ConvergenceAcceleratorResidual):
+    def __init__(self, settings, solver_wrapper):
+        self.interface_data = solver_wrapper.GetInterfaceData(settings["data_name"].GetString())
+        self.interface_data1 = solver_wrapper.GetInterfaceData(settings["residual_computation"]["data_name1"].GetString())
+        self.interface_data2 = solver_wrapper.GetInterfaceData(settings["residual_computation"]["data_name2"].GetString())
+
+    def ComputeResidual(self, input_data):
+        return self.interface_data1.GetData() - self.interface_data2.GetData()
+
+def CreateResidualComputation(settings, solver_wrapper):
+    residual_computation_type = "data_difference"
+    if settings.Has("residual_computation"):
+        residual_computation_type = settings["residual_computation"]["type"].GetString()
+
+    if residual_computation_type == "data_difference":
+        return DataDifferenceResidual(settings, solver_wrapper)
+    elif residual_computation_type == "different_data_difference":
+        return DifferentDataDifferenceResidual(settings, solver_wrapper)
+    else:
+        raise Exception('The specified residual computation "{}" is not available!'.format(residual_computation_type))

@@ -27,7 +27,6 @@
 #include "includes/gid_io.h"
 #include "includes/gid_gauss_point_container.h"
 #include "includes/deprecated_variables.h"
-#include "free_surface_application.h"
 
 
 namespace Kratos
@@ -48,7 +47,7 @@ public:
         :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                    index_container) {}
 
-    bool AddElement( const ModelPart::ElementsContainerType::iterator pElemIt )
+    bool AddElement( const ModelPart::ElementConstantIterator pElemIt ) override
     {
         KRATOS_TRY
         if( pElemIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
@@ -62,7 +61,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    bool AddCondition( const ModelPart::ConditionsContainerType::iterator pCondIt )
+    bool AddCondition( const ModelPart::ConditionConstantIterator pCondIt ) override
     {
         KRATOS_TRY
         if( pCondIt->GetGeometry().GetGeometryFamily() == mKratosElementFamily
@@ -75,8 +74,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, ModelPart& rModelPart,
-                       double SolutionTag, int ValueIndex = 0 )
+    void PrintResults( GiD_FILE ResultFile, const Variable<double>& rVariable, const ModelPart& rModelPart,
+                       const double SolutionTag, const unsigned int ValueIndex = 0 ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -116,24 +115,24 @@ public:
         }
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<bool>& rVariable, ModelPart& rModelPart,
-                               double SolutionTag, unsigned int ValueIndex ) override
+    void PrintResults( GiD_FILE ResultFile, const Variable<bool>& rVariable, const ModelPart& rModelPart,
+                               const double SolutionTag, const unsigned int ValueIndex ) override
     {
     }
 
-    virtual void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, ModelPart& rModelPart,
-                               double SolutionTag, unsigned int ValueIndex ) override
+    void PrintResults( GiD_FILE ResultFile, const Variable<int>& rVariable, const ModelPart& rModelPart,
+                               const double SolutionTag, const unsigned int ValueIndex ) override
     {
     }
 
-    void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double, 3> >& rVariable, ModelPart& rModelPart,
-                       double SolutionTag, unsigned int ValueIndex ) override
+    void PrintResults( GiD_FILE ResultFile, const Variable<array_1d<double, 3> >& rVariable, const ModelPart& rModelPart,
+                       const double SolutionTag, const unsigned int ValueIndex ) override
     {
     }
 
 
-    void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, ModelPart& rModelPart,
-                       double SolutionTag, unsigned int ValueIndex ) override
+    void PrintResults( GiD_FILE ResultFile, const Variable<Vector>& rVariable, const ModelPart& rModelPart,
+                       const double SolutionTag, const unsigned int ValueIndex ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
@@ -177,8 +176,8 @@ public:
         }
     }
 
-    void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, ModelPart& rModelPart,
-                       double SolutionTag, unsigned int ValueIndex )
+    void PrintResults( GiD_FILE ResultFile, const Variable<Matrix>& rVariable, const ModelPart& rModelPart,
+                       const double SolutionTag, const unsigned int ValueIndex ) override
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {

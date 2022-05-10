@@ -125,14 +125,18 @@ public:
         typename TLinearSolver::Pointer pLinearSolver,
         unsigned int MaxIterations = 10,
         Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
-        std::string AuxPartName = "RedistanceCalculationPart" )
+        std::string AuxPartName = "RedistanceCalculationPart",
+        double Coefficient1 = 0.01,
+        double Coefficient2 = 0.1)
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
         mrModel( rBaseModelPart.GetModel() ),
         mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
-        mAuxModelPartName( AuxPartName )
+        mAuxModelPartName( AuxPartName ),
+        mCoefficient1(Coefficient1),
+        mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
 
@@ -163,14 +167,18 @@ public:
         BuilderSolverPointerType pBuilderAndSolver,
         unsigned int MaxIterations = 10,
         Flags Options = CALCULATE_EXACT_DISTANCES_TO_PLANE.AsFalse(),
-        std::string AuxPartName = "RedistanceCalculationPart" )
+        std::string AuxPartName = "RedistanceCalculationPart",
+        double Coefficient1 = 0.01,
+        double Coefficient2 = 0.1)
     :
         mDistancePartIsInitialized(false),
         mMaxIterations(MaxIterations),
         mrModel( rBaseModelPart.GetModel() ),
         mrBaseModelPart (rBaseModelPart),
         mOptions( Options ),
-        mAuxModelPartName( AuxPartName )
+        mAuxModelPartName( AuxPartName ),
+        mCoefficient1(Coefficient1),
+        mCoefficient2(Coefficient2)
     {
         KRATOS_TRY
 
@@ -402,6 +410,9 @@ protected:
     Flags mOptions;
     std::string mAuxModelPartName;
 
+    double mCoefficient1;
+    double mCoefficient2;
+
     typename SolvingStrategyType::UniquePointer mpSolvingStrategy;
 
     ///@}
@@ -491,6 +502,9 @@ protected:
         }
 
         rBaseModelPart.GetCommunicator().SynchronizeOrNodalFlags(BOUNDARY);
+
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_FIRST, mCoefficient1);
+        r_distance_model_part.GetProcessInfo().SetValue(VARIATIONAL_REDISTANCE_COEFFICIENT_SECOND, mCoefficient2);
 
         mDistancePartIsInitialized = true;
 

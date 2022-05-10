@@ -79,9 +79,7 @@ public:
     {
         KRATOS_TRY
 
-        int nConditions = static_cast<int>(mrModelPart.Conditions().size());
-
-        if (nConditions > 0) {
+        if (mrModelPart.NumberOfConditions() > 0) {
             block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
                 Condition::GeometryType& rGeom = rCondition.GetGeometry();
 
@@ -92,9 +90,7 @@ public:
             });
         }
 
-        int nElements = static_cast<int>(mrModelPart.Elements().size());
-
-        if (nElements > 0) {
+        if (mrModelPart.NumberOfElements() > 0) {
             block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
                 rElement.Set(ACTIVE,false);
             });
@@ -108,9 +104,7 @@ public:
     {
         KRATOS_TRY
 
-        int nConditions = static_cast<int>(mrModelPart.Conditions().size());
-
-        if (nConditions > 0) {
+        if (mrModelPart.NumberOfConditions() > 0) {
             SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
             if (mDimension == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D;
 
@@ -140,7 +134,7 @@ public:
             });
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     /// Turn back information as a string.

@@ -266,7 +266,7 @@ private:
         KRATOS_TRY
 
         // Calculate the corresponding new time increments from the provided pairs
-        const double zero_tol = 1.0e-10;
+        const double zero_tol = std::min(0.1 * mDtMin, 1e-10);
         double new_dt_list[sizeof...(CharacteristicNumbersPairsType)] = {(
             (std::get<0>(rCharacteristicNumbersPairs) > zero_tol) ? CurrentDeltaTime * std::get<1>(rCharacteristicNumbersPairs) / std::get<0>(rCharacteristicNumbersPairs) : mDtMin
         )...};

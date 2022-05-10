@@ -258,6 +258,8 @@ namespace Kratos
          */
         bool HasSelfWeight() const;
 
+        const Parameters GetSpecifications() const override;
+
 private:
     /**
      * @brief This method computes directly the lumped mass vector

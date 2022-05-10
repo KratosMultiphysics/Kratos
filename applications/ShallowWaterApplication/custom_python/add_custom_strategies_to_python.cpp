@@ -21,7 +21,6 @@
 #include "spaces/ublas_space.h"
 
 // Schemes
-#include "custom_strategies/velocity_height_residual_based_bdf_scheme.h"
 #include "custom_strategies/shallow_water_residual_based_bdf_scheme.h"
 #include "custom_strategies/flux_corrected_shallow_water_scheme.h"
 #include "custom_strategies/residual_based_adams_moulton_scheme.h"
@@ -42,17 +41,12 @@ namespace Python
     // Schemes
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
-    typedef VelocityHeightResidualBasedBDFScheme<SparseSpaceType, LocalSpaceType> VelocityHeightResidualBasedBDFSchemeType;
-    py::class_<VelocityHeightResidualBasedBDFSchemeType, VelocityHeightResidualBasedBDFSchemeType::Pointer, BaseSchemeType>
-    (m, "VelocityHeightResidualBasedBDFScheme")
-    .def(py::init<std::size_t>())
-    ;
-
     typedef ShallowWaterResidualBasedBDFScheme<SparseSpaceType, LocalSpaceType> ShallowWaterResidualBasedBDFSchemeType;
     py::class_<ShallowWaterResidualBasedBDFSchemeType, ShallowWaterResidualBasedBDFSchemeType::Pointer, BaseSchemeType>
     (m, "ShallowWaterResidualBasedBDFScheme")
     .def(py::init<std::size_t>())
     .def(py::init<std::size_t, bool>())
+    .def(py::init<Parameters>())
     ;
 
     typedef FluxCorrectedShallowWaterScheme<SparseSpaceType, LocalSpaceType> FluxCorrectedShallowWaterSchemeType;

@@ -1,4 +1,5 @@
 {
+    "analysis_stage": "KratosMultiphysics.ConvectionDiffusionApplication.convection_diffusion_analysis",
     "problem_data": {
         "problem_name": "Square_Radiation_Transient",
         "parallel_type": "OpenMP",
