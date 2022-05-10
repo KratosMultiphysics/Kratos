@@ -29,7 +29,7 @@ from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_piping_elements import TestPipingElements
 from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
-from test_piping_mesh_dependency import TestMeshDependencyPiping
+from test_mesh_dependency_piping import TestMeshDependencyPiping
 
 # cpp tests
 from test_piping_element_unit import TestUnitPipingElements
