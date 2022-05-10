@@ -217,6 +217,9 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         return new_time
 
+    def InitializeSolutionStep(self):
+        self.fluid_solver.Initialize()
+
     def SolveSolutionStep(self) -> bool:
         """Perform a local solution loop until the time step size shrinks to the target bounds."""
         # Note:
@@ -267,6 +270,8 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             KratosMultiphysics.IO.WRITE).WriteModelPart(self.model_part)
 
         self.__Log("Model part written to '{}'".format(file_name))
+
+    ## EdgebasedLevelSetSolver specific methods.
 
     def _Redistance(self) -> None:
         if self.use_parallel_distance_calculation:

@@ -5,6 +5,7 @@ from KratosMultiphysics.analysis_stage import AnalysisStage
 
 
 class FreeSurfaceAnalysis(AnalysisStage):
+    '''Main script for free surface application.'''
 
     def __init__(self,
                  model: KratosMultiphysics.Model,
@@ -14,12 +15,10 @@ class FreeSurfaceAnalysis(AnalysisStage):
         # - self.project_parameters
         # - self.echo_level
         # - self.parallel_type
-        AnalysisStage.__init__(self, model, parameters)
-
-        self.project_parameters = parameters
+        super(FreeSurfaceAnalysis,self).__init__(model,parameters)
 
     def Initialize(self):
-        AnalysisStage.Initialize(self)
+        super(FreeSurfaceAnalysis,self).Initialize()
 
         model_part_name = self.project_parameters["problem_data"]["problem_name"].GetString()
 
@@ -53,7 +52,6 @@ class FreeSurfaceAnalysis(AnalysisStage):
 
     def _CreateSolver(self) -> EdgeBasedLevelSetSolver:
         return EdgeBasedLevelSetSolver(self.model, self.project_parameters["solver_settings"])
-
 
     def _GetSimulationName(self) -> str:
         return "Free Surface Analysis"
