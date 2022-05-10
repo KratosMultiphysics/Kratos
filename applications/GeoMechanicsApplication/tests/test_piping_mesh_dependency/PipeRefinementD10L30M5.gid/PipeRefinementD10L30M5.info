@@ -19,7 +19,7 @@ Importing    KratosGeoMechanicsApplication
   //    / / //       //   / /          
  ((____/ / ((____   ((___/ /  MECHANICS
  Initializing KratosGeoMechanicsApplication...
-GeoMechanics Analysis: Mon Apr 25 13:04:09 2022 
+GeoMechanics Analysis: Tue May  3 09:53:46 2022 
 [WARNING] OpenMPUtils: "SetNumThreads" is deprecated, please use ParallelUtilities.SetNumThreads instead
 [WARNING] OpenMPUtils: "GetNumThreads" is deprecated, please use ParallelUtilities.GetNumThreads instead
 GeoMechanics Analysis: OpenMP parallel configuration. OMP_NUM_THREADS = 1 
@@ -34,12 +34,12 @@ ModelPartIO:   [Reading Nodes    : 872 nodes read]
 ModelPartIO:   [Reading Elements : 867 elements read] [Type: SteadyStatePwElement2D3N]
 ModelPartIO:   [Reading Elements : 534 elements read] [Type: SteadyStatePwElement2D3N]
 ModelPartIO:   [Reading Elements : 96 elements read] [Type: SteadyStatePwInterfaceElement2D4N]
-ModelPartIO:   [Total Lines Read : 7452]
+ModelPartIO:   [Total Lines Read : 7463]
 SingleImportModelPart: Finished reading model part from mdpa file.
 ModelPart: -PorousDomain- model part
     Buffer Size : 1
     Number of tables : 0
-    Number of sub model parts : 6
+    Number of sub model parts : 7
     Current solution step index : 0
     DOMAIN_SIZE : 2
     IS_RESTARTED : 0
@@ -62,6 +62,17 @@ ModelPart: -PorousDomain- model part
             Number of Nodes       : 329
             Number of Properties  : 0
             Number of Elements    : 534
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Fluid_Pressure-auto-1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 1
+            Number of Properties  : 0
+            Number of Elements    : 0
             Number of Conditions  : 0
             Number of Constraints : 0
     -Left_head- model part
@@ -92,7 +103,7 @@ ModelPart: -PorousDomain- model part
 
         Number of Geometries  : 0
         Mesh 0 :
-            Number of Nodes       : 1
+            Number of Nodes       : 0
             Number of Properties  : 0
             Number of Elements    : 0
             Number of Conditions  : 0
@@ -130,54 +141,40 @@ Read materials: Finished
 ::[GeoMechanicalSolver]:: : Constitutive law was successfully imported. 
 GeoMechanics_U_Pw_Solver: Model reading finished. 
 GeoMechanics_Pw_Solver: DOFs added correctly. 
-::[GeoMechanics_Pw_Solver]:: : Initialisation ... 
-::[GeoMechanics_U_Pw_Solver]:: : Initialisation ... 
-Importing    LinearSolversApplication 
-    Kratos  _     _                       ____        _
-           | |   (_)_ __   ___  __ _ _ __/ ___|  ___ | |_   _____ _ __ ___
-           | |   | | '_ \ / _ \/ _` | '__\___ \ / _ \| \ \ / / _ \ '__/ __|
-           | |___| | | | |  __/ (_| | |   ___) | (_) | |\ V /  __/ |  \__ \
-           |_____|_|_| |_|\___|\__,_|_|  |____/ \___/|_| \_/ \___|_|  |___/
-Initializing KratosLinearSolversApplication...
-Linear-Solver-Factory: Constructing a regular (non-complex) linear-solver 
-GeoMechanics_Pw_Solver, scheme: Backward Euler Steady-state groundwater flow. 
-GeoMechanics_U_Pw_Solver: solver.Initialize is set successfully 
-GeoMechanics_U_Pw_Solver: Solver initialization finished. 
-GeoMechanics_Pw_Solver: solver.Initialize is set successfully 
-GeoMechanics_Pw_Solver: Solver initialization finished. 
-GeoMechanics Analysis: Analysis -START-  
-GeoMechanics Analysis: --------------------------------------   
-GeoMechanics Analysis: cycle:  1 
-GeoMechanics Analysis: STEP      :  1 
-GeoMechanics Analysis: DELTA_TIME:  1.0 
-GeoMechanics Analysis: TIME      :  1.0 
-ResidualBasedNewtonRaphsonStrategy: Setup Dofs Time: 0.000974
-ResidualBasedNewtonRaphsonStrategy: Setup System Time: 5.2e-06
-ResidualBasedNewtonRaphsonStrategy: System Matrix Resize Time: 0.0014239
-ResidualBasedNewtonRaphsonStrategy: System Construction Time: 0.00245
-ResidualBasedBlockBuilderAndSolver: Build time: 0.0060935
-ResidualBasedBlockBuilderAndSolver: System solve time: 0.0031277
-CONVERGENCE CHECK:
- WATER_PRESSURE : ratio = 1; exp.ratio = 0.0001 abs = 1.48785 exp.abs = 1e-09
-ResidualBasedBlockBuilderAndSolver: Build time: 0.0054659
-ResidualBasedBlockBuilderAndSolver: System solve time: 0.0031201
-CONVERGENCE CHECK:
- WATER_PRESSURE : ratio = 0.0117067; exp.ratio = 0.0001 abs = 0.0174212 exp.abs = 1e-09
-ResidualBasedBlockBuilderAndSolver: Build time: 0.005379
-ResidualBasedBlockBuilderAndSolver: System solve time: 0.0026763
-CONVERGENCE CHECK:
- WATER_PRESSURE : ratio = 0.00087197; exp.ratio = 0.0001 abs = 0.0012974 exp.abs = 1e-09
-ResidualBasedBlockBuilderAndSolver: Build time: 0.0049115
-ResidualBasedBlockBuilderAndSolver: System solve time: 0.0028668
-CONVERGENCE CHECK:
- WATER_PRESSURE : ratio = 3.91762e-05; exp.ratio = 0.0001 abs = 5.82902e-05 exp.abs = 1e-09
-*** CONVERGENCE IS ACHIEVED ***
-ResidualBasedNewtonRaphsonStrategy: Convergence achieved after 4 / 15 iterations
-GeoMechanics Analysis: Up-scaling with factor:  2.0 
-GeoMechanics Analysis: Analysis -END-  
-BuilderAndSolver: Clear Function called
-GeoMechanics Analysis: Analysis Completed. Elapsed Time = 0.201  seconds. 
-GeoMechanics Analysis: Mon Apr 25 13:04:09 2022 
-BuilderAndSolver: Clear Function called
-BuilderAndSolver: Clear Function called
-KRATOS TERMINATED CORRECTLY
+[WARNING] Your list of processes: : Parameters Object [
+    {
+        "Parameters": {
+            "fluid_pressure_type": "Hydrostatic",
+            "gravity_direction": 1,
+            "is_fixed": true,
+            "model_part_name": "PorousDomain.Left_head",
+            "pressure_tension_cut_off": 0.0,
+            "reference_coordinate": 3.0,
+            "specific_weight": 9.81,
+            "table": 0,
+            "variable_name": "WATER_PRESSURE"
+        },
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyScalarConstraintTableProcess",
+        "python_module": "apply_scalar_constraint_table_process"
+    },
+    {
+        "Parameters": {
+            "fluid_pressure_type": "Hydrostatic",
+            "gravity_direction": 1,
+            "is_fixed": true,
+            "model_part_name": "PorousDomain.Fluid_Pressure-auto-1",
+            "pressure_tension_cut_off": 0.0,
+            "reference_coordinate": 4.0,
+            "specific_weight": 9.81,
+            "table": 0,
+            "variable_name": "WATER_PRESSURE"
+        },
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyScalarConstraintTableProcess",
+        "python_module": "apply_scalar_constraint_table_process"
+    },
+    {}
+]
+ 
+KRATOS TERMINATED WITH ERROR

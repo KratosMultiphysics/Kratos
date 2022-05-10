@@ -9185,7 +9185,6 @@ Begin SubModelPart Right_head
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
-    1498
   End SubModelPartNodes
   Begin SubModelPartElements
   End SubModelPartElements
@@ -9262,6 +9261,18 @@ Begin SubModelPart Left_head
     198
     201
     204
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Fluid_Pressure-auto-1
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1498
   End SubModelPartNodes
   Begin SubModelPartElements
   End SubModelPartElements

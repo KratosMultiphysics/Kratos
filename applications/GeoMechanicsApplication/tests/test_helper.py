@@ -212,7 +212,7 @@ def get_hydraylic_head_with_intergration_points(simulation):
 
 def get_pipe_active_in_elements(simulation):
     """
-    Gets the pipe active value on all nodal points from Kratos simulation
+    Gets the pipe active value on all elements from Kratos simulation
     :param simulation:
     :return: pipe_active : list of booleans determine whether pipe element is active or not
     """
