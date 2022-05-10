@@ -964,7 +964,8 @@ EXCLUDE_PATTERNS       = */.git/* \
                          */scripts/* \
                          */SuperLU_4.3/* \
                          */custom_external_libraries/* \
-                         */README.md/*
+                         */README.md/* \
+                         */tests/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
