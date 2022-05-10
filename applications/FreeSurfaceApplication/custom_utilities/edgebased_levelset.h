@@ -2120,6 +2120,7 @@ namespace Kratos
             mis_slip.clear();
             KRATOS_CATCH("")
         }
+
         void ConvectDistance()
         {
             KRATOS_TRY

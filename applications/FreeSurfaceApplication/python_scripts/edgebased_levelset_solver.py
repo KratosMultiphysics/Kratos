@@ -139,6 +139,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
     def AddVariables(self) -> None:
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_INDEX)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
@@ -180,7 +181,11 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         # Initialize solver
         self.fluid_solver = self.__MakeEdgeBasedLevelSet()
-        self.distance_size = 3.0 * self.distance_utils.FindMaximumEdgeSize(self.model_part)
+
+        if self.use_parallel_distance_calculation:
+            self.distance_size = 3.0 * self.distance_utils.FindMaximumEdgeSize()
+        else:
+            self.distance_size = 3.0 * self.distance_utils.FindMaximumEdgeSize(self.model_part)
         self.fluid_solver.SetShockCapturingCoefficient(0.0)
 
         # Note:
@@ -270,6 +275,10 @@ class EdgeBasedLevelSetSolver(PythonSolver):
             KratosMultiphysics.IO.WRITE).WriteModelPart(self.model_part)
 
         self.__Log("Model part written to '{}'".format(file_name))
+
+    def Finalize(self):
+        super().Finalize()
+        self.fluid_solver.Clear()
 
     ## EdgebasedLevelSetSolver specific methods.
 
