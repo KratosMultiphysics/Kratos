@@ -449,7 +449,8 @@ namespace MPMParticleGeneratorUtility
                                 auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
                                     pelem->pGetGeometry(),
                                     xg,
-                                    integration_points[i_integration_point].Weight());
+                                    mpc_area[0]);
+
 
                                 // Particle condition are not created twice
                                 bool create_condition = true;
