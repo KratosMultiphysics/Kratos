@@ -313,20 +313,14 @@ namespace Kratos
             // get number of nodes
             unsigned int n_nodes = mr_model_part.Nodes().size();
 
-            mvel_n.resize(n_nodes);
-            mr_matrix_container.SetToZero(mvel_n);
             mvel_n1.resize(n_nodes);
             mr_matrix_container.SetToZero(mvel_n1);
-            mPn.resize(n_nodes);
-            mr_matrix_container.SetToZero(mPn);
             mPn1.resize(n_nodes);
             mr_matrix_container.SetToZero(mPn1);
 
             // read velocity and pressure data from Kratos
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
             mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
-            mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
-            mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, mr_model_part.Nodes());
 
             // set flag for first time step
             mFirstStep = false;
