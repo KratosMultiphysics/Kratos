@@ -1,169 +1,173 @@
-'''HDF5 core processes.
+"""!@package HDF5Application
+
+HDF5 core processes.
 
 This module only contains the most general HDF5 IO processes which should not
 change frequently.
 
 license: HDF5Application/license.txt
-'''
+"""
 
+__all__ = ["Factory"]
+
+# Kratos imports
 import KratosMultiphysics
+from . import controllers
+
+# STL imports
+import inspect
 
 
-def OrderedOperationProcessFactory(process_base: type):
-    class OrderedOperationProcess(KratosMultiphysics.Process):
-        """A process for grouping operations.
+##!@addtogroup HDF5Application
+##!@{
+##!@name Kratos classes
+##!@{
+class OrderedOperationProcess(KratosMultiphysics.Process):
+    """!@brief A process for grouping operations.
+    @detail This implements a whole-part structural decomposition. The members are
+    operations or function objects with no arguments. They may be attached
+    to any of the process steps during construction and are called in the same
+    order at the corresponding step of the solution algorithm.
+    """
 
-        This implements a whole-part structural decomposition. The members are
-        operations or function objects with no arguments. They may be attached
-        to any of the process steps during construction and are called in the same
-        order at the corresponding step of the solution algorithm.
-        """
+    def __init__(self):
+        KratosMultiphysics.Process.__init__(self)
+        self.Clear()
 
-        def __init__(self):
-            KratosMultiphysics.Process.__init__(self)
-            self.initialize_sequence = []
-            self.before_solution_loop_sequence = []
-            self.initialize_solution_step_sequence = []
-            self.finalize_solution_step_sequence = []
-            self.before_output_step_sequence = []
-            self.after_output_step_sequence = []
-            self.finalize_sequence = []
+    def ExecuteInitialize(self) -> None:
+        for controller in self.initialize_controllers:
+            controller()
 
-        def ExecuteInitialize(self):
-            for f in self.initialize_sequence:
-                f()
+    def ExecuteBeforeSolutionLoop(self) -> None:
+        for controller in self.before_solution_loop_controllers:
+            controller()
 
-        def ExecuteBeforeSolutionLoop(self):
-            for f in self.before_solution_loop_sequence:
-                f()
+    def ExecuteInitializeSolutionStep(self) -> None:
+        for controller in self.initialize_solution_step_controllers:
+            controller()
 
-        def ExecuteInitializeSolutionStep(self):
-            for f in self.initialize_solution_step_sequence:
-                f()
+    def ExecuteFinalizeSolutionStep(self) -> None:
+        for controller in self.finalize_solution_step_controllers:
+            controller()
 
-        def ExecuteFinalizeSolutionStep(self):
-            for f in self.finalize_solution_step_sequence:
-                f()
+    def ExecuteBeforeOutputStep(self) -> None:
+        for controller in self.before_output_step_controllers:
+            controller()
 
-        def ExecuteBeforeOutputStep(self):
-            for f in self.before_output_step_sequence:
-                f()
+    def ExecuteAfterOutputStep(self) -> None:
+        for controller in self.after_output_step_controllers:
+            controller()
 
-        def ExecuteAfterOutputStep(self):
-            for f in self.after_output_step_sequence:
-                f()
+    def ExecuteFinalize(self) -> None:
+        for controller in self.finalize_controllers:
+            controller()
 
-        def ExecuteFinalize(self):
-            for f in self.finalize_sequence:
-                f()
+    def Clear(self) -> None:
+        """!Remove all assigned controllers."""
+        self.initialize_controllers: list[controllers.Controller] = []
+        self.before_solution_loop_controllers: list[controllers.Controller] = []
+        self.initialize_solution_step_controllers: list[controllers.Controller] = []
+        self.finalize_solution_step_controllers: list[controllers.Controller] = []
+        self.before_output_step_controllers: list[controllers.Controller] = []
+        self.after_output_step_controllers: list[controllers.Controller] = []
+        self.finalize_controllers: list[controllers.Controller] = []
 
-        def Clear(self):
-            self.initialize_sequence = []
-            self.before_solution_loop_sequence = []
-            self.initialize_solution_step_sequence = []
-            self.finalize_solution_step_sequence = []
-            self.before_output_step_sequence = []
-            self.after_output_step_sequence = []
-            self.finalize_sequence = []
+    def AddInitialize(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteInitialize is called."""
+        self.initialize_controllers.append(controller)
 
-        def AddInitialize(self, func):
-            self.initialize_sequence.append(func)
+    def AddBeforeSolutionLoop(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteBeforeSolutionLoop is called."""
+        self.before_solution_loop_controllers.append(controller)
 
-        def AddBeforeSolutionLoop(self, func):
-            self.before_solution_loop_sequence.append(func)
+    def AddInitializeSolutionStep(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteInitializeSolutionStep is called."""
+        self.initialize_solution_step_controllers.append(controller)
 
-        def AddInitializeSolutionStep(self, func):
-            self.initialize_solution_step_sequence.append(func)
+    def AddFinalizeSolutionStep(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteFinalizeSolutionStep is called."""
+        self.finalize_solution_step_controllers.append(controller)
 
-        def AddFinalizeSolutionStep(self, func):
-            self.finalize_solution_step_sequence.append(func)
+    def AddBeforeOutputStep(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteBeforeOutputStep is called."""
+        self.before_output_step_controllers.append(controller)
 
-        def AddBeforeOutputStep(self, func):
-            self.before_output_step_sequence.append(func)
+    def AddAfterOutputStep(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteAfterOutputStep is called."""
+        self.after_output_step_controllers.append(controller)
 
-        def AddAfterOutputStep(self, func):
-            self.after_output_step_sequence.append(func)
-
-        def AddFinalize(self, func):
-            self.finalize_sequence.append(func)
-
-    return OrderedOperationProcess()
+    def AddFinalize(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteFinalize is called."""
+        self.finalize_controllers.append(controller)
 
 
-def OrderedOutputOperationProcessFactory(process_base: KratosMultiphysics.OutputProcess) -> KratosMultiphysics.OutputProcess:
-    if not issubclass(process_base, KratosMultiphysics.OutputProcess):
-        raise TypeError("Expecting a KratosMultiphysics.OutputProcess, but got {}".format(process_base))
+class OrderedOutputOperationProcess(KratosMultiphysics.OutputProcess):
 
-    class OrderedOutputOperationProcess(process_base):
-        def __init__(self):
-            super().__init__()
-            self.Clear()
+    def __init__(self):
+        super().__init__()
+        self.Clear()
 
-        def Clear(self):
-            self.initialize_sequence = []
-            self.before_solution_loop_sequence = []
-            self.initialize_solution_step_sequence = []
-            self.finalize_solution_step_sequence = []
-            self.before_output_step_sequence = []
-            self.after_output_step_sequence = []
-            self.finalize_sequence = []
-            self.output_sequence = []
+    def Clear(self) -> None:
+        """!Remove all assigned controllers."""
+        self.initialize_controllers: list[controllers.Controller] = []
+        self.before_solution_loop_controllers: list[controllers.Controller] = []
+        self.finalize_solution_step_controllers: list[controllers.Controller] = []
+        self.finalize_controllers: list[controllers.Controller] = []
 
-        def ExecuteInitialize(self):
-            for f in self.initialize_sequence:
-                f()
+    def IsOutputStep(self) -> bool:
+        """!True if this step is an output step for any assigned controller."""
+        return any(controller.IsOutputStep() for controller in self.finalize_controllers)
 
-        def ExecuteBeforeSolutionLoop(self):
-            for f in self.before_solution_loop_sequence:
-                f()
+    def ExecuteInitialize(self) -> None:
+        for controller in self.initialize_controllers:
+            controller()
 
-        def ExecuteInitializeSolutionStep(self):
-            for f in self.initialize_solution_step_sequence:
-                f()
+    def ExecuteBeforeSolutionLoop(self) -> None:
+        for controller in self.before_solution_loop_controllers:
+            controller()
 
-        def ExecuteFinalizeSolutionStep(self):
-            for f in self.finalize_solution_step_sequence:
-                f()
+    def ExecuteFinalizeSolutionStep(self) -> None:
+        for controller in self.finalize_solution_step_controllers:
+            controller()
 
-        def ExecuteBeforeOutputStep(self):
-            for f in self.before_output_step_sequence:
-                f()
+    def ExecuteFinalize(self) -> None:
+        for controller in self.finalize_controllers:
+            controller()
 
-        def ExecuteAfterOutputStep(self):
-            for f in self.after_output_step_sequence:
-                f()
+    def PrintOutput(self) -> None:
+        """!Bypass checks and execute all processes assigned to each registered controller."""
+        for controller in sum([self.initialize_controllers, self.before_solution_loop_controllers, self.finalize_solution_step_controllers, self.finalize_controllers],[]):
+            controller.ExecuteOperations()
 
-        def ExecuteFinalize(self):
-            for f in self.finalize_sequence:
-                f()
+    def AddInitialize(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteInitialize is called."""
+        self.initialize_controllers.append(controller)
 
-        def PrintOutput(self) -> None:
-            for f in self.output_sequence:
-                f()
+    def AddBeforeSolutionLoop(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteBeforeSolutionLoop is called."""
+        self.before_solution_loop_controllers.append(controller)
 
-        def IsOutputStep(self) -> bool:
-            """Always true, becuase this class aggregates controllers that decide whether to write anything separately."""
-            return True
+    def AddFinalizeSolutionStep(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteFinalizeSolutionStep is called."""
+        self.finalize_solution_step_controllers.append(controller)
 
-        def AddInitialize(self, func):
-            self.initialize_sequence.append(func)
+    def AddFinalize(self, controller: controllers.Controller) -> None:
+        """!Add a controller to be executed when ExecuteFinalize is called."""
+        self.finalize_controllers.append(controller)
+##!@}
 
-        def AddBeforeSolutionLoop(self, func):
-            self.before_solution_loop_sequence.append(func)
 
-        def AddInitializeSolutionStep(self, func):
-            self.initialize_solution_step_sequence.append(func)
-
-        def AddFinalizeSolutionStep(self, func):
-            self.finalize_solution_step_sequence.append(func)
-
-        def AddBeforeOutputStep(self, func):
-            self.before_output_step_sequence.append(func)
-
-        def AddAfterOutputStep(self, func):
-            self.after_output_step_sequence.append(func)
-
-        def AddFinalize(self, func):
-            self.finalize_sequence.append(func)
-
-    return OrderedOutputOperationProcess()
+def Factory(process_type: type) -> KratosMultiphysics.Process:
+    """!@brief Return a regular or output ordered process depending on the input type.
+    @param process_type: @ref Process or @ref OutputProcess
+    @return an @ref OrdereOperationProcess or an @ref OrderedOutputOperationProcess depending on the input argument
+    """
+    if not inspect.isclass(process_type):
+        raise TypeError("Expecting a type, but got {}".format(process_type))
+    if issubclass(process_type, KratosMultiphysics.OutputProcess):
+        return OrderedOutputOperationProcess()
+    elif issubclass(process_type, KratosMultiphysics.Process):
+        return OrderedOperationProcess()
+    else:
+        raise TypeError("Expecting OutputProcess or Process types, but got {}".format(process_type.__name__))
+##!@}
