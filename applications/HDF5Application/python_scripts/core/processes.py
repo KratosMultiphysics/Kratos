@@ -101,59 +101,24 @@ class OrderedOperationProcess(KratosMultiphysics.Process):
         self.finalize_controllers.append(controller)
 
 
-class OrderedOutputOperationProcess(KratosMultiphysics.OutputProcess):
+class OrderedOutputOperationProcess(KratosMultiphysics.OutputProcess, OrderedOperationProcess):
 
     def __init__(self):
-        super().__init__()
-        self.Clear()
-
-    def Clear(self) -> None:
-        """!Remove all assigned controllers."""
-        self.initialize_controllers: list[controllers.Controller] = []
-        self.before_solution_loop_controllers: list[controllers.Controller] = []
-        self.finalize_solution_step_controllers: list[controllers.Controller] = []
-        self.finalize_controllers: list[controllers.Controller] = []
+        KratosMultiphysics.OutputProcess.__init__(self)
+        OrderedOperationProcess.__init__(self)
 
     def IsOutputStep(self) -> bool:
         """!True if this step is an output step for any assigned controller."""
-        return any(controller.IsOutputStep() for controller in self.finalize_controllers)
-
-    def ExecuteInitialize(self) -> None:
-        for controller in self.initialize_controllers:
-            controller()
-
-    def ExecuteBeforeSolutionLoop(self) -> None:
-        for controller in self.before_solution_loop_controllers:
-            controller()
-
-    def ExecuteFinalizeSolutionStep(self) -> None:
-        for controller in self.finalize_solution_step_controllers:
-            controller()
-
-    def ExecuteFinalize(self) -> None:
-        for controller in self.finalize_controllers:
-            controller()
+        return any(controller.IsExecuteStep() for controller in self.__GetAggregateControllerList())
 
     def PrintOutput(self) -> None:
         """!Bypass checks and execute all processes assigned to each registered controller."""
-        for controller in sum([self.initialize_controllers, self.before_solution_loop_controllers, self.finalize_solution_step_controllers, self.finalize_controllers],[]):
+        for controller in self.__GetAggregateControllerList():
             controller.ExecuteOperations()
 
-    def AddInitialize(self, controller: controllers.Controller) -> None:
-        """!Add a controller to be executed when ExecuteInitialize is called."""
-        self.initialize_controllers.append(controller)
-
-    def AddBeforeSolutionLoop(self, controller: controllers.Controller) -> None:
-        """!Add a controller to be executed when ExecuteBeforeSolutionLoop is called."""
-        self.before_solution_loop_controllers.append(controller)
-
-    def AddFinalizeSolutionStep(self, controller: controllers.Controller) -> None:
-        """!Add a controller to be executed when ExecuteFinalizeSolutionStep is called."""
-        self.finalize_solution_step_controllers.append(controller)
-
-    def AddFinalize(self, controller: controllers.Controller) -> None:
-        """!Add a controller to be executed when ExecuteFinalize is called."""
-        self.finalize_controllers.append(controller)
+    def __GetAggregateControllerList(self) -> list[controllers.Controller]:
+        """!Get all registered controllers."""
+        return sum([self.initialize_controllers,self.before_solution_loop_controllers,self.initialize_solution_step_controllers,self.finalize_solution_step_controllers,self.before_output_step_controllers,self.after_output_step_controllers,self.finalize_controllers],[])
 ##!@}
 
 

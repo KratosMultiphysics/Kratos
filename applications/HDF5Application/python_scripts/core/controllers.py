@@ -31,6 +31,11 @@ class Controller(metaclass=abc.ABCMeta):
         self.operations.append(operation)
 
     @abc.abstractmethod
+    def IsExecuteStep(self) -> bool:
+        """!Decide whether the controller should execute the registered operations at the current step."""
+        pass
+
+    @abc.abstractmethod
     def __call__(self) -> None:
         """!Execute assigned operations if a check is passed."""
         pass
@@ -44,6 +49,9 @@ class Controller(metaclass=abc.ABCMeta):
 
 class DefaultController(Controller):
     """Simple pass through controller."""
+
+    def IsExecuteStep(self) -> bool:
+        return True
 
     def __call__(self) -> None:
         self.ExecuteOperations()
@@ -64,7 +72,7 @@ class TemporalController(Controller):
         self.current_time = 0.0
         self.current_step = 0
 
-    def IsOutputStep(self) -> bool:
+    def IsExecuteStep(self) -> bool:
         """!@brief Return true if the current step/time is a multiple of the output frequency.
         @detail Relative errors are compared against an epsilon, which is much larger than
         the machine epsilon, and include a lower bound based on
@@ -87,7 +95,7 @@ class TemporalController(Controller):
         delta_time = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         self.current_time += delta_time
         self.current_step += 1
-        if self.IsOutputStep():
+        if self.IsExecuteStep():
             self.ExecuteOperations()
             self.current_time = 0.0
             self.current_step = 0
