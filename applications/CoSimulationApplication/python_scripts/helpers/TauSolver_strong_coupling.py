@@ -238,14 +238,14 @@ def ExportData(conn_name, identifier):
     # identifier is the data-name in json
         if identifier == "Upper_Interface_force":
             # forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_UP", output_file_pattern, sub_step, velocity)
-            forces = 1e4*TauFunctions.ComputeFluidForces(working_path, step, "MEM_TOP", output_file_pattern, sub_step, velocity)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEM_TOP", output_file_pattern, sub_step, velocity)
             # with open('forces_up' + str(step) + '.dat','w') as fname:
             #    for i in range(len(forces)/3):
             #        fname.write("%f %f %f\n" %(forces[3*i], forces[3*i+1],forces[3*i+2]))
 
         elif identifier == "Lower_Interface_force":
             # forces = TauFunctions.ComputeFluidForces(working_path, step, "MEMBRANE_DOWN", output_file_pattern, sub_step, velocity)
-            forces = 1e4*TauFunctions.ComputeFluidForces(working_path, step, "MEM_BOT", output_file_pattern, sub_step, velocity)
+            forces = TauFunctions.ComputeFluidForces(working_path, step, "MEM_BOT", output_file_pattern, sub_step, velocity)
         else:
             raise Exception('TauSolver::ExportData::identifier "{}" not valid! Please use Interface_force'.format(identifier))
 
