@@ -123,7 +123,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
 
     def critical_head_loop(self, file_path, counter, search_type='linear'):
         self.change_material_parameters(file_path, self.test_lists["kappa"][counter], self.test_lists["d70"][counter])
-        heads = [x * 0.01 for x in range(int(self.test_lists["Hc"][counter] * 100 - 200), int(self.test_lists["Hc"][counter] * 100 + 200), 1)]
+        heads = [x * 0.1 for x in range(int(self.test_lists["Hc"][counter] * 10 - 40), int(self.test_lists["Hc"][counter] * 10 + 90), 1)]
         critical_head_found = math.nan
         if search_type == 'linear':
             critical_head_found = self.linear_search(file_path, heads)
@@ -146,4 +146,3 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
             all_results.append(temp_results)
         self.latex_writer.filename = test_helper.get_file_path('test_compare_sellmeijer/test_compare_sellmeijer.tex')
         self.latex_writer.write_latex_file_and_assert(all_results)
-
