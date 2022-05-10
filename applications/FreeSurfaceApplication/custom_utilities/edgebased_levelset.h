@@ -312,12 +312,7 @@ namespace Kratos
 
             // get number of nodes
             unsigned int n_nodes = mr_model_part.Nodes().size();
-            unsigned int n_edges = mr_matrix_container.GetNumberEdges();
-            // size data vectors
-            mViscosity.resize(n_nodes);
-            mr_matrix_container.SetToZero(mViscosity);
-            mWork.resize(n_nodes);
-            mr_matrix_container.SetToZero(mWork);
+
             mvel_n.resize(n_nodes);
             mr_matrix_container.SetToZero(mvel_n);
             mvel_n1.resize(n_nodes);
@@ -326,68 +321,15 @@ namespace Kratos
             mr_matrix_container.SetToZero(mPn);
             mPn1.resize(n_nodes);
             mr_matrix_container.SetToZero(mPn1);
-            mHmin.resize(n_nodes);
-            mr_matrix_container.SetToZero(mHmin);
-            mHavg.resize(n_nodes);
-            mr_matrix_container.SetToZero(mHavg);
-            mNodalFlag.resize(n_nodes);
-            mr_matrix_container.SetToZero(mNodalFlag);
-            mdistances.resize(n_nodes);
-            mr_matrix_container.SetToZero(mdistances);
-
-            mTauPressure.resize(n_nodes);
-            mr_matrix_container.SetToZero(mTauPressure);
-            mTauConvection.resize(n_nodes);
-            mr_matrix_container.SetToZero(mTauConvection);
-            mTau2.resize(n_nodes);
-            mr_matrix_container.SetToZero(mTau2);
-            mPi.resize(n_nodes);
-            mr_matrix_container.SetToZero(mPi);
-            mXi.resize(n_nodes);
-            mr_matrix_container.SetToZero(mXi);
-            mx.resize(n_nodes);
-            mr_matrix_container.SetToZero(mx);
-
-            mEdgeDimensions.resize(n_edges);
-            mr_matrix_container.SetToZero(mEdgeDimensions);
-
-            // convection variables
-            mBeta.resize(n_nodes);
-            mr_matrix_container.SetToZero(mBeta);
-            mPiConvection.resize(n_nodes);
-            mr_matrix_container.SetToZero(mPiConvection);
-            mphi_n.resize(n_nodes);
-            mr_matrix_container.SetToZero(mphi_n);
-            mphi_n1.resize(n_nodes);
-            mr_matrix_container.SetToZero(mphi_n1);
-
-            mEps.resize(n_nodes);
-            mr_matrix_container.SetToZero(mEps);
-            // mD.resize(n_nodes); 	mr_matrix_container.SetToZero(mD);
-            mA.resize(n_nodes);
-            mr_matrix_container.SetToZero(mA);
-            mB.resize(n_nodes);
-            mr_matrix_container.SetToZero(mB);
-            mStrVel.resize(n_nodes);
-            mr_matrix_container.SetToZero(mStrVel);
-
-            mdiv_error.resize(n_nodes);
-            mr_matrix_container.SetToZero(mdiv_error);
-            mdiag_stiffness.resize(n_nodes);
-            mr_matrix_container.SetToZero(mdiag_stiffness);
-            mis_slip.resize(n_nodes);
-            //	    ValuesVectorType external_pressure;
-            //	    external_pressure.resize(n_nodes);
 
             // read velocity and pressure data from Kratos
-            mr_matrix_container.FillScalarFromDatabase(VISCOSITY, mViscosity, mr_model_part.Nodes());
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
             mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
             mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
             mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, mr_model_part.Nodes());
-            mr_matrix_container.FillCoordinatesFromDatabase(mx, mr_model_part.Nodes());
+
             // set flag for first time step
-            mFirstStep = true;
+            mFirstStep = false;
 
             // loop to categorize boundary nodes
             std::vector<unsigned int> tempFixedVelocities;
@@ -426,78 +368,11 @@ namespace Kratos
                 mFixedVelocities[i] = tempFixedVelocities[i];
                 mFixedVelocitiesValues[i] = tempFixedVelocitiesValues[i];
             }
+
 #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(tempPressureOutletList.size()); i++)
             {
                 mPressureOutletList[i] = tempPressureOutletList[i];
-            }
-
-            // compute slip normals and fill SlipList
-            CalculateNormals(mr_model_part.Conditions());
-            mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes());
-
-            if (TDim == 3)
-                DetectEdges3D(mr_model_part.Conditions());
-
-            // determine number of edges and entries
-            ////        not implemented in ublas yet !!!
-            // unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
-            // allocate memory for variables
-            mL.resize(n_nodes, n_nodes, false);
-
-            int number_of_threads = ParallelUtilities::GetNumThreads();
-            std::vector<int> row_partition(number_of_threads);
-            OpenMPUtils::DivideInPartitions(n_nodes, number_of_threads, row_partition);
-
-            for (int k = 0; k < number_of_threads; k++)
-            {
-#pragma omp parallel
-                if (OpenMPUtils::ThisThread() == k)
-                {
-                    for (int i_node = static_cast<int>(row_partition[k]); i_node < static_cast<int>(row_partition[k + 1]); i_node++)
-                    {
-                        // loop over all nodes
-                        //  	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++) {
-                        // flag for considering diagonal matrix elements
-                        bool flag = 0;
-
-                        // loop over all neighbours
-                        for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-                        {
-                            // get global index of neighbouring node j
-                            unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-                            // define matrix structure row by row (the order does matter!)
-                            if ((static_cast<int>(j_neighbour) > i_node) && (flag == 0))
-                            {
-                                // add diagonal/nodal contribution
-                                mL.push_back(i_node, i_node, 0.0);
-                                flag = 1;
-                            }
-                            // add non-diagonal/edge contribution
-                            mL.push_back(i_node, j_neighbour, 0.0);
-                        }
-                        // if diagonal element is the last non-zero element of the row
-                        if (flag == 0)
-                            mL.push_back(i_node, i_node, 0.0);
-                    }
-                }
-            }
-
-            // compute minimum length of the surrounding edges
-            CalculateEdgeLengths(mr_model_part.Nodes());
-
-            // set the pressure projection to the body force value
-
-            array_1d<double, 3> temp = ZeroVector(3);
-            for (unsigned int i = 0; i < TDim; i++)
-                temp[i] = mRho * mBodyForce[i];
-            for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-                 inode != mr_model_part.NodesEnd();
-                 inode++)
-            {
-                array_1d<double, 3> &press_proj = inode->FastGetSolutionStepValue(PRESS_PROJ);
-                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                    press_proj[l_comp] = temp[l_comp];
             }
 
             KRATOS_CATCH("")

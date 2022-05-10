@@ -36,7 +36,6 @@ class FreeSurfaceAnalysis(AnalysisStage):
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, small_value)
 
             # Make sure no node has null porosity and diameter
-            # Note: this was set in the main script, not sure if it needs to be here
             if node.GetSolutionStepValue(KratosMultiphysics.POROSITY) == 0.0:
                 node.SetSolutionStepValue(KratosMultiphysics.POROSITY, 1.0)
             if node.GetSolutionStepValue(KratosMultiphysics.DIAMETER) == 0.0:
