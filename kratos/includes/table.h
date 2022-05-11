@@ -617,21 +617,21 @@ public:
 
     result_type Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        // const double epsilon = 1e-12;
-        return Y1 + (X2 - X1 > 1.0e-12) * (Y2 - Y1)*(X - X1)/(X2 - X1);
+        constexpr double epsilon = 1.0e-12;
+        return Y1 + (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X - X1)/(X2 - X1) );
 
     }
     result_type ExtrapolateBelowLowest(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        // const double epsilon = 1e-12;
-        return Y1 - (X2 - X1 > 1.0e-12) * (Y2 - Y1)*(X1 - X)/(X2 - X1 + std::numeric_limits<double>::min());
+        constexpr double epsilon = 1.0e-12;
+        return Y1 - (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X1 - X)/(X2 - X1 + std::numeric_limits<double>::min()) );
 
     }
 
     result_type ExtrapolateAboveHighest(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        // const double epsilon = 1e-12;
-        return Y2 + (X2 - X1 > 1.0e-12) * (Y2 - Y1)*(X - X2)/(X2 - X1 + std::numeric_limits<double>::min());
+        constexpr double epsilon = 1.0e-12;
+        return Y2 + (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X - X2)/(X2 - X1 + std::numeric_limits<double>::min()) );
 
     }
     // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
@@ -680,7 +680,7 @@ public:
         }
 
         if(X >= mData[u].first){
-            // now the x is outside the table and we hae to extrapolate it using last two records of table.
+            // now the x is outside the table and we have to extrapolate it using the slope computed with last two records of table.
             return InterpolateDerivative(mData[u-1].first, mData[u-1].second[0], mData[u].first, mData[u].second[0]);
         }
 
@@ -701,7 +701,7 @@ public:
     }
      result_type InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        const double epsilon = 1e-12;
+        constexpr double epsilon = 1.0e-12;
         argument_type dx = X2 - X1;
         if (dx < epsilon)
         {
