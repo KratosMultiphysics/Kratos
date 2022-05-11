@@ -45,6 +45,7 @@ public:
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "is_fixed": false,
+                "is_seepage": false,
                 "gravity_direction": 1,
                 "first_reference_coordinate":          [0.0,1.0,0.0],
                 "second_reference_coordinate":         [1.0,0.5,0.0],
@@ -68,6 +69,7 @@ public:
 
         mVariableName = rParameters["variable_name"].GetString();
         mIsFixed = rParameters["is_fixed"].GetBool();
+        mIsSeepage = rParameters["is_seepage"].GetBool();
         mGravityDirection = rParameters["gravity_direction"].GetInt();
         mFirstReferenceCoordinate = rParameters["first_reference_coordinate"].GetVector();
         mSecondReferenceCoordinate= rParameters["second_reference_coordinate"].GetVector();
@@ -103,33 +105,52 @@ public:
     {
         KRATOS_TRY
 
-        const int nNodes = static_cast<int>(mrModelPart.Nodes().size());
-
-        if (nNodes > 0) {
+        if (mrModelPart.NumberOfNodes() > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
             Vector3 direction=ZeroVector(3);
             direction[mGravityDirection] = 1.0;
 
-            block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode) {
-                if (mIsFixed) rNode.Fix(var);
-                else          rNode.Free(var);
+            if (mIsSeepage) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode) {
+                    double distance = 0.0;
+                    double d = 0.0;
+                    for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
+                        distance += mNormalVector[j] * rNode.Coordinates()[j];
+                        d += mNormalVector[j]*direction[j];
+                    }
+                    distance = -(distance - mEqRHS) / d;
 
-                double distance = 0.0;
-                double d = 0.0;
-                for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
-                    distance += mNormalVector[j] * rNode.Coordinates()[j];
-                    d += mNormalVector[j]*direction[j];
-                }
-                distance = -(distance - mEqRHS) / d;
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
 
-                const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                        if (mIsFixed) rNode.Fix(var);
+                    } else {
+                        rNode.Free(var);
+                    }
+                });
+            } else {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode) {
+                    if (mIsFixed) rNode.Fix(var);
+                    else          rNode.Free(var);
 
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                }
-            });
+                    double distance = 0.0;
+                    double d = 0.0;
+                    for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
+                        distance += mNormalVector[j] * rNode.Coordinates()[j];
+                        d += mNormalVector[j]*direction[j];
+                    }
+                    distance = -(distance - mEqRHS) / d;
+
+                    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
+
+                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
+                        rNode.FastGetSolutionStepValue(var) = pressure;
+                    } else {
+                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
+                    }
+                });
+            }
 
         }
 
@@ -162,6 +183,7 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsSeepage;
     unsigned int mGravityDirection;
     double mSpecificWeight;
     Vector3 mFirstReferenceCoordinate;

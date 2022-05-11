@@ -128,13 +128,14 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 // 3:   Linear         Filtered            Filtered
 //----------------------------------------------------------------
 
-BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
+BinBasedDEMFluidCoupledMapping(Parameters& rParameters, SpatialSearch::Pointer pSpSearch=NULL)
                              : mMustCalculateMaxNodalArea(true),
                                mFluidDeltaTime(0.0),
                                mFluidLastCouplingFromDEMTime(0.0),
                                mMaxNodalAreaInv(0.0),
                                mGentleCouplingInitiationInterval(mFluidDeltaTime),
-                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0)
+                               mNumberOfDEMSamplesSoFarInTheCurrentFluidStep(0),
+                               mpSpSearch(pSpSearch)
 {
     Parameters default_parameters( R"(
         {
@@ -354,6 +355,7 @@ VariablesContainer mVariables;
 std::map<VariableData, double> mAlphas;
 std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
+SpatialSearch::Pointer mpSpSearch;
 
 FluidFieldUtility mFlowField;
 

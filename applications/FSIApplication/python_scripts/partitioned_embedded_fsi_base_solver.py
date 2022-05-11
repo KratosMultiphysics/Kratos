@@ -113,10 +113,6 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         # Initialize the embedded skin utility
         self.__GetEmbeddedSkinUtility()
 
-        with open("FSI_iterations.txt",'w') as f:
-            f.write("{}\t{}\t{}\n".format("Step","It.", "err_u"))
-            f.close()
-
         KratosMultiphysics.Logger.PrintInfo('PartitionedEmbeddedFSIBaseSolver', "Finished initialization.")
 
     #TODO: Use the base one once the body fitted uses the fluid ALE solver
@@ -181,7 +177,9 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         # Even though these are auxiliary model parts, this is mandatory to be done to properly set up the database
         # Note that if this operations are removed, some auxiliary utils (e.g. FM-ALE algorithm in embedded) will perform wrong
         self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceFluid().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
         self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().GetRootModelPart().CloneTimeStep(new_time)
+        self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart().ProcessInfo[KratosMultiphysics.STEP] = self._GetFSICouplingInterfaceStructure().GetFatherModelPart().ProcessInfo[KratosMultiphysics.STEP]
 
     def _InitializeCouplingInterfaces(self):
         # FSI interface coupling interfaces initialization
@@ -214,18 +212,20 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             else:
                 raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         elif (self.level_set_type == "discontinuous"):
+            discontinuous_distance_settings = KratosMultiphysics.Parameters("""{
+                "calculate_elemental_edge_distances" : true,
+                "calculate_elemental_edge_distances_extrapolated" : true
+            }""")
             if self._GetDomainSize() == 2:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D(
                     self.GetFluidComputingModelPart(),
                     self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES,
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess2D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
+                    discontinuous_distance_settings)
             elif self._GetDomainSize() == 3:
                 return KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D(
                     self.GetFluidComputingModelPart(),
                     self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D.CALCULATE_ELEMENTAL_EDGE_DISTANCES,
-                    KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D.CALCULATE_ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED)
+                    discontinuous_distance_settings)
             else:
                 raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         else:
@@ -238,10 +238,18 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         return self._parallel_distance_calculator
 
     def __CreateParallelDistanceCalculator(self):
+        parallel_redistance_settings = KratosMultiphysics.Parameters("""{
+            "max_levels" : 2,
+            "max_distance": 1e12
+        }""")
         if self._GetDomainSize() == 2:
-            return KratosMultiphysics.ParallelDistanceCalculator2D()
+            return KratosMultiphysics.ParallelDistanceCalculationProcess2D(
+                self.GetFluidComputingModelPart(),
+                parallel_redistance_settings)
         elif self._GetDomainSize() == 3:
-            return KratosMultiphysics.ParallelDistanceCalculator3D()
+            return KratosMultiphysics.ParallelDistanceCalculationProcess3D(
+                self.GetFluidComputingModelPart(),
+                parallel_redistance_settings)
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
 
@@ -296,14 +304,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
             self.__ExtendLevelSet()
 
     def __ExtendLevelSet(self):
-        max_layers = 2
-        max_distance = 1.0e+12
-        self.__GetParallelDistanceCalculator().CalculateDistances(
-            self.GetFluidComputingModelPart(),
-            KratosMultiphysics.DISTANCE,
-            KratosMultiphysics.NODAL_AREA,
-            max_layers,
-            max_distance)
+        self.__GetParallelDistanceCalculator().Execute()
 
     def _MapStructureInterfaceDisplacement(self):
         # Map the RELAXED_DISP from the structure FSI coupling interface to fluid FSI coupling interface
@@ -357,12 +358,14 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 0)
 
             # Convert the pressure scalar load to a traction vector one
-            swap_traction_sign = True
-            self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
-                self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
-                KratosMultiphysics.POSITIVE_FACE_PRESSURE,
-                self._GetTractionVariable(),
-                swap_traction_sign)
+            # This is required in the IBQN case as the structure and fluid interface residual sizes must match
+            if self._GetConvergenceAccelerator().IsBlockNewton():
+                swap_traction_sign = True
+                self._GetPartitionedFSIUtilities().CalculateTractionFromPressureValues(
+                    self._GetFSICouplingInterfaceStructure().GetInterfaceModelPart(),
+                    KratosMultiphysics.POSITIVE_FACE_PRESSURE,
+                    self._GetTractionVariable(),
+                    swap_traction_sign)
 
         elif (self.level_set_type == "discontinuous"):
             # Map the POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE from the auxiliary embedded skin model part,
@@ -372,7 +375,7 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
                 "mapper_type": "nearest_element",
                 "echo_level" : 0
             }""")
-            mapper = KratosMapping.MapperFactory.CreateMapper(
+            mapper = KratosMultiphysics.MapperFactory.CreateMapper(
                 self.__GetEmbedddedSkinUtilityModelPart(),
                 self._GetFSICouplingInterfaceFluid().GetInterfaceModelPart(),
                 mapper_params)
@@ -500,9 +503,23 @@ class PartitionedEmbeddedFSIBaseSolver(PartitionedFSIBaseSolver):
         raise Exception(err_msg)
 
     def _GetTractionVariable(self):
-        if self._GetDomainSize() == 2:
-            return KratosStructural.LINE_LOAD
-        elif self._GetDomainSize() == 3:
-            return KratosStructural.SURFACE_LOAD
+        if self._GetConvergenceAccelerator().IsBlockNewton():
+            if self._GetDomainSize() == 2:
+                return KratosStructural.LINE_LOAD
+            elif self._GetDomainSize() == 3:
+                return KratosStructural.SURFACE_LOAD
+            else:
+                raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
         else:
-            raise Exception("Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
+            if self.level_set_type == "continuous":
+                return KratosMultiphysics.POSITIVE_FACE_PRESSURE
+            elif self.level_set_type == "discontinuous":
+                if self._GetDomainSize() == 2:
+                    return KratosStructural.LINE_LOAD
+                elif self._GetDomainSize() == 3:
+                    return KratosStructural.SURFACE_LOAD
+                else:
+                    raise Exception(
+                        "Domain size expected to be 2 or 3. Got " + str(self._GetDomainSize()))
+            else:
+                raise Exception("Wrong level set type '{}'".format(self.level_set_type))

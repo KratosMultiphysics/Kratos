@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -51,7 +51,7 @@ struct is_eigen_type : std::false_type {};
 
 template <typename Scalar, int Flags, typename Storage>
 struct is_eigen_sparse_matrix<
-    Eigen::MappedSparseMatrix<Scalar, Flags, Storage>
+    Eigen::Map<Eigen::SparseMatrix<Scalar, Flags, Storage>>
     > : std::true_type
 {};
 

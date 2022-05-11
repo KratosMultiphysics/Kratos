@@ -37,6 +37,9 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 if settings.Has("pressure_tension_cut_off"):
                     self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
 
+                if settings.Has("is_seepage"):
+                    self.params.AddValue("is_seepage",settings["is_seepage"])
+
                 if settings["table"].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantHydrostaticPressureProcess(self.model_part, self.params)
                 else:
@@ -52,6 +55,9 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 if settings.Has("pressure_tension_cut_off"):
                     self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
 
+                if settings.Has("is_seepage"):
+                    self.params.AddValue("is_seepage",settings["is_seepage"])
+
                 if settings["table"][0].GetInt() == 0 and settings["table"][1].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantPhreaticLinePressureProcess(self.model_part, self.params)
                 else:
@@ -63,6 +69,9 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
 
                 if settings.Has("pressure_tension_cut_off"):
                     self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
+
+                if settings.Has("is_seepage"):
+                    self.params.AddValue("is_seepage",settings["is_seepage"])
 
                 if settings["table"].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantInterpolateLinePressureProcess(self.model_part, self.params)
@@ -77,6 +86,9 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
 
                 if settings.Has("pressure_tension_cut_off"):
                     self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
+
+                if settings.Has("is_seepage"):
+                    self.params.AddValue("is_seepage",settings["is_seepage"])
 
                 if settings["table"][0].GetInt() == 0 and settings["table"][1].GetInt() == 0 and settings["table"][2].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantPhreaticSurfacePressureProcess(self.model_part, self.params)

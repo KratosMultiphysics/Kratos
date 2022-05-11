@@ -971,6 +971,36 @@ int CrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
     KRATOS_CATCH("")
 }
 
+const Parameters CrBeamElement2D2N::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : ["static","implicit","explicit"],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : ["MOMENT","FORCE","INTEGRATION_COORDINATES"],
+            "nodal_historical"       : ["DISPLACEMENT","ROTATION","VELOCITY","ACCELERATION"],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : ["DISPLACEMENT","ROTATION"],
+        "required_dofs"              : ["DISPLACEMENT_X","DISPLACEMENT_Y","ROTATION_Z"],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Line2D2"],
+        "element_integrates_in_time" : false,
+        "compatible_constitutive_laws": {
+            "type"        : ["BeamConstitutiveLaw"],
+            "dimension"   : ["2D"],
+            "strain_size" : [3]
+        },
+        "required_polynomial_degree_of_geometry" : 1,
+        "documentation"   : "This elements implements a 2D non-linear beam formulation."
+    })");
+
+    return specifications;
+}
+
 void CrBeamElement2D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);

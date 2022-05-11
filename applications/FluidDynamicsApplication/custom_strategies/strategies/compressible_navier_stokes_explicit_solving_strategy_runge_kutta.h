@@ -602,7 +602,10 @@ private:
 
 ///@}
 
-template<class TSparseSpace, class TDenseSpace>
+template<class TSparseSpace, class TDenseSpace> 
+using CompressibleNavierStokesExplicitSolvingStrategyForwardEuler = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauForwardEuler>;
+
+template<class TSparseSpace, class TDenseSpace> 
 using CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 = CompressibleNavierStokesExplicitSolvingStrategyRungeKutta<TSparseSpace, TDenseSpace, ButcherTableauRK4>;
 
 template<class TSparseSpace, class TDenseSpace>
