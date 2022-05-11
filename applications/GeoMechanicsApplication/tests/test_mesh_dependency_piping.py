@@ -50,10 +50,11 @@ class TestMeshDependencyPiping(KratosUnittest.TestCase):
         return math.nan
 
     def test_piping_mesh_dependency(self):
-        test_files = {"PipeRefinementD10L30M1.gid":5,
-                      "PipeRefinementD10L30M2.gid":5,
-                      "PipeRefinementD10L30M3.gid":5,
-                      "PipeRefinementD10L30M4.gid":5}
+        test_files = {"PipeRefinementD10L30M1.gid":6,
+                      "PipeRefinementD10L30M2.gid":12,
+                      "PipeRefinementD10L30M3.gid":24,
+                      "PipeRefinementD10L30M4.gid":0.625,
+                      "PipeRefinementD10L30M5.gid":0.3125}
         result_dict = {}
 
         for test_file, element_size in test_files.items():
@@ -68,5 +69,5 @@ class TestMeshDependencyPiping(KratosUnittest.TestCase):
         with open(csv_path, 'w', newline='') as csv_file:
             writer = csv.writer(csv_file, delimiter=',')
             for key, value in result_dict.items():
-                writer.writerow([key, value[0], value[1]])
+                writer.writerow([key, value[1], value[0]])
     
