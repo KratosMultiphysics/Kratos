@@ -2,6 +2,7 @@
 
 import os
 import sys
+import argparse
 
 from KratosMultiphysics import *
 from KratosMultiphysics.GeoMechanicsApplication import *
@@ -126,6 +127,20 @@ def AssambleTestSuites(is_team_city):
     return suites
 
 
+def get_level_argument():
+    """
+    This function is used only when the unit tests are run under teamcity.
+    In this case the level the KratosUnittest class is not directly used to determine the level of unit tests
+    Therefore we impliment a simple function that enables this functionality
+
+    :return: level: str
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
+    args = parser.parse_args()
+    return args.level
+
+
 if __name__ == '__main__':
     is_team_city = False
     try:
@@ -138,8 +153,11 @@ if __name__ == '__main__':
 
     if is_team_city:
         import unittest
+        level = get_level_argument()
+        test_suite_dictionary = AssambleTestSuites(is_team_city)
+        tests_to_run = test_suite_dictionary[level]
         runner = TeamcityTestRunner()
-        runner.run(AssambleTestSuites(is_team_city))
+        runner.run(tests_to_run)
         # Tester.RunTestSuite("KratosGeoMechanicsFastSuite")
     else:
         KratosUnittest.runTests(AssambleTestSuites(is_team_city))
