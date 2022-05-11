@@ -2525,33 +2525,71 @@ def SetNodalValuesForPointOutputProcesses(model_part):
         node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION, vec*time)
         node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, time**2 + 1.038)
 
+def SetValuesForCoupledOutput(model_part, coupling_iter, n_coupling_iter):
+    # number of non-linear iterations decreasing during coupling iterations starting from 7
+    model_part.ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] = 7 - coupling_iter
+    time = model_part.ProcessInfo[KratosMultiphysics.TIME]
+    vec = KratosMultiphysics.Vector(3)
+    for node in model_part.Nodes:
+        vec[0] = round(math.sqrt(node.X**2+node.Y**2)*time ,6)
+        vec[1] = round(node.X**2+node.Y**2 + time ,6)
+        vec[2] = round(node.X+node.Y + time ,6)
+        # scaling velocity, so it's decreasing until it is scaled with 1.0 for the last coupling iteration
+        vec = vec*(n_coupling_iter / (coupling_iter+1))
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, vec)
+        node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION, vec*time)
+        node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY, time**2 + 1.038)
+
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
     current_model = model_part.GetModel()
+
+    # create lists of processes the same way it is happening for analysis_stage.py
     list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )
+    list_of_output_processes = []
+    if settings.Has("output_process_list"):
+        list_of_output_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
+        settings["output_process_list"] )
+    list_of_processes.extend(list_of_output_processes)
 
+    # call the methods of processes the same order it is happening in analysis_stage.py
     for process in list_of_processes:
         process.ExecuteInitialize()
 
     for process in list_of_processes:
         process.ExecuteBeforeSolutionLoop()
 
+    time_iter = 0
     while model_part.ProcessInfo[KratosMultiphysics.TIME] < end_time:
         model_part.ProcessInfo[KratosMultiphysics.TIME] += delta_time
+        time_iter += 1
 
         SetNodalValuesForPointOutputProcesses(model_part)
 
         for process in list_of_processes:
             process.ExecuteInitializeSolutionStep()
 
-        for process in list_of_processes:
-            process.ExecuteBeforeOutputStep()
-
-        for process in list_of_processes:
-            process.ExecuteAfterOutputStep()
+        # number of coupling iterations switching between 4,5,3
+        n_coupling_iter = 3 + time_iter % 3
+        for coupling_iter in range(n_coupling_iter):
+            for process in list_of_processes:
+                process.ExecuteInitializeCouplingStep()
+            SetValuesForCoupledOutput(model_part, coupling_iter, n_coupling_iter)
+            for process in list_of_processes:
+                process.ExecuteFinalizeCouplingStep()
 
         for process in list_of_processes:
             process.ExecuteFinalizeSolutionStep()
+
+        for process in list_of_processes:
+            process.ExecuteBeforeOutputStep()
+
+        for output_process in list_of_output_processes:
+            if output_process.IsOutputStep():
+                output_process.PrintOutput()
+
+        for process in list_of_processes:
+            process.ExecuteAfterOutputStep()
 
     for process in list_of_processes:
         process.ExecuteFinalize()
