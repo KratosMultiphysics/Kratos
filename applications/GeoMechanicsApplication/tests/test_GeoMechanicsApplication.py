@@ -79,14 +79,18 @@ def AssambleTestSuites(is_team_city):
     # - testNightlyFirstExample
     # - testNightlySecondExample
 
-    night_test_cases = [KratosGeoMechanicsDynamicsTests, TestSellmeijersRule, TestMeshDependencyPiping]
+    night_test_cases = [KratosGeoMechanicsDynamicsTests,
+                        TestSellmeijersRule,
+                        TestMeshDependencyPiping,
+                        TestElementaryGroundWaterFlow]
 
     # Create an array that contains all the tests from every testCase
     # in the list:
 
     all_test_cases = []
     all_test_cases.extend(night_test_cases)
-
+    all_test_cases.extend(small_test_cases)
+    suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
     if is_team_city:
@@ -106,9 +110,11 @@ def AssambleTestSuites(is_team_city):
             allSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
                 test))
 
-        suites = allSuite
+        #suites = allSuite
+        suites['small'] = smallSuite
+        suites['nightly'] = nightSuite
+        suites['all'] = allSuite
     else:
-        suites = KratosUnittest.KratosSuites
         smallSuite = suites['small']
         nightSuite = suites['nightly']
         allSuite = suites['all']
