@@ -5,41 +5,45 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings, model):
-    if(type(settings) != KM.Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ProcessInfoOutputProcess(model, settings["Parameters"])
 
 class ProcessInfoOutputProcess(KM.OutputProcess):
     """This output process writes variables from ProcessInfo to a file.
+
     By default it outputs NL_ITERATION_NUMBER, which is used by the ResidualBasedNewtonRaphsonStrategy.
 
     This process provides the possibility to get the information in each coupling iteration,
     which can be used for coupled simulations by the CoSimulationApplication so far.
+    The user may define its execution point.
 
     This process is not tested for MPI or restarts so far.
     """
     def __init__(self, model, params):
         super().__init__()
-        # validate and assign default, create class variables etc. --> see point_output_process
 
         default_settings = KM.Parameters('''{
-            "help"                        : "This output process writes variables from ProcessInfo to a file. By default it outputs NL_ITERATION_NUMBER, which is used by the ResidualBasedNewtonRaphsonStrategy. This process provides the possibility to get the information in each coupling iteration, which can be used for coupled simulations by the CoSimulationApplication so far. This process is not tested for MPI or restarts so far.",
-            "model_part_name"             : "",
-            "include_coupling_iterations" : false,
-            "output_variables"            : ["NL_ITERATION_NUMBER"],
-            "print_format"                : "",
-            "output_file_settings"        : {}
+            "help"                 : "This output process writes variables from ProcessInfo to a file. By default it outputs NL_ITERATION_NUMBER, which is used by the ResidualBasedNewtonRaphsonStrategy. This process provides the possibility to get the information in each coupling iteration, which can be used for coupled simulations by the CoSimulationApplication so far. The user may define its execution point. This process is not tested for MPI or restarts so far.",
+            "model_part_name"      : "",
+            "execution_point"      : "finalize_solution_step",
+            "output_variables"     : ["NL_ITERATION_NUMBER"],
+            "print_format"         : "",
+            "output_file_settings" : {}
         }''')
         params.ValidateAndAssignDefaults(default_settings)
         self.model = model
         self.params = params
-        self.include_coupling_iterations = self.params["include_coupling_iterations"].GetBool()
         self.format = self.params["print_format"].GetString()
 
-        self.output = ""
-        self.latest_coupling_output = ""
+        # validate execution point
+        self.execution_point = self.params["execution_point"].GetString()
+        list_of_execution_points = ["initialize", "before_solution_loop", "initialize_solution_step", "initialize_coupling_step", "finalize_coupling_step", "finalize_solution_step", "before_output_step", "after_output_step"]
+        if not self.execution_point in list_of_execution_points:
+            err_msg = 'Execution point "' + self.execution_point + '" is not known!\n'
+            err_msg += 'Available execution points are: "' + '", "'.join(list_of_execution_points) + '"'
+            raise Exception(err_msg)
 
-    def ExecuteInitialize(self):
         # getting the ModelPart from the Model
         model_part_name = self.params["model_part_name"].GetString()
         if model_part_name == "":
@@ -56,10 +60,11 @@ class ProcessInfoOutputProcess(KM.OutputProcess):
         for var in self.output_variables:
             #if not self.model_part.ProcessInfo.Has(var):
                 #raise Exception('Given output variable "' + var.Name() + '" does not exist in ProcessInfo!')
-            if type(var) == KM.IntegerVariable:
+            if isinstance(var, KM.IntegerVariable):
                 continue
-            elif type(var) == KM.DoubleVariable:
+            elif isinstance(var, KM.DoubleVariable):
                 continue
+            # TODO add array 3d
             else:
                 err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
                 err_msg += 'It can only be integer or double!'
@@ -69,46 +74,65 @@ class ProcessInfoOutputProcess(KM.OutputProcess):
         file_handler_params = KM.Parameters(self.params["output_file_settings"])
         self.ascii_writer = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, self.__GetFileHeader()).file
 
-    def ExecuteInitializeSolutionStep(self):
-        # empty output strings
-        # both variables necessary, so that latest output of coupling iteration is not added to final output
-        # in order to omit if condition in ExecuteFinalizeSolutionStep
+        # initialize variable collecting output string
         self.output = ""
-        self.latest_coupling_output = ""
+
+    def ExecuteInitialize(self):
+        if self.execution_point == "initialize":
+            self.__addVariablesToOutput()
+
+    def ExecuteBeforeSolutionLoop(self):
+        if self.execution_point == "before_solution_loop":
+            self.__addVariablesToOutput()
+
+    def ExecuteInitializeSolutionStep(self):
+        if self.execution_point == "initialize_solution_step":
+            self.__addVariablesToOutput()
+
+    def ExecuteInitializeCouplingStep(self):
+        if self.execution_point == "initialize_coupling_step":
+            self.__addVariablesToOutput()
 
     def ExecuteFinalizeCouplingStep(self):
-        if self.include_coupling_iterations:
-            self.output += self.latest_coupling_output
-            self.latest_coupling_output = str(self.model_part.ProcessInfo[KM.TIME])
-            for var in self.output_variables:
-                value = self.model_part.ProcessInfo[var]
-                self.latest_coupling_output += " " + format(value,self.format)
-            self.latest_coupling_output += "\n"
+        if self.execution_point == "finalize_coupling_step":
+            self.__addVariablesToOutput()
 
     def ExecuteFinalizeSolutionStep(self):
-        # add final output of current time step
-        self.output += str(self.model_part.ProcessInfo[KM.TIME])
-        for var in self.output_variables:
-            value = self.model_part.ProcessInfo[var]
-            self.output += " " + format(value,self.format)
-        self.output += "\n"
+        if self.execution_point == "finalize_solution_step":
+            self.__addVariablesToOutput()
+
+    def ExecuteBeforeOutputStep(self):
+        if self.execution_point == "before_output_step":
+            self.__addVariablesToOutput()
 
     def IsOutputStep(self):
+        # TODO use interval
         return True
 
     def PrintOutput(self):
         self.ascii_writer.write(self.output)
+        self.output = ""
+
+    def ExecuteAfterOutputStep(self):
+        if self.execution_point == "after_output_step":
+            self.__addVariablesToOutput()
 
     def ExecuteFinalize(self):
         self.ascii_writer.close()
 
     def __GetFileHeader(self):
         header = "# ProcessInfo over time"
-        if self.include_coupling_iterations:
+        if (self.execution_point == "initialize_coupling_step") or (self.execution_point == "finalize_coupling_step"):
             header += " including coupling iterations"
         header += "\n# time"
         for var in self.output_variables:
             header += " " + var.Name()
         header += "\n"
-
         return header
+
+    def __addVariablesToOutput(self):
+        self.output += str(self.model_part.ProcessInfo[KM.TIME])
+        for var in self.output_variables:
+            value = self.model_part.ProcessInfo[var]
+            self.output += " " + format(value,self.format)
+        self.output += "\n"

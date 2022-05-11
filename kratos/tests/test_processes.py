@@ -1967,7 +1967,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "ProcessInfoOutputProcess",
                     "Parameters"            : {
                         "model_part_name"      : "Main",
-                        "include_coupling_iterations" : false,
+                        "execution_point"      : "finalize_solution_step",
                         "output_file_settings" : {
                             "file_name" : "process_info_output",
                             "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
@@ -2016,7 +2016,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "ProcessInfoOutputProcess",
                     "Parameters"            : {
                         "model_part_name"      : "Main",
-                        "include_coupling_iterations" : true,
+                        "execution_point"      : "finalize_coupling_step",
                         "output_file_settings" : {
                             "file_name" : "process_info_output_coupled",
                             "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
