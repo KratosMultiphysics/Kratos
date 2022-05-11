@@ -1939,6 +1939,104 @@ class TestProcesses(KratosUnittest.TestCase):
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
 
+    def test_process_info_output_process(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/reference_files/process_info_output_ref.dat")
+
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [{
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/process_info_output.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                }],
+            "output_process_list" : [{
+                    "python_module"  : "process_info_output_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "ProcessInfoOutputProcess",
+                    "Parameters"            : {
+                        "model_part_name"      : "Main",
+                        "include_coupling_iterations" : false,
+                        "output_file_settings" : {
+                            "file_name" : "process_info_output",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
+                        },
+                        "output_variables" : ["NL_ITERATION_NUMBER"]
+                    }
+            }]
+        }""")
+
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
+    def test_process_info_output_process_including_coupling_iterations(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        reference_file_name = GetFilePath("auxiliar_files_for_python_unittest/reference_files/process_info_output_coupled_ref.dat")
+
+        settings = KratosMultiphysics.Parameters("""{
+            "process_list" : [{
+                    "python_module"  : "compare_two_files_check_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "CompareTwoFilesCheckProcess",
+                    "Parameters"            : {
+                        "reference_file_name"   : "",
+                        "output_file_name"      : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder/process_info_output_coupled.dat",
+                        "comparison_type"       : "dat_file"
+                    }
+                }],
+            "output_process_list" : [{
+                    "python_module"  : "process_info_output_process",
+                    "kratos_module"  : "KratosMultiphysics",
+                    "process_name"   : "ProcessInfoOutputProcess",
+                    "Parameters"            : {
+                        "model_part_name"      : "Main",
+                        "include_coupling_iterations" : true,
+                        "output_file_settings" : {
+                            "file_name" : "process_info_output_coupled",
+                            "output_path" : "auxiliar_files_for_python_unittest/test_parent_folder/test_subfolder"
+                        },
+                        "output_variables" : ["NL_ITERATION_NUMBER"]
+                    }
+            }]
+        }""")
+
+        settings["process_list"][0]["Parameters"]["reference_file_name"].SetString(reference_file_name)
+
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+
+        end_time = 5.0
+        delta_time = 0.15
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
+
+        SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+
     def test_assign_flag_process(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
