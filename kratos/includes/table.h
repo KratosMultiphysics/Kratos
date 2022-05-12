@@ -48,8 +48,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
  * @class Table
  * @ingroup KratosCore
  * @brief This class represents the value of its variable depending to other variable.
@@ -79,6 +79,8 @@ public:
     typedef std::pair<argument_type, result_row_type> RecordType;
 
     typedef std::vector<RecordType> TableContainerType;
+
+
 
     ///@}
     ///@name Life Cycle
@@ -256,7 +258,7 @@ public:
     {
         mData.push_back(RecordType(X,Y));
     }
-    
+
     /**
      * @brief This method clears databse
      */
@@ -432,6 +434,8 @@ private:
 template<>
 class Table<double, double>
 {
+    static constexpr double epsilon = 1.0e-12;
+
 public:
     ///@name Type Definitions
     ///@{
@@ -617,22 +621,16 @@ public:
 
     result_type Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        constexpr double epsilon = 1.0e-12;
         return Y1 + (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X - X1)/(X2 - X1) );
-
     }
     result_type ExtrapolateBelowLowest(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        constexpr double epsilon = 1.0e-12;
         return Y1 - (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X1 - X)/(X2 - X1 + std::numeric_limits<double>::min()) );
-
     }
 
     result_type ExtrapolateAboveHighest(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        constexpr double epsilon = 1.0e-12;
         return Y2 + (X2 - X1 > epsilon) * ( (Y2 - Y1)*(X - X2)/(X2 - X1 + std::numeric_limits<double>::min()) );
-
     }
     // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
     void insert(argument_type const& X, result_type const& Y)
@@ -701,7 +699,6 @@ public:
     }
      result_type InterpolateDerivative( argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2) const
     {
-        constexpr double epsilon = 1.0e-12;
         argument_type dx = X2 - X1;
         if (dx < epsilon)
         {
@@ -722,7 +719,7 @@ public:
     {
         mData.clear();
     }
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -885,5 +882,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_TABLE_H_INCLUDED  defined 
-
-
