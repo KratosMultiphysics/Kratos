@@ -64,7 +64,8 @@ namespace Kratos
  * @author Janosch Stascheit
  * @author Felix Nagel
  */
-template<class TPointType> class Triangle2D6
+template<class TPointType>
+class Triangle2D6
     : public Geometry<TPointType>
 {
 public:
