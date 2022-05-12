@@ -1967,6 +1967,7 @@ class TestProcesses(KratosUnittest.TestCase):
                     "process_name"   : "ProcessInfoOutputProcess",
                     "Parameters"            : {
                         "model_part_name"      : "Main",
+                        "interval"             : [1.5, 4.5],
                         "execution_point"      : "finalize_solution_step",
                         "output_file_settings" : {
                             "file_name" : "process_info_output",

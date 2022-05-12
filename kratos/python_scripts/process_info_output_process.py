@@ -26,6 +26,7 @@ class ProcessInfoOutputProcess(KM.OutputProcess):
         default_settings = KM.Parameters('''{
             "help"                 : "This output process writes variables from ProcessInfo to a file. By default it outputs NL_ITERATION_NUMBER, which is used by the ResidualBasedNewtonRaphsonStrategy. This process provides the possibility to get the information in each coupling iteration, which can be used for coupled simulations by the CoSimulationApplication so far. The user may define its execution point. This process is not tested for MPI or restarts so far.",
             "model_part_name"      : "",
+            "interval"             : [0.0, 1e30],
             "execution_point"      : "finalize_solution_step",
             "output_variables"     : ["NL_ITERATION_NUMBER"],
             "print_format"         : "",
@@ -33,6 +34,7 @@ class ProcessInfoOutputProcess(KM.OutputProcess):
         }''')
         params.ValidateAndAssignDefaults(default_settings)
         self.model = model
+        self.interval = KM.IntervalUtility(params)
         self.params = params
         self.format = self.params["print_format"].GetString()
 
@@ -56,19 +58,8 @@ class ProcessInfoOutputProcess(KM.OutputProcess):
         self.output_variables = [ KM.KratosGlobals.GetVariable( var ) for var in variable_names ]
         if len(self.output_variables ) == 0:
             raise Exception('No variables specified for output!')
-        # validate types of variables and that variables are in ProcessInfo
-        for var in self.output_variables:
-            #if not self.model_part.ProcessInfo.Has(var):
-                #raise Exception('Given output variable "' + var.Name() + '" does not exist in ProcessInfo!')
-            if isinstance(var, KM.IntegerVariable):
-                continue
-            elif isinstance(var, KM.DoubleVariable):
-                continue
-            # TODO add array 3d
-            else:
-                err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
-                err_msg += 'It can only be integer or double!'
-                raise Exception(err_msg)
+        # initialize bool for checking that variables are in ProcessInfo
+        self.variables_of_process_info_unchecked = True
 
         # create and open file with file header
         file_handler_params = KM.Parameters(self.params["output_file_settings"])
@@ -106,10 +97,14 @@ class ProcessInfoOutputProcess(KM.OutputProcess):
             self.__addVariablesToOutput()
 
     def IsOutputStep(self):
-        # TODO use interval
-        return True
+        time = self.model_part.ProcessInfo[KM.TIME]
+        if self.interval.IsInInterval(time):
+            return True
+        else:
+            return False
 
     def PrintOutput(self):
+        # write output and reset variable collecting output
         self.ascii_writer.write(self.output)
         self.output = ""
 
@@ -131,8 +126,20 @@ class ProcessInfoOutputProcess(KM.OutputProcess):
         return header
 
     def __addVariablesToOutput(self):
-        self.output += str(self.model_part.ProcessInfo[KM.TIME])
-        for var in self.output_variables:
-            value = self.model_part.ProcessInfo[var]
-            self.output += " " + format(value,self.format)
-        self.output += "\n"
+        if self.IsOutputStep():
+            # check whether variables are in Process Info before they are output for the first time
+            if self.variables_of_process_info_unchecked:
+                for var in self.output_variables:
+                    if not self.model_part.ProcessInfo.Has(var):
+                        raise Exception('Given output variable "' + var.Name() + '" does not exist in ProcessInfo!')
+                self.variables_of_process_info_unchecked = False
+            # add all variables to output with time step
+            # if this is called refering to a coupling step, multiple entries in the file will have the same time stemp
+            self.output += str(self.model_part.ProcessInfo[KM.TIME])
+            for var in self.output_variables:
+                if self.variables_of_process_info_unchecked:
+                    if not self.model_part.ProcessInfo.Has(var):
+                        raise Exception('Given output variable "' + var.Name() + '" does not exist in ProcessInfo!')
+                value = str(self.model_part.ProcessInfo[var])
+                self.output += " " + format(value,self.format)
+            self.output += "\n"
