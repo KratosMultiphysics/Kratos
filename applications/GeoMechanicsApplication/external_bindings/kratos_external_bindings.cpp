@@ -13,9 +13,9 @@ EXPORT Kratos::KratosExecute *KratosExecute_CreateInstance() {
     return new Kratos::KratosExecute();
 }
 
-EXPORT void __stdcall Execute(Kratos::KratosExecute* instance, char* meshpath, char* projectpath, char* materialpath)
+EXPORT int __stdcall Execute(Kratos::KratosExecute* instance, char* workingDirectory, char* projectFile)
     {
-    instance->cpp_geomechanics(meshpath, projectpath, materialpath);
+    return instance->cpp_geomechanics(workingDirectory, projectFile);
 }
 
 #endif

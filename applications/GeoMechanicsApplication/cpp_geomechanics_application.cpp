@@ -12,6 +12,7 @@
 
 #pragma once
 
+
 #include "cpp_geomechanics_application.h"
 
 #include <geo_mechanics_application.h>
@@ -56,6 +57,8 @@ void GaussDEGREE_OF_SATURATION::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart
 void GaussDERIVATIVE_OF_SATURATION::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::DERIVATIVE_OF_SATURATION, model_part, 0, 0); }
 
 void GaussRELATIVE_PERMEABILITY::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::RELATIVE_PERMEABILITY, model_part, 0, 0); }
+
+void GaussPIPE_ACTIVE::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) { gid_io.PrintOnGaussPoints(Kratos::PIPE_ACTIVE, model_part, 0, 0); }
 
 #pragma endregion GaussVariables
 
@@ -316,6 +319,7 @@ namespace Kratos
                 }
             }
         }
+        input.close();
     }
 
     void KratosExecute::parseMaterial(Model& model, string filepath)
@@ -392,7 +396,7 @@ namespace Kratos
 
     }
 
-    void KratosExecute::outputGiD(Model& model, ModelPart& model_part, Parameters parameters)
+    void KratosExecute::outputGiD(Model& model, ModelPart& model_part, Parameters parameters, string workingDirectory)
     {
         std::map<std::string, GiD_PostMode> PostMode;
         PostMode["GiD_PostAscii"] = GiD_PostAscii;
@@ -421,6 +425,7 @@ namespace Kratos
         WriteDeformedMeshFlag deformed_output = DeformedFlag[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["WriteDeformedMeshFlag"].GetString()];
         WriteConditionsFlag condition_output = ConditionFlag[outputParameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"]["WriteConditionsFlag"].GetString()];
 
+        filename = workingDirectory + "/" + filename;
         cout << "Output Filename: " << filename << std::endl;
     	GidIO<> gid_io(filename, gid_output_type, multifiles_output, deformed_output, condition_output);
 
@@ -452,6 +457,7 @@ namespace Kratos
         GaussOutput["DEGREE_OF_SATURATION"] = std::make_unique<GaussDEGREE_OF_SATURATION>();
         GaussOutput["DERIVATIVE_OF_SATURATION"] = std::make_unique<GaussDERIVATIVE_OF_SATURATION>();
         GaussOutput["RELATIVE_PERMEABILITY"] = std::make_unique<GaussRELATIVE_PERMEABILITY>();
+        GaussOutput["PIPE_ACTIVE"] = std::make_unique<GaussPIPE_ACTIVE>();
     	auto gauss_outputs = outputParameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
         for (string var : gauss_outputs)
         {
@@ -461,20 +467,26 @@ namespace Kratos
         gid_io.FinalizeResults();
     }
 
-    int KratosExecute::cpp_geomechanics(string meshpath, string projectpath, string materialpath)
+    int KratosExecute::cpp_geomechanics(string workingDirectory, string projectName)
     {
 
-    	std::cout << "MeshPath= " << meshpath << std::endl;
-        std::cout << "ProjectPath= " << projectpath << std::endl;
-        std::cout << "MaterialPath= " << materialpath << std::endl;
+        cout << "Working Directory: " << workingDirectory << std::endl;
+        cout << "Project Name: " << projectName << std::endl;
 
-        auto projectfile = openProjectParamsFile(projectpath);
+        string projectpath = workingDirectory + "/" + projectName;
+    	auto projectfile = openProjectParamsFile(projectpath);
+
+        auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
+        auto meshname = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString() + "." +
+            projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
+
+        string meshpath = workingDirectory + "/" + meshname;
+        string materialpath = workingDirectory + "/" + materialname;
+
         auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
 
     	Kratos::KratosGeoMechanicsApplication application;
         application.Register();
-
-        
 
         Kratos::OpenMPUtils::SetNumThreads(1);
         Kratos::OpenMPUtils::PrintOMPInfo();
@@ -578,7 +590,8 @@ namespace Kratos
             process->ExecuteFinalize();
         }
 
-        outputGiD(current_model, model_part, projectfile);
+        outputGiD(current_model, model_part, projectfile, workingDirectory);
+
         return 0;
     };
 }

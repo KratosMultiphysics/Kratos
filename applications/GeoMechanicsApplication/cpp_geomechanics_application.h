@@ -117,19 +117,23 @@ class GaussRELATIVE_PERMEABILITY : public GaussOperation {
 public:
     void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
 };
+class GaussPIPE_ACTIVE : public GaussOperation {
+public:
+    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part);
+};
 
 #pragma endregion GaussVariables
 
 namespace Kratos
 {
-    class KratosExecute
+    class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
     {
     public:
 
         KratosExecute() {};
 		~KratosExecute() {};
 
-        int cpp_geomechanics(string meshpath, string projectpath, string materialpath);
+        int cpp_geomechanics(string workingDirectory, string parameterName);
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -175,7 +179,7 @@ namespace Kratos
 
         Parameters openProjectParamsFile(string filepath);
         std::vector<std::shared_ptr<Process>> parseProcess(ModelPart& model_part, Parameters projFile);
-        void outputGiD(Model& model, ModelPart& model_part, Parameters parameters);
+        void outputGiD(Model& model, ModelPart& model_part, Parameters parameters, string workingDirectory);
         
 
     };
