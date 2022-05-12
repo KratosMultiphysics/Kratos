@@ -17,6 +17,10 @@ from KratosMultiphysics.OptimizationApplication.controls.shape.shape_control imp
 class ExplicitVertexMorphing(ShapeControl):
 
     def __init__(self, name, model, settings):
+        self.project_to_normal = False
+        self.smooth_surface = False
+        self.plane_symmetry = False        
+        self.plane_symmetry = False        
         super().__init__(name,model,settings)
         self.technique_settings = self.settings["technique_settings"]
 

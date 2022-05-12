@@ -44,6 +44,8 @@ class LinearResponseFunction(BaseResponseFunction):
             if control_type == "shape":
                 self.root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
 
+        self.linear_response = KOA.Linear(response_name,model,self.response_settings)
+
     def GetVariableName(self):
         return  self.variable
 
@@ -59,11 +61,12 @@ class LinearResponseFunction(BaseResponseFunction):
 
     def Initialize(self):
         super().Initialize()
+        self.linear_response.Initialize()
 
     def CalculateValue(self):
         Logger.PrintInfo("LinearResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
-        self.value = 1
+        self.value = self.linear_response.CalculateValue()
         Logger.PrintInfo("LinearResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")        
         return self.value
 
@@ -85,14 +88,5 @@ class LinearResponseFunction(BaseResponseFunction):
 
         Logger.PrintInfo("LinearResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
         startTime = timer.time()
-
-        controlle_object_index = 0
-        for controlle_object in controlled_objects:
-            model_part = self.model.GetModelPart(controlle_object)
-            control_type = control_types[controlle_object_index]           
-            for node in model_part.Nodes:
-                if control_type == "shape":
-                    node.SetSolutionStepValue(KOA.D_LINEAR_D_X, [1,1,1])
-
-            controlle_object_index += 1               
+        self.linear_response.CalculateGradient()              
         Logger.PrintInfo("LinearResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")  

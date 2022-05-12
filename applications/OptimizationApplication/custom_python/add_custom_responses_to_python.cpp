@@ -25,7 +25,7 @@
 #include "processes/process.h"
 #include "custom_python/add_custom_controls_to_python.h"
 #include "custom_responses/shape_responses/plane_symmetry.h"
-
+#include "custom_responses/shape_responses/linear.h"
 
 // ==============================================================================
 
@@ -46,7 +46,14 @@ void  AddCustomResponsesToPython(pybind11::module& m)
         .def("Initialize", &PlaneSymmetry::Initialize)
         .def("CalculateValue", &PlaneSymmetry::CalculateValue)
         .def("CalculateGradient", &PlaneSymmetry::CalculateGradient)        
-        ;               
+        ;     
+
+    py::class_<Linear >(m, "Linear")
+        .def(py::init<std::string, Model&, Parameters>())
+        .def("Initialize", &Linear::Initialize)
+        .def("CalculateValue", &Linear::CalculateValue)
+        .def("CalculateGradient", &Linear::CalculateGradient)        
+        ;                  
  
 }
 
