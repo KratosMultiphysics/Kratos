@@ -1,11 +1,101 @@
+from tkinter import Variable
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-from math import isclose, pow
+from math import isclose
 
+class PerturbationScope:
+    def __init__(self, node, variable, delta):
+        self.variable = variable
+        self.delta = delta
+        self.node = node
 
-class TestResponseFunction(UnitTest.TestCase):
+    def __enter__(self):
+        if self.variable == Kratos.SHAPE_SENSITIVITY_X:
+            self.node.X += self.delta
+        elif self.variable == Kratos.SHAPE_SENSITIVITY_Y:
+            self.node.Y += self.delta
+        elif self.variable == Kratos.SHAPE_SENSITIVITY_Z:
+            self.node.Z += self.delta
+        else:
+            current_value = self.node.GetSolutionStepValue(self.variable)
+            current_value += self.delta
+            self.node.SetSolutionStepValue(self.variable, current_value)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.variable == Kratos.SHAPE_SENSITIVITY_X:
+            self.node.X -= self.delta
+        elif self.variable == Kratos.SHAPE_SENSITIVITY_Y:
+            self.node.Y -= self.delta
+        elif self.variable == Kratos.SHAPE_SENSITIVITY_Z:
+            self.node.Z -= self.delta
+        else:
+            current_value = self.node.GetSolutionStepValue(self.variable)
+            current_value -= self.delta
+            self.node.SetSolutionStepValue(self.variable, current_value)
+
+def CalculateSensitivity(perturbed_response_value, ref_value, delta):
+    return (perturbed_response_value - ref_value) / delta
+
+def IsVectorRelativelyClose(test_class, vec_a, vec_b, rel_tol, abs_tol):
+    test_class.assertEqual(vec_a.Size(), vec_b.Size())
+    for i in range(vec_a.Size()):
+        if (not isclose(vec_b[i], vec_a[i], rel_tol=rel_tol, abs_tol=abs_tol)):
+            msg = "VecA[{:d}] != VecB[{:d}] [ {:f} != {:f} ]. Vectors are: \n\t VecA = {:s}\n\t VecB = {:s}".format(
+                i, i, vec_a[i], vec_b[i], str(vec_a), str(vec_b))
+            raise AssertionError(msg)
+
+def CheckIsDictRelativelyClose(dict_a, dict_b, rel_tol, abs_tol):
+    if sorted(list(dict_a.keys())) != sorted(list(dict_b.keys())):
+        raise AssertionError("List of node ids mismatch.")
+    else:
+        for k, v_a in dict_a.items():
+            v_b = dict_b[k]
+            if len(v_a) != len(v_b):
+                raise AssertionError("Vector size mismatch at node id {:d} Vectors are: \n\t VecA = {:s}\n\t VecB = {:s}".format(k, str(v_a), str(v_b)))
+            else:
+                for i, v_a_i in enumerate(v_a):
+                    if not isclose(v_a_i, v_b[i], rel_tol=rel_tol, abs_tol=abs_tol):
+                        msg = "VecA[{:d}] != VecB[{:d}] [ {:f} != {:f} ] at node with id {:d}. Vectors are: \n\t VecA = {:s}\n\t VecB = {:s}".format(
+                            i, i, v_a_i, v_b[i], k, str(v_a), str(v_b))
+                        raise AssertionError(msg)
+
+def CalculateAdjointSensitvity(entities_list, element_partial_sensitivty_calculation_lambda):
+    sensitivity_dict = {}
+    for entity in entities_list:
+        number_of_nodes = len(entity.GetGeometry())
+        partial_derivatives = element_partial_sensitivty_calculation_lambda(entity)
+        number_of_equations = int(partial_derivatives.Size() / number_of_nodes)
+
+        for i, node in enumerate(entity.GetGeometry()):
+            if not node.Id in sensitivity_dict.keys():
+                sensitivity_dict[node.Id] = [0.0] * number_of_equations
+
+            for equation in range(number_of_equations):
+                sensitivity_dict[node.Id][equation] += partial_derivatives[i * number_of_equations + equation]
+
+    return sensitivity_dict
+
+def CalculateFiniteDifferenceSensitivity(nodes_list, variables_list, response_value_calculation_lambda, ref_value, delta):
+    sensitivity_dict = {}
+    for node in nodes_list:
+        sensitivity_dict[node.Id] = [0.0] * len(variables_list)
+
+        for i, sensitivity_variable in enumerate(variables_list):
+            if sensitivity_variable is not None:
+                with PerturbationScope(node, sensitivity_variable, delta):
+                    sensitivity_dict[node.Id][i] = (response_value_calculation_lambda() - ref_value) / delta
+
+    return sensitivity_dict
+
+def RunResponseSensitivityTest(entities_list, nodes_list, list_of_variables, response_value_calculation_method, element_partial_sensitivty_calculation_method, delta, rel_tol, abs_tol):
+    ref_value = response_value_calculation_method()
+    adjoint_sensitivities = CalculateAdjointSensitvity(entities_list, element_partial_sensitivty_calculation_method)
+    finite_difference_sensitivities = CalculateFiniteDifferenceSensitivity(nodes_list, list_of_variables, response_value_calculation_method, ref_value, delta)
+    CheckIsDictRelativelyClose(adjoint_sensitivities, finite_difference_sensitivities, rel_tol, abs_tol)
+
+class TestResidualResponseFunction2D(UnitTest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.model = Kratos.Model()
@@ -38,108 +128,68 @@ class TestResponseFunction(UnitTest.TestCase):
             "continuity_residual_weight": 15.0,
             "momentum_residual_weight": 24.0
         }"""),  cls.model_part)
-        cls.ref_value = cls.response_function.CalculateValue(cls.model_part)
-        cls.element = cls.model_part.GetElement(1)
         cls.domain_size = 2
         cls.number_of_nodes = 3
         cls.block_size = 3
+        cls.residual_local_size = cls.block_size * cls.number_of_nodes
+
+    @classmethod
+    def __CalculateResponseValue(cls):
+        return cls.response_function.CalculateValue(cls.model_part)
 
     def testCalculateFirstDerivativesGradient(self):
-        residual_local_size = self.block_size * self.number_of_nodes
-        delta = 1e-5
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.residual_local_size, self.residual_local_size)
+            self.response_function.CalculateFirstDerivativesGradient(
+                element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        self.response_function.CalculateFirstDerivativesGradient(
-            self.element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-
-        fd_response_gradient = Kratos.Vector(response_gradient.Size(), 0.0)
-
-        for c, node in enumerate(self.element.GetGeometry()):
-            for k in range(self.domain_size):
-                velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
-
-                velocity[k] += delta
-                node.SetSolutionStepValue(Kratos.VELOCITY, velocity)
-
-                fd_response_gradient[c * self.block_size + k] = self._CalculateSensitivity(delta)
-
-                velocity[k] -= delta
-                node.SetSolutionStepValue(Kratos.VELOCITY, velocity)
-
-            pressure = node.GetSolutionStepValue(Kratos.PRESSURE)
-
-            pressure += delta
-            node.SetSolutionStepValue(Kratos.PRESSURE, pressure)
-
-            fd_response_gradient[c * self.block_size + self.domain_size] = self._CalculateSensitivity(delta)
-
-            pressure -= delta
-            node.SetSolutionStepValue(Kratos.PRESSURE, pressure)
-
-        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-5, 1e-5)
+        RunResponseSensitivityTest(
+            self.model_part.Elements,
+            self.model_part.Nodes,
+            [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-5,
+            1e-5,
+            1e-5)
 
     def testCalculateSecondDerivativesGradient(self):
-        residual_local_size = self.block_size * self.number_of_nodes
-        delta = 2e-5
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.residual_local_size, self.residual_local_size)
+            self.response_function.CalculateSecondDerivativesGradient(
+                element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        self.response_function.CalculateSecondDerivativesGradient(
-            self.element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-
-        fd_response_gradient = Kratos.Vector(response_gradient.Size(), 0.0)
-
-        for c, node in enumerate(self.element.GetGeometry()):
-            for k in range(self.domain_size):
-                acceleration = node.GetSolutionStepValue(Kratos.ACCELERATION)
-
-                acceleration[k] += delta
-                node.SetSolutionStepValue(Kratos.ACCELERATION, acceleration)
-
-                fd_response_gradient[c * self.block_size + k] = self._CalculateSensitivity(delta)
-
-                acceleration[k] -= delta
-                node.SetSolutionStepValue(Kratos.ACCELERATION, acceleration)
-
-        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-6, 1e-5)
+        RunResponseSensitivityTest(
+            self.model_part.Elements,
+            self.model_part.Nodes,
+            [Kratos.ACCELERATION_X, Kratos.ACCELERATION_Y, None],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            2e-5,
+            1e-7,
+            1e-5)
 
     def testCalculatePartialSensitivity(self):
-        residual_local_size = self.domain_size * self.number_of_nodes
-        delta = 1e-7
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.domain_size * self.number_of_nodes, self.domain_size * self.number_of_nodes)
+            self.response_function.CalculatePartialSensitivity(
+                element,  Kratos.SHAPE_SENSITIVITY, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        self.response_function.CalculatePartialSensitivity(
-            self.element, Kratos.SHAPE_SENSITIVITY, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-
-        fd_response_gradient = Kratos.Vector(response_gradient.Size(), 0.0)
-
-        for c, node in enumerate(self.element.GetGeometry()):
-            node.X += delta
-            fd_response_gradient[c * self.domain_size + 0] = self._CalculateSensitivity(delta)
-            node.X -= delta
-
-            node.Y += delta
-            fd_response_gradient[c * self.domain_size + 1] = self._CalculateSensitivity(delta)
-            node.Y -= delta
-
-        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-6, 1e-5)
-
-    def _CalculateSensitivity(self, delta):
-        value = self.response_function.CalculateValue(self.model_part)
-        return (value - self.ref_value) / delta
-
-    def _IsVectorRelativelyClose(self, vec_a, vec_b, rel_tol, abs_tol):
-        self.assertEqual(vec_a.Size(), vec_b.Size())
-        for i in range(vec_a.Size()):
-            if (not isclose(vec_b[i], vec_a[i], rel_tol=rel_tol, abs_tol=abs_tol)):
-                msg = "VecA[{:d}] != VecB[{:d}] [ {:f} != {:f} ]. Vectors are: \n\t VecA = {:s}\n\t VecB = {:s}".format(
-                    i, i, vec_a[i], vec_b[i], str(vec_a), str(vec_b))
-                raise AssertionError(msg)
+        RunResponseSensitivityTest(
+            self.model_part.Elements,
+            self.model_part.Nodes,
+            [Kratos.SHAPE_SENSITIVITY_X, Kratos.SHAPE_SENSITIVITY_Y],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-7,
+            1e-6,
+            1e-5)
 
 class TestDomainIntegratedResponseFunction(UnitTest.TestCase):
     @classmethod
@@ -169,85 +219,69 @@ class TestDomainIntegratedResponseFunction(UnitTest.TestCase):
         }"""),  cls.model_part)
 
         Kratos.VariableUtils().SetFlag(Kratos.STRUCTURE, True, cls.model_part.Elements)
-        cls.ref_value = cls.response_function.CalculateValue(cls.model_part)
         cls.element = cls.model_part.GetElement(1)
         cls.domain_size = 2
         cls.number_of_nodes = 3
         cls.block_size = 1
+        cls.residual_local_size = cls.block_size * cls.number_of_nodes
+
+    @classmethod
+    def __CalculateResponseValue(cls):
+        return cls.response_function.CalculateValue(cls.model_part)
 
     def testCalculateFirstDerivativesGradient(self):
-        residual_local_size = self.block_size * self.number_of_nodes
-        delta = 1e-5
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.residual_local_size, self.residual_local_size)
+            self.response_function.CalculateFirstDerivativesGradient(
+                element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        self.response_function.CalculateFirstDerivativesGradient(
-            self.element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-
-        fd_response_gradient = Kratos.Vector(response_gradient.Size(), 0.0)
-
-        for c, node in enumerate(self.element.GetGeometry()):
-            pressure = node.GetSolutionStepValue(Kratos.PRESSURE)
-
-            pressure += delta
-            node.SetSolutionStepValue(Kratos.PRESSURE, pressure)
-
-            fd_response_gradient[c * self.block_size] = self._CalculateSensitivity(delta)
-
-            pressure -= delta
-            node.SetSolutionStepValue(Kratos.PRESSURE, pressure)
-
-        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-5, 1e-5)
+        RunResponseSensitivityTest(
+            self.model_part.Elements,
+            self.model_part.Nodes,
+            [Kratos.PRESSURE],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-5,
+            1e-5,
+            1e-5)
 
     def testCalculateSecondDerivativesGradient(self):
-        residual_local_size = self.block_size * self.number_of_nodes
-        delta = 2e-5
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.residual_local_size, self.residual_local_size)
+            self.response_function.CalculateSecondDerivativesGradient(
+                element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        self.response_function.CalculateSecondDerivativesGradient(
-            self.element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-
-        fd_response_gradient = Kratos.Vector(response_gradient.Size(), 0.0)
-
-        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-6, 1e-5)
+        RunResponseSensitivityTest(
+            self.model_part.Elements,
+            self.model_part.Nodes,
+            [None],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            2e-5,
+            1e-6,
+            1e-5)
 
     def testCalculatePartialSensitivity(self):
-        residual_local_size = self.domain_size * self.number_of_nodes
-        delta = 1e-7
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.domain_size * self.number_of_nodes, self.domain_size * self.number_of_nodes)
+            self.response_function.CalculatePartialSensitivity(
+                element,  Kratos.SHAPE_SENSITIVITY, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        self.response_function.CalculatePartialSensitivity(
-            self.element, Kratos.SHAPE_SENSITIVITY, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-
-        fd_response_gradient = Kratos.Vector(response_gradient.Size(), 0.0)
-
-        for c, node in enumerate(self.element.GetGeometry()):
-            node.X += delta
-            fd_response_gradient[c * self.domain_size + 0] = self._CalculateSensitivity(delta)
-            node.X -= delta
-
-            node.Y += delta
-            fd_response_gradient[c * self.domain_size + 1] = self._CalculateSensitivity(delta)
-            node.Y -= delta
-
-        self._IsVectorRelativelyClose(fd_response_gradient, response_gradient, 1e-6, 1e-5)
-
-    def _CalculateSensitivity(self, delta):
-        value = self.response_function.CalculateValue(self.model_part)
-        return (value - self.ref_value) / delta
-
-    def _IsVectorRelativelyClose(self, vec_a, vec_b, rel_tol, abs_tol):
-        self.assertEqual(vec_a.Size(), vec_b.Size())
-        for i in range(vec_a.Size()):
-            if (not isclose(vec_b[i], vec_a[i], rel_tol=rel_tol, abs_tol=abs_tol)):
-                msg = "VecA[{:d}] != VecB[{:d}] [ {:f} != {:f} ]. Vectors are: \n\t VecA = {:s}\n\t VecB = {:s}".format(
-                    i, i, vec_a[i], vec_b[i], str(vec_a), str(vec_b))
-                raise AssertionError(msg)
+        RunResponseSensitivityTest(
+            self.model_part.Elements,
+            self.model_part.Nodes,
+            [Kratos.SHAPE_SENSITIVITY_X, Kratos.SHAPE_SENSITIVITY_Y],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-7,
+            1e-6,
+            1e-5)
 
 
 class TestDomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D(UnitTest.TestCase):
@@ -298,6 +332,16 @@ class TestDomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D(UnitTest
         cls.domain_size = 3
         cls.number_of_nodes = 3
         cls.block_size = 3
+        cls.residual_local_size = cls.block_size * cls.number_of_nodes
+        cls.nodes_list = {}
+        for condition in cls.model_part.Conditions:
+            for node in condition.GetGeometry():
+                cls.nodes_list[node] = None
+        cls.nodes_list = list(cls.nodes_list.keys())
+
+    @classmethod
+    def __CalculateResponseValue(cls):
+        return cls.response_function.CalculateValue(cls.model_part)
 
     def testCalculateValue(self):
         value = 0.0
@@ -310,101 +354,61 @@ class TestDomainIntegrated3DArrayMagnitudeSquarePMeanResponseFunction3D(UnitTest
             value += area * pow((velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2]), self.value_to_power)
             total_area += area
 
-        self.assertAlmostEqual(value / total_area, self.ref_value, 9)
+        self.assertAlmostEqual(value / total_area, self.__CalculateResponseValue(), 9)
 
     def testCalculateFirstDerivativesGradient(self):
-        residual_local_size = self.block_size * self.number_of_nodes
-        delta = 1e-8
-
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        fd_response_gradient = Kratos.Vector(self.block_size * self.model_part.NumberOfNodes(), 0.0)
-        assembled_adjoint_gradient = Kratos.Vector(self.block_size * self.model_part.NumberOfNodes(), 0.0)
-
-        for condition in self.model_part.Conditions:
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.residual_local_size, self.residual_local_size)
             self.response_function.CalculateFirstDerivativesGradient(
-                condition, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-            self._AssembleAdjointGradients(condition, assembled_adjoint_gradient, response_gradient)
+                element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        for c, node in enumerate(self.model_part.Nodes):
-            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
-            for k in range(3):
-                velocity[k] += delta
-                node.SetSolutionStepValue(Kratos.VELOCITY, velocity)
-
-                fd_response_gradient[c * self.block_size + k] = self._CalculateSensitivity(delta)
-
-                velocity[k] -= delta
-                node.SetSolutionStepValue(Kratos.VELOCITY, velocity)
-
-        self._IsVectorRelativelyClose(fd_response_gradient, assembled_adjoint_gradient, 1e-5, 1e-5)
+        RunResponseSensitivityTest(
+            self.model_part.Conditions,
+            self.nodes_list,
+            [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, None],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-8,
+            1e-5,
+            1e-5)
 
     def testCalculateSecondDerivativesGradient(self):
-        residual_local_size = self.block_size * self.number_of_nodes
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.residual_local_size, self.residual_local_size)
+            self.response_function.CalculateSecondDerivativesGradient(
+                element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        self.response_function.CalculateSecondDerivativesGradient(
-            self.condition, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-
-        self._IsVectorRelativelyClose(Kratos.Vector(response_gradient.Size(), 0.0), response_gradient, 1e-5, 1e-5)
+        RunResponseSensitivityTest(
+            self.model_part.Conditions,
+            self.nodes_list,
+            [None, None, None],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            2e-5,
+            1e-6,
+            1e-5)
 
     def testCalculatePartialSensitivity(self):
-        residual_local_size = self.block_size * self.number_of_nodes
-        delta = 1e-5
-
-        response_gradient = Kratos.Vector()
-        residual_gradient = Kratos.Matrix(residual_local_size, residual_local_size)
-
-        fd_response_gradient = Kratos.Vector(self.block_size * self.model_part.NumberOfNodes(), 0.0)
-        assembled_adjoint_gradient = Kratos.Vector(self.block_size * self.model_part.NumberOfNodes(), 0.0)
-
-        def node_coordinates_setter(node, direction, delta):
-            if direction == 0:
-                node.X = node.X + delta
-            elif direction == 1:
-                node.Y = node.Y + delta
-            elif direction == 2:
-                node.Z = node.Z + delta
-            else:
-                raise Exception("Unsupported direction")
-
-        for condition in self.model_part.Conditions:
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.domain_size * self.number_of_nodes, self.domain_size * self.number_of_nodes)
             self.response_function.CalculatePartialSensitivity(
-                condition, Kratos.SHAPE_SENSITIVITY, residual_gradient, response_gradient, self.model_part.ProcessInfo)
-            self._AssembleAdjointGradients(condition, assembled_adjoint_gradient, response_gradient)
+                element,  Kratos.SHAPE_SENSITIVITY, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
 
-        for c, node in enumerate(self.model_part.Nodes):
-            for k in range(3):
-                node_coordinates_setter(node, k, delta)
-
-                self.response_function.Initialize()
-                self.response_function.InitializeSolutionStep()
-
-                fd_response_gradient[c * self.block_size + k] = self._CalculateSensitivity(delta)
-
-                node_coordinates_setter(node, k, -delta)
-
-        self._IsVectorRelativelyClose(fd_response_gradient, assembled_adjoint_gradient, 1e-3, 1e-5)
-
-    def _CalculateSensitivity(self, delta):
-        value = self.response_function.CalculateValue(self.model_part)
-        return (value - self.ref_value) / delta
-
-    def _IsVectorRelativelyClose(self, vec_a, vec_b, rel_tol, abs_tol):
-        self.assertEqual(vec_a.Size(), vec_b.Size())
-        for i in range(vec_a.Size()):
-            if (not isclose(vec_b[i], vec_a[i], rel_tol=rel_tol, abs_tol=abs_tol)):
-                msg = "VecA[{:d}] != VecB[{:d}] [ {:f} != {:f} ]. Vectors are: \n\t VecA = {:s}\n\t VecB = {:s}".format(
-                    i, i, vec_a[i], vec_b[i], str(vec_a), str(vec_b))
-                raise AssertionError(msg)
-
-    def _AssembleAdjointGradients(self, condition, assembled_vector, element_vector):
-            for c, _ in enumerate(condition.GetGeometry()):
-                for k in range(3):
-                    assembled_vector[self.eq_id_map[condition.Id][c] * self.block_size + k] += element_vector[c * self.block_size + k]
+        RunResponseSensitivityTest(
+            self.model_part.Conditions,
+            self.nodes_list,
+            [Kratos.SHAPE_SENSITIVITY_X, Kratos.SHAPE_SENSITIVITY_Y, Kratos.SHAPE_SENSITIVITY_Z],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-5,
+            1e-3,
+            1e-5)
 
 if __name__ == '__main__':
     UnitTest.main()
