@@ -24,6 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "response_functions/adjoint_response_function.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -208,8 +209,25 @@ public:
     double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
-        KRATOS_ERROR << "DragResponseFunction::CalculateValue(ModelPart& "
-                        "rModelPart) is not implemented!!!\n";
+
+        const double current_time = rModelPart.GetProcessInfo()[TIME];
+
+        if (mStartTime <= current_time) {
+            const double local_drag = block_for_each<SumReduction<double>>(rModelPart.GetCommunicator().LocalMesh().Nodes(), [&](const ModelPart::NodeType &rNode) {
+                const auto& reaction = rNode.FastGetSolutionStepValue(REACTION);
+                const double coeff = static_cast<double>(rNode.Is(STRUCTURE));
+
+                double nodal_drag_contribution = 0.0;
+                for (unsigned int i = 0; i < TDim; ++i) {
+                    nodal_drag_contribution += mDragDirection[i] * reaction[i] * coeff;
+                }
+
+                return nodal_drag_contribution; });
+            return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_drag);
+        } else {
+            return 0.0;
+        }
+
         KRATOS_CATCH("");
     }
 

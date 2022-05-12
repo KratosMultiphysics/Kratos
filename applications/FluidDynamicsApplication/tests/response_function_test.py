@@ -543,8 +543,7 @@ class TestDragResponseFunction2DSteady(UnitTest.TestCase):
         def element_partial_sensitivty_calculation_method(element):
             response_gradient = Kratos.Vector()
             residual_gradient = Kratos.Matrix()
-            residual_vector = Kratos.Vector()
-            self.adjoint_scheme.CalculateSystemContributions(element, residual_gradient, residual_vector, [], self.adjoint_model_part.ProcessInfo)
+            element.CalculateFirstDerivativesLHS(residual_gradient, self.adjoint_model_part.ProcessInfo)
             self.response_function.CalculateFirstDerivativesGradient(
                 element, residual_gradient * -1.0, response_gradient, self.model_part.ProcessInfo)
             return response_gradient
@@ -592,6 +591,206 @@ class TestDragResponseFunction2DSteady(UnitTest.TestCase):
             "nodal_solution_step_sensitivity_calculation_is_thread_safe": true
         }""")
         sensitivity_builder_scheme = KratosCFD.SimpleSteadySensitivityBuilderScheme(self.domain_size, self.block_size)
+        sensitivity_builder = Kratos.SensitivityBuilder(
+            sensitivity_builder_settings,
+            self.adjoint_model_part,
+            self.response_function,
+            sensitivity_builder_scheme)
+        sensitivity_builder.Initialize()
+        sensitivity_builder.InitializeSolutionStep()
+        sensitivity_builder.UpdateSensitivities()
+
+        adjoint_sensitivities = {}
+        for node in self.adjoint_model_part.Nodes:
+            sensitivities = node.GetSolutionStepValue(Kratos.SHAPE_SENSITIVITY)
+            adjoint_sensitivities[node.Id] = [-sensitivities[0], -sensitivities[1]]
+
+        CheckIsDictRelativelyClose(adjoint_sensitivities, finite_difference_sensitivities, 1e-5, 1e-6)
+
+class TestDragResponseFunction2DBossak(UnitTest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.domain_size = 2
+        cls.number_of_nodes = 3
+        cls.block_size = 3
+        cls.residual_local_size = cls.block_size * cls.number_of_nodes
+
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+
+        cls.model_part.ProcessInfo[Kratos.TIME] = 0.1
+        cls.model_part.ProcessInfo[Kratos.DELTA_TIME] = 0.04
+        cls.model_part.ProcessInfo[Kratos.DYNAMIC_TAU] = 0.3
+        cls.model_part.ProcessInfo[Kratos.OSS_SWITCH] = 0
+        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = cls.domain_size
+
+        cls.model_part.SetBufferSize(2)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.BODY_FORCE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION_WATER_PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ADVPROJ)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DIVPROJ)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.SHAPE_SENSITIVITY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_1)
+        cls.model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_2)
+        cls.model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_VECTOR_3)
+        cls.model_part.AddNodalSolutionStepVariable(KratosCFD.ADJOINT_FLUID_SCALAR_1)
+        cls.model_part.AddNodalSolutionStepVariable(KratosCFD.AUX_ADJOINT_FLUID_VECTOR_1)
+
+        cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        cls.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_X, Kratos.REACTION_X,cls.model_part)
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Y, Kratos.REACTION_Y,cls.model_part)
+        Kratos.VariableUtils().AddDof(Kratos.VELOCITY_Z, Kratos.REACTION_Z,cls.model_part)
+        Kratos.VariableUtils().AddDof(Kratos.PRESSURE, Kratos.REACTION_WATER_PRESSURE,cls.model_part)
+
+        Kratos.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_X, cls.model_part)
+        Kratos.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Y, cls.model_part)
+        Kratos.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_VECTOR_1_Z, cls.model_part)
+        Kratos.VariableUtils().AddDof(KratosCFD.ADJOINT_FLUID_SCALAR_1, cls.model_part)
+
+        for node in cls.model_part.Nodes:
+            node.Fix(Kratos.VELOCITY_X)
+            node.Fix(Kratos.VELOCITY_Y)
+            node.Fix(Kratos.VELOCITY_Z)
+            node.Fix(Kratos.PRESSURE)
+
+        sub_model_part = cls.model_part.CreateSubModelPart("response_surface")
+        sub_model_part.AddNodes([1, 2, 3, 4])
+
+        prop = cls.model_part.GetProperties()[0]
+        prop[Kratos.DENSITY] = 1.5
+        prop[Kratos.DYNAMIC_VISCOSITY] = 1.2e-4
+        prop[Kratos.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
+
+        cls.primal_model_part = cls.model.CreateModelPart("test_primal")
+        cls.primal_model_part.ProcessInfo[Kratos.TIME] = 0.1
+        cls.primal_model_part.ProcessInfo[Kratos.DELTA_TIME] = 0.04
+        cls.primal_model_part.ProcessInfo[Kratos.DYNAMIC_TAU] = 0.3
+        cls.primal_model_part.ProcessInfo[Kratos.OSS_SWITCH] = 0
+        cls.primal_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = cls.domain_size
+        for node in cls.model_part.Nodes:
+            cls.primal_model_part.AddNode(node, 0)
+        cls.primal_model_part.CreateNewElement("QSVMS2D3N", 1, [2, 3, 1], prop)
+        cls.primal_model_part.CreateNewElement("QSVMS2D3N", 2, [3, 4, 1], prop)
+
+        cls.adjoint_model_part = cls.model.CreateModelPart("test_adjoint")
+        cls.adjoint_model_part.ProcessInfo[Kratos.TIME] = 0.1
+        cls.adjoint_model_part.ProcessInfo[Kratos.DELTA_TIME] = -0.04
+        cls.adjoint_model_part.ProcessInfo[Kratos.DYNAMIC_TAU] = 0.3
+        cls.adjoint_model_part.ProcessInfo[Kratos.OSS_SWITCH] = 0
+        cls.adjoint_model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = cls.domain_size
+        for node in cls.model_part.Nodes:
+            cls.adjoint_model_part.AddNode(node, 0)
+        cls.adjoint_model_part.CreateNewElement("QSVMSAdjoint2D3N", 3, [2, 3, 1], prop)
+        cls.adjoint_model_part.CreateNewElement("QSVMSAdjoint2D3N", 4, [3, 4, 1], prop)
+
+        sub_model_part = cls.adjoint_model_part.CreateSubModelPart("response_surface")
+        sub_model_part.AddNodes([1, 2, 3, 4])
+
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.VELOCITY, 1.0, 10.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.PRESSURE, 0.0, 10.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.MESH_VELOCITY, 0.0, 1.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.ACCELERATION, 0.0, 1.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.DENSITY, 1.5, 1.5, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.VISCOSITY, 1.2e-4, 1.2e-4, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.BODY_FORCE, 10.0, 10.0, 0)
+
+        cls.adjoint_model_part.CloneTimeStep(2.0)
+        cls.adjoint_model_part.CloneTimeStep(1.96)
+
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.VELOCITY, 1.0, 10.0, 1)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.PRESSURE, 0.0, 10.0, 1)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.MESH_VELOCITY, 0.0, 1.0, 1)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.ACCELERATION, 0.0, 1.0, 1)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.DENSITY, 1.5, 1.5, 1)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.VISCOSITY, 1.2e-4, 1.2e-4, 1)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.BODY_FORCE, 10.0, 10.0, 1)
+
+        cls.primal_scheme = KratosCFD.ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(-0.3, 0, cls.domain_size)
+        cls.primal_scheme.Initialize(cls.primal_model_part)
+        cls.primal_scheme.InitializeElements(cls.primal_model_part)
+        cls.primal_scheme.InitializeSolutionStep(cls.primal_model_part, Kratos.CompressedMatrix(), Kratos.Vector(), Kratos.Vector())
+
+        cls.response_function = KratosCFD.DragResponseFunction2D(Kratos.Parameters("""{
+            "structure_model_part_name": "response_surface",
+            "drag_direction"           : [1.0, 0.0, 0.0],
+            "start_time"               : 0.0
+        }"""),  cls.model_part)
+        cls.response_function.Initialize()
+
+        cls.adjoint_scheme = KratosCFD.VelocityBossakAdjointScheme(Kratos.Parameters("""{"alpha_bossak": -0.3}"""), cls.response_function, cls.domain_size, cls.block_size)
+        cls.adjoint_scheme.Initialize(cls.adjoint_model_part)
+        cls.adjoint_scheme.InitializeElements(cls.adjoint_model_part)
+        cls.adjoint_scheme.InitializeSolutionStep(cls.adjoint_model_part, Kratos.CompressedMatrix(), Kratos.Vector(), Kratos.Vector())
+
+    @classmethod
+    def __CalculateResponseValue(cls):
+        cls.primal_scheme.FinalizeSolutionStep(cls.primal_model_part, Kratos.CompressedMatrix(), Kratos.Vector(), Kratos.Vector())
+        return cls.response_function.CalculateValue(cls.primal_model_part)
+
+    def testCalculateFirstDerivativesGradient(self):
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix()
+            element.CalculateFirstDerivativesLHS(residual_gradient, self.adjoint_model_part.ProcessInfo)
+            self.response_function.CalculateFirstDerivativesGradient(
+                element, residual_gradient * -1.0, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient
+
+        RunResponseSensitivityTest(
+            self.adjoint_model_part.Elements,
+            self.primal_model_part.Nodes,
+            [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-6,
+            1e-5,
+            1e-6)
+
+    def testCalculateSecondDerivativesGradient(self):
+        def element_partial_sensitivty_calculation_method(element):
+            response_gradient = Kratos.Vector()
+            residual_gradient = Kratos.Matrix(self.residual_local_size, self.residual_local_size)
+            element.CalculateSecondDerivativesLHS(residual_gradient, self.adjoint_model_part.ProcessInfo)
+            self.response_function.CalculateSecondDerivativesGradient(
+                element, residual_gradient, response_gradient, self.model_part.ProcessInfo)
+            return response_gradient * -1.3
+
+        RunResponseSensitivityTest(
+            self.adjoint_model_part.Elements,
+            self.primal_model_part.Nodes,
+            [Kratos.ACCELERATION_X, Kratos.ACCELERATION_Y, None],
+            lambda : self.__CalculateResponseValue(),
+            element_partial_sensitivty_calculation_method,
+            1e-5,
+            1e-6,
+            1e-5)
+
+    def testCalculatePartialSensitivity(self):
+        delta = 1e-6
+
+        ref_value = self.__CalculateResponseValue() / delta
+        finite_difference_sensitivities = CalculateFiniteDifferenceSensitivity(self.primal_model_part.Nodes, [Kratos.SHAPE_SENSITIVITY_X, Kratos.SHAPE_SENSITIVITY_Y], lambda : self.__CalculateResponseValue(), ref_value, delta)
+
+        sensitivity_builder_settings = Kratos.Parameters("""{
+            "sensitivity_model_part_name": "response_surface",
+            "nodal_solution_step_sensitivity_variables": [
+                "SHAPE_SENSITIVITY"
+            ],
+            "build_mode": "sum",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe": true
+        }""")
+        sensitivity_builder_scheme = KratosCFD.VelocityBossakSensitivityBuilderScheme(-0.3, self.domain_size, self.block_size)
         sensitivity_builder = Kratos.SensitivityBuilder(
             sensitivity_builder_settings,
             self.adjoint_model_part,
