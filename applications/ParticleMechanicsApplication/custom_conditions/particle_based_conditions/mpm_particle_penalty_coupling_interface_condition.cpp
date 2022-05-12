@@ -94,10 +94,10 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeNonLinearIteration(co
 {
     KRATOS_TRY
 
-    // Estimating the contact forces at the boundary
-    if (Is(INTERFACE))
+    // Append penalty force at the nodes
+    if (Is(INTERFACE) )
     {
-        this->CalculateInterfaceContactForce( rCurrentProcessInfo );
+        this->CalculateNodalContactForce(  rCurrentProcessInfo );
     }
 
     KRATOS_CATCH( "" )
@@ -122,60 +122,67 @@ void MPMParticlePenaltyCouplingInterfaceCondition::FinalizeSolutionStep( const P
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticlePenaltyCouplingInterfaceCondition::CalculateAll(
-    MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag
-    )
+void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( const ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY
+    
+    GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension = r_geometry.WorkingSpaceDimension();
+    const unsigned int block_size = this->GetBlockSize();
 
-    MPMParticlePenaltyDirichletCondition::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-                                                        rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
-                                                        CalculateResidualVectorFlag);
+    const unsigned int matrix_size = number_of_nodes * block_size;
+    VectorType rRightHandSideVector = ZeroVector( matrix_size );
 
-    // Append penalty force at the nodes
-    if (Is(INTERFACE) && !mReactionIsAdded)
+    // Prepare variables
+    GeneralVariables Variables;
+
+    // Calculating shape function
+    MPMShapeFunctionPointValues(Variables.N);
+    Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
+
+    Matrix shape_function = ZeroMatrix(block_size, matrix_size);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        this->CalculateNodalContactForce( rRightHandSideVector, rCurrentProcessInfo, CalculateResidualVectorFlag );
-        mReactionIsAdded = true;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void MPMParticlePenaltyCouplingInterfaceCondition::CalculateNodalContactForce( const VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag )
-{
-    if ( CalculateResidualVectorFlag == true )
-    {
-        GeometryType& r_geometry = GetGeometry();
-        const unsigned int number_of_nodes = r_geometry.size();
-        const unsigned int dimension = r_geometry.WorkingSpaceDimension();
-        const unsigned int block_size = this->GetBlockSize();
-
-        // Calculate nodal forces
-        Vector nodal_force = ZeroVector(3);
-        for (unsigned int i = 0; i < number_of_nodes; i++)
+        if (Variables.N[i] > std::numeric_limits<double>::epsilon())
         {
             for (unsigned int j = 0; j < dimension; j++)
             {
-                nodal_force[j] = rRightHandSideVector[block_size * i + j];
+                shape_function(j, block_size * i + j) = Variables.N[i];
             }
-
-            // Check whether there nodes are active and associated to material point elements
-            const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-            if (nodal_mass > std::numeric_limits<double>::epsilon())
-            {
-                r_geometry[i].SetLock();
-                r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
-                r_geometry[i].UnSetLock();
-            }
-
         }
+    }
+
+    // Calculate gap_function: nodal_displacement - imposed_displacement
+    Vector gap_function = ZeroVector(matrix_size);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        for ( unsigned int j = 0; j < dimension; j++)
+        {
+            gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
+        }
+    }
+
+    noalias(rRightHandSideVector) -= (prod(prod(trans(shape_function), shape_function), gap_function));
+        rRightHandSideVector *= m_penalty * this->GetIntegrationWeight();
+
+    // Calculate nodal forces
+    Vector nodal_force = ZeroVector(3);
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+    {
+        for (unsigned int j = 0; j < dimension; j++)
+        {
+            nodal_force[j] = rRightHandSideVector[block_size * i + j];
+        }
+
+        // Check whether there nodes are active and associated to material point elements
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        if (nodal_mass > std::numeric_limits<double>::epsilon())
+        {
+            r_geometry[i].SetLock();
+            r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+            r_geometry[i].UnSetLock();
+        }
+
     }
 }
 
@@ -249,6 +256,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateOnIntegrationPoints(
         rValues.resize(1);
 
     if (rVariable == MPC_CONTACT_FORCE) {
+        this->CalculateInterfaceContactForce(rCurrentProcessInfo);
         rValues[0] = m_contact_force;
     }
     else {

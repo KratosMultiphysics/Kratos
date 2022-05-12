@@ -152,6 +152,7 @@ protected:
     ///@{
 
     array_1d<double, 3> m_unit_normal;
+    double m_penalty = 0.0;
 
     ///@}
     ///@name Protected Operators
@@ -204,7 +205,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double m_penalty = 0.0;
+    
 
     ///@}
     ///@name Private Operators

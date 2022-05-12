@@ -197,15 +197,8 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    void CalculateAll(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
-        ) override;
 
-    virtual void CalculateNodalContactForce( const VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo, const bool CalculateResidualVectorFlag );
+    virtual void CalculateNodalContactForce( const ProcessInfo& rCurrentProcessInfo );
 
     virtual void CalculateInterfaceContactForce( const ProcessInfo& rCurrentProcessInfo );
 
