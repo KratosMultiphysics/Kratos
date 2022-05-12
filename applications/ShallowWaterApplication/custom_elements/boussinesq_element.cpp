@@ -405,6 +405,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
     const Vector& rWeights)
 {
     LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType dummy; // since the free surface is a primary variable, the bottom artificial viscosity must not be substracted.
 
     const std::size_t num_gauss_points = rWeights.size();
 
@@ -419,7 +420,7 @@ void BoussinesqElement<TNumNodes>::AddRightHandSide(
         this->AddWaveTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddFrictionTerms(lhs, rRHS, rData, N, DN_DX, weight);
         this->AddDispersiveTerms(rRHS, rData, N, DN_DX, weight);
-        this->AddArtificialViscosityTerms(lhs, rRHS, rData, N, DN_DX, weight);
+        this->AddArtificialViscosityTerms(lhs, dummy, rData, N, DN_DX, weight);
 
         // Deactivating the dry domain
         const double w = WaveElementType::WetFraction(rData);
