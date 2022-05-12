@@ -91,6 +91,33 @@ void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
     KRATOS_ERROR << " Length of SteadyStatePwPipingElement3D8N element is not implemented" << std::endl;
 }
 
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void SteadyStatePwPipingElement<TDim, TNumNodes>::
+CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+    std::vector<bool>& rValues,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    // KRATOS_INFO("0-TransientPwInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
+
+    if (rVariable == PIPE_ACTIVE)
+    {
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
+        if (rValues.size() != OutputGPoints)
+            rValues.resize(OutputGPoints);
+
+        bool pipe_active = this->GetValue(PIPE_ACTIVE);
+        for (unsigned int GPoint = 0; GPoint < OutputGPoints; ++GPoint) {
+            rValues[GPoint] = pipe_active;
+        }
+    }
+    KRATOS_CATCH("")
+}
+
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >

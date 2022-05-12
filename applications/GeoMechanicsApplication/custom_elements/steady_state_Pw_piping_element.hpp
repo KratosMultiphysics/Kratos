@@ -112,10 +112,10 @@ protected:
                         const ProcessInfo& CurrentProcessInfo,
                         const bool CalculateStiffnessMatrixFlag,
                         const bool CalculateResidualVectorFlag) override;
-
    
-
-    
+     void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+         std::vector<bool>& rValues,
+         const ProcessInfo& rCurrentProcessInfo) override;
 
     double CalculateParticleDiameter(const PropertiesType& Prop);
     
