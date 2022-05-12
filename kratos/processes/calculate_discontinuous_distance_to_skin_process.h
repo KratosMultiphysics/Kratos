@@ -188,6 +188,10 @@ public:
 
     ///@}
 protected:
+
+    const Variable<Vector>* mpElementalDistancesVariable = &ELEMENTAL_DISTANCES;
+
+
     ///@name Protected Operations
     ///@{
 
@@ -228,6 +232,11 @@ private:
     bool mCalculateElementalEdgeDistances = false;
     bool mCalculateElementalEdgeDistancesExtrapolated = false;
     bool mUsePositiveEpsilonForZeroValues = true;
+
+
+    const Variable<Vector>* mpElementalEdgeDistancesVariable = &ELEMENTAL_EDGE_DISTANCES;
+    const Variable<Vector>* mpElementalEdgeDistancesExtrapolatedVariable = &ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED;
+    const Variable<array_1d<double, 3>>* mpEmbeddedVelocityVariable = &EMBEDDED_VELOCITY;
 
     ///@}
     ///@name Private Operations

@@ -20,8 +20,8 @@ endif(POLICY CMP0074)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 0)
-set (KratosMultiphysics_PATCH_VERSION "Dev")
+set (KratosMultiphysics_MINOR_VERSION 1)
+set (KratosMultiphysics_PATCH_VERSION 3)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -285,8 +285,28 @@ endif(DEFINED ENV{PYTHON_EXECUTABLE})
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO since it gives multiple problems.
-set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
-set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+if(NOT DEFINED KRATOS_ENABLE_LTO)
+    message("LTO is Disabled")
+    set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
+    set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+else(NOT DEFINED KRATOS_ENABLE_LTO)
+    message("LTO is Enabled")
+    if(${CMAKE_COMPILER_IS_GNUCXX})
+        set(CMAKE_AR "gcc-ar")
+        set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> qcs <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_C_ARCHIVE_FINISH true)
+        set(CMAKE_C_FLAGS "-flto=jobserver")
+        set(CMAKE_CXX_FLAGS "-flto=jobserver")
+        set(CMAKE_SHARED_LINKER_FLAGS "-flto=jobserver")
+    endif(${CMAKE_COMPILER_IS_GNUCXX})
+    if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+        set(CMAKE_C_FLAGS "-flto=thin")
+        set(CMAKE_CXX_FLAGS "-flto=thin")
+        set(CMAKE_SHARED_LINKER_FLAGS "-flto=thin")
+    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+endif(NOT DEFINED KRATOS_ENABLE_LTO)
+
+message("AR VERSION: ${CMAKE_AR}")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
@@ -374,6 +394,12 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
+if(Boost_VERSION_STRING VERSION_LESS 1.70)
+  message(WARNING "Kratos requires at least boost version 1.70 to enable boost related performance improvements")
+else()
+  add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
+endif ()
+
 ##*****************************
 # Finding cuda if needed
 if(${USE_CUDA} MATCHES ON)
@@ -400,7 +426,7 @@ endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 # Compiling the tetgen library
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
     set(TETGEN_ZIP_FILE "tetgen")
-    
+
     if(DEFINED USE_TETGEN_NONFREE_TPL_PATH)
         # Use TetGen from local source
         set(TETGEN_EXT_PATH ${CMAKE_CURRENT_BINARY_DIR}/external_libraries/tetgen)
@@ -412,7 +438,7 @@ if(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
             find_path(TETGEN_ROOT NAMES tetgen.h HINTS ${TETGEN_EXT_PATH}/*/)
             message("Copying tetgen dir to ${TETGEN_EXT_PATH}")
         endif(NOT TETGEN_ROOT OR FORCE_TETGEN_NONFREE_TPL_URL)
-        
+
         # Prepare tetgen
         add_definitions(-DTETLIBRARY)
         add_definitions(${USE_TETGEN_NONFREE_TPL_FLAGS})
@@ -465,6 +491,7 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
+  find_package(TRILINOS QUIET)
   add_definitions( -DKRATOS_USING_MPI )
   set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
   set(CMAKE_C_COMPILE_FLAGS ${CMAKE_C_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -517,11 +544,13 @@ include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
-add_definitions( -DBOOST_UBLAS_MOVE_SEMANTICS )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
+set(${KRATOS_KERNEL} "")
+set(${KRATOS_PYTHON_INTERFACE} "")
 
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
@@ -574,11 +603,11 @@ message("")
 message("***********************************************************************")
 message("")
 
-message("List of upcoming api-breaking changes:")
-message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
-message("\t Make Check() method of ConstitutiveLaw const: https://github.com/KratosMultiphysics/Kratos/pull/7948")
+message("List of upcoming API-breaking and behavior changes:")
 message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
+message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
+message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 
 # Compiling the triangle library
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )

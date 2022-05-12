@@ -208,7 +208,7 @@ namespace Kratos
 
 	for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
 	  {
-	    if( (node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)==true or (node_it)->FastGetSolutionStepValue(IS_WATER)==1 )
+	    if( (node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE)==true || (node_it)->FastGetSolutionStepValue(IS_WATER)==1 )
 	      { //IS_FREE_SURFACE
 		work_point.X() = node_it->X();
 		work_point.Y() = node_it->Y();
@@ -338,7 +338,7 @@ namespace Kratos
 			double weight = SPHCubicKernel(sigma, distance, radius);
 			PointIterator it_found = Results.begin() + k;
 			//if((*it_found)->FastGetSolutionStepValue(IS_BOUNDARY)>0.5) //MATERIAL_VARIABLE
-			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE) ==1 or (*it_found)->FastGetSolutionStepValue(IS_WATER) ==1  ) //MATERIAL_VARIABLE
+			if((*it_found)->FastGetSolutionStepValue(IS_FREE_SURFACE) ==1 || (*it_found)->FastGetSolutionStepValue(IS_WATER) ==1  ) //MATERIAL_VARIABLE
 			  {
 			    double tempp=0.0;
 			    tempp=(*it_found)->FastGetSolutionStepValue(YCH4);

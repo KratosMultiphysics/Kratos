@@ -187,7 +187,7 @@ public:
 
     virtual Communicator::Pointer Create(const DataCommunicator& rDataCommunicator) const;
 
-    virtual Communicator::Pointer Create() const;
+    Communicator::Pointer Create() const;
 
     ///@}
     ///@name Operators

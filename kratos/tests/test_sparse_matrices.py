@@ -12,6 +12,9 @@ try:
 except ImportError:
     scipy_available = False
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
     def test_scalar_assembly(self):
@@ -86,6 +89,14 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         for i in range(len(validation_index1)):
             self.assertEqual(B.index1_data()[i], validation_index1[i])
 
+        B = A@A
+        for i in range(len(validation_data)):
+            self.assertEqual(B.value_data()[i], validation_data[i])
+            self.assertEqual(B.index2_data()[i], validation_index2[i])
+
+        for i in range(len(validation_index1)):
+            self.assertEqual(B.index1_data()[i], validation_index1[i])
+
         # the following should be added back in case scipy support is enabled in testing
         if scipy_available:
              #test conversion to scipy matrix
@@ -108,6 +119,28 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
             for i in range(len(validation_index1)):
                 self.assertEqual(B_scipy.indptr[i], validation_index1[i])
+
+        #test transpose and TransposeSpMV
+        x.SetValue(1.0)
+        y.SetValue(0.0)
+        A.TransposeSpMV(x,y) 
+
+        At = A.Transpose()
+        y2 =  KratosMultiphysics.SystemVector(y.size())
+        y2.SetValue(0.0)  
+        At.SpMV(x,y2)
+        for i in range(y.Size()):
+            self.assertEqual(y[i], y2[i], 1e-14)
+
+        #test @ operators
+        y = A@x
+
+        #test operations
+        x.SetValue(1.0)
+        y.SetValue(2.0)
+        c = 2.0*x+y*2.0 - x
+        for i in range(y.Size()):
+            self.assertEqual(c[i], 5.0)
 
 
 if __name__ == '__main__':

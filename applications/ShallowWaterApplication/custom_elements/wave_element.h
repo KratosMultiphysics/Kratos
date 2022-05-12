@@ -230,6 +230,16 @@ public:
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -287,6 +297,8 @@ protected:
         double relative_dry_height;
         double gravity;
         double length;
+        double absorbing_distance;
+        double absorbing_damping;
 
         double depth;
         double height;
@@ -300,8 +312,10 @@ protected:
         array_1d<double,TNumNodes> nodal_f;
         array_1d<double,TNumNodes> nodal_h;
         array_1d<double,TNumNodes> nodal_z;
+        array_1d<double,TNumNodes> nodal_w;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_a;
         array_1d<array_1d<double,3>,TNumNodes> nodal_v_lap;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q_lap;
 
@@ -333,20 +347,35 @@ protected:
         const std::size_t I,
         const std::size_t J);
 
-    static const array_1d<double,3> VectorProduct(
+    static array_1d<double,3> VectorProduct(
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
+    static array_1d<double,3> ScalarGradient(
+        const array_1d<double,TNumNodes>& rS,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    static double VectorDivergence(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    static BoundedMatrix<double,3,3> VectorGradient(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
     static double InverseHeight(const ElementData& rData);
+
+    static double WetFraction(const ElementData& rData);
 
     virtual void CalculateArtificialViscosity(
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 
     virtual void CalculateArtificialDamping(
-        BoundedMatrix<double,3,3>& rFriction,
+        BoundedMatrix<double,3,3>& rDamping,
         const ElementData& rData);
 
     void AddWaveTerms(
@@ -367,7 +396,9 @@ protected:
 
     void AddArtificialViscosityTerms(
         LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
