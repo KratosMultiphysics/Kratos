@@ -14,9 +14,5 @@
 
 namespace Kratos
 {
-KRATOS_CREATE_VARIABLE( double, DOF_1 )
-KRATOS_CREATE_VARIABLE( double, DOF_2 )
-KRATOS_CREATE_VARIABLE( double, ScalarVariable )
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( VectorVariable )
 
 }

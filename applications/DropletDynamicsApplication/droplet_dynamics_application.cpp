@@ -32,10 +32,5 @@ void KratosDropletDynamicsApplication::Register()
 {
      KRATOS_INFO("") << "Initializing KratosDropletDynamicsApplication..." << std::endl;
 
-  KRATOS_REGISTER_VARIABLE( DOF_1 )
-  KRATOS_REGISTER_VARIABLE( DOF_2 )
-  KRATOS_REGISTER_VARIABLE( ScalarVariable )
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VectorVariable )
-
 }
 }  // namespace Kratos.
