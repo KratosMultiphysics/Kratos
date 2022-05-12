@@ -361,7 +361,12 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedSystemVector";}
+    void PrintInfo(std::ostream& rOStream) const 
+    {
+        rOStream << "DistributedSystemVector LOCAL DATA:" << std::endl;
+        PrintData(rOStream);
+        
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {

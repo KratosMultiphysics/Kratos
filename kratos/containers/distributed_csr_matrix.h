@@ -210,19 +210,18 @@ public:
         mpComm(rOtherMatrix.mpComm),
         mpRowNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetRowNumbering())),
         mpColNumbering(Kratos::make_unique< DistributedNumbering<TIndexType> >( rOtherMatrix.GetColNumbering())),
-        mpDiagonalBlock(Kratos::make_unique<TDataType,IndexType>(rOtherMatrix.GetDiagonalBlock())),
-        mpOffDiagonalBlock(Kratos::make_unique<TDataType,IndexType>(rOtherMatrix.GetOffDiagonalBlock())),
+        mpDiagonalBlock(Kratos::make_unique<CsrMatrix<TDataType,TIndexType>>(rOtherMatrix.GetDiagonalBlock())),
+        mpOffDiagonalBlock(Kratos::make_unique<CsrMatrix<TDataType,TIndexType>>(rOtherMatrix.GetOffDiagonalBlock())),
         mNonLocalData(rOtherMatrix.mNonLocalData),
-        mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
-        mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
         mOffDiagonalLocalIds(rOtherMatrix.mOffDiagonalLocalIds),
         mOffDiagonalGlobalIds(rOtherMatrix.mOffDiagonalGlobalIds),
         mfem_assemble_colors(rOtherMatrix.mfem_assemble_colors),
-        mpVectorImporter(rOtherMatrix.mpVectorImporter)
+        mRecvCachedIJ(rOtherMatrix.mRecvCachedIJ),
+        mSendCachedIJ(rOtherMatrix.mSendCachedIJ),
+        mpVectorImporter(Kratos::make_unique<DistributedVectorImporter<TDataType,TIndexType>>(*rOtherMatrix.mpVectorImporter))
     {
         ReconstructDirectAccessVectors();
     }
-
 
     //move constructor
     DistributedCsrMatrix(DistributedCsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
@@ -796,7 +795,8 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "DistributedCsrMatrix";
+        rOStream << "DistributedCsrMatrix" << std::endl;
+        PrintData(rOStream);
     }
 
     /// Print object's data.

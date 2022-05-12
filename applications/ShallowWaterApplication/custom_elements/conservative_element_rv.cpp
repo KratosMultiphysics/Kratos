@@ -52,41 +52,15 @@ void ConservativeElementRV<TNumNodes>::CalculateArtificialViscosity(
     double art_diff;
     ShockCapturingParameters(art_visc, art_diff, rData, rN, rDN_DX);
 
-    // The viscosity previously added by the stabilization
-    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
-    const double stab_viscosity = this->StabilizationParameter(rData) * std::pow(eigenvalue,2);
-
-    // The orthogonal fourth order tensor
-    BoundedMatrix<double,3,3> crosswind_tensor_4;
-    CrossWindTensor(crosswind_tensor_4, rData.velocity);
-    crosswind_tensor_4 *= art_visc;
-
-    // The streamline fourth order tensor
-    BoundedMatrix<double,3,3> streamline_tensor_4;
-    StreamLineTensor(streamline_tensor_4, rData.velocity);
-    streamline_tensor_4 *= std::max(0.0, art_visc - stab_viscosity);
-
-    // The constitutive tensor
+    // The fourth order constitutive tensor for viscosity
     BoundedMatrix<double,3,3> constitutive_tensor = IdentityMatrix(3,3);
     array_1d<double,3> m({1.0, 1.0, 0.0});
     constitutive_tensor -= outer_prod(m, m) / 3.0;
-    rViscosity = prod(constitutive_tensor, crosswind_tensor_4 + streamline_tensor_4);
+    rViscosity = art_visc * constitutive_tensor;
 
-    // The diffusion previously added by the stabilization
-    const double stab_diffusivity = this->StabilizationParameter(rData) * std::pow(eigenvalue,2);
+    // The diffusion tensor
+    rDiffusion = art_diff * IdentityMatrix(2);
 
-    // The second order crosswind tensor
-    BoundedMatrix<double,2,2> crosswind_tensor_2;
-    CrossWindTensor(crosswind_tensor_2, rData.velocity);
-    crosswind_tensor_2 *= art_diff;
-
-    // The second order streamline tensor
-    BoundedMatrix<double,2,2> streamline_tensor_2;
-    StreamLineTensor(streamline_tensor_2, rData.velocity);
-    streamline_tensor_2 *= std::max(0.0, art_diff - stab_diffusivity);
-
-    // The constitutive matrix
-    rDiffusion = crosswind_tensor_2 + streamline_tensor_2;
 }
 
 template<std::size_t TNumNodes>
@@ -106,10 +80,10 @@ void ConservativeElementRV<TNumNodes>::ShockCapturingParameters(
 
     // slope limits
     const double min_slope = 0.1;
-    const double max_slope = 1.0;
+    const double max_slope = 10.0;
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * std::abs(rData.height));
-    const double min_q_slope = std::max(eigenvalue * 1.0, min_slope);
-    const double max_q_slope = std::max(eigenvalue * 10.0, max_slope);
+    const double min_q_slope = std::max(10 * eigenvalue * min_slope, min_slope);
+    const double max_q_slope = std::max(10 * eigenvalue * max_slope, max_slope);
 
     // Final assembly of the parameters
     const double q_residual_norm = norm_2(flow_residual);
@@ -159,46 +133,6 @@ void ConservativeElementRV<TNumNodes>::AlgebraicResidual(
 
     rFlowResidual = flow_acc + flux + c2 * (rHeightGrad + topography_grad) + friction + damping; // + rData.height * mesh_acc;
     rHeightResidual = height_acc + flow_div;
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::StreamLineTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
-{
-    const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
-    array_1d<double,2> aux_vector;
-    aux_vector[0] = rVector[0];
-    aux_vector[1] = rVector[1];
-    rTensor = outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + e);
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::CrossWindTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
-{
-    StreamLineTensor(rTensor, rVector);
-    rTensor = IdentityMatrix(2) - rTensor;
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::StreamLineTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
-{
-    BoundedMatrix<double,2,2> stream_line_tensor;
-    StreamLineTensor(stream_line_tensor, rVector);
-    rTensor(0,0) = stream_line_tensor(0,0);
-    rTensor(1,1) = stream_line_tensor(1,1);
-    rTensor(0,1) = stream_line_tensor(0,1);
-    rTensor(1,0) = stream_line_tensor(0,1);
-    rTensor(2,2) = stream_line_tensor(0,1);
-    rTensor(0,2) = 0.0;
-    rTensor(1,2) = 0.0;
-    rTensor(2,0) = 0.0;
-    rTensor(2,1) = 0.0;
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElementRV<TNumNodes>::CrossWindTensor(BoundedMatrix<double,3,3>& rTensor, const array_1d<double,3>& rVector)
-{
-    StreamLineTensor(rTensor, rVector);
-    rTensor = IdentityMatrix(3) - rTensor;
 }
 
 template class ConservativeElementRV<3>;
