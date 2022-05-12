@@ -156,6 +156,14 @@ public:
      */
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief Calculate the conditional contribution to the problem
+     * @param rLeftHandSideMatrix Conditional left hand side matrix
+     * @param rRightHandSideVector Conditional right hand side vector
+     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the condition
+     */
+    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Inquiry
     ///@{

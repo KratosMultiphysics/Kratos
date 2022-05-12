@@ -268,6 +268,52 @@ void BoussinesqCondition<TNumNodes>::InitializeNonLinearIteration(const ProcessI
     }
 }
 
+
+template<std::size_t TNumNodes>
+void BoussinesqCondition<TNumNodes>::CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rLeftHandSideMatrix.size1() != 0)
+        rLeftHandSideMatrix.resize(0, 0, false);
+
+    if(rRightHandSideVector.size() != mLocalSize)
+        rRightHandSideVector.resize(mLocalSize, false);
+
+    // Geometries
+    auto& r_geom = this->GetGeometry();
+    auto& r_parent_geom = this->GetValue(NEIGHBOUR_ELEMENTS)[0].GetGeometry();
+
+    // Struct to pass around the data
+    ConditionData data;
+    WaveConditionType::InitializeData(data, rCurrentProcessInfo);
+
+    // Geometrical data
+    Matrix DN_DX;           // Gradients of the parent element
+    Vector weights;         // Line integration data
+    Matrix N_container;     // Line integration data
+    this->CalculateGeometryData(r_geom, weights, N_container);
+    const std::size_t num_gauss_points = weights.size();
+    const auto& g_points = r_geom.IntegrationPoints();
+
+    // Boundary term for the auxiliary fields
+    LocalVectorType rhs = ZeroVector(mLocalSize);
+
+    // Gauss point contribution
+    for (IndexType g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = weights[g];
+        const auto point = g_points[g];
+        const array_1d<double,TNumNodes> N = row(N_container, g);
+
+        CalculateGaussPointData(data, g, N);
+        CalculateShapeFunctionDerivaties(DN_DX, r_parent_geom, point);
+        AddMomentumDispersionTerms(rhs, r_parent_geom, data, N, DN_DX, weight);
+        this->AddFluxTerms(rhs, data, N, weight);
+    }
+
+    noalias(rRightHandSideVector) = rhs;
+}
+
+
 template class BoussinesqCondition<2>;
 
 } // namespace Kratos
