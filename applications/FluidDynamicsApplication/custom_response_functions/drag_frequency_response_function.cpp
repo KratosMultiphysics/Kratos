@@ -44,7 +44,7 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
     {
         "structure_model_part_name" : "PLEASE_SPECIFY_STRUCTURE_MODEL_PART",
         "drag_direction"            : [1.0, 0.0, 0.0],
-        "is_real_component"         : true,
+        "component_type"            : "",
         "frequency_bin_index"       : -1,
         "window_time_length"        : -1.0,
         "echo_level"                : 0
@@ -85,7 +85,14 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
            "frequency_bin_index = "
         << mFrequencyBinIndex << " ].\n";
 
-    mIsRealComponentRequested = Settings["is_real_component"].GetBool();
+    const auto& component_type = Settings["component_type"].GetString();
+    if (component_type == "real") {
+        mIsRealComponentRequested = true;
+    } else if (component_type == "imag") {
+        mIsRealComponentRequested = false;
+    } else {
+        KRATOS_ERROR << "Unsupported component type requested [ component_type = \"" << component_type << "\" ]. Supported component types are:\n   \"real\"\n   \"imag\"\n";
+    }
 
     mWindowingLength = Settings["window_time_length"].GetDouble();
     KRATOS_ERROR_IF(mWindowingLength <= 0)

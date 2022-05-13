@@ -21,7 +21,7 @@
                     0.0,
                     0.0
                 ],
-                "is_real_component": false,
+                "component_type": "imag",
                 "frequency_bin_index": 1,
                 "window_time_length": 0.05,
                 "echo_level": 0
