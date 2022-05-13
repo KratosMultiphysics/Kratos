@@ -59,6 +59,7 @@ class AdjointStabilizationUtilitiesTests(UnitTest.TestCase):
         DeleteFileIfExisting("adjoint_stabilization_data.dat")
 
     def testFluidFFTUtilities(self):
+        # generating signal data
         N = 1000
         delta_time = 0.001
         windowing_length = N*delta_time / 2
@@ -82,12 +83,16 @@ class AdjointStabilizationUtilitiesTests(UnitTest.TestCase):
             drag_value_sensitivities[i] += amplitude_1_derivative * sin(2 * pi * 100.0 * current_time)
             drag_value_sensitivities[i] += amplitude_2_derivative * sin(2 * pi * 50.0 * current_time)
 
+        # calculating from primal
         fft_utilities = KratosCFD.FluidFFTUtilities(time_steps[-1], windowing_length, delta_time)
         frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes_square = fft_utilities.CalculateFFTFrequencyDistribution(drag_values)
 
         bin_index = int(frequency_list.index(50))
 
         self.assertAlmostEqual(frequency_amplitudes_square[bin_index], amplitude_2 ** 2, 9)
+
+        # calculating from adjoint
+        fft_utilities = KratosCFD.FluidFFTUtilities(time_steps[-1], windowing_length, delta_time)
 
         adjoint_drag_bin_real_value = 0.0
         adjoint_drag_bin_imag_value = 0.0
