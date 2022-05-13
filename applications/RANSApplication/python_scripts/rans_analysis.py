@@ -10,6 +10,7 @@ class RANSAnalysis(FluidDynamicsAnalysis):
 
     def __init__(self,model,parameters):
         super().__init__(model, parameters)
+        self.delta_time = 0.0
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
@@ -17,7 +18,9 @@ class RANSAnalysis(FluidDynamicsAnalysis):
         """
 
         while self.KeepAdvancingSolutionLoop():
-            self.time = self._GetSolver().AdvanceInTime(self.time)
+            new_time = self._GetSolver().AdvanceInTime(self.time)
+            self.delta_time = new_time - self.time
+            self.time = new_time
             # We reinitialize if remeshed previously
             if self._GetSolver().CheckAndExecuteAdaptiveMeshRefinement():
                 self._ReInitializeSolver()
@@ -74,7 +77,7 @@ class RANSAnalysis(FluidDynamicsAnalysis):
         """This function specifies the stopping criteria for breaking the solution loop
         It can be overridden by derived classes
         """
-        return self.time < self.end_time and not self._GetSolver().IsConverged()
+        return self.end_time - self.time > 0.5 * self.delta_time and not self._GetSolver().IsConverged()
 
 if __name__ == '__main__':
     if len(argv) > 2:
