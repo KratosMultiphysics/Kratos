@@ -17,6 +17,7 @@
 // Project includes
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
+#include "fluid_dynamics_application_variables.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "utilities/element_size_calculator.h"
 
@@ -91,6 +92,21 @@ double NewtonianTwoFluid3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
             // length_scale *= length_scale;
             viscosity += 2.0*length_scale * strain_rate * density;
         }
+    }
+    const GeometryType &r_geom = rParameters.GetElementGeometry();
+    bool shock_capturing = false;
+    if (shock_capturing)
+    {
+        const SizeType n_nodes = 4;
+        double artificial_viscosity = 0.0;
+        const array_1d<double, n_nodes> &rN = rParameters.GetShapeFunctionsValues();
+
+        for (unsigned int i = 0; i < n_nodes; ++i)
+        {
+            artificial_viscosity += rN[i] * r_geom[i].GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+        }
+
+        viscosity += artificial_viscosity;
     }
     return viscosity;
 }

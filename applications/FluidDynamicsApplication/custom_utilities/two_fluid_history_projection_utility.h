@@ -84,9 +84,11 @@ public:
         /// Main constructor to be used in the creation of the Lagrangian particles
         ParticleData(
             const array_1d<double,3>& rCoordinates,
-            const array_1d<double,3>& rOldVelocity)
+            const array_1d<double,3>& rOldVelocity,
+            const array_1d<double,3>& rParticleVelocity)
             : Coordinates(rCoordinates)
             , OldVelocity(rOldVelocity)
+            , ParticleVelocity(rParticleVelocity)
         {}
 
         /// Assignment operator (required by the dynamic bins)
@@ -101,6 +103,7 @@ public:
         /// Particle data
         array_1d<double,3> Coordinates;
         array_1d<double,3> OldVelocity;
+        array_1d<double,3> ParticleVelocity;
     };
 
     using ParticleDataType = ParticleData;
@@ -206,7 +209,7 @@ private:
      * @param rModelPart Reference to the model part of interest
      * @return ParticleDataContainerType
      */
-    static ParticleDataContainerType SeedAndConvectParticles(ModelPart& rModelPart);
+    static ParticleDataContainerType SeedAndConvectParticles(ModelPart& rModelPart,double ParticleLayerThickness);
 
     /**
      * @brief This calculates the new velocity interpolation

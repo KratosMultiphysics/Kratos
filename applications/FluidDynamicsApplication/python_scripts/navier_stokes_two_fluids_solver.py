@@ -280,10 +280,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             for node in self.GetComputingModelPart().Nodes:
                 acceleration_alpha_scheme= [0,0,0]
                 node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_scheme)
+        for node in self.GetComputingModelPart().Nodes:
+            artificial_viscosity = 0.0
+            node.SetValue(
+                KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
+        for node in self.GetComputingModelPart().Nodes:
+            artificial_viscosity = 0.0
+            node.SetValue(
+                KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity)
 
         if self.momentum_correction:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCFD.DISTANCE_CORRECTION, 0.0, self.main_model_part.Nodes)
@@ -306,6 +314,23 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Perform the level-set convection according to the previous step velocity
             self._PerformLevelSetConvection()
+            iscut=False
+            for element in self.GetComputingModelPart().Elements:
+                n_pos=0
+                n_neg=0
+                for node in element.GetGeometry():
+                    if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
+                        n_pos += 1
+                    else:
+                        n_neg += 1
+                if n_pos>0 and n_neg>0:
+                    for node in element.GetGeometry():
+                        node.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY,0)
+
+
+
+
+
 
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
@@ -403,7 +428,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 dt=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
                 for node in self.GetComputingModelPart().Nodes:
                     vn=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,1)
-                    v=node.GetSolutionStepValue(KratosMultiphysics.VELOCITY,0)
+                    v=node.c(KratosMultiphysics.VELOCITY,0)
                     acceleration_n=node.GetValue(KratosMultiphysics.ACCELERATION)
                     acceleration_alpha_method=(v-vn)/(gamma*dt)+((gamma-1)/gamma)*acceleration_n
                     node.SetValue(KratosMultiphysics.ACCELERATION,acceleration_alpha_method)

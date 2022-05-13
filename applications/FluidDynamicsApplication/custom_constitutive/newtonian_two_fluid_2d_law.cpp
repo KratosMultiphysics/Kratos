@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/cfd_variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "utilities/element_size_calculator.h"
 #include "custom_constitutive/newtonian_two_fluid_2d_law.h"
 
@@ -80,6 +81,7 @@ double NewtonianTwoFluid2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
 
     if (prop.Has(C_SMAGORINSKY)) {
         const double csmag = prop[C_SMAGORINSKY];
+        KRATOS_WATCH(csmag)
         if (csmag > 0.0) {
             double density;
             EvaluateInPoint(density, DENSITY, rParameters);
@@ -89,6 +91,42 @@ double NewtonianTwoFluid2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters
             double length_scale = std::pow(csmag * elem_size, 2);
             viscosity += 2.0*length_scale * strain_rate * density;
         }
+    }
+    const GeometryType& r_geom = rParameters.GetElementGeometry();
+    bool shock_capturing=true;
+    double negative_nodes=0.0;
+    double positive_nodes=0.0;
+    const SizeType n_nodes = 3;
+    bool iscut=false;
+    double dist=0.0;
+    for (unsigned int i = 0; i < n_nodes; ++i){
+        dist = r_geom[i].GetValue(DISTANCE);
+        if (dist<0){
+            negative_nodes += 1.0;
+        }
+        else{
+            positive_nodes += 1.0;
+        }
+
+    }
+
+    if(negative_nodes>0 && positive_nodes>0){
+            iscut=true;
+    }
+
+    if (shock_capturing && iscut)
+    {
+        double artificial_viscosity = 0.0;
+        const array_1d<double, n_nodes> &rN = rParameters.GetShapeFunctionsValues();
+        for (unsigned int i = 0; i < n_nodes; ++i)
+        {
+            artificial_viscosity += rN[i] * r_geom[i].GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
+        }
+        viscosity += artificial_viscosity;
+    }
+    if (viscosity>5){
+
+        KRATOS_WATCH(viscosity)
     }
     return viscosity;
 }

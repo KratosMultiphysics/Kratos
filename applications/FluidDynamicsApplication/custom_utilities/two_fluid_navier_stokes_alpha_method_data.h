@@ -67,15 +67,17 @@ NodalScalarData NodalDensity;
 NodalScalarData NodalDensityOldStep;
 NodalScalarData NodalDynamicViscosity;
 NodalScalarData NodalDynamicViscosityOldStep;
+NodalScalarData ArtificialDynamicViscosity;
 
 Vector ShearStressOldStep;
 double SmagorinskyConstant;
 double Density;
 double DynamicViscosity;
+
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double VolumeError; //TODO: RENAME TO VolumeErrorTimeRatio
- double NotStabilizationCutElementsMass;
+double NotStabilizationCutElementsMass;
 double NotStabilizationCutElementsMomentum;
 
 double MaxSprectraRadius;
@@ -129,6 +131,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocityOldStep,MESH_VELOCITY,r_geometry,1);
+    this->FillFromNonHistoricalNodalData(ArtificialDynamicViscosity, ARTIFICIAL_DYNAMIC_VISCOSITY, r_geometry);
 
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_OldStep1,BODY_FORCE,r_geometry,1);
@@ -342,21 +345,26 @@ void CalculateDensityAtGaussPoint()
 void CalculateEffectiveViscosityAtGaussPoint()
 {
     double dist = 0.0;
+
     for (unsigned int i = 0; i < TNumNodes; i++)
         dist += this->N[i] * Distance[i];
 
+
     int navg = 0;
     double dynamic_viscosity = 0.0;
+    double viscosityint = 0.0;
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
         if (dist * Distance[i] > 0.0)
         {
             navg += 1;
             dynamic_viscosity += NodalDynamicViscosity[i];
+
         }
+        viscosityint += this->N[i] * ArtificialDynamicViscosity[i];
     }
     DynamicViscosity = dynamic_viscosity / navg;
-     if (SmagorinskyConstant > 0.0)
+    if (SmagorinskyConstant > 0.0)
     {
         const double strain_rate_norm = ComputeStrainNorm();
 
@@ -365,6 +373,10 @@ void CalculateEffectiveViscosityAtGaussPoint()
         this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
 
 
+    }
+    if (IsCut()){
+        this->EffectiveViscosity = DynamicViscosity + viscosityint;
+        KRATOS_WATCH(this->EffectiveViscosity)
     }
 
 
