@@ -117,7 +117,7 @@ public:
     /**
      * returns the used integration method.
      */
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     ///@}
     ///@name Access

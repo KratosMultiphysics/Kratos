@@ -1,7 +1,7 @@
 #!/bin/bash
-# PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
-PYTHONS=("cp38")
-export KRATOS_VERSION="9.1.1"
+PYTHONS=("cp36" "cp37" "cp38" "cp39" "cp310")
+# PYTHONS=("cp38")
+export KRATOS_VERSION="9.1.3"
 
 source /opt/intel/oneapi/setvars.sh
 
@@ -26,16 +26,17 @@ build_core_wheel () {
     cd $KRATOS_ROOT
 
     PREFIX_LOCATION=$1
+    PACKAGE_PREFIX=$2
     
     mkdir ${WHEEL_ROOT}/KratosMultiphysics
 
-    cp ${PREFIX_LOCATION}/KratosMultiphysics/*       ${WHEEL_ROOT}/KratosMultiphysics
-    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
-    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py     ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
+    cp ${PREFIX_LOCATION}/KratosMultiphysics/*                          ${WHEEL_ROOT}/KratosMultiphysics
+    cp ${KRATOS_ROOT}/kratos/${PACKAGE_PREFIX}KratosMultiphysics.json   ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/scripts/wheels/__init__.py                        ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
     cd $WHEEL_ROOT
 
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m pip install setup.py bdist_wheel
 
     cd ${WHEEL_ROOT}/dist
     
@@ -56,7 +57,7 @@ build_application_wheel () {
     cp ${KRATOS_ROOT}/applications/${1}/${1}.json ${WHEEL_ROOT}/wheel.json
     cd $WHEEL_ROOT
     
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m pip install setup.py bdist_wheel
 
     auditwheel repair dist/*.whl
     
@@ -73,8 +74,9 @@ build_kratos_all_wheel () {
     setup_wheel_dir
     cp ${KRATOS_ROOT}/kratos/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
     cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
+    
     cd ${WHEEL_ROOT}
-    $PYTHON_LOCATION setup.py bdist_wheel
+    $PYTHON_LOCATION -m pip install setup.py bdist_wheel
     cp dist/* ${WHEEL_OUT}/
 
     cd
@@ -117,7 +119,7 @@ optimize_wheel(){
     rm -r tmp
 }
 
-# Buils the KratosXCore components for the kernel and applications
+# Buils the Kratos Core components for the kernel and applications
 build_core () {
 	cd $KRATOS_ROOT
 
@@ -170,7 +172,7 @@ do
 	echo $LD_LIBRARY_PATH
 
     echo "Building Core Wheel"
-    build_core_wheel $PREFIX_LOCATION
+    build_core_wheel $PREFIX_LOCATION ""
 
     echo "Building App Wheels"
     for APPLICATION in $(ls -d ${PREFIX_LOCATION}/applications/*)
