@@ -5,6 +5,8 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.KratosUnittest import TestLoader
 
+import argparse
+
 # Small tests
 from shallow_water_test_factory import TestShallowWaterElement
 from shallow_water_test_factory import TestSemiLagrangianShallowWaterElement
@@ -76,5 +78,24 @@ def run():
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
 
+exit_codes = {
+    0 : 'OK',
+    1 : 'Failed'
+}
+
 if __name__ == '__main__':
-    run()
+    parser = argparse.ArgumentParser() # this is a very bad practice, since this overwrites the arguments defined in KratosUnittest
+    parser.add_argument('-c', '--cpp', action='store_true')
+    args = parser.parse_args()
+
+    KM.Tester.SetVerbosity(KM.Tester.Verbosity.FAILED_TESTS_OUTPUTS)
+    cpp_exit_code = KM.Tester.RunTestSuite("ShallowWaterApplicationFastSuite")
+
+    if not args.cpp:
+        py_exit_code = run()
+
+    print()
+    print('ShallowWaterApplication tests:')
+    print('cpp tests ..........', exit_codes[cpp_exit_code])
+    if not args.cpp:
+        print('python tests .......', exit_codes[py_exit_code])
