@@ -206,4 +206,22 @@ double FluidFFTUtilities::GetMaximumFrequency() const
     KRATOS_CATCH("");
 }
 
+std::size_t FluidFFTUtilities::GetTotalNumberOfSteps() const
+{
+    KRATOS_TRY
+
+    return mTotalSteps;
+
+    KRATOS_CATCH("");
+}
+
+std::size_t FluidFFTUtilities::GetNumberOfWindowingSteps() const
+{
+    KRATOS_TRY
+
+    return mWindowingSteps;
+
+    KRATOS_CATCH("");
+}
+
 } // namespace Kratos

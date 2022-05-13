@@ -87,6 +87,10 @@ public:
 
     double GetMaximumFrequency() const;
 
+    IndexType GetTotalNumberOfSteps() const;
+
+    IndexType GetNumberOfWindowingSteps() const;
+
     ///@}
 private:
     ///@name Private Members

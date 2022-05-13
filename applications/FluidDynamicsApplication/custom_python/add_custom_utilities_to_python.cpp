@@ -206,6 +206,11 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateFFTImagCoefficient",&FluidFFTUtilities::CalculateFFTImagCoefficient)
         .def("CalculateFFTAmplitudeSquare",&FluidFFTUtilities::CalculateFFTAmplitudeSquare)
         .def("CalculateFFTAmplitudeSquareDerivative",&FluidFFTUtilities::CalculateFFTAmplitudeSquareDerivative)
+        .def("GetFrequencyResolution",&FluidFFTUtilities::GetFrequencyResolution)
+        .def("GetFrequency",&FluidFFTUtilities::GetFrequency)
+        .def("GetMaximumFrequency",&FluidFFTUtilities::GetMaximumFrequency)
+        .def("GetTotalNumberOfSteps",&FluidFFTUtilities::GetTotalNumberOfSteps)
+        .def("GetNumberOfWindowingSteps",&FluidFFTUtilities::GetNumberOfWindowingSteps)
         ;
 
 }
