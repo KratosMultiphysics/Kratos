@@ -1495,13 +1495,13 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // rotate to local axes strain/F
-    RotateToLocalAxes(rValues);
+    RotateToLocalAxes(rValues, rThisKinematicVariables);
 
     // Actually do the computations in the ConstitutiveLaw in local axes
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
 
     // We undo the rotation of strain/F, C, stress
-    RotateToGlobalAxes(rValues);
+    RotateToGlobalAxes(rValues, rThisKinematicVariables);
 }
 
 /***********************************************************************************/
@@ -1535,7 +1535,8 @@ void BaseSolidElement::BuildRotationSystem(
 /***********************************************************************************/
 
 void BaseSolidElement::RotateToLocalAxes(
-    ConstitutiveLaw::Parameters& rValues
+    ConstitutiveLaw::Parameters& rValues,
+    KinematicVariables& rThisKinematicVariables
     )
 {
     if (this->IsElementRotated()) {
@@ -1558,11 +1559,9 @@ void BaseSolidElement::RotateToLocalAxes(
             BoundedMatrix<double, 3, 3> inv_rotation_matrix;
             double aux_det;
             MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
-            const auto& r_F = rValues.GetDeformationGradientF();
-            BoundedMatrix<double, 3, 3> F_loc = r_F;
-            noalias(F_loc) = prod(rotation_matrix, r_F);
-            F_loc = prod(F_loc, inv_rotation_matrix);
-            rValues.SetDeformationGradientF(F_loc);
+            rThisKinematicVariables.F = prod(rotation_matrix, rThisKinematicVariables.F);
+            rThisKinematicVariables.F = prod(rThisKinematicVariables.F, inv_rotation_matrix);
+            rValues.SetDeformationGradientF(rThisKinematicVariables.F);
         }
     }
 }
@@ -1571,7 +1570,8 @@ void BaseSolidElement::RotateToLocalAxes(
 /***********************************************************************************/
 
 void BaseSolidElement::RotateToGlobalAxes(
-    ConstitutiveLaw::Parameters& rValues
+    ConstitutiveLaw::Parameters& rValues,
+    KinematicVariables& rThisKinematicVariables
     )
 {
     if (this->IsElementRotated()) {
@@ -1592,11 +1592,9 @@ void BaseSolidElement::RotateToGlobalAxes(
             if (stress_option)
                 rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             if (constitutive_matrix_option) {
-                const auto& r_C = rValues.GetConstitutiveMatrix();
-                Matrix C_global = r_C;
-                noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
-                C_global = prod(C_global, voigt_rotation_matrix);
-                rValues.SetConstitutiveMatrix(C_global);
+                BoundedMatrix<double, 6, 6> aux;
+                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
             }
         } else if (strain_size == 3) {
             BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
@@ -1605,11 +1603,9 @@ void BaseSolidElement::RotateToGlobalAxes(
             if (stress_option)
                 rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
             if (constitutive_matrix_option) {
-                const auto& r_C = rValues.GetConstitutiveMatrix();
-                Matrix C_global = r_C;
-                noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
-                C_global = prod(C_global, voigt_rotation_matrix);
-                rValues.SetConstitutiveMatrix(C_global);
+                BoundedMatrix<double, 3, 3> aux;
+                noalias(aux) = prod(trans(voigt_rotation_matrix), rValues.GetConstitutiveMatrix());
+                noalias(rValues.GetConstitutiveMatrix()) = prod(aux, voigt_rotation_matrix);
             }
         }
         // Now undo the rotation in F if required
@@ -1617,11 +1613,9 @@ void BaseSolidElement::RotateToGlobalAxes(
             BoundedMatrix<double, 3, 3> inv_rotation_matrix;
             double aux_det;
             MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
-            const auto& r_F = rValues.GetDeformationGradientF();
-            BoundedMatrix<double, 3, 3> F_glob = r_F;
-            noalias(F_glob) = prod(inv_rotation_matrix, r_F);
-            F_glob = prod(F_glob, rotation_matrix);
-            rValues.SetDeformationGradientF(F_glob);
+            rThisKinematicVariables.F = prod(inv_rotation_matrix, rThisKinematicVariables.F);
+            rThisKinematicVariables.F = prod(rThisKinematicVariables.F, rotation_matrix);
+            rValues.SetDeformationGradientF(rThisKinematicVariables.F);
         }
     }
 }

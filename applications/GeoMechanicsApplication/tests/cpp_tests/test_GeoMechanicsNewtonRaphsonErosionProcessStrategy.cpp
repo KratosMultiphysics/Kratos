@@ -29,12 +29,11 @@ namespace Kratos
 
     	KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
-            auto meshpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/SteadyStatePipeElementWithEmbankment.mdpa";
-            auto projectpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/ProjectParameters.json";
-            auto materialpath = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid/MaterialParameters.json";
+            auto workingDirectory = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid";
+            auto projectfile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-    		execute.cpp_geomechanics(meshpath, projectpath, materialpath);
+    		execute.cpp_geomechanics(workingDirectory, projectfile);
 
         }
     }

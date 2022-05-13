@@ -1856,5 +1856,80 @@ namespace Testing {
         KRATOS_CHECK(p_elem->Is(TO_SPLIT));
     }
 
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceNewVariablese2D, KratosCoreFastSuite)
+    {
+        Model current_model;
+
+        // Generate a fluid mesh (done with the StructuredMeshGeneratorProcess)
+        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, -0.5, -0.5, 0.0);
+        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, -0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3,  0.5,  0.5, 0.0);
+        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4,  0.5, -0.5, 0.0);
+
+        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+
+        Parameters mesher_parameters(R"(
+        {
+            "number_of_divisions": 2,
+            "element_name": "Element2D3N"
+        })");
+
+        ModelPart& volume_part = current_model.CreateModelPart("Volume");
+        StructuredMeshGeneratorProcess(geometry, volume_part, mesher_parameters).Execute();
+
+        // Generate the skin line
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, -0.25, 0.25, 0.0);
+        skin_part.CreateNewNode(2,  0.5, 0.1, 0.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element2D2N", 1, {{1,2}}, p_properties);
+
+        // Compute the discontinuous distance function (including edge distances)
+        Parameters parameters = Parameters(R"(
+        {
+            "elemental_distances_variable"                          : "EXTERNAL_FORCES_VECTOR",
+            "elemental_edge_distances_variable"                     : "INTERNAL_FORCES_VECTOR",
+            "elemental_edge_distances_extrapolated_variable"        : "CONTACT_FORCES_VECTOR",
+            "calculate_elemental_edge_distances"                    : true,
+            "calculate_elemental_edge_distances_extrapolated"       : true
+        })" );
+
+        CalculateDiscontinuousDistanceToSkinProcess<2> disc_dist_proc(volume_part, skin_part, parameters);
+        disc_dist_proc.Execute();
+
+        // checking new ELEMENTAL_DISTANCES
+        KRATOS_CHECK(volume_part.GetElement(3).Has(EXTERNAL_FORCES_VECTOR))
+        // checking we dont have the default
+        KRATOS_CHECK(!volume_part.GetElement(3).Has(ELEMENTAL_DISTANCES))
+        // checking new ELEMENTAL_EDGE_DISTANCES
+        KRATOS_CHECK(volume_part.GetElement(3).Has(INTERNAL_FORCES_VECTOR))
+        // checking we dont have the default
+        KRATOS_CHECK(!volume_part.GetElement(3).Has(ELEMENTAL_EDGE_DISTANCES))
+        // checking new ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED
+        KRATOS_CHECK(volume_part.GetElement(3).Has(INTERNAL_FORCES_VECTOR))
+        // checking we dont have the default
+        KRATOS_CHECK(!volume_part.GetElement(3).Has(ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED))
+
+        // Check edge distances - elements 1,2,5,6 are not cut at all
+        const auto &r_edge_dist_elem_3 = volume_part.GetElement(3).GetValue(INTERNAL_FORCES_VECTOR);
+        const auto &r_edge_dist_elem_4 = volume_part.GetElement(4).GetValue(INTERNAL_FORCES_VECTOR);
+        const auto &r_edge_dist_elem_7 = volume_part.GetElement(7).GetValue(INTERNAL_FORCES_VECTOR);
+        const auto &r_edge_dist_elem_8 = volume_part.GetElement(8).GetValue(INTERNAL_FORCES_VECTOR);
+        const std::vector<double> expected_values_elem_3 = {-1.0,-1.0,0.5};
+        const std::vector<double> expected_values_elem_4 = {0.4,0.5,-1.0};
+        const std::vector<double> expected_values_elem_7 = {-1.0,0.6,0.3333333};
+        const std::vector<double> expected_values_elem_8 = {0.2,0.6666667,-1.0};
+        KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3, expected_values_elem_3, 1.0e-6);
+        KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_4, expected_values_elem_4, 1.0e-6);
+        KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_7, expected_values_elem_7, 1.0e-6);
+        KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_8, expected_values_elem_8, 1.0e-6);
+
+        //Check extra edge distances - elem_3 is incised
+        const auto &r_edge_dist_elem_3_extra = volume_part.GetElement(3).GetValue(CONTACT_FORCES_VECTOR);
+        const std::vector<double> expected_values_elem_3_extra = {-1.0,0.4,-1.0};
+        KRATOS_CHECK_VECTOR_NEAR(r_edge_dist_elem_3_extra, expected_values_elem_3_extra, 1.0e-6);
+    }
+
 }  // namespace Testing.
 }  // namespace Kratos.

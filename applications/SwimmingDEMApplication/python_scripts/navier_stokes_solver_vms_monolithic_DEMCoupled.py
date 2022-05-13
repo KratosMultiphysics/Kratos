@@ -117,7 +117,6 @@ def CreateSolver(model, custom_settings):
 
 class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierStokesSolverMonolithic):
 
-    @classmethod
     def GetDefaultParameters(cls):
 
         ##settings string in json format

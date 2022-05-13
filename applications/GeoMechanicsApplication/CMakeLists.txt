@@ -25,7 +25,7 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp	
 )
 
 ## GeoMechanics testing sources
@@ -39,6 +39,7 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURR
 add_library(KratosGeoMechanicsCore SHARED ${KRATOS_GEO_MECHANICS_APPLICATION_CORE} ${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosGeoMechanicsCore PUBLIC KratosCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoMechanicsCore PROPERTIES COMPILE_DEFINITIONS "GEO_MECHANICS_APPLICATION=EXPORT,API")
+
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
@@ -94,3 +95,11 @@ install(TARGETS KratosGeoMechanicsApplication DESTINATION libs )
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosGeoMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosGeoMechanicsApplication" PARENT_SCOPE)
+
+
+project(KratosGeoMechanicsExecutable)
+set(KratosGeoMechanicsExecutableSources ${CMAKE_CURRENT_SOURCE_DIR}/executable/executable.cpp ${CMAKE_CURRENT_SOURCE_DIR}/executable/executable.h)
+add_executable(KratosGeoMechanicsExecutable ${KratosGeoMechanicsExecutableSources})
+target_link_libraries(KratosGeoMechanicsExecutable PUBLIC KratosCore KratosGeoMechanicsCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
+set_target_properties(KratosGeoMechanicsExecutable PROPERTIES LINKER_LANGUAGE CXX)
+install(TARGETS KratosGeoMechanicsExecutable DESTINATION libs )

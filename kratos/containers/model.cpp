@@ -64,7 +64,8 @@ ModelPart& Model::CreateModelPart( const std::string ModelPartName, ModelPart::I
             CreateRootModelPart(root_model_part_name, NewBufferSize);
             return *(mRootModelPartMap[root_model_part_name].get());
         } else {
-            KRATOS_ERROR << "Trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
+            KRATOS_WARNING("Model") << "Trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists. \nReturning the already existent ModelPart.\n";
+            return *(mRootModelPartMap[root_model_part_name].get());
         }
     } else {
         if (mRootModelPartMap.find(root_model_part_name) == mRootModelPartMap.end()) {

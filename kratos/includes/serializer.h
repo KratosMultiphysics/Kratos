@@ -1161,11 +1161,10 @@ private:
 
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
-        char* c_binStream = new char [size];
-        mpBuffer->read(c_binStream,size);
-        std::string s_binStream(c_binStream,size);
-        rValue = s_binStream;
-        delete [] c_binStream;
+        rValue.resize(size);
+	if (size>0) {
+	    mpBuffer->read(&rValue.front(),size);
+	}
 
         KRATOS_SERIALIZER_MODE_ASCII
 

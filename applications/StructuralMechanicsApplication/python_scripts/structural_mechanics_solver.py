@@ -368,27 +368,11 @@ class MechanicalSolver(PythonSolver):
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
-        """Prepare nodal solution step data containers and time step information. """
-        # Set the buffer size for the nodal solution steps data. Existing nodal
-        # solution step data may be lost.
         required_buffer_size = self.settings["buffer_size"].GetInt()
         if required_buffer_size < self.GetMinimumBufferSize():
             required_buffer_size = self.GetMinimumBufferSize()
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        buffer_size = max(current_buffer_size, required_buffer_size)
-        self.main_model_part.SetBufferSize(buffer_size)
-        # Cycle the buffer. This sets all historical nodal solution step data to
-        # the current value and initializes the time stepping in the process info.
         delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        step =-buffer_size
-        time = time - delta_time * buffer_size
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(0, buffer_size):
-            step = step + 1
-            time = time + delta_time
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            self.main_model_part.CloneTimeStep(time)
+        auxiliary_solver_utilities.SetAndFillBuffer(self.main_model_part, required_buffer_size, delta_time)
 
     def _add_dynamic_variables(self):
         # For being consistent for Serial and Trilinos

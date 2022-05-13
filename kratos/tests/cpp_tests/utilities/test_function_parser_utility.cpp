@@ -25,6 +25,12 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility1, KratosCoreFastSuite)
 {
+    auto function0 = GenericFunctionUtility("2*x");
+    KRATOS_CHECK(function0.DependsOnSpace());
+    KRATOS_CHECK_IS_FALSE(function0.UseLocalSystem());
+    KRATOS_CHECK_STRING_EQUAL(function0.FunctionBody(), "2*x");
+    KRATOS_CHECK_DOUBLE_EQUAL(function0.CallFunction(4.0,3.0,0.0,0.0), 8);
+
     auto function1 = GenericFunctionUtility("x**2+y**2");
     KRATOS_CHECK(function1.DependsOnSpace());
     KRATOS_CHECK_IS_FALSE(function1.UseLocalSystem());
@@ -49,7 +55,19 @@ KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility1, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(function4.FunctionBody(), "(cos(x*pi)+sin(y*pi))*t");
     KRATOS_CHECK_DOUBLE_EQUAL(function4.CallFunction(0.25,0.15,0.0,1.5), 1.5*(std::cos(0.25*Globals::Pi) + std::sin(0.15*Globals::Pi)));
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(GenericFunctionUtility("A quien le importa lo que yo haga A quien le importa lo que yo diga  Yo soy asi, y asi seguire, nunca cambiare"), "Error: Parsing error in function: A quien le importa lo que yo haga A quien le importa lo que yo diga  Yo soy asi, y asi seguire, nunca cambiare");
+    auto function5 = GenericFunctionUtility("(1.0)*(50*(cos(t)-2))");
+    KRATOS_CHECK_IS_FALSE(function5.DependsOnSpace());
+    KRATOS_CHECK_IS_FALSE(function5.UseLocalSystem());
+    KRATOS_CHECK_STRING_EQUAL(function5.FunctionBody(), "(1.0)*(50*(cos(t)-2))");
+    KRATOS_CHECK_DOUBLE_EQUAL(function5.CallFunction(0.0,0.0,0.0,0.0), -50);
+
+    auto function6 = GenericFunctionUtility("(1.0)*(50*(exp(t)-2))");
+    KRATOS_CHECK_IS_FALSE(function6.DependsOnSpace());
+    KRATOS_CHECK_IS_FALSE(function6.UseLocalSystem());
+    KRATOS_CHECK_STRING_EQUAL(function6.FunctionBody(), "(1.0)*(50*(exp(t)-2))");
+    KRATOS_CHECK_DOUBLE_EQUAL(function6.CallFunction(0.0,0.0,0.0,0.0), -50);
+
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(GenericFunctionUtility("NotAValidExpression"), "Error: \nParsing error in function: NotAValidExpression\nError occurred near here :                   ^ (char [18])\nCheck your locale (e.g. if \".\" or \",\" is used as decimal point)");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GenericFunctionUtility2, KratosCoreFastSuite)

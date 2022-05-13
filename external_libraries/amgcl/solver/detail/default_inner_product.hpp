@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2022 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,6 +46,10 @@ struct default_inner_product {
     >::return_type
     operator()(const Vec1 &x, const Vec2 &y) const {
         return backend::inner_product(x, y);
+    }
+
+    int rank() const {
+        return 0;
     }
 };
 

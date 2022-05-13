@@ -1052,7 +1052,7 @@ void MmgProcess<TMMGLibrary>::ClearConditionsDuplicatedGeometries()
         } else {
             std::vector<IndexType> aux_cond_id(1);
             aux_cond_id[0] = r_cond.Id();
-            faces_map.insert( HashMapType::value_type(std::pair<DenseVector<IndexType>, std::vector<IndexType>>({ids, aux_cond_id})) );
+            faces_map.insert({ids, aux_cond_id});
         }
     }
 

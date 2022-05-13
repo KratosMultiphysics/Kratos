@@ -152,6 +152,16 @@ public:
     }
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -187,6 +197,7 @@ protected:
         BoundedMatrix<double,3,3>& rViscosity,
         BoundedMatrix<double,2,2>& rDiffusion,
         const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX) override;
 
     void CalculateArtificialDamping(
