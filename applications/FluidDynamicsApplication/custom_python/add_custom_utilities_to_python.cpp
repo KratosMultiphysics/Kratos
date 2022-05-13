@@ -13,6 +13,7 @@
 
 
 // System includes
+#include "pybind11/stl.h"
 
 // External includes
 #ifdef KRATOS_USE_AMATRIX
@@ -40,6 +41,7 @@
 #include "custom_utilities/acceleration_limitation_utilities.h"
 #include "custom_utilities/fluid_test_utilities.h"
 #include "custom_utilities/fluid_adjoint_utilities.h"
+#include "custom_utilities/fluid_fft_utilities.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -193,6 +195,17 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<FluidAdjointUtilities<3>>(m, "FluidAdjointUtilities3D")
         .def_static("CalculateTriangleAreaDerivative", &FluidAdjointUtilities<3>::CalculateTriangleAreaDerivative)
+        ;
+
+    py::class_<FluidFFTUtilities>(m,"FluidFFTUtilities")
+        .def(py::init<const double, const double, const double>())
+        .def("CalculateFFTFrequencyDistribution",&FluidFFTUtilities::CalculateFFTFrequencyDistribution)
+        .def("IsWithinWindowingRange",&FluidFFTUtilities::IsWithinWindowingRange)
+        .def("CalculateHannWindowCoefficient",&FluidFFTUtilities::CalculateHannWindowCoefficient)
+        .def("CalculateFFTRealCoefficient",&FluidFFTUtilities::CalculateFFTRealCoefficient)
+        .def("CalculateFFTImagCoefficient",&FluidFFTUtilities::CalculateFFTImagCoefficient)
+        .def("CalculateFFTAmplitudeSquare",&FluidFFTUtilities::CalculateFFTAmplitudeSquare)
+        .def("CalculateFFTAmplitudeSquareDerivative",&FluidFFTUtilities::CalculateFFTAmplitudeSquareDerivative)
         ;
 
 }
