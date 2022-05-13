@@ -65,8 +65,8 @@ namespace Python
 
         py::class_<CalculateDistanceToBoundaryProcess, CalculateDistanceToBoundaryProcess::Pointer, Process>
         (m, "CalculateDistanceToBoundaryProcess")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def(py::init<Model&, Parameters>())
+        .def(py::init<ModelPart&, ModelPart&, double>())
         ;
 
         py::class_<DepthIntegrationProcess<2>, DepthIntegrationProcess<2>::Pointer, Process>
