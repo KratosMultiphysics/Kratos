@@ -186,4 +186,75 @@ def CalculateTimeAveragedResponseValue(kratos_parameters, model_part_name, respo
         total_value *= delta_time
     return total_value
 
+def WriteShapeSensitivities(model_part, file_name) -> dict:
+    # now write shape sensitivities to results file
+    shape_sensitivities_dict = {}
+    with open(file_name, "w") as file_output:
+        file_output.write("# node_id, shape_sensitivity_x, shape_sensitivity_y, shape_sensitivity_z\n")
+        for node in model_part.Nodes:
+            shape_sensitivity = node.GetSolutionStepValue(Kratos.SHAPE_SENSITIVITY)
+            shape_sensitivities_dict[node.Id] = shape_sensitivity
+            file_output.write("{:d},{:0.16e},{:0.16e},{:0.16e}\n".format(node.Id, shape_sensitivity[0], shape_sensitivity[1], shape_sensitivity[2]))
+
+    return shape_sensitivities_dict
+
+def CalculateShapeSensitivity(model, optimization_model_part_name, adjoint_parameters_file_name, log_file_name) -> dict:
+    base_name = adjoint_parameters_file_name[:adjoint_parameters_file_name.rfind(".")]
+    shape_sensitivity_file = Path(base_name + "_results.csv")
+
+    if not shape_sensitivity_file.is_file():
+        _ = SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name)
+        return WriteShapeSensitivities(model[optimization_model_part_name], str(shape_sensitivity_file))
+    else:
+        Kratos.Logger.PrintInfo("SolveAdjointProblem", "Found existing completed adjoint evaluation at {}.".format(str(shape_sensitivity_file)))
+
+        with open(str(shape_sensitivity_file), "r") as file_input:
+            lines = file_input.readlines()
+
+        lines = lines[1:-1]
+        shape_sensitivities_dict = {}
+        for line in lines:
+            data_str = line[:-1].split(",")
+            shape_sensitivities_dict[int(data_str[0])] = Kratos.Array3([float(data_str[1]), float(data_str[2]), float(data_str[3])])
+
+        return shape_sensitivities_dict
+
+def UpdateStringWithPlaceHolders(input: str, place_holder_dict: dict) -> str:
+    for k, v in place_holder_dict.items():
+        input = input.replace(k, v)
+    return input
+
+def UpdateFilesWithPlaceHolders(settings: Kratos.Parameters, place_holder_dict: dict):
+    default_parameters = Kratos.Parameters("""{
+        "original_file_name": "",
+        "updated_file_name" : ""
+    }""")
+
+    settings.ValidateAndAssignDefaults(default_parameters)
+    original_file_name = settings["original_file_name"].GetString()
+    if original_file_name == "":
+        raise Exception("Original file name cannot be empty.")
+
+    updated_file_name = settings["updated_file_name"].GetString()
+    if updated_file_name == "":
+        raise Exception("Updated file name cannot be empty.")
+
+    updated_file_name = UpdateStringWithPlaceHolders(updated_file_name, place_holder_dict)
+
+    if original_file_name == updated_file_name:
+        raise Exception("Original file name and updated file name cannot be the same. [ Original file name = {:s}, updated file name = {:s}".format(original_file_name, updated_file_name))
+
+    with open(original_file_name, "r") as file_input:
+        data = file_input.read()
+
+    data = UpdateStringWithPlaceHolders(data, place_holder_dict)
+
+    if Path(updated_file_name).is_file():
+        Kratos.Logger.PrintWarning("UpdateFilesWithPlaceHolders", "Found an existing file at {:s}. This will overwrite it.".format(str(Path(updated_file_name).absolute())))
+
+    with open(updated_file_name, "w") as file_output:
+        file_output.write(data)
+
+    Kratos.Logger.PrintInfo("UpdateFilesWithPlaceHolders", "{:s} is updated with place holder values at {:s}.".format(original_file_name, updated_file_name))
+
 
