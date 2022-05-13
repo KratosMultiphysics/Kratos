@@ -81,6 +81,12 @@ public:
         const double ImagValue,
         const double ImagValueDerivative) const;
 
+    double GetFrequencyResolution() const;
+
+    double GetFrequency(const double FrequencyBinIndex) const;
+
+    double GetMaximumFrequency() const;
+
     ///@}
 private:
     ///@name Private Members

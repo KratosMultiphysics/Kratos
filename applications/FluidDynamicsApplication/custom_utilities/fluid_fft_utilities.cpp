@@ -178,5 +178,31 @@ double FluidFFTUtilities::CalculateFFTAmplitudeSquareDerivative(
     KRATOS_CATCH("");
 }
 
+double FluidFFTUtilities::GetFrequencyResolution() const
+{
+    KRATOS_TRY
+
+    return 1.0 / mTotalTime;
+
+    KRATOS_CATCH("");
+}
+
+double FluidFFTUtilities::GetFrequency(const double FrequencyBinIndex) const
+{
+    KRATOS_TRY
+
+    return FrequencyBinIndex / mTotalTime;
+
+    KRATOS_CATCH("");
+}
+
+double FluidFFTUtilities::GetMaximumFrequency() const
+{
+    KRATOS_TRY
+
+    return 1.0 / (mDeltaTime * 2.0);
+
+    KRATOS_CATCH("");
+}
 
 } // namespace Kratos
