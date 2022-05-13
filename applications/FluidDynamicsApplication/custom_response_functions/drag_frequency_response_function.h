@@ -57,7 +57,7 @@ public:
         ModelPart& rModelPart);
 
     /// Destructor.
-    ~DragFrequencyResponseFunction() override = default;
+    ~DragFrequencyResponseFunction() { delete mpFluidFFTUtilities; };
 
     ///@}
     ///@name Operations
