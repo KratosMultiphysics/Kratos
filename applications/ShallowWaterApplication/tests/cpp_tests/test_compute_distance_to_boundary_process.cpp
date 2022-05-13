@@ -47,7 +47,6 @@ void InitializeAndFillModelPart(ModelPart& rModelPart)
 
     rModelPart.AddNodalSolutionStepVariable(DISTANCE);
     StructuredMeshGeneratorProcess(geometry, rModelPart, mesher_parameters).Execute();
-    VariableUtils().SetVariable(DISTANCE, std::numeric_limits<double>::max(), rModelPart.Nodes());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToOneBoundaryProcess, ShallowWaterApplicationFastSuite)
@@ -92,8 +91,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDistanceToTwoBoundariesProcess, ShallowWaterA
         }
     }
 
-    CalculateDistanceToBoundaryProcess(r_model_part, r_boundary_part_1).ExecuteBeforeSolutionLoop();
-    CalculateDistanceToBoundaryProcess(r_model_part, r_boundary_part_2).ExecuteBeforeSolutionLoop();
+    CalculateDistanceToBoundaryProcess proc_1(r_model_part, r_boundary_part_1);
+    CalculateDistanceToBoundaryProcess proc_2(r_model_part, r_boundary_part_2);
+    proc_1.ExecuteBeforeSolutionLoop();
+    proc_2.ExecuteBeforeSolutionLoop();
 
     const double tolerance = 1e-16;
     for (auto& r_node : r_model_part.Nodes()) {

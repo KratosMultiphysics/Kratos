@@ -1,7 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 from KratosMultiphysics.ShallowWaterApplication.utilities.wave_factory import WaveTheoryFactory
-from itertools import count
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -26,8 +25,6 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
             "wave_specifications"       : {}
         }""")
 
-    _instances_count = count(0)
-
     def __init__(self, model, settings):
         """The constructor of the ApplyAbsorbingBoundaryProcess"""
 
@@ -39,12 +36,6 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
         self.model_part = model.GetModelPart(self.settings["computing_model_part_name"].GetString())
         self.boundary_part = model.GetModelPart(self.settings["absorbing_boundary_name"].GetString())
         self.distance_process = SW.CalculateDistanceToBoundaryProcess(self.model_part, self.boundary_part, self.settings["r_squared_threshold"].GetDouble())
-
-        # The distances should be initialized only once
-        if next(self._instances_count) == 0:
-            self.initialize_distances = True
-        else:
-            self.initialize_distances = False
 
         variables_names = KM.SpecificationsUtilities.GetDofsListFromConditionsSpecifications(self.boundary_part)
         self.variables_to_fix = []
@@ -63,12 +54,11 @@ class ApplyAbsorbingBoundaryProcess(KM.Process):
 
     def ExecuteBeforeSolutionLoop(self):
         """Calculate the distances and the damping parameters."""
-        if self.initialize_distances:
-            KM.VariableUtils().SetHistoricalVariableToZero(KM.DISTANCE, self.model_part.Nodes)
         self.distance_process.ExecuteBeforeSolutionLoop()
 
         absorbing_distance = self.wave.wavelength * self.settings["relative_distance"].GetDouble()
         dissipation_factor = self.wave.frequency * self.settings["relative_damping"].GetDouble()
+
         self.model_part.ProcessInfo.SetValue(SW.ABSORBING_DISTANCE, absorbing_distance)
         self.model_part.ProcessInfo.SetValue(SW.DISSIPATION, dissipation_factor)
 

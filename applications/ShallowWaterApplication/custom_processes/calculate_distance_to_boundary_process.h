@@ -86,6 +86,8 @@ public:
             mrModelPart(rModel.GetModelPart(ThisParameters["computing_model_part_name"].GetString())),
             mrBoundaryPart(rModel.GetModelPart(ThisParameters["absorbing_boundary_name"].GetString()))
     {
+        msInstancesCount++;
+        mInitializeDistance = (msInstancesCount == 1);
         ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mRSquaredThreshold = ThisParameters["r_squared_threshold"].GetDouble();
         FindApproximatingGeometry(mpBoundary, mrBoundaryPart);
@@ -100,12 +102,16 @@ public:
             mrModelPart(rComputingModelPart),
             mrBoundaryPart(rBoundaryModelPart)
     {
+        msInstancesCount++;
+        mInitializeDistance = (msInstancesCount == 1);
         mRSquaredThreshold = RSquaredThreshold;
         FindApproximatingGeometry(mpBoundary, mrBoundaryPart);
     }
 
     /// Destructor.
-    virtual ~CalculateDistanceToBoundaryProcess() {}
+    virtual ~CalculateDistanceToBoundaryProcess() {
+        msInstancesCount--;
+    }
 
     ///@}
     ///@name Operators
@@ -167,16 +173,18 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    ModelPart& mrBoundaryPart;
-    GeometryType::Pointer mpBoundary;
-    double mRSquaredThreshold;
-    bool mBruteForceSearch;
+    static std::size_t msInstancesCount;
 
     ///@}
     ///@name Member Variables
     ///@{
 
+    ModelPart& mrModelPart;
+    ModelPart& mrBoundaryPart;
+    GeometryType::Pointer mpBoundary;
+    double mRSquaredThreshold;
+    bool mBruteForceSearch;
+    bool mInitializeDistance;
 
     ///@}
     ///@name Private Operators

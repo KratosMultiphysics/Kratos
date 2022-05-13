@@ -29,6 +29,9 @@
 namespace Kratos
 {
 
+std::size_t CalculateDistanceToBoundaryProcess::msInstancesCount = 0;
+
+
 void CalculateDistanceToBoundaryProcess::FindApproximatingGeometry(
     GeometryType::Pointer& pEntity,
     const ModelPart& rBoundaryPart)
@@ -71,6 +74,7 @@ void CalculateDistanceToBoundaryProcess::FindApproximatingGeometry(
     }
 }
 
+
 double CalculateDistanceToBoundaryProcess::RSquared(const GeometryType& rLine, const ModelPart& rBoundaryPart)
 {
     double areas, squared_deviations;
@@ -88,16 +92,19 @@ double CalculateDistanceToBoundaryProcess::RSquared(const GeometryType& rLine, c
     return 1.0 - squared_deviations / areas;
 }
 
+
 double CalculateDistanceToBoundaryProcess::SquaredDistance(const Point& rPointA, const Point& rPointB)
 {
     array_1d<double,3> vector = rPointA.Coordinates() - rPointB.Coordinates();
     return inner_prod(vector, vector);
 }
 
+
 double CalculateDistanceToBoundaryProcess::Distance(const Point& rPointA, const Point& rPointB)
 {
     return std::sqrt(SquaredDistance(rPointA, rPointB));
 }
+
 
 int CalculateDistanceToBoundaryProcess::Check()
 {
@@ -105,8 +112,13 @@ int CalculateDistanceToBoundaryProcess::Check()
     return 0;
 }
 
+
 void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
 {
+    KRATOS_WATCH(mInitializeDistance)
+    if (mInitializeDistance) {
+        VariableUtils().SetVariable(DISTANCE, std::numeric_limits<double>::max(), mrModelPart.Nodes());
+    }
     if (mBruteForceSearch) {
         block_for_each(mrModelPart.Nodes(), [&](NodeType& rNode){
             double& r_distance = rNode.FastGetSolutionStepValue(DISTANCE);
@@ -124,6 +136,7 @@ void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
         });
     }
 }
+
 
 const Parameters CalculateDistanceToBoundaryProcess::GetDefaultParameters() const
 {
