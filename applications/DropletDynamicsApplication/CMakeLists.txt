@@ -5,7 +5,9 @@ message("**** configuring KratosDropletDynamicsApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../FluidDynamicsApplication )
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
 ## DropletDynamics Core sources
 file(GLOB_RECURSE KRATOS_DROPLET_DYNAMICS_APPLICATION_CORE
@@ -26,7 +28,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_DROPLET_DYNAMICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosDropletDynamicsCore SHARED ${KRATOS_DROPLET_DYNAMICS_APPLICATION_CORE} ${KRATOS_DROPLET_DYNAMICS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosDropletDynamicsCore PUBLIC KratosCore)
+target_link_libraries(KratosDropletDynamicsCore PRIVATE KratosCore KratosFluidDynamicsCore)
 set_target_properties(KratosDropletDynamicsCore PROPERTIES COMPILE_DEFINITIONS "DROPLET_DYNAMICS_APPLICATION=EXPORT,API")
 
 ###############################################################
