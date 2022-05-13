@@ -54,8 +54,9 @@ FluidFFTUtilities::FluidFFTUtilities(
         << "Total time should be equal or grater than windowing time. Try reducing windowing length or increasing total time. [ total_time = "
         << mTotalTime << ", windowing_length = " << mWindowingLength << " ].\n";
 
-    mTotalSteps = static_cast<IndexType>(mTotalTime / mDeltaTime);
-    mWindowingSteps = static_cast<IndexType>(mWindowingLength / mDeltaTime);
+    // 0.5 is added to avoid rounding off errors
+    mTotalSteps = static_cast<IndexType>(mTotalTime / mDeltaTime + 0.5);
+    mWindowingSteps = static_cast<IndexType>(mWindowingLength / mDeltaTime + 0.5);
     mNumberOfFrequencies = static_cast<IndexType>(mTotalSteps / 2);
     mFrequencyResolution = 1.0 / (mDeltaTime * mTotalSteps);
     mWindowingStepsCoefficient = 16.0 / std::pow(mWindowingSteps, 2);
@@ -71,7 +72,7 @@ std::tuple<std::vector<double>, std::vector<double>, std::vector<double>, std::v
 
     KRATOS_ERROR_IF(rValues.size() != mTotalSteps)
         << "Number of steps in values does not match with number of steps from total time. [ number of steps in values = "
-        << rValues.size() << ", number of steps from total time = " << rValues.size() << ", total_time = "
+        << rValues.size() << ", number of steps from total time = " << mTotalSteps << ", total_time = "
         << mTotalTime << ", delta_time = " << mDeltaTime << " ].\n";
 
     VectorType frequency_real_components(mNumberOfFrequencies, 0.0);
