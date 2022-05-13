@@ -45,8 +45,8 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
         "structure_model_part_name" : "PLEASE_SPECIFY_STRUCTURE_MODEL_PART",
         "drag_direction"            : [1.0, 0.0, 0.0],
         "is_real_component"         : true,
-        "frequency_bin_index"       : 1,
-        "window_time_length"        : 300.0,
+        "frequency_bin_index"       : -1,
+        "window_time_length"        : -1.0,
         "echo_level"                : 0
     })");
 
@@ -86,11 +86,6 @@ DragFrequencyResponseFunction<TDim>::DragFrequencyResponseFunction(
         << mFrequencyBinIndex << " ].\n";
 
     mIsRealComponentRequested = Settings["is_real_component"].GetBool();
-    if (mIsRealComponentRequested) {
-        mComponentFunction = [](double x) { return std::cos(x); };
-    } else {
-        mComponentFunction = [](double x) { return std::sin(x); };
-    }
 
     mWindowingLength = Settings["window_time_length"].GetDouble();
     KRATOS_ERROR_IF(mWindowingLength <= 0)
@@ -113,13 +108,9 @@ void DragFrequencyResponseFunction<TDim>::InitializeSolutionStep()
 
         // since transient adjoints are run in backwards in time
         // in here it is assumed that always transient simulations start with time = 0.0s
-        mTotalLength = current_time;
         const double delta_time = -1.0 * r_process_info[DELTA_TIME];
 
-        KRATOS_ERROR_IF(mWindowingLength > mTotalLength)
-            << "Total time length of the simulation should be greater than the "
-            "windowing time length. [ Total time length = "
-            << mTotalLength << "s, windowing time length = " << mWindowingLength << "s ].\n";
+        mpFluidFFTUtilities = new FluidFFTUtilities(current_time, mWindowingLength, delta_time);
 
         KRATOS_INFO_IF("DragFrequencyResponseFunction", mEchoLevel > 0) << "Summary: \n"
             << "\tMain model part name      : " << mrModelPart.Name() << "\n"
@@ -127,15 +118,24 @@ void DragFrequencyResponseFunction<TDim>::InitializeSolutionStep()
             << "\tDrag direction            : " << mDragDirection << "\n"
             << "\tTime step length          : " << delta_time << "s\n"
             << "\tWindowing duration        : " << mWindowingLength << "s\n"
-            << "\tTotal duration            : " << mTotalLength << "s\n"
-            << "\tFrequency resolution      : " << 1.0 / mTotalLength << "Hz\n"
+            << "\tTotal duration            : " << current_time << "s\n"
+            << "\tFrequency resolution      : " << mpFluidFFTUtilities->GetFrequencyResolution() << "Hz\n"
             << "\tEvaluated frequency bin   : " << mFrequencyBinIndex << "\n"
-            << "\tEvaluated frequency       : " << mFrequencyBinIndex / mTotalLength << "Hz \n"
-            << "\tMaximum possible frequency: " << 1.0 / (delta_time * 2.0) << "Hz \n"
+            << "\tEvaluated frequency       : " << mpFluidFFTUtilities->GetFrequency(mFrequencyBinIndex) << "Hz \n"
+            << "\tMaximum possible frequency: " << mpFluidFFTUtilities->GetMaximumFrequency() << "Hz \n"
             << "\tComponent type            : " << (mIsRealComponentRequested ? "real\n" : "imaginary\n");
     }
 
     BaseType::InitializeSolutionStep();
+
+    // Fix coefficients for all elements since they are only time dependent
+    mIsWithinWindowingRange = mpFluidFFTUtilities->IsWithinWindowingRange(current_time);
+
+    if (mIsRealComponentRequested) {
+        mCurrentTimeStepCoefficient = mpFluidFFTUtilities->CalculateHannWindowCoefficient(current_time) * mpFluidFFTUtilities->CalculateFFTRealCoefficient(mFrequencyBinIndex, current_time);
+    } else {
+        mCurrentTimeStepCoefficient = mpFluidFFTUtilities->CalculateHannWindowCoefficient(current_time) * mpFluidFFTUtilities->CalculateFFTImagCoefficient(mFrequencyBinIndex, current_time);
+    }
 
     KRATOS_CATCH("");
 }
@@ -214,22 +214,13 @@ void DragFrequencyResponseFunction<TDim>::CalculateDragFrequencyContribution(
 {
     KRATOS_TRY
 
-    const double current_time = rProcessInfo[TIME];
-    const double offsetted_window_time = current_time - mTotalLength + mWindowingLength;
-
-    // This is a check to see if the offsetted_window_time > 0, but instead of using 0.0,
-    // half of the delta time step is used. It is because, there can be precision errors
-    // in TIME variable which causes sometimes to calculate one additional/less time step contribution.
-    if (offsetted_window_time > -rProcessInfo[DELTA_TIME] / 2.0) {
+    if (mIsWithinWindowingRange) {
         // calculate raw drag sensitivities
         BaseType::CalculateDragContribution(rDerivativesOfResidual, rNodes, rDerivativesOfDrag, rProcessInfo);
 
-        const double component_coefficient = mComponentFunction(2.0 * M_PI * current_time * mFrequencyBinIndex / mTotalLength);
+        // apply hann windowing and fft component coefficient
+        rDerivativesOfDrag *= mCurrentTimeStepCoefficient;
 
-        // Applying Hann window
-        const double windowing_value = 0.5 * (1.0 - std::cos(2.0 * M_PI * offsetted_window_time / mWindowingLength));
-
-        rDerivativesOfDrag *= (component_coefficient * windowing_value);
     } else {
         if (rDerivativesOfDrag.size() != rDerivativesOfResidual.size1()) {
             rDerivativesOfDrag.resize(rDerivativesOfResidual.size1(), false);

@@ -26,6 +26,7 @@
 
 // Application includes
 #include "drag_response_function.h"
+#include "custom_utilities/fluid_fft_utilities.h"
 
 namespace Kratos
 {
@@ -104,16 +105,17 @@ private:
     using BaseType::mDragDirection;
     using BaseType::mStartTime;
 
+    const FluidFFTUtilities* mpFluidFFTUtilities;
+
     int mEchoLevel;
 
     int mFrequencyBinIndex;
     double mWindowingLength;
-    double mTotalLength;
 
     bool mIsRealComponentRequested;
     bool mIsInitialized = false;
-
-    std::function<double(double)> mComponentFunction;
+    bool mIsWithinWindowingRange;
+    double mCurrentTimeStepCoefficient;
 
     ///@}
     ///@name Private Operations
