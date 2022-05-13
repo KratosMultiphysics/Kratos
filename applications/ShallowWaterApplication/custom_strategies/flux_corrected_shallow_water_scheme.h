@@ -201,9 +201,8 @@ public:
             r_node.GetValue(NEGATIVE_RATIO) = 1.0;
         });
 
-        const ProcessInfo& r_const_process_info = rModelPart.GetProcessInfo();
         block_for_each(rModelPart.Elements(), [&](Element& r_elem){
-            ComputeAntiFluxes(r_elem, r_const_process_info);
+            ComputeAntiFluxes(r_elem, rModelPart.GetProcessInfo());
         });
 
         block_for_each(rModelPart.Nodes(), [&](NodeType& r_node){
@@ -518,16 +517,15 @@ protected:
     template<class EntityType>
     void ComputeAntiFluxes(EntityType& rEntity, const ProcessInfo& rProcessInfo)
     {
-        const auto& r_const_entity = rEntity; // TODO: remove that statement as soon as deprecation warnings are removed
         const IndexType t = OpenMPUtils::ThisThread();
 
         rEntity.CalculateMassMatrix(mrMc[t], rProcessInfo);
 
         rEntity.CalculateDampingMatrix(mrD[t], rProcessInfo);
 
-        r_const_entity.GetValuesVector(mrUn0[t]);
+        rEntity.GetValuesVector(mrUn0[t]);
 
-        r_const_entity.GetFirstDerivativesVector(mrDotUn0[t]);
+        rEntity.GetFirstDerivativesVector(mrDotUn0[t]);
 
         ComputeLumpedMassMatrix(mrMc[t], mMl[t]);
 
@@ -579,7 +577,7 @@ protected:
         const LocalSystemVectorType& rU,
         const LocalSystemVectorType& rDotU)
     {
-        if (rMc.size1() != 0) {
+        if (rD.size1() != 0) {
             // Construction of the incremental element contribution of anti-fluxes
             auto& cum = rEntity.GetValue(CUMULATIVE_CORRECTIONS);
             auto aec = prod(rD, rU) + prod(rMl - rMc, rDotU);

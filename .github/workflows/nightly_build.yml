@@ -1,20 +1,6 @@
 name: Nightly Build
 
 on:
-  pull_request:
-    paths:
-    - '.github/workflows/nightly_build.yml'
-    - '.github/workflows/configure.sh'
-    - '.github/workflows/configure.cmd'
-    - 'kratos/**'
-    - 'external_libraries/**'
-    - 'cmake_modules/**'
-    - 'CMakeLists.txt'
-    - 'applications/LinearSolversApplication/**'
-    - 'applications/MetisApplication/**'
-    - 'applications/TrilinosApplication/**'
-
-
   schedule:
     - cron:  '0 1 * * *'
 
@@ -136,3 +122,26 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/run_tests.py -l nightly -c python
+
+  centos-nightly:
+    runs-on: ubuntu-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-centos7-python35:latest
+      options: --user 1001
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Build
+      run: |
+        cp .github/workflows/centos_configure.sh centos_configure.sh
+        bash centos_configure.sh
+
+    - name: Running nightly tests
+      run: |
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3.5 kratos/python_scripts/run_tests.py -l nightly -c python3.5

@@ -13,7 +13,6 @@ def Say(*args):
 
 class SwimmingDEMSolver(PythonSolver):
 
-    @classmethod
     def GetDefaultParameters(cls):
         # default settings string in json format
         default_settings = Parameters("""{
