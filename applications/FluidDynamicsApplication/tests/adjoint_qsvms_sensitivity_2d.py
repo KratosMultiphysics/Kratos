@@ -62,7 +62,7 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_parameters.json')
-            step_size = 1e-7
+            step_size = 1e-9
             fd_sensitivities = FiniteDifferenceBodyFittedDragFrequencyShapeSensitivityAnalysis.ComputeSensitivity(
                 node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
                 'MainModelPart.NoSlip2D_Cylinder',
@@ -81,7 +81,7 @@ class AdjointQSVMSSensitivity2D(KratosUnittest.TestCase):
 
             # calculate sensitivity by finite difference
             primal_parameters = AdjointQSVMSSensitivity2D._ReadParameters('./AdjointQSVMSSensitivity2DTest/cylinder_test_parameters.json')
-            step_size = 1e-8
+            step_size = 1e-9
             fd_sensitivities = FiniteDifferenceBodyFittedDragFrequencyShapeSensitivityAnalysis.ComputeSensitivity(
                 node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
                 'MainModelPart.NoSlip2D_Cylinder',

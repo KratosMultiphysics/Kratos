@@ -1,8 +1,8 @@
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
-from KratosMultiphysics.FluidDynamicsApplication.adjoint_stabilization_utilities import CalculateDragFrequencyDistribution
 
 import os
 from math import fabs
@@ -214,7 +214,11 @@ class FiniteDifferenceBodyFittedDragFrequencyShapeSensitivityAnalysis:
         def compute_drag_amplitude(kratos_parameters):
             primal_problem_solving_method(kratos_parameters)
             time_steps, reactions = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis._ReadDrag(output_file_name)
-            _, frequency_real_components, frequency_imag_components, _ = CalculateDragFrequencyDistribution(time_steps, reactions, drag_direction, windowing_length)
+            delta_time = time_steps[1] - time_steps[0]
+            drag_values = [0.0] * len(time_steps)
+            for i, reaction in enumerate(reactions):
+                drag_values[i] = reaction[0] * drag_direction[0] + reaction[1] * drag_direction[1] + reaction[2] * drag_direction[2]
+            _, frequency_real_components, frequency_imag_components, _ = KratosCFD.FluidFFTUtilities(time_steps[-1], windowing_length, delta_time).CalculateFFTFrequencyDistribution(drag_values)
             if is_real_component:
                 return frequency_real_components[frequency_bin_index]
             else:
