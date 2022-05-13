@@ -1,4 +1,4 @@
-from KratosMultiphysics import Testing
+from KratosMultiphysics import Testing, Tester
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
@@ -24,6 +24,8 @@ class TestLoader(TestLoader):
 
         return allTests
 
+    def loadTestsFromCppSuiteName(self, cppSuiteName):
+        return self.loadTestsFromTestCase(CppTestCaseFactory(cppSuiteName))
 
 test_timing_results = {}
 
@@ -125,6 +127,16 @@ class TestCase(TestCase):
         for i in range(matrix1.Size1()):
             for j in range(matrix1.Size2()):
                 self.assertAlmostEqual(matrix1[i,j], matrix2[i,j], places, LazyValErrMsg(i,j,msg), delta)
+
+
+def CppTestCaseFactory(cpp_suite_name):
+    def test_execution(self):
+        Tester.RunTestSuite(self.cpp_suite_name)
+    return type(cpp_suite_name, (TestCase, ), {
+        'cpp_suite_name' : cpp_suite_name,
+        'test_execution' : test_execution
+    })
+
 
 class KratosTextTestResult(TextTestResult):
     def __init__(self, stream, descriptions, verbosity):
@@ -229,7 +241,7 @@ def runTests(tests):
     # parse command line options
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-l', '--level', default='all', choices=['all', 'nightly', 'small', 'validation'])
+    parser.add_argument('-l', '--level', default='all', choices=['all', 'cpp', 'nightly', 'small', 'validation'])
     parser.add_argument('-v', '--verbosity', default=2, type=int, choices=[0, 1, 2])
     parser.add_argument('--timing', action='store_true')
     parser.add_argument('--using-mpi', action='store_true')
@@ -252,6 +264,7 @@ def runTests(tests):
 
 
 KratosSuites = {
+    'cpp':            TestSuite(),
     'small':          TestSuite(),
     'nightly':        TestSuite(),
     'all':            TestSuite(),

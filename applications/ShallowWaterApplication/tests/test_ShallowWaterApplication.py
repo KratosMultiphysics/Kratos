@@ -40,6 +40,10 @@ def AssembleTestSuites():
     '''
     suites = KratosUnittest.KratosSuites
 
+    # Populate the cpp test suite
+    cppSuite = suites['cpp']
+    cppSuite.addTests(TestLoader().loadTestsFromCppSuiteName('ShallowWaterApplicationFastSuite'))
+
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeResidualViscosity2D3NElement]))
