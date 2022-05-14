@@ -181,11 +181,17 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         # reset gradients
         self.gradients = {}
         for node_id, real_sensitivity in real_sensitivities.items():
-            self.gradients[node_id] = self.fluid_fft_utilities.CalculateFFTAmplitudeSquareDerivative(
-            self.max_frequency_real_component,
-            real_sensitivity,
-            self.max_frequency_imag_component,
-            imag_sensitivities[node_id])
+            imag_sensitivity = imag_sensitivities[node_id]
+
+            frequency_amplitude_square_sensitivity = Kratos.Array3(0.0)
+            for i in range(3):
+                frequency_amplitude_square_sensitivity[i] = self.fluid_fft_utilities.CalculateFFTAmplitudeSquareDerivative(
+                        self.max_frequency_real_component,
+                        real_sensitivity[i],
+                        self.max_frequency_imag_component,
+                        imag_sensitivity[i])
+
+            self.gradients[node_id] = frequency_amplitude_square_sensitivity
 
         if self.response_settings["clean_primal_solution"].GetBool():
             shutil.rmtree(self.response_settings["primal_solution_folder_name"].GetString())
