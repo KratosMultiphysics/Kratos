@@ -134,4 +134,23 @@ GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourE
     } */
 
 
+std::vector<std::string> GenericFindElementalNeighboursProcess::HelperTestFunctionReturnPointersInStr(unsigned int elem_id)
+{
+    std::vector<std::string> pointers_in_str_format;
+
+    auto& rElement = mr_model_part.GetElement(elem_id);
+    
+    if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
+        ElementPointerVector& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+        pointers_in_str_format.resize(r_neighbour_elements.size());
+        for( unsigned int i = 0 ; i < r_neighbour_elements.size(); i++){ //all against all
+            std::stringstream ss;
+            ss << r_neighbour_elements(i).get();  
+            pointers_in_str_format[i] = ss.str(); 
+        }
+    }
+    return pointers_in_str_format;
+}
+
+
 } /* namespace Kratos.*/

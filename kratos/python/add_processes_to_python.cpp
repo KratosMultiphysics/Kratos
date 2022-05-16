@@ -721,6 +721,7 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<GenericFindElementalNeighboursProcess, GenericFindElementalNeighboursProcess::Pointer, Process> (m, "GenericFindElementalNeighboursProcess")
     .def(py::init<ModelPart&>())
+    .def("HelperTestFunctionReturnPointersInStr", &GenericFindElementalNeighboursProcess::HelperTestFunctionReturnPointersInStr)
     ;
 }
 

@@ -86,6 +86,7 @@ public:
     void ExecuteInitialize() override;
     
 
+    std::vector<std::string> HelperTestFunctionReturnPointersInStr(unsigned int elem_id) ;
 
     ///@}
     ///@name Access
