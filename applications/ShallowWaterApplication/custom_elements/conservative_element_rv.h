@@ -202,22 +202,6 @@ protected:
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,3,2>& rDN_DX);
 
-    void StreamLineTensor(
-        BoundedMatrix<double,2,2>& rTensor,
-        const array_1d<double,3>& rVector);
-
-    void CrossWindTensor(
-        BoundedMatrix<double,2,2>& rTensor,
-        const array_1d<double,3>& rVector);
-
-    void StreamLineTensor(
-        BoundedMatrix<double,3,3>& rTensor,
-        const array_1d<double,3>& rVector);
-
-    void CrossWindTensor(
-        BoundedMatrix<double,3,3>& rTensor,
-        const array_1d<double,3>& rVeector);
-
     ///@}
 
 private:
