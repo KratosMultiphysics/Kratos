@@ -2527,9 +2527,17 @@ def SetNodalValuesForPointOutputProcesses(model_part):
 
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
     current_model = model_part.GetModel()
+
+    # create lists of processes the same way it is happening for analysis_stage.py
     list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )
+    list_of_output_processes = []
+    if settings.Has("output_process_list"):
+        list_of_output_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
+        settings["output_process_list"] )
+    list_of_processes.extend(list_of_output_processes)
 
+    # call the methods of processes the same order it is happening in analysis_stage.py
     for process in list_of_processes:
         process.ExecuteInitialize()
 
@@ -2545,13 +2553,17 @@ def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
             process.ExecuteInitializeSolutionStep()
 
         for process in list_of_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        for process in list_of_processes:
             process.ExecuteBeforeOutputStep()
+
+        for output_process in list_of_output_processes:
+            if output_process.IsOutputStep():
+                output_process.PrintOutput()
 
         for process in list_of_processes:
             process.ExecuteAfterOutputStep()
-
-        for process in list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
 
     for process in list_of_processes:
         process.ExecuteFinalize()
