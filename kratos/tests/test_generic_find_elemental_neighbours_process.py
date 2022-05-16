@@ -43,7 +43,7 @@ class TestGenericFindElementalNeighboursProcess(KratosUnittest.TestCase):
             this_elem_null_pointers_expected = null_pointers_faces_dict.get(elem_id)
             self.assertEqual(len(neigh_elems_pointers_str),4)
             for face in range(len(neigh_elems_pointers_str)):
-                is_null_pointer = neigh_elems_pointers_str[face]=="0000000000000000"
+                is_null_pointer = (neigh_elems_pointers_str[face]=="0000000000000000" or neigh_elems_pointers_str[face]=="0" )
                 self.assertEqual(is_null_pointer,this_elem_null_pointers_expected[face])
                 
         
