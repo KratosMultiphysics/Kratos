@@ -53,9 +53,8 @@ class WaveSolver(ShallowWaterBaseSolver):
     def _CreateScheme(self):
         scheme = self.settings["time_integration_scheme"].GetString()
         if scheme == "bdf":
-            scheme_settings = KM.Parameters("""{
-                "solution_variables" : ["VELOCITY","HEIGHT"]
-            }""")
+            scheme_settings = KM.Parameters()
+            scheme_settings.AddStringArray("solution_variables", ["VELOCITY","HEIGHT"])
             scheme_settings.AddValue("integration_order", self.settings["time_integration_order"])
             time_scheme = SW.ShallowWaterResidualBasedBDFScheme(scheme_settings)
         else:
