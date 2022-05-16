@@ -58,22 +58,6 @@ class DefaultController(Controller):
         self.ExecuteOperations()
 
 
-class SingleUseController(Controller):
-    """!Controller that executes its operations only on the first call."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__is_called = False
-
-    def IsExecuteStep(self) -> bool:
-        return not self.__is_called
-
-    def __call__(self) -> None:
-        if not self.__is_called:
-            self.ExecuteOperations()
-            self.__is_called = True
-
-
 class TemporalController(Controller):
     """!@brief Frequency-based controller.
     @detail Controls execution according to the 'time_frequency' and 'step_frequency'
@@ -128,8 +112,6 @@ def Factory(model_part: KratosMultiphysics.ModelPart, io: file_io._FileIO, setti
     controller_type = settings['controller_type']
     if controller_type == 'default_controller':
         return DefaultController(model_part, io)
-    elif controller_type == "single_use_controller":
-        return SingleUseController(model_part, io)
     elif controller_type == 'temporal_controller':
         return TemporalController(model_part, io, settings)
     else:

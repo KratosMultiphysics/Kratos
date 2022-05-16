@@ -91,9 +91,6 @@ def CreateCoreSettings(user_settings, model):
                 "io_type": "serial_hdf5_file_io",
                 "file_name": "<model_part_name>-<time>.h5"
             },
-            "controller_settings" : {
-                "controller_type" : "single_use_controller"
-            },
             "list_of_operations": []
         },{
             "model_part_name" : "",
