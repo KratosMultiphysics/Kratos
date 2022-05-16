@@ -109,17 +109,17 @@ class OrderedOutputOperationProcess(KratosMultiphysics.OutputProcess, OrderedOpe
 
     def IsOutputStep(self) -> bool:
         """!True if this step is an output step for any assigned controller."""
-        return any(controller.IsExecuteStep() for controller in self.__GetAggregateControllerList())
+        return any(controller.IsExecuteStep() for controller in self.__GetLoopControllers())
 
     def PrintOutput(self) -> None:
         """!Bypass checks and execute all processes assigned to each registered controller."""
-        for controller in self.__GetAggregateControllerList():
+        for controller in self.__GetLoopControllers():
             controller.ExecuteOperations()
 
     # TODO: remove the double quotes from the return type hint after adopting python3.9 or newer
-    def __GetAggregateControllerList(self) -> "list[controllers.Controller]":
-        """!Get all registered controllers."""
-        return sum([self.initialize_controllers,self.before_solution_loop_controllers,self.initialize_solution_step_controllers,self.finalize_solution_step_controllers,self.before_output_step_controllers,self.after_output_step_controllers,self.finalize_controllers],[])
+    def __GetLoopControllers(self) -> "list[controllers.Controller]":
+        """!Get controllers registered to loop events."""
+        return sum([self.initialize_solution_step_controllers,self.finalize_solution_step_controllers,self.before_output_step_controllers,self.after_output_step_controllers,self.finalize_controllers],[])
 ##!@}
 
 

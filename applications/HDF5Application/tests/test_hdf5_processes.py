@@ -511,7 +511,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 "problem_data" : {
                     "problem_name" : "test_OutputProcess",
                     "start_time" : 0.0,
-                    "end_time" : 2.0,
+                    "end_time" : 5.0,
                     "echo_level" : 0,
                     "parallel_type" : "OpenMP"
                 },
@@ -550,13 +550,14 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 }]}}
             ''')
 
-        with ScopedMDPA("test_OutputProcess"):
-            from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-            model = KratosMultiphysics.Model()
-            simulation = StructuralMechanicsAnalysis(model, settings)
-            simulation.Run()
+        with patch("KratosMultiphysics.HDF5Application.core.controllers.Controller.ExecuteOperations") as mocked_execute:
+            with ScopedMDPA("test_OutputProcess"):
+                from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+                model = KratosMultiphysics.Model()
+                simulation = StructuralMechanicsAnalysis(model, settings)
+                simulation.Run()
 
-        self.assertEqual(self.HDF5FileSerial.call_count, 3)
+            self.assertEqual(mocked_execute.call_count, 1 + 5)
 
 
 if __name__ == "__main__":
