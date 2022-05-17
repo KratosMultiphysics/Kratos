@@ -17,7 +17,7 @@ def Factory(settings, Model):
     else:
         return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
-class GiDOutputProcess(KM.Process):
+class GiDOutputProcess(KM.OutputProcess):
 
     defaults = KM.Parameters('''{
         "result_file_configuration": {
@@ -92,7 +92,7 @@ class GiDOutputProcess(KM.Process):
                     }
 
     def __init__(self,model_part,file_name,param = None):
-        KM.Process.__init__(self)
+        super().__init__()
 
         if param is None:
             param = self.defaults
