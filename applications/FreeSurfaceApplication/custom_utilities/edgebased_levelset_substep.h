@@ -3146,14 +3146,18 @@ namespace Kratos
         void CalculateNormal3D(ModelPart::ConditionsContainerType::iterator cond_it, array_1d<double, 3> &area_normal, array_1d<double, 3> &v1, array_1d<double, 3> &v2)
         {
             Geometry<Node<3>> &face_geometry = (cond_it)->GetGeometry();
+
             v1[0] = face_geometry[1].X() - face_geometry[0].X();
             v1[1] = face_geometry[1].Y() - face_geometry[0].Y();
             v1[2] = face_geometry[1].Z() - face_geometry[0].Z();
+
             v2[0] = face_geometry[2].X() - face_geometry[0].X();
             v2[1] = face_geometry[2].Y() - face_geometry[0].Y();
             v2[2] = face_geometry[2].Z() - face_geometry[0].Z();
+
             MathUtils<double>::CrossProduct(area_normal, v1, v2);
             area_normal *= -0.5;
+
             noalias((cond_it)->GetValue(NORMAL)) = area_normal;
         }
         //*********************************************************
