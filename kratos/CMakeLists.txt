@@ -6,6 +6,7 @@ else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
     include_directories(${KRATOS_SOURCE_DIR}/external_libraries/delaunator-cpp/include)
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
+include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/memory/include )
 
 SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions processes response_functions solving_strategies spaces spatial_containers utilities)
 
@@ -86,7 +87,14 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
   set(KRATOS_EXTERNAL_LIBRARIES ${KRATOS_EXTERNAL_LIBRARIES} triangle)
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
-target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
+# Set Intel TBB on if selected
+if(${USE_INTEL_TBB} MATCHES ON)
+  find_package(TBB REQUIRED)
+  set(KRATOS_INTEL_TBB TBB::tbb TBB::tbbmalloc)
+  add_definitions(-DKRATOS_INTEL_TBB)
+endif(${USE_INTEL_TBB} MATCHES ON)
+
+target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES} ${KRATOS_INTEL_TBB})
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)

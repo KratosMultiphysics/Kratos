@@ -3,6 +3,8 @@
 set CC=cl.exe
 set CXX=cl.exe
 
+CALL "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
+
 set KRATOS_SOURCE=%2
 set KRATOS_BUILD=%KRATOS_SOURCE%/build
 set KRATOS_APP_DIR=applications
@@ -59,8 +61,6 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
--DUSE_EIGEN_MKL=ON                                                                          ^
--DMKLROOT="C:\Program Files (x86)\Intel\oneAPI\mkl\latest"                                  ^
 -DKRATOS_BUILD_TESTING=OFF                                                                  ^
 -DINSTALL_RUNKRATOS=OFF
 
