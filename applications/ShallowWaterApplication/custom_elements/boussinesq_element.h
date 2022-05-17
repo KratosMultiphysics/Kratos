@@ -215,7 +215,8 @@ protected:
         const Vector& rWeights);
 
     void AddAuxiliaryLaplacian(
-        LocalMatrixType& rLaplacian,
+        LocalMatrixType& rVelocityLaplacian,
+        LocalMatrixType& rMomentumLaplacian,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,

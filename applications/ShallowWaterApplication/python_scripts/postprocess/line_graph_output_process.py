@@ -133,7 +133,7 @@ class LineGraphOutputProcess(KM.OutputProcess):
 
         time = self.model_part.ProcessInfo.GetValue(KM.TIME)
         dummy_extension = ".z" #NOTE: the dummy extension will be replaced by the file utility. It is used to keep the decimals.
-        self.file_settings["file_name"].SetString(self.file_name + '-' + self.time_format.format(time) + dummy_extension)
+        self.file_settings["file_name"].SetString(self.file_name + '_' + self.time_format.format(time) + dummy_extension)
         file = TimeBasedAsciiFileWriterUtility(self.model_part, self.file_settings, self._GetHeader()).file
         for point, entity, area_coords in zip(self.found_positions, self.entities, self.area_coords):
             file.write(self._GetPointData(point, entity, area_coords))
@@ -189,8 +189,12 @@ class LineGraphOutputProcess(KM.OutputProcess):
 
 
     def _GetHeader(self):
-        start = list(self.found_positions[0])
-        end = list(self.found_positions[-1])
+        if len(self.found_positions) > 1:
+            start = list(self.found_positions[0])
+            end = list(self.found_positions[-1])
+        else:
+            start = "'NOT FOUND'"
+            end = "'NOT FOUND'"
         time = self.model_part.ProcessInfo[KM.TIME]
         header = "# Results for '{}s' over line {}-{} at time {}\n# ".format(self.entity_type, start, end, time)
         coordinates = ["X", "Y", "Z"]
