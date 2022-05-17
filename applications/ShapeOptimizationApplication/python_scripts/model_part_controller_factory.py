@@ -47,7 +47,8 @@ class ModelPartController:
             "mesh_motion" : {
                 "apply_mesh_solver" : false
             },
-            "iteration_directory": "optimization_iterations"
+            "iteration_directory": "optimization_iterations",
+            "write_iteration_restart_files": false
         }""")
 
         self.model_settings.ValidateAndAssignDefaults(default_settings)
@@ -72,6 +73,7 @@ class ModelPartController:
         self.damping_utility = None
 
         self.iteration_directory = self.model_settings["iteration_directory"].GetString()
+        self.is_iteration_restart_files_written = self.model_settings["write_iteration_restart_files"].GetBool()
 
     # --------------------------------------------------------------------------
     def Initialize(self):
@@ -132,6 +134,10 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def GetIterationDirectory(self):
         return self.iteration_directory
+
+    # --------------------------------------------------------------------------
+    def IsIterationRestartFilesWritten(self):
+        return self.is_iteration_restart_files_written
 
     # --------------------------------------------------------------------------
     def DampNodalVariableIfSpecified(self, variable):

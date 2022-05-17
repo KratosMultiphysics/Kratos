@@ -20,6 +20,8 @@ import KratosMultiphysics as KM
 # Additional imports
 from .analyzer_base import AnalyzerBaseClass
 from .response_functions import response_function_factory as sho_response_factory
+from .response_data_io import GetObjectiveValue
+from .response_data_io import GetObjectiveSensitivityValues
 try:
     from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
 except ImportError:
@@ -84,6 +86,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             optimization_model_part.ProcessInfo.SetValue(KM.DELTA_TIME, 0)
 
             # now we scope in to the directory where response operations are done
+            optimization_path = str(pathlib.Path(".").absolute())
             with IterationScope(identifier, optimizationIteration, response.IsEvaluatedInFolder()):
                 response.UpdateDesign(optimization_model_part, KM.SHAPE_SENSITIVITY)
 
@@ -91,13 +94,11 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
 
                 # response values
                 if communicator.isRequestingValueOf(identifier):
-                    response.CalculateValue()
-                    communicator.reportValue(identifier, response.GetValue())
+                    communicator.reportValue(identifier, GetObjectiveValue(response, identifier, optimizationIteration, optimization_path, self.model_part_controller.IsIterationRestartFilesWritten()))
 
                 # response gradients
                 if communicator.isRequestingGradientOf(identifier):
-                    response.CalculateGradient()
-                    communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
+                    communicator.reportGradient(identifier, GetObjectiveSensitivityValues(response, identifier, optimizationIteration, optimization_path, self.model_part_controller.IsIterationRestartFilesWritten()))
 
                 response.FinalizeSolutionStep()
 
