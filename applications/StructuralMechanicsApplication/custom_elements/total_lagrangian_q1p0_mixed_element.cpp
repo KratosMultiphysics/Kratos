@@ -338,7 +338,6 @@ void TotalLagrangianQ1P0MixedElement::CalculateOnIntegrationPoints(
     const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     const std::size_t number_of_integration_points = integration_points.size();
-    const auto &r_geometry = GetGeometry();
 
     if (rOutput.size() != number_of_integration_points)
         rOutput.resize(number_of_integration_points, false);
