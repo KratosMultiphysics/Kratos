@@ -2266,7 +2266,7 @@ namespace Kratos
                 else
                 {
                     for (unsigned int if_node = 0; if_node < TDim; if_node++)
-                        if (face_geometry[if_node].IsFixed(VELOCITY_X))
+                        if (face_geometry[if_node].Is(INLET) || face_geometry[if_node].Is(OUTLET))
                             is_inlet_or_outlet = true;
                 }
                 // slip condition
