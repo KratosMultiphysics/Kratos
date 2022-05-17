@@ -1,4 +1,5 @@
 {
+    "analysis_stage"   : "KratosMultiphysics.FreeSurfaceApplication.free_surface_analysis",
     "problem_data" : {
         "problem_name"      : "Reservoir2D",
         "parallel_type"     : "OpenMP",
@@ -33,5 +34,54 @@
             "input_type"        : "mdpa",
             "input_filename"    : "Reservoir2D"
         }
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [{
+            "python_module" : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "Reservoir2D.SubModelPart_Auto1",
+                "variable_name"   : "DISTANCE",
+                "constrained"     : false,
+                "value"           : -1.0,
+                "interval"        : [0.0,0.0]
+	   }
+        }],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_inlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyInletProcess",
+            "Parameters"    : {
+                "model_part_name" : "Reservoir2D.SubModelPart_Auto2",
+                "variable_name"   : "VELOCITY",
+                "constrained"     : true,
+                "modulus"         : 1.0,
+                "direction"       : "automatic_inwards_normal",
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplyOutletProcess",
+            "Parameters"    : {
+                "model_part_name"    : "Reservoir2D.SubModelPart_Auto3",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_slip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name"  : "ApplySlipProcess",
+            "Parameters"    : {
+                "model_part_name" : "Reservoir2D.SubModelPart_Auto4"
+            }
+        }],
+        "gravity"                          : [],
+        "auxiliar_process_list"            : []
     }
 }
