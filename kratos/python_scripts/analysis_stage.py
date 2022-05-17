@@ -19,6 +19,7 @@ class AnalysisStage(object):
         model -- The Model to be used
         project_parameters -- The ProjectParameters used
         """
+        print("class AnalysisStage(object): in analysis_stage.py has been constructed1")
         if not isinstance(model, KratosMultiphysics.Model):
             raise Exception("Input is expected to be provided as a Kratos Model object")
 
@@ -27,7 +28,7 @@ class AnalysisStage(object):
 
         self.model = model
         self.project_parameters = project_parameters
-
+        print("class AnalysisStage(object): in analysis_stage.py has been constructed2")
         ## Get echo level and parallel type
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
@@ -37,14 +38,18 @@ class AnalysisStage(object):
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"OpenMP" is specified as "parallel_type", but Kratos is running distributed!')
         if self.parallel_type == "MPI" and not is_distributed_run:
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
-
+        print("Before self._GetSolver().AddVariables()")
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
+        print("After self._GetSolver().AddVariables()")
 
     def Run(self):
         """This function executes the entire AnalysisStage
         It can be overridden by derived classes
         """
         self.Initialize()
+        print("After self.Initialize")
+        # import pdb
+        # pdb.set_trace()
         self.RunSolutionLoop()
         self.Finalize()
 
@@ -91,6 +96,7 @@ class AnalysisStage(object):
             process.ExecuteInitialize()
 
         self._GetSolver().Initialize()
+        self._GetSolver().SetInitialConditions()
         self.Check()
 
         self.ModifyAfterSolverInitialize()
@@ -112,7 +118,6 @@ class AnalysisStage(object):
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
 
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
-
     def Finalize(self):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
@@ -191,8 +196,9 @@ class AnalysisStage(object):
 
     def ApplyBoundaryConditions(self):
         """here the boundary conditions is applied, by calling the InitializeSolutionStep function of the processes"""
-
+        print("inside ApplyBoundaryConditions")
         for process in self._GetListOfProcesses():
+            print("inside ApplyBoundaryConditions and process")
             process.ExecuteInitializeSolutionStep()
 
         #other operations as needed

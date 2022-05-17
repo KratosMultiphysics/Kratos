@@ -239,15 +239,15 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         print("InitializeSolutionStep")
-        self.step=1
-        #section_nodes = [] 
+        #self.step=1
+        # section_nodes = [] 
         print(self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
         #if(self.step==self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]):
         if(1==2):    
             print("setting bcs")
             for node in self.fluid_solver.main_model_part.Nodes:
-                #if (node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)==1):
-                    # section_nodes.append(node)
+                if (node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)==1):
+                    section_nodes.append(node)
                 #for node in lagrangian_model_part.Nodes :
                 node.Free(KratosMultiphysics.VELOCITY_X)
                 node.Free(KratosMultiphysics.VELOCITY_Y)
@@ -331,13 +331,13 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
                 node.SetSolutionStepValue(PfemM.SCALARVELOCITY_Z,1,vel_old_z);  
         
         
-            #self.section_nodes= section_nodes 
+            # self.section_nodes= section_nodes 
 
         self.fluid_solver.InitializeSolutionStep()
 
     def SetInitialConditions(self):
         print("SetInitialConditions")
-        self.step=0
+        # self.step=1
         section_nodes = [] 
         for node in self.fluid_solver.main_model_part.Nodes:
             if (node.GetSolutionStepValue(KratosMultiphysics.FLAG_VARIABLE)==1):
@@ -521,17 +521,24 @@ class PfemCoupledFluidThermalSolver(PythonSolver):
 
         fluid_is_converged = self.fluid_solver.SolveSolutionStep()
         time=self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        print("time=", time)
+        
 
         fx = 0.0
         fy = 0.0
+        counter=0
         for node in self.section_nodes:
-            fx -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_X,0)
-            fy -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y,0)
-        print(fx)
-        print(fy)
-        self.outputfile6=open(self.outstring5, 'a')
-        self.outputfile6.write(str(time)+" "+ str(fx) +" "+  str(fy) +" "+ str(0.0) +"\n")
-        self.outputfile6.close()
+         fx -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_X,0)
+         fy -= node.GetSolutionStepValue(KratosMultiphysics.REACTION_Y,0)
+         counter+=1
+         if (counter==432 or counter==431):
+          self.outputfile6.write(str(time)+" "+"\n")
+          print("at the end")
+        print(counter)
+
+        
+        # self.outputfile6.write(str(time)+" "+ str(fx) +" "+  str(fy) +" "+ str(0.0) +"\n")
+
         return (fluid_is_converged) 
 
     

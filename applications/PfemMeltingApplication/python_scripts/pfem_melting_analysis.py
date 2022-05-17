@@ -16,15 +16,17 @@ class PfemMeltingAnalysis(AnalysisStage):
 
     It can be imported and used as "black-box"
     """
+    
     def __init__(self, model, project_parameters):
         # Making sure that older cases still work by properly initalizing the parameters
+        print("PfemMeltingAnalysisWithFlush in pfem_melting_analysis.py has been constructed1")
         solver_settings = project_parameters["solver_settings"]
          
         if not solver_settings.Has("domain_size"):
             KratosMultiphysics.Logger.PrintInfo("PfemMeltingAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
-        
+        print("PfemMeltingAnalysisWithFlush in pfem_melting_analysis.py before super(PfemMeltingAnalysis, self).__init__(model, project_parameters)")
         super(PfemMeltingAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
