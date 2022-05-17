@@ -796,7 +796,6 @@ public:
     void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "DistributedCsrMatrix" << std::endl;
-        PrintData(rOStream);
     }
 
     /// Print object's data.
