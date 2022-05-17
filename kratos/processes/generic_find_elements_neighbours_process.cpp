@@ -134,22 +134,17 @@ GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourE
     } */
 
 
-std::vector<std::string> GenericFindElementalNeighboursProcess::HelperTestFunctionReturnPointersInStr(unsigned int elem_id)
+std::vector<bool> GenericFindElementalNeighboursProcess::HasNeighboursInFaces(const Element& rElement)
 {
-    std::vector<std::string> pointers_in_str_format;
-
-    auto& rElement = mr_model_part.GetElement(elem_id);
-    
+    std::vector<bool> has_neigh_in_faces;    
     if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
-        ElementPointerVector& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
-        pointers_in_str_format.resize(r_neighbour_elements.size());
+        const ElementPointerVector& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
+        has_neigh_in_faces.resize(r_neighbour_elements.size());
         for( unsigned int i = 0 ; i < r_neighbour_elements.size(); i++){ //all against all
-            std::stringstream ss;
-            ss << r_neighbour_elements(i).get();  
-            pointers_in_str_format[i] = ss.str(); 
+            has_neigh_in_faces[i] = (r_neighbour_elements(i).get() != nullptr);
         }
     }
-    return pointers_in_str_format;
+    return has_neigh_in_faces;
 }
 
 

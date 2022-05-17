@@ -86,7 +86,7 @@ public:
     void ExecuteInitialize() override;
     
 
-    std::vector<std::string> HelperTestFunctionReturnPointersInStr(unsigned int elem_id) ;
+    std::vector<bool> HasNeighboursInFaces(const Element&) ;
 
     ///@}
     ///@name Access

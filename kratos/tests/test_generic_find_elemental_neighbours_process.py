@@ -28,23 +28,22 @@ class TestGenericFindElementalNeighboursProcess(KratosUnittest.TestCase):
         proc.ExecuteInitialize()
 
         #expected results. faces which have a null pointer (no neigh elem in face)
-        null_pointers_faces_dict = {
-            1 : [False,False,True,True],
-            2 : [True,False,False,True],
-            3 : [False,False,True,True],
-            4 : [True,False,False,True],
-            5 : [True,False,False,True],
-            6 : [False,False,True,True]
+        has_neigh_in_faces_dict = {
+            1 : [True,True,False,False],
+            2 : [False,True,True,False],
+            3 : [True,True,False,False],
+            4 : [False,True,True,False],
+            5 : [False,True,True,False],
+            6 : [True,True,False,False]
         }
 
         for elem in model_part.Elements:
             elem_id = elem.Id
-            neigh_elems_pointers_str = proc.HelperTestFunctionReturnPointersInStr(elem_id)
-            this_elem_null_pointers_expected = null_pointers_faces_dict.get(elem_id)
-            self.assertEqual(len(neigh_elems_pointers_str),4)
-            for face in range(len(neigh_elems_pointers_str)):
-                is_null_pointer = (neigh_elems_pointers_str[face]=="0000000000000000" or neigh_elems_pointers_str[face]=="0" )
-                self.assertEqual(is_null_pointer,this_elem_null_pointers_expected[face])
+            this_elem_has_neigh_in_faces = proc.HasNeighboursInFaces(elem)
+            this_elem_expected = has_neigh_in_faces_dict.get(elem_id)
+            self.assertEqual(len(this_elem_has_neigh_in_faces),4)
+            for face in range(len(this_elem_has_neigh_in_faces)):
+                self.assertEqual(this_elem_has_neigh_in_faces[face],this_elem_expected[face])
                 
         
 
