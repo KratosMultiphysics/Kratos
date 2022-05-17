@@ -1544,7 +1544,7 @@ Begin NodalData DISTANCE
 488 1 -1.00000e+00
 End NodalData
 
-Begin ConditionalData IS_STRUCTURE
+Begin ConditionalData IS_SLIP
 7 1.0
 9 1.0
 10 1.0
