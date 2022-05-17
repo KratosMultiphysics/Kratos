@@ -375,20 +375,20 @@ namespace Kratos
             max_dt = MaxDt;
             // local variable for time step size
             // getting value of current velocity and of viscosity
-            mr_matrix_container.FillScalarFromDatabase(VISCOSITY, mViscosity, mr_model_part.Nodes());
-            mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
-            mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
-            mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
-            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
-            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
+            //          mr_matrix_container.FillScalarFromDatabase (VISCOSITY, mViscosity, mr_model_part.Nodes() );
+            //         mr_matrix_container.FillScalarFromDatabase (POROSITY, mEps, mr_model_part.Nodes() );
+            //         mr_matrix_container.FillScalarFromDatabase (PRESSURE, mPn1, mr_model_part.Nodes() );
+            //         mr_matrix_container.FillScalarFromDatabase (DISTANCE, mdistances, mr_model_part.Nodes() );
+            //         mr_matrix_container.FillVectorFromDatabase (VELOCITY, mvel_n1, mr_model_part.Nodes() );
+            //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
+            //
+            //         mr_matrix_container.FillOldVectorFromDatabase (VELOCITY, mvel_n, mr_model_part.Nodes() );
+            //         mr_matrix_container.FillOldScalarFromDatabase (PRESSURE, mPn, mr_model_part.Nodes() );
 
-            mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, mr_model_part.Nodes());
-            mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, mr_model_part.Nodes());
-
-            // mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
-            mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
-            mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
-            // double delta_t_i = delta_t;
+            //         mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+            //         mr_matrix_container.FillScalarFromDatabase (LIN_DARCY_COEF, mA, mr_model_part.Nodes() );
+            //         mr_matrix_container.FillScalarFromDatabase (NONLIN_DARCY_COEF, mB, mr_model_part.Nodes() );
+            //            double delta_t_i = delta_t;
             //*******************
             // loop over all nodes
             int n_nodes = static_cast<int>(mvel_n1.size());
