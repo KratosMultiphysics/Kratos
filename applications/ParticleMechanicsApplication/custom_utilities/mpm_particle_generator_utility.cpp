@@ -305,6 +305,7 @@ namespace MPMParticleGeneratorUtility
                         array_1d<double, 3> xg;
 
                         const GeometryData::KratosGeometryType geo_type = r_geometry.GetGeometryType();
+                        IntegrationMethod integration_method = r_geometry.GetDefaultIntegrationMethod();
 
                         if (is_equal_int_volumes){
                             if (geo_type == GeometryData::KratosGeometryType::Kratos_Line2D2  || geo_type == GeometryData::KratosGeometryType::Kratos_Line3D2)
@@ -317,6 +318,7 @@ namespace MPMParticleGeneratorUtility
                                 IntegrationPointUtilities::CreateIntegrationPoints1D(
                                             integration_points, spans, integration_info);
 
+                                integration_method = integration_info.GetIntegrationMethod(0);
                             }
                             else{
                                 std::string warning_msg = "Equal distribution of particle conditions only available for line segments: ";
@@ -333,6 +335,7 @@ namespace MPMParticleGeneratorUtility
                             
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GAUSS);
                                 r_geometry.CreateIntegrationPoints(integration_points,integration_info);
+                                integration_method = integration_info.GetIntegrationMethod(0);
                             }
 
                         }
@@ -436,8 +439,8 @@ namespace MPMParticleGeneratorUtility
                                 local_coordinates = integration_points[i_integration_point];
                                 
                                 r_geometry.GlobalCoordinates(xg, local_coordinates);
-
-                                mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point);
+                                
+                                mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point, integration_method);
                                 
                                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                                 Element::Pointer pelem;
@@ -809,21 +812,6 @@ namespace MPMParticleGeneratorUtility
         }
     }
 
-    void GetIntegrationPointArea(const GeometryType& rGeom, const IntegrationMethod IntegrationMethod, Vector& rIntVolumes)
-    {
-        auto int_points = rGeom.IntegrationPoints(IntegrationMethod);
-        if (rIntVolumes.size() != int_points.size()) rIntVolumes.resize(int_points.size(),false);
-
-        // Computing the Jacobian
-        Vector jac_vec(int_points.size());
-        rGeom.DeterminantOfJacobian(jac_vec,IntegrationMethod);
-
-        for (size_t i = 0; i < int_points.size(); ++i) {
-            rIntVolumes[i] = jac_vec[i] * int_points[i].Weight();
-
-        }
-
-    }
 
     void DetermineIntegrationMethodAndShapeFunctionValues(const GeometryType& rGeom, const SizeType ParticlesPerElement,
         IntegrationMethod& rIntegrationMethod, Matrix& rN, bool& IsEqualVolumes)
@@ -963,7 +951,7 @@ namespace MPMParticleGeneratorUtility
                 rNumPointsPerSpan = 1;
                 std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(ParticlesPerCondition);
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
-                warning_msg += "Available options are: 1 (default), 3, 6, 12, 16 and 33.\n";
+                warning_msg += "Available options are: 1 (default), 3, 6 and 12.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
                 KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
                 break;
