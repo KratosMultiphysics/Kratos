@@ -32,26 +32,28 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
     block_for_each(mr_model_part.Elements(), [&](Element & rElement) {
         //creating temp face conditions
         Geometry<Node<3> >& geom = rElement.GetGeometry();
-        const PointerVector<GeometryType> ElemFaces = geom.GenerateFaces();
-        const unsigned int nFaces = ElemFaces.size();
+        const unsigned int nFaces = geom.FacesNumber();
+        const unsigned int nEdges = geom.EdgesNumber();
+        const unsigned int nBoundaries = nFaces>1 ? nFaces : nEdges ; //for 3D cases, neigh elems are connected by faces.
+        const PointerVector<GeometryType> ElemBoundaries = nFaces>1 ? geom.GenerateFaces() : geom.GenerateEdges() ;
 
         //initializing elem neighbours
         if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
             ElementPointerVector& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
-            r_neighbour_elements.reserve(nFaces); 
+            r_neighbour_elements.reserve(nBoundaries); 
             r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
         } else {
             ElementPointerVector empty_vector;
-            empty_vector.reserve(nFaces); 
+            empty_vector.reserve(nBoundaries); 
             rElement.SetValue(NEIGHBOUR_ELEMENTS, empty_vector);
         }
         ElementPointerVector& rElemNeighbours = rElement.GetValue(NEIGHBOUR_ELEMENTS);
         //resizing vector to correct dimension
-        rElemNeighbours.resize(nFaces);
+        rElemNeighbours.resize(nBoundaries);
 
         //looping faces of element to find neighb element sharing the same face
-        for(unsigned int i_face=0; i_face<nFaces; i_face++){
-            rElemNeighbours(i_face) = CheckForNeighbourElems(ElemFaces[i_face], rElement);
+        for(unsigned int i_boundary=0; i_boundary<nBoundaries; i_boundary++){
+            rElemNeighbours(i_boundary) = CheckForNeighbourElems(ElemBoundaries[i_boundary], rElement);
         }
     });
 
@@ -59,35 +61,35 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
 }
 
 
-GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourElems (const Geometry<Node<3> >& rFaceGeom,
+GlobalPointer<Element> GenericFindElementalNeighboursProcess::CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
                                                  Element & rElement)
 {
     //creating a a vector of all the elem pointers
     //therefore the elem of interest will be repeated as many times as nodes in the faces are
-    ElementPointerVector PointersOfAllFaceNodes;
-    const unsigned int nNodes = rFaceGeom.size();
+    ElementPointerVector PointersOfAllBoundaryNodes;
+    const unsigned int nNodes = rBoundaryGeom.size();
     for( unsigned int node_i = 0 ; node_i < nNodes; node_i++){ //starting from node 1
-        const ElementPointerVector& rNeighCandidates_i = rFaceGeom[node_i].GetValue(NEIGHBOUR_ELEMENTS);
+        const ElementPointerVector& rNeighCandidates_i = rBoundaryGeom[node_i].GetValue(NEIGHBOUR_ELEMENTS);
         for( unsigned int candidate_i_k = 0 ; candidate_i_k < rNeighCandidates_i.size(); candidate_i_k++){ //all against all
-            PointersOfAllFaceNodes.push_back(rNeighCandidates_i(candidate_i_k));
+            PointersOfAllBoundaryNodes.push_back(rNeighCandidates_i(candidate_i_k));
         }
     }
 
     //the element itsef will also be present in the n nodes, so must be avoided
     const unsigned int main_elem_id = rElement.Id();
     //we will take the pointers in the first node as candidates
-    const unsigned int nCandidates =  rFaceGeom[0].GetValue(NEIGHBOUR_ELEMENTS).size();
-    const unsigned int nCompleteList = PointersOfAllFaceNodes.size();
+    const unsigned int nCandidates =  rBoundaryGeom[0].GetValue(NEIGHBOUR_ELEMENTS).size();
+    const unsigned int nCompleteList = PointersOfAllBoundaryNodes.size();
     for( unsigned int j = 0 ; j < nCandidates; j++){ 
         unsigned int repetitions = 1 ; //the current one must be added
-        if(PointersOfAllFaceNodes[j].Id()!=main_elem_id){ //ignoring main node
+        if(PointersOfAllBoundaryNodes[j].Id()!=main_elem_id){ //ignoring main node
             for( unsigned int k = nCandidates ; k < nCompleteList; k++){ //starting from pointers belonging to the next node
-                if(  PointersOfAllFaceNodes(j).get() == PointersOfAllFaceNodes(k).get() ){
+                if(  PointersOfAllBoundaryNodes(j).get() == PointersOfAllBoundaryNodes(k).get() ){
                     repetitions++;
                 }
             }
             if(repetitions==nNodes){
-                return PointersOfAllFaceNodes(j);
+                return PointersOfAllBoundaryNodes(j);
             }
         }
     }

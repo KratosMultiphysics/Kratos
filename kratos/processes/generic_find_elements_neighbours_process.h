@@ -148,7 +148,7 @@ protected:
     ///@{
 
 
-    GlobalPointer<Element> CheckForNeighbourElems (const Geometry<Node<3> >& rFaceGeom,
+    GlobalPointer<Element> CheckForNeighbourElems (const Geometry<Node<3> >& rBoundaryGeom,
                                                    Element & rElement);
 
 

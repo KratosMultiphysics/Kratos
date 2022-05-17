@@ -563,6 +563,17 @@ public:
         return edges;
     }
 
+        /**
+     * @brief Returns the number of faces of the current geometry.
+     * @see EdgesNumber
+     * @see Edges
+     * @see Faces
+     */
+    SizeType FacesNumber() const override
+    {
+        return 1;
+    }
+
     /** This method checks if an axis-aliged bounding box (AABB)
     intersects the quadrilateral
 
