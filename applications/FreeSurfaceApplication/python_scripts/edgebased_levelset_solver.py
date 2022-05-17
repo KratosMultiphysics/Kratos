@@ -222,9 +222,6 @@ class EdgeBasedLevelSetSolver(PythonSolver):
 
         return new_time
 
-    def InitializeSolutionStep(self):
-        self.fluid_solver.InitializeSolutionStep()
-
     def SolveSolutionStep(self) -> bool:
         """Perform a local solution loop until the time step size shrinks to the target bounds."""
         # Note:

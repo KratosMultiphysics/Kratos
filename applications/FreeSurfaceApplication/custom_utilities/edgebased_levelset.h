@@ -201,19 +201,14 @@ namespace Kratos
                  inode++)
             {
                 int index = inode->FastGetSolutionStepValue(AUX_INDEX);
-                if (inode->IsFixed(VELOCITY_X)) // note that the variables can be either all fixed or no one fixed
-                {
-                    if (inode->IsFixed(VELOCITY_Y) == false || inode->IsFixed(VELOCITY_Z) == false)
-                    {
-                        std::cout << "error found on the fixity of node " << inode->Id() << std::endl;
-                        KRATOS_THROW_ERROR(std::logic_error, "velocities can be either all fixed or none fixed", "")
-                    }
 
+                if (inode->Is(INLET) || inode->IsFixed(VELOCITY_X) || inode->IsFixed(VELOCITY_Y) || inode->IsFixed(VELOCITY_Z))
+                {
                     tempFixedVelocities.push_back(index);
                     tempFixedVelocitiesValues.push_back(mvel_n1[index]);
                 }
 
-                if (inode->IsFixed(PRESSURE))
+                if (inode->Is(OUTLET) || inode->IsFixed(PRESSURE))
                 {
                     tempPressureOutletList.push_back(index);
                     //		    mPressureOutlet.push_back(external_pressure[index]);
@@ -301,72 +296,6 @@ namespace Kratos
                 array_1d<double, 3> &press_proj = inode->FastGetSolutionStepValue(PRESS_PROJ);
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                     press_proj[l_comp] = temp[l_comp];
-            }
-
-            KRATOS_CATCH("")
-        }
-
-        void InitializeSolutionStep()
-        {
-            KRATOS_TRY
-
-            // get number of nodes
-            unsigned int n_nodes = mr_model_part.Nodes().size();
-
-            mvel_n1.resize(n_nodes);
-            mr_matrix_container.SetToZero(mvel_n1);
-            mPn1.resize(n_nodes);
-            mr_matrix_container.SetToZero(mPn1);
-
-            // read velocity and pressure data from Kratos
-            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
-            mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, mr_model_part.Nodes());
-
-            // set flag for first time step
-            mFirstStep = false;
-
-            // loop to categorize boundary nodes
-            std::vector<unsigned int> tempFixedVelocities;
-            std::vector<array_1d<double, TDim>> tempFixedVelocitiesValues;
-            std::vector<unsigned int> tempPressureOutletList;
-            for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-                 inode != mr_model_part.NodesEnd();
-                 inode++)
-            {
-                int index = inode->FastGetSolutionStepValue(AUX_INDEX);
-                if (inode->IsFixed(VELOCITY_X)) // note that the variables can be either all fixed or no one fixed
-                {
-                    if (inode->IsFixed(VELOCITY_Y) == false || inode->IsFixed(VELOCITY_Z) == false)
-                    {
-                        std::cout << "error found on the fixity of node " << inode->Id() << std::endl;
-                        KRATOS_THROW_ERROR(std::logic_error, "velocities can be either all fixed or none fixed", "")
-                    }
-
-                    tempFixedVelocities.push_back(index);
-                    tempFixedVelocitiesValues.push_back(mvel_n1[index]);
-                }
-
-                if (inode->IsFixed(PRESSURE))
-                {
-                    tempPressureOutletList.push_back(index);
-                    //		    mPressureOutlet.push_back(external_pressure[index]);
-                }
-            }
-            mFixedVelocities.resize(tempFixedVelocities.size(), false);
-            mFixedVelocitiesValues.resize(tempFixedVelocitiesValues.size(), false);
-            mPressureOutletList.resize(tempPressureOutletList.size(), false);
-
-#pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(tempFixedVelocities.size()); i++)
-            {
-                mFixedVelocities[i] = tempFixedVelocities[i];
-                mFixedVelocitiesValues[i] = tempFixedVelocitiesValues[i];
-            }
-
-#pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(tempPressureOutletList.size()); i++)
-            {
-                mPressureOutletList[i] = tempPressureOutletList[i];
             }
 
             KRATOS_CATCH("")
