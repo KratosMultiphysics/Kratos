@@ -97,8 +97,7 @@ class EdgeBasedLevelSetSolver(PythonSolver):
         self.distance_utils = self.__MakeDistanceUtilities()
 
         # Declare other members
-        # initialized by __MakeEdgeBasedLevelSet after reading the ModelPart
-        self.fluid_solver = None
+        self.fluid_solver          = None # initialized by __MakeEdgeBasedLevelSet after reading the ModelPart
         self.safety_factor = self.max_safety_factor
         self.current_step_size = self.initial_time_step_size
         self.current_max_step_size = self.max_time_step_size

@@ -88,9 +88,7 @@ namespace Kratos
             mMolecularViscosity = viscosity;
 
             for (unsigned int i = 0; i < TDim; i++)
-            {
                 mBodyForce[i] = body_force[i];
-            }
 
             mRho = density;
 
@@ -202,7 +200,7 @@ namespace Kratos
             {
                 int index = inode->FastGetSolutionStepValue(AUX_INDEX);
 
-                if (inode->Is(INLET) || inode->IsFixed(VELOCITY_X) || inode->IsFixed(VELOCITY_Y) || inode->IsFixed(VELOCITY_Z))
+                if (inode->Is(INLET))
                 {
                     tempFixedVelocities.push_back(index);
                     tempFixedVelocitiesValues.push_back(mvel_n1[index]);

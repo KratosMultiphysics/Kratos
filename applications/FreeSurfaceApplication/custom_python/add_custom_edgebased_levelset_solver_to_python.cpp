@@ -96,11 +96,7 @@ namespace Kratos
 
             py::class_<MatrixContainerC2C<2, SparseSpaceType>>(pymodule, "MatrixContainerC2C2D").def(py::init<>()).def("ConstructCSRVector", &MatrixContainerC2C<2, SparseSpaceType>::ConstructCSRVector).def("BuildCSRData", &MatrixContainerC2C<2, SparseSpaceType>::BuildCSRData).def("Clear", &MatrixContainerC2C<2, SparseSpaceType>::Clear);
 
-            py::class_<MatrixContainerC2C<3, SparseSpaceType>>(pymodule, "MatrixContainerC2C3D")
-                .def(py::init<>())
-                .def("ConstructCSRVector", &MatrixContainerC2C<3, SparseSpaceType>::ConstructCSRVector)
-                .def("BuildCSRData", &MatrixContainerC2C<3, SparseSpaceType>::BuildCSRData)
-                .def("Clear", &MatrixContainerC2C<3, SparseSpaceType>::Clear);
+            py::class_<MatrixContainerC2C<3, SparseSpaceType>>(pymodule, "MatrixContainerC2C3D").def(py::init<>()).def("ConstructCSRVector", &MatrixContainerC2C<3, SparseSpaceType>::ConstructCSRVector).def("BuildCSRData", &MatrixContainerC2C<3, SparseSpaceType>::BuildCSRData).def("Clear", &MatrixContainerC2C<3, SparseSpaceType>::Clear);
 
             py::class_<EdgeBasedLevelSetSubstep<2, MatrixContainerC2C<2, SparseSpaceType>, SparseSpaceType, LinearSolverType>>(pymodule, "EdgeBasedLevelSetSubstep2D")
                 .def(py::init<MatrixContainerC2C<2, SparseSpaceType> &, ModelPart &, const double, const double, const Vector, bool, double, double, double, double, bool>())

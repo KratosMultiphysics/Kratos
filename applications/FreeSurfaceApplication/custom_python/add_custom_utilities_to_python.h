@@ -10,12 +10,10 @@
 //  Main authors:    Antonia Larese
 //
 
-
-#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
 // System includes
-
 
 // External includes
 #include <pybind11/pybind11.h>
@@ -27,17 +25,16 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-
 namespace Kratos
 {
 
     namespace Python
     {
 
-        void  AddCustomUtilitiesToPython(pybind11::module& pymodule);
+        void AddCustomUtilitiesToPython(pybind11::module &pymodule);
 
-    }  // namespace Python.
+    } // namespace Python.
 
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined
