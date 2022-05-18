@@ -857,7 +857,7 @@ public:
      */
     SizeType EdgesNumber() const override
     {
-        return 3;
+        return 1;
     }
 
     /**
