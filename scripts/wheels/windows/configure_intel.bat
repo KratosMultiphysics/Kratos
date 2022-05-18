@@ -3,6 +3,8 @@
 set CC=cl.exe
 set CXX=cl.exe
 
+CALL "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
+
 set KRATOS_SOURCE=%2
 set KRATOS_BUILD=%KRATOS_SOURCE%/build
 set KRATOS_APP_DIR=applications
