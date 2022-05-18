@@ -393,8 +393,6 @@ private:
         FindGlobalNodalNeighboursProcess nodal_neighbour_process_new(r_smoothing_model_part);
         nodal_neighbour_process_new.Execute();
 
-        const unsigned int num_neighbouring_elements = TDim + 1;
-
         GenericFindElementalNeighboursProcess neighbour_elements_finder_new(r_smoothing_model_part);
         neighbour_elements_finder_new.ExecuteInitialize();
 
