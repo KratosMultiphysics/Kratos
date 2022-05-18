@@ -48,7 +48,7 @@ function build_core_wheel ($pythonLocation, $prefixLocation, $buildPrefix) {
 
 function build_application_wheel ($pythonPath, $app, $buildPrefix) {
     setup_wheel_dir
-    cp "$($kratosRoot)\applications\$($app)\$(buildPrefix)$($app).json" "$($wheelRoot)\wheel.json"
+    cp "$($kratosRoot)\applications\$($app)\$($buildPrefix)$($app).json" "$($wheelRoot)\wheel.json"
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel #pythonpath
     cp "$($wheelRoot)\dist\*" $wheelOutDir
