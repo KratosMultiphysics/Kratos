@@ -857,7 +857,7 @@ public:
      */
     SizeType EdgesNumber() const override
     {
-        return 1;
+        return 3;
     }
 
     /**
@@ -879,7 +879,7 @@ public:
 
     SizeType FacesNumber() const override
     {
-        return 3;
+        return 1;
     }
 
     //Connectivities of faces required
