@@ -209,7 +209,7 @@ namespace Kratos
             {
                 int index = inode->FastGetSolutionStepValue(AUX_INDEX);
 
-                 if (inode->Is(INLET))
+                if (inode->Is(INLET))
                 {
                     tempFixedVelocities.push_back(index);
                     tempFixedVelocitiesValues.push_back(mvel_n1[index]);
