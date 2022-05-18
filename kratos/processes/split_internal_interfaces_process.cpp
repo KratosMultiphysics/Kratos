@@ -57,7 +57,6 @@ void SplitInternalInterfacesProcess::ExecuteInitialize()
     }
 
     if(property_ids.size()) {
-        std::size_t domain_size = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension(); //TODO: this may not be a very good solution.
         GenericFindElementalNeighboursProcess(mrModelPart).ExecuteInitialize();
         for (auto it=property_ids.begin(); it!=(--property_ids.end()); ++it) {
             std::size_t id = *it;
