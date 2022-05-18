@@ -28,13 +28,13 @@ function  setup_wheel_dir {
     mkdir "$($wheelRoot)\KratosMultiphysics\.libs"
 }
 
-function build_core_wheel ($pythonLocation, $prefixLocation) {
+function build_core_wheel ($pythonLocation, $prefixLocation, $buildPrefix) {    
     setup_wheel_dir
     cd $kratosRoot
 
-    cp $prefixLocation\KratosMultiphysics\*         "$($wheelRoot)\KratosMultiphysics"
-    cp $kratosRoot\kratos\KratosMultiphysics.json   "$($wheelRoot)\wheel.json"
-    cp $kratosRoot\scripts\wheels\__init__.py       "$($wheelRoot)\KratosMultiphysics\__init__.py"
+    cp $prefixLocation\KratosMultiphysics\*                     "$($wheelRoot)\KratosMultiphysics"
+    cp $kratosRoot\kratos\$(buildPrefix)KratosMultiphysics.json "$($wheelRoot)\wheel.json"
+    cp $kratosRoot\scripts\wheels\__init__.py                   "$($wheelRoot)\KratosMultiphysics\__init__.py"
 
     cd $wheelRoot
 
@@ -46,9 +46,9 @@ function build_core_wheel ($pythonLocation, $prefixLocation) {
     rm -r $wheelRoot
 }
 
-function build_application_wheel ($pythonPath, $app) {
+function build_application_wheel ($pythonPath, $app, $buildPrefix) {
     setup_wheel_dir
-    cp "$($kratosRoot)\applications\$($app)\$($app).json" "$($wheelRoot)\wheel.json"
+    cp "$($kratosRoot)\applications\$($app)\$(buildPrefix)$($app).json" "$($wheelRoot)\wheel.json"
     cd $wheelRoot
     & $pythonPath setup.py bdist_wheel #pythonpath
     cp "$($wheelRoot)\dist\*" $wheelOutDir
@@ -101,13 +101,13 @@ foreach ($python in $pythons){
     Write-Host "Finished build"
 
     Write-Host "Building Core Wheel"
-    build_core_wheel $pythonLocation $prefixLocation
+    build_core_wheel $pythonLocation $prefixLocation "Intel-"
 
     $applications = Get-ChildItem -Path "${prefixLocation}\applications" -Directory -Force -ErrorAction SilentlyContinue
     
     Write-Host "Building App Wheels"
     foreach($app in $applications) {
-        build_application_wheel $pythonLocation $app
+        build_application_wheel $pythonLocation $app "Intel-"
     }
 
     Write-Host "Finished wheel construction for python $($python)"
