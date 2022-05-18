@@ -66,7 +66,7 @@ if "licence" in conf:
         elif tag == "BSD":
             kratos_classifiers.append("License :: OSI Approved :: BSD License")
         else:
-            print("[WARNING] Unknown licence tag: {}".format(tag))")
+            print("[WARNING] Unknown licence tag: {}".format(tag))
             kratos_classifiers.append("License :: Other/Proprietary License")
 else:
     kratos_classifiers.append("License :: OSI Approved :: BSD License")

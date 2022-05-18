@@ -6,11 +6,14 @@ SHELL ["cmd", "/S", "/C"]
 # Temp dir
 RUN mkdir c:\TEMP;
 
-# MKL
+# Please, keep intel layers at the begining as they are heavy and should not be touched so often.
+# TODO: consider moving to base image containing this.
+
+# Install Intel MKL
 COPY w_onemkl_p_2022.0.3.171_offline.exe C:\\TEMP\\mkl.exe
 RUN C:\TEMP\mkl.exe -s -a --silent --eula accept
 
-# TBB
+# Install Intel TBB
 COPY w_tbb_oneapi_p_2021.5.2.785_offline.exe C:\\TEMP\\tbb.exe
 RUN C:\TEMP\tbb.exe -s -a --silent --eula accept
 
@@ -29,31 +32,31 @@ RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache \
  || IF "%ERRORLEVEL%"=="3010" EXIT 0 ; \
  	$ErrorActionPreference = 'Stop'
 
-#install chocolatey
+# Install chocolatey
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     iex ((New-Object System.Net.WebClient).DownloadString('http://chocolatey.org/install.ps1'))
 
-#install git
+# Install 7zip
 RUN powershell.exe -Command \
     choco install -y 7zip.install
 
-#install git
+# Install git
 RUN powershell.exe -Command \
     choco install -y git
 
-#install cmake
+# Install cmake
 RUN powershell.exe -Command \
     choco install -y cmake
 
-#download and extract boost
+# Download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
-#Install python 3.5
+# Install python 3.5
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://www.python.org/ftp/python/3.5.4/python-3.5.4-amd64.exe -OutFile c:\temp\python35.exe; \
@@ -62,7 +65,7 @@ RUN powershell.exe -Command \
     c:\python\35\python.exe -m pip install --upgrade pip; \
     c:\python\35\python.exe -m pip install --upgrade setuptools wheel
 
-#Install python 3.6
+# Install python 3.6
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe -OutFile c:\temp\python36.exe; \
@@ -72,7 +75,7 @@ RUN powershell.exe -Command \
     c:\python\36\python.exe -m pip install --upgrade setuptools wheel
 
 
-#Install python 3.7
+# Install python 3.7
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile c:\temp\python37.exe; \
@@ -81,7 +84,7 @@ RUN powershell.exe -Command \
     c:\python\37\python.exe -m pip install --upgrade pip; \
     c:\python\37\python.exe -m pip install --upgrade setuptools wheel
 
-#Install python 3.8
+# Install python 3.8
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://www.python.org/ftp/python/3.8.2/python-3.8.2-amd64.exe -OutFile c:\temp\python38.exe; \
@@ -90,7 +93,7 @@ RUN powershell.exe -Command \
     c:\python\38\python.exe -m pip install --upgrade pip; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
 
-#Install python 3.9
+# Install python 3.9
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
     wget https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe -OutFile c:\temp\python39.exe; \
@@ -106,7 +109,7 @@ RUN powershell.exe -Command \
 # 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/libblas.lib -OutFile c:\libs\libblas.lib; \
 # 	wget https://icl.cs.utk.edu/lapack-for-windows/libraries/VisualStudio/3.7.0/Dynamic-MINGW/Win64/liblapack.lib -OutFile c:\libs\liblapack.lib
 
-#set env variables
+# Set env variables
 ENV CMAKE       "C:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe"
 ENV SEVEN_ZIP   "C:\\7zip\\7z.exe"
 ENV VCVARS      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\\"

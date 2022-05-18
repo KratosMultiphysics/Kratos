@@ -16,11 +16,9 @@ set PYTHON_EXECUTABLE=%1
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 
-
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
-
 
 echo %KRATOS_SOURCE%
 echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
@@ -32,8 +30,6 @@ cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BU
 -DCMAKE_C_FLAGS="/MP24 /Gm- /Zm10"                                                          ^
 -DCMAKE_CXX_FLAGS="/MP24 /Gm- /Zm10"                                                        ^
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
--DUSE_EIGEN_MKL=ON                                                                          ^
--DMKLROOT="C:\Program Files (x86)\Intel\oneAPI\mkl\latest"                                  ^
 -DUSE_EIGEN_MKL=ON                                                                          ^
 -DUSE_INTEL_TBB=ON                                                                          ^
 -DKRATOS_BUILD_TESTING=OFF                                                                  ^
