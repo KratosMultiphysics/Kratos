@@ -47,6 +47,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def InitializeOptimizationLoop(self):
         super().InitializeOptimizationLoop()
         self.opt_algorithm.Initialize()
+        self._InitializeCSVLogger()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -67,8 +68,22 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             for control in self.controls:
                 self.controls_controller.UpdateControl(control,False)            
 
-            # do all analyses
-            self.analyses_controller.RunAnalyses(self.analyses)
+
+            # evaluate all analysis-based responses
+            for analysis in self.analyses_responses.keys():
+                self.analyses_controller.RunAnalysis(analysis)
+                for response in self.analyses_responses[analysis]:
+                    response_value = self.responses_controller.CalculateResponseValue(response)
+                    self.SetResponseValue(response,response_value)
+                    self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
+
+            # evaluate all analysis-free responses  
+            for response in self.analysis_free_responses:
+                response_value = self.responses_controller.CalculateResponseValue(response)
+                self.SetResponseValue(response,response_value)
+                self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])   
+
+            self._WriteCurrentResponseValuesToCSVFile()
 
             # compute objective values
             responses_value = self.responses_controller.CalculateResponsesValue(self.objectives)
