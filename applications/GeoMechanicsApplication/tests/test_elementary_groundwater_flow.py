@@ -3,15 +3,15 @@ import os
 from functools import reduce
 import math
 
-# sys.path.append(os.path.join(r'D:/kratos_new/bin/Debug'))
-# sys.path.append(os.path.join('..', '..', '..'))
-# sys.path.append(os.path.join('..', 'python_scripts'))
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
 
 class FlowCalculations:
+    """
+    Analytical flow calculation class used only during testing
+
+    """
     def __init__(self, intrinsic_permeability=1.157e-12):
         self.intrinsic_permeability = intrinsic_permeability
         self.density_water = 1000
@@ -53,6 +53,10 @@ class LatexWriterFile:
 
 
 class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
+    """
+    Class that contains elementary groundwater flow tests.
+
+    """
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
@@ -64,6 +68,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         pass
 
     def test_hydrostatic_conditions(self):
+        """ Hydrostatic conditions test """
         test_name = 'test_elementary_groundwater_flow/benchmark_1_hydrostatic.gid'
         self.latex_writer.filename = \
             test_helper.get_file_path(
@@ -87,6 +92,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         self.latex_writer.write_latex_file_and_assert([p3, p4, phi1, phi2, phi3, phi4, hydraylic_disc])
 
     def test_saturated_flow_pressure_bound(self):
+        """ Fully saturated soil with pressure boundary """
         test_name = 'test_elementary_groundwater_flow/benchmark_1_saturated_flow_pressure_bound.gid'
         self.latex_writer.filename = \
             test_helper.get_file_path("test_elementary_groundwater_flow/benchmark_1_saturated_flow_pressure_bound.gid/"
@@ -132,6 +138,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
                                                        specific_discharge])
 
     def test_saturated_flow_head_bound(self):
+        """ Fully saturated soil with head boundary """
         test_name = 'test_elementary_groundwater_flow/benchmark_3_saturated_flow_head_bound.gid'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
         self.latex_writer.filename = \
@@ -179,6 +186,7 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
                                                        specific_discharge])
 
     def test_saturated_flux_bound(self):
+        """ Fully saturated soil with flux boundary """
         test_name = 'test_elementary_groundwater_flow/benchmark_4_saturated_flux_bound.gid'
         file_path = test_helper.get_file_path(os.path.join('.', test_name))
         simulation = test_helper.run_kratos(file_path)
