@@ -149,7 +149,7 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
     for (unsigned int i_ne = 0; i_ne < neighbour_elems.size(); i_ne++){
         array_1d<double,2> outer_grad_h;
         array_1d<double,2> normal;
-        if(nullptr == neighbour_elems(i_ne).get()){
+        if(nullptr != neighbour_elems(i_ne).get()){
             CalculateGradient(outer_grad_h, neighbour_elems[i_ne].GetGeometry());
             CalculateEdgeUnitNormal(normal, neighbour_elems[i_ne].GetGeometry());
         } else {
