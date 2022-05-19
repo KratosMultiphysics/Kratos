@@ -28,7 +28,6 @@
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/find_global_nodal_neighbours_for_entities_process.h"
 #include "processes/find_global_nodal_elemental_neighbours_process.h"
@@ -213,11 +212,6 @@ void  AddProcessesToPython(pybind11::module& m)
     py::class_<FindConditionsNeighboursProcess, FindConditionsNeighboursProcess::Pointer, Process>(m,"FindConditionsNeighboursProcess")
             .def(py::init<ModelPart&, int, unsigned int>())
     .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
-    ;
-
-    py::class_<FindElementalNeighboursProcess, FindElementalNeighboursProcess::Pointer, Process>(m,"FindElementalNeighboursProcess")
-            .def(py::init<ModelPart&, int, unsigned int>())
-    .def("ClearNeighbours",&FindElementalNeighboursProcess::ClearNeighbours)
     ;
 
     py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")
