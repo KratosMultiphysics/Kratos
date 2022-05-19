@@ -134,6 +134,7 @@ void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
     const double u_char = mUchar;
     const double alpha = mAlpha;
     Matrix inv_permeability = ZeroMatrix(dim,dim);
+    Matrix I = IdentityMatrix(dim, dim);
 
     double du1dt, du2dt, du11, du12, du111, du112, du121, du122, du21, du22, du211, du212, du221, du222;
     // Computation of the BodyForce and Porosity fields
@@ -209,7 +210,10 @@ void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
         double det_permeability = MathUtils<double>::Det(permeability);
         MathUtils<double>::InvertMatrix(permeability, inv_permeability, det_permeability, -1.0);
 
-        Matrix sigma = nu * rho * inv_permeability;
+        double velocity_norm = std::sqrt(r_u1 * r_u1 + r_u2 * r_u2);
+        double kappa = 1.0;
+
+        Matrix sigma = 0.0 * I;
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
@@ -230,25 +234,25 @@ void PorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
             const double grad_alpha_div1 = r_alpha1 * (du11 + du22);
             const double grad_alpha_div2 = r_alpha2 * (du11 + du22);
 
-            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2.0 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2.0 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + sigma(0,0) * r_u1 + sigma(0,1) * r_u2;
 
-            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2.0 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2.0 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + sigma(1,0) * r_u1 + sigma(1,1) * r_u2;
 
         }else{
-            r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+            r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(0,1) * r_u2;
 
-            r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+            r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(1,0) * r_u1 + sigma(1,1) * r_u2;
         }
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-        it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
-        it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+        //it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
+        //it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
         // it_node->FastGetSolutionStepValue(VELOCITY_X,1) = r_u1;
         // it_node->FastGetSolutionStepValue(VELOCITY_Y,1) = r_u2;
         // it_node->FastGetSolutionStepValue(VELOCITY_X,2) = r_u1;
         // it_node->FastGetSolutionStepValue(VELOCITY_Y,2) = r_u2;
-        it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
+        //it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
         it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
     }
 
