@@ -24,7 +24,9 @@
 #include "custom_processes/bump_transient_porosity_solution_body_force_process.h"
 #include "custom_processes/porosity_solution_and_sinusoidal_body_force_process.h"
 #include "custom_processes/porosity_solution_and_body_force_process.h"
+#include "custom_processes/codina2001_porosity_solution_and_body_force_process.h"
 #include "custom_processes/skrzypacz_porosity_solution_and_body_force_process.h"
+#include "custom_processes/skrzypacz_homogeneous_porosity_solution_and_body_force_process.h"
 #include "custom_processes/sinusoidal_porosity_solution_transient_body_force_process.h"
 #include "custom_processes/sinusoidal_porosity_solution_and_body_force_process.h"
 #include "custom_processes/hyperbolic_tangential_porosity_solution_and_body_force_process.h"
@@ -69,6 +71,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart&, Parameters& >())
     ;
 
+    py::class_<SkrzypaczHomogeneousPorositySolutionAndBodyForceProcess, SkrzypaczHomogeneousPorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "SkrzypaczHomogeneousPorositySolutionAndBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
     py::class_<PorositySolutionTransientBodyForceProcess, PorositySolutionTransientBodyForceProcess::Pointer, Process>
     (m, "PorositySolutionTransientBodyForceProcess")
     .def(py::init< ModelPart&>())
@@ -83,6 +91,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SinusoidalPorositySolutionAndBodyForceProcess, SinusoidalPorositySolutionAndBodyForceProcess::Pointer, Process>
     (m, "SinusoidalPorositySolutionAndBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<Codina2001PorositySolutionAndBodyForceProcess, Codina2001PorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "Codina2001PorositySolutionAndBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;

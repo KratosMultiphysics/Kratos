@@ -157,6 +157,8 @@ void SkrzypaczPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosit
 
         double& r_pressure = it_node->FastGetSolutionStepValue(EXACT_PRESSURE);
 
+        Matrix& r_sigma = it_node->FastGetSolutionStepValue(PERMEABILITY);
+
         r_u1 = std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/(-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1);
 
         r_u2 = std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/(-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1);
@@ -185,7 +187,7 @@ void SkrzypaczPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosit
 
         du122 = -std::pow(Globals::Pi,2)*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)/(-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1) - 0.5*std::pow(Globals::Pi,2)*std::pow(std::sin(Globals::Pi*x1),2)*std::pow(std::sin(Globals::Pi*x2),2)/std::pow((-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1),2) + 1.0*std::pow(Globals::Pi,2)*std::pow(std::sin(Globals::Pi*x1),2)*std::pow(std::cos(Globals::Pi*x2),2)/std::pow((-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1),2) + 0.5*std::pow(Globals::Pi,2)*std::pow(std::sin(Globals::Pi*x1),3)*std::sin(Globals::Pi*x2)*std::pow(std::cos(Globals::Pi*x2),2)/std::pow((-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1),3);
 
-        du21 =  -Globals::Pi*std::sin(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/(-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1) + 0.5*Globals::Pi*std::sin(Globals::Pi*x2)*std::pow(std::cos(Globals::Pi*x1),2)*std::cos(Globals::Pi*x2)/std::pow((-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1),2);
+        du21 = -Globals::Pi*std::sin(Globals::Pi*x1)*std::cos(Globals::Pi*x2)/(-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1) + 0.5*Globals::Pi*std::sin(Globals::Pi*x2)*std::pow(std::cos(Globals::Pi*x1),2)*std::cos(Globals::Pi*x2)/std::pow((-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1),2);
 
         du22 = -Globals::Pi*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)/(-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1) + 0.5*Globals::Pi*std::sin(Globals::Pi*x1)*std::cos(Globals::Pi*x1)*std::pow(std::cos(Globals::Pi*x2),2)/std::pow((-0.5*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2) + 1),2);
 
@@ -202,7 +204,7 @@ void SkrzypaczPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosit
         double velocity_norm = std::sqrt(r_u1 * r_u1 + r_u2 * r_u2);
         double kappa = (1 - r_alpha)/r_alpha;
 
-        Matrix sigma = (nu * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
+        r_sigma = (nu * 150.0 * std::pow(kappa,2) + 1.75 * kappa * velocity_norm) * I;
 
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
@@ -223,20 +225,20 @@ void SkrzypaczPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosit
             const double grad_alpha_div1 = r_alpha1 * (du11 + du22);
             const double grad_alpha_div2 = r_alpha2 * (du11 + du22);
 
-            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2.0 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + sigma(0,0) * r_u1 + sigma(0,1) * r_u2;
+            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2.0 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + r_sigma(0,0) * r_u1 + r_sigma(0,1) * r_u2;
 
-            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2.0 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + sigma(1,0) * r_u1 + sigma(1,1) * r_u2;
+            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2.0 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + r_sigma(1,0) * r_u1 + r_sigma(1,1) * r_u2;
 
         }else{
-            r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(0,1) * r_u2;
+            r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + r_sigma(0,0) * r_u1 + r_sigma(0,1) * r_u2;
 
-            r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(1,0) * r_u1 + sigma(1,1) * r_u2;
+            r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + r_sigma(1,0) * r_u1 + r_sigma(1,1) * r_u2;
         }
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
-        // it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
-        // it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+        it_node->FastGetSolutionStepValue(ACCELERATION_X) = r_u1;
+        it_node->FastGetSolutionStepValue(ACCELERATION_Y) = r_u2;
         // it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
         it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
     }
