@@ -115,7 +115,6 @@ int CalculateDistanceToBoundaryProcess::Check()
 
 void CalculateDistanceToBoundaryProcess::ExecuteBeforeSolutionLoop()
 {
-    KRATOS_WATCH(mInitializeDistance)
     if (mInitializeDistance) {
         VariableUtils().SetVariable(DISTANCE, std::numeric_limits<double>::max(), mrModelPart.Nodes());
     }
