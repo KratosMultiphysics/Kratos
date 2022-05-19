@@ -3,6 +3,7 @@ This module contains an interface to the available response functions
 """
 import math, shutil
 import time as timer
+import json
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
@@ -16,6 +17,69 @@ from KratosMultiphysics.RANSApplication.response_functions.utilities import Calc
 from KratosMultiphysics.RANSApplication.response_functions.utilities import UpdateFilesWithPlaceHolders
 from KratosMultiphysics.RANSApplication.response_functions.utilities import UpdateStringWithPlaceHolders
 
+def CalculateMaxFrequencyData(
+        parameters: Kratos.Parameters,
+        min_frequency: float,
+        max_frequency: float,
+        windowing_length: float,
+        drag_direction: list[float],
+        drag_model_part_name: str):
+    # read time step reaction values
+    time_steps, reactions = GetDragValues(parameters, drag_model_part_name)
+    delta_time = time_steps[1] - time_steps[0]
+
+    # compute the drag
+    number_of_steps = len(time_steps)
+    drag_values = [0.0] * number_of_steps
+    for i, reaction in enumerate(reactions):
+        drag_values[i] = reaction[0] * drag_direction[0] + reaction[1] * drag_direction[1] + reaction[2] * drag_direction[2]
+
+    fluid_fft_utilities = KratosCFD.FluidFFTUtilities(time_steps[-1], windowing_length, delta_time)
+
+    frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes_squares = fluid_fft_utilities.CalculateFFTFrequencyDistribution(drag_values)
+    frequency_amplitudes = [math.sqrt(_v) for _v in frequency_amplitudes_squares]
+
+    # now get the maximum amplitude frequency from the chosen range
+    max_frequency_bin_index = -1
+    for index, (frequency, frequency_amplitude)  in enumerate(zip(frequency_list, frequency_amplitudes)):
+        if (frequency >= min_frequency and frequency <= max_frequency):
+            if (max_frequency_bin_index == -1):
+                max_frequency_bin_index = index
+
+            if (frequency_amplitude > frequency_amplitudes[max_frequency_bin_index]):
+                max_frequency_bin_index = index
+
+    if (max_frequency_bin_index == -1):
+        raise RuntimeError("No frequencies were found in the given range. Please try reducing time step to have more resolution in frequency domain.")
+
+    results_summary_dict = {
+        "Frequency information": {
+            "Frequency resolution [Hz]": fluid_fft_utilities.GetFrequencyResolution(),
+            "Max recorded frequency [Hz]": fluid_fft_utilities.GetMaximumFrequency(),
+            "Considered frequency range": {
+                "Min frequency [Hz]" : min_frequency,
+                "Max frequency [Hz]" : max_frequency
+            },
+        },
+        "Total length information": {
+            "Delta time [s]": delta_time,
+            "Total length [s]": time_steps[-1],
+            "Total steps [#]": fluid_fft_utilities.GetTotalNumberOfSteps()
+        },
+        "Windowing length information": {
+            "Windowing length [s]": windowing_length,
+            "Windowing steps [#]": fluid_fft_utilities.GetNumberOfWindowingSteps()
+        },
+        "Max amplitude data": {
+            "Frequency [Hz]": frequency_list[max_frequency_bin_index],
+            "Amplitude [N]": frequency_amplitudes[max_frequency_bin_index],
+            "Real component [N]": frequency_real_components[max_frequency_bin_index],
+            "Imag component [N]": frequency_imag_components[max_frequency_bin_index],
+            "Bin index [#]": max_frequency_bin_index
+        }
+    }
+
+    return fluid_fft_utilities, frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes, results_summary_dict
 
 class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
@@ -96,8 +160,31 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         # copy data to the working directory
         RecursiveCopy(str(self.problem_setup_folder), ".")
 
-        # write the new shape mdpa
-        Kratos.ModelPartIO(self.mdpa_name, Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.updated_model_part)
+        write_mesh = True
+        if Path(self.mdpa_name + ".mdpa"):
+            model = Kratos.Model()
+            dummy_model_part = model.CreateModelPart("dummy_model_part")
+            Kratos.ModelPartIO(self.mdpa_name, Kratos.IO.READ | Kratos.IO.MESH_ONLY | Kratos.IO.IGNORE_VARIABLES_ERROR).ReadModelPart(dummy_model_part)
+
+            write_mesh = False
+            write_mesh = write_mesh or dummy_model_part.NumberOfNodes() != self.updated_model_part.NumberOfNodes()
+            write_mesh = write_mesh or dummy_model_part.NumberOfConditions() != self.updated_model_part.NumberOfConditions()
+            write_mesh = write_mesh or dummy_model_part.NumberOfElements() != self.updated_model_part.NumberOfElements()
+
+            Kratos.Logger.PrintInfo(self._GetLabel(), "Found existing {:s}.".format(self.mdpa_name + ".mdpa"))
+            if write_mesh:
+                Kratos.Logger.PrintInfo(self._GetLabel(), "Existing {:s} does not match with the optimization model part. This will be overwritten by optimization model part.".format(self.mdpa_name + ".mdpa"))
+
+        if write_mesh:
+            # write the new shape mdpa
+            Kratos.ModelPartIO(self.mdpa_name, Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.updated_model_part)
+            Kratos.Logger.PrintInfo(self._GetLabel(), "Writing optimization model part to {:s}.".format(self.mdpa_name + ".mdpa"))
+        else:
+            for node in self.updated_model_part.Nodes:
+                node.X = dummy_model_part.GetNode(node.Id).X
+                node.Y = dummy_model_part.GetNode(node.Id).Y
+                node.Z = dummy_model_part.GetNode(node.Id).Z
+            Kratos.Logger.PrintInfo(self._GetLabel(), "Updating optimization model part from {:s}.".format(self.mdpa_name + ".mdpa"))
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed to copy data = ",round(timer.time() - startTime,2),"s")
 
@@ -108,51 +195,17 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         primal_settings_file_name = self.problem_setup_file_settings["primal_project_parameters_file"].GetString()
         primal_parameters = SolvePrimalProblem(primal_settings_file_name, "primal_evaluation.log")
 
-        # read time step reaction values
-        time_steps, reactions = GetDragValues(primal_parameters, self.drag_model_part_name)
-        delta_time = time_steps[1] - time_steps[0]
+        self.fluid_fft_utilities, frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes, summary = CalculateMaxFrequencyData(primal_parameters, self.min_frequency, self.max_frequency, self.windowing_length, self.drag_direction, self.drag_model_part_name)
 
-        # compute the drag
-        number_of_steps = len(time_steps)
-        drag_values = [0.0] * number_of_steps
-        for i, reaction in enumerate(reactions):
-            drag_values[i] = reaction[0] * self.drag_direction[0] + reaction[1] * self.drag_direction[1] + reaction[2] * self.drag_direction[2]
-
-        self.fluid_fft_utilities = KratosCFD.FluidFFTUtilities(time_steps[-1], self.windowing_length, delta_time)
-
-        frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes_squares = self.fluid_fft_utilities.CalculateFFTFrequencyDistribution(drag_values)
-        frequency_amplitudes = [math.sqrt(_v) for _v in frequency_amplitudes_squares]
-
-        # now get the maximum amplitude frequency from the chosen range
-        self.max_frequency_bin_index = -1
-        for index, (frequency, frequency_amplitude)  in enumerate(zip(frequency_list, frequency_amplitudes)):
-            if (frequency >= self.min_frequency and frequency <= self.max_frequency):
-                if (self.max_frequency_bin_index == -1):
-                    self.max_frequency_bin_index = index
-
-                if (frequency_amplitude > frequency_amplitudes[self.max_frequency_bin_index]):
-                    self.max_frequency_bin_index = index
-
-        if (self.max_frequency_bin_index == -1):
-            raise RuntimeError("No frequencies were found in the given range. Please try reducing time step to have more resolution in frequency domain.")
-
-        self.max_frequency = frequency_list[self.max_frequency_bin_index]
-        self.max_frequency_real_component = frequency_real_components[self.max_frequency_bin_index]
-        self.max_frequency_imag_component = frequency_imag_components[self.max_frequency_bin_index]
-        self.max_frequency_amplitude = frequency_amplitudes[self.max_frequency_bin_index]
+        max_amplitude_data = summary["Max amplitude data"]
+        self.max_frequency_real_component = max_amplitude_data["Real component [N]"]
+        self.max_frequency_imag_component = max_amplitude_data["Imag component [N]"]
+        self.max_frequency_amplitude = max_amplitude_data["Amplitude [N]"]
+        self.max_frequency_bin_index = max_amplitude_data["Bin index [#]"]
 
         header = ""
         header += "Primal evaluation summary:\n"
-        header += "   delta_time                        : {:f} s\n".format(delta_time)
-        header += "   Total time length                 : {:f} s\n".format(time_steps[-1])
-        header += "   Total time steps                  : {:d}\n".format(number_of_steps)
-        header += "   Windowing length                  : {:f} s\n".format(self.windowing_length)
-        header += "   Windowing steps                   : {:d}\n".format(self.fluid_fft_utilities.GetNumberOfWindowingSteps())
-        header += "   Frequency resolution              : {:f} Hz\n".format(self.fluid_fft_utilities.GetFrequencyResolution())
-        header += "   Max frequency                     : {:f} Hz\n".format(self.fluid_fft_utilities.GetMaximumFrequency())
-        header += "   Max drag amplitude                : {:f} N\n".format(self.max_frequency_amplitude)
-        header += "   Max drag amplitude frequency      : {:f} Hz\n".format(self.fluid_fft_utilities.GetFrequency(self.max_frequency_bin_index))
-        header += "   Max drag amplitude frequency index: {:d}\n".format(self.max_frequency_bin_index)
+        header += json.dumps(summary, indent=4)
 
         # now write frequency data to an output file
         with open("drag_frequency_{:s}.csv".format(self.drag_model_part_name), "w") as file_output:
@@ -193,7 +246,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
 
             self.gradients[node_id] = frequency_amplitude_square_sensitivity
 
-        if self.response_settings["clean_primal_solution"].GetBool():
+        if self.response_settings["clean_primal_solution"].GetBool() and Path(self.response_settings["primal_solution_folder_name"].GetString()).is_dir():
             shutil.rmtree(self.response_settings["primal_solution_folder_name"].GetString())
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for solving the total adjoint analysis = ", round(timer.time() - start_time,2),"s")
