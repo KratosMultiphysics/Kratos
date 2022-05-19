@@ -879,7 +879,7 @@ public:
 
     SizeType FacesNumber() const override
     {
-        return 1;
+        return 3;
     }
 
     //Connectivities of faces required
