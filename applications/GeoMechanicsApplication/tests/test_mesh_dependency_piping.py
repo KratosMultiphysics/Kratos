@@ -55,8 +55,7 @@ class TestMeshDependencyPiping(KratosUnittest.TestCase):
                       "PipeRefinementD10L30M3.gid":24,
                       "PipeRefinementD10L30M4.gid":48,
                       "PipeRefinementD10L30M5.gid":96,
-                      "PipeRefinementD10L30M6.gid":192,
-                      "PipeRefinementD10L30M7.gid":384}
+                      "PipeRefinementD10L30M6.gid":192}
         result_dict = {}
 
         for test_file, element_size in test_files.items():
