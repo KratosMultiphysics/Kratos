@@ -32,11 +32,9 @@ void GenericFindElementalNeighboursProcess::ExecuteInitialize()
     block_for_each(mr_model_part.Elements(), [&](Element & rElement) {
         //creating temp face conditions
         Geometry<Node<3> >& geom = rElement.GetGeometry();
-        const unsigned int nFaces = geom.FacesNumber();
-        const unsigned int nEdges = geom.EdgesNumber();
-        const unsigned int nBoundaries = nFaces>1 ? nFaces : nEdges ; //for 3D cases, neigh elems are connected by faces.
-        const PointerVector<GeometryType> ElemBoundaries = nFaces>1 ? geom.GenerateFaces() : geom.GenerateEdges() ;
-
+        const PointerVector<GeometryType> ElemBoundaries = geom.LocalSpaceDimension()==3 ? geom.GenerateFaces() : geom.GenerateEdges() ;
+        const unsigned int nBoundaries = ElemBoundaries.size();
+        
         //initializing elem neighbours
         if (rElement.Has(NEIGHBOUR_ELEMENTS)) {
             ElementPointerVector& r_neighbour_elements = rElement.GetValue(NEIGHBOUR_ELEMENTS);
