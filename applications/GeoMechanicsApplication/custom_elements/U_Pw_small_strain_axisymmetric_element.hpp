@@ -109,8 +109,8 @@ protected:
                            const Vector &Np ) override;
 
     double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                            const IndexType& PointNumber,
-                                            const double& detJ) override;
+                                            unsigned int PointNumber,
+                                            double detJ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

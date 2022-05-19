@@ -29,10 +29,10 @@ from shape_optimization_test_factory import algorithm_bead_optimization_test
 from shape_optimization_test_factory import opt_process_step_adaption_test
 from shape_optimization_test_factory import mapper_test
 from shape_optimization_test_factory import opt_process_multiobjective_test
-from shape_optimization_test_factory import opt_process_stress_test
-from shape_optimization_test_factory import sensitivity_verification_semi_analytic_process_test
-from shape_optimization_test_factory import sensitivity_verification_in_design_space_process_test
-from shape_optimization_test_factory import sensitivity_verification_in_geometry_space_process_test
+# from shape_optimization_test_factory import opt_process_stress_test
+# from shape_optimization_test_factory import sensitivity_verification_semi_analytic_process_test
+# from shape_optimization_test_factory import sensitivity_verification_in_design_space_process_test
+# from shape_optimization_test_factory import sensitivity_verification_in_geometry_space_process_test
 from shape_optimization_test_factory import in_plane_opt_test
 from shape_optimization_test_factory import packaging_mesh_based_test
 from shape_optimization_test_factory import packaging_plane_based_test
@@ -96,26 +96,25 @@ def AssembleTestSuites():
     nightSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
     nightSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
     nightSuite.addTest(opt_process_weighted_eigenfrequency_test('test_execution'))
-    nightSuite.addTest(algorithm_steepest_descent_test('test_execution'))
-    nightSuite.addTest(algorithm_penalized_projection_test('test_execution'))
-    nightSuite.addTest(algorithm_trust_region_test('test_execution'))
     nightSuite.addTest(trust_region_projector_test('test_execution'))
     nightSuite.addTest(opt_process_multiobjective_test('test_execution'))
-    nightSuite.addTest(opt_process_stress_test('test_execution'))
-    nightSuite.addTest(sensitivity_verification_semi_analytic_process_test('test_execution'))
-    nightSuite.addTest(sensitivity_verification_in_design_space_process_test('test_execution'))
-    nightSuite.addTest(sensitivity_verification_in_geometry_space_process_test('test_execution'))
+    # nightSuite.addTest(opt_process_stress_test('test_execution'))
+    # nightSuite.addTest(sensitivity_verification_semi_analytic_process_test('test_execution'))
+    # nightSuite.addTest(sensitivity_verification_in_design_space_process_test('test_execution'))
+    # nightSuite.addTest(sensitivity_verification_in_geometry_space_process_test('test_execution'))
 
     # Adding small tests to nightly tests
     nightSuite.addTests(smallSuite)
 
     # Adding validation tests
     validationSuite = suites['validation']
+    validationSuite.addTests(nightSuite)
+    validationSuite.addTest(algorithm_trust_region_test('test_execution'))
+    validationSuite.addTest(algorithm_steepest_descent_test('test_execution'))
+    validationSuite.addTest(algorithm_penalized_projection_test('test_execution'))
 
     # Creating a test suit that contains all tests:
     allSuite = suites['all']
-    # allSuite.addTests(smallSuite) #Already added to small tests
-    allSuite.addTests(nightSuite)
     allSuite.addTests(validationSuite)
 
     return suites

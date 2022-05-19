@@ -232,8 +232,8 @@ protected:
     void CheckAndCalculateJointWidth(double& rJointWidth,
                                     ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     double& rNormalRelDisp,
-                                    const double& MinimumJointWidth,
-                                    const unsigned int& GPoint);
+                                    double MinimumJointWidth,
+                                    unsigned int GPoint);
 
     template< class TMatrixType >
     void CalculateShapeFunctionsGradients(TMatrixType& rGradNpT,
@@ -294,7 +294,7 @@ protected:
     void SetRetentionParameters(const InterfaceElementVariables &rVariables,
                                 RetentionLaw::Parameters &rRetentionParameters);
 
-    double CalculateFluidPressure( const InterfaceElementVariables &rVariables, const unsigned int &PointNumber );
+    double CalculateFluidPressure( const InterfaceElementVariables &rVariables);
 
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix);
 
@@ -303,7 +303,7 @@ protected:
 
     void CalculateRetentionResponse( InterfaceElementVariables& rVariables,
                                      RetentionLaw::Parameters& rRetentionParameters,
-                                     const unsigned int &GPoint );
+                                     unsigned int GPoint );
 
     void CalculateSoilGamma(InterfaceElementVariables &rVariables);
 

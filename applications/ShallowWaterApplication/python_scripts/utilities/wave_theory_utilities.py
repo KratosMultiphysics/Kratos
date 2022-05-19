@@ -8,6 +8,10 @@ class WaveTheory:
     def __init__(self, depth, gravity=9.81, *, period=0, wavelength=0, amplitude=0):
         self.gravity = gravity
         self.depth = depth
+        if self.depth <= 0:
+            raise Exception('WaveTheory. The water depth must be greather than 0.')
+        if self.gravity <= 0:
+            raise Exception('WaveTheory. The gravity must be greather than 0.')
         if wavelength > 0 and period > 0:
             raise Exception('WaveTheory. Specify only the wavelength or the period.')
         if period > 0:

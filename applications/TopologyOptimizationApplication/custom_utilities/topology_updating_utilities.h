@@ -133,6 +133,7 @@ public:
             int nele;
             double x_new = 0.0;
             double lmid = 0.0;
+            double model_size;
 
             // Bisection algorithm to find Lagrange Multiplier so that volume constraint is satisfied (lmid)
             while ((l2-l1)/(l1+l2) > 0.001)
@@ -141,6 +142,7 @@ public:
                 sum_X_Phys = 0.0;
                 nele = 0;
                 x_new = 0.0;
+                model_size = 0.0;
 
                 for( ModelPart::ElementIterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
                 {
@@ -148,6 +150,7 @@ public:
                     const int solid_void = element_i->GetValue(SOLID_VOID);
                     const double dcdx  = element_i->GetValue(DCDX);
                     const double dvdx  = element_i->GetValue(DVDX);
+                    const double initial_element_size = element_i->GetValue(INITIAL_ELEMENT_SIZE);
 
                     // Update Density
                     // When q = 1, Grey Scale Filter is not activated, i.e., the results are in the classical OC update method
@@ -182,11 +185,12 @@ public:
                     element_i->SetValue(X_PHYS, x_new);
 
                     // Updating additional quantities to determine the correct Lagrange Multiplier (lmid)
-                    sum_X_Phys = sum_X_Phys + x_new;
+                    sum_X_Phys = sum_X_Phys + x_new*initial_element_size;
+                    model_size += initial_element_size;
                     nele = nele + 1;
                 }
 
-                if( sum_X_Phys > (volfrac*nele))
+                if( sum_X_Phys > (model_size*volfrac))
                     l1=lmid;
                 else
                     l2=lmid;

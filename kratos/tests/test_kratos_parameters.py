@@ -966,6 +966,19 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertListEqual(new_string_array, string_array)
 
+    def test_add_string_array_valid(self):
+        initial = Parameters("""{
+            "parameter": ["foo", "bar"]
+        } """)
+        string_array = initial["parameter"].GetStringArray()
+
+        new_param = Parameters()
+        new_param.AddStringArray("new_parameter", string_array)
+
+        new_string_array = initial["parameter"].GetStringArray()
+
+        self.assertListEqual(new_string_array, string_array)
+
     @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: : " + pickle_message)
     def test_stream_serialization(self):
         tmp = Parameters(defaults)
