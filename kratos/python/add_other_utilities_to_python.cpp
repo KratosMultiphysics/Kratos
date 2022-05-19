@@ -63,6 +63,7 @@
 #include "utilities/model_part_combination_utilities.h"
 #include "utilities/single_import_model_part.h"
 #include "utilities/rve_periodicity_utility.h"
+#include "utilities/communication_coloring_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -99,6 +100,7 @@ void SetOnProcessInfo(
 //timer
 void PrintTimingInformation(Timer& rTimer)
 {
+    KRATOS_WARNING("[DEPRECATED] Timer.PrintTimingInformation") << "This will be removed at end of 2022. Please, call this function without arguments." << std::endl;
     rTimer.PrintTimingInformation();
 }
 
@@ -249,6 +251,7 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
         .def_static("SetPrintIntervalInformation", &Timer::SetPrintIntervalInformation)
+        .def_static("PrintTimingInformation", [](){Timer::PrintTimingInformation();})
         .def_static("PrintTimingInformation", PrintTimingInformation)
         .def("__str__", PrintObject<Timer>)
         ;
@@ -712,6 +715,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart&, std::size_t>())
         .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
         .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
+
+    py::class_<MPIColoringUtilities>(m, "MPIColoringUtilities")
+        .def(py::init<>())
+        .def("ComputeRecvList", &MPIColoringUtilities::ComputeRecvList)
+        .def("ComputeCommunicationScheduling", &MPIColoringUtilities::ComputeCommunicationScheduling)
         ;
 
     auto fs_extensions = m.def_submodule("FilesystemExtensions");

@@ -47,13 +47,17 @@ class TestShallowWaterElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
     execution_file = "swe"
 
-class TestShallowWater2D3NElement(ShallowWaterTestFactory):
+class TestConservativeResidualViscosity2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
-    execution_file = "shallow_water_2d_3n"
+    execution_file = "conservative_residual_viscosity_2d_3n"
 
-class TestMonotonicShallowWater2D3NElement(ShallowWaterTestFactory):
+class TestConservativeGradientJump2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"
-    execution_file = "monotonic_shallow_water_2d_3n"
+    execution_file = "conservative_gradient_jump_2d_3n"
+
+class TestConservativeFluxCorrected2D3NElement(ShallowWaterTestFactory):
+    execution_directory = "elements_tests"
+    execution_file = "conservative_flux_corrected_2d_3n"
 
 class TestBoussinesq2D3NElement(ShallowWaterTestFactory):
     execution_directory = "elements_tests"

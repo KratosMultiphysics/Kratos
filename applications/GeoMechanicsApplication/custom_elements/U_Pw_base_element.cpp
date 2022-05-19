@@ -641,8 +641,8 @@ void UPwBaseElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 double UPwBaseElement<TDim,TNumNodes>::
     CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                    const IndexType& PointNumber,
-                                    const double& detJ)
+                                    unsigned int PointNumber,
+                                    double detJ)
 
 {
     return IntegrationPoints[PointNumber].Weight() * detJ;
@@ -655,7 +655,7 @@ void UPwBaseElement<TDim,TNumNodes>::
                                                Matrix& J0,
                                                Matrix& InvJ0,
                                                Matrix& DNu_DX0,
-                                               const IndexType& GPoint) const
+                                               unsigned int GPoint) const
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
@@ -678,7 +678,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     CalculateJacobianOnCurrentConfiguration(double& detJ,
                                             Matrix& rJ,
                                             Matrix& rInvJ,
-                                            const IndexType& GPoint) const
+                                            unsigned int GPoint) const
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
@@ -699,7 +699,7 @@ void UPwBaseElement<TDim,TNumNodes>::
                                             Matrix& J,
                                             Matrix& InvJ,
                                             Matrix& GradNpT,
-                                            const IndexType &GPoint) const
+                                            unsigned int GPoint) const
 {
     KRATOS_TRY
 
