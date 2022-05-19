@@ -161,7 +161,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         RecursiveCopy(str(self.problem_setup_folder), ".")
 
         write_mesh = True
-        if Path(self.mdpa_name + ".mdpa"):
+        if Path(self.mdpa_name + ".mdpa").is_file():
             model = Kratos.Model()
             dummy_model_part = model.CreateModelPart("dummy_model_part")
             Kratos.ModelPartIO(self.mdpa_name, Kratos.IO.READ | Kratos.IO.MESH_ONLY | Kratos.IO.IGNORE_VARIABLES_ERROR).ReadModelPart(dummy_model_part)
