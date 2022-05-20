@@ -218,7 +218,7 @@ namespace Kratos
                 if (inode->IsFixed(DISTANCE))
                     tempDistanceList.push_back(index);
 
-                if (inode->Is(OUTLET) || inode->IsFixed(PRESSURE))
+                if (inode->Is(OUTLET))
                 {
                     tempPressureOutletList.push_back(index);
                     //		    mPressureOutlet.push_back(external_pressure[index]);
