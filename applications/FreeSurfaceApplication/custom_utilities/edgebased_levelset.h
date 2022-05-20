@@ -206,7 +206,7 @@ namespace Kratos
                     tempFixedVelocitiesValues.push_back(mvel_n1[index]);
                 }
 
-                if (inode->Is(OUTLET) || inode->IsFixed(PRESSURE))
+                if (inode->Is(OUTLET))
                 {
                     tempPressureOutletList.push_back(index);
                     //		    mPressureOutlet.push_back(external_pressure[index]);
