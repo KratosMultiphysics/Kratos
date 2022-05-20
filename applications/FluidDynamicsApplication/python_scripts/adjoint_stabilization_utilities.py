@@ -91,7 +91,7 @@ def __Bisect(data):
 def __IsPlateau(slope, max_slope):
     return math.fabs(slope) <= max_slope
 
-def __CalculateTimeSeriesSlope(time_series_values, time_range):
+def _CalculateTimeSeriesSlope(time_series_values, time_range):
     if np.isfinite(time_series_values[-1, 1]):
         time_values = time_series_values[:, 0]
         max_time = np.max(time_values)
@@ -190,7 +190,7 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings,
                 if (index > 0 and coefficient_data_list[index-1][1] == 0) or (index == 0):
                     solve_id += 1
                     coefficient_data[1] = __IsPlateau(
-                                            __CalculateTimeSeriesSlope(
+                                            _CalculateTimeSeriesSlope(
                                                 execution_method(
                                                     StabilizationAnalysisClass,
                                                     adjoint_parameters.Clone(),
