@@ -83,6 +83,14 @@ class AleFluidSolver(PythonSolver):
             [self.model, self.settings["mesh_motion_solver_settings"], self.parallelism]
         ))
 
+
+    def _CreatePhysicalSolvers(self):
+        super()._CreatePhysicalSolvers()
+        self.GetPhysicalSolver("Fluid")().min_buffer_size = max(
+            self.GetPhysicalSolver("Fluid")().GetMinimumBufferSize(),
+            self.GetPhysicalSolver("MeshMotion")().GetMinimumBufferSize()
+        )
+
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
