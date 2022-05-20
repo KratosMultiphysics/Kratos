@@ -139,11 +139,12 @@ void PrintReactions(ModelPart const& rModelPart)
     Logger("") << ss.str();
 }
 
+template<typename TCallableRho, typename TCallableMom, typename TCallableE>
 void SetDofValues(
     ModelPart& rModelPart,
-    double(*Rho)(array_1d<double, 3> const&),
-    array_1d<double, 3>(*Momentum)(array_1d<double, 3> const&),
-    double(*TotalEnergy)(array_1d<double, 3> const&))
+    TCallableRho Rho,
+    TCallableMom Momentum,
+    TCallableE TotalEnergy)
 {
     for (auto &r_node : rModelPart.Nodes())
     {
@@ -261,9 +262,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTr
     constexpr double u = 5;
     constexpr double density = 1.2;
 
-    const auto rho  = [](array_1d<double, 3> const&) { return density; };
-    const auto mom  = [](array_1d<double, 3> const&) { return array_1d<double,3>{density * u, 0, 0}; };
-    const auto etot = [](array_1d<double, 3> const&) { return 0.5*density*u*u + p / (gamma - 1); };
+    const auto rho  = [=](array_1d<double, 3> const&) { return density; };
+    const auto mom  = [=](array_1d<double, 3> const&) { return array_1d<double,3>{density * u, 0, 0}; };
+    const auto etot = [=](array_1d<double, 3> const&) { return 0.5*density*u*u + p / (gamma - 1); };
 
     SetDofValues(r_model_part, rho, mom, etot);
     SetViscosities(r_model_part, 1e-3, 2e-3, 3e-3);
@@ -296,9 +297,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic,
     constexpr double p = 101325;
     constexpr double gamma = 1.4;
 
-    const auto rho  = [](array_1d<double, 3> const& X) { return 1.2 + 0.2*X[0] + 0.1*X[1]; };
-    const auto mom  = [](array_1d<double, 3> const&)   { return array_1d<double,3>({0, 0, 0}); };
-    const auto etot = [](array_1d<double, 3> const& X) { return p / (gamma - 1); };
+    const auto rho  = [=](array_1d<double, 3> const& X) { return 1.2 + 0.2*X[0] + 0.1*X[1]; };
+    const auto mom  = [=](array_1d<double, 3> const&)   { return array_1d<double,3>({0, 0, 0}); };
+    const auto etot = [=](array_1d<double, 3> const& X) { return p / (gamma - 1); };
 
     SetDofValues(r_model_part, rho, mom, etot);
     SetViscosities(r_model_part, 1e-3, 2e-3, 0.0);
@@ -365,9 +366,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRo
     constexpr double omega = 3;   // Angular frequency, radians per second
     constexpr double p0 = 101325; // Pressure at center of rotation, Pa
 
-    const auto rho  = [](array_1d<double, 3> const& X) { return density; };
-    const auto mom  = [](array_1d<double, 3> const& X) { return array_1d<double, 3>{- density*omega*X[1], density*omega*X[0], 0.0}; };
-    const auto etot = [](array_1d<double, 3> const& X) { return gamma/(gamma - 1) * density*omega*omega*inner_prod(X,X)/2 + p0/(gamma - 1); };
+    const auto rho  = [=](array_1d<double, 3> const& X) { return density; };
+    const auto mom  = [=](array_1d<double, 3> const& X) { return array_1d<double, 3>{- density*omega*X[1], density*omega*X[0], 0.0}; };
+    const auto etot = [=](array_1d<double, 3> const& X) { return gamma/(gamma - 1) * density*omega*omega*inner_prod(X,X)/2 + p0/(gamma - 1); };
 
     const double p = density*omega*omega*(half_base*half_base + 3*apotheme*apotheme) / 6 + p0; //Mean pressure along an edge
     for(auto& r_condition: r_model_part.Conditions())
