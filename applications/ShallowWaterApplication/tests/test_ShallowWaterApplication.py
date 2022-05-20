@@ -8,8 +8,9 @@ from KratosMultiphysics.KratosUnittest import TestLoader
 # Small tests
 from shallow_water_test_factory import TestShallowWaterElement
 from shallow_water_test_factory import TestSemiLagrangianShallowWaterElement
-from shallow_water_test_factory import TestShallowWater2D3NElement
-from shallow_water_test_factory import TestMonotonicShallowWater2D3NElement
+from shallow_water_test_factory import TestConservativeResidualViscosity2D3NElement
+from shallow_water_test_factory import TestConservativeGradientJump2D3NElement
+from shallow_water_test_factory import TestConservativeFluxCorrected2D3NElement
 from shallow_water_test_factory import TestBoussinesq2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
@@ -41,8 +42,9 @@ def AssembleTestSuites():
 
     # Create a test suit with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestShallowWater2D3NElement]))
-    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestMonotonicShallowWater2D3NElement]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeResidualViscosity2D3NElement]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeGradientJump2D3NElement]))
+    smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestConservativeFluxCorrected2D3NElement]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestBoussinesq2D3NElement]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestSetTopographyProcess]))
     smallSuite.addTests(TestLoader().loadTestsFromTestCases([TestVisualizationMeshProcess]))
@@ -70,6 +72,9 @@ def AssembleTestSuites():
 
     return suites
 
-if __name__ == '__main__':
+def run():
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
+
+if __name__ == '__main__':
+    run()

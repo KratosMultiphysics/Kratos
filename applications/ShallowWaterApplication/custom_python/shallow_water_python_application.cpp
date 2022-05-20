@@ -48,23 +48,6 @@ namespace Python
     AddCustomStrategiesToPython(m);
     AddCustomModelersToPython(m);
 
-    // Adding enums
-    py::enum_<Framework>(m, "Framework")
-    .value("EULERIAN_FRAMEWORK", EULERIAN_FRAMEWORK)
-    .value("PFEM2_FRAMEWORK", PFEM2_FRAMEWORK)
-    ;
-
-    py::enum_<Formulation>(m, "Formulation")
-    .value("PrimitiveVariables", PrimitiveVariables)
-    .value("ConservativeVariables", ConservativeVariables)
-    ;
-
-    py::enum_<Variables>(m, "Variables")
-    .value("FreeSurfaceVariable", FreeSurfaceVariable)
-    .value("VelocityVariable", VelocityVariable)
-    .value("FreeSurfaceAndVelocity", FreeSurfaceAndVelocity)
-    ;
-
     // Registering variables in python
     // Primary variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HEIGHT);

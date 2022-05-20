@@ -230,6 +230,16 @@ public:
     void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -287,6 +297,8 @@ protected:
         double relative_dry_height;
         double gravity;
         double length;
+        double absorbing_distance;
+        double absorbing_damping;
 
         double depth;
         double height;
@@ -339,7 +351,15 @@ protected:
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const array_1d<double,TNumNodes>& rN);
 
-    static double VectorProduct(
+    static array_1d<double,3> ScalarGradient(
+        const array_1d<double,TNumNodes>& rS,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    static double VectorDivergence(
+        const array_1d<array_1d<double,3>,TNumNodes>& rV,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
+    static BoundedMatrix<double,3,3> VectorGradient(
         const array_1d<array_1d<double,3>,TNumNodes>& rV,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 
@@ -355,7 +375,7 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 
     virtual void CalculateArtificialDamping(
-        BoundedMatrix<double,3,3>& rFriction,
+        BoundedMatrix<double,3,3>& rDamping,
         const ElementData& rData);
 
     void AddWaveTerms(
@@ -376,6 +396,7 @@ protected:
 
     void AddArtificialViscosityTerms(
         LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,

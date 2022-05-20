@@ -130,10 +130,11 @@ void ReadMaterialsUtility::GetPropertyBlock(Parameters Materials)
         // Get the properties for the specified model part.
         ModelPart& r_model_part = mrModel.GetModelPart(material["model_part_name"].GetString());
         const IndexType property_id = material["properties_id"].GetInt();
-        const bool has_properties = r_model_part.RecursivelyHasProperties(property_id, mesh_id);
+        const bool has_properties = r_model_part.RecursivelyHasProperties(property_id);
         KRATOS_WARNING_IF("ReadMaterialsUtility", has_properties) << "WARNING:: The properties ID: " << property_id
-            << " in mesh ID: 0 is already defined. This will overwrite the existing values" << std::endl;
-        Properties::Pointer p_prop = has_properties ? r_model_part.pGetProperties(property_id, mesh_id) : r_model_part.CreateNewProperties(property_id, mesh_id);
+            << " is already defined in model part " << material["model_part_name"].GetString()
+            <<". This will overwrite the existing values" << std::endl;
+        Properties::Pointer p_prop = has_properties ? r_model_part.pGetProperties(property_id) : r_model_part.CreateNewProperties(property_id);
     }
 
     // Now we assign the property block
@@ -369,8 +370,8 @@ void ReadMaterialsUtility::CreateSubProperties(
             bool already_defined = false;
             if (r_use_existing_property != "") { // NOTE: This means that is not marked as existing
                 if (r_use_existing_property.size() > 1) {
-                    if (rModelPart.HasProperties(r_use_existing_property, mesh_id)) {
-                        p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property, mesh_id);
+                    if (rModelPart.HasProperties(r_use_existing_property)) {
+                        p_new_sub_prop = rModelPart.pGetProperties(r_use_existing_property);
                         already_defined = true;
                     }
                 } else {
@@ -390,7 +391,7 @@ void ReadMaterialsUtility::CreateSubProperties(
             const int sub_property_id = sub_prop["properties_id"].GetInt();
 
             // Actually creating it (ensures uniqueness)
-            p_new_sub_prop = rModelPart.CreateNewProperties(sub_property_id, mesh_id);
+            p_new_sub_prop = rModelPart.CreateNewProperties(sub_property_id);
 
             // If existing, assigning the materials
             if (sub_prop.Has("Material")) {
@@ -419,11 +420,10 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     // Get the properties for the specified model part.
     ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
     const IndexType property_id = Data["properties_id"].GetInt();
-    const IndexType mesh_id = 0;
     Parameters material_data = Data["Material"];
     Properties::Pointer p_prop;
-    if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
-        p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+    if (r_model_part.RecursivelyHasProperties(property_id)) {
+        p_prop = r_model_part.pGetProperties(property_id);
 
         // Compute the size using the iterators
         std::size_t variables_size = 0;
@@ -444,7 +444,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         KRATOS_WARNING_IF("ReadMaterialsUtility", tables_size > 0 && p_prop->HasTables())
             << "WARNING:: The properties ID: " << property_id << " already has tables." << std::endl;
     } else {
-        p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
+        p_prop = r_model_part.CreateNewProperties(property_id);
     }
 
     // Assign the p_properties to the model part's elements and conditions.
