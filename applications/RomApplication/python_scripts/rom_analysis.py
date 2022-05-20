@@ -31,6 +31,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
                 raise Exception(err_msg)
+            
+            # ROM solving strategy
+            solving_strategy = self.rom_parameters["solving_strategy"].GetString() if self.rom_parameters.Has("solving_strategy") else "Galerkin"
+            self.project_parameters["solver_settings"].AddString("solving_strategy",solving_strategy)
 
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
