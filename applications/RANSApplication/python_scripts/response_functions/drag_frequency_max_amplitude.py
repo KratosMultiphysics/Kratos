@@ -22,7 +22,7 @@ def CalculateMaxFrequencyData(
         min_frequency: float,
         max_frequency: float,
         windowing_length: float,
-        drag_direction: list[float],
+        drag_direction,
         drag_model_part_name: str):
     # read time step reaction values
     time_steps, reactions = GetDragValues(parameters, drag_model_part_name)
