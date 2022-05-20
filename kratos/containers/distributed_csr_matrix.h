@@ -89,10 +89,12 @@ public:
         TIndexType max_col_index = rSparseGraph.ComputeMaxGlobalColumnIndex();
         TIndexType tot_col_size = max_col_index+1;
             
-        if(tot_col_size == mpRowNumbering->Size()) //this ensures that diagonal blocks are square for square matrices
+        //this ensures that diagonal blocks are square for square matrices
+        if (tot_col_size == mpRowNumbering->Size()) {
             mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, mpRowNumbering->GetCpuBounds());
-        else
+        } else {
             mpColNumbering = Kratos::make_unique<DistributedNumbering<TIndexType>>(*mpComm, tot_col_size, mpComm->Size());
+        }
 
         mOffDiagonalLocalIds.clear(); //this is the map that allows to transform from global_ids to local Ids for entries in the non_diag block
 
