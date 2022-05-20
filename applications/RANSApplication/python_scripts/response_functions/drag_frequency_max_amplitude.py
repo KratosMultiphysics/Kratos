@@ -222,6 +222,10 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
     def CalculateGradient(self):
+        if (self.max_frequency_bin_index == -1):
+            # this is required in the case of iteration restart
+            self.CalculateValue()
+
         # solve adjoint frequency bin problems
         start_time = timer.time()
 
