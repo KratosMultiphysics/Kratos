@@ -24,7 +24,7 @@ class NavierStokesAleFluidSolver(AleFluidSolver):
         self.AddPhysicalSolver("Fluid", PhysicalSolver(
             self.settings["fluid_solver_settings"],
             self._CreateFluidSolver,
-            [self.model, self.settings["fluid_solver_settings"], "OpenMP"]
+            [self.settings["fluid_solver_settings"], "OpenMP"]
         ))
 
     def __init__(self, model, solver_settings, parallelism):
