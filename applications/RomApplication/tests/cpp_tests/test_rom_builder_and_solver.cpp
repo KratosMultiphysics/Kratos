@@ -35,6 +35,7 @@ using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType >;
 using BuilderAndSolverType = BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >;
 using ROMBuilderAndSolverType = ROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
+using ROMBuilderAndSolverLSPGType = ROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
 
 using SchemeType = Scheme< SparseSpaceType, LocalSpaceType >;
 using ResidualBasedIncrementalUpdateStaticSchemeType =  ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>;

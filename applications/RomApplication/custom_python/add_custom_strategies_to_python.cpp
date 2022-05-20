@@ -56,6 +56,12 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
 
+    typedef LSPGROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LSPGROMBuilderAndSolverType;
+
+     py::class_<LSPGROMBuilderAndSolverType, typename LSPGROMBuilderAndSolverType::Pointer, ROMBuilderAndSolverType, BuilderAndSolverType>(m, "LSPGROMBuilderAndSolver")
+        .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        ;
+
 }
 
 } // namespace Python.

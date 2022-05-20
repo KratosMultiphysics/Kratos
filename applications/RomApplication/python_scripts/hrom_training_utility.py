@@ -22,6 +22,9 @@ class HRomTrainingUtility(object):
         settings = custom_settings["hrom_settings"]
         settings.ValidateAndAssignDefaults(self.__GetHRomTrainingDefaultSettings())
 
+        # Projection strategy (residual projection)
+        settings["projection_strategy"] = custom_settings["rom_settings"]["solving_strategy"] # To be consistent with the solving strategy
+
         # Create the HROM element selector
         element_selection_type = settings["element_selection_type"].GetString()
         if element_selection_type == "empirical_cubature":
@@ -55,7 +58,12 @@ class HRomTrainingUtility(object):
 
         # Generate the matrix of residuals
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of residuals.")
-        res_mat = self.__rom_residuals_utility.GetResiduals()
+        if (self.projection_strategy=="Galerkin"):
+                res_mat = self.__rom_residuals_utility.GetResiduals()
+        else: 
+            err_msg = "Projection strategy \'{}\' for hrom is not supported.".format(self.projection_strategy)
+            raise Exception(err_msg)
+        
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
@@ -123,7 +131,8 @@ class HRomTrainingUtility(object):
             "element_selection_type": "empirical_cubature",
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
-            "create_hrom_visualization_model_part" : true
+            "create_hrom_visualization_model_part" : true,
+            "projection_strategy": "Galerkin"
         }""")
         return default_settings
 
@@ -132,7 +141,8 @@ class HRomTrainingUtility(object):
         n_steps = len(self.time_step_residual_matrix_container)
         residuals_snapshot_matrix = self.time_step_residual_matrix_container[0]
         for i in range(1,n_steps):
-            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[i]]
+            del self.time_step_residual_matrix_container[0] # Avoid having two matrices, numpy does not concatenate references.
+            residuals_snapshot_matrix = np.c_[residuals_snapshot_matrix,self.time_step_residual_matrix_container[0]]
 
         # Calculate the randomized and truncated SVD of the residual snapshots
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
