@@ -2,7 +2,11 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import KratosMultiphysics.mpi
-import numpy as np
+try:
+    import numpy as np
+    numpy_availabe = True
+except ImportError:
+    numpy_availabe = False
 
 
 class TestDistributedSparseMatrices(KratosUnittest.TestCase):
@@ -63,9 +67,6 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
         (17,10):1.0,(17,36):1.0,(17,7):1.0,(10,17):1.0,(10,36):1.0,(10,7):1.0,(36,17):1.0,(36,10):1.0,(7,17):1.0,(7,10):1.0,(25,30):1.0,(25,9):1.0,(14,30):1.0,(30,25):1.0,(30,14):1.0,(30,9):1.0,(9,25):1.0,(9,30):1.0
     }
 
-    bref_all = np.array([1,3,2,3,3,3,5,6,4,4,2,4,3,1,6,3,5,3,6,3,0,1,4,1,4,4,6,1,5,2,2,3,1,4,1,5,2,4,1,3])
-
-
     def DivideInPartitions(self,NumTerms,NumThreads):
         Partitions = np.zeros(NumThreads + 1)
         PartitionSize = int(NumTerms / NumThreads)
@@ -85,6 +86,7 @@ class TestDistributedSparseMatrices(KratosUnittest.TestCase):
             local_connectivities.append(self.all_connectivities[i])
         return local_connectivities
 
+    @KratosUnittest.skipIf(not numpy_availabe, "This test requires numpy")
     def test_matrix_construction(self):
         kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
 
