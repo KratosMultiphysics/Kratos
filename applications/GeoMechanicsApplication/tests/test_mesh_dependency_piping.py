@@ -17,7 +17,7 @@ class TestMeshDependencyPiping(KratosUnittest.TestCase):
 
     def setUp(self):
         # Code here will be placed BEFORE every test in this TestCase.
-        pass
+        self.is_running_under_teamcity = test_helper.is_running_under_teamcity()
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
@@ -66,9 +66,10 @@ class TestMeshDependencyPiping(KratosUnittest.TestCase):
             critical_head_found = self.linear_search(file_path, heads)
             result_dict[test_file] = (critical_head_found, element_size)
 
-        csv_path = test_helper.get_file_path('test_piping_mesh_dependency/critical_heads.csv')
-        with open(csv_path, 'w', newline='') as csv_file:
-            writer = csv.writer(csv_file, delimiter=',')
-            for key, value in result_dict.items():
-                writer.writerow([key, value[1], value[0]])
+        if self.is_running_under_teamcity:
+            csv_path = test_helper.get_file_path('test_piping_mesh_dependency/critical_heads.csv')
+            with open(csv_path, 'w', newline='') as csv_file:
+                writer = csv.writer(csv_file, delimiter=',')
+                for key, value in result_dict.items():
+                    writer.writerow([key, value[1], value[0]])
     

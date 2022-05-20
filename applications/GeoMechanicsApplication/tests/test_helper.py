@@ -8,6 +8,22 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 sys.path.append(os.path.join('..', 'python_scripts'))
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
 
+
+def is_running_under_teamcity():
+    """
+    Function that checks a specific run is running in teamcity
+    :param
+    :return: bool
+    """
+    is_team_city = False
+    try:
+        from teamcity import is_running_under_teamcity
+
+        is_team_city = is_running_under_teamcity()
+    except ImportError:
+        pass
+    return is_team_city
+
 def get_file_path(fileName):
     import os
     return os.path.dirname(__file__) + "/" + fileName

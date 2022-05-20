@@ -1,4 +1,5 @@
 import sys
+
 import os
 from functools import reduce
 import math
@@ -62,10 +63,15 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         # Code here will be placed BEFORE every test in this TestCase.
         self.flow_calculations = FlowCalculations()
         self.latex_writer = LatexWriterFile()
+        self.is_running_under_teamcity = test_helper.is_running_under_teamcity()
 
     def tearDown(self):
         # Code here will be placed AFTER every test in this TestCase.
         pass
+
+    def assert_test_expectations(self, result_list):
+        for result_pair in result_list:
+            assert math.isclose(result_pair['test_result'], result_pair['kratos_results'])
 
     def test_hydrostatic_conditions(self):
         """ Hydrostatic conditions test """
@@ -89,7 +95,12 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         phi1 = {"value_name": "head at n1 [m]", "test_result": 0, "kratos_results": phi1_value, "round": True}
         hydraylic_disc = {"value_name": "specific discharge [m/s]", "test_result": 0,
                           "kratos_results": sum(test_helper.get_hydraulic_discharge(simulation)), "round": True}
-        self.latex_writer.write_latex_file_and_assert([p3, p4, phi1, phi2, phi3, phi4, hydraylic_disc])
+        result_list = [p3, p4, phi1, phi2, phi3, phi4, hydraylic_disc]
+        if self.is_running_under_teamcity:
+            self.latex_writer.write_latex_file_and_assert(result_list)
+        else:
+            self.assert_test_expectations(result_list)
+
 
     def test_saturated_flow_pressure_bound(self):
         """ Fully saturated soil with pressure boundary """
@@ -127,15 +138,19 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         specific_discharge = {"value_name": "specific discharge [m/s]",
                               "test_result": self.flow_calculations.specific_dicharge(1),
                               "kratos_results": specific_discharge, "round": False}
-        self.latex_writer.write_latex_file_and_assert([flow_rate_1_value,
-                                                       flow_rate_2_value,
-                                                       flow_rate_3_value,
-                                                       flow_rate_4_value,
-                                                       head_g1,
-                                                       head_g2,
-                                                       head_g5,
-                                                       head_g6,
-                                                       specific_discharge])
+        result_list = [flow_rate_1_value,
+                       flow_rate_2_value,
+                       flow_rate_3_value,
+                       flow_rate_4_value,
+                       head_g1,
+                       head_g2,
+                       head_g5,
+                       head_g6,
+                       specific_discharge]
+        if self.is_running_under_teamcity:
+            self.latex_writer.write_latex_file_and_assert(result_list)
+        else:
+            self.assert_test_expectations(result_list)
 
     def test_saturated_flow_head_bound(self):
         """ Fully saturated soil with head boundary """
@@ -175,15 +190,19 @@ class TestElementaryGroundWaterFlow(KratosUnittest.TestCase):
         specific_discharge = {"value_name": "specific discharge [m/s]",
                               "test_result": self.flow_calculations.specific_dicharge(1),
                               "kratos_results": specific_discharge, "round": False}
-        self.latex_writer.write_latex_file_and_assert([flow_rate_1_value,
-                                                       flow_rate_2_value,
-                                                       flow_rate_3_value,
-                                                       flow_rate_4_value,
-                                                       pore_pressure_1_value,
-                                                       pore_pressure_2_value,
-                                                       pore_pressure_3_value,
-                                                       pore_pressure_4_value,
-                                                       specific_discharge])
+        result_list = [flow_rate_1_value,
+                       flow_rate_2_value,
+                       flow_rate_3_value,
+                       flow_rate_4_value,
+                       pore_pressure_1_value,
+                       pore_pressure_2_value,
+                       pore_pressure_3_value,
+                       pore_pressure_4_value,
+                       specific_discharge]
+        if self.is_running_under_teamcity:
+            self.latex_writer.write_latex_file_and_assert(result_list)
+        else:
+            self.assert_test_expectations(result_list)
 
     def test_saturated_flux_bound(self):
         """ Fully saturated soil with flux boundary """

@@ -19,7 +19,7 @@ class LatexWriterFile:
         self.filename = filename
         self.value_dict_default = {"value_name": "", "test_result": 0, "kratos_results": 0}
 
-    def write_latex_file_and_assert(self, result_list):
+    def write_latex_file(self, result_list):
         with open(self.filename, "w+") as output_latex_file:
             for result_pair in result_list:
                 if result_pair['kratos_results'] is None:
@@ -35,18 +35,11 @@ class LatexWriterFile:
                             (abs(result_pair['test_result']) + 1e-60)
                     error_equivalent_software = abs(result_pair['kratos_results'] - result_pair['equivalent_software']) / \
                                                 (abs(result_pair['equivalent_software']) + 1e-60)
-                    if result_pair["round"]:
-                        output_latex_file.write(
-                            f"{result_pair['value_name']} & {result_pair['test_result']} & "
-                            f"{result_pair['equivalent_software']} & "
-                            f" {round(result_pair['kratos_results'], 2)} & {round(error, 2)} &"
-                            f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
-                    else:
-                        output_latex_file.write(
-                            f"{result_pair['value_name']} & {result_pair['test_result']} & "
-                            f"{result_pair['equivalent_software']} & "
-                            f" {result_pair['kratos_results']} & {round(error, 2)} &"
-                            f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
+                    output_latex_file.write(
+                        f"{result_pair['value_name']} & {result_pair['test_result']} & "
+                        f"{result_pair['equivalent_software']} & "
+                        f" {round(result_pair['kratos_results'], 2)} & {round(error, 2)} &"
+                        f" {round(error_equivalent_software, 2)} \\\\ \hline \n")
 
 
 class TestSellmeijersRule(KratosUnittest.TestCase):
@@ -64,6 +57,7 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
                           30: {30: "test_compare_sellmeijer/HeightAquiferD30L30.gid",
                                60: "test_compare_sellmeijer/HeightAquiferD30L60.gid",
                                90: "test_compare_sellmeijer/HeightAquiferD30L90.gid"}}
+        self.is_running_under_teamcity = test_helper.is_running_under_teamcity()
 
     def tearDown(self):
         pass
@@ -141,8 +135,8 @@ class TestSellmeijersRule(KratosUnittest.TestCase):
             temp_results = {"value_name": test_n,
                             "test_result": self.test_lists['Hc'][index_test],
                             "equivalent_software": self.test_lists['Hn'][index_test],
-                            "kratos_results": self.test_lists['Hc_kratos'][counter],
-                            "round": True}
+                            "kratos_results": self.test_lists['Hc_kratos'][counter]}
             all_results.append(temp_results)
-        self.latex_writer.filename = test_helper.get_file_path('test_compare_sellmeijer/test_compare_sellmeijer.tex')
-        self.latex_writer.write_latex_file_and_assert(all_results)
+        if self.is_running_under_teamcity:
+            self.latex_writer.filename = test_helper.get_file_path('test_compare_sellmeijer/test_compare_sellmeijer.tex')
+            self.latex_writer.write_latex_file(all_results)
