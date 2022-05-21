@@ -24,6 +24,9 @@ topnav_dropdowns:
     - title: Debuging
       url: /pages/1_Kratos/3_Debuging/General/Checking-memory-usage-with-Valgrind.html
       output: web
+    - title: Documentation guide
+      url: /pages/1_Kratos/Documentation_guide/1_General/initial.html
+      output: web
   - title: Applications
     output: web
     folderitems:

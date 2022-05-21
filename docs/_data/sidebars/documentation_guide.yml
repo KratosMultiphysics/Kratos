@@ -1,0 +1,17 @@
+entries:
+- title: sidebar
+  product: Documentation guide
+  output: web
+  folders:
+  - title: General
+    output: web
+    folderitems:
+    - title: initial
+      url: /pages/1_Kratos/Documentation_guide/1_General/initial.html
+      output: web
+  - title: something
+    output: web
+    folderitems:
+    - title: something
+      url: /pages/1_Kratos/Documentation_guide/2_something/initial.html
+      output: web
