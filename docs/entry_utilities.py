@@ -130,7 +130,7 @@ def GenerateEntryDataFromFile(file_path: Path, entry_type: str, default_header_d
     entry_dict["type"] = entry_type
     return entry_dict
 
-def GenerateEntryDataFromUrl(file_path: Path, url: str, entry_type: str, default_header_dict: dict) -> dict:
+def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, entry_type: str, default_header_dict: dict) -> dict:
     raw_url = url
     original_folder_url = url[:url.rfind("/")]
 
@@ -157,6 +157,18 @@ def GenerateEntryDataFromUrl(file_path: Path, url: str, entry_type: str, default
         print("=== Writing downloaded data to: " + str((file_path).absolute()))
     return GenerateEntryDataFromFile(file_path, entry_type, default_header_dict)
 
+def GenerateEntryDataFromExternalUrl(url_dict: dict, entry_type: str) -> dict:
+    if "title" not in url_dict.keys():
+        raise RuntimeError("\"title\" key is not found in url dict {:s}.".format(str(url_dict)))
+    if "url" not in url_dict.keys():
+        raise RuntimeError("\"url\" key is not found in url dict {:s}.".format(str(url_dict)))
+    entry_dict = {}
+    entry_dict["title"] = url_dict["title"]
+    entry_dict["output"] = "web"
+    entry_dict["path"] = url_dict["url"]
+    entry_dict["type"] = entry_type
+    return entry_dict
+
 def CreateNavigationBarEntry(entry_info: dict) -> str:
     if "title" not in entry_info.keys():
         raise Exception("title is not found in entry {:s}".format(entry_info))
@@ -177,7 +189,7 @@ if __name__ == "__main__":
             "sidebar": "<!>Hellothere"
         })
 
-    data = GenerateEntryDataFromUrl(
+    data = GenerateEntryDataFromKratosExampleUrl(
         Path("online_test.md"),
         "https://github.com/KratosMultiphysics/Examples/tree/master/shape_optimization/use_cases/11_Shape_Update_Optimization_Stanford_Bunny/README.md",
         "none",

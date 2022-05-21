@@ -5,10 +5,11 @@ from pathlib import Path
 from entry_utilities import default_header_dict
 from entry_utilities import GenerateEntryDataFromDir
 from entry_utilities import GenerateEntryDataFromFile
-from entry_utilities import GenerateEntryDataFromUrl
+from entry_utilities import GenerateEntryDataFromKratosExampleUrl
 from entry_utilities import GetTaglessName
 from entry_utilities import CreateNavigationBarEntry
 from entry_utilities import GetDirMenuInfoFromJson
+from entry_utilities import GenerateEntryDataFromExternalUrl
 
 docs_absolute_path = Path(__file__)
 
@@ -28,8 +29,6 @@ spacing_information = {
 def GetEntryPathFromString(input_str: str, current_path: Path) -> Path:
     if input_str.startswith("/"):
         return docs_absolute_path / input_str[1:]
-    elif input_str.startswith("http"):
-        return Path()
     else:
         return current_path / input_str
 
@@ -48,13 +47,17 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
     current_path_entry = GenerateEntryDataFromDir(current_path, dir_entry_type)
 
     if navigation_level == max_navigation_level:
-        # if it is the last level, check and add landing pages for folders
+        # if it is the leaf level, check and add landing pages for folders
         landing_url = ""
         if "landing_page" in menu_data.keys():
             landing_url = menu_data["landing_page"]
         else:
-            print("--- WARNING: No landing page information found for dir {0:s}. Please add it to {0:}/menu_info.json.".format(str(current_path)))
-        current_path_entry["url"] = landing_url
+            raise RuntimeError("No landing page information found for leaf dir {0:s}. Please add it to {0:}/menu_info.json.".format(str(current_path)))
+        landing_path = GetEntryPathFromString(landing_url, current_path)
+        if landing_path.is_file():
+            current_path_entry["path"] = landing_path
+        else:
+            raise RuntimeError("Landing page {:s} defined in {:s}/menu_info.json not found.".format(str(landing_path), str(current_path)))
         return [current_path_entry]
     else:
         list_of_entries = [current_path_entry]
@@ -72,10 +75,17 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
             raise RuntimeError("Custom entry {:s} found in ignore entries list. These \"custom_entries\" and \"ignore_entries\" should be mutually exclusive.".format(custom_entry))
 
         if isinstance(custom_entry, dict):
-            current_dict = GenerateEntryDataFromUrl(current_path / custom_entry["file_name"], custom_entry["url"], file_entry_type, default_headers_dict)
-            custom_entries_order[i] = GetTaglessName(current_dict["path"])
-            list_of_entries.append(current_dict)
-        else:
+            if "type" not in custom_entry.keys():
+                raise RuntimeError("\"type\" key not found in {:s} at {:s}/menu_info.json".format(custom_entry, str(current_path)))
+            if custom_entry["type"] == "kratos_example":
+                current_dict = GenerateEntryDataFromKratosExampleUrl(current_path / custom_entry["file_name"], custom_entry["url"], file_entry_type, default_headers_dict)
+                custom_entries_order[i] = GetTaglessName(current_dict["path"])
+                list_of_entries.append(current_dict)
+            elif custom_entry["type"] == "external":
+                list_of_entries.append(GenerateEntryDataFromExternalUrl(custom_entry, file_entry_type))
+            else:
+                raise RuntimeError("Unsupported entry type \"{:s}\". \"kratos_example\" and \"external\" are the only supported entry types".format(custom_entry["type"]))
+        elif isinstance(custom_entry, str):
             current_entry_path = GetEntryPathFromString(custom_entry, current_path)
             if current_entry_path.is_file():
                 list_of_entries.append(GenerateEntryDataFromFile(current_entry_path, file_entry_type, default_headers_dict))
@@ -83,6 +93,8 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
                 list_of_entries.extend(CreateEntriesDicts(current_entry_path, navigation_level + 1, max_navigation_level, default_headers_dict))
             else:
                 raise RuntimeError("Custom entry {:s} is not a file or a dir.".format(str(current_entry_path)))
+        else:
+            raise RuntimeError("Custom entry {:s} is not supported.".format(str(custom_entry)))
 
     temp_entries_list = []
     for iter_path in current_path.iterdir():
@@ -151,11 +163,15 @@ def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
     return list_of_strings
 
 if __name__ == "__main__":
-    # create topnav
+    print("Creating top navigation bar...")
+    # generate top navigation bar
+    with open("_data/topnav.yml.orig", "r") as file_input:
+        lines = file_input.readlines()
+
     list_of_entries = CreateEntriesDicts(
         Path("pages"),
         0,
-        2,
+        10,
         default_header_dict)
 
     list_of_entries = list_of_entries[1:]
