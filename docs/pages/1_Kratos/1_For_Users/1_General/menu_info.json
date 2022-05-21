@@ -1,0 +1,9 @@
+{
+    "custom_entries": [
+        "1_Overview.md",
+        "2_Management_Structure.md",
+        "3_General_Structure.md",
+        "4_Copyright_and_Licence.md",
+        "5_How-to-configure-clang‐format.md"
+    ]
+}
