@@ -12,6 +12,24 @@ default_header_dict = {
     "summary": ""
 }
 
+file_navigation_levels = [
+    "unsupported",
+    "folderitems",
+    "subfolderitems"
+]
+
+dir_navigation_levels = [
+    "root",
+    "folders",
+    "subfolders"
+]
+
+def GetNavigationString(navigations_list: list, navigation_level: int) -> str:
+    if navigation_level >= len(navigations_list):
+        return "unsupported"
+    else:
+        return navigations_list[navigation_level]
+
 def GetName(file_path: Path) -> str:
     return str(file_path.relative_to(file_path.parent))
 
@@ -108,15 +126,16 @@ def GetDirMenuInfoFromJson(dir_path: Path) -> dict:
             menu_data = dict(json.loads(file_input.read()))
     return menu_data
 
-def GenerateEntryDataFromDir(dir_path: Path, entry_type: str) -> dict:
+def GenerateEntryDataFromDir(dir_path: Path, navigation_level: int) -> dict:
     return {
         "title": GetPrettyName(dir_path),
         "output": "web",
         "path": dir_path,
-        "type": entry_type
+        "type": GetNavigationString(dir_navigation_levels, navigation_level),
+        "navigation_level": navigation_level
     }
 
-def GenerateEntryDataFromFile(file_path: Path, entry_type: str, default_header_dict: dict) -> dict:
+def GenerateEntryDataFromFile(file_path: Path, navigation_level: int, default_header_dict: dict) -> dict:
     WritePageHeader(file_path, default_header_dict)
     header_dict, _ = GetPageHeader(file_path)
 
@@ -127,10 +146,11 @@ def GenerateEntryDataFromFile(file_path: Path, entry_type: str, default_header_d
     entry_dict["title"] = header_dict["title"]
     entry_dict["output"] = "web"
     entry_dict["path"] = file_path
-    entry_dict["type"] = entry_type
+    entry_dict["type"] = GetNavigationString(file_navigation_levels, navigation_level)
+    entry_dict["navigation_level"] = navigation_level
     return entry_dict
 
-def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, entry_type: str, default_header_dict: dict) -> dict:
+def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, navigation_level: int, default_header_dict: dict) -> dict:
     raw_url = url
     original_folder_url = url[:url.rfind("/")]
 
@@ -154,10 +174,10 @@ def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, entry_type:
             data = data.replace("<img src=\"", "<img src=\"{:s}/".format(folder_url))
             file_output.write(data)
         file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(original_folder_url, original_folder_url))
-        print("=== Writing downloaded data to: " + str((file_path).absolute()))
-    return GenerateEntryDataFromFile(file_path, entry_type, default_header_dict)
+        print("--- Writing downloaded data to: " + str((file_path).absolute()))
+    return GenerateEntryDataFromFile(file_path, navigation_level, default_header_dict)
 
-def GenerateEntryDataFromExternalUrl(url_dict: dict, entry_type: str) -> dict:
+def GenerateEntryDataFromExternalUrl(url_dict: dict, navigation_level: int) -> dict:
     if "title" not in url_dict.keys():
         raise RuntimeError("\"title\" key is not found in url dict {:s}.".format(str(url_dict)))
     if "url" not in url_dict.keys():
@@ -167,8 +187,12 @@ def GenerateEntryDataFromExternalUrl(url_dict: dict, entry_type: str) -> dict:
     entry_dict["output"] = "web"
     entry_dict["path"] = url_dict["url"]
     entry_dict["url"] = url_dict["url"]
-    entry_dict["type"] = entry_type
+    entry_dict["type"] = GetNavigationString(file_navigation_levels, navigation_level)
+    entry_dict["navigation_level"] = navigation_level
     return entry_dict
+
+def IsLeafEntry(entry_dict: dict) -> bool:
+    return entry_dict["type"] in file_navigation_levels
 
 def CreateNavigationBarEntry(entry_info: dict) -> str:
     if "title" not in entry_info.keys():
@@ -180,6 +204,9 @@ def CreateNavigationBarEntry(entry_info: dict) -> str:
                 entry_info["url"] = "/" + str(file_path)[:-2] + "html"
             else:
                 raise RuntimeError("Final entry {:s} is not a mark down file.".format(str(file_path)))
+    if "url" in entry_info.keys() and entry_info["url"] == "<dummy>":
+        del entry_info["url"]
+
     entry_string = "<TABBING>- title: {:s}\n".format(entry_info["title"])
     entry_order_list = ["product", "version", "url", "output", "folders", "subfolders", "folderitems", "subfolderitems"]
     for entry_order_item in entry_order_list:

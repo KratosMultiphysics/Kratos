@@ -1,8 +1,10 @@
 from collections import OrderedDict
 import json
+from multiprocessing import dummy
 from pathlib import Path
 
 from entry_utilities import default_header_dict
+from entry_utilities import file_navigation_levels
 from entry_utilities import GenerateEntryDataFromDir
 from entry_utilities import GenerateEntryDataFromFile
 from entry_utilities import GenerateEntryDataFromKratosExampleUrl
@@ -10,6 +12,8 @@ from entry_utilities import GetTaglessName
 from entry_utilities import CreateNavigationBarEntry
 from entry_utilities import GetDirMenuInfoFromJson
 from entry_utilities import GenerateEntryDataFromExternalUrl
+from entry_utilities import IsLeafEntry
+from entry_utilities import GetNavigationString
 
 docs_absolute_path = Path(__file__)
 
@@ -32,19 +36,9 @@ def GetEntryPathFromString(input_str: str, current_path: Path) -> Path:
     else:
         return current_path / input_str
 
-def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_level, default_headers_dict: dict) -> list:
-    if navigation_level >= len(spacing_information["files"]):
-        file_entry_type = "unsupported"
-    else:
-        file_entry_type = spacing_information["files"][navigation_level][0]
-
-    if navigation_level >= len(spacing_information["dirs"]):
-        dir_entry_type = "unsupported"
-    else:
-        dir_entry_type = spacing_information["dirs"][navigation_level][0]
-
+def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation_level: int, default_headers_dict: dict) -> list:
     menu_data = GetDirMenuInfoFromJson(current_path)
-    current_path_entry = GenerateEntryDataFromDir(current_path, dir_entry_type)
+    current_path_entry = GenerateEntryDataFromDir(current_path, navigation_level)
 
     if navigation_level == max_navigation_level:
         # if it is the leaf level, check and add landing pages for folders
@@ -71,6 +65,27 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
     if "ignore_entries" in menu_data.keys():
         ignore_entries = menu_data["ignore_entries"]
 
+    def check_and_add_sub_dirs(dir_path: Path):
+        list_of_sub_entries = CreateEntriesDicts(dir_path, navigation_level + 1, max_navigation_level, default_headers_dict)
+        for sub_entry in list_of_sub_entries:
+            found_sub_leaf_entry = False
+            if sub_entry["navigation_level"] == navigation_level + 1:
+                if IsLeafEntry(sub_entry):
+                    found_sub_leaf_entry = True
+                    break
+        if not found_sub_leaf_entry:
+            # add a dummy entry
+            dummy_dict = {
+                "title": "",
+                "output": "web",
+                "path": Path("."),
+                "url": "<dummy>",
+                "type": GetNavigationString(file_navigation_levels, navigation_level + 1),
+                "navigation_level": navigation_level + 1
+            }
+            list_of_sub_entries.insert(1, dummy_dict)
+        return list_of_sub_entries
+
     for i, custom_entry in enumerate(custom_entries_order):
         if custom_entry in ignore_entries:
             raise RuntimeError("Custom entry {:s} found in ignore entries list. These \"custom_entries\" and \"ignore_entries\" should be mutually exclusive.".format(custom_entry))
@@ -79,19 +94,19 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
             if "type" not in custom_entry.keys():
                 raise RuntimeError("\"type\" key not found in {:s} at {:s}/menu_info.json".format(custom_entry, str(current_path)))
             if custom_entry["type"] == "kratos_example":
-                current_dict = GenerateEntryDataFromKratosExampleUrl(current_path / custom_entry["file_name"], custom_entry["url"], file_entry_type, default_headers_dict)
+                current_dict = GenerateEntryDataFromKratosExampleUrl(current_path / custom_entry["file_name"], custom_entry["url"], navigation_level, default_headers_dict)
                 custom_entries_order[i] = GetTaglessName(current_dict["path"])
                 list_of_entries.append(current_dict)
             elif custom_entry["type"] == "external":
-                list_of_entries.append(GenerateEntryDataFromExternalUrl(custom_entry, file_entry_type))
+                list_of_entries.append(GenerateEntryDataFromExternalUrl(custom_entry, navigation_level))
             else:
                 raise RuntimeError("Unsupported entry type \"{:s}\". \"kratos_example\" and \"external\" are the only supported entry types".format(custom_entry["type"]))
         elif isinstance(custom_entry, str):
             current_entry_path = GetEntryPathFromString(custom_entry, current_path)
             if current_entry_path.is_file():
-                list_of_entries.append(GenerateEntryDataFromFile(current_entry_path, file_entry_type, default_headers_dict))
+                list_of_entries.append(GenerateEntryDataFromFile(current_entry_path, navigation_level, default_headers_dict))
             elif current_entry_path.is_dir():
-                list_of_entries.extend(CreateEntriesDicts(current_entry_path, navigation_level + 1, max_navigation_level, default_headers_dict))
+                list_of_entries.extend(check_and_add_sub_dirs(current_entry_path))
             else:
                 raise RuntimeError("Custom entry {:s} is not a file or a dir.".format(str(current_entry_path)))
         else:
@@ -102,7 +117,7 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
         if iter_path.is_file() and str(iter_path).endswith(".md"):
             file_name = GetTaglessName(iter_path)
             if file_name not in custom_entries_order and file_name not in ignore_entries:
-                temp_entries_list.append(GenerateEntryDataFromFile(iter_path, file_entry_type, default_headers_dict))
+                temp_entries_list.append(GenerateEntryDataFromFile(iter_path, navigation_level, default_headers_dict))
 
     list_of_entries.extend(sorted(temp_entries_list, key=lambda x: x["title"]))
 
@@ -114,7 +129,8 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
 
     temp_entries_list = sorted(temp_entries_list, key= lambda x: str(x))
     for iter_path in temp_entries_list:
-        list_of_entries.extend(CreateEntriesDicts(iter_path, navigation_level + 1, max_navigation_level, default_headers_dict))
+        list_of_entries.extend(check_and_add_sub_dirs(iter_path))
+        # list_of_entries.extend(CreateEntriesDicts(iter_path, navigation_level + 1, max_navigation_level, default_headers_dict))
 
     return list_of_entries
 
@@ -173,23 +189,37 @@ def UpdateRootEntry(list_of_entries: list) -> list:
     list_of_entries[0] = root_entry
     return list_of_entries
 
+def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dict) -> list:
+    list_of_entries = CreateEntriesDicts(
+        Path(root_path),
+        0,
+        max_levels,
+        default_header_dict)
+    list_of_entries = UpdateRootEntry(list_of_entries)
+    list_of_strings = GenerateStrings(list_of_entries)
+    return list_of_strings
+
 if __name__ == "__main__":
     print("Creating top navigation bar...")
     # generate top navigation bar
     with open("_data/topnav.yml.orig", "r") as file_input:
         lines = file_input.readlines()
-
-    list_of_entries = CreateEntriesDicts(
-        Path("pages"),
-        0,
-        2,
-        default_header_dict)
-
-    list_of_entries = UpdateRootEntry(list_of_entries)
-    list_of_strings = GenerateStrings(list_of_entries)
+    list_of_strings = CreateNavigatonBar("pages", 2, default_header_dict)
     lines.extend(list_of_strings)
     with open("_data/topnav.yml", "w") as file_output:
         file_output.writelines(lines)
 
-    # for entry in list_of_entries:
-    #     print(str(entry["path"]))
+    # generate Shape optimization application side bar
+    for iter_dir in Path("pages").iterdir():
+        if iter_dir.is_dir():
+            for sub_itr_dir in iter_dir.iterdir():
+                if sub_itr_dir.is_dir():
+                    print("Creating side bar for {:s}...".format(str(sub_itr_dir)))
+                    menu_info = GetDirMenuInfoFromJson(sub_itr_dir)
+                    if "side_bar_name" not in menu_info.keys():
+                        raise RuntimeError("No side bar name provied. Please add it to {:s}/menu_info.json.".format(str(sub_itr_dir)))
+                    default_header_dict["sidebar"] = "<!>" + menu_info["side_bar_name"]
+                    list_of_strings = CreateNavigatonBar(str(sub_itr_dir), 3, default_header_dict)
+                    with open("_data/sidebars/{:s}.yml".format(menu_info["side_bar_name"]), "w") as file_output:
+                        file_output.write("entries:\n")
+                        file_output.writelines(list_of_strings)
