@@ -89,7 +89,7 @@ def __Bisect(data):
     return data
 
 def __IsPlateau(slope, max_slope):
-    return math.fabs(slope) <= max_slope
+    return slope <= max_slope
 
 def _CalculateTimeSeriesSlope(time_series_values, time_range):
     if np.isfinite(time_series_values[-1, 1]):
