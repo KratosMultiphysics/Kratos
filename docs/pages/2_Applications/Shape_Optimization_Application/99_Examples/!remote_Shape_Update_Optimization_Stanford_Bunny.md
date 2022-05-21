@@ -2,7 +2,7 @@
 title: Shape Update Optimization Stanford Bunny
 keywords: 
 tags: [Shape_Update_Optimization_Stanford_Bunny.md]
-sidebar: 
+sidebar: shape_optimization_application
 summary: 
 ---
 # Smooth surface wrapping
