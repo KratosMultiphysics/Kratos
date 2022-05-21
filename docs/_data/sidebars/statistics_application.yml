@@ -1,0 +1,17 @@
+entries:
+- title: sidebar
+  product: Statistics Application
+  output: web
+  folders:
+  - title: General
+    output: web
+    folderitems:
+    - title: Overview
+      url: /pages/Applications/Statistics_Application/General/Overview.html
+      output: web
+  - title: Statistical Methods
+    output: web
+    folderitems:
+    - title: Sum
+      url: /pages/Applications/Statistics_Application/Statistical Methods/Sum.html
+      output: web

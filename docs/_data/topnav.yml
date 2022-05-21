@@ -52,6 +52,9 @@ topnav_dropdowns:
     - title: Shape Optimization Application
       url: /pages/Applications/Shape_Optimization_Application/General/Multi_objective_optimization.html
       output: web
+    - title: Statistics Application
+      url: /pages/Applications/Statistics_Application/General/Overview.html
+      output: web
     - title: Structural Mechanics Application
       url: /pages/Applications/Structural_Mechanics_Application/General/0_Roll-up-beam-cantilever.html
       output: web
