@@ -56,6 +56,7 @@ def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_leve
         landing_path = GetEntryPathFromString(landing_url, current_path)
         if landing_path.is_file():
             current_path_entry["path"] = landing_path
+            current_path_entry["type"] = spacing_information["files"][navigation_level - 1][0]
         else:
             raise RuntimeError("Landing page {:s} defined in {:s}/menu_info.json not found.".format(str(landing_path), str(current_path)))
         return [current_path_entry]
@@ -129,7 +130,7 @@ def GetTypeInfo(item_type: str) -> str:
 
 def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
     for itr_dict in list_of_dicts:
-        itr_dict["str"] = CreateNavigationBarEntry(itr_dict)
+        itr_dict["str"] = CreateNavigationBarEntry(itr_dict).replace("<TABBING>", GetTypeInfo(itr_dict["type"]))
 
     written_types = OrderedDict()
     written_types["root"]= False,
@@ -162,6 +163,16 @@ def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
 
     return list_of_strings
 
+def UpdateRootEntry(list_of_entries: list) -> list:
+    root_entry = list_of_entries[0]
+    menu_info = GetDirMenuInfoFromJson(root_entry["path"])
+    if "additional_menu_options" in menu_info.keys():
+        for k, v in menu_info["additional_menu_options"].items():
+            root_entry[k] = v
+
+    list_of_entries[0] = root_entry
+    return list_of_entries
+
 if __name__ == "__main__":
     print("Creating top navigation bar...")
     # generate top navigation bar
@@ -171,11 +182,14 @@ if __name__ == "__main__":
     list_of_entries = CreateEntriesDicts(
         Path("pages"),
         0,
-        10,
+        2,
         default_header_dict)
 
-    list_of_entries = list_of_entries[1:]
+    list_of_entries = UpdateRootEntry(list_of_entries)
     list_of_strings = GenerateStrings(list_of_entries)
+    lines.extend(list_of_strings)
+    with open("_data/topnav.yml", "w") as file_output:
+        file_output.writelines(lines)
 
-    for entry in list_of_entries:
-        print(str(entry["path"]))
+    # for entry in list_of_entries:
+    #     print(str(entry["path"]))

@@ -166,12 +166,20 @@ def GenerateEntryDataFromExternalUrl(url_dict: dict, entry_type: str) -> dict:
     entry_dict["title"] = url_dict["title"]
     entry_dict["output"] = "web"
     entry_dict["path"] = url_dict["url"]
+    entry_dict["url"] = url_dict["url"]
     entry_dict["type"] = entry_type
     return entry_dict
 
 def CreateNavigationBarEntry(entry_info: dict) -> str:
     if "title" not in entry_info.keys():
         raise Exception("title is not found in entry {:s}".format(entry_info))
+    if "url" not in entry_info.keys():
+        file_path = entry_info["path"]
+        if file_path.is_file():
+            if str(file_path).endswith(".md"):
+                entry_info["url"] = "/" + str(file_path)[:-2] + "html"
+            else:
+                raise RuntimeError("Final entry {:s} is not a mark down file.".format(str(file_path)))
     entry_string = "<TABBING>- title: {:s}\n".format(entry_info["title"])
     entry_order_list = ["product", "version", "url", "output", "folders", "subfolders", "folderitems", "subfolderitems"]
     for entry_order_item in entry_order_list:
