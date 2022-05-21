@@ -1,7 +1,9 @@
-from pathlib import Path
-from collections import OrderedDict
 import json
+from pathlib import Path
+from posixpath import split
 import requests
+
+docs_absolute_path = Path(__file__)
 
 spacing_information = {
     "dirs": [
@@ -16,32 +18,103 @@ spacing_information = {
     ]
 }
 
-def GetAbsolutePath(input: str):
-    if input[0] == "/":
-        return input
-    else:
-        return "/" + input
+def GetHeaderAndContent(current_file_path: Path) -> list:
+    with open(str(current_file_path), "r") as file_input:
+        lines = file_input.readlines()
 
-def GetFileIndex(file_name: Path) -> int:
-    relative_file_name = str(file_name.relative_to(file_name.parent))
-    pos = relative_file_name.find("_")
-    index = -1
-    if pos != -1 and relative_file_name[:pos].isnumeric():
-        index = int(relative_file_name[:pos])
-    return index
+    found_starting_line = False
+    found_closing_line = False
+    header = []
+    content = []
+    for i, line in enumerate(lines):
+        if found_starting_line and line.startswith("---"):
+            found_closing_line = True
+            content = lines[i+1:]
+            break
+        if found_starting_line:
+            header.append(line)
+        if line.startswith("---"):
+            found_starting_line = True
+
+    if found_starting_line and found_closing_line:
+        return header, content
+    else:
+        return [], lines
+
+def GetPageHeader(header_lines: list) -> dict:
+    header_dict = {}
+    for header_line in header_lines:
+        data = header_line[:-1].split(":")
+        header_dict[data[0].strip()] = data[1].strip()
+
+    return header_dict
+
+# def WritePageHeader(header_lines: list, content_lines:str, header_dict: dict):
+#     pass
+
+def GetName(file_path: Path) -> str:
+    return str(file_path.relative_to(file_path.parent))
 
 def GetPrettyName(file_path: Path) -> str:
-    file_name = str(file_path.relative_to(file_path.parent))
-    if file_path.is_file():
-        char_index = file_name.rfind(".")
-        if char_index != -1:
-            file_name = file_name[:char_index]
-
-    char_index = file_name.find("_")
-    if char_index != -1 and file_name[:char_index].isnumeric():
-        file_name = file_name[char_index+1:]
+    file_name = GetName(file_path)
     file_name = file_name.replace("_", " ")
     return file_name
+
+def GenerateEntryDataFromFile(current_file_path: Path, entry_type: str) -> dict:
+    current_dict = {}
+    with open(str(current_file_path), "r") as file_input:
+        lines = file_input.readlines()
+    for line in lines:
+        if line.startswith("title:"):
+            current_dict["title"] = line[6:-1].strip()
+    # check for the header, if not present add the header
+
+    if "title" not in list(current_dict.keys()):
+        current_dict["title"] = GetPrettyName(current_file_path)
+
+    current_dict["output"] = "web"
+    current_dict["path"] = current_file_path
+    current_dict["type"] = entry_type
+    return current_dict
+
+def GenerateEntryDataFromDir(current_dir_path: Path, entry_type: str) -> dict:
+    return {
+        "title": GetPrettyName(current_dir_path),
+        "output": "web",
+        "path": current_dir_path,
+        "type": entry_type
+    }
+
+def GenerateEntryDataFromUrl(current_file_path: Path, url: str, entry_type: str) -> dict:
+    raw_url = url
+    original_folder_url = url[:url.rfind("/")]
+
+    # get the raw url in case of this is from github
+    if url.startswith("https://github.com"):
+        tree_index = url.find("/tree/")
+        raw_url = "https://raw.githubusercontent.com" + url[len("https://github.com"):tree_index] + url[tree_index+5:]
+
+    folder_url = raw_url[:raw_url.rfind("/")]
+
+    print("Downloading data from: " + url)
+    r = requests.get(raw_url, allow_redirects=True)
+
+    with open(str(current_file_path), "w") as file_output:
+        if r.status_code == 200:
+            data = r.text
+            data = data.replace("<img src=\"", "<img src=\"{:s}/".format(folder_url))
+            file_output.write(data)
+        file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(original_folder_url, original_folder_url))
+        print("Writing downloaded data to: " + str((current_file_path).absolute()))
+    return GenerateEntryDataFromFile(current_file_path, entry_type)
+
+def GetEntryPathFromString(input_str: str, current_path: Path) -> Path:
+    if input_str.startswith("/"):
+        return docs_absolute_path / input_str[1:]
+    elif input_str.startswith("http"):
+        return Path()
+    else:
+        return current_path / input_str
 
 def CreateNavigationBarEntry(entry_info: dict) -> str:
     if "title" not in entry_info.keys():
@@ -54,315 +127,75 @@ def CreateNavigationBarEntry(entry_info: dict) -> str:
 
     return entry_string
 
-def AddTabbingToEntry(entry_string: str, spaces: str) -> str:
-    return entry_string.replace("<TABBING>", spaces)
-
-def GenerateListOfSortedRawEntries(current_dir: Path, is_valid_path) -> list[Path]:
-    list_of_raw_entries_dict = {}
-    max_index = -1
-    for iter_dir in current_dir.iterdir():
-        if is_valid_path(iter_dir):
-            index = GetFileIndex(iter_dir)
-            max_index = max(max_index, index)
-            if index not in list_of_raw_entries_dict.keys():
-                list_of_raw_entries_dict[index] = []
-            list_of_raw_entries_dict[index].append(iter_dir)
-
-    if -1 in list_of_raw_entries_dict.keys():
-        list_of_raw_entries_dict[max_index + 1] = list(list_of_raw_entries_dict[-1])
-        del list_of_raw_entries_dict[-1]
-
-    list_of_raw_entries_list = []
-    sorted_keys_list = sorted(list(list_of_raw_entries_dict.keys()))
-    for sorted_key in sorted_keys_list:
-        sorted_sub_list = sorted(list_of_raw_entries_dict[sorted_key], key=lambda x: str(x))
-        list_of_raw_entries_list.extend(sorted_sub_list)
-
-    return list_of_raw_entries_list
-
-def GetEntryDict(current_path: Path) -> dict:
-    entry_dict = {}
-    if current_path.is_file():
-        # get file information
-        with open(str(current_path), "r") as file_input:
-            lines = file_input.readlines()
-        for line in lines:
-            if line.startswith("title:"):
-                entry_dict["title"] = line[6:-1].strip()
-        entry_dict["url"] = GetAbsolutePath(str(current_path))[:-2] + "html"
-    else:
-        entry_dict["title"] = GetPrettyName(current_path)
-
-    entry_dict["output"] = "web"
-    entry_dict["path"] = current_path
-    return entry_dict
-
-def GetDirEntryDictFromJson(current_path: Path) -> dict:
-    json_dict = {}
-    if current_path.is_dir():
-        if (current_path / "info.json").is_file():
-            with open(str(current_path / "info.json"), "r") as file_input:
-                json_dict = json.loads(file_input.read())
-        return json_dict
-    else:
-        raise Exception("{:s} is not a valid directory.".format(str(current_path)))
-
-def CreateNavigationBarStructure(
-    current_dict: dict,
-    navigation_level: int,
-    max_navigation_level: int) -> list[dict]:
-
-    list_of_dicts = []
-    current_path = current_dict["path"]
-
+def CreateEntriesDicts(current_path: Path, navigation_level, max_navigation_level, side_bar: str) -> list:
     if navigation_level == max_navigation_level:
-        file_tabbing_info = spacing_information["files"][navigation_level - 1]
-        dir_json_info = GetDirEntryDictFromJson(current_path)
-        if "url" in dir_json_info.keys():
-            current_dict["url"] = GetAbsolutePath(str(current_path / dir_json_info["url"]))[:-2] + "html"
-        current_dict["type"] = file_tabbing_info[0]
-        current_dict["str"] = AddTabbingToEntry(CreateNavigationBarEntry(current_dict), file_tabbing_info[1])
-        list_of_dicts.append(current_dict)
+        return []
+
+    if navigation_level >= len(spacing_information["files"]):
+        file_entry_type = "unsupported"
     else:
-        file_tabbing_info = spacing_information["files"][navigation_level]
-        dir_tabbing_info = spacing_information["dirs"][navigation_level]
-        current_dict["type"] = dir_tabbing_info[0]
-        current_dict["str"] = AddTabbingToEntry(CreateNavigationBarEntry(current_dict), dir_tabbing_info[1])
-        list_of_dicts.append(current_dict)
-        list_of_dir_entries = GenerateListOfSortedRawEntries(current_path, lambda x: x.is_dir())
+        file_entry_type = spacing_information["files"][navigation_level][0]
 
-        list_of_file_entries = GenerateListOfSortedRawEntries(current_path, lambda x: x.is_file() and str(x).endswith(".md"))
-        for file_entry in list_of_file_entries:
-            file_dict = GetEntryDict(file_entry)
-            file_dict["type"] = file_tabbing_info[0]
-            file_dict["str"] = AddTabbingToEntry(CreateNavigationBarEntry(file_dict), file_tabbing_info[1])
-            list_of_dicts.append(file_dict)
-
-        if len(list_of_file_entries) == 0 and navigation_level > 0:
-            # add a dummy file entry
-            dummy_dict = {
-                "title": "",
-                "path": Path("."),
-                "output": "web",
-                "type": file_tabbing_info[0]
-            }
-            dummy_dict["str"] = AddTabbingToEntry(CreateNavigationBarEntry(dummy_dict), file_tabbing_info[1])
-            list_of_dicts.append(dummy_dict)
-
-        for dir_path in list_of_dir_entries:
-            dir_dict = GetEntryDict(dir_path)
-            list_of_dicts.extend(CreateNavigationBarStructure(dir_dict, navigation_level + 1, max_navigation_level))
-
-    # clean empty dummy dicts which are not required
-    current_index = 0
-    while (current_index < len(list_of_dicts) - 1):
-        if list_of_dicts[current_index]["title"] == "" and list_of_dicts[current_index]["type"] == list_of_dicts[current_index+1]["type"]:
-            del list_of_dicts[current_index]
-        else:
-            current_index += 1
-
-    return list_of_dicts
-
-def GetTypeInfo(item_type: str) -> str:
-    for spacing_info in spacing_information["dirs"]:
-        if item_type == spacing_info[0]:
-            return spacing_info[1]
-    for spacing_info in spacing_information["files"]:
-        if item_type == spacing_info[0]:
-            return spacing_info[1]
-
-    raise Exception("Entry type {:s} is not defined.".format(item_type))
-
-def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
-    written_types = OrderedDict()
-    written_types["root"]= False,
-    written_types["folders"]= False,
-    written_types["folderitems"]= False,
-    written_types["subfolders"]= False,
-    written_types["subfolderitems"]= False
-
-    list_of_strings = []
-    previous_dict_type = ""
-    for dict_item in list_of_dicts:
-        dict_type = dict_item["type"]
-        if dict_type == "unsupported":
-            print("Warning: Entry with unsupported level found at {:s}.".format(str(dict_item["path"])))
-        else:
-            if not written_types[dict_type]:
-                written_types[dict_type] = True
-                spacing_info = GetTypeInfo(dict_type)
-                if spacing_info != "":
-                    list_of_strings.append(spacing_info + dict_type + ":\n")
-            elif previous_dict_type != dict_type:
-                for k in reversed(written_types.keys()):
-                    if k != dict_type:
-                        written_types[k] = False
-                    else:
-                        break
-
-        list_of_strings.append(dict_item["str"])
-        previous_dict_type = dict_type
-
-    return list_of_strings
-
-def GetDataFromFileEntry(file_path: Path):
-    if file_path.is_file() and str(file_path).endswith(".md"):
-        with open(str(file_path), "r") as file_input:
-            lines = file_input.readlines()
-        meta_data_dict = {}
-        if lines[0] == "---\n":
-            closing_index = lines[1:].index("---\n") + 1
-            for line in lines[1:closing_index]:
-                line_data = line[:-1].strip().split(":")
-                meta_data_dict[line_data[0].strip()] = line_data[1].strip()
-            return meta_data_dict, lines[closing_index+1:]
-        else:
-            return meta_data_dict, lines
+    if navigation_level >= len(spacing_information["dirs"]):
+        dir_entry_type = "unsupported"
     else:
-        return None, None
+        dir_entry_type = spacing_information["dirs"][navigation_level][0]
 
-def FillDataFileEntries(file_path: Path, default_entries: OrderedDict):
-    meta_data_dict, content = GetDataFromFileEntry(file_path)
-    copied_default_entries = dict(default_entries)
+    menu_data = {}
+    if (current_path / "menu_info.json").is_file():
+        with open(str(current_path / "menu_info.json"), "r") as file_input:
+            menu_data = dict(json.loads(file_input.read()))
 
-    replacement_tag_dict = {
-        "<PRETTY_FILE_NAME>": GetPrettyName(file_path),
-        "<FILE_NAME>": str(file_path.relative_to(file_path.parent)),
-        "<ABSOLUTE_FILE_NAME>": str(file_path.absolute())
-    }
+    custom_entries_order = []
+    if "custom_entries" in menu_data.keys():
+        custom_entries_order = menu_data["custom_entries"]
 
-    for k1 in copied_default_entries.keys():
-        for k2, v2 in replacement_tag_dict.items():
-            copied_default_entries[k1] = copied_default_entries[k1].replace(k2, v2)
+    ignore_entries = []
+    if "ignore_entries" in menu_data.keys():
+        ignore_entries = menu_data["ignore_entries"]
 
-    # check if it is a file with content
-    if content is not None:
-        if meta_data_dict is not None:
-            # now add missing entries from the defaults
-            for k, v in copied_default_entries.items():
-                if v.startswith("<!>"):
-                    v = v[3:]
-                    if v != meta_data_dict[k]:
-                        print("Warning: {:s} of file at {:s} is \"{:s}\" which is different from forced defaults of \"{:s}\". Overwriting with forced default value.".format(k, str(file_path), meta_data_dict[k], v))
-                    meta_data_dict[k] = v
-                else:
-                    if not k in meta_data_dict.keys():
-                        meta_data_dict[k] = v
+    list_of_entries = [GenerateEntryDataFromDir(current_path, dir_entry_type)]
+
+    for i, custom_entry in enumerate(custom_entries_order):
+        if custom_entry in ignore_entries:
+            raise RuntimeError("Custom entry {:s} found in ignore entries list. These \"custom_entries\" and \"ignore_entries\" should be mutually exclusive.".format(custom_entry))
+
+        if isinstance(custom_entry, dict):
+            current_dict = GenerateEntryDataFromUrl(current_path / custom_entry["file_name"], custom_entry["url"], side_bar, file_entry_type)
+            custom_entries_order[i] = custom_entry["file_name"]
+            list_of_entries.append(current_dict)
         else:
-            meta_data_dict = copied_default_entries
+            current_entry_path = GetEntryPathFromString(custom_entry, current_path)
+            if current_entry_path.is_file():
+                list_of_entries.append(GenerateEntryDataFromFile(current_entry_path, side_bar, file_entry_type))
+            elif current_entry_path.is_dir():
+                list_of_entries.extend(CreateEntriesDicts(current_entry_path, navigation_level + 1, max_navigation_level))
+            else:
+                raise RuntimeError("Custom entry {:s} is not a file or a dir.".format(str(current_entry_path)))
 
-        # now create ordered dict from the following order
-        ordered_meta_data_dict = OrderedDict()
-        for k in default_entries.keys():
-            ordered_meta_data_dict[k] = meta_data_dict[k]
+    temp_entries_list = []
+    for iter_path in current_path.iterdir():
+        if iter_path.is_file() and str(iter_path).endswith(".md"):
+            file_name = GetName(iter_path)
+            if file_name not in custom_entries_order and file_name not in ignore_entries:
+                temp_entries_list.append(GenerateEntryDataFromFile(iter_path, side_bar, file_entry_type))
 
-        with open(str(file_path), "w") as file_output:
-            file_output.write("---\n")
+    list_of_entries.extend(sorted(temp_entries_list, key=lambda x: x["title"]))
 
-            for k, v in ordered_meta_data_dict.items():
-                file_output.write("{:s}: {:s}\n".format(k, v))
+    temp_entries_list = []
+    for iter_path in current_path.iterdir():
+        if iter_path.is_dir():
+            if not GetName(iter_path) in custom_entries_order:
+                temp_entries_list.append(iter_path)
 
-            file_output.write("---\n")
-            file_output.writelines(content)
+    temp_entries_list = sorted(temp_entries_list, key= lambda x: str(x))
+    for iter_path in temp_entries_list:
+        list_of_entries.extend(CreateEntriesDicts(iter_path, navigation_level + 1, max_navigation_level, side_bar))
 
-def GetFilesList(current_path: Path) -> list[Path]:
-    list_of_files = []
-    for iter_dir in current_path.iterdir():
-        if iter_dir.is_file():
-            list_of_files.append(iter_dir)
-        else:
-            list_of_files.extend(GetFilesList(iter_dir))
-
-    return list_of_files
-
-def ConvertToRawGitHubUrl(url: str) -> str:
-    if url.startswith("https://github.com"):
-        tree_index = url.find("/tree/")
-        return "https://raw.githubusercontent.com" + url[len("https://github.com"):tree_index] + url[tree_index+5:]
-
-def GenerateEntriesFromInfoJsonFiles(current_path: Path):
-    list_of_files = GetFilesList(current_path)
-    for file in list_of_files:
-        if str(file.relative_to(file.parent)) == "info.json":
-            with open(str(file), "r") as file_input:
-                json_data = dict(json.loads(file_input.read()))
-
-            if "entries" in json_data.keys():
-                for entry in json_data["entries"]:
-                    file_name = Path(file.parent / entry["file_name"])
-                    if str(file_name).endswith(".md"):
-                        file_name.parent.mkdir(exist_ok=True, parents=True)
-                        entry_url = entry["url"]
-                        raw_url = ConvertToRawGitHubUrl(entry_url)
-                        print("Downloading data from: " + entry_url)
-                        r = requests.get(raw_url + "/README.md", allow_redirects=True)
-                        with open(str(file_name), "w") as file_output:
-                            if r.status_code == 200:
-                                data = r.text
-                                data = data.replace("<img src=\"", "<img src=\"{:s}/".format(raw_url))
-                                file_output.write(data)
-                            file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(entry_url, entry_url))
+    return list_of_entries
 
 if __name__ == "__main__":
-    GenerateEntriesFromInfoJsonFiles(Path("pages"))
-    list_of_files = GetFilesList(Path("pages"))
-    defaults_dict = OrderedDict()
-    defaults_dict["title"] = "<PRETTY_FILE_NAME>"
-    defaults_dict["keywords"] = ""
-    defaults_dict["tags"] = "[<FILE_NAME>]"
-    defaults_dict["sidebar"] = "<DEFAULT_SIDE_BAR>"
-    defaults_dict["summary"] = ""
-
-    print("Processing pages for meta data completeness...")
-    for file in list_of_files:
-        FillDataFileEntries(file, defaults_dict)
-
-    print("Creating top navigation bar...")
-    # generate top navigation bar
-    with open("_data/topnav.yml.orig", "r") as file_input:
-        lines = file_input.readlines()
-    list_of_entries = CreateNavigationBarStructure(
-        {
-            "title": "Topnav dropdowns",
-            "path" : Path("pages")
-        }, 0, 2)
-    list_of_entries = GenerateStrings(list_of_entries)
-    lines.extend(list_of_entries)
-
-    with open("_data/topnav.yml", "w") as file_output:
-        file_output.writelines(lines)
-
-    for iter_dir in Path("pages").iterdir():
-        if iter_dir.is_dir():
-            for sub_itr_dir in iter_dir.iterdir():
-                if sub_itr_dir.is_dir():
-                    print("Creating side bar for {:s}...".format(str(sub_itr_dir)))
-                    root_dict = GetEntryDict(sub_itr_dir)
-                    json_settings = GetDirEntryDictFromJson(sub_itr_dir)
-                    if "product" in json_settings:
-                        root_dict["product"] = json_settings["product"]
-                    else:
-                        root_dict["product"] = root_dict["title"]
-                    root_dict["title"] = "sidebar"
-
-                    if "file_name" in json_settings:
-                        file_name = json_settings["file_name"]
-                    else:
-                        file_name = str(root_dict["path"]).replace("/", "_")
-
-                    list_of_files = GetFilesList(sub_itr_dir)
-                    # forcefully update side bar with <!> prefix flag
-                    defaults_dict["sidebar"] = "<!>{:s}".format(file_name)
-                    for file in list_of_files:
-                        FillDataFileEntries(file, defaults_dict)
-
-                    list_of_entries = CreateNavigationBarStructure(
-                            root_dict, 0, 3)
-
-                    list_of_entries = GenerateStrings(list_of_entries)
-
-                    lines = ["entries:\n"]
-                    lines.extend(list_of_entries)
-
-                    with open("_data/sidebars/{:s}.yml".format(file_name), "w") as file_output:
-                        file_output.writelines(lines)
+    print(GetPageHeader(Path("pages/2_Applications/Shape_Optimization_Application/99_Examples/01_Strain_Energy_Minimization_3D_Hook.md")))
+    # list_of_entries = CreateEntriesDicts(Path("pages/2_Applications/Shape_Optimization_Application"), 0, 10, "shape_optimization_application")
+    # for entry in list_of_entries:
+    #     print(str(entry["path"]))
