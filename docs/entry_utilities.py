@@ -1,9 +1,15 @@
 from pathlib import Path
 import requests
 
-from docs.old_process_pages import GetFileIndex
-
 __remote_tag = "!remote_"
+
+default_header_dict = {
+    "title": "<PRETTY_FILE_NAME>",
+    "keywords": "",
+    "tags": "[<TAGLESS_NAME>]",
+    "sidebar": "",
+    "summary": ""
+}
 
 def GetName(file_path: Path) -> str:
     return str(file_path.relative_to(file_path.parent))
@@ -28,7 +34,8 @@ def ReplaceTagDataInDict(file_path: Path, input_dict: dict) -> dict:
     replacement_tag_dict = {
         "<PRETTY_FILE_NAME>": GetPrettyName(file_path),
         "<FILE_NAME>": str(file_path.relative_to(file_path.parent)),
-        "<ABSOLUTE_FILE_NAME>": str(file_path.absolute())
+        "<ABSOLUTE_FILE_NAME>": str(file_path.absolute()),
+        "<TAGLESS_NAME>": str(file_path).replace(__remote_tag, "")
     }
 
     for k1 in copied_default_entries.keys():
@@ -90,33 +97,34 @@ def WritePageHeader(file_path: Path, default_header_dict: dict):
         file_output.write("---\n")
         file_output.writelines(content)
 
-def GenerateEntryDataFromDir(current_dir_path: Path, entry_type: str) -> dict:
+def GenerateEntryDataFromDir(dir_path: Path, entry_type: str) -> dict:
     return {
-        "title": GetPrettyName(current_dir_path),
+        "title": GetPrettyName(dir_path),
         "output": "web",
-        "path": current_dir_path,
+        "path": dir_path,
         "type": entry_type
     }
 
-def GenerateEntryDataFromFile(current_file_path: Path, entry_type: str) -> dict:
-    header_dict, _ = GetPageHeader(current_file_path)
+def GenerateEntryDataFromFile(file_path: Path, entry_type: str, default_header_dict) -> dict:
+    WritePageHeader(file_path, default_header_dict)
+    header_dict, _ = GetPageHeader(file_path)
 
-    current_dict = {}
+    entry_dict = {}
     if "title" not in list(header_dict.keys()):
-        current_dict["title"] = GetPrettyName(current_file_path)
+        raise RuntimeError("title tag is not found in {:s}.".format(str(file_path)))
 
-    current_dict["output"] = "web"
-    current_dict["path"] = current_file_path
-    current_dict["type"] = entry_type
-    return current_dict
+    entry_dict["output"] = "web"
+    entry_dict["path"] = file_path
+    entry_dict["type"] = entry_type
+    return entry_dict
 
-def GenerateEntryDataFromUrl(current_file_path: Path, url: str, entry_type: str) -> dict:
+def GenerateEntryDataFromUrl(file_path: Path, url: str, entry_type: str, default_header_dict) -> dict:
     raw_url = url
     original_folder_url = url[:url.rfind("/")]
 
-    file_name = GetName(current_file_path)
+    file_name = GetName(file_path)
     if not file_name.startswith(__remote_tag):
-        current_file_path = current_file_path.parent / (__remote_tag + file_name)
+        file_path = file_path.parent / (__remote_tag + file_name)
 
     # get the raw url in case of this is from github
     if url.startswith("https://github.com"):
@@ -128,14 +136,14 @@ def GenerateEntryDataFromUrl(current_file_path: Path, url: str, entry_type: str)
     print("Downloading data from: " + url)
     r = requests.get(raw_url, allow_redirects=True)
 
-    with open(str(current_file_path), "w") as file_output:
+    with open(str(file_path), "w") as file_output:
         if r.status_code == 200:
             data = r.text
             data = data.replace("<img src=\"", "<img src=\"{:s}/".format(folder_url))
             file_output.write(data)
         file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(original_folder_url, original_folder_url))
-        print("Writing downloaded data to: " + str((current_file_path).absolute()))
-    return GenerateEntryDataFromFile(current_file_path, entry_type)
+        print("Writing downloaded data to: " + str((file_path).absolute()))
+    return GenerateEntryDataFromFile(file_path, entry_type, default_header_dict)
 
 if __name__ == "__main__":
     print(GetPrettyName(Path("/test1/test2/hello_test.md")))
@@ -146,4 +154,9 @@ if __name__ == "__main__":
             "sidebar": "<!>Hellothere"
         })
 
-    GenerateEntryDataFromUrl()
+    data = GenerateEntryDataFromUrl(
+        Path("online_test.md"),
+        "https://github.com/KratosMultiphysics/Examples/tree/master/shape_optimization/use_cases/11_Shape_Update_Optimization_Stanford_Bunny/README.md",
+        "none",
+        default_header_dict)
+    print(data)
