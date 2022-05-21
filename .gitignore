@@ -76,3 +76,5 @@ docs/_site/*
 
 # Most used editor files
 *.vscode
+
+!remote_*.md
