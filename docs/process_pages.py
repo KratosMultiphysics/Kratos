@@ -67,13 +67,16 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
 
     def check_and_add_sub_dirs(dir_path: Path):
         list_of_sub_entries = CreateEntriesDicts(dir_path, navigation_level + 1, max_navigation_level, default_headers_dict)
+        found_sub_leaf_entry = False
+        found_sub_entries = False
         for sub_entry in list_of_sub_entries:
-            found_sub_leaf_entry = False
+            if sub_entry["navigation_level"] > navigation_level:
+                found_sub_entries = True
             if sub_entry["navigation_level"] == navigation_level + 1:
                 if IsLeafEntry(sub_entry):
                     found_sub_leaf_entry = True
                     break
-        if not found_sub_leaf_entry:
+        if found_sub_entries and not found_sub_leaf_entry:
             # add a dummy entry
             dummy_dict = {
                 "title": "",
