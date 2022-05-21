@@ -2,7 +2,7 @@ from pathlib import Path
 import requests
 import json
 
-__remote_tag = "!remote_"
+__remote_tag = "remote_"
 
 default_header_dict = {
     "title": "<PRETTY_FILE_NAME>",
