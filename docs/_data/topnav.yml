@@ -16,17 +16,17 @@ topnav_dropdowns:
   - title: Kratos
     output: web
     folderitems:
-    - title: 1 For Users
-      url: /pages/Kratos/1_For_Users/1_General/1_Overview.html
+    - title: For Users
+      url: /pages/Kratos/For_Users/General/Overview.html
       output: web
-    - title: 2 For Developers
-      url: /pages/Kratos/2_For_Developers/General/Application-Cases.html
+    - title: For Developers
+      url: /pages/Kratos/For_Developers/General/Application-Cases.html
       output: web
-    - title: 3 Debuging
-      url: /pages/Kratos/3_Debuging/General/Checking-memory-usage-with-Valgrind.html
+    - title: Debugging
+      url: /pages/Kratos/Debugging/General/Checking-memory-usage-with-Valgrind.html
       output: web
-    - title: Documentation guide
-      url: /pages/Kratos/Documentation_guide/1_General/initial.html
+    - title: Documentation Guide
+      url: /pages/Kratos/Documentation_Guide/1_General/initial.html
       output: web
   - title: Applications
     output: web

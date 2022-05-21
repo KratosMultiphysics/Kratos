@@ -7,11 +7,11 @@ entries:
     output: web
     folderitems:
     - title: initial
-      url: /pages/Kratos/Documentation_guide/1_General/initial.html
+      url: /pages/Kratos/Documentation_Guide/1_General/initial.html
       output: web
   - title: 2 something
     output: web
     folderitems:
     - title: something
-      url: /pages/Kratos/Documentation_guide/2_something/initial.html
+      url: /pages/Kratos/Documentation_Guide/2_something/initial.html
       output: web
