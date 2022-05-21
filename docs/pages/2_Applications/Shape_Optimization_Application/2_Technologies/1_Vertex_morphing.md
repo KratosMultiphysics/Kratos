@@ -1,9 +1,9 @@
 ---
 title: Vertex morphing
-keywords:
+keywords: 
 tags: [1_Vertex_morphing.md]
 sidebar: shape_optimization_application
-summary:
+summary: 
 ---
 
 ## Introduction

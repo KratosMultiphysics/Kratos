@@ -1,5 +1,6 @@
 from pathlib import Path
 import requests
+import json
 
 __remote_tag = "!remote_"
 
@@ -13,6 +14,9 @@ default_header_dict = {
 
 def GetName(file_path: Path) -> str:
     return str(file_path.relative_to(file_path.parent))
+
+def GetTaglessName(file_path: Path) -> str:
+    return GetName(file_path).replace(__remote_tag, "")
 
 def GetPrettyName(file_path: Path) -> str:
     file_name = GetName(file_path)
@@ -80,12 +84,12 @@ def WritePageHeader(file_path: Path, default_header_dict: dict):
         tagless_v = v.replace("<!>", "")
         if k not in header.keys():
             update_key = True
-            print("Adding missing entry \"{:s}\" with value \"{:s}\" at {:s}.".format(k, tagless_v, str(file_path)))
+            print("--- Adding missing entry \"{:s}\" with value \"{:s}\" at {:s}.".format(k, tagless_v, str(file_path)))
 
         if v.startswith("<!>"):
             if not update_key and tagless_v != header[k]:
                 update_key = True
-                print("Forcefully changing \"{:s}\" entry value \"{:s}\" to \"{:s}\" at {:s}.".format(k, header[k], tagless_v, str(file_path)))
+                print("--- Forcefully changing \"{:s}\" entry value \"{:s}\" to \"{:s}\" at {:s}.".format(k, header[k], tagless_v, str(file_path)))
 
         if update_key:
             header[k] = tagless_v
@@ -97,6 +101,13 @@ def WritePageHeader(file_path: Path, default_header_dict: dict):
         file_output.write("---\n")
         file_output.writelines(content)
 
+def GetDirMenuInfoFromJson(dir_path: Path) -> dict:
+    menu_data = {}
+    if (dir_path / "menu_info.json").is_file():
+        with open(str(dir_path / "menu_info.json"), "r") as file_input:
+            menu_data = dict(json.loads(file_input.read()))
+    return menu_data
+
 def GenerateEntryDataFromDir(dir_path: Path, entry_type: str) -> dict:
     return {
         "title": GetPrettyName(dir_path),
@@ -105,7 +116,7 @@ def GenerateEntryDataFromDir(dir_path: Path, entry_type: str) -> dict:
         "type": entry_type
     }
 
-def GenerateEntryDataFromFile(file_path: Path, entry_type: str, default_header_dict) -> dict:
+def GenerateEntryDataFromFile(file_path: Path, entry_type: str, default_header_dict: dict) -> dict:
     WritePageHeader(file_path, default_header_dict)
     header_dict, _ = GetPageHeader(file_path)
 
@@ -113,12 +124,13 @@ def GenerateEntryDataFromFile(file_path: Path, entry_type: str, default_header_d
     if "title" not in list(header_dict.keys()):
         raise RuntimeError("title tag is not found in {:s}.".format(str(file_path)))
 
+    entry_dict["title"] = header_dict["title"]
     entry_dict["output"] = "web"
     entry_dict["path"] = file_path
     entry_dict["type"] = entry_type
     return entry_dict
 
-def GenerateEntryDataFromUrl(file_path: Path, url: str, entry_type: str, default_header_dict) -> dict:
+def GenerateEntryDataFromUrl(file_path: Path, url: str, entry_type: str, default_header_dict: dict) -> dict:
     raw_url = url
     original_folder_url = url[:url.rfind("/")]
 
@@ -142,8 +154,19 @@ def GenerateEntryDataFromUrl(file_path: Path, url: str, entry_type: str, default
             data = data.replace("<img src=\"", "<img src=\"{:s}/".format(folder_url))
             file_output.write(data)
         file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(original_folder_url, original_folder_url))
-        print("Writing downloaded data to: " + str((file_path).absolute()))
+        print("=== Writing downloaded data to: " + str((file_path).absolute()))
     return GenerateEntryDataFromFile(file_path, entry_type, default_header_dict)
+
+def CreateNavigationBarEntry(entry_info: dict) -> str:
+    if "title" not in entry_info.keys():
+        raise Exception("title is not found in entry {:s}".format(entry_info))
+    entry_string = "<TABBING>- title: {:s}\n".format(entry_info["title"])
+    entry_order_list = ["product", "version", "url", "output", "folders", "subfolders", "folderitems", "subfolderitems"]
+    for entry_order_item in entry_order_list:
+        if entry_order_item in entry_info.keys():
+            entry_string += "<TABBING>  {:s}: {:s}\n".format(entry_order_item, entry_info[entry_order_item])
+
+    return entry_string
 
 if __name__ == "__main__":
     print(GetPrettyName(Path("/test1/test2/hello_test.md")))
