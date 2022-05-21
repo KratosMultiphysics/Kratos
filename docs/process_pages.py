@@ -5,6 +5,7 @@ from pathlib import Path
 
 from entry_utilities import default_header_dict
 from entry_utilities import file_navigation_levels
+from entry_utilities import spacing_information
 from entry_utilities import GenerateEntryDataFromDir
 from entry_utilities import GenerateEntryDataFromFile
 from entry_utilities import GenerateEntryDataFromKratosExampleUrl
@@ -16,19 +17,6 @@ from entry_utilities import IsLeafEntry
 from entry_utilities import GetNavigationString
 
 docs_absolute_path = Path(__file__)
-
-spacing_information = {
-    "dirs": [
-        ["root", ""],
-        ["folders", "  "],
-        ["subfolders", "      "]
-    ],
-    "files": [
-        ["unsupported", ""],
-        ["folderitems", "    "],
-        ["subfolderitems", "        "]
-    ]
-}
 
 def GetEntryPathFromString(input_str: str, current_path: Path) -> Path:
     if input_str.startswith("/"):
@@ -50,7 +38,7 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
         landing_path = GetEntryPathFromString(landing_url, current_path)
         if landing_path.is_file():
             current_path_entry["path"] = landing_path
-            current_path_entry["type"] = spacing_information["files"][navigation_level - 1][0]
+            current_path_entry["type"] = GetNavigationString(file_navigation_levels, navigation_level - 1)
         else:
             raise RuntimeError("Landing page {:s} defined in {:s}/menu_info.json not found.".format(str(landing_path), str(current_path)))
         return [current_path_entry]
@@ -70,9 +58,8 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
         found_sub_leaf_entry = False
         found_sub_entries = False
         for sub_entry in list_of_sub_entries:
-            if sub_entry["navigation_level"] > navigation_level:
-                found_sub_entries = True
             if sub_entry["navigation_level"] == navigation_level + 1:
+                found_sub_entries = True
                 if IsLeafEntry(sub_entry):
                     found_sub_leaf_entry = True
                     break
@@ -87,6 +74,7 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
                 "navigation_level": navigation_level + 1
             }
             list_of_sub_entries.insert(1, dummy_dict)
+
         return list_of_sub_entries
 
     for i, custom_entry in enumerate(custom_entries_order):
@@ -133,23 +121,12 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
     temp_entries_list = sorted(temp_entries_list, key= lambda x: str(x))
     for iter_path in temp_entries_list:
         list_of_entries.extend(check_and_add_sub_dirs(iter_path))
-        # list_of_entries.extend(CreateEntriesDicts(iter_path, navigation_level + 1, max_navigation_level, default_headers_dict))
 
     return list_of_entries
 
-def GetTypeInfo(item_type: str) -> str:
-    for spacing_info in spacing_information["dirs"]:
-        if item_type == spacing_info[0]:
-            return spacing_info[1]
-    for spacing_info in spacing_information["files"]:
-        if item_type == spacing_info[0]:
-            return spacing_info[1]
-
-    raise Exception("Entry type {:s} is not defined.".format(item_type))
-
 def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
     for itr_dict in list_of_dicts:
-        itr_dict["str"] = CreateNavigationBarEntry(itr_dict).replace("<TABBING>", GetTypeInfo(itr_dict["type"]))
+        itr_dict["str"] = CreateNavigationBarEntry(itr_dict)
 
     written_types = OrderedDict()
     written_types["root"]= False,
@@ -167,7 +144,7 @@ def GenerateStrings(list_of_dicts: list[dict]) -> list[str]:
         else:
             if not written_types[dict_type]:
                 written_types[dict_type] = True
-                spacing_info = GetTypeInfo(dict_type)
+                spacing_info = spacing_information[dict_type]
                 if spacing_info != "":
                     list_of_strings.append(spacing_info + dict_type + ":\n")
             elif previous_dict_type != dict_type:
@@ -192,6 +169,24 @@ def UpdateRootEntry(list_of_entries: list) -> list:
     list_of_entries[0] = root_entry
     return list_of_entries
 
+def ClearDummies(list_of_entries: list) -> list:
+    index = 0
+    while index < len(list_of_entries):
+        current_entry = list_of_entries[index]
+        remove_dummy = False
+        if "url" in current_entry.keys() and current_entry["url"] == "<dummy>":
+            if index + 1 < len(list_of_entries):
+                next_entry = list_of_entries[index + 1]
+                if IsLeafEntry(next_entry) and next_entry["type"] == current_entry["type"]:
+                    remove_dummy = True
+
+        if remove_dummy:
+            del list_of_entries[index]
+        else:
+            index += 1
+
+    return list_of_entries
+
 def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dict) -> list:
     list_of_entries = CreateEntriesDicts(
         Path(root_path),
@@ -199,6 +194,7 @@ def CreateNavigatonBar(root_path: str, max_levels: int, default_header_dict: dic
         max_levels,
         default_header_dict)
     list_of_entries = UpdateRootEntry(list_of_entries)
+    list_of_entries = ClearDummies(list_of_entries)
     list_of_strings = GenerateStrings(list_of_entries)
     return list_of_strings
 
@@ -226,3 +222,15 @@ if __name__ == "__main__":
                     with open("_data/sidebars/{:s}.yml".format(menu_info["side_bar_name"]), "w") as file_output:
                         file_output.write("entries:\n")
                         file_output.writelines(list_of_strings)
+
+
+    # sub_itr_dir = Path("pages/1_Kratos/1_For_Users")
+    # print("Creating side bar for {:s}...".format(str(sub_itr_dir)))
+    # menu_info = GetDirMenuInfoFromJson(sub_itr_dir)
+    # if "side_bar_name" not in menu_info.keys():
+    #     raise RuntimeError("No side bar name provied. Please add it to {:s}/menu_info.json.".format(str(sub_itr_dir)))
+    # default_header_dict["sidebar"] = "<!>" + menu_info["side_bar_name"]
+    # list_of_strings = CreateNavigatonBar(str(sub_itr_dir), 3, default_header_dict)
+    # with open("_data/sidebars/{:s}.yml".format(menu_info["side_bar_name"]), "w") as file_output:
+    #     file_output.write("entries:\n")
+    #     file_output.writelines(list_of_strings)

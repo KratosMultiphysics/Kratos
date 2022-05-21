@@ -24,11 +24,11 @@ entries:
     - title: How to profile Kratos using MAQAO
       url: /pages/1_Kratos/3_Debuging/General/How-to-profile-Kratos-using-MAQAO.html
       output: web
-    - title: Serialization
-      url: /pages/1_Kratos/3_Debuging/General/How-to-use-Serialization.html
-      output: web
     - title: Profiling Kratos with LineProfile
       url: /pages/1_Kratos/3_Debuging/General/Profiling-Kratos-with-LineProfile.html
+      output: web
+    - title: Serialization
+      url: /pages/1_Kratos/3_Debuging/General/How-to-use-Serialization.html
       output: web
     - title: Thread Sanitizer
       url: /pages/1_Kratos/3_Debuging/General/thread-sanitizer.html

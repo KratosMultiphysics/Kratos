@@ -6,12 +6,6 @@ entries:
   - title: General
     output: web
     folderitems:
-    - title: Roll up beam cantilever
-      url: /pages/2_Applications/Structural_Mechanics_Application/General/0_Roll-up-beam-cantilever.html
-      output: web
-    - title: Open cylinder pull out
-      url: /pages/2_Applications/Structural_Mechanics_Application/General/1_Open-cylinder-pull-out.html
-      output: web
     - title: Composite clamped cylinder
       url: /pages/2_Applications/Structural_Mechanics_Application/General/Composite-clamped-cylinder.html
       output: web
@@ -29,6 +23,12 @@ entries:
       output: web
     - title: Non linear cantilever beam
       url: /pages/2_Applications/Structural_Mechanics_Application/General/Non-linear-cantilever-beam.html
+      output: web
+    - title: Open cylinder pull out
+      url: /pages/2_Applications/Structural_Mechanics_Application/General/1_Open-cylinder-pull-out.html
+      output: web
+    - title: Roll up beam cantilever
+      url: /pages/2_Applications/Structural_Mechanics_Application/General/0_Roll-up-beam-cantilever.html
       output: web
     - title: Shallow angle beam
       url: /pages/2_Applications/Structural_Mechanics_Application/General/Shallow-angle-beam.html

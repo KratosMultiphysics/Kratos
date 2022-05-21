@@ -3,13 +3,13 @@ entries:
   product: Documentation guide
   output: web
   folders:
-  - title: General
+  - title: 1 General
     output: web
     folderitems:
     - title: initial
       url: /pages/1_Kratos/Documentation_guide/1_General/initial.html
       output: web
-  - title: something
+  - title: 2 something
     output: web
     folderitems:
     - title: something

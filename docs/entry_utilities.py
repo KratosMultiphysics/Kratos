@@ -24,6 +24,15 @@ dir_navigation_levels = [
     "subfolders"
 ]
 
+spacing_information = {
+    "root" :"",
+    "folders" :"  ",
+    "subfolders" :"      ",
+    "unsupported" :"",
+    "folderitems" :"    ",
+    "subfolderitems" :"        "
+}
+
 def GetNavigationString(navigations_list: list, navigation_level: int) -> str:
     if navigation_level >= len(navigations_list):
         return "unsupported"
@@ -213,7 +222,7 @@ def CreateNavigationBarEntry(entry_info: dict) -> str:
         if entry_order_item in entry_info.keys():
             entry_string += "<TABBING>  {:s}: {:s}\n".format(entry_order_item, entry_info[entry_order_item])
 
-    return entry_string
+    return entry_string.replace("<TABBING>", spacing_information[entry_info["type"]])
 
 if __name__ == "__main__":
     print(GetPrettyName(Path("/test1/test2/hello_test.md")))
