@@ -1,6 +1,4 @@
 from collections import OrderedDict
-import json
-from multiprocessing import dummy
 from pathlib import Path
 
 from entry_utilities import default_header_dict
