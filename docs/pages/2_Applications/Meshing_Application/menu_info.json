@@ -1,7 +1,8 @@
 {
-    "side_bar_name": "kratos_for_users",
+    "side_bar_name": "mmg_application",
     "landing_page": "General/Utilities-MMG-Process.md",
     "additional_menu_options": {
-        "product": "Kratos Multiphysics for Users"
+        "product": "Meshing Application",
+        "title": "sidebar"
     }
 }

@@ -1,7 +1,8 @@
 {
-    "side_bar_name": "kratos_for_users",
+    "side_bar_name": "mapping_application",
     "landing_page": "General/How-to-do-Mapping-between-nonmatching-meshes.md",
     "additional_menu_options": {
-        "product": "Kratos Multiphysics for Users"
+        "product": "Mapping Application",
+        "title": "sidebar"
     }
 }

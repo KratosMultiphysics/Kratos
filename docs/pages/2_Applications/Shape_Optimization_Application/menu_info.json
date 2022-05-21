@@ -1,7 +1,8 @@
 {
-    "side_bar_name": "kratos_for_users",
+    "side_bar_name": "shape_optimization_application",
     "landing_page": "1_General/Multi_objective_optimization.md",
     "additional_menu_options": {
-        "product": "Kratos Multiphysics for Users"
+        "title": "sidebar",
+        "product": "Shape Optimization Application"
     }
 }

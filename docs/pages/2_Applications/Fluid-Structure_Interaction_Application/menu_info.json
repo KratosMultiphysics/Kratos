@@ -1,7 +1,8 @@
 {
-    "side_bar_name": "kratos_for_users",
+    "side_bar_name": "fsi_application",
     "landing_page": "General/2D-Mok-benchmark.md",
     "additional_menu_options": {
-        "product": "Kratos Multiphysics for Users"
+        "product": "Fluid-Structure Interaction Application",
+        "title": "sidebar"
     }
 }

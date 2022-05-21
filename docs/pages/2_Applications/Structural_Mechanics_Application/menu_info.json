@@ -1,7 +1,8 @@
 {
-    "side_bar_name": "kratos_for_users",
+    "side_bar_name": "structural_mechanics_application",
     "landing_page": "General/0_Roll-up-beam-cantilever.md",
     "additional_menu_options": {
-        "product": "Kratos Multiphysics for Users"
+        "product": "Structural Mechanics Application",
+        "title": "sidebar"
     }
 }

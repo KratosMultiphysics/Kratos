@@ -1,7 +1,8 @@
 {
-    "side_bar_name": "kratos_for_users",
+    "side_bar_name": "rom_application",
     "landing_page": "General/API-for-RomApplication-(draft-to-be-moved-elsewhere).md",
     "additional_menu_options": {
-        "product": "Kratos Multiphysics for Users"
+        "product": "ROM Application",
+        "title": "sidebar"
     }
 }
