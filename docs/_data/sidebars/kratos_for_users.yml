@@ -1,6 +1,6 @@
 entries:
 - title: For Users
-  product: Kratos Multiphysics for Users
+  product: For Users
   output: web
   folders:
   - title: General
@@ -27,29 +27,29 @@ entries:
     - title: 
       output: web
       subfolders:
-      - title: 1 Binaries
+      - title: Binaries
         output: web
         subfolderitems:
-        - title: Getting Kratos Binaries for Linux
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/1_Binaries/3_Getting-Kratos-Binaries-for-Linux.html
+        - title: Getting Kratos binaries (via GiD)
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-binaries-with-gid.html
           output: web
         - title: Getting Kratos Binaries for Windows
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/1_Binaries/2_Getting-Kratos-Binaries-for-Windows.html
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Windows.html
           output: web
-        - title: Getting Kratos binaries (via GiD)
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/1_Binaries/1_Getting-Kratos-binaries-with-gid.html
+        - title: Getting Kratos Binaries for Linux
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Binaries/Getting-Kratos-Binaries-for-Linux.html
           output: web
-      - title: 2 Compilation
+      - title: Compilation
         output: web
         subfolderitems:
         - title: Compilation options
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/2_Compilation/Compilation-options.html
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Compilation-options.html
           output: web
         - title: How to Compile Kratos in Debug mode
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/2_Compilation/How-to-Compile-Kratos-in-Debug-mode.html
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/How-to-Compile-Kratos-in-Debug-mode.html
           output: web
         - title: Linux Build
-          url: /pages/Kratos/For_Users/How_to_get_Kratos/2_Compilation/Linux-Build.html
+          url: /pages/Kratos/For_Users/How_to_get_Kratos/Compilation/Linux-Build.html
           output: web
   - title: Getting started
     output: web
