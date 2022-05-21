@@ -89,7 +89,7 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
             if "type" not in custom_entry.keys():
                 raise RuntimeError("\"type\" key not found in {:s} at {:s}/menu_info.json".format(custom_entry, str(current_path)))
             if custom_entry["type"] == "kratos_example":
-                current_dict = GenerateEntryDataFromKratosExampleUrl(current_path / custom_entry["file_name"], custom_entry["url"], navigation_level, default_headers_dict)
+                current_dict = GenerateEntryDataFromKratosExampleUrl(current_path / custom_entry["file_name"], custom_entry, navigation_level, default_headers_dict)
                 custom_entries_order[i] = GetTaglessName(current_dict["path"])
                 list_of_entries.append(current_dict)
             elif custom_entry["type"] == "external":

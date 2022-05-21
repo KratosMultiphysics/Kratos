@@ -159,20 +159,23 @@ def GenerateEntryDataFromFile(file_path: Path, navigation_level: int, default_he
     entry_dict["navigation_level"] = navigation_level
     return entry_dict
 
-def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, navigation_level: int, default_header_dict: dict) -> dict:
-    raw_url = url
-    original_folder_url = url[:url.rfind("/")]
+def GenerateEntryDataFromKratosExampleUrl(file_path: Path, custom_entry: dict, navigation_level: int, default_header_dict: dict) -> dict:
+    raw_url = custom_entry["raw_url"]
+    source_url = ""
+    if "source_url" in custom_entry.keys():
+        source_url = custom_entry["source_url"]
+    original_folder_url = raw_url[:raw_url.rfind("/")]
 
     file_name = GetName(file_path)
     if not file_name.startswith(__remote_tag):
         file_path = file_path.parent / (__remote_tag + file_name)
 
-    if not url.startswith("https://raw.githubusercontent.com"):
-        raise RuntimeError("Please provide the raw github url. [ Provided url = {:s} ].".format(url))
+    if not raw_url.startswith("https://raw.githubusercontent.com"):
+        raise RuntimeError("Please provide the raw github raw_url. [ Provided raw_url = {:s} ].".format(raw_url))
 
     folder_url = raw_url[:raw_url.rfind("/")]
 
-    print("Downloading data from: " + url)
+    print("Downloading data from: " + raw_url)
     r = requests.get(raw_url, allow_redirects=True)
 
     with open(str(file_path), "w") as file_output:
@@ -181,8 +184,9 @@ def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, navigation_
             data = data.replace("<img src=\"", "<img src=\"{:s}/".format(folder_url))
             file_output.write(data)
         else:
-            raise RuntimeError("Could not download {:s} [ Status = {:d}].".format(url, r.status_code))
-        file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(original_folder_url, original_folder_url))
+            raise RuntimeError("Could not download {:s} [ Status = {:d}].".format(raw_url, r.status_code))
+        if source_url != "":
+            file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(source_url, source_url))
         print("--- Writing downloaded data to: " + str((file_path).absolute()))
     return GenerateEntryDataFromFile(file_path, navigation_level, default_header_dict)
 
