@@ -127,18 +127,3 @@ entries:
         - title: Python Script  Reading ModelPart From Input File
           url: /pages/1_Kratos/1_For_Users/3_Getting started/1_File_structure/reading-input.html
           output: web
-      - title: 2 Running simulations
-        output: web
-        subfolderitems:
-        - title: 
-          output: web
-      - title: 3 Visualization of output
-        output: web
-        subfolderitems:
-        - title: 
-          output: web
-      - title: 4 Tutorials
-        output: web
-        subfolderitems:
-        - title: 
-          output: web

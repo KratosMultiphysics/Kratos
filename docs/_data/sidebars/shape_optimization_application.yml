@@ -53,11 +53,6 @@ entries:
         - title: Total volume
           url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Total_volume.html
           output: web
-      - title: images
-        output: web
-        subfolderitems:
-        - title: 
-          output: web
   - title: 99 Examples
     output: web
     folderitems:

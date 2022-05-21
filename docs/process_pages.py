@@ -55,8 +55,14 @@ def CreateEntriesDicts(current_path: Path, navigation_level: int, max_navigation
 
     def check_and_add_sub_dirs(dir_path: Path):
         list_of_sub_entries = CreateEntriesDicts(dir_path, navigation_level + 1, max_navigation_level, default_headers_dict)
+
+        # check whether the subdirectory has pages. If not do not add it to menu
+        if len(list_of_sub_entries) == 1 and not IsLeafEntry(list_of_sub_entries[0]):
+            return []
+
         found_sub_leaf_entry = False
         found_sub_entries = False
+
         for sub_entry in list_of_sub_entries:
             if sub_entry["navigation_level"] == navigation_level + 1:
                 found_sub_entries = True
