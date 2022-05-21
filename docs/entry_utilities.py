@@ -39,7 +39,7 @@ def ReplaceTagDataInDict(file_path: Path, input_dict: dict) -> dict:
         "<PRETTY_FILE_NAME>": GetPrettyName(file_path),
         "<FILE_NAME>": str(file_path.relative_to(file_path.parent)),
         "<ABSOLUTE_FILE_NAME>": str(file_path.absolute()),
-        "<TAGLESS_NAME>": str(file_path).replace(__remote_tag, "")
+        "<TAGLESS_NAME>": GetTaglessName(file_path)
     }
 
     for k1 in copied_default_entries.keys():
