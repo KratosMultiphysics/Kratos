@@ -56,6 +56,15 @@ entries:
   - title: Examples
     output: web
     folderitems:
+    - title: Strain Energy Minimization 3D Shell
+      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Strain_Energy_Minimization_3D_Shell.html
+      output: web
+    - title: Bead Optimization Plate
+      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Bead_Optimization_Plate.html
+      output: web
+    - title: Multi Constraint Optimization 3D Hook
+      url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Multi_Constraint_Optimization_3D_Hook.html
+      output: web
     - title: Shape Update Optimization Stanford Bunny
       url: /pages/Applications/Shape_Optimization_Application/Examples/remote_Shape_Update_Optimization_Stanford_Bunny.html
       output: web

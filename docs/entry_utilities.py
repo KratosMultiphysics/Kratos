@@ -167,10 +167,8 @@ def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, navigation_
     if not file_name.startswith(__remote_tag):
         file_path = file_path.parent / (__remote_tag + file_name)
 
-    # get the raw url in case of this is from github
-    if url.startswith("https://github.com"):
-        tree_index = url.find("/tree/")
-        raw_url = "https://raw.githubusercontent.com" + url[len("https://github.com"):tree_index] + url[tree_index+5:]
+    if not url.startswith("https://raw.githubusercontent.com"):
+        raise RuntimeError("Please provide the raw github url. [ Provided url = {:s} ].".format(url))
 
     folder_url = raw_url[:raw_url.rfind("/")]
 
@@ -182,6 +180,8 @@ def GenerateEntryDataFromKratosExampleUrl(file_path: Path, url: str, navigation_
             data = r.text
             data = data.replace("<img src=\"", "<img src=\"{:s}/".format(folder_url))
             file_output.write(data)
+        else:
+            raise RuntimeError("Could not download {:s} [ Status = {:d}].".format(url, r.status_code))
         file_output.write("\n\n## Source: \n[{:s}]({:s})\n".format(original_folder_url, original_folder_url))
         print("--- Writing downloaded data to: " + str((file_path).absolute()))
     return GenerateEntryDataFromFile(file_path, navigation_level, default_header_dict)
