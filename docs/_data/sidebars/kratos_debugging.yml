@@ -7,29 +7,29 @@ entries:
     output: web
     folderitems:
     - title: Checking memory usage with Valgrind
-      url: /pages/1_Kratos/3_Debuging/General/Checking-memory-usage-with-Valgrind.html
+      url: /pages/Kratos/3_Debuging/General/Checking-memory-usage-with-Valgrind.html
       output: web
     - title: Debug Memory Using ASAN
-      url: /pages/1_Kratos/3_Debuging/General/Debug-Memory-Using-ASAN.html
+      url: /pages/Kratos/3_Debuging/General/Debug-Memory-Using-ASAN.html
       output: web
     - title: Debugging Kratos using GDB
-      url: /pages/1_Kratos/3_Debuging/General/Debugging-Kratos-using-GDB.html
+      url: /pages/Kratos/3_Debuging/General/Debugging-Kratos-using-GDB.html
       output: web
     - title: Debugging Kratos using Visual Studio
-      url: /pages/1_Kratos/3_Debuging/General/Debugging-Kratos-using-Visual-Studio.html
+      url: /pages/Kratos/3_Debuging/General/Debugging-Kratos-using-Visual-Studio.html
       output: web
     - title: How to cross debug Kratos under Windows
-      url: /pages/1_Kratos/3_Debuging/General/How-to-cross-debug-Kratos-under-Windows.html
+      url: /pages/Kratos/3_Debuging/General/How-to-cross-debug-Kratos-under-Windows.html
       output: web
     - title: How to profile Kratos using MAQAO
-      url: /pages/1_Kratos/3_Debuging/General/How-to-profile-Kratos-using-MAQAO.html
+      url: /pages/Kratos/3_Debuging/General/How-to-profile-Kratos-using-MAQAO.html
       output: web
     - title: Profiling Kratos with LineProfile
-      url: /pages/1_Kratos/3_Debuging/General/Profiling-Kratos-with-LineProfile.html
+      url: /pages/Kratos/3_Debuging/General/Profiling-Kratos-with-LineProfile.html
       output: web
     - title: Serialization
-      url: /pages/1_Kratos/3_Debuging/General/How-to-use-Serialization.html
+      url: /pages/Kratos/3_Debuging/General/How-to-use-Serialization.html
       output: web
     - title: Thread Sanitizer
-      url: /pages/1_Kratos/3_Debuging/General/thread-sanitizer.html
+      url: /pages/Kratos/3_Debuging/General/thread-sanitizer.html
       output: web

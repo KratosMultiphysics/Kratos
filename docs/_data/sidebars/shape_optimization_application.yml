@@ -7,97 +7,97 @@ entries:
     output: web
     folderitems:
     - title: Multi objective optimization
-      url: /pages/2_Applications/Shape_Optimization_Application/1_General/Multi_objective_optimization.html
+      url: /pages/Applications/Shape_Optimization_Application/1_General/Multi_objective_optimization.html
       output: web
     - title: Shape Optimization Application
-      url: /pages/2_Applications/Shape_Optimization_Application/1_General/shape_optimization_application.html
+      url: /pages/Applications/Shape_Optimization_Application/1_General/shape_optimization_application.html
       output: web
       subfolders:
       - title: Sensitivity Analysis
         output: web
         subfolderitems:
         - title: Adjoint approach
-          url: /pages/2_Applications/Shape_Optimization_Application/1_General/Sensitivity_Analysis/Adjoint_approach.html
+          url: /pages/Applications/Shape_Optimization_Application/1_General/Sensitivity_Analysis/Adjoint_approach.html
           output: web
         - title: Finite difference or direct approach
-          url: /pages/2_Applications/Shape_Optimization_Application/1_General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html
+          url: /pages/Applications/Shape_Optimization_Application/1_General/Sensitivity_Analysis/Finite_difference_or_direct_approach.html
           output: web
   - title: 2 Technologies
     output: web
     folderitems:
     - title: Objectives and constraints
-      url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/2_Objectives_and_constraints.html
+      url: /pages/Applications/Shape_Optimization_Application/2_Technologies/2_Objectives_and_constraints.html
       output: web
     - title: Vertex morphing
-      url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/1_Vertex_morphing.html
+      url: /pages/Applications/Shape_Optimization_Application/2_Technologies/1_Vertex_morphing.html
       output: web
       subfolders:
       - title: 3 List of response functions
         output: web
         subfolderitems:
         - title: Angle of attack
-          url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Angle_of_attack.html
+          url: /pages/Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Angle_of_attack.html
           output: web
         - title: Face angle
-          url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Face_angle.html
+          url: /pages/Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Face_angle.html
           output: web
         - title: Mesh based packaging
-          url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Mesh_based_packaging.html
+          url: /pages/Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Mesh_based_packaging.html
           output: web
         - title: Plane based packaging
-          url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Plane_based_packaging.html
+          url: /pages/Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Plane_based_packaging.html
           output: web
         - title: Surface normal shape change
-          url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Surface_normal_shape_change.html
+          url: /pages/Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Surface_normal_shape_change.html
           output: web
         - title: Total volume
-          url: /pages/2_Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Total_volume.html
+          url: /pages/Applications/Shape_Optimization_Application/2_Technologies/3_List_of_response_functions/Total_volume.html
           output: web
   - title: 99 Examples
     output: web
     folderitems:
     - title: Shape Update Optimization Stanford Bunny
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/!remote_Shape_Update_Optimization_Stanford_Bunny.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/!remote_Shape_Update_Optimization_Stanford_Bunny.html
       output: web
     - title: google
       url: http://google.com
       output: web
     - title: Strain Energy Minimization 3D Shell
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/02_Strain_Energy_Minimization_3D_Shell.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/02_Strain_Energy_Minimization_3D_Shell.html
       output: web
     - title: Bead optimization plate
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/06_Bead_optimization_plate.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/06_Bead_optimization_plate.html
       output: web
     - title: Constrained Shell Opt
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/05_Constrained_Shell_Opt.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/05_Constrained_Shell_Opt.html
       output: web
     - title: Eigenfrequency Maximization 3D Cantilever
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/04_Eigenfrequency_Maximization_3D_Cantilever.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/04_Eigenfrequency_Maximization_3D_Cantilever.html
       output: web
     - title: Mesh independent optimization 3D Shell
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/03_Mesh_independent_optimization_3D_Shell.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/03_Mesh_independent_optimization_3D_Shell.html
       output: web
     - title: Multi Constraint Optimization 3D Hook
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/10_Multi_Constraint_Optimization_3D_Hook.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/10_Multi_Constraint_Optimization_3D_Hook.html
       output: web
     - title: Optimization plate with step adaption
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/07_Optimization_plate_with_step_adaption.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/07_Optimization_plate_with_step_adaption.html
       output: web
     - title: Packaging 3D Shell
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/09_Packaging_3D_Shell.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/09_Packaging_3D_Shell.html
       output: web
     - title: Shape Update Optimization Stanford Bunny
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/11_Shape_Update_Optimization_Stanford_Bunny.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/11_Shape_Update_Optimization_Stanford_Bunny.html
       output: web
     - title: Strain Energy Minimization 3D Hook
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/01_Strain_Energy_Minimization_3D_Hook.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/01_Strain_Energy_Minimization_3D_Hook.html
       output: web
     - title: bead optimization plate
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/06_bead_optimization_plate.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/06_bead_optimization_plate.html
       output: web
     - title: mesh independent optimization 3D Shell
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/03_mesh_independent_optimization_3D_Shell.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/03_mesh_independent_optimization_3D_Shell.html
       output: web
     - title: optimization plate with step adaption
-      url: /pages/2_Applications/Shape_Optimization_Application/99_Examples/07_optimization_plate_with_step_adaption.html
+      url: /pages/Applications/Shape_Optimization_Application/99_Examples/07_optimization_plate_with_step_adaption.html
       output: web

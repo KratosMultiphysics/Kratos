@@ -7,5 +7,5 @@ entries:
     output: web
     folderitems:
     - title: Basic DEM Benchmarking12
-      url: /pages/2_Applications/Discrete_Element_Modelling_Application/General/Basic-DEM-Benchmarking.html
+      url: /pages/Applications/Discrete_Element_Modelling_Application/General/Basic-DEM-Benchmarking.html
       output: web

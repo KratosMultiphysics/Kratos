@@ -13,45 +13,45 @@ topnav_dropdowns:
 - title: Topnav dropdowns
   output: web
   folders:
-  - title: 1 Kratos
+  - title: Kratos
     output: web
     folderitems:
     - title: 1 For Users
-      url: /pages/1_Kratos/1_For_Users/1_General/1_Overview.html
+      url: /pages/Kratos/1_For_Users/1_General/1_Overview.html
       output: web
     - title: 2 For Developers
-      url: /pages/1_Kratos/2_For_Developers/General/Application-Cases.html
+      url: /pages/Kratos/2_For_Developers/General/Application-Cases.html
       output: web
     - title: 3 Debuging
-      url: /pages/1_Kratos/3_Debuging/General/Checking-memory-usage-with-Valgrind.html
+      url: /pages/Kratos/3_Debuging/General/Checking-memory-usage-with-Valgrind.html
       output: web
     - title: Documentation guide
-      url: /pages/1_Kratos/Documentation_guide/1_General/initial.html
+      url: /pages/Kratos/Documentation_guide/1_General/initial.html
       output: web
-  - title: 2 Applications
+  - title: Applications
     output: web
     folderitems:
     - title: Discrete Element Modelling Application
-      url: /pages/2_Applications/Discrete_Element_Modelling_Application/General/Basic-DEM-Benchmarking.html
+      url: /pages/Applications/Discrete_Element_Modelling_Application/General/Basic-DEM-Benchmarking.html
       output: web
     - title: Fluid-Structure Interaction Application
-      url: /pages/2_Applications/Fluid-Structure_Interaction_Application/General/2D-Mok-benchmark.html
+      url: /pages/Applications/Fluid-Structure_Interaction_Application/General/2D-Mok-benchmark.html
       output: web
     - title: Fluid Dynamics Application
-      url: /pages/2_Applications/Fluid_Dynamics_Application/General/2D-Cavity-flow-problem.html
+      url: /pages/Applications/Fluid_Dynamics_Application/General/2D-Cavity-flow-problem.html
       output: web
     - title: Mapping Application
-      url: /pages/2_Applications/Mapping_Application/General/How-to-do-Mapping-between-nonmatching-meshes.html
+      url: /pages/Applications/Mapping_Application/General/How-to-do-Mapping-between-nonmatching-meshes.html
       output: web
     - title: Meshing Application
-      url: /pages/2_Applications/Meshing_Application/General/Utilities-MMG-Process.html
+      url: /pages/Applications/Meshing_Application/General/Utilities-MMG-Process.html
       output: web
     - title: Reduced Order Modelling Application
-      url: /pages/2_Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
+      url: /pages/Applications/Reduced_Order_Modelling_Application/General/API-for-RomApplication-(draft-to-be-moved-elsewhere).html
       output: web
     - title: Shape Optimization Application
-      url: /pages/2_Applications/Shape_Optimization_Application/1_General/Multi_objective_optimization.html
+      url: /pages/Applications/Shape_Optimization_Application/1_General/Multi_objective_optimization.html
       output: web
     - title: Structural Mechanics Application
-      url: /pages/2_Applications/Structural_Mechanics_Application/General/0_Roll-up-beam-cantilever.html
+      url: /pages/Applications/Structural_Mechanics_Application/General/0_Roll-up-beam-cantilever.html
       output: web
