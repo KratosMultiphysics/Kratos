@@ -68,6 +68,7 @@ class DiffusionSolutionController(AdjointSolutionController):
             "stabilization_coefficient"              : 0.0,
             "stabilization_residual_scaling_vector"  : [1.0],
             "stabilization_derivative_scaling_vector": [1.0],
+            "elemental_stabilization_coefficient_variable_name": "PLEASE_SPECIFY_SCALAR_VARIABLE_NAME",
             "stabilization_computation_settings"     :{}
         }""")
 
@@ -97,6 +98,7 @@ class DiffusionSolutionController(AdjointSolutionController):
         parameters.AddValue("stabilization_residual_scaling_vector", self.parameters["stabilization_residual_scaling_vector"])
         parameters.AddValue("stabilization_derivative_scaling_vector", self.parameters["stabilization_derivative_scaling_vector"])
         parameters.AddEmptyValue("stabilization_coefficient")
+        parameters.AddValue("elemental_stabilization_coefficient_variable_name", self.parameters["elemental_stabilization_coefficient_variable_name"])
         parameters["stabilization_coefficient"].SetDouble(stabilization_coefficient)
 
     @staticmethod
