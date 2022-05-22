@@ -61,7 +61,7 @@ void MaxSingularValueDecompositionProcess::CalculateAndStoreMaxSingularValues(
         Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::NoQRPreconditioner> svd(eigen_matrix);
 
         // get the maximum singular value
-        rEntity.GetValue(r_output_variable) = svd.singularValues()[0];
+        rEntity.SetValue(r_output_variable, svd.singularValues()[0]);
     });
 
     KRATOS_CATCH("");
@@ -81,7 +81,7 @@ MaxSingularValueDecompositionProcess::MaxSingularValueDecompositionProcess(
     rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mInputVariableName = rParameters["input_variable_name"].GetString();
-    mOutputVariableName = rParameters["outpu_variable_name"].GetString();
+    mOutputVariableName = rParameters["output_variable_name"].GetString();
     mModelPartName = rParameters["model_part_name"].GetString();
     mContainerType = rParameters["container_type"].GetString();
     mEchoLevel = rParameters["echo_level"].GetInt();
@@ -99,24 +99,7 @@ MaxSingularValueDecompositionProcess::MaxSingularValueDecompositionProcess(
     KRATOS_CATCH("");
 }
 
-void MaxSingularValueDecompositionProcess::ExecuteInitialize()
-{
-    KRATOS_TRY
-
-
-    const auto& r_output_variable = KratosComponents<Variable<Matrix>>::Get(mOutputVariableName);
-    auto& r_model_part = mrModel.GetModelPart(mModelPartName);
-
-    if (mContainerType == "elements") {
-        VariableUtils().SetNonHistoricalVariableToZero(r_output_variable, r_model_part.Elements());
-    } else if (mContainerType == "conditions") {
-        VariableUtils().SetNonHistoricalVariableToZero(r_output_variable, r_model_part.Conditions());
-    }
-
-    KRATOS_CATCH("");
-}
-
-void MaxSingularValueDecompositionProcess::ExecuteFinalizeSolutionStep()
+void MaxSingularValueDecompositionProcess::Execute()
 {
     KRATOS_TRY
 
@@ -129,6 +112,7 @@ void MaxSingularValueDecompositionProcess::ExecuteFinalizeSolutionStep()
         CalculateAndStoreMaxSingularValues(r_model_part.Conditions(), r_process_info);
     }
 
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Stored max singular value of the matrix given by " << mInputVariableName << " in " << mContainerType << " in " << r_model_part.FullName() << " to " << mOutputVariableName << " .\n";
 
     KRATOS_CATCH("");
 }

@@ -73,9 +73,7 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override;
-
-    void ExecuteFinalizeSolutionStep() override;
+    void Execute() override;
 
     const Parameters GetDefaultParameters() const override;
 
