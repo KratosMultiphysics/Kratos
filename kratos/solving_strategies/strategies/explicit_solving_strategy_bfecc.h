@@ -15,7 +15,7 @@
 #define KRATOS_EXPLICIT_SOLVING_STRATEGY_BFECC
 
 /* System includes */
-#include <numeric>
+
 
 /* External includes */
 
