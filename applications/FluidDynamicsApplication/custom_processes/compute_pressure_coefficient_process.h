@@ -70,11 +70,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with Kratos parameters.
-    ComputePressureCoefficientProcess(
-        ModelPart& rModelPart,
-        Parameters Params);
-
     /// Constructor with Kratos model
     ComputePressureCoefficientProcess(
         Model& rModel,

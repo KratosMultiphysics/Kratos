@@ -26,16 +26,6 @@ namespace Kratos
 {
 
 ComputePressureCoefficientProcess::ComputePressureCoefficientProcess(
-    ModelPart& rModelPart,
-    Parameters Params)
-    : Process(),
-      mrModelPart(rModelPart)
-{
-    // Check default settings
-    this->CheckDefaultsAndProcessSettings(Params);
-}
-
-ComputePressureCoefficientProcess::ComputePressureCoefficientProcess(
     Model &rModel,
     Parameters Params)
     : Process(),
