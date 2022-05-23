@@ -29,12 +29,12 @@ namespace Kratos
 
     	KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
-            auto workingDirectory = "./SteadyStatePipeElementWithEmbankment/SteadyStatePipeElementWithEmbankment.gid";
-            auto projectfile = "ProjectParameters.json";
-
+            auto workingDirectory = "./test_compare_sellmeijer/HeightAquiferD10L30.gid"; 
+            auto projectFile = "ProjectParameters.json";
+            
             auto execute = KratosExecute();
-    		execute.cpp_geomechanics(workingDirectory, projectfile);
-
+    		execute.geoflow(workingDirectory, projectFile, 1);
+            
         }
     }
 }

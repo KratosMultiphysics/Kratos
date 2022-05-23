@@ -33,14 +33,6 @@
 
 namespace Kratos
 {
-    // bool isOpen(Element* element) {
-    //     if (element->Has(PIPE_ACTIVE))
-    //     {
-    //         return element->GetValue(PIPE_ACTIVE);
-    //     }
-    //     else
-    //         return true;
-    // }
 
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicsNewtonRaphsonErosionProcessStrategy :
@@ -92,6 +84,7 @@ public:
                                                                                          MoveMeshFlag)
     {
 
+        rank = model_part.GetCommunicator().MyPID();
     	mPipingIterations = rParameters["max_piping_iterations"].GetInt();
     	
     }
@@ -103,8 +96,7 @@ public:
 
     void FinalizeSolutionStep() override
     {
-
-    	KRATOS_INFO("PipingLoop") << "Max Piping Iterations: " << mPipingIterations << std::endl;
+    	KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Max Piping Iterations: " << mPipingIterations << std::endl;
 
         int openPipeElements = 0;
         bool grow = true;
@@ -115,7 +107,7 @@ public:
 
         if (PipeElements.size()==0)
         {
-            KRATOS_INFO("PipingLoop") << "No Pipe Elements -> Finalizing Solution " << std::endl;
+            KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "No Pipe Elements -> Finalizing Solution " << std::endl;
         	GeoMechanicsNewtonRaphsonStrategy::FinalizeSolutionStep();
             return;
         }
@@ -137,7 +129,7 @@ public:
             // Get all open pipe elements
             std::function<bool(Element*)> filter = [](Element* i) {return i->Has(PIPE_ACTIVE) && i->GetValue(PIPE_ACTIVE); };
             filtered_elements OpenPipeElements = PipeElements | boost::adaptors::filtered(filter);
-            KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
+            KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Open Pipe Elements: " << boost::size(OpenPipeElements) << std::endl;
             
             // non-lin picard iteration, for deepening the pipe
             Equilibrium = check_pipe_equilibrium(OpenPipeElements, amax, mPipingIterations);
@@ -178,6 +170,86 @@ public:
 
         KRATOS_CATCH("")
     }
+
+    //-----------------------------Get Piping Elements--------------------------------------
+
+    std::vector<Element*> GetPipingElements() {
+        ModelPart& CurrentModelPart = this->GetModelPart();
+        std::vector<Element*> PipeElements;
+        double PipeElementStartX;
+        ModelPart::ElementsContainerType::iterator element_it = CurrentModelPart.ElementsBegin();
+
+        for (Element& element : CurrentModelPart.Elements())
+        {
+            if (element.GetProperties().Has(PIPE_START_ELEMENT))
+            {
+                element.SetValue(PIPE_ACTIVE, false);
+                element.SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
+                element.SetValue(DIFF_PIPE_HEIGHT, 0);
+
+                PipeElements.push_back(&element);
+
+                auto startElement = element.GetProperties()[PIPE_START_ELEMENT];
+
+                KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << element.Id() << " " << startElement << std::endl;
+
+                if (element.Id() == startElement)
+                {
+                    PipeElementStartX = element.GetGeometry().GetPoint(0)[0];
+                }
+            }
+        }
+
+        if (PipeElements.size() == 0)
+        {
+            return PipeElements;
+        }
+
+        // Get Maximum X Value in Pipe
+        auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element* a, const Element* b)
+            {
+                return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
+            });
+
+        // Get Minimum X Value in Pipe
+        auto leftPipe = std::min_element(PipeElements.begin(), PipeElements.end(), [](const Element* a, const Element* b)
+            {
+                return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
+            });
+
+        double minX = leftPipe[0]->GetGeometry().GetPoint(0)[0];
+        double maxX = rightPipe[0]->GetGeometry().GetPoint(0)[0];
+
+        KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << minX << " " << maxX << " " << PipeElementStartX << std::endl;
+
+        if ((minX != PipeElementStartX) && (maxX != PipeElementStartX))
+        {
+            KRATOS_ERROR << "Unable to determine pipe direction (multiple directions possible) -  Check PIPE_START_ELEMENT" << std::endl;
+        }
+
+        if (minX == PipeElementStartX)
+        {
+            // Pipe Left -> Right
+            sort(PipeElements.begin(), PipeElements.end(), [](const Element* lhs, const Element* rhs) {
+                return lhs->GetGeometry().GetPoint(0)[0] < rhs->GetGeometry().GetPoint(0)[0];
+                });
+        }
+        else
+        {
+            // Pipe Right -> Left
+            sort(PipeElements.begin(), PipeElements.end(), [](const Element* lhs, const Element* rhs) {
+                return lhs->GetGeometry().GetPoint(0)[0] > rhs->GetGeometry().GetPoint(0)[0];
+                });
+        }
+
+        KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
+        for (const Element* pipeElement : PipeElements)
+        {
+            KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "PipeElementIDs (in order): " << pipeElement->Id() << std::endl;
+        }
+
+        return PipeElements;
+    }
    
 
 	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -185,8 +257,9 @@ public:
 protected:
 
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
-    double small_pipe_height = 1e-10;
-    double pipe_height_accuracy = small_pipe_height * 10; 
+    int rank;
+	double small_pipe_height = 1e-10;
+    double pipe_height_accuracy = small_pipe_height * 10;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -252,8 +325,8 @@ private:
 
     bool Recalculate()
     {
-        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0) << "Recalculating" << std::endl;
-        //KRATOS_INFO("PipingLoop") << "Recalculating" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0) << "Recalculating" << std::endl;
+        //KRATOS_INFO_IF("PipingLoop") << "Recalculating" << std::endl;
     	//ModelPart& CurrentModelPart = this->GetModelPart();
         //this->Clear();
 
@@ -267,86 +340,6 @@ private:
         GeoMechanicsNewtonRaphsonStrategy::Predict();
         return GeoMechanicsNewtonRaphsonStrategy::SolveSolutionStep();
 
-    }
-	
-    //-----------------------------Get Piping Elements--------------------------------------
-
-    std::vector<Element*> GetPipingElements() {
-        ModelPart& CurrentModelPart = this->GetModelPart();
-        std::vector<Element*> PipeElements;
-        double PipeElementStartX;
-        ModelPart::ElementsContainerType::iterator element_it = CurrentModelPart.ElementsBegin();
-
-        for (Element& element: CurrentModelPart.Elements())
-        {
-        	if (element.GetProperties().Has(PIPE_START_ELEMENT))
-            {
-                element.SetValue(PIPE_ACTIVE, false);
-                element.SetValue(PREV_PIPE_HEIGHT, small_pipe_height);
-                element.SetValue(DIFF_PIPE_HEIGHT, 0);
-
-                PipeElements.push_back(&element);
-                
-                auto startElement = element.GetProperties()[PIPE_START_ELEMENT];
-
-        		KRATOS_INFO("PipingLoop") << element.Id() << " " << startElement << std::endl;
-
-        		if (element.Id() == startElement)
-                {
-                    PipeElementStartX = element.GetGeometry().GetPoint(0)[0];
-                }
-            }
-        }
-
-        if (PipeElements.size() == 0)
-        {
-            return PipeElements;
-        }
-
-        // Get Maximum X Value in Pipe
-        auto rightPipe = std::max_element(PipeElements.begin(), PipeElements.end(), [](const Element* a, const Element* b)
-            {
-                return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
-            });
-
-        // Get Minimum X Value in Pipe
-        auto leftPipe = std::min_element(PipeElements.begin(), PipeElements.end(), [](const Element* a, const Element* b)
-            {
-                return a->GetGeometry().GetPoint(0)[0] < b->GetGeometry().GetPoint(0)[0];
-            });
-
-        double minX = leftPipe[0]->GetGeometry().GetPoint(0)[0];
-        double maxX = rightPipe[0]->GetGeometry().GetPoint(0)[0];
-
-        KRATOS_INFO("PipingLoop") << minX << " " << maxX << " " << PipeElementStartX << std::endl;
-
-    	if ((minX != PipeElementStartX) && (maxX != PipeElementStartX))
-        {
-            KRATOS_ERROR << "Unable to determine pipe direction (multiple directions possible) -  Check PIPE_START_ELEMENT" << std::endl;
-        }
-
-        if (minX == PipeElementStartX)
-        {
-            // Pipe Left -> Right
-            sort(PipeElements.begin(), PipeElements.end(), [](const Element* lhs, const Element* rhs) {
-                return lhs->GetGeometry().GetPoint(0)[0] < rhs->GetGeometry().GetPoint(0)[0];
-                });
-        }
-        else
-        {
-            // Pipe Right -> Left
-            sort(PipeElements.begin(), PipeElements.end(), [](const Element* lhs, const Element* rhs) {
-                return lhs->GetGeometry().GetPoint(0)[0] > rhs->GetGeometry().GetPoint(0)[0];
-                });
-        }
-
-        KRATOS_INFO("PipingLoop") << "Number of Pipe Elements: " << PipeElements.size() << std::endl;
-        for (const Element* pipeElement: PipeElements)
-        {
-            KRATOS_INFO("PipingLoop") << "PipeElementIDs (in order): " << pipeElement->Id() << std::endl;
-        }
-
-    	return PipeElements;
     }
 
     bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
@@ -447,7 +440,7 @@ private:
                 tip_element->SetValue(PIPE_ACTIVE, false);
                 n_open_elements -= 1;
 
-                KRATOS_INFO("PipingLoop") << "Number of Open Pipe Elements: " << n_open_elements << std::endl;
+                KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "Number of Open Pipe Elements: " << n_open_elements << std::endl;
             }
         }
         else

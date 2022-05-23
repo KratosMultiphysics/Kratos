@@ -10,7 +10,7 @@
 //  Main authors:    Jonathan Nuttall
 //
 
-#include "executable.h"
+#include "GeoSettlement.h"
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -22,5 +22,5 @@ int main(int argc, char** argv) {
     string projectName = argv[2];
 
     auto execute = Kratos::KratosExecute();
-    execute.cpp_geomechanics(workingDirectory, projectName);
+    execute.geosettlement(workingDirectory, projectName);
 }

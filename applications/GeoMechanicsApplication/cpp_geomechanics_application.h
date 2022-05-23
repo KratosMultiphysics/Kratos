@@ -133,7 +133,8 @@ namespace Kratos
         KratosExecute() {};
 		~KratosExecute() {};
 
-        int cpp_geomechanics(string workingDirectory, string parameterName);
+        int geoflow(string workingDirectory, string parameterName, bool hasPiping);
+        int geosettlement(string workingDirectory, string parameterName);
 
         typedef Node<3> NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -180,7 +181,13 @@ namespace Kratos
         Parameters openProjectParamsFile(string filepath);
         std::vector<std::shared_ptr<Process>> parseProcess(ModelPart& model_part, Parameters projFile);
         void outputGiD(Model& model, ModelPart& model_part, Parameters parameters, string workingDirectory);
-        
+
+    private:
+
+        int mainExecution(ModelPart& model_part,
+            std::vector<std::shared_ptr<Process>> processes,
+            KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+            double time, double delta_time, double number_iterations);
 
     };
 }

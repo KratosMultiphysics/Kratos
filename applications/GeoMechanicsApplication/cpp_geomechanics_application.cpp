@@ -21,6 +21,60 @@
 
 using namespace std;
 
+class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
+{
+public:
+
+    using ApplyConstantScalarValueProcess :: ApplyConstantScalarValueProcess;
+
+    bool hasWaterPressure()
+    {
+        return mvariable_name == "WATER_PRESSURE";
+    }
+
+	Kratos::ModelPart& GetModelPart()
+    {
+        return mr_model_part;
+    }
+
+    double GetProcessDoubleValue()
+    {
+        return mdouble_value;
+    }
+
+    void SetProcessDoubleValue(double value)
+	{
+        mdouble_value = value;
+	}
+
+};
+
+class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
+{
+    using ApplyConstantHydrostaticPressureProcess::ApplyConstantHydrostaticPressureProcess;
+
+public:
+    Kratos::ModelPart& GetModelPart()
+    {
+        return mrModelPart;
+    }
+
+    double GetReferenceCoord()
+    {
+        return mReferenceCoordinate;
+    }
+
+    void SetReferenceCoord(double value)
+    {
+        mReferenceCoordinate = value;
+    }
+
+    bool hasWaterPressure()
+    {
+        return mVariableName == "WATER_PRESSURE";
+    }
+};
+
 #pragma region NodeVariables
 void NodeOperation::write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) {};
 
@@ -89,8 +143,14 @@ namespace Kratos
     {
         // Create the linear strategy
         auto p_solver = setup_solver_dgeoflow();
-        Scheme<SparseSpaceType, LocalSpaceType>::Pointer p_scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
+
+    	Scheme<SparseSpaceType, LocalSpaceType>::Pointer p_scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
+
         auto p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(p_solver);
+        p_builder_and_solver->SetEchoLevel(0);
+
+        auto p_criteria = setup_criteria_dgeoflow();
+        p_criteria->SetEchoLevel(0);
 
         Parameters p_parameters(R"(
     {
@@ -101,11 +161,11 @@ namespace Kratos
         "end_time": 1.0,
         "realised_factor": 1.0,
 		
-		"max_piping_iterations": 50,
+		"max_piping_iterations": 500,
 
         "desired_iterations": 4,
-        "max_radius_factor": 20.0,
-        "min_radius_factor": 0.5,
+        "max_radius_factor": 10.0,
+        "min_radius_factor": 0.1,
         "search_neighbours_step": false,
         "body_domain_sub_model_part_list": [],
         "loads_sub_model_part_list": [],
@@ -113,15 +173,15 @@ namespace Kratos
     }  )");
 
         int MaxIterations = 15;
-        bool CalculateReactions = false;
-        bool ReformDofSetAtEachStep = true;
+        bool CalculateReactions = true;
+        bool ReformDofSetAtEachStep = false;
         bool MoveMeshFlag = false;
 
         auto p_solving_strategy = Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
             model_part,
             p_scheme,
             p_solver,
-            setup_criteria_dgeoflow(),
+            p_criteria,
             p_builder_and_solver,
             p_parameters,
             MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
@@ -361,20 +421,19 @@ namespace Kratos
             if (pressure_type == "Uniform")
             {
                 auto value = process["Parameters"]["value"].GetDouble();
-                processes.push_back(make_shared<ApplyConstantScalarValueProcess>(ApplyConstantScalarValueProcess(part, WATER_PRESSURE,
-                    value, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
+                processes.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(GeoFlowApplyConstantScalarValueProcess(part, WATER_PRESSURE,
+                    value, 0, GeoFlowApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
             }
             else if (pressure_type == "Hydrostatic")
             {
                 auto cProcesses = process.Clone();
                 cProcesses["Parameters"].RemoveValue("fluid_pressure_type");
-                processes.push_back(make_shared<ApplyConstantHydrostaticPressureProcess>(ApplyConstantHydrostaticPressureProcess(part, cProcesses["Parameters"])));
+                processes.push_back(make_shared<GeoFlowApplyConstantHydrostaticPressureProcess>(GeoFlowApplyConstantHydrostaticPressureProcess(part, cProcesses["Parameters"])));
             }
             else
             {
                 KRATOS_ERROR << "Reading Processing - Not Implemented - Pressure_type" << std::endl;
             }
-
         }
 
         auto loads_processes = projFile["processes"]["loads_process_list"];
@@ -467,7 +526,49 @@ namespace Kratos
         gid_io.FinalizeResults();
     }
 
-    int KratosExecute::cpp_geomechanics(string workingDirectory, string projectName)
+
+	int KratosExecute::mainExecution(ModelPart& model_part, 
+									 std::vector<std::shared_ptr<Process>> processes, 
+									 GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
+									 double time, double delta_time, double number_iterations)
+    {
+        // Initialize
+        for (auto process : processes) {
+            process->ExecuteInitialize();
+        }
+
+    	for (auto process : processes) {
+            process->ExecuteBeforeSolutionLoop();
+        }
+
+        for (unsigned int iter = 0; iter < number_iterations; ++iter) {
+            time += delta_time;
+            model_part.CloneTimeStep(time);
+            p_solving_strategy->Initialize();
+            p_solving_strategy->InitializeSolutionStep();
+
+            for (auto process : processes) {
+                process->ExecuteInitializeSolutionStep();
+            }
+
+            p_solving_strategy->Predict();
+            p_solving_strategy->SolveSolutionStep();
+
+            for (auto process : processes) {
+                process->ExecuteFinalizeSolutionStep();
+            }
+
+            p_solving_strategy->FinalizeSolutionStep();
+        }
+
+        for (auto process : processes) {
+            process->ExecuteFinalize();
+        }
+
+        return 0;
+    }
+
+    int KratosExecute::geoflow(string workingDirectory, string projectName, bool hasPiping)
     {
 
         cout << "Working Directory: " << workingDirectory << std::endl;
@@ -495,6 +596,202 @@ namespace Kratos
         Model current_model;
         constexpr double tolerance = 1e-6;
         ModelPart& model_part = current_model.CreateModelPart(modelName);
+        const auto rank = model_part.GetCommunicator().MyPID();
+        model_part.SetBufferSize(2);
+
+
+        const auto p_solving_strategy = setup_strategy_dgeoflow(model_part);
+        p_solving_strategy->SetEchoLevel(0);
+
+        std::cout << "Setup Solving Strategy" << std::endl;
+
+        model_part.AddNodalSolutionStepVariable(VELOCITY);
+        model_part.AddNodalSolutionStepVariable(ACCELERATION);
+
+        // Displacement
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
+        model_part.AddNodalSolutionStepVariable(REACTION);
+        model_part.AddNodalSolutionStepVariable(POINT_LOAD);
+        model_part.AddNodalSolutionStepVariable(LINE_LOAD);
+        model_part.AddNodalSolutionStepVariable(SURFACE_LOAD);
+        model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+        model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
+        model_part.AddNodalSolutionStepVariable(TANGENTIAL_CONTACT_STRESS);
+
+        // Water
+        model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(DT_WATER_PRESSURE);
+        model_part.AddNodalSolutionStepVariable(NORMAL_FLUID_FLUX);
+        model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
+
+        // Smoothing
+        model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+        model_part.AddNodalSolutionStepVariable(NODAL_CAUCHY_STRESS_TENSOR);
+        model_part.AddNodalSolutionStepVariable(NODAL_DAMAGE_VARIABLE);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_AREA);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_WIDTH);
+        model_part.AddNodalSolutionStepVariable(NODAL_JOINT_DAMAGE);
+
+        std::cout << "Nodal Solution Variables Added" << std::endl;
+
+        parseMesh(model_part, meshpath);
+
+        std::cout << "Parsed Mesh" << std::endl;
+
+        parseMaterial(current_model, materialpath);
+
+        std::cout << "Parsed Material" << std::endl;
+
+        // Dofs for Water Pressure
+        VariableUtils().AddDofWithReaction(WATER_PRESSURE, REACTION_WATER_PRESSURE, model_part);
+        VariableUtils().AddDof(VOLUME_ACCELERATION_X, model_part);
+        VariableUtils().AddDof(VOLUME_ACCELERATION_Y, model_part);
+        VariableUtils().AddDof(VOLUME_ACCELERATION_Z, model_part);
+
+        std::cout << "Added DoF" << std::endl;
+
+        std::vector<std::shared_ptr<Process>> processes = parseProcess(model_part, projectfile);
+
+        std::cout << "Parsed Process Data" << std::endl;
+        std::cout << "Critical Head Search: " << hasPiping << std::endl;
+
+        if (!hasPiping) {
+            int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+        }
+        else
+        {
+            std::vector<Element*> pipeElements;
+            pipeElements = p_solving_strategy->GetPipingElements();
+            int noPipeElements = pipeElements.size();
+
+            double firstNode_A = pipeElements.front()->GetGeometry().GetPoint(0).X0();
+            double firstNode_B = pipeElements.front()->GetGeometry().GetPoint(1).X0();
+            double lastNode_A = pipeElements.back()->GetGeometry().GetPoint(0).X0();
+
+            IndexType PolderNode;
+            IndexType RiverNode;
+
+            if ((firstNode_A < lastNode_A) && (firstNode_A < firstNode_B))
+            {
+	            PolderNode = pipeElements.front()->GetGeometry().GetPoint(0).Id();
+                RiverNode = pipeElements.back()->GetGeometry().GetPoint(1).Id();
+            }
+            else
+            {
+                PolderNode = pipeElements.front()->GetGeometry().GetPoint(1).Id();
+                RiverNode = pipeElements.back()->GetGeometry().GetPoint(0).Id();
+            }
+
+            // Get Find boundary in Processes
+            shared_ptr<Process> RiverBoundary;
+            double critical_head;
+            for (shared_ptr<Process> process : processes)
+            {
+                ModelPart* currentModelPart;
+
+            	if (process->Info() == "ApplyConstantScalarValueProcess")
+                {
+            		auto current_process = std::static_pointer_cast<GeoFlowApplyConstantScalarValueProcess>(process);
+                    if (current_process->hasWaterPressure()) {
+                        currentModelPart = &current_process->GetModelPart();
+                        try
+                        {
+                            currentModelPart->GetNode(RiverNode);
+                            RiverBoundary = current_process;
+                        }
+                        catch (...) {}
+                    }
+                }
+                else if (process->Info() == "ApplyConstantHydrostaticPressureProcess")
+                {
+                    auto current_process = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(process);
+                    currentModelPart = &current_process->GetModelPart();
+                    if (current_process->hasWaterPressure()) {
+                        try
+                        {
+                            currentModelPart->GetNode(RiverNode);
+                            RiverBoundary = current_process;
+                        }
+                        catch (...) {}
+                    }
+                }
+
+            }
+
+            int count = 0;
+            double criticalHead;
+            double currentHead;
+
+            auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
+            currentHead = currentProcess->GetReferenceCoord();
+            currentProcess->SetReferenceCoord(0.0);
+
+            while (count != noPipeElements)
+            {
+                criticalHead = currentHead;
+            	int error = mainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
+
+                count = 0;
+                for (Element* element : pipeElements)
+                {
+                    if (element->GetValue(PIPE_ACTIVE))
+                        count += 1;
+                }
+
+                if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")
+                {
+                    throw std::logic_error("Not Implemented");
+                }
+
+            	if (RiverBoundary->Info() == "ApplyConstantHydrostaticPressureProcess")
+                {
+            		auto currentProcess = std::static_pointer_cast<GeoFlowApplyConstantHydrostaticPressureProcess>(RiverBoundary);
+                    currentHead = currentProcess->GetReferenceCoord();
+                    currentProcess->SetReferenceCoord(currentHead + 0.1);
+                }
+
+            }
+
+			cout << "critical Head: " << criticalHead << " Elements: " << count << " / " << noPipeElements << std::endl;
+        }
+
+        outputGiD(current_model, model_part, projectfile, workingDirectory);
+
+        return 0;
+    };
+
+
+    int KratosExecute::geosettlement(string workingDirectory, string projectName)
+    {
+
+        cout << "Working Directory: " << workingDirectory << std::endl;
+        cout << "Project Name: " << projectName << std::endl;
+
+        string projectpath = workingDirectory + "/" + projectName;
+        auto projectfile = openProjectParamsFile(projectpath);
+
+        auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
+        auto meshname = projectfile["solver_settings"]["model_import_settings"]["input_filename"].GetString() + "." +
+            projectfile["solver_settings"]["model_import_settings"]["input_type"].GetString();
+
+        string meshpath = workingDirectory + "/" + meshname;
+        string materialpath = workingDirectory + "/" + materialname;
+
+        auto modelName = projectfile["solver_settings"]["model_part_name"].GetString();
+
+        Kratos::KratosGeoMechanicsApplication application;
+        application.Register();
+
+        Kratos::OpenMPUtils::SetNumThreads(1);
+        Kratos::OpenMPUtils::PrintOMPInfo();
+
+        // Initial Setup
+        Model current_model;
+        constexpr double tolerance = 1e-6;
+        ModelPart& model_part = current_model.CreateModelPart(modelName);
+        const auto rank = model_part.GetCommunicator().MyPID();
         model_part.SetBufferSize(2);
 
         std::cout << "Initial Setup Done" << std::endl;
@@ -555,40 +852,12 @@ namespace Kratos
 
         std::cout << "Parsed Process Data" << std::endl;
 
-        // Initialize
-        for (auto process : processes) {
-            process->ExecuteInitialize();
-        }
-
-        for (auto process : processes) {
-            process->ExecuteBeforeSolutionLoop();
-        }
-
-        double time = 0.0;
+		// FOR SETTLEMENT READ FROM PARAMETER DATA
+    	double time = 0.0;
         const double delta_time = 1.0;
         const unsigned int number_iterations = 1;
-        for (unsigned int iter = 0; iter < number_iterations; ++iter) {
-            time += delta_time;
-            model_part.CloneTimeStep(time);
-            p_solving_strategy->Initialize();
-            p_solving_strategy->InitializeSolutionStep();
 
-            for (auto process : processes) {
-                process->ExecuteInitializeSolutionStep();
-            }
-
-            p_solving_strategy->Predict();
-            p_solving_strategy->SolveSolutionStep();
-
-            for (auto process : processes) {
-                process->ExecuteFinalizeSolutionStep();
-            }
-
-            p_solving_strategy->FinalizeSolutionStep();
-        }
-        for (auto process : processes) {
-            process->ExecuteFinalize();
-        }
+        int error = mainExecution(model_part, processes, p_solving_strategy, time, delta_time, number_iterations);
 
         outputGiD(current_model, model_part, projectfile, workingDirectory);
 

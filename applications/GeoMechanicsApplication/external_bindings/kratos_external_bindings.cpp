@@ -13,9 +13,14 @@ EXPORT Kratos::KratosExecute *KratosExecute_CreateInstance() {
     return new Kratos::KratosExecute();
 }
 
-EXPORT int __stdcall Execute(Kratos::KratosExecute* instance, char* workingDirectory, char* projectFile)
+EXPORT int __stdcall DGeoSettlement(Kratos::KratosExecute* instance, char* workingDirectory, char* projectFile)
     {
-    return instance->cpp_geomechanics(workingDirectory, projectFile);
+    return instance->geosettlement(workingDirectory, projectFile);
+}
+
+EXPORT int __stdcall DGeoFlow(Kratos::KratosExecute* instance, char* workingDirectory, char* projectFile, bool* hasPiping)
+{
+    return instance->geoflow(workingDirectory, projectFile, hasPiping);
 }
 
 #endif
