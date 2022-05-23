@@ -294,7 +294,9 @@ protected:
      * Ovrwrite the destination buffer position with data from the source buffer position.
      * Additionally, we save in an auxiliary vector the value of the fixed DOFs in the destination buffer position.
      */
-    LocalSystemVectorType CopySolutionStepData(const SizeType source, const SizeType destination)
+    LocalSystemVectorType CopySolutionStepData(
+        const SizeType source,
+        const SizeType destination)
     {
         // Get the required data from the explicit builder and solver
         auto& explicit_bs = BaseType::GetExplicitBuilder();
