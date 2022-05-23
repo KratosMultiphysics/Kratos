@@ -307,7 +307,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, 
  *              |
  * 
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidRotation, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidRotation, FluidDynamicsApplicationFastSuite)
 {
     using namespace CompressibleNSConservation;
 
