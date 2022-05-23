@@ -119,6 +119,22 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategyBFECC);
 
+    // Time-stepping settings
+    struct SubstepSettings {
+        enum Direction : int {FORWARD=-1, BACKWARD=1};
+
+        SubstepSettings(double Theta, Direction Dir)
+            : theta(Theta), direction(static_cast<int>(Dir))
+        { }
+
+         // Error-prone constructors
+        SubstepSettings(double, int) = delete;
+        SubstepSettings() = delete;
+
+        double theta;
+        int direction;
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -432,31 +448,9 @@ protected:
         auto& r_process_info = r_model_part.GetProcessInfo();
 
         // Perform the intermidate sub step update
+        const auto substep_settings = InitializeSubstep(SubstepType);
 
-        double time_integration_theta = -1.0;
-        double time_direction = 0.0;
-        switch(SubstepType)
-        {
-            case FORWARD:
-                InitializeBFECCForwardSubstep();
-                time_integration_theta = 0.0;
-                time_direction = 1.0;
-                break;
-            case BACKWARD:
-                InitializeBFECCBackwardSubstep();
-                time_integration_theta = 1.0;
-                time_direction =-1.0;
-                break;
-            case FINAL:
-                InitializeBFECCFinalSubstep();
-                time_integration_theta = 0.0;
-                time_direction = 1.0;
-                break;
-            default:
-                KRATOS_ERROR << "Invalid value for Substep" << std::endl;
-        }
-
-        r_process_info.GetValue(TIME_INTEGRATION_THETA) = time_integration_theta;
+        r_process_info.GetValue(TIME_INTEGRATION_THETA) = substep_settings.theta;
         r_explicit_bs.BuildRHS(r_model_part);
 
         IndexPartition<SizeType>(r_dof_set.size()).for_each(
@@ -472,19 +466,14 @@ protected:
 
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector[i_dof];
-                    r_u += time_direction * (dt / mass) * residual;
+                    r_u += substep_settings.direction * (dt / mass) * residual;
                 } else {
-                    r_u = time_integration_theta*rFixedDofsValues[i_dof] + (1 - time_integration_theta)*r_u_prev_step;
+                    r_u = substep_settings.theta*rFixedDofsValues[i_dof] + (1 - substep_settings.theta)*r_u_prev_step;
                 }
             }
         );
 
-        switch(SubstepType) {
-            case FORWARD:  FinalizeBFECCForwardSubstep();   break;
-            case BACKWARD: FinalizeBFECCBackwardSubstep();  break;
-            case FINAL:    FinalizeBFECCFinalSubstep();     break;
-            default: KRATOS_ERROR << "Invalid value for Substep" << std::endl;
-        }
+        FinalizeSubstep(SubstepType);
 
         KRATOS_CATCH("Substep type: " + [](Substep substep) -> std::string {
             switch(substep) {
@@ -555,6 +544,33 @@ private:
     ///@name Private Operations
     ///@{
 
+    SubstepSettings InitializeSubstep(const Substep SubstepType)
+    {
+        switch(SubstepType)
+        {
+            case FORWARD:
+                InitializeBFECCForwardSubstep();
+                return {0.0, SubstepSettings::FORWARD};
+            case BACKWARD:
+                InitializeBFECCBackwardSubstep();
+                return {1.0, SubstepSettings::BACKWARD};
+            case FINAL:
+                InitializeBFECCFinalSubstep();
+                return {0.0, SubstepSettings::FORWARD};
+            default:
+                KRATOS_ERROR << "Invalid value for Substep" << std::endl;
+        }
+    }
+
+    void  FinalizeSubstep(const Substep SubstepType)
+    {
+        switch(SubstepType) {
+            case FORWARD:  FinalizeBFECCForwardSubstep();   break;
+            case BACKWARD: FinalizeBFECCBackwardSubstep();  break;
+            case FINAL:    FinalizeBFECCFinalSubstep();     break;
+            default: KRATOS_ERROR << "Invalid value for Substep" << std::endl;
+        }
+    }
 
     ///@}
     ///@name Private  Access
