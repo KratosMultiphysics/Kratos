@@ -41,7 +41,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-using NodeType = ModelPart::NodeType;
 
 ///@}
 ///@name  Enum's
@@ -62,6 +61,7 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ComputePressureCoefficientProcess :
 public:
     ///@name Type Definitions
     ///@{
+    using NodeType = ModelPart::NodeType;
 
     /// Pointer definition of ComputePressureCoefficientProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputePressureCoefficientProcess);
