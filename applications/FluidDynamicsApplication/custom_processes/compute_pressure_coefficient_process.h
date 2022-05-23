@@ -137,10 +137,11 @@ private:
     ModelPart& mrModelPart;
     bool mComputeAsPostProcess;
     double mFreestreamStaticPressure;   // Freestream pressure
-    double mFreestreamDynamicPressure;  // Freestream q=rho*V²/2  
+    double mFreestreamDynamicPressure;  // Freestream q=rho*V²/2
+    std::function<double(const NodeType&)> mGetPressure;
 
     ///@}
-    ///@name Protected Operators
+    ///@name Private Operators
     ///@{
 
     ///@}
