@@ -224,7 +224,7 @@ std::vector<double> Assemble(ModelPart& rModelPart, const bool debug_prints = fa
  *  - ∇U = 0
  * then the time derivatives should be zero.
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationRigidTranslation, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidTranslation, FluidDynamicsApplicationFastSuite)
 {
     using namespace CompressibleNSConservation;
 
