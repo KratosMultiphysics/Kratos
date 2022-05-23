@@ -78,9 +78,6 @@ public:
     /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategy
     KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategy);
 
-    /// Local Flags
-    KRATOS_DEFINE_LOCAL_FLAG(SHOCK_CAPTURING);
-
     ///@}
     ///@name Life Cycle
     ///@{
