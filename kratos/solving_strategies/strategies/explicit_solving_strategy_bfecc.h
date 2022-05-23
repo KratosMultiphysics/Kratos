@@ -120,19 +120,20 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolvingStrategyBFECC);
 
     // Time-stepping settings
-    struct SubstepSettings {
+    struct SubstepData {
         enum Direction : int {BACKWARD=-1, FORWARD=1};
 
-        SubstepSettings(double Theta, Direction Dir)
+        SubstepData(double Theta, Direction Dir)
             : theta(Theta), direction(static_cast<int>(Dir))
         { }
 
          // Error-prone constructors
-        SubstepSettings(double, int) = delete;
-        SubstepSettings() = delete;
+        SubstepData(double, int) = delete;
+        SubstepData() = delete;
 
         double theta;
         int direction;
+        LocalSystemVectorType u_fixed;
     };
 
     ///@}
@@ -318,26 +319,11 @@ protected:
         // Stash the prev step solution
         const auto original_starting_values = ExtractSolutionStepData(1);
 
-        // Take step forward
-        {
-            const auto u_fixed = CopySolutionStepData(1, 0);
-            PerformSubstep(u_fixed, FORWARD);
-        }
+        PerformSubstep(FORWARD);
+        PerformSubstep(BACKWARD);
 
-        // Overwrite previous step solution with backwards step
-        {
-            const auto u_fixed = CopySolutionStepData(0, 1);
-            PerformSubstep(u_fixed, BACKWARD);
-        }
-
-        // Correct error with the previous step solution
         CorrectErrorAfterForwardsAndBackwards(original_starting_values);
-
-        // Final update
-        {
-            const auto u_fixed = CopySolutionStepData(1, 0);
-            PerformSubstep(u_fixed, FINAL);
-        }
+        PerformSubstep(FINAL);
 
         KRATOS_CATCH("");
     }
@@ -346,10 +332,11 @@ protected:
      * Ovrwrite the destination buffer position with data from the source buffer position.
      * Additionally, we save in an auxiliary vector the value of the fixed DOFs in the destination buffer position.
      */
-    LocalSystemVectorType CopySolutionStepData(
-        const SizeType source,
-        const SizeType destination)
+    LocalSystemVectorType CopySolutionStepData(const SubstepData SData)
     {
+        const SizeType source      = SData.direction == SubstepData::FORWARD ? 1 : 0;
+        const SizeType destination = SData.direction == SubstepData::FORWARD ? 0 : 1;
+
         // Get the required data from the explicit builder and solver
         auto& r_explicit_bs = BaseType::GetExplicitBuilder();
         auto& r_dof_set = r_explicit_bs.GetDofSet();
@@ -430,9 +417,7 @@ protected:
      * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
      * @param Substep The type of substep it is
      */
-    virtual void PerformSubstep(
-        const LocalSystemVectorType& rFixedDofsValues,
-        const Substep SubstepType)
+    virtual void PerformSubstep(const Substep SubstepType)
     {
         KRATOS_TRY
 
@@ -468,7 +453,7 @@ protected:
                     const double mass = r_lumped_mass_vector[i_dof];
                     r_u += substep_settings.direction * (dt / mass) * residual;
                 } else {
-                    r_u = substep_settings.theta*rFixedDofsValues[i_dof] + (1 - substep_settings.theta)*r_u_prev_step;
+                    r_u = substep_settings.theta*substep_settings.u_fixed[i_dof] + (1 - substep_settings.theta)*r_u_prev_step;
                 }
             }
         );
@@ -504,6 +489,7 @@ protected:
                 const double error = (r_dof.GetSolutionStepValue(0) - prev_step_solution)/2.0;
 
                 r_dof.GetSolutionStepValue(1) = prev_step_solution - error;
+                // Will be copied to buffer position (0) duting the last substep initialize
 
             }
         );
@@ -544,19 +530,31 @@ private:
     ///@name Private Operations
     ///@{
 
-    SubstepSettings InitializeSubstep(const Substep SubstepType)
+    SubstepData InitializeSubstep(const Substep SubstepType)
     {
         switch(SubstepType)
         {
             case FORWARD:
+            {
+                SubstepData s = {0.0, SubstepData::FORWARD};
+                s.u_fixed = CopySolutionStepData(s);
                 InitializeBFECCForwardSubstep();
-                return {0.0, SubstepSettings::FORWARD};
+                return s;
+            }
             case BACKWARD:
+            {
+                SubstepData s = {1.0, SubstepData::BACKWARD};
+                s.u_fixed = CopySolutionStepData(s);
                 InitializeBFECCBackwardSubstep();
-                return {1.0, SubstepSettings::BACKWARD};
+                return s;
+            }
             case FINAL:
+            {
+                SubstepData s = {0.0, SubstepData::FORWARD};
+                s.u_fixed = CopySolutionStepData(s);
                 InitializeBFECCFinalSubstep();
-                return {0.0, SubstepSettings::FORWARD};
+                return s;
+            }
             default:
                 KRATOS_ERROR << "Invalid value for Substep" << std::endl;
         }
