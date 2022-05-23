@@ -26,7 +26,7 @@
 
 /* Appication includes */
 #include "fluid_dynamics_application_variables.h"
-#include "compressible_navier_stokes_explicit_solving_startegy.h"
+#include "compressible_navier_stokes_explicit_solving_strategy.h"
 
 namespace Kratos
 {
