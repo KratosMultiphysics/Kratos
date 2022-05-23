@@ -1,9 +1,3 @@
-import KratosMultiphysics as KM
-
-def RunCase(analysis_class, parameters):
-    model = KM.Model()
-    analysis = analysis_class(model, parameters)
-    analysis.Run()
 
 def GetProcessParameters(list_of_processes, name):
     for processes in list_of_processes.values():

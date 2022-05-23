@@ -23,6 +23,7 @@
 #include "processes/output_process.h"
 #include "python/add_processes_to_python.h"
 #include "processes/calculate_embedded_nodal_variable_from_skin_process.h"
+#include "processes/edge_based_gradient_recovery_process.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/find_nodal_neighbours_process.h"
@@ -706,6 +707,16 @@ void  AddProcessesToPython(pybind11::module& m)
     from_json_check_result_process_interface.attr("CORRECT_RESULT")                 = &FromJSONCheckResultProcess::CORRECT_RESULT;
     from_json_check_result_process_interface.attr("HISTORICAL_VALUE")               = &FromJSONCheckResultProcess::HISTORICAL_VALUE;
     from_json_check_result_process_interface.attr("CHECK_ONLY_LOCAL_ENTITIES")      = &FromJSONCheckResultProcess::CHECK_ONLY_LOCAL_ENTITIES;
+
+    using ScalarEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<double,SparseSpaceType,LocalSpaceType,LinearSolverType>;
+    py::class_<ScalarEdgeBasedGradientRecoveryProcessType, ScalarEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessScalar")
+        .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
+
+    using ArrayEdgeBasedGradientRecoveryProcessType = EdgeBasedGradientRecoveryProcess<array_1d<double,3>,SparseSpaceType,LocalSpaceType,LinearSolverType>;
+    py::class_<ArrayEdgeBasedGradientRecoveryProcessType, ArrayEdgeBasedGradientRecoveryProcessType::Pointer, Process>(m, "EdgeBasedGradientRecoveryProcessArray")
+        .def(py::init<Model&, LinearSolverType::Pointer, Parameters>())
+    ;
 }
 
 }  // namespace Python.

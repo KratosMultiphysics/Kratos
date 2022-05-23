@@ -69,6 +69,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
         self.main_model_part.AddNodalSolutionStepVariable(SW.RAIN)
         self.main_model_part.AddNodalSolutionStepVariable(KM.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KM.DISTANCE)
 
     def AddDofs(self):
         raise Exception("Calling the base class instead of the derived one")
@@ -190,15 +191,11 @@ class ShallowWaterBaseSolver(PythonSolver):
         #verify the orientation of the skin in case of triangles mesh
         elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
         if elem_num_nodes == 3:
-            self.assign_neighbour_elements_to_conditions = True
             mesh_orientation = KM.TetrahedralMeshOrientationCheck
             throw_errors = False
             flags  = mesh_orientation.COMPUTE_NODAL_NORMALS.AsFalse()
             flags |= mesh_orientation.COMPUTE_CONDITION_NORMALS.AsFalse()
-            if self.assign_neighbour_elements_to_conditions:
-                flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-            else:
-                flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse()
+            flags |= mesh_orientation.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
             KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), throw_errors, flags).Execute()
         else:
             KM.Logger.PrintWarning(self.__class__.__name__, "Orientation check not performed for quadrilateral or higher order geometries.")
