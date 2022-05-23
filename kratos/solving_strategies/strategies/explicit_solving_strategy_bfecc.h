@@ -378,7 +378,9 @@ protected:
      * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
      * @param Substep The type of substep it is
      */
-    virtual void PerformSubstep(const LocalSystemVectorType& rFixedDofsValues, const Substep SubstepType)
+    virtual void PerformSubstep(
+        const LocalSystemVectorType& rFixedDofsValues,
+        const Substep SubstepType)
     {
         KRATOS_TRY
 
