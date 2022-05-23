@@ -78,7 +78,7 @@ public:
         void reset() { value = 0; available = false; }
 
         double& operator*() noexcept { return value; }
-        const double operator*() const noexcept { return value; }
+        double operator*() const noexcept { return value; }
         
         bool has_value() const noexcept { return available;}
     private:
