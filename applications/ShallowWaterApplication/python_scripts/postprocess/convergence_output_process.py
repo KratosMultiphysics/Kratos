@@ -1,11 +1,11 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
+from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 
 # Other imports
-import h5py
 import time
-import numpy as np
+from pathlib import Path
 
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
@@ -17,29 +17,21 @@ class ConvergenceOutputProcess(KM.Process):
     def __init__(self, model, settings):
         super().__init__()
 
-        default_settings = KM.Parameters("""
-            {
-                "model_part_name"            : "model_part",
-                "file_name"                  : "output_file",
-                "printing_times"             : [],
-                "analysis_label"             : "label",
-                "analysis_attributes"        : {},
-                "convergence_variables_list" : [],
-                "low_corner"                 : [],
-                "high_corner"                : []
-            }
-            """
-            )
+        default_settings = KM.Parameters("""{
+                "model_part_name"       : "model_part",
+                "file_name"             : "output_file",
+                "printing_times"        : [],
+                "analysis_label"        : "label",
+                "convergence_variables" : [],
+                "low_corner"            : [],
+                "high_corner"           : []
+            }""")
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = model[self.settings["model_part_name"].GetString()]
-
-        self.f = h5py.File(self.settings["file_name"].GetString() + ".hdf5", 'a') # 'a' means append mode
-        self.f.flush() # Since this process will reuse the existing files, we need to ensure the file construction is finished. Otherwise problems may arise if the first analysis didn't finish.
-
-        self.variables = [KM.KratosGlobals.GetVariable(v) for v in self.settings["convergence_variables_list"].GetStringArray()]
+        self.variables = GenerateVariableListFromInput(self.settings["convergence_variables"])
 
         # Initialize output control variables
         self.printing_times = self.settings["printing_times"].GetVector()
@@ -50,14 +42,16 @@ class ConvergenceOutputProcess(KM.Process):
         else:
             self.integrate_over_all_the_domain = False
 
+        self.file = self._InitializeOutputFile()
+        self.file.flush() # Since this process will reuse the existing files, we need to ensure the file construction is finished. Otherwise problems may arise if the first analysis didn't finish.
+
+
     def ExecuteInitialize(self):
+        """Initialize the non historical variables and the measuring of computational time."""
         for variable in self.variables:
             KM.VariableUtils().SetNonHistoricalVariableToZero(variable, self.model_part.Nodes)
-
-    def ExecuteBeforeSolutionLoop(self):
-        """Look for an existing dataset in the file."""
-        self.dset = self._GetDataset()
         self.start_time = time.time()
+
 
     def IsOutputStep(self):
         """Check if the current time step is near enough to the specified printing times."""
@@ -68,13 +62,16 @@ class ConvergenceOutputProcess(KM.Process):
                 return True
         return False
 
+
     def PrintOutput(self):
         """Write the values into the file."""
         self._WriteAverageError()
 
+
     def ExecuteFinalize(self):
         """Close the file."""
-        self.f.close()
+        self.file.close()
+
 
     def Check(self):
         """Check the correctness of the input parameters."""
@@ -97,91 +94,39 @@ class ConvergenceOutputProcess(KM.Process):
         else:
             raise Exception("The corners must be specified with 2 or 3 coordinates")
 
-    def _WriteAttributes(self, dset):
-        for key, param in self.settings["analysis_attributes"].items():
-            if param.IsBool():
-                value = param.GetBool()
-            elif param.IsInt():
-                value = param.GetInt()
-            elif param.IsDouble():
-                value = param.GetDouble()
-            elif param.IsString():
-                value = param.GetString()
-            else:
-                msg = "Unknown type for " + str(param)
-                msg = msg.rstrip() + " with key : \"" + str(key) + "\""
-                raise Exception(msg)
-            dset.attrs[key] = value
 
-    def _CheckAttributes(self, attributes):
-        match = None
-        for key, param in self.settings["analysis_attributes"].items():
-            match = False
-            if param.IsBool():
-                value = param.GetBool()
-            elif param.IsInt():
-                value = param.GetInt()
-            elif param.IsDouble():
-                value = param.GetDouble()
-            elif param.IsString():
-                value = param.GetString()
-            else:
-                msg = "Unknown type for " + str(param)
-                msg = msg.rstrip() + " with key : \"" + str(key) + "\""
-                raise Exception(msg)
+    def _InitializeOutputFile(self):
+        path = Path(self.settings["file_name"].GetString()).with_suffix('.dat')
+        file = open(path, "a+")
+        if path.stat().st_size == 0:
+            header = self._GetHeader()
+            file.write(header)
+        return file
 
-            if attributes.get(key) is not None:
-                if attributes[key] == value:
-                    match = True
-            if not match:
-                break
 
-        return match
+    def _GetHeader(self):
+        header = "# RMS for model part '{}' ".format(self.model_part.Name)
+        if self.integrate_over_all_the_domain:
+            header += "over all the domain\n"
+        else:
+            low_corner = KM.Point(self.settings["low_corner"].GetVector())
+            high_corner = KM.Point(self.settings["high_corner"].GetVector())
+            header += "over rectangle {} x {}\n".format(list(low_corner), list(high_corner))
 
-    def _GetDataset(self):
-        for name, data in self.f.items():
-            if self._CheckAttributes(data.attrs):
-                self._CheckNumberOfFields(data)
-                return data
-
-        dset_name = "analysis_{:03d}".format(self.f.items().__len__())
-        header = self._GetHeaderDtype()
-        dset = self.f.create_dataset(dset_name, (0,), maxshape=(None,), chunks=True, dtype=header)
-        self._WriteAttributes(dset)
-        return dset
-
-    def _CheckNumberOfFields(self, dset):
-        header = self._GetHeaderDtype()
-        if len(dset.dtype) != len(header):
-            msg  = f"ConvergenceOutputProcess [HDF5]: "
-            msg += f"Trying to write a different number of variables from previous simulations.\n"
-            msg += f"\nThe existing dataset has {len(dset.dtype)} fields -- {dset.dtype}\n"
-            msg += f"\nThe current case has {len(header)} fields -- {header}."
-            raise Exception(msg)
-
-    def _GetHeaderDtype(self):
-        header = [
-            ("label", h5py.special_dtype(vlen=str)),
-            ("num_nodes", np.uint32),
-            ("num_elems", np.uint32),
-            ("time_step", np.float),
-            ("time", np.float),
-            ("computational_time", np.float)]
-
+        header += "#label \t num_nodes \t num_elems \t time_step \t time \t computational_time"
         for variable in self.variables:
-            header.append((variable.Name(), np.float))
+            header += '\t' + variable.Name()
+        header += '\n'
+        return header
 
-        return np.dtype(header)
 
     def _WriteAverageError(self):
-        elapsed_time = time.time() - self.start_time
-        case_data = [
-            self.settings["analysis_label"].GetString(),
-            self.model_part.NumberOfNodes(),
-            self.model_part.NumberOfElements(),
-            self.model_part.ProcessInfo[KM.DELTA_TIME],
-            self.model_part.ProcessInfo[KM.TIME],
-            elapsed_time]
+        data  = self.settings["analysis_label"].GetString() + '\t'
+        data += str(self.model_part.NumberOfNodes()) + '\t'
+        data += str(self.model_part.NumberOfElements()) + '\t'
+        data += str(self.model_part.ProcessInfo[KM.DELTA_TIME]) + '\t'
+        data += str(self.model_part.ProcessInfo[KM.TIME]) + '\t'
+        data += str(time.time() - self.start_time)
 
         if not self.integrate_over_all_the_domain:
             low_corner = KM.Point(self.settings["low_corner"].GetVector())
@@ -192,9 +137,8 @@ class ConvergenceOutputProcess(KM.Process):
                 value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable)
             else:
                 value = SW.ShallowWaterUtilities().ComputeL2NormNonHistorical(self.model_part, variable, low_corner, high_corner)
-            case_data.append(value)
+            data += '\t{}'.format(value)
+        data += '\n'
 
-        case_idx = self.dset.len()
-        self.dset.resize((case_idx+1,))
-        self.dset[case_idx] = tuple(case_data)
-        self.f.flush()
+        self.file.write(data)
+        self.file.flush()

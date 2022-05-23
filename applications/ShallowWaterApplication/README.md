@@ -23,8 +23,6 @@ The following Python libraries may be required:
 - `numpy` is used by the wave generator, the benchmarks and other auxiliary processes
 - `scipy` is used by the benchmarks
 - `mpmath` is used by the solitary wave benchmark
-- `h5py` is used in the convergence output
-- `pandas` is used in some post process tools
 
 
 ### References
