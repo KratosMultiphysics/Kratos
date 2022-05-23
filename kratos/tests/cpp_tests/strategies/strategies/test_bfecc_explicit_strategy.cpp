@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyBFECC, KratosCoreFastSuite)
     RunTest<ExplicitSolvingStrategyBFECCType>(1e-2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyBFECC_convergence, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ExplicitSolvingStrategyBFECCConvergence, KratosCoreFastSuite)
 {
     using namespace BFECCTestInternals;
     ConvergenceTest<ExplicitSolvingStrategyBFECCType>(2);
