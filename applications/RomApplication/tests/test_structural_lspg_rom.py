@@ -1,5 +1,6 @@
 import os
 import types
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 try:
     import numpy as np
@@ -15,14 +16,14 @@ if kratos_utilities.CheckIfApplicationsAvailable("StructuralMechanicsApplication
     import KratosMultiphysics.StructuralMechanicsApplication
 
 @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
-class TestStructuralRom(KratosUnittest.TestCase):
+class TestStructuralLSPGRom(KratosUnittest.TestCase):
 
     def setUp(self):
-        self.relative_tolerance = 1.0e-12
+        self.relative_tolerance = 1.0e-10
 
     @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
-    def testStructuralStaticRom2D(self):
-        self.work_folder = "structural_static_test_files/ROM/"
+    def testStructuralStaticLSPGRom2D(self):
+        self.work_folder = "structural_static_test_files/LSPGROM/"
         parameters_filename = "ProjectParametersROM.json"
         expected_output_filename = "ExpectedOutputROM.npy"
 
@@ -35,7 +36,7 @@ class TestStructuralRom(KratosUnittest.TestCase):
 
             # Run test case
             self.simulation.Run()
-
+            
             # Check results
             expected_output = np.load(expected_output_filename)
             obtained_output = rom_testing_utilities.GetVectorNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
@@ -51,43 +52,21 @@ class TestStructuralRom(KratosUnittest.TestCase):
             l2 = np.sqrt(numerator/denominator)*100
             self.assertLess(l2, self.relative_tolerance)
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
-    def testStructuralStaticHRom2D(self):
-        self.work_folder = "structural_static_test_files/HROM/"
-        parameters_filename = "ProjectParametersHROM.json"
-        expected_output_filename = "ExpectedOutputHROM.npy"
-
-        with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
-            # Set up and run simulation
-            with open(parameters_filename,'r') as parameter_file:
-                parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
-
-            #setting hrom flag to true
-            #self.simulation.parameters
-
-            # Run test case
-            self.simulation.Run()
-
-            # Check results
-            expected_output = np.load(expected_output_filename)
-            obtained_output = rom_testing_utilities.GetVectorNodalResults(self.simulation._GetSolver().GetComputingModelPart(), KratosMultiphysics.DISPLACEMENT)
-            aux_nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
-            nodal_area = [aux_nodal_area[int((i-1)/2) if i%2 != 0 else int(i/2)] for i in range(2*len(aux_nodal_area))]
-
-            numerator = 0.0
-            denominator = 0.0
-            for i in range(len(obtained_output)):
-                if expected_output[i] > 1.0e-12:
-                    numerator += nodal_area[i]*((1 - (obtained_output[i]/expected_output[i]))**2)
-                    denominator += nodal_area[i]
-            l2 = np.sqrt(numerator/denominator)*100
-            self.assertLess(l2, self.relative_tolerance)
+            # Save the obtained results in TEMPERATURE variable and visualize
+            output_results = False
+            if output_results:
+                i = 0
+                for node in self.simulation._GetSolver().GetComputingModelPart().Nodes:
+                    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, obtained_output[i])
+                    i += 1
+                    node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, obtained_output[i])
+                    i += 1
+                self.PostProcess("test_rbf_shape_functions_utility_1x1_square_G")
+        
 
     @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
-    def testStructuralDynamicRom2D(self):
-        self.work_folder = "structural_dynamic_test_files/ROM/"
+    def testStructuralDynamicLSPGRom2D(self):
+        self.work_folder = "structural_dynamic_test_files/LSPGROM/"
         parameters_filename = "ProjectParameters.json"
         expected_output_filename = "ExpectedOutput.npy"
 
@@ -128,12 +107,14 @@ class TestStructuralRom(KratosUnittest.TestCase):
                 snapshot_i= np.array(self.simulation.selected_time_step_solution_container[i])
                 obtained_snapshot_matrix[:,i] = snapshot_i.transpose()
 
-            tolerance = 1.0e-10
+            tolerance = 1.0e-6
             for i in range (n_snapshots):
                 up = sum((expected_output[:,i] - obtained_snapshot_matrix[:,i])**2)
                 down = sum((expected_output[:,i])**2)
                 l2 = np.sqrt(up/down)
                 self.assertLess(l2, tolerance)
+            
+            
 
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):

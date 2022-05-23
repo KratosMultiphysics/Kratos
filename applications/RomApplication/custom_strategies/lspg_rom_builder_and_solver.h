@@ -7,8 +7,8 @@
 //  License:        BSD License
 //                  Kratos default license: kratos/license.txt
 //
-//  Main authors:   Riccardo Rossi
-//                  Raul Bravo
+//  Main authors:   Sebastian Ares de Parga Regalado
+//                  Eduard Gomez Escandell 
 //
 
 #if !defined(KRATOS_LSPG_ROM_BUILDER_AND_SOLVER)
@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "custom_strategies/rom_builder_and_solver.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/dense_householder_qr_decomposition.h"
@@ -59,7 +60,7 @@ namespace Kratos
 ///@{
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class LSPGROMBuilderAndSolver : public BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
+class LSPGROMBuilderAndSolver : public ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
 
@@ -103,8 +104,15 @@ public:
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
     typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
+
+    // Non-distributed, dense:
     typedef LocalSystemMatrixType RomSystemMatrixType;
     typedef LocalSystemVectorType RomSystemVectorType;
+
+    //Distributed, dense
+    typedef RomSystemMatrixType LSPGSystemMatrixType; 
+    typedef RomSystemVectorType LSPGSystemVectorType;
+    //      ^ Change this to a distributed dense type
 
     /// DoF types definition
     typedef Node<3> NodeType;
@@ -119,12 +127,12 @@ public:
     explicit LSPGROMBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver,
         Parameters ThisParameters)
-        : BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver)
+        : ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>(pNewLinearSystemSolver, ThisParameters) 
     {
         // Validate and assign defaults
-        Parameters this_parameters_copy = ThisParameters.Clone();
-        this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
-        this->AssignSettings(this_parameters_copy);
+        // Parameters this_parameters_copy = ThisParameters.Clone();
+        // this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
+        // this->AssignSettings(this_parameters_copy);
     }
 
     ~LSPGROMBuilderAndSolver() = default;
@@ -138,13 +146,6 @@ public:
     ///@name Operations
     ///@{
 
-    typename BaseType::Pointer Create(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        Parameters ThisParameters) const override
-    {
-        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
-    }
-
     void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart) override
@@ -156,15 +157,15 @@ public:
         KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         // Get model part data
-        if (mHromWeightsInitialized == false) {
-            InitializeHROMWeights(rModelPart);
+        if (this->mHromWeightsInitialized == false) {
+            this->InitializeHROMWeights(rModelPart);
         }
 
-        auto dof_queue = ExtractDofSet(pScheme, rModelPart);
+        auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
 
         // Fill a sorted auxiliary array of with the DOFs set
         KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-        auto dof_array = SortAndRemoveDuplicateDofs(dof_queue);
+        auto dof_array = this->SortAndRemoveDuplicateDofs(dof_queue);
 
         // Update base builder and solver DOFs array and set corresponding flag
         BaseType::GetDofSet().swap(dof_array);
@@ -190,67 +191,7 @@ public:
         }
 #endif
         KRATOS_CATCH("");
-    }
-
-    void SetUpSystem(ModelPart &rModelPart) override
-    {
-        auto& r_dof_set = BaseType::GetDofSet();
-        BaseType::mEquationSystemSize = r_dof_set.size();
-        IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index)
-        {
-            auto dof_iterator = r_dof_set.begin() + Index;
-            dof_iterator->SetEquationId(Index);
-        });
-    }
-
-    // Vector ProjectToReducedBasis(
-	// 	const TSystemVectorType& rX,
-	// 	ModelPart::NodesContainerType& rNodes
-	// )
-    // {
-    //     Vector rom_unknowns = ZeroVector(mNumberOfRomModes);
-    //     for(const auto& node : rNodes)
-    //     {
-    //         unsigned int node_aux_id = node.GetValue(AUX_ID);
-    //         const auto& nodal_rom_basis = node.GetValue(ROM_BASIS);
-	// 			for (int i = 0; i < mNumberOfRomModes; ++i) {
-	// 				for (int j = 0; j < mNodalDofs; ++j) {
-	// 					rom_unknowns[i] += nodal_rom_basis(j, i)*rX(node_aux_id*mNodalDofs + j);
-	// 				}
-	// 			}
-    //     }
-    //     return rom_unknowns;
-	// }
-
-    void ProjectToFineBasis(
-        const TSystemVectorType& rRomUnkowns,
-        const ModelPart& rModelPart,
-        TSystemVectorType& rDx) const
-    {
-        const auto& r_dof_set = BaseType::GetDofSet();
-        block_for_each(r_dof_set, [&](const DofType& r_dof)
-        {
-            const auto& r_node = rModelPart.GetNode(r_dof.Id());
-            const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
-            const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
-            rDx[r_dof.EquationId()] = inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns);
-        });
-    }
-
-    virtual void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb) override
-    {
-        // Call the base B&S InitializeSolutionStep
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-        // Reset the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(mNumberOfRomModes);
-    }
-
+    } 
     
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
@@ -260,56 +201,11 @@ public:
         TSystemVectorType &b) override
     {
         KRATOS_TRY
+        LSPGSystemMatrixType Arom = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
+        LSPGSystemVectorType brom = ZeroVector(BaseType::GetEquationSystemSize());
+        BuildROM(pScheme, rModelPart, Arom, brom);
+        SolveROM(rModelPart, Arom, brom, Dx);
 
-        if (mSolveWithGalerkin){// Galerkin 
-            RomSystemMatrixType Arom = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-            RomSystemVectorType brom = ZeroVector(mNumberOfRomModes);
-            BuildROMStandard(pScheme, rModelPart, Arom, brom);
-            SolveROMStandard(rModelPart, Arom, brom, Dx);
-        }
-        else if (mSolveWithLSPG){// LSPG
-            RomSystemMatrixType Arom = ZeroMatrix(BaseType::GetEquationSystemSize(), mNumberOfRomModes);
-            RomSystemVectorType brom = ZeroVector(BaseType::GetEquationSystemSize());
-            BuildROMLSPG(pScheme, rModelPart, Arom, brom);
-            SolveROMLSPG(rModelPart, Arom, brom, Dx);
-        }
-
-
-        KRATOS_CATCH("")
-    }
-
-    void ResizeAndInitializeVectors(
-        typename TSchemeType::Pointer pScheme,
-        TSystemMatrixPointerType &pA,
-        TSystemVectorPointerType &pDx,
-        TSystemVectorPointerType &pb,
-        ModelPart &rModelPart) override
-    {
-        KRATOS_TRY
-
-        // If not initialized, initalize the system arrays to an empty vector/matrix
-        if (!pA) {
-            TSystemMatrixPointerType p_new_A = Kratos::make_shared<TSystemMatrixType>(0, 0);
-            pA.swap(p_new_A);
-        }
-        if (!pDx) {
-            TSystemVectorPointerType p_new_Dx = Kratos::make_shared<TSystemVectorType>(0);
-            pDx.swap(p_new_Dx);
-        }
-        if (!pb) {
-            TSystemVectorPointerType p_new_b = Kratos::make_shared<TSystemVectorType>(0);
-            pb.swap(p_new_b);
-        }
-
-        TSystemVectorType& r_Dx = *pDx;
-        if (r_Dx.size() != BaseType::GetEquationSystemSize()) {
-            r_Dx.resize(BaseType::GetEquationSystemSize(), false);
-        }
-
-        TSystemVectorType& r_b = *pb;
-        if (r_b.size() != BaseType::GetEquationSystemSize()) {
-            r_b.resize(BaseType::GetEquationSystemSize(), false);
-        }
 
         KRATOS_CATCH("")
     }
@@ -318,19 +214,18 @@ public:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "LSPG_ROM_BUILDER_AND_SOLVER",
+            "name" : "lspg_rom_builder_and_solver",
             "nodal_unknowns" : [],
-            "number_of_rom_dofs" : 10,
-            "solving_strategy" : "Galerkin"
+            "number_of_rom_dofs" : 10
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
         return default_parameters;
     }
 
-    static std::string Name()
+    static std::string Name() 
     {
-        return "LSPG_ROM_BUILDER_AND_SOLVER";
+        return "lspg_rom_builder_and_solver";
     }
 
     ///@}
@@ -359,7 +254,7 @@ public:
         rOStream << Info();
     }
 
-    /// Print object's data.
+    /// Print object's data.GetNumberOfROMModes()
     virtual void PrintData(std::ostream &rOStream) const override
     {
         rOStream << Info();
@@ -381,21 +276,6 @@ protected:
     ///@name Protected member variables
     ///@{
 
-    SizeType mNodalDofs;
-    SizeType mNumberOfRomModes;
-    std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
-
-    ElementsArrayType mSelectedElements;
-    ConditionsArrayType mSelectedConditions;
-
-    bool mHromSimulation = false;
-    bool mHromWeightsInitialized = false;
-
-    bool mSolveWithGalerkin = false;
-    bool mSolveWithLSPG = false;
-
-    std::string mSolvingStrategy;
-
     ///@}
     ///@name Protected operators
     ///@{
@@ -405,308 +285,17 @@ protected:
     ///@name Protected operations
     ///@{
 
-    void AssignSettings(const Parameters ThisParameters) override
-    {
-        BaseType::AssignSettings(ThisParameters);
-
-        // Set member variables
-        mNodalDofs = ThisParameters["nodal_unknowns"].size();
-        mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
-        mSolvingStrategy = ThisParameters["solving_strategy"].GetString();
-
-        if (mSolvingStrategy == "Galerkin"){
-            mSolveWithGalerkin = true;
-        }
-        else if (mSolvingStrategy == "LSPG"){
-            mSolveWithLSPG = true;
-        } 
-        else {
-            KRATOS_ERROR << "Solving strategy \""<< mSolvingStrategy << "\" not valid" << std::endl;
-        }
-
-        // Set up a map with key the variable key and value the correct row in ROM basis
-        IndexType k = 0;
-        for (const auto& r_var_name : ThisParameters["nodal_unknowns"].GetStringArray()) {
-            if(KratosComponents<Variable<double>>::Has(r_var_name)) {
-                const auto& var = KratosComponents<Variable<double>>::Get(r_var_name);
-                mMapPhi[var.Key()] = k++;
-            } else {
-                KRATOS_ERROR << "Variable \""<< r_var_name << "\" not valid" << std::endl;
-            }
-        }
-    }
-
-
-    void InitializeHROMWeights(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        using ElementQueue = moodycamel::ConcurrentQueue<Element::Pointer>;
-        using ConditionQueue = moodycamel::ConcurrentQueue<Condition::Pointer>;
-
-        // Inspecting elements
-        ElementQueue element_queue;
-        block_for_each(rModelPart.Elements().GetContainer(),
-            [&](Element::Pointer p_element)
-        {
-            if (p_element->Has(HROM_WEIGHT)) {
-                element_queue.enqueue(std::move(p_element));
-            } else {
-                p_element->SetValue(HROM_WEIGHT, 1.0);
-            }
-        });
-
-        // Inspecting conditions
-        ConditionQueue condition_queue;
-        block_for_each(rModelPart.Conditions().GetContainer(),
-            [&](Condition::Pointer p_condition)
-        {
-            if (p_condition->Has(HROM_WEIGHT)) {
-                condition_queue.enqueue(std::move(p_condition));
-            } else {
-                p_condition->SetValue(HROM_WEIGHT, 1.0);
-            }
-        });
-
-        // Dequeueing elements
-        std::size_t err_id;
-        mSelectedElements.reserve(element_queue.size_approx());
-        Element::Pointer p_element;
-        while ( (err_id = element_queue.try_dequeue(p_element)) != 0) {
-            mSelectedElements.push_back(std::move(p_element));
-        }
-
-        // Dequeueing conditions
-        mSelectedConditions.reserve(condition_queue.size_approx());
-        Condition::Pointer p_condition;
-        while ( (err_id = condition_queue.try_dequeue(p_condition)) != 0) {
-            mSelectedConditions.push_back(std::move(p_condition));
-        }
-
-        // Wrap-up
-        mHromSimulation = !(mSelectedElements.empty() && mSelectedConditions.empty());
-        mHromWeightsInitialized = true;
-
-        KRATOS_CATCH("")
-    }
-    
-    static DofQueue ExtractDofSet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        DofQueue dof_queue;
-
-        // Emulates ConcurrentQueue::enqueue_bulk adding move semantics to avoid atomic ops
-        const auto enqueue_bulk_move = [](DofQueue& r_queue, DofsVectorType& r_dof_list) {
-            for(auto& p_dof: r_dof_list) {
-                r_queue.enqueue(std::move(p_dof));
-            }
-            r_dof_list.clear();
-        };
-
-        // Inspecting elements
-        DofsVectorType tls_dof_list; // Preallocation
-        block_for_each(rModelPart.Elements(), tls_dof_list,
-            [&](const Element& r_element, DofsVectorType& r_dof_list)
-        {
-            pScheme->GetDofList(r_element, r_dof_list, rModelPart.GetProcessInfo());
-            enqueue_bulk_move(dof_queue, r_dof_list);
-        });
-
-        // Inspecting conditions
-        block_for_each(rModelPart.Conditions(), tls_dof_list,
-            [&](const Condition& r_condition, DofsVectorType& r_dof_list)
-        {
-            pScheme->GetDofList(r_condition, r_dof_list, rModelPart.GetProcessInfo());
-            enqueue_bulk_move(dof_queue, r_dof_list);
-        });
-
-        // Inspecting master-slave constraints
-        std::pair<DofsVectorType, DofsVectorType> tls_ms_dof_lists; // Preallocation
-        block_for_each(rModelPart.MasterSlaveConstraints(), tls_ms_dof_lists,
-            [&](const MasterSlaveConstraint& r_constraint, std::pair<DofsVectorType, DofsVectorType>& r_dof_lists)
-        {
-            r_constraint.GetDofList(r_dof_lists.first, r_dof_lists.second, rModelPart.GetProcessInfo());
-
-            enqueue_bulk_move(dof_queue, r_dof_lists.first);
-            enqueue_bulk_move(dof_queue, r_dof_lists.second);
-        });
-
-        return dof_queue;
-
-        KRATOS_CATCH("")
-    }
-
-    static DofsArrayType SortAndRemoveDuplicateDofs(DofQueue& rDofQueue)
-    {
-        KRATOS_TRY
-
-        DofsArrayType dof_array;
-        dof_array.reserve(rDofQueue.size_approx());
-        DofType::Pointer p_dof;
-        std::size_t err_id;
-        while ( (err_id = rDofQueue.try_dequeue(p_dof)) != 0) {
-            dof_array.push_back(std::move(p_dof));
-        }
-
-        dof_array.Unique(); // Sorts internally
-
-        return dof_array;
-
-        KRATOS_CATCH("")
-    }
-
     /**
     * Thread Local Storage containing dynamically allocated structures to avoid reallocating each iteration.
     */
     struct AssemblyTLS
     {
-        AssemblyTLS(SizeType NRomModes)
-            : romA(ZeroMatrix(NRomModes, NRomModes)),
-              romB(ZeroVector(NRomModes))
-        { }
-        AssemblyTLS() = delete;
-
-        Matrix phiE = {};                // Elemental Phi
-        LocalSystemMatrixType lhs = {};  // Elemental LHS
-        LocalSystemVectorType rhs = {};  // Elemental RHS
-        EquationIdVectorType eq_id = {}; // Elemental equation ID vector
-        DofsVectorType dofs = {};        // Elemental dof vector
-        RomSystemMatrixType romA;        // reduced LHS
-        RomSystemVectorType romB;        // reduced RHS
-        RomSystemMatrixType aux = {};    // Auxiliary: romA = phi.t * (LHS * phi) := phi.t * aux
-    };
-
-    /**
-    * Thread Local Storage containing dynamically allocated structures to avoid reallocating each iteration.
-    */
-    struct AssemblyTLS_LSPG
-    {
-        AssemblyTLS_LSPG(SizeType LocalSystemSize, SizeType GlobalSystemSize)
-            : romA(ZeroMatrix(LocalSystemSize, LocalSystemSize)),
-              romB(ZeroVector(LocalSystemSize)),
-              global_system_size(GlobalSystemSize)
-        { }
-
-        AssemblyTLS_LSPG() = delete;
-
         Matrix phiE = {};                // Elemental Phi
         LocalSystemMatrixType lhs = {};  // Elemental LHS
         EquationIdVectorType eq_id = {}; // Elemental equation ID vector
         DofsVectorType dofs = {};        // Elemental dof vector
         RomSystemMatrixType romA;        // reduced LHS
         RomSystemVectorType romB;        // reduced RHS
-        std::size_t global_system_size;
-    };
-
-    
-    /**
-     * Class to sum-reduce matrices and vectors.
-     */
-    template<typename T>
-    struct NonTrivialSumReduction
-    {
-        typedef T value_type;
-        typedef T return_type;
-
-        T mGlobalValue;
-        bool mInitialized = false;
-
-        void Init(const value_type& first_value)
-        {
-            mGlobalValue = first_value;
-            mInitialized = true;
-        }
-
-        /// access to reduced value
-        return_type GetValue() const
-        {
-            return mGlobalValue;
-        }
-
-        void LocalReduce(const value_type& value)
-        {
-            if(!mInitialized) {
-                Init(value);
-            } else {
-                noalias(mGlobalValue) += value;
-            }
-        }
-
-        void ThreadSafeReduce(const NonTrivialSumReduction& rOther)
-        {
-            if(!rOther.mInitialized) return;
-
-            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-            LocalReduce(rOther.mGlobalValue);
-        }
-    };
-
-    
-    /**
-     * Class to assemble LSPG system
-     */
-    struct SystemAssemblyReducer
-    {
-        using value_type = std::tuple<LocalSystemMatrixType, LocalSystemVectorType, DofsVectorType, std::size_t>;
-        using return_type = std::tuple<TSystemMatrixType, TSystemVectorType>;
-
-        TSystemMatrixType mGlobalA = ZeroMatrix(0,0);
-        TSystemVectorType mGlobalB = ZeroVector(0) ;
-
-        bool mIsInitialized = false;
-
-        void Init(const SizeType GlobalSystemRows, const SizeType GlobalSystemCols)
-        {
-            mGlobalA = ZeroMatrix(GlobalSystemRows, GlobalSystemCols);
-            mGlobalB = ZeroVector(GlobalSystemRows);
-            mIsInitialized = true;
-        }
-
-        /// access to reduced value
-        return_type GetValue() const
-        {
-            return std::tie(mGlobalA, mGlobalB);
-        }
-
-        void LocalReduce(const value_type& value)
-        {
-            const auto& Alocal = std::get<0>(value);
-            const auto& Blocal = std::get<1>(value);
-            const auto& dof_list = std::get<2>(value);
-            const SizeType global_system_size = std::get<3>(value);
-            const SizeType local_dofs_size = Alocal.size1();
-            const SizeType rom_dofs_size = Alocal.size2();
-            if(!mIsInitialized) {
-                Init(global_system_size, rom_dofs_size);
-            }
-
-            for(std::size_t local_id=0; local_id < local_dofs_size; ++local_id)
-            {
-                const auto& r_dof = *dof_list[local_id];
-                const std::size_t global_id = r_dof.EquationId();
-                mGlobalB[global_id] += Blocal[local_id];
-
-                if(!r_dof.IsFixed())
-                {   
-                    row(mGlobalA, global_id) += row(Alocal, local_id);
-                }
-            }
-        }
-
-        void ThreadSafeReduce(const SystemAssemblyReducer& rOther)
-        {
-            if(!rOther.mIsInitialized) return;
-            
-            const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
-            if(!mIsInitialized){
-                Init(rOther.mGlobalA.size1(), rOther.mGlobalA.size2());
-            }
-            noalias(mGlobalA) += rOther.mGlobalA;
-            noalias(mGlobalB) += rOther.mGlobalB;
-        }
     };
 
     /**
@@ -721,151 +310,17 @@ protected:
     };
 
     /**
-     * Computes the local contribution of an element or condition
-     */
-    template<typename TEntity>
-    std::tuple<LocalSystemMatrixType, LocalSystemVectorType> CalculateLocalContribution(
-        TEntity& rEntity,
-        AssemblyTLS& rPreAlloc,
-        TSchemeType& rScheme,
-        const ProcessInfo& rCurrentProcessInfo) 
-    {
-        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE))
-        {
-            rPreAlloc.romA = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-            rPreAlloc.romB = ZeroVector(mNumberOfRomModes);
-            return std::tie(rPreAlloc.romA, rPreAlloc.romB);
-        }
-
-        // Calculate elemental contribution
-        rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.rhs, rPreAlloc.eq_id, rCurrentProcessInfo);
-        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
-
-        const SizeType ndofs = rPreAlloc.dofs.size();
-        ResizeIfNeeded(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
-        ResizeIfNeeded(rPreAlloc.aux, ndofs, mNumberOfRomModes);
-
-        const auto &r_geom = rEntity.GetGeometry();
-        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, mMapPhi);
-
-        const double h_rom_weight = mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
-
-        noalias(rPreAlloc.aux) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
-        noalias(rPreAlloc.romA) = prod(trans(rPreAlloc.phiE), rPreAlloc.aux) * h_rom_weight;
-        noalias(rPreAlloc.romB) = prod(trans(rPreAlloc.phiE), rPreAlloc.rhs) * h_rom_weight;
-
-        return std::tie(rPreAlloc.romA, rPreAlloc.romB);
-    }
-
-    /**
-     * Computes the local contribution of an element or condition for LSPG
-     */
-    template<typename TEntity>
-    std::tuple<LocalSystemMatrixType, LocalSystemVectorType, DofsVectorType, SizeType> CalculateLocalContributionLSPG(
-        TEntity& rEntity,
-        AssemblyTLS_LSPG& rPreAlloc,
-        TSchemeType& rScheme,
-        const ProcessInfo& rCurrentProcessInfo) 
-    {
-        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE)) // FIXME
-        {
-            rPreAlloc.romA = ZeroMatrix(0, 0);
-            rPreAlloc.romB = ZeroVector(0);
-            DofsVectorType dofs = {};
-            return std::tie(rPreAlloc.romA, rPreAlloc.romB, dofs, rPreAlloc.global_system_size);
-        }
-
-        // Calculate elemental contribution
-        rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.romB, rPreAlloc.eq_id, rCurrentProcessInfo);
-        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
-
-        const SizeType ndofs = rPreAlloc.dofs.size();
-        ResizeIfNeeded(rPreAlloc.phiE, ndofs, mNumberOfRomModes);
-        ResizeIfNeeded(rPreAlloc.romA, ndofs, mNumberOfRomModes);
-
-        const auto &r_geom = rEntity.GetGeometry();
-        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, mMapPhi);
-
-        noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
-
-        return std::tie(rPreAlloc.romA, rPreAlloc.romB, rPreAlloc.dofs, rPreAlloc.global_system_size);
-    }
-
-    /**
      * Builds the reduced system of equations on rank 0 
      */
-    void BuildROMStandard(
+    void BuildROM(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
-        RomSystemMatrixType &rA,
-        RomSystemVectorType &rb)
-    {
-        KRATOS_TRY
-
-        // Define a dense matrix to hold the reduced problem
-        rA = ZeroMatrix(mNumberOfRomModes, mNumberOfRomModes);
-        rb = ZeroVector(mNumberOfRomModes);
-
-        // Build the system matrix by looping over elements and conditions and assembling to A
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-        // Get ProcessInfo from main model part
-        const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-
-        // Assemble all entities
-        const auto assembling_timer = BuiltinTimer();
-
-        using SystemSumReducer = CombinedReduction<NonTrivialSumReduction<RomSystemMatrixType>, NonTrivialSumReduction<RomSystemVectorType>>;
-        AssemblyTLS assembly_tls_container(mNumberOfRomModes);
-
-        auto& elements = mHromSimulation ? mSelectedElements : rModelPart.Elements();
-        if(!elements.empty())
-        {
-            std::tie(rA, rb) =
-            block_for_each<SystemSumReducer>(elements, assembly_tls_container, 
-                [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
-            {
-                return CalculateLocalContribution(r_element, r_thread_prealloc, *pScheme, r_current_process_info);
-            });
-        }
-        
-
-        auto& conditions = mHromSimulation ? mSelectedConditions : rModelPart.Conditions();
-        if(!conditions.empty())
-        {
-            RomSystemMatrixType Aconditions;
-            RomSystemVectorType bconditions;
-
-            std::tie(Aconditions, bconditions) =
-            block_for_each<SystemSumReducer>(conditions, assembly_tls_container, 
-                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
-            {
-                return CalculateLocalContribution(r_condition, r_thread_prealloc, *pScheme, r_current_process_info);
-            });
-
-            rA += Aconditions;
-            rb += bconditions;
-        }
-
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * Builds the reduced system of equations on rank 0 
-     */
-    void BuildROMLSPG(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        RomSystemMatrixType &rA,
-        RomSystemVectorType &rb)
+        LSPGSystemMatrixType &rA,
+        LSPGSystemVectorType &rb) override
     {
         KRATOS_TRY
         // Define a dense matrix to hold the reduced problem
-        rA = ZeroMatrix(BaseType::GetEquationSystemSize(), mNumberOfRomModes);
+        rA = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
         rb = ZeroVector(BaseType::GetEquationSystemSize());
 
         // Build the system matrix by looping over elements and conditions and assembling to A
@@ -878,41 +333,28 @@ protected:
         // Assemble all entities
         const auto assembling_timer = BuiltinTimer();
 
-        AssemblyTLS_LSPG assembly_tls_LSPG_container(mNumberOfRomModes, BaseType::GetEquationSystemSize());
+        AssemblyTLS assembly_tls_container;
 
-        KRATOS_WATCH("Started Elements")
         auto& elements = rModelPart.Elements();
         if(!elements.empty())
         {
-            std::tie(rA, rb) =
-            block_for_each<SystemAssemblyReducer>(elements, assembly_tls_LSPG_container, 
-                [&](Element& r_element, AssemblyTLS_LSPG& r_thread_prealloc)
+            block_for_each(elements, assembly_tls_container, 
+                [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
             {
-                return CalculateLocalContributionLSPG(r_element, r_thread_prealloc, *pScheme, r_current_process_info);
+                CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
             });
         }
 
-        KRATOS_WATCH("Finished Elements")
-
-        KRATOS_WATCH("Started Conditions")
 
         auto& conditions = rModelPart.Conditions();
         if(!conditions.empty())
         {
-            RomSystemMatrixType Aconditions;
-            RomSystemVectorType bconditions;
-
-            std::tie(Aconditions, bconditions) =
-            block_for_each<SystemAssemblyReducer>(conditions, assembly_tls_LSPG_container, 
-                [&](Condition& r_condition, AssemblyTLS_LSPG& r_thread_prealloc)
+            block_for_each(conditions, assembly_tls_container, 
+                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
             {
-                return CalculateLocalContributionLSPG(r_condition, r_thread_prealloc, *pScheme, r_current_process_info);
+                CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info);
             });
-
-            rA += Aconditions;
-            rb += bconditions;
         }
-        KRATOS_WATCH("Finished Conditions")
 
         KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
@@ -923,48 +365,20 @@ protected:
     /**
      * Solves reduced system of equations and broadcasts it
      */
-    void SolveROMStandard(
+    void SolveROM(
         ModelPart &rModelPart,
-        RomSystemMatrixType &rA,
-        RomSystemVectorType &rb,
-        TSystemVectorType &rDx)
+        LSPGSystemMatrixType &rA,
+        LSPGSystemVectorType &rb,
+        TSystemVectorType &rDx) override
     {
         KRATOS_TRY
 
-        RomSystemVectorType dxrom(mNumberOfRomModes);
-        
-        const auto solving_timer = BuiltinTimer();
-        MathUtils<double>::Solve(rA, dxrom, rb);
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
-
-        // Save the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-
-        // project reduced solution back to full order model
-        const auto backward_projection_timer = BuiltinTimer();
-        ProjectToFineBasis(dxrom, rModelPart, rDx);
-        KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * Solves reduced system of equations and broadcasts it
-     */
-    void SolveROMLSPG(
-        ModelPart &rModelPart,
-        RomSystemMatrixType &rA,
-        RomSystemVectorType &rb,
-        TSystemVectorType &rDx)
-    {
-        KRATOS_TRY
-
-        RomSystemVectorType dxrom(mNumberOfRomModes);
+        LSPGSystemVectorType dxrom(this->GetNumberOfROMModes());
         
         const auto solving_timer = BuiltinTimer();
         // Calculate the QR decomposition
         DenseHouseholderQRDecomposition<TDenseSpace> qr_decomposition;
+        //                              ^Correct after properly defining LSPGSystemMatrixType
         qr_decomposition.Compute(rA);
         qr_decomposition.Solve(rb, dxrom);
         KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
@@ -975,7 +389,7 @@ protected:
 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
-        ProjectToFineBasis(dxrom, rModelPart, rDx);
+        this->ProjectToFineBasis(dxrom, rModelPart, rDx);
         KRATOS_INFO_IF("LSPGROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
@@ -994,6 +408,59 @@ protected:
     ///@}
     ///@name Protected life cycle
     ///@{
+    
+private:
+    ///@}
+    ///@name Private operations 
+    ///@{
+
+    /**
+     * Computes the local contribution of an element or condition for LSPG
+     */
+    template<typename TEntity>
+    void CalculateLocalContributionLSPG(
+        TEntity& rEntity,
+        LSPGSystemMatrixType& rAglobal,
+        LSPGSystemVectorType& rBglobal,
+        AssemblyTLS& rPreAlloc,
+        TSchemeType& rScheme,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE)) return;
+
+        // Calculate elemental contribution
+        rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.romB, rPreAlloc.eq_id, rCurrentProcessInfo);
+        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
+
+        const SizeType ndofs = rPreAlloc.dofs.size();
+        ResizeIfNeeded(rPreAlloc.phiE, ndofs, this->GetNumberOfROMModes());
+        ResizeIfNeeded(rPreAlloc.romA, ndofs, this->GetNumberOfROMModes());
+
+        const auto &r_geom = rEntity.GetGeometry();
+        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, this->mMapPhi);
+
+        noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
+
+
+        // Assembly
+        for(SizeType row=0; row < ndofs; ++row)
+        {
+            const SizeType global_row = rPreAlloc.eq_id[row];
+
+            double& r_bi = rBglobal(global_row);
+            AtomicAdd(r_bi, rPreAlloc.romB[row]);
+
+            if(rPreAlloc.dofs[row]->IsFixed()) continue;
+
+            for(SizeType col=0; col < this->GetNumberOfROMModes(); ++col)
+            {
+                // const SizeType global_col = rPreAlloc.eq_id[col];
+                const SizeType global_col = col;
+                double& r_Aij = rAglobal(global_row, global_col);
+                AtomicAdd(r_Aij, rPreAlloc.romA(row, col));
+            }
+        }
+    }
 
 
     ///@}

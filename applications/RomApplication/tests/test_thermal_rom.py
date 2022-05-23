@@ -22,7 +22,7 @@ class TestThermalRom(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testConvDiffStationaryRom2D(self):
-        self.work_folder = "thermal_static_test_files"
+        self.work_folder = "thermal_static_test_files/ROM/"
         parameters_filename = "ProjectParameters.json"
         expected_output_filename = "ExpectedOutput.npy"
 
@@ -46,7 +46,7 @@ class TestThermalRom(KratosUnittest.TestCase):
 
     @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testConvDiffDynamicRom2D(self):
-        self.work_folder = "thermal_dynamic_test_files"
+        self.work_folder = "thermal_dynamic_test_files/ROM/"
         parameters_filename = "ProjectParameters.json"
         expected_output_filename = "ExpectedOutput.npy"
 
