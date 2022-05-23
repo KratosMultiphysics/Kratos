@@ -55,8 +55,14 @@ void ComputePressureCoefficientProcess::CheckDefaultsAndProcessSettings(Paramete
 
     mFreestreamStaticPressure = Params["freestream_pressure"].GetDouble();
 
+    constexpr double epsilon = 1e-12;
+
     const double freestream_density = Params["freestream_density"].GetDouble();
+    KRATOS_ERROR_IF(freestream_density < epsilon) << "Value of 'freestream_density' must be greater than zero";
+
     const double free_stream_velocity = Params["freestream_velocity"].GetDouble();
+    KRATOS_ERROR_IF(std::abs(free_stream_velocity) < epsilon) << "Value of 'free_stream_velocity' must be non-zero";
+
     mFreestreamDynamicPressure = 0.5 * freestream_density * free_stream_velocity * free_stream_velocity;
 
     KRATOS_CATCH("")
