@@ -150,7 +150,7 @@ public:
      */
     static std::string Name()
     {
-        return "compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4";
+        return "compressible_navier_stokes_explicit_solving_strategy_runge_kutta_" + TButcherTableau::Name();
     }
 
     /// Turn back information as a string.

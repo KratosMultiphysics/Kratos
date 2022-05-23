@@ -172,14 +172,15 @@ public:
 
         Parameters default_parameters = Parameters(R"(
         {
-            "name" : "compressible_navier_stokes_explicit_explicit_solving_strategy_runge_kutta_4",
-            "rebuild_level" : 0,
+            "explicit_solving_strategy" : "",
             "move_mesh_flag": false,
             "calculate_non_conservative_magnitudes" : true,
             "shock_capturing_settings" : { }
         })");
+        default_parameters["explicit_solving_strategy"].SetString(this->Name());
 
         // Getting base class default parameters
+
         const Parameters base_default_parameters = BaseType::GetDefaultParameters();
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;

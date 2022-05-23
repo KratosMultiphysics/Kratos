@@ -150,27 +150,6 @@ public:
     ~CompressibleNavierStokesExplicitSolvingStrategyBFECC() override = default;
 
     /**
-     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
-     * @return The default parameters
-     */
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name" : "compressible_navier_stokes_explicit_solving_strategy_bfecc",
-            "rebuild_level" : 0,
-            "move_mesh_flag": false,
-            "calculate_non_conservative_magnitudes" : true,
-            "shock_capturing_settings" : { }
-        })");
-
-        // Getting base class default parameters
-        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
-        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
-        return default_parameters;
-    }
-
-    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
