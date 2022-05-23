@@ -54,8 +54,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Utility to modify the distances of an embedded object in order to avoid bad intersections
-/// Besides, it also deactivate the full negative distance elements
+/// This process computes the pressure coefficient as a function of reference fluid properties
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ComputePressureCoefficientProcess : public Process
 {
 public:
