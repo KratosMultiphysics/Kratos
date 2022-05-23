@@ -15,14 +15,14 @@ if kratos_utilities.CheckIfApplicationsAvailable("FluidDynamicsApplication"):
     import KratosMultiphysics.FluidDynamicsApplication
 
 @KratosUnittest.skipIfApplicationsNotAvailable("FluidDynamicsApplication")
-class TestFluidRom(KratosUnittest.TestCase):
+class TestFluidLSPGRom(KratosUnittest.TestCase):
 
     def setUp(self):
         self.relative_tolerance = 1.0e-12
 
     @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
-    def testFluidRom2D(self):
-        self.work_folder = "fluid_dynamics_test_files/ROM/"
+    def testFluidLSPGRom2D(self):
+        self.work_folder = "fluid_dynamics_test_files/LSPGROM/"
         parameters_filename = "ProjectParameters.json"
         expected_output_filename = "ExpectedOutput.npy"
 
@@ -31,22 +31,21 @@ class TestFluidRom(KratosUnittest.TestCase):
             with open(parameters_filename,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
             model = KratosMultiphysics.Model()
-            self.simulation = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
+            dummy = rom_testing_utilities.SetUpSimulationInstance(model, parameters)
 
             # Patch the RomAnalysis class to save the selected time steps results
-            def Initialize(cls):
-                super(type(self.simulation), cls).Initialize()
-                cls.selected_time_step_solution_container = []
-
-            def FinalizeSolutionStep(cls):
-                super(type(self.simulation), cls).FinalizeSolutionStep()
-
-                variables_array = [KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.PRESSURE]
-                array_of_results = rom_testing_utilities.GetNodalResults(cls._solver.GetComputingModelPart(), variables_array)
-                cls.selected_time_step_solution_container.append(array_of_results)
-
-            self.simulation.Initialize  = types.MethodType(Initialize, self.simulation)
-            self.simulation.FinalizeSolutionStep  = types.MethodType(FinalizeSolutionStep, self.simulation)
+            class DummyAnalysis(type(dummy)):
+                def Initialize(cls):
+                    super().Initialize()
+                    cls.selected_time_step_solution_container = []
+                
+                def FinalizeSolutionStep(cls):
+                    super().FinalizeSolutionStep()
+                    variables_array = [KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.PRESSURE]
+                    array_of_results = rom_testing_utilities.GetNodalResults(cls._solver.GetComputingModelPart(), variables_array)
+                    cls.selected_time_step_solution_container.append(array_of_results)
+            
+            self.simulation = DummyAnalysis(model, parameters)
 
             # Run test case
             self.simulation.Run()

@@ -12,6 +12,9 @@ from test_randomized_singular_value_decomposition import TestRandomizedSVD
 from test_empirical_cubature_method import TestEmpiricalCubatureMethod
 from test_calculate_rom_basis_output_process import TestCalculateRomBasisOutputProcess
 from test_compressible_potiential_rom import TestCompressiblePotentialRom
+from test_fluid_lspg_rom import TestFluidLSPGRom
+from test_thermal_lspg_rom import TestThermalLSPGRom
+from test_structural_lspg_rom import TestStructuralLSPGRom
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -39,6 +42,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TestRandomizedSVD('test_radomized_svd'))
     smallSuite.addTest(TestEmpiricalCubatureMethod('test_empirical_cubature_method'))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCompressiblePotentialRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidLSPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalLSPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralLSPGRom]))
 
 
     # Create a test suit that contains all the tests from every testCase

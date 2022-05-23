@@ -24,7 +24,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "custom_strategies/rom_builder_and_solver.h"
-#include "custom_strategies/rom_builder_and_solver_lspg.h"
+#include "custom_strategies/lspg_rom_builder_and_solver.h"
 
 
 namespace Kratos {
