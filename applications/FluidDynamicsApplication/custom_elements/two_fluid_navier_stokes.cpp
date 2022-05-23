@@ -2501,6 +2501,13 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitting(
     auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
+
+        /* auto faces = (this->pGetGeometry())->Faces();
+        GeometryType& r_face = faces[ contact_line_faces[i_cl] ];
+        for (unsigned int i_face_node = 0; i_face_node < 3; i_face_node++){
+            KRATOS_WATCH(r_face[0].Coordinates())
+        } */
+
         if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
             contact_line_indices.push_back(i_cl);
         }

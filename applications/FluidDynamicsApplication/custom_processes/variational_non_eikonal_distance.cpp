@@ -155,29 +155,6 @@ void VariationalNonEikonalDistance::Execute()
     Model& current_model = mrModelPart.GetModel();
     auto& r_redistancing_model_part = current_model.GetModelPart( mAuxModelPartName );
 
-    double distance_min = 1.0e10;
-    unsigned int node_nearest = 0;
-    //#pragma omp parallel for
-    for (unsigned int k = 0; k < NumNodes; ++k) {
-        auto it_node = mrModelPart.NodesBegin() + k;
-
-        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
-
-        if ( std::abs(distance) < 1.0e-12 || it_node->IsFixed(DISTANCE) ){
-            it_node->Fix(DISTANCE_AUX2);
-            it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = distance;
-        } else {
-            it_node->Free(DISTANCE_AUX2);
-        }
-
-        /* if (abs(distance) < distance_min){
-            #pragma omp critical
-            distance_min = abs(distance);
-            #pragma omp critical
-            node_nearest = k;
-        } */
-    }
-
     double h_min = 1.0e12;
     #pragma omp parallel for
     for(unsigned int i = 0; i < mrModelPart.Elements().size(); i++){
@@ -202,6 +179,29 @@ void VariationalNonEikonalDistance::Execute()
                 #pragma omp critical
                 geom[geom_node].Fix(DISTANCE_AUX2);
             }
+        } */
+    }
+
+    double distance_min = 1.0e10;
+    unsigned int node_nearest = 0;
+    //#pragma omp parallel for
+    for (unsigned int k = 0; k < NumNodes; ++k) {
+        auto it_node = mrModelPart.NodesBegin() + k;
+
+        const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
+
+        if ( std::abs(distance) < 1.0e-12 /*> 1.339358195e-4/1.25/3.0  5.0*h_min */  || (it_node->IsFixed(DISTANCE) && !it_node->Is(INLET)) ){
+            it_node->Fix(DISTANCE_AUX2);
+            it_node->FastGetSolutionStepValue(DISTANCE_AUX2) = distance;
+        } else {
+            it_node->Free(DISTANCE_AUX2);
+        }
+
+        /* if (abs(distance) < distance_min){
+            #pragma omp critical
+            distance_min = abs(distance);
+            #pragma omp critical
+            node_nearest = k;
         } */
     }
 
@@ -279,7 +279,7 @@ void VariationalNonEikonalDistance::Execute()
     double max_grad_norm_deviation = 1.0e2;
     double norm_grad_norm_deviation = 0.0;
     //for (unsigned iter = 0; iter < 50; ++iter){
-    while (max_grad_norm_deviation > 2.0e-1 && iteration < 40){
+    while (max_grad_norm_deviation > 2.0e-1 && iteration < 10){
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, about to solve the LSE" << std::endl;
         mp_solving_strategy->Solve();
         KRATOS_INFO("VariationalNonEikonalDistance") << "Redistancing, LSE is solved" << std::endl;
