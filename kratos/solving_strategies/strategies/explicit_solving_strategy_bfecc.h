@@ -121,7 +121,7 @@ public:
 
     // Time-stepping settings
     struct SubstepSettings {
-        enum Direction : int {FORWARD=-1, BACKWARD=1};
+        enum Direction : int {BACKWARD=-1, FORWARD=1};
 
         SubstepSettings(double Theta, Direction Dir)
             : theta(Theta), direction(static_cast<int>(Dir))
