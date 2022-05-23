@@ -84,6 +84,7 @@ class MultiplePointsOutputProcess(KratosMultiphysics.OutputProcess):
             proc.ExecuteBeforeOutputStep()
 
     def IsOutputStep(self):
+        # We check only the first process as the interval is the same in all of them
         return self.point_output_processes[0].IsOutputStep()
 
     def PrintOutput(self):
