@@ -299,9 +299,9 @@ protected:
         const SizeType destination)
     {
         // Get the required data from the explicit builder and solver
-        auto& explicit_bs = BaseType::GetExplicitBuilder();
-        auto& r_dof_set = explicit_bs.GetDofSet();
-        const SizeType dof_size = explicit_bs.GetEquationSystemSize();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
+        const SizeType dof_size = r_explicit_bs.GetEquationSystemSize();
 
         LocalSystemVectorType u_fixed(dof_size);
         IndexPartition<SizeType>(r_dof_set.size()).for_each(
@@ -321,9 +321,9 @@ protected:
     LocalSystemVectorType ExtractSolutionStepData(const SizeType BufferPosition) const
     {
         // Get the required data from the explicit builder and solver
-        auto& explicit_bs = BaseType::GetExplicitBuilder();
-        auto& r_dof_set = explicit_bs.GetDofSet();
-        const SizeType dof_size = explicit_bs.GetEquationSystemSize();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
+        const SizeType dof_size = r_explicit_bs.GetEquationSystemSize();
 
         LocalSystemVectorType u_copy(dof_size);
         IndexPartition<SizeType>(r_dof_set.size()).for_each(
@@ -383,9 +383,9 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-        auto& explicit_bs = BaseType::GetExplicitBuilder();
-        auto& r_dof_set = explicit_bs.GetDofSet();
-        const auto& r_lumped_mass_vector = explicit_bs.GetLumpedMassMatrixVector();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
+        const auto& r_lumped_mass_vector = r_explicit_bs.GetLumpedMassMatrixVector();
 
         // Get model part and information
         const double dt = BaseType::GetDeltaTime();
@@ -419,7 +419,7 @@ protected:
         }
 
         r_process_info.GetValue(TIME_INTEGRATION_THETA) = time_integration_theta;
-        explicit_bs.BuildRHS(r_model_part);
+        r_explicit_bs.BuildRHS(r_model_part);
 
         IndexPartition<SizeType>(r_dof_set.size()).for_each(
             [&](SizeType i_dof){
@@ -465,8 +465,8 @@ protected:
      */
     void CorrectErrorAfterForwardsAndBackwards(const LocalSystemVectorType& rPrevStepSolution)
     {
-        auto& explicit_bs = BaseType::GetExplicitBuilder();
-        auto& r_dof_set = explicit_bs.GetDofSet();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
 
         IndexPartition<SizeType>(r_dof_set.size()).for_each(
             [&](const SizeType dof_index)
