@@ -70,6 +70,22 @@ public:
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
 
+    // Replace with proper std::optional when upgrading to c++17
+    struct optional {
+        optional() : available(false) { }
+        optional(const double V) : value(V), available(true) { }
+
+        void reset() { value = 0; available = false; }
+
+        double& operator*() noexcept { return value; }
+        const double operator*() const noexcept { return value; }
+        
+        bool has_value() const noexcept { return available;}
+    private:
+        double value;
+        bool available = false;
+    };
+
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyBFECC);
 
@@ -290,8 +306,8 @@ private:
     ///@{
 
     struct Stash {
-        double conductivity = 0.0;
-        double dynamic_viscosity = 0.0;
+        optional conductivity = {};
+        optional dynamic_viscosity = {};
     } mDiffusionStash;
 
     ///@}
@@ -310,14 +326,19 @@ private:
 
         auto& properties = model_part.ElementsBegin()->GetProperties();
 
-        auto& r_conductivity = properties.GetValue(CONDUCTIVITY);
-        auto& r_dynamic_viscosity = properties.GetValue(DYNAMIC_VISCOSITY);
+        if(properties.Has(CONDUCTIVITY))
+        {
+            auto& r_conductivity = properties.GetValue(CONDUCTIVITY);
+            mDiffusionStash.conductivity = r_conductivity;
+            r_conductivity = 0;
+        }
 
-        mDiffusionStash.conductivity = r_conductivity;
-        mDiffusionStash.dynamic_viscosity = r_dynamic_viscosity;
-
-        r_conductivity = 0;
-        r_dynamic_viscosity = 0;
+        if(properties.Has(DYNAMIC_VISCOSITY))
+        {
+            auto& r_dynamic_viscosity = properties.GetValue(DYNAMIC_VISCOSITY);
+            mDiffusionStash.dynamic_viscosity = r_dynamic_viscosity;
+            r_dynamic_viscosity = 0;
+        }
     }
 
     void PopDiffusiveConstants()
@@ -327,11 +348,18 @@ private:
 
         auto& properties = model_part.ElementsBegin()->GetProperties();
 
-        properties.SetValue(CONDUCTIVITY, mDiffusionStash.conductivity);
-        properties.SetValue(DYNAMIC_VISCOSITY, mDiffusionStash.dynamic_viscosity);
+        if(mDiffusionStash.conductivity.has_value())
+        {
+            properties.SetValue(CONDUCTIVITY, *mDiffusionStash.conductivity);
+        }
 
-        mDiffusionStash.conductivity = 0;
-        mDiffusionStash.dynamic_viscosity = 0;
+        if(mDiffusionStash.dynamic_viscosity.has_value())
+        {
+            properties.SetValue(DYNAMIC_VISCOSITY, *mDiffusionStash.dynamic_viscosity);
+        }
+
+        mDiffusionStash.conductivity.reset();
+        mDiffusionStash.dynamic_viscosity.reset();
     }
 
     ///@}
