@@ -72,18 +72,18 @@ public:
 
     // Replace with proper std::optional when upgrading to c++17
     struct optional {
-        optional() : available(false) { }
-        optional(const double V) : value(V), available(true) { }
+        optional() : mHasValue(false) { }
+        optional(const double V) : mValue(V), mHasValue(true) { }
 
-        void reset() { value = 0; available = false; }
+        void reset() { mValue = 0; mHasValue = false; }
 
-        double& operator*() noexcept { return value; }
-        double operator*() const noexcept { return value; }
+        double& operator*() noexcept { return mValue; }
+        double operator*() const noexcept { return mValue; }
         
-        bool has_value() const noexcept { return available;}
+        bool has_value() const noexcept { return mHasValue;}
     private:
-        double value;
-        bool available = false;
+        double mValue;
+        bool mHasValue = false;
     };
 
     /** Counted pointer of ClassName */
