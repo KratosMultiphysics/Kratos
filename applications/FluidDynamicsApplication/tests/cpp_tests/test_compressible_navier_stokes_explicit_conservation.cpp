@@ -261,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationRigidTra
  *  - λ = 0
  * the time derivatives should be zero
  */
-KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2D_ConservationStatic, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CompressibleNavierStokesExplicit2DConservationStatic, FluidDynamicsApplicationFastSuite)
 {
     using namespace CompressibleNSConservation;
 
