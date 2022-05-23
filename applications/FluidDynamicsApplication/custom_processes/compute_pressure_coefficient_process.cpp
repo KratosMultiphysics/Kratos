@@ -46,12 +46,21 @@ void ComputePressureCoefficientProcess::CheckDefaultsAndProcessSettings(Paramete
         "freestream_density" : 0,
         "freestream_velocity" : 0,
         "freestream_pressure" : 0,
-        "compute_only_as_postprocess" : true
+        "execution_step" : "ExecuteBeforeOutputStep"
     })" );
 
     Params.ValidateAndAssignDefaults(default_parameters);
 
-    mComputeAsPostProcess = Params["compute_only_as_postprocess"].GetBool();
+    const std::string execution_step = Params["execution_step"].GetString();
+    if(execution_step == "ExecuteFinalizeSolutionStep") {
+        mComputeAsPostProcess = false;
+    }
+    else if(execution_step == "ExecuteBeforeOutputStep") {
+        mComputeAsPostProcess = true;
+    }
+    else {
+        KRATOS_ERROR << "Invalid value for 'execution_step'. Try any of 'ExecuteFinalizeSolutionStep', 'ExecuteBeforeOutputStep'.";
+    }
 
     mFreestreamStaticPressure = Params["freestream_pressure"].GetDouble();
 

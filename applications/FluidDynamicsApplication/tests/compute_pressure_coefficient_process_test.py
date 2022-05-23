@@ -41,7 +41,7 @@ class ComputePressureCoefficientProcessTest(KratosUnittest.TestCase):
         params["Parameters"].AddEmptyValue("freestream_pressure").SetDouble(1e5)
         params["Parameters"].AddEmptyValue("freestream_velocity").SetDouble(100)
         params["Parameters"].AddEmptyValue("freestream_density").SetDouble(1.2)
-        params["Parameters"].AddEmptyValue("compute_only_as_postprocess").SetBool(True)
+        params["Parameters"].AddEmptyValue("execution_step").SetString("ExecuteBeforeOutputStep")
 
         process = compute_pressure_coefficient_process.Factory(params, model)
         process.ExecuteInitialize()
@@ -70,7 +70,7 @@ class ComputePressureCoefficientProcessTest(KratosUnittest.TestCase):
         params["Parameters"].AddEmptyValue("freestream_pressure").SetDouble(1e5)
         params["Parameters"].AddEmptyValue("freestream_velocity").SetDouble(100)
         params["Parameters"].AddEmptyValue("freestream_density").SetDouble(1.2)
-        params["Parameters"].AddEmptyValue("compute_only_as_postprocess").SetBool(False)
+        params["Parameters"].AddEmptyValue("execution_step").SetString("ExecuteFinalizeSolutionStep")
 
         process = compute_pressure_coefficient_process.Factory(params, model)
         process.ExecuteInitialize()
