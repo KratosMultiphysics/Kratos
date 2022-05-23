@@ -81,6 +81,12 @@ public:
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    const Parameters GetDefaultParameters() const override;
+
     void Execute() override;
 
     void ExecuteInitialize() override;
@@ -88,10 +94,6 @@ public:
     void ExecuteFinalizeSolutionStep() override;
 
     void ExecuteBeforeOutputStep() override;
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     ///@}
     ///@name Access
@@ -148,7 +150,12 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CheckDefaultsAndProcessSettings(Parameters Params);
+
+    void SelectExecutionTime(Parameters Params);
+
+    void SelectPressureGetter(Parameters Params);
+
+    void ReadFreestreamValues(Parameters Params);
 
     ///@}
     ///@name Private  Access

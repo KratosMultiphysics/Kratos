@@ -22,6 +22,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "utilities/variable_utils.h"
 
+
 namespace Kratos
 {
 
@@ -32,15 +33,21 @@ ComputePressureCoefficientProcess::ComputePressureCoefficientProcess(
       mrModelPart(rModel.GetModelPart(Params["model_part_name"].GetString()))
 {
     // Check default settings
-    this->CheckDefaultsAndProcessSettings(Params);
+    KRATOS_TRY
+    
+    Params.ValidateAndAssignDefaults(GetDefaultParameters());
+
+    SelectExecutionTime(Params);
+    SelectPressureGetter(Params);
+    ReadFreestreamValues(Params);
+
+    KRATOS_CATCH("")
 }
 
 
-void ComputePressureCoefficientProcess::CheckDefaultsAndProcessSettings(Parameters Params)
+const Parameters ComputePressureCoefficientProcess::GetDefaultParameters() const
 {
-    KRATOS_TRY
-
-    Parameters default_parameters( R"(
+    return Parameters( R"(
     {
         "model_part_name"     : "PLEASE_PROVIDE_A_MODELPART_NAME",
         "freestream_density" : 0,
@@ -49,9 +56,11 @@ void ComputePressureCoefficientProcess::CheckDefaultsAndProcessSettings(Paramete
         "pressure_is_historical" : true,
         "execution_step" : "ExecuteBeforeOutputStep"
     })" );
+}
 
-    Params.ValidateAndAssignDefaults(default_parameters);
 
+void ComputePressureCoefficientProcess::SelectExecutionTime(Parameters Params)
+{
     const std::string execution_step = Params["execution_step"].GetString();
     if(execution_step == "ExecuteFinalizeSolutionStep") {
         mComputeAsPostProcess = false;
@@ -62,17 +71,24 @@ void ComputePressureCoefficientProcess::CheckDefaultsAndProcessSettings(Paramete
     else {
         KRATOS_ERROR << "Invalid value for 'execution_step'. Try any of 'ExecuteFinalizeSolutionStep', 'ExecuteBeforeOutputStep'.";
     }
+}
 
+
+void ComputePressureCoefficientProcess::SelectPressureGetter(Parameters Params)
+{
     if(Params["pressure_is_historical"].GetBool()) {
         mGetPressure = [](NodeType const& r_node) { return r_node.FastGetSolutionStepValue(PRESSURE); };
     } else {
         mGetPressure = [](NodeType const& r_node) { return r_node.GetValue(PRESSURE); };
     }
+}
 
+
+void ComputePressureCoefficientProcess::ReadFreestreamValues(Parameters Params)
+{
+    constexpr double epsilon = 1e-12;
 
     mFreestreamStaticPressure = Params["freestream_pressure"].GetDouble();
-
-    constexpr double epsilon = 1e-12;
 
     const double freestream_density = Params["freestream_density"].GetDouble();
     KRATOS_ERROR_IF(freestream_density < epsilon) << "Value of 'freestream_density' must be greater than zero";
@@ -81,8 +97,6 @@ void ComputePressureCoefficientProcess::CheckDefaultsAndProcessSettings(Paramete
     KRATOS_ERROR_IF(std::abs(free_stream_velocity) < epsilon) << "Value of 'free_stream_velocity' must be non-zero";
 
     mFreestreamDynamicPressure = 0.5 * freestream_density * free_stream_velocity * free_stream_velocity;
-
-    KRATOS_CATCH("")
 }
 
 
@@ -91,6 +105,7 @@ void ComputePressureCoefficientProcess::ExecuteInitialize()
     VariableUtils().SetNonHistoricalVariableToZero(PRESSURE_COEFFICIENT, mrModelPart.Nodes());
 }
 
+
 void ComputePressureCoefficientProcess::ExecuteFinalizeSolutionStep()
 {
     if(!mComputeAsPostProcess)
@@ -98,6 +113,7 @@ void ComputePressureCoefficientProcess::ExecuteFinalizeSolutionStep()
         Execute();
     }
 }
+
 
 void ComputePressureCoefficientProcess::ExecuteBeforeOutputStep()
 {
