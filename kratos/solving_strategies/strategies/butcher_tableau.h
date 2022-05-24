@@ -147,6 +147,8 @@ public:
         return Derived::Name();
     }
 
+    virtual std::string Info() const = 0;
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -255,6 +257,11 @@ public:
     {
         return "butcher_tableau_forward_euler";
     }
+
+    std::string Info() const override
+    {
+        return "ButcherTableauForwardEuler";
+    }
 };
 
 
@@ -289,6 +296,11 @@ public:
     static std::string Name()
     {
         return "butcher_tableau_midpoint_method";
+    }
+
+    std::string Info() const override
+    {
+        return "ButcherTableauMidPointMethod";
     }
 };
 
@@ -335,6 +347,11 @@ public:
     {
         return "butcher_tableau_RK3TVD";
     }
+
+    std::string Info() const override
+    {
+        return "ButcherTableauRK3TVD";
+    }
 };
 
 
@@ -375,6 +392,11 @@ public:
     static std::string Name()
     {
         return "butcher_tableau_RK4";
+    }
+
+    std::string Info() const override
+    {
+        return "ButcherTableauRK4";
     }
 };
 
