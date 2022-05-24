@@ -85,7 +85,7 @@ public:
         optional() : mHasValue(false) { }
         optional(const T& V) : mValue(V), mHasValue(true) { }
 
-        void reset() { mValue = 0; mHasValue = false; }
+        void reset() { mHasValue = false; }
 
         T& operator*() noexcept { return mValue; }
         T operator*() const noexcept { return mValue; }
