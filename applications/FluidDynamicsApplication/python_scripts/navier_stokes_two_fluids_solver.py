@@ -192,7 +192,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 10, 10)
         (self.neighbour_search).Execute()
 
-        self.accelerationLimitationUtility = KratosCFD.AccelerationLimitationUtilities( self.computing_model_part, 20.0 )
+        self.accelerationLimitationUtility = KratosCFD.AccelerationLimitationUtilities( self.computing_model_part, 200.0 )
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -413,7 +413,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print("Smoothing Finished")
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 1000 == 0):
+            if (TimeStep % 10 == 0):
                 print("Parallel Redistancing Started")
                 print(time.time())
 
