@@ -69,7 +69,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     /**
      * @brief Function to print the information about this current process

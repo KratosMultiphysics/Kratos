@@ -85,7 +85,7 @@ public:
     ///@name Operations
     ///@{
 
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     void Execute() override;
 

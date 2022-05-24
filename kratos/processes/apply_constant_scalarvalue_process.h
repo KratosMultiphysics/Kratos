@@ -213,7 +213,7 @@ public:
         Execute();
     }
 
-    const Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters( R"(
         {

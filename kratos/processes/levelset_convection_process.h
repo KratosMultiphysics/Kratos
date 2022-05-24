@@ -278,7 +278,7 @@ public:
         mError.clear();
     }
 
-    const Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",

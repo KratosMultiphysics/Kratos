@@ -101,7 +101,7 @@ public:
     /**
      * @brief This method provides the default parameters
      */
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     // ///@}
     // ///@name Inquiry

@@ -166,7 +166,7 @@ public:
     /**
      * @brief Obtain the default parameters to construct the class.
      */
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Access

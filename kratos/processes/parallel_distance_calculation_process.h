@@ -95,7 +95,7 @@ public:
     /// Destructor.
     virtual ~ParallelDistanceCalculationProcess() {};
 
-    const Parameters GetDefaultParameters() const override;
+    Parameters GetDefaultParameters() const override;
 
     int Check() override;
 

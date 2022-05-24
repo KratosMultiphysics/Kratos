@@ -72,7 +72,7 @@ public:
 
     void MapNodalValues(const Variable<array_1d<double,3>>& rVariable);
 
-    const Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"(
         {

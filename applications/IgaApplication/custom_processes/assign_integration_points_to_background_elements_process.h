@@ -70,7 +70,7 @@ public:
 
     void ExecuteBeforeOutputStep() override;
 
-    const Parameters GetDefaultParameters() const override
+    Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"(
         {
