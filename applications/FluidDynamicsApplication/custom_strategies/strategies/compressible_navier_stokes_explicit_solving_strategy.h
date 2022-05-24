@@ -177,10 +177,8 @@ public:
             "calculate_non_conservative_magnitudes" : true,
             "shock_capturing_settings" : { }
         })");
-        default_parameters["explicit_solving_strategy"].SetString(this->Name());
 
         // Getting base class default parameters
-
         const Parameters base_default_parameters = BaseType::GetDefaultParameters();
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
         return default_parameters;

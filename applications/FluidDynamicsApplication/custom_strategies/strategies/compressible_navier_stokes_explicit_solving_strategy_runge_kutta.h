@@ -145,6 +145,25 @@ public:
     ///@{
 
     /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        KRATOS_TRY
+
+        Parameters default_parameters {};
+        default_parameters.AddString("explicit_solving_strategy", Name());
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class
      */
