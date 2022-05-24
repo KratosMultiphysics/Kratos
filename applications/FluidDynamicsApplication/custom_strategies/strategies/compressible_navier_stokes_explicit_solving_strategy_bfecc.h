@@ -83,7 +83,7 @@ public:
     template<typename T>
     struct optional {
         optional()           noexcept : mHasValue(false) { }
-        optional(const T& V) noexcept : mValue(V), mHasValue(true) { }
+        optional(const T& V) noexcept : mHasValue(true), mValue(V) { }
 
         void reset() noexcept { mHasValue = false; }
 
@@ -92,8 +92,8 @@ public:
         
         bool has_value() const noexcept { return mHasValue;}
     private:
-        T mValue;
         bool mHasValue;
+        T mValue;
     };
 #endif
 
