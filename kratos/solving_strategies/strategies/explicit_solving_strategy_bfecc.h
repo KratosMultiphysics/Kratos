@@ -123,16 +123,14 @@ public:
     struct SubstepData {
         enum Direction : int {BACK=-1, FORTH=1};
 
-        SubstepData(double Theta, Direction Dir)
-            : theta(Theta), direction(static_cast<int>(Dir))
+        SubstepData(const double Theta, const Direction Dir)
+            : theta(Theta), direction(Dir)
         { }
 
-         // Error-prone constructors
-        SubstepData(double, int) = delete;
-        SubstepData() = delete;
+        int TimeDirection() const noexcept { return static_cast<int>(direction); }
 
         double theta;
-        int direction;
+        Direction direction;
         LocalSystemVectorType u_fixed;
     };
 
@@ -453,7 +451,7 @@ protected:
 
                 if (!it_dof->IsFixed()) {
                     const double mass = r_lumped_mass_vector[i_dof];
-                    r_u += substep_settings.direction * (dt / mass) * residual;
+                    r_u += substep_settings.TimeDirection() * (dt / mass) * residual;
                 } else {
                     r_u = substep_settings.theta*substep_settings.u_fixed[i_dof] + (1 - substep_settings.theta)*r_u_prev_step;
                 }
