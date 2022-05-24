@@ -178,7 +178,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    const Parameters GetDefaultParameters() const;
+    Parameters GetDefaultParameters() const;
 
     template<class TDataType>
     void FillVariablesList(std::vector<const Variable<TDataType>*>& rVariablesList, const Parameters VariablesNames);

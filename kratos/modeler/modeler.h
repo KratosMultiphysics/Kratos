@@ -99,7 +99,7 @@ public:
     {}
 
     /// This method provides the defaults parameters to avoid conflicts between the different constructors
-    virtual const Parameters GetDefaultParameters() const
+    virtual Parameters GetDefaultParameters() const
     {
         KRATOS_ERROR << "Calling the base Modeler class GetDefaultParameters. Please implement the GetDefaultParameters in your derived model class." << std::endl;
         const Parameters default_parameters = Parameters(R"({})");
