@@ -102,11 +102,11 @@ set(KratosGeoSettlementSources ${CMAKE_CURRENT_SOURCE_DIR}/executables/geosettle
 add_executable(KratosGeoSettlement ${KratosGeoSettlementSources})
 target_link_libraries(KratosGeoSettlement PUBLIC KratosCore KratosGeoMechanicsCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoSettlement PROPERTIES LINKER_LANGUAGE CXX)
-install(TARGETS KratosGeoSettlement DESTINATION executables )
+install(TARGETS KratosGeoSettlement DESTINATION libs)
 
 project(KratosGeoFlow)
 set(KratosGeoFlowSources ${CMAKE_CURRENT_SOURCE_DIR}/executables/geoFlow.cpp ${CMAKE_CURRENT_SOURCE_DIR}/executables/geoFlow.h)
 add_executable(KratosGeoFlow ${KratosGeoFlowSources})
 target_link_libraries(KratosGeoFlow PUBLIC KratosCore KratosGeoMechanicsCore KratosStructuralMechanicsCore ${CMAKE_DL_LIBS})
 set_target_properties(KratosGeoFlow PROPERTIES LINKER_LANGUAGE CXX)
-install(TARGETS KratosGeoFlow DESTINATION executables )
+install(TARGETS KratosGeoFlow DESTINATION libs)
