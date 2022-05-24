@@ -2,9 +2,6 @@ import sys
 import os
 import json
 import math
-import csv
-
-sys.path.append(os.path.join('..', '..', '..', 'bin', 'Release'))
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -49,9 +46,8 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
             counter_head = counter_head + 1
         return math.nan
 
-    @KratosUnittest.skip("This test fails and should be investigated and solved under KRATOSGEO-36")
     def test_consecutive_pipe_lines(self):
-        test_files = ["reference_geometry", "split_geometry", "split_geometry_same_pipe", "split_geometry_all_same"]
+        test_files = ["split_geometry_double_lines", "reference_geometry"]
         result_dict = {}
 
         for test_file in test_files:
@@ -62,4 +58,4 @@ class TestConsecutivePipeLines(KratosUnittest.TestCase):
             critical_head_found = self.linear_search(file_path, heads)
             result_dict[test_file] = critical_head_found
 
-        assert math.isclose(result_dict["reference_geometry"], result_dict["split_geometry"], result_dict["split_geometry_same_pipe"], result_dict["split_geometry_all_same"])
+        assert math.isclose(result_dict["reference_geometry"], result_dict["split_geometry_double_lines"])

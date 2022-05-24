@@ -30,6 +30,7 @@ from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
 from test_sellmeijers_rule import TestSellmeijersRule
 from test_mesh_dependency_piping import TestMeshDependencyPiping
+from test_consecutive_pipe_lines import TestConsecutivePipeLines
 
 # cpp tests
 from test_piping_element_unit import TestUnitPipingElements
@@ -69,8 +70,9 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsSettlementTests,
         KratosGeoMechanicsCurvedBeamElementTests,
         TestUnitPipingElements,
-        TestNormalFluxCondition
-        ]
+        TestNormalFluxCondition,
+        TestConsecutivePipeLines
+    ]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:
@@ -109,7 +111,7 @@ def AssambleTestSuites(is_team_city):
             allSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
                 test))
 
-        #suites = allSuite
+        # suites = allSuite
         suites['small'] = smallSuite
         suites['nightly'] = nightSuite
         suites['all'] = allSuite
@@ -151,6 +153,7 @@ if __name__ == '__main__':
 
     if is_team_city:
         import unittest
+
         level = get_level_argument()
         test_suite_dictionary = AssambleTestSuites(is_team_city)
         tests_to_run = test_suite_dictionary[level]
