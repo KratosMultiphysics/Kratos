@@ -260,10 +260,10 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const unsigned int dof_size = p_explicit_bs->GetEquationSystemSize();
-        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
+        const unsigned int dof_size = r_explicit_bs.GetEquationSystemSize();
+        const auto& r_lumped_mass_vector = r_explicit_bs.GetLumpedMassMatrixVector();
 
         // Set the auxiliary RK vectors
         LocalSystemVectorType u_n(dof_size); // TODO: THIS IS INEFICCIENT. CREATE A UNORDERED_SET WITH THE IDOF AND VALUE AS ENTRIES. THIS HAS TO BE OPTIONAL
@@ -355,9 +355,9 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
-        const auto& r_lumped_mass_vector = p_explicit_bs->GetLumpedMassMatrixVector();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
+        const auto& r_lumped_mass_vector = r_explicit_bs.GetLumpedMassMatrixVector();
 
         // Get model part and information
         const double dt = BaseType::GetDeltaTime();
@@ -375,7 +375,7 @@ protected:
 
         // Perform the intermidate sub step update
         InitializeRungeKuttaIntermediateSubStep();
-        p_explicit_bs->BuildRHS(r_model_part);
+        r_explicit_bs.BuildRHS(r_model_part);
 
         IndexPartition<int>(r_dof_set.size()).for_each(
             [&](int i_dof){
@@ -419,8 +419,8 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-        const auto p_explicit_bs = BaseType::pGetExplicitBuilder();
-        auto& r_dof_set = p_explicit_bs->GetDofSet();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_dof_set = r_explicit_bs.GetDofSet();
 
         // Get model part
         auto& r_model_part = BaseType::GetModelPart();
@@ -433,7 +433,7 @@ protected:
 
         // Perform the last sub step residual calculation
         InitializeRungeKuttaLastSubStep();
-        p_explicit_bs->BuildRHS(r_model_part);
+        r_explicit_bs.BuildRHS(r_model_part);
 
         IndexPartition<int>(r_dof_set.size()).for_each(
             [&](int i_dof){
