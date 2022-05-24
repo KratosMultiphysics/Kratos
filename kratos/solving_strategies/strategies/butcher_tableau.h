@@ -253,7 +253,7 @@ public:
 
     static std::string Name()
     {
-        return "butcher_tableau_forward_euler";
+        return "ButcherTableauForwardEuler";
     }
 };
 
@@ -288,7 +288,7 @@ public:
 
     static std::string Name()
     {
-        return "butcher_tableau_midpoint_method";
+        return "ButcherTableauMidPointMethod";
     }
 };
 
@@ -333,7 +333,7 @@ public:
 
     static std::string Name()
     {
-        return "butcher_tableau_RK3TVD";
+        return "ButcherTableauRK3TVD";
     }
 };
 
@@ -374,7 +374,7 @@ public:
 
     static std::string Name()
     {
-        return "butcher_tableau_RK4";
+        return "ButcherTableauRK4";
     }
 };
 
