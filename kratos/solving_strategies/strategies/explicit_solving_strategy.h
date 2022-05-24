@@ -290,26 +290,6 @@ public:
         return mpExplicitBuilder;
     };
 
-    const ExplicitBuilderType& GetExplicitBuilder() const
-    {
-        KRATOS_TRY
-
-        KRATOS_DEBUG_ERROR_IF(mpExplicitBuilder == nullptr) << "The explicit builder is not initialized" << std::endl;
-        return *mpExplicitBuilder;
-
-        KRATOS_CATCH("")
-    };
-
-    ExplicitBuilderType& GetExplicitBuilder()
-    {
-        KRATOS_TRY
-
-        KRATOS_DEBUG_ERROR_IF(mpExplicitBuilder == nullptr) << "The explicit builder is not initialized" << std::endl;
-        return *mpExplicitBuilder;
-
-        KRATOS_CATCH("")
-    };
-
     /**
      * @brief Operations to get the explicit builder and solver
      * @return The explicit builder and solver
