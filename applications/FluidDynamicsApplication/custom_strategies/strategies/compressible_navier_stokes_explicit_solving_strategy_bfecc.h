@@ -15,6 +15,9 @@
 #define KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_BFECC
 
 /* System includes */
+#if __cplusplus >= 201703L
+#include <optional>
+#endif
 
 /* External includes */
 
@@ -71,20 +74,28 @@ public:
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
 
     // Replace with proper std::optional when upgrading to c++17
+#if __cplusplus >= 201703L
+    using std::optional;
+#else
+    /** Naive implementation of std::optional, used as a replacement for c++11 support.
+     * Use only with simple types.
+     */
+    template<typename T>
     struct optional {
         optional() : mHasValue(false) { }
-        optional(const double V) : mValue(V), mHasValue(true) { }
+        optional(const T& V) : mValue(V), mHasValue(true) { }
 
         void reset() { mValue = 0; mHasValue = false; }
 
-        double& operator*() noexcept { return mValue; }
-        double operator*() const noexcept { return mValue; }
+        T& operator*() noexcept { return mValue; }
+        T operator*() const noexcept { return mValue; }
         
         bool has_value() const noexcept { return mHasValue;}
     private:
-        double mValue;
+        T mValue;
         bool mHasValue = false;
     };
+#endif
 
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyBFECC);
@@ -306,8 +317,8 @@ private:
     ///@{
 
     struct Stash {
-        optional conductivity = {};
-        optional dynamic_viscosity = {};
+        optional<double> conductivity = {};
+        optional<double> dynamic_viscosity = {};
     } mDiffusionStash;
 
     ///@}
