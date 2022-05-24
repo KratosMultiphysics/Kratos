@@ -97,7 +97,7 @@ int ShockCapturingEntropyViscosityProcess::Check()
 }
 
 
-const Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() const
+Parameters ShockCapturingEntropyViscosityProcess::GetDefaultParameters() const
 {
     return Parameters(R"(
     {

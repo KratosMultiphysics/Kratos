@@ -121,7 +121,7 @@ void RansNutNodalUpdateProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-const Parameters RansNutNodalUpdateProcess::GetDefaultParameters() const
+Parameters RansNutNodalUpdateProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

@@ -132,7 +132,7 @@ void SinusoidalPorositySolutionTransientBodyForceProcess::CalculateWaveNumber(
 
 }
 
-const Parameters SinusoidalPorositySolutionTransientBodyForceProcess::GetDefaultParameters() const
+Parameters SinusoidalPorositySolutionTransientBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

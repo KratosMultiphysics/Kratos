@@ -187,7 +187,7 @@ void RansComputeReactionsProcess::CalculateReactionValues(
     }
 }
 
-const Parameters RansComputeReactionsProcess::GetDefaultParameters() const
+Parameters RansComputeReactionsProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

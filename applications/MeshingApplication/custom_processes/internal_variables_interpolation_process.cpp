@@ -628,7 +628,7 @@ InternalVariablesInterpolationProcess::InterpolationTypes InternalVariablesInter
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters InternalVariablesInterpolationProcess::GetDefaultParameters() const
+Parameters InternalVariablesInterpolationProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

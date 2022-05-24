@@ -1275,7 +1275,7 @@ std::string MmgProcess<TMMGLibrary>::GetMmgVersion()
 /***********************************************************************************/
 
 template<MMGLibrary TMMGLibrary>
-const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
+Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

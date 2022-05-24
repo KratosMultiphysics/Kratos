@@ -65,7 +65,7 @@ ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
 }
 
 template<unsigned int TDim>
-const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters() const
+Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters() const
 {
     return Parameters(R"({
         "model_part_name" : "PLEASE_SPECIFY_MODEL_PART",

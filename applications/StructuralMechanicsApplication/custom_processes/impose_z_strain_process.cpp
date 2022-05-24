@@ -64,7 +64,7 @@ void ImposeZStrainProcess::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters ImposeZStrainProcess::GetDefaultParameters() const
+Parameters ImposeZStrainProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

@@ -655,7 +655,7 @@ inline void ShellToSolidShellProcess<TNumNodes>::CopyVariablesList(
 /***********************************************************************************/
 
 template<SizeType TNumNodes>
-const Parameters ShellToSolidShellProcess<TNumNodes>::GetDefaultParameters() const
+Parameters ShellToSolidShellProcess<TNumNodes>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

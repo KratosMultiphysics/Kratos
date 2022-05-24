@@ -1872,7 +1872,7 @@ bool BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::IsNotInvertedSe
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
-const Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters() const
+Parameters BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>::GetDefaultParameters() const
 {
     KRATOS_TRY
 

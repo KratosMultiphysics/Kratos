@@ -140,7 +140,7 @@ void SubModelPartSkinDetectionProcess<TDim>::CreateConditions(
 }
 
 template<SizeType TDim>
-const Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultParameters() const
+Parameters SubModelPartSkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
     Parameters defaults = SkinDetectionProcess<TDim>::GetDefaultParameters();
     defaults.AddEmptyValue("selection_criteria");

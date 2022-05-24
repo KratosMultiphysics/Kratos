@@ -402,7 +402,7 @@ void VariableVectorRetriever<ComputeNodalGradientProcessSettings::GetAsNonHistor
 /***********************************************************************************/
 
 template<bool THistorical>
-const Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters() const
+Parameters ComputeNodalGradientProcess<THistorical>::GetDefaultParameters() const
 {
     Parameters default_parameters = Parameters(R"(
     {

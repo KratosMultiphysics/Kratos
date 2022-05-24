@@ -79,7 +79,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    const Parameters CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetDefaultParameters() const
+    Parameters CalculateDiscontinuousDistanceToSkinProcess<TDim>::GetDefaultParameters() const
     {
         const Parameters default_parameters = Parameters(R"(
         {

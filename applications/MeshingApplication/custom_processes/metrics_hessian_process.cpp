@@ -457,7 +457,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
+Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

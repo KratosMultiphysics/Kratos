@@ -253,7 +253,7 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
 /***********************************************************************************/
 
 template<SizeType TDim>
-const Parameters ComputeLevelSetSolMetricProcess<TDim>::GetDefaultParameters() const
+Parameters ComputeLevelSetSolMetricProcess<TDim>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

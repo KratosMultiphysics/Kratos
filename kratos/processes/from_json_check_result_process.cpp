@@ -902,7 +902,7 @@ std::size_t FromJSONCheckResultProcess::ComputeRelevantDigits(const double Value
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters FromJSONCheckResultProcess::GetDefaultParameters() const
+Parameters FromJSONCheckResultProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

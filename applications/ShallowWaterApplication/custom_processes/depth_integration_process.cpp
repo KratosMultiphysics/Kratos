@@ -27,7 +27,7 @@ namespace Kratos
 {
 
 template<std::size_t TDim>
-const Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
+Parameters DepthIntegrationProcess<TDim>::GetDefaultParameters() const
 {
     auto default_parameters = Parameters(R"(
     {

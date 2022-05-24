@@ -41,7 +41,7 @@ HRomVisualizationMeshModeler::HRomVisualizationMeshModeler(
     mRomSettingsFilename = rParameters["rom_settings_filename"].GetString();
 }
 
-const Parameters HRomVisualizationMeshModeler::GetDefaultParameters() const
+Parameters HRomVisualizationMeshModeler::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

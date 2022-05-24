@@ -821,7 +821,7 @@ void MultiscaleRefiningProcess::GetLastId(
     }
 }
 
-const Parameters MultiscaleRefiningProcess::GetDefaultParameters() const
+Parameters MultiscaleRefiningProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

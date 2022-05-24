@@ -103,7 +103,7 @@ void HyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculateFunctionP
 
 }
 
-const Parameters HyperbolicTangentialPorositySolutionAndBodyForceProcess::GetDefaultParameters() const
+Parameters HyperbolicTangentialPorositySolutionAndBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

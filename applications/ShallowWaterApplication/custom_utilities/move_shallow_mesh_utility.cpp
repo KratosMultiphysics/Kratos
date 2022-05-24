@@ -42,7 +42,7 @@ MoveShallowMeshUtility::MoveShallowMeshUtility(
     FillVariablesList(mVectorVariablesToEulerian, ThisParameters["map_variables_to_eulerian"]);
 }
 
-const Parameters MoveShallowMeshUtility::GetDefaultParameters() const
+Parameters MoveShallowMeshUtility::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
         "map_variables_to_lagrangian" : ["TOPOGRAPHY","MANNING"],

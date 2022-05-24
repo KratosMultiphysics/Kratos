@@ -156,7 +156,7 @@ void MeshMovingModeler::SetupModelPart()
     ShallowWaterUtilities().OffsetIds(moving_model_part.Conditions(), fixed_model_part.Conditions().size());
 }
 
-const Parameters MeshMovingModeler::GetDefaultParameters() const
+Parameters MeshMovingModeler::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"({
         "input_file_name"                            : "",

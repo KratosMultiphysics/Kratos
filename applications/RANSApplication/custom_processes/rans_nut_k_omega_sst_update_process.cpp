@@ -237,7 +237,7 @@ void RansNutKOmegaSSTUpdateProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-const Parameters RansNutKOmegaSSTUpdateProcess::GetDefaultParameters() const
+Parameters RansNutKOmegaSSTUpdateProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

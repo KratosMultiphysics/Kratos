@@ -169,7 +169,7 @@ void RansNutYPlusWallFunctionUpdateProcess::PrintData(std::ostream& rOStream) co
 {
 }
 
-const Parameters RansNutYPlusWallFunctionUpdateProcess::GetDefaultParameters() const
+Parameters RansNutYPlusWallFunctionUpdateProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

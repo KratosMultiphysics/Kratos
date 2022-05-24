@@ -116,7 +116,7 @@ double ApplySinusoidalFunctionProcess<TVarType>::SmoothFactor(const double& rTim
 
 
 template<class TVarType>
-const Parameters ApplySinusoidalFunctionProcess<TVarType>::GetDefaultParameters() const
+Parameters ApplySinusoidalFunctionProcess<TVarType>::GetDefaultParameters() const
 {
     Parameters default_parameters = Parameters(R"(
     {

@@ -126,7 +126,7 @@ void RansApplyFlagToSkinProcess::ApplyConditionFlags(
     KRATOS_CATCH("");
 }
 
-const Parameters RansApplyFlagToSkinProcess::GetDefaultParameters() const
+Parameters RansApplyFlagToSkinProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

@@ -93,7 +93,7 @@ void RansClipScalarVariableProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-const Parameters RansClipScalarVariableProcess::GetDefaultParameters() const
+Parameters RansClipScalarVariableProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

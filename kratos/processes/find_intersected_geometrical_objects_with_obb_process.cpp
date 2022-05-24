@@ -449,7 +449,7 @@ void FindIntersectedGeometricalObjectsWithOBBProcess::CreateDebugOBB3D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters FindIntersectedGeometricalObjectsWithOBBProcess::GetDefaultParameters() const
+Parameters FindIntersectedGeometricalObjectsWithOBBProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

@@ -383,7 +383,7 @@ void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters FindIntersectedGeometricalObjectsProcess::GetDefaultParameters() const
+Parameters FindIntersectedGeometricalObjectsProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

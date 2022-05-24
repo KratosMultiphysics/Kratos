@@ -247,7 +247,7 @@ void RansApplyExactNodalPeriodicConditionProcess::CalculateRotationMatrix(
     rOutput(2, 1) = 2. * uy * uz * s1 * s1 + ux * s2;
 }
 
-const Parameters RansApplyExactNodalPeriodicConditionProcess::GetDefaultParameters() const
+Parameters RansApplyExactNodalPeriodicConditionProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

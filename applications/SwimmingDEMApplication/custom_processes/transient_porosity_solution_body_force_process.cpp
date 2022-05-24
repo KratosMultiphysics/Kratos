@@ -104,7 +104,7 @@ void TransientPorositySolutionBodyForceProcess::CalculatePermeability(double &dy
 
 }
 
-const Parameters TransientPorositySolutionBodyForceProcess::GetDefaultParameters() const
+Parameters TransientPorositySolutionBodyForceProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

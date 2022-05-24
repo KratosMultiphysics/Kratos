@@ -367,7 +367,7 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
 /***********************************************************************************/
 
 template<SizeType TDim>
-const Parameters NodalValuesInterpolationProcess<TDim>::GetDefaultParameters() const
+Parameters NodalValuesInterpolationProcess<TDim>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

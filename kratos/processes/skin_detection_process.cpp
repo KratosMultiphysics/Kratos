@@ -339,7 +339,7 @@ void SkinDetectionProcess<TDim>::SetUpAdditionalSubModelParts(const ModelPart& r
 /***********************************************************************************/
 
 template<SizeType TDim>
-const Parameters SkinDetectionProcess<TDim>::GetDefaultParameters() const
+Parameters SkinDetectionProcess<TDim>::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

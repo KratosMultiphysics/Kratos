@@ -77,7 +77,7 @@ MPCContactSearchWrapperProcess::MPCContactSearchWrapperProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters MPCContactSearchWrapperProcess::GetDefaultParameters() const
+Parameters MPCContactSearchWrapperProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

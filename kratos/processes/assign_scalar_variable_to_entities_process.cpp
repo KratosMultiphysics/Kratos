@@ -76,7 +76,7 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
 /***********************************************************************************/
 
 template<class TEntity>
-const Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParameters() const
+Parameters AssignScalarVariableToEntitiesProcess<TEntity>::GetDefaultParameters() const
 {
     const Parameters default_parameters( R"(
     {

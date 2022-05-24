@@ -79,7 +79,7 @@ void SetCartesianLocalAxesProcess::ExecuteInitializeSolutionStep()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters SetCartesianLocalAxesProcess::GetDefaultParameters() const
+Parameters SetCartesianLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

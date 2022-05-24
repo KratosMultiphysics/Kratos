@@ -78,7 +78,7 @@ namespace Kratos
         CalculatePhysicsBasedShockCapturing();
     }
 
-    const Parameters ShockCapturingPhysicsBasedProcess::GetDefaultParameters() const
+    Parameters ShockCapturingPhysicsBasedProcess::GetDefaultParameters() const
     {
         const Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",

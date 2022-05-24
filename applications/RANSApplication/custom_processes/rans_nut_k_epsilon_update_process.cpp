@@ -135,7 +135,7 @@ void RansNutKEpsilonUpdateProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-const Parameters RansNutKEpsilonUpdateProcess::GetDefaultParameters() const
+Parameters RansNutKEpsilonUpdateProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

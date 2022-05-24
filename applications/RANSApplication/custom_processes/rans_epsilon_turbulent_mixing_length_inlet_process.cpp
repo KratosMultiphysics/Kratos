@@ -119,7 +119,7 @@ void RansEpsilonTurbulentMixingLengthInletProcess::PrintData(std::ostream& rOStr
 {
 }
 
-const Parameters RansEpsilonTurbulentMixingLengthInletProcess::GetDefaultParameters() const
+Parameters RansEpsilonTurbulentMixingLengthInletProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
         {

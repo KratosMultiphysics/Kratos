@@ -197,7 +197,7 @@ void FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::MarkIfInterse
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::GetDefaultParameters() const
+Parameters FindIntersectedGeometricalObjectsWithOBBContactSearchProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {

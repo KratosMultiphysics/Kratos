@@ -45,7 +45,7 @@ ComputePressureCoefficientProcess::ComputePressureCoefficientProcess(
 }
 
 
-const Parameters ComputePressureCoefficientProcess::GetDefaultParameters() const
+Parameters ComputePressureCoefficientProcess::GetDefaultParameters() const
 {
     return Parameters( R"(
     {
