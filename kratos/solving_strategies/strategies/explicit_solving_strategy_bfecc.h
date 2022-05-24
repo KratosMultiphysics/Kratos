@@ -121,7 +121,7 @@ public:
 
     // Time-stepping settings
     struct SubstepData {
-        enum Direction : int {BACKWARD=-1, FORWARD=1};
+        enum Direction : int {BACK=-1, FORTH=1};
 
         SubstepData(double Theta, Direction Dir)
             : theta(Theta), direction(static_cast<int>(Dir))
@@ -334,8 +334,10 @@ protected:
      */
     LocalSystemVectorType CopySolutionStepData(const SubstepData SData)
     {
-        const SizeType source      = SData.direction == SubstepData::FORWARD ? 1 : 0;
-        const SizeType destination = SData.direction == SubstepData::FORWARD ? 0 : 1;
+        KRATOS_TRY
+
+        const SizeType source      = SData.direction == SubstepData::FORTH ? 1 : 0;
+        const SizeType destination = SData.direction == SubstepData::FORTH ? 0 : 1;
 
         // Get the required data from the explicit builder and solver
         auto& r_explicit_bs = BaseType::GetExplicitBuilder();
@@ -536,21 +538,21 @@ private:
         {
             case FORWARD:
             {
-                SubstepData s = {0.0, SubstepData::FORWARD};
+                SubstepData s = {0.0, SubstepData::FORTH};
                 s.u_fixed = CopySolutionStepData(s);
                 InitializeBFECCForwardSubstep();
                 return s;
             }
             case BACKWARD:
             {
-                SubstepData s = {1.0, SubstepData::BACKWARD};
+                SubstepData s = {1.0, SubstepData::BACK};
                 s.u_fixed = CopySolutionStepData(s);
                 InitializeBFECCBackwardSubstep();
                 return s;
             }
             case FINAL:
             {
-                SubstepData s = {0.0, SubstepData::FORWARD};
+                SubstepData s = {0.0, SubstepData::FORTH};
                 s.u_fixed = CopySolutionStepData(s);
                 InitializeBFECCFinalSubstep();
                 return s;
