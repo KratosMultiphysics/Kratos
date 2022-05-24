@@ -24,15 +24,18 @@ def ReadNodalVariableToList(model_part, nodal_variable):
     return variable_values_list
 
 # --------------------------------------------------------------------------
-def WriteListToNodalVariable(input_list, model_part, nodal_variable):
-    if len(input_list) != model_part.NumberOfNodes()*3:
+def WriteListToNodalVariable(input_list, model_part, nodal_variable, dimension=3):
+    if len(input_list) != model_part.NumberOfNodes()*dimension:
         raise RuntimeError("custom_variable_utility::WriteListToNodalVariable: Wrong size of input_list!")
 
     k = 0
     for node in model_part.Nodes:
-        tmp_values = input_list[k:k+3]
+        if dimension == 1:
+            tmp_values = input_list[k]
+        else:
+            tmp_values = input_list[k:k+dimension]
         node.SetSolutionStepValue(nodal_variable, tmp_values)
-        k = k+3
+        k = k+dimension
 
 # --------------------------------------------------------------------------
 def WriteNodeCoordinatesToList(model_part):

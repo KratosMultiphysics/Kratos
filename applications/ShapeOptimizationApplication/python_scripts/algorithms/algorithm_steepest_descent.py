@@ -21,7 +21,7 @@ from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base i
 from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable, WriteListToNodalVariable
 from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 
 # ==============================================================================
@@ -140,12 +140,16 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.optimization_iteration += 1
 
         # save previous search direction and objective gradient
-        d_prev = []
-        df_prev = []
+        d_prev_c = []
+        d_prev_x = []
+        df_prev_c = []
+        df_prev_x = []
         for node in self.design_surface.Nodes:
             # The following variables are not yet updated and therefore contain the information from the previos step
-            d_prev.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
-            df_prev.append(node.GetSolutionStepValue(KSO.DF1DX))
+            d_prev_x.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
+            df_prev_x.append(node.GetSolutionStepValue(KSO.DF1DX))
+            d_prev_c.append(node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE))
+            df_prev_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
 
         self.__initializeNewShape()
         # self.__analyzeShape()
@@ -164,20 +168,55 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             self.model_part_controller.ComputeUnitSurfaceNormals()
             self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
 
+        # map df
+        self.mapper.Update()
+        self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
         # set variables to zero
-        KM.VariableUtils().SetVariable(KSO.CONTROL_POINT_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-        KM.VariableUtils().SetVariable(KSO.SHAPE_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-        KM.VariableUtils().SetVariable(KSO.DF1DX_MAPPED, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+        # KM.VariableUtils().SetVariable(KSO.CONTROL_POINT_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+        # KM.VariableUtils().SetVariable(KSO.SHAPE_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+        # KM.VariableUtils().SetVariable(KSO.DF1DX_MAPPED, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
 
-        df = []
+        df_c = []
+        df_x = []
         for node in self.design_surface.Nodes:
-            df.append(node.GetSolutionStepValue(KSO.DF1DX))
+            df_x.append(node.GetSolutionStepValue(KSO.DF1DX))
+            df_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
 
+        d_c = []
+        hessian_diag_c = []
+        d_x = []
+        hessian_diag_x = []
         for i in range(len(self.design_surface.Nodes)):
-            delta_df = cm.Minus(df[i], df_prev[i])
-            alpha = abs(cm.Dot(delta_df, delta_df) / cm.Dot(delta_df, d_prev[i]))
-            d = cm.ScalarVectorProduct(alpha, df[i])
-            KM.VariableUtils().SetVariable(KSO.SENS_HEATMAP, KM.Vector(d), self.design_surface.GetNode(i))
+            delta_f_c = cm.Minus(df_c[i], df_prev_c[i])
+            alpha_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, d_prev_c[i]))
+            s_c = cm.ScalarVectorProduct(-1/alpha_c, df_c[i])
+            d_c.append(s_c[0])
+            d_c.append(s_c[1])
+            d_c.append(s_c[2])
+            hessian_diag_c.append(alpha_c)
+
+            delta_f_x = cm.Minus(df_x[i], df_prev_x[i])
+            alpha_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, d_prev_x[i]))
+            s_x = cm.ScalarVectorProduct(-1/alpha_x, df_x[i])
+            d_x.append(s_x[0])
+            d_x.append(s_x[1])
+            d_x.append(s_x[2])
+            hessian_diag_x.append(alpha_x)
+
+
+
+        # KM.Logger.Print("")
+        # KM.Logger.PrintInfo("Length of d", len(d_c))
+        # KM.Logger.PrintInfo("Length of hessian_diag", len(hessian_diag))
+        # KM.Logger.PrintInfo("Number of nodes", self.design_surface.NumberOfNodes())
+
+
+        WriteListToNodalVariable(hessian_diag_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_1D, 1)
+        WriteListToNodalVariable(d_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_3D, 3)
+        WriteListToNodalVariable(hessian_diag_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_1D, 1)
+        WriteListToNodalVariable(d_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_3D, 3)
+
+        # KM.VariableUtils().SetVariable(KSO.SENS_HEATMAP, KM.Vector(d), self.design_surface.Nodes)
 
 
         # # copy objective sensitivities to heat map
