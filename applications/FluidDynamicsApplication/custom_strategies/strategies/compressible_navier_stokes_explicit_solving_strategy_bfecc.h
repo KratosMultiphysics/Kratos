@@ -321,8 +321,11 @@ private:
 
     void StashDiffusiveConstants()
     {
+        KRATOS_TRY
+
         auto& model_part = BaseType::GetModelPart();
-        if(model_part.NumberOfElements() == 0) return;
+        
+        KRATOS_ERROR_IF(model_part.NumberOfElements() == 0) << "Model part is devoid of elements!"; // This error must be removed when MPI is implemented
 
         auto& properties = model_part.ElementsBegin()->GetProperties();
 
@@ -339,12 +342,17 @@ private:
             mDiffusionStash.dynamic_viscosity = r_dynamic_viscosity;
             r_dynamic_viscosity = 0;
         }
+
+        KRATOS_CATCH("")
     }
 
     void PopDiffusiveConstants()
     {
+        KRATOS_TRY
+
         auto& model_part = BaseType::GetModelPart();
-        if(model_part.NumberOfElements() == 0) return;
+        
+        KRATOS_ERROR_IF(model_part.NumberOfElements() == 0) << "Model part is devoid of elements!"; // This error must be removed when MPI is implemented
 
         auto& properties = model_part.ElementsBegin()->GetProperties();
 
@@ -360,6 +368,8 @@ private:
 
         mDiffusionStash.conductivity.reset();
         mDiffusionStash.dynamic_viscosity.reset();
+
+        KRATOS_CATCH("")
     }
 
     ///@}
