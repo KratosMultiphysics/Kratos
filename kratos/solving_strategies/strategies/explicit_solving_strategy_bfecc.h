@@ -345,16 +345,18 @@ protected:
         LocalSystemVectorType u_fixed(dof_size);
         IndexPartition<SizeType>(r_dof_set.size()).for_each(
             [&](const SizeType i_dof){
-                auto it_dof = r_dof_set.begin() + i_dof;
-                double& r_u_0 = it_dof->GetSolutionStepValue(destination);
-                if (it_dof->IsFixed()) {
+                auto r_dof = *(r_dof_set.begin() + i_dof);
+                double& r_u_0 = r_dof.GetSolutionStepValue(destination);
+                if (r_dof.IsFixed()) {
                     u_fixed(i_dof) = r_u_0;
                 }
-                r_u_0 = it_dof->GetSolutionStepValue(source);
+                r_u_0 = r_dof.GetSolutionStepValue(source);
             }
         );
 
         return u_fixed;
+
+        KRATOS_CATCH("")
     }
 
     LocalSystemVectorType ExtractSolutionStepData(const SizeType BufferPosition) const
@@ -412,9 +414,7 @@ protected:
     virtual void FinalizeBFECCFinalSubstep() {};
 
     /**
-     * @brief Performs an intermediate RK4 step
-     * This functions performs all the operations required in an intermediate RK4 sub step
-     * @param rFixedDofsValues The vector containing the step n+1 values of the fixed DOFs
+     * @brief Performs a substep
      * @param Substep The type of substep it is
      */
     virtual void PerformSubstep(const Substep SubstepType)
@@ -432,7 +432,7 @@ protected:
         auto& r_model_part = BaseType::GetModelPart();
         auto& r_process_info = r_model_part.GetProcessInfo();
 
-        // Perform the intermidate sub step update
+        // Clone the previous step and initialize values
         const auto substep_settings = InitializeSubstep(SubstepType);
 
         r_process_info.GetValue(TIME_INTEGRATION_THETA) = substep_settings.theta;
