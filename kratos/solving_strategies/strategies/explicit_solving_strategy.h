@@ -283,7 +283,7 @@ public:
 
     /**
      * @brief Operations to get the pointer to the explicit builder and solver
-     * @return mpExplicitBuilder: The explicit builder and solver
+     * @return mpExplicitBuilder: A pointer to the explicit builder and solver
      */
     ExplicitBuilderPointerType pGetExplicitBuilder()
     {
@@ -292,7 +292,7 @@ public:
 
     /**
      * @brief Operations to get the explicit builder and solver
-     * @return mpExplicitBuilder: The explicit builder and solver
+     * @return The explicit builder and solver
      */
     ExplicitBuilderType& GetExplicitBuilder()
     {
@@ -302,7 +302,7 @@ public:
 
     /**
      * @brief Operations to get the explicit builder and solver
-     * @return mpExplicitBuilder: The explicit builder and solver
+     * @return The explicit builder and solver
      */
     const ExplicitBuilderType& GetExplicitBuilder() const
     {
