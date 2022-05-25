@@ -296,7 +296,7 @@ public:
      */
     ExplicitBuilderType& GetExplicitBuilder()
     {
-        KRATOS_DEBUG_ERROR_IF(mpExplicitBuilder == nullptr) << "Asking for builder and solver when it is empty" << std::endl;
+        KRATOS_ERROR_IF(mpExplicitBuilder == nullptr) << "Asking for builder and solver when it is empty" << std::endl;
         return *mpExplicitBuilder;
     };
 
@@ -306,7 +306,7 @@ public:
      */
     const ExplicitBuilderType& GetExplicitBuilder() const
     {
-        KRATOS_DEBUG_ERROR_IF(mpExplicitBuilder == nullptr) << "Asking for builder and solver when it is empty" << std::endl;
+        KRATOS_ERROR_IF(mpExplicitBuilder == nullptr) << "Asking for builder and solver when it is empty" << std::endl;
         return *mpExplicitBuilder;
     };
 
