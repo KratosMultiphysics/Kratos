@@ -3,16 +3,15 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                     license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Alejandro Cornejo
 //
 
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED
+#if !defined(KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED )
+#define  KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -22,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/base_solid_element.h"
+#include "custom_elements/total_lagrangian.h"
 #include "includes/variables.h"
 
 namespace Kratos
@@ -45,57 +44,42 @@ namespace Kratos
 ///@{
 
 /**
- * @class TotalLagrangian
+ * @class TotalLagrangianQ1P0MixedElement
  * @ingroup StructuralMechanicsApplication
- * @brief Total Lagrangian element for 2D and 3D geometries.
- * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
- * @author Riccardo Rossi
- * @author Vicente Mataix Ferrandiz
+ * @brief Total Lagrangian mixed u-p element (Q1P0) for 2D and 3D geometries.
+ * @details Implements a mixed u-p total Lagrangian element for structural analysis, especially when quasi-incompressibility is used at constitutive level. This works for arbitrary geometries in 2D and 3D
+ * @details Reference: Numerical modelling of the growth and remodelling phenomena in biological tissues, PhD thesis, Ester Comellas.
+ * @author Alejandro Cornejo
  */
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
-    : public BaseSolidElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangianQ1P0MixedElement
+    : public TotalLagrangian
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
-
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
     /// The base element type
-    typedef BaseSolidElement BaseType;
+    typedef TotalLagrangian BaseType;
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
-
-    /// Counted pointer of TotalLagrangian
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangian);
+    /// Counted pointer of TotalLagrangianQ1P0MixedElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianQ1P0MixedElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
-    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    TotalLagrangianQ1P0MixedElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    TotalLagrangianQ1P0MixedElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Copy constructor
-    TotalLagrangian(TotalLagrangian const& rOther)
+    TotalLagrangianQ1P0MixedElement(TotalLagrangianQ1P0MixedElement const& rOther)
         :BaseType(rOther)
     {};
 
     /// Destructor.
-    ~TotalLagrangian() override;
+    ~TotalLagrangianQ1P0MixedElement() override;
 
     ///@}
     ///@name Operators
@@ -142,12 +126,6 @@ public:
         NodesArrayType const& rThisNodes
         ) const override;
 
-    //std::string Info() const;
-
-    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
-                                    Matrix& rOutput,
-                                    const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -163,14 +141,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        buffer << "TotalLagrangianQ1P0MixedElement #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        rOStream << "TotalLagrangianQ1P0MixedElement #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
     }
 
     /// Print object's data.
@@ -195,7 +173,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    TotalLagrangian() : BaseSolidElement()
+    TotalLagrangianQ1P0MixedElement() : TotalLagrangian()
     {
     }
 
@@ -216,21 +194,36 @@ protected:
         ) override;
 
     /**
-     * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated
-     * @param PointNumber The integration point considered
-     * @param rIntegrationMethod The integration method considered
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateKinematicVariables(
-        KinematicVariables& rThisKinematicVariables,
-        const IndexType PointNumber,
-        const GeometryType::IntegrationMethod& rIntegrationMethod
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
-     * @brief This method returns the size of the strain vector
+     * @brief It computes the bulk modulus
      */
-    std::size_t GetStrainSize() const;
+    double CalculateBulkModulus(
+        const Properties &rProperties);
+
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration
+     */
+    void FinalizeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected Operations
@@ -261,53 +254,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief This method computes the deformation matrix B
-     * @param rB The deformation matrix
-     * @param rF The deformation gradient
-     * @param rDN_DX The gradient derivative of the shape function
-     */
-    void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
-
-    void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
-
-    void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
-
-    void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
-
-    void CalculateStress(Vector& rStrain,
-                         std::size_t IntegrationPoint,
-                         Vector& rStress,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateStress(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStress,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateStrain(Matrix const& rF,
-                         std::size_t IntegrationPoint,
-                         Vector& rStrain,
-                         ProcessInfo const& rCurrentProcessInfo);
-
-    void CalculateShapeSensitivity(ShapeParameter Deriv,
-                                   Matrix& rDN_DX0,
-                                   Matrix& rDN_DX0_Deriv,
-                                   Matrix& rF_Deriv,
-                                   double& rDetJ0_Deriv,
-                                   std::size_t IntegrationPointIndex);
-
-    void CalculateBSensitivity(Matrix const& rDN_DX,
-                               Matrix const& rF,
-                               Matrix const& rDN_DX_Deriv,
-                               Matrix const& rF_Deriv,
-                               Matrix& rB_Deriv);
-
-
-    bool IsAxissymmetric() const;
 
     ///@}
     ///@name Private  Access
@@ -347,4 +293,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined
+#endif // KRATOS_TOTAL_LAGRANGIAN_Q1P0_MIXED_ELEMENT_H_INCLUDED  defined

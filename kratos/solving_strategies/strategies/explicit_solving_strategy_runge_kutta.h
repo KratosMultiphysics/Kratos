@@ -183,18 +183,6 @@ public:
         return default_parameters;
     }
 
-    /**
-     * @brief Returns the name of the class as used in the settings (snake_case format)
-     * @return The name of the class
-     */
-    static std::string Name()
-    {
-        std::stringstream s;
-        s << "explicit_solving_strategy_runge_kutta"
-          << "[TButcherTableau=" << TButcherTableau::Name() << "]";
-        return s.str();
-    }
-
     ///@}
     ///@name Operators
     ///@{
@@ -214,11 +202,22 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        std::stringstream s;
+        s << "explicit_solving_strategy_runge_kutta_" << TButcherTableau::Name();
+        return s.str();
+    }
+
+    /// Return information as a string.
     std::string Info() const override
     {
         std::stringstream ss;
-        ss << "ExplicitSolvingStrategyRungeKutta with tableau " << mButcherTableau.Name();
+        ss << "ExplicitSolvingStrategyRungeKutta<" << mButcherTableau.Info() << ">";
         return ss.str();
     }
 
