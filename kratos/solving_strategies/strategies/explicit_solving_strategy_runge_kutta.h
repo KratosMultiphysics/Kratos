@@ -260,7 +260,7 @@ protected:
         KRATOS_TRY
 
         // Get the required data from the explicit builder and solver
-auto& r_explicit_bs = BaseType::GetExplicitBuilder();
+        auto& r_explicit_bs = BaseType::GetExplicitBuilder();
         auto& r_dof_set = r_explicit_bs.GetDofSet();
         const unsigned int dof_size = r_explicit_bs.GetEquationSystemSize();
         const auto& r_lumped_mass_vector = r_explicit_bs.GetLumpedMassMatrixVector();
