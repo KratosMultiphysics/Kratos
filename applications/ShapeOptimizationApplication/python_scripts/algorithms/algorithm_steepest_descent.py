@@ -112,6 +112,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             timer.StartNewLap()
 
+            if self.optimization_iteration > 1:
+                self.__savePreviousGradientAndUpdate()
+
             self.__initializeNewShape()
 
             self.__analyzeShape()
@@ -120,6 +123,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 self.__adjustStepSize()
 
             self.__computeShapeUpdate()
+
+            if self.optimization_iteration > 1:
+                self.__computeSensitivityHeatmap()
 
             self.__logCurrentOptimizationStep()
 
@@ -135,99 +141,132 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
 
-        ############ Calculate heatmap
-        # final update of shape
-        self.optimization_iteration += 1
+        # ############ Calculate heatmap
+        # # final update of shape
+        # self.optimization_iteration += 1
 
+        # # save previous search direction and objective gradient
+        # d_prev_c = []
+        # d_prev_x = []
+        # df_prev_c = []
+        # df_prev_x = []
+        # for node in self.design_surface.Nodes:
+        #     # The following variables are not yet updated and therefore contain the information from the previos step
+        #     d_prev_x.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
+        #     df_prev_x.append(node.GetSolutionStepValue(KSO.DF1DX))
+        #     d_prev_c.append(node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE))
+        #     df_prev_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+
+        # self.__initializeNewShape()
+        # # self.__analyzeShape()
+
+        # # analyzeShape without damping
+        # self.communicator.initializeCommunication()
+        # self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
+        # self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
+
+        # self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
+
+        # objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
+        # WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
+
+        # if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
+        #     self.model_part_controller.ComputeUnitSurfaceNormals()
+        #     self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
+
+        # # map df
+        # self.mapper.Update()
+        # self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
+        # # set variables to zero
+        # # KM.VariableUtils().SetVariable(KSO.CONTROL_POINT_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+        # # KM.VariableUtils().SetVariable(KSO.SHAPE_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+        # # KM.VariableUtils().SetVariable(KSO.DF1DX_MAPPED, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
+
+        # df_c = []
+        # df_x = []
+        # for node in self.design_surface.Nodes:
+        #     df_x.append(node.GetSolutionStepValue(KSO.DF1DX))
+        #     df_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+
+        # d_c = []
+        # hessian_diag_c = []
+        # d_x = []
+        # hessian_diag_x = []
+        # for i in range(len(self.design_surface.Nodes)):
+        #     delta_f_c = cm.Minus(df_c[i], df_prev_c[i])
+        #     alpha_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, d_prev_c[i]))
+        #     s_c = cm.ScalarVectorProduct(-1/alpha_c, df_c[i])
+        #     d_c.append(s_c[0])
+        #     d_c.append(s_c[1])
+        #     d_c.append(s_c[2])
+        #     hessian_diag_c.append(alpha_c)
+
+        #     delta_f_x = cm.Minus(df_x[i], df_prev_x[i])
+        #     alpha_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, d_prev_x[i]))
+        #     s_x = cm.ScalarVectorProduct(-1/alpha_x, df_x[i])
+        #     d_x.append(s_x[0])
+        #     d_x.append(s_x[1])
+        #     d_x.append(s_x[2])
+        #     hessian_diag_x.append(alpha_x)
+
+        # WriteListToNodalVariable(hessian_diag_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_1D, 1)
+        # WriteListToNodalVariable(d_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_3D, 3)
+        # WriteListToNodalVariable(hessian_diag_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_1D, 1)
+        # WriteListToNodalVariable(d_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_3D, 3)
+
+        # self.__logCurrentOptimizationStep()
+        # ############ End of Calculate heatmap
+
+        self.data_logger.FinalizeDataLogging()
+        self.analyzer.FinalizeAfterOptimizationLoop()
+
+    # --------------------------------------------------------------------------
+    def __savePreviousGradientAndUpdate(self):
         # save previous search direction and objective gradient
-        d_prev_c = []
-        d_prev_x = []
-        df_prev_c = []
-        df_prev_x = []
+        self.d_prev_c = []
+        self.d_prev_x = []
+        self.df_prev_c = []
+        self.df_prev_x = []
         for node in self.design_surface.Nodes:
             # The following variables are not yet updated and therefore contain the information from the previos step
-            d_prev_x.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
-            df_prev_x.append(node.GetSolutionStepValue(KSO.DF1DX))
-            d_prev_c.append(node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE))
-            df_prev_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+            self.d_prev_x.append(node.GetSolutionStepValue(KSO.SHAPE_UPDATE))
+            self.df_prev_x.append(-1.0*node.GetSolutionStepValue(KSO.DF1DX))
+            self.d_prev_c.append(node.GetSolutionStepValue(KSO.CONTROL_POINT_UPDATE))
+            self.df_prev_c.append(-1.0*node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
 
-        self.__initializeNewShape()
-        # self.__analyzeShape()
-
-        # analyzeShape without damping
-        self.communicator.initializeCommunication()
-        self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
-        self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
-
-        self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
-
-        objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
-        WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
-
-        if self.objectives[0]["project_gradient_on_surface_normals"].GetBool():
-            self.model_part_controller.ComputeUnitSurfaceNormals()
-            self.model_part_controller.ProjectNodalVariableOnUnitSurfaceNormals(KSO.DF1DX)
-
-        # map df
-        self.mapper.Update()
-        self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
-        # set variables to zero
-        # KM.VariableUtils().SetVariable(KSO.CONTROL_POINT_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-        # KM.VariableUtils().SetVariable(KSO.SHAPE_UPDATE, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-        # KM.VariableUtils().SetVariable(KSO.DF1DX_MAPPED, KM.Vector([0, 0, 0]), self.design_surface.Nodes)
-
+    # --------------------------------------------------------------------------
+    def __computeSensitivityHeatmap(self):
         df_c = []
         df_x = []
         for node in self.design_surface.Nodes:
-            df_x.append(node.GetSolutionStepValue(KSO.DF1DX))
-            df_c.append(node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
+            df_x.append(-1.0*node.GetSolutionStepValue(KSO.DF1DX))
+            df_c.append(-1.0*node.GetSolutionStepValue(KSO.DF1DX_MAPPED))
 
         d_c = []
         hessian_diag_c = []
         d_x = []
         hessian_diag_x = []
         for i in range(len(self.design_surface.Nodes)):
-            delta_f_c = cm.Minus(df_c[i], df_prev_c[i])
-            alpha_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, d_prev_c[i]))
+            delta_f_c = cm.Minus(df_c[i], self.df_prev_c[i])
+            alpha_c = abs(cm.Dot(delta_f_c, delta_f_c) / cm.Dot(delta_f_c, self.d_prev_c[i]))
             s_c = cm.ScalarVectorProduct(-1/alpha_c, df_c[i])
             d_c.append(s_c[0])
             d_c.append(s_c[1])
             d_c.append(s_c[2])
             hessian_diag_c.append(alpha_c)
 
-            delta_f_x = cm.Minus(df_x[i], df_prev_x[i])
-            alpha_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, d_prev_x[i]))
+            delta_f_x = cm.Minus(df_x[i], self.df_prev_x[i])
+            alpha_x = abs(cm.Dot(delta_f_x, delta_f_x) / cm.Dot(delta_f_x, self.d_prev_x[i]))
             s_x = cm.ScalarVectorProduct(-1/alpha_x, df_x[i])
             d_x.append(s_x[0])
             d_x.append(s_x[1])
             d_x.append(s_x[2])
             hessian_diag_x.append(alpha_x)
 
-
-
-        # KM.Logger.Print("")
-        # KM.Logger.PrintInfo("Length of d", len(d_c))
-        # KM.Logger.PrintInfo("Length of hessian_diag", len(hessian_diag))
-        # KM.Logger.PrintInfo("Number of nodes", self.design_surface.NumberOfNodes())
-
-
         WriteListToNodalVariable(hessian_diag_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_1D, 1)
         WriteListToNodalVariable(d_c, self.design_surface, KSO.SENS_HEATMAP_CONTROL_3D, 3)
         WriteListToNodalVariable(hessian_diag_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_1D, 1)
         WriteListToNodalVariable(d_x, self.design_surface, KSO.SENS_HEATMAP_DESIGN_3D, 3)
-
-        # KM.VariableUtils().SetVariable(KSO.SENS_HEATMAP, KM.Vector(d), self.design_surface.Nodes)
-
-
-        # # copy objective sensitivities to heat map
-        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.DF1DX, KSO.SENS_HEATMAP)
-
-
-        self.__logCurrentOptimizationStep()
-        ############ End of Calculate heatmap
-
-        self.data_logger.FinalizeDataLogging()
-        self.analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
